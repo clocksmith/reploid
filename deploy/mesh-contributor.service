@@ -1,0 +1,18 @@
+[Unit]
+Description=Reploid public mesh compute contributor
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=300
+StartLimitBurst=5
+
+[Service]
+Type=simple
+WorkingDirectory=%h/deco/reploid
+EnvironmentFile=%h/.config/reploid/mesh-contributor.env
+ExecStart=/usr/bin/node scripts/run-mesh-contributor.js --url ${REPLOID_URL} --model ${REPLOID_MODEL} --profile %h/.local/share/reploid/public-compute --contribute compute
+Restart=on-failure
+RestartSec=30
+TimeoutStopSec=30
+
+[Install]
+WantedBy=default.target

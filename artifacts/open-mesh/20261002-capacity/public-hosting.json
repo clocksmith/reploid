@@ -1,0 +1,32 @@
+{
+  "url": "https://replo.id/",
+  "verifiedAt": "2026-10-02T20:59:08.322Z",
+  "bundleHash": "sha256:cba29a8a880b419bb332ece3e1b8ef1f4fa4422b13c85e45b085bbdfc43091cb",
+  "checks": [
+    {
+      "path": "config/browser-bundle-manifest.json",
+      "status": 200,
+      "matches": true
+    },
+    {
+      "path": "config/doppler-package.json",
+      "status": 200,
+      "matches": true
+    },
+    {
+      "path": "config/partition-policy.json",
+      "status": 200,
+      "matches": true
+    },
+    {
+      "path": "pool/rtc-config.js",
+      "status": 200,
+      "matches": true
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
+      "status": 200,
+      "matches": true
+    }
+  ]
+}

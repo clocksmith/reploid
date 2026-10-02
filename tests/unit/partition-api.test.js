@@ -354,9 +354,9 @@ describe('weightless requester entry', () => {
 });
 
 describe('automatic cooperative placement', () => {
-  it('discovers consenting executors and streams one inference to a weightless requester', async () => {
+  it.each([false, true])('discovers cooperative executors with replica coverage=%s', async replicate => {
     const { createAutomaticPartitions } = await import('../../packages/reploid/src/mesh/partitions/automatic-partitions.js');
-    const identities = await Promise.all([0, 1, 2].map(() => createSigningIdentity({ algorithm: 'ECDSA' })));
+    const identities = await Promise.all(Array.from({ length: replicate ? 4 : 3 }, () => createSigningIdentity({ algorithm: 'ECDSA' })));
     const registry = new Map(), meshes = [], factories = [], loaded = [];
     const model = { id: 'fixture', name: 'Injected partition model', provider: 'doppler',
       identity: 'sha256:' + 'a'.repeat(64), generation, adapters: [] };
@@ -383,6 +383,8 @@ describe('automatic cooperative placement', () => {
               const local = options.createEndpoint({ channel: left, remoteParticipantId: identities[Number(remoteId)].peerId });
               const remote = other.options.createEndpoint({ channel: right, remoteParticipantId: identity.peerId });
               endpoints.set(remoteId, local); other.endpoints.set(String(index), remote);
+              left.addEventListener('close', () => endpoints.delete(remoteId), { once: true });
+              right.addEventListener('close', () => other.endpoints.delete(String(index)), { once: true });
               options.onPeer?.(remoteId, local); other.options.onPeer?.(String(index), remote);
               return local;
             },
@@ -418,6 +420,30 @@ describe('automatic cooperative placement', () => {
     expect(result.execution.activationBytes).toBeGreaterThan(0);
     expect((await run('reuse')).content).toBe(result.content);
     expect(loaded).toHaveLength(2);
+    const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.now() + config.inputLimits.descriptorTtlMs + 1);
+    expect(meshes[0].getModels()).toEqual([]);
+    const expired = run('expired-availability');
+    clock.mockRestore();
+    await expect(expired).rejects.toThrow('No prepared');
+    if (replicate) {
+      await meshes[3].contribute(model.id, true);
+      await vi.waitFor(() => expect(meshes[3].getState().phase).toBe('ready'));
+      const pinned = await run('pinned');
+      expect(pinned.execution.participantA).toBe(result.execution.participantA);
+      expect(pinned.execution.participantB).toBe(result.execution.participantB);
+      expect(loaded).toHaveLength(3);
+      expect(loaded.at(-1).partition).toBe(1);
+      const lost = identities.findIndex(identity => identity.peerId === result.execution.participantB);
+      await meshes[lost].stop();
+      // Retry immediately, before the requester's next capability poll. The
+      // input owner reconciles loss and the requester approves the fresh pair.
+      const recovered = await run('replacement');
+      expect(recovered.content).toBe(result.content);
+      expect(recovered.execution.participantA).toBe(result.execution.participantA);
+      expect(recovered.execution.participantB).toBe(identities[3].peerId);
+      expect(loaded).toHaveLength(3); // Replacement uses already resident coverage.
+      return;
+    }
     await meshes[2].stop();
     await vi.waitFor(() => expect(meshes[0].getModels().some(m => m.availability === 'ready')).toBe(false));
     await expect(run('lost')).rejects.toThrow('No prepared');
@@ -425,5 +451,13 @@ describe('automatic cooperative placement', () => {
     await vi.waitFor(() => expect(meshes[0].getModels().some(m => m.availability === 'ready')).toBe(true));
     expect((await run('restarted')).content).toBe(result.content);
     expect(loaded).toHaveLength(3); // The still-consenting survivor retained its assigned weights.
+    const b = loaded.find(item => item.partition === 1).device;
+    await meshes[b].stop();
+    await meshes[b].contribute(model.id, true);
+    await vi.waitFor(() => expect(loaded).toHaveLength(4));
+    await new Promise(resolve => setTimeout(resolve, config.pollMs * 3));
+    await vi.waitFor(() => expect(meshes[0].getModels().some(m => m.availability === 'ready')).toBe(true));
+    expect((await run('fast-restart')).content).toBe(result.content);
+    expect(loaded).toHaveLength(4);
   });
 });

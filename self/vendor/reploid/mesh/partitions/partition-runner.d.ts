@@ -1,3 +1,5 @@
+import type { PartitionRequestTiming } from '../../transport/partition-data-channel.js';
+
 export interface PartitionPlan {
   schema: string;
   modelId: string;
@@ -97,6 +99,7 @@ export interface PartitionDeviceB extends PartitionDevice {
     stopReason?: string;
     continuation: unknown;
     logits?: Float32Array | number[] | null;
+    transportTiming?: PartitionRequestTiming | null;
   }>;
 }
 export interface PartitionRequest {
@@ -118,7 +121,11 @@ export interface PartitionResult {
     placement: 'two-device-layer-partition';
     splitLayer: number;
     activationBytes: number;
-    steps: Array<PartitionStep & { tokenId: number; activationBytes: number; transferMs: number | null; remoteStepMs: number | null; elapsedMs: number }>;
+    steps: Array<PartitionStep & { tokenId: number; activationBytes: number;
+      localStepMs: number; serializationMs: number;
+      computationA: Record<string, unknown> | null; computationB: Record<string, unknown> | null;
+      transferMs: number | null; remoteStepMs: number | null;
+      transportTiming: PartitionRequestTiming | null; elapsedMs: number }>;
   };
 }
 export interface LayerPartitionRunner {

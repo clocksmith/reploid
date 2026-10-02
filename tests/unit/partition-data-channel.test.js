@@ -44,6 +44,19 @@ function fixture(overrides = {}) {
 const frames = channel => channel.frames.filter(frame => frame instanceof ArrayBuffer);
 
 describe('partition binary transport (injected host ports)', () => {
+  it('observes bounded request phases without letting an observer break delivery', async () => {
+    const f = fixture();
+    let measured;
+    const result = await f.client.request({ thread: 'timed' }, new Uint8Array([1]), {
+      onTiming(timing) { measured = timing; throw Error('observer failure'); }
+    });
+    expect(result.values).toEqual([1]);
+    expect(Object.keys(measured)).toEqual(['authorizationMs', 'readyWaitMs', 'payloadUploadMs',
+      'responseWaitMs', 'acceptanceMs', 'totalMs']);
+    expect(Object.values(measured).every(value => Number.isFinite(value) && value >= 0)).toBe(true);
+    const { totalMs, ...phases } = measured;
+    expect(Object.values(phases).reduce((sum, value) => sum + value, 0)).toBeCloseTo(totalMs, 5);
+  });
   it('fragments exact binary bytes, snapshots caller input, isolates concurrent replies and counts application bytes', async () => {
     const f = fixture();
     const bytes = Uint8Array.from({ length: 49 }, (_, index) => index);

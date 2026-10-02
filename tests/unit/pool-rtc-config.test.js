@@ -47,3 +47,20 @@ describe('Pool browser RTC configuration', () => {
     })).rejects.toThrow('valid future expiry');
   });
 });
+
+it('coalesces renewal near expiry and retries a failed issuer without caching failure', async () => {
+  let clock = 100000;
+  const now = () => clock;
+  const config = credential => ({ expiresAt: new Date(clock + 60000).toISOString(),
+    rtcConfig: { iceServers: [{ urls: 'turn:fixture.invalid', username: 'fixture', credential }] } });
+  const sdk = { rtcConfig: vi.fn().mockImplementation(async () => config('first')) };
+  await Promise.all(Array.from({ length: 8 }, () => getPoolRtcConfig({ sdk, now })));
+  expect(sdk.rtcConfig).toHaveBeenCalledTimes(1);
+  clock += 31000;
+  sdk.rtcConfig.mockRejectedValueOnce(Error('issuer unavailable'));
+  await expect(getPoolRtcConfig({ sdk, now })).rejects.toThrow('issuer unavailable');
+  sdk.rtcConfig.mockImplementation(async () => config('renewed'));
+  const renewed = await Promise.all(Array.from({ length: 8 }, () => getPoolRtcConfig({ sdk, now })));
+  expect(sdk.rtcConfig).toHaveBeenCalledTimes(3);
+  expect(renewed.every(result => result.iceServers[0].credential === 'renewed')).toBe(true);
+});

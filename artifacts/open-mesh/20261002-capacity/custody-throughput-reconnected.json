@@ -1,0 +1,3562 @@
+{
+  "scope": "signed synthetic 4 MiB payload over physical WebRTC; no model inference",
+  "measurements": [
+    {
+      "concurrency": 1,
+      "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+      "elapsedMs": 1656.5,
+      "receipt": {
+        "schema": "reploid.pool.pack-custody-receipt/v1",
+        "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+        "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+        "attempt": 1,
+        "artifactSetIdentity": "sha256:9b6a4d1404c64f326aac6f9971ffdf72701e00cb231ef755686451049a0d9b48",
+        "indexDigest": "sha256:752282af39fbacb43e939847ed3d7d45d1768ad0a3dd16cec15d8660de8fbf3a",
+        "source": "peer",
+        "reservedBytes": 4194304,
+        "receivedBytes": 4194304,
+        "verificationBytes": 8388608,
+        "attempts": [
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 0,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:361dca8853b42a90e443f6d14d8726c4a10166a767ce89e0414e3079ccdd5c6b",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 0,
+              "offset": 0,
+              "sizeBytes": 262144,
+              "nonce": "d5778121-db45-4a9c-a077-77614381e0df",
+              "signature": "H4DRVpE/4c6BlAc5lRk0m3P0chbQAuucvomwfhGFr+/1WZz/v3zGIvpdZk+NVwRsnMjw19jLpdI0FSqvYNo99w=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:361dca8853b42a90e443f6d14d8726c4a10166a767ce89e0414e3079ccdd5c6b",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "Igwknf0DsUlqX5UAk9FuGrG7TeKaK8OShaCH/q2qegwBrr8KE0xDakQ4Gtd0+cMk/JqAlJpm/arT/s/3+YmnPQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 1,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:ff46afee5ee619291be747dc4794030983178720ad3e6d191e67de7fda7eab40",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 1,
+              "offset": 262144,
+              "sizeBytes": 262144,
+              "nonce": "5ca7a549-e42e-47f3-b74b-aa6450cbb75f",
+              "signature": "XGj3jxI2TTiaKCBWsEIVbY4PtziY+S3Cq0MWcTvgVSuedDD74bLPW6gehg+fWFXDtFkwFACLGpA3G2jErGO5zA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:ff46afee5ee619291be747dc4794030983178720ad3e6d191e67de7fda7eab40",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "aj1I/wB+yUsVqUIpeULqyxqcptIuTDYadndQX3cPI7KwWSxSkCZgivwAG8OOrNWL2L+gasDsg5fgXAM2Q6S5/w=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 2,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:ccc7c3f6c52f5a327cd5a0334612dd54f1d9970779b122bd515efef0503f87ee",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 2,
+              "offset": 524288,
+              "sizeBytes": 262144,
+              "nonce": "aac5a8e8-a00f-4051-b4e6-41ca42329093",
+              "signature": "21qqZjjrNkmDUjDVgkQed5NdB8J4Xz8Rk2i8RwHZaJLEzNwdcrg7ezQguNqIHlTojWHPUdm9DYP+RCpKHE2nsw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:ccc7c3f6c52f5a327cd5a0334612dd54f1d9970779b122bd515efef0503f87ee",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "QAjOVmFpyKyazYd2CaqSbapUL1syzIDV9smvZ2OSKszJTKCsNbFHUdXikPdb5iQ+AeMuzi4HYlrto9GMvXf3tQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 3,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:845cf68e24859a1352e96373318023f3c1d977de43f2e937ac5e02f942d2fad4",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 3,
+              "offset": 786432,
+              "sizeBytes": 262144,
+              "nonce": "794dc354-0402-4332-a5d3-6f2ac1aecb82",
+              "signature": "5zaFcz3MCJrA/KI+D4RMNoQhFCoDpuORyBGRg+7yRqKKrJSxvM9BiifvmFWA6JO8G5oC2q8r0QpaID+AQaOuYw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:845cf68e24859a1352e96373318023f3c1d977de43f2e937ac5e02f942d2fad4",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "C7FH2FmycfjY2YFyMo3yGYTerVqti4fQy/hlrTsYS5JyXi6JJD1pSJ5Q7itST8/SAdwgwKVlJkWjkPC3JX2TNw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 4,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:45f4dd384866d6a64fd2571c3544b5d7b1bea785fee5073155e608efd6242d59",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 4,
+              "offset": 1048576,
+              "sizeBytes": 262144,
+              "nonce": "71a011a1-bb64-4cae-9cd0-f28d776569ca",
+              "signature": "zh7EzfuB4JHX9FNEtwePUAWbVlgjFt+xg2A/+IDyFZlmYeB/4Xzl58SU46/SmhKOKxadiMOj6tPibYoKYpZsSg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:45f4dd384866d6a64fd2571c3544b5d7b1bea785fee5073155e608efd6242d59",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "LSNbv5ahl99yh6zH82vCJ0CGuOTWbS/PavVMM/99j1NVjKzkDNDTihHYG8D+hcTXPs19+3YbpnIKc/1p6NpkcA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 5,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:ab994d7ae87cb24d71d505fe7290e458b3920a1e824e87d523b5cd9c68121d04",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 5,
+              "offset": 1310720,
+              "sizeBytes": 262144,
+              "nonce": "702bc95f-8d7d-4831-87d2-d1e382460887",
+              "signature": "23W5Ue6NEZa+MBaVL9wgwNubyM5JclZLJ/4O88CPrbAyH+j70P9QRSNs5eSuI+rX0LJyQDUc5nDXnqpaRNGycw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:ab994d7ae87cb24d71d505fe7290e458b3920a1e824e87d523b5cd9c68121d04",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "MimT7DVFfzk/3eWEuBqM9exED9QP2Wsa8iAQBGpRnLxAN4/6as9kMU2iA0sm6H/RVc+RbJ8ITJyFFNiy3GzjNw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 6,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:5c3d476c58d2c0d212ffdbf5f58505d601e424ebc137ac6f2ed9e79a1b3a4021",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 6,
+              "offset": 1572864,
+              "sizeBytes": 262144,
+              "nonce": "e8e14fad-bc1c-45b3-b652-a1a217b2cb4a",
+              "signature": "9axnF8B6RyfbyMjT6TFfAFDoM5qH2z5UFLhZv/sT/4/C93LaSsumLr12RpdOb5KmtwdplmsVDk6cImPSl8anjQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:5c3d476c58d2c0d212ffdbf5f58505d601e424ebc137ac6f2ed9e79a1b3a4021",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "TW/oeZaGJ9AhzHYDKgz5wJFApj+SiGDtQxY4DjxBnHTV1sH/BHk2j7aJReJZMMhxBbgKWU29vwD0vVvNdooepw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 7,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:b140dfeab93bd1da38b4c6652da6ed11e009d0b5d3addb4a3820bdce622072d9",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 7,
+              "offset": 1835008,
+              "sizeBytes": 262144,
+              "nonce": "e9d46a1a-9be7-453b-b9fb-9b307c345de6",
+              "signature": "maDsSSrnsIcjCivVXzvfeZqTPdOha9uWPTWuYsf1crjpGm8r4h58R8ZIGt4QIivwip2qsPFFi/yrgasTwwUqJg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:b140dfeab93bd1da38b4c6652da6ed11e009d0b5d3addb4a3820bdce622072d9",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "HFj+Fiu+jQbv5sbzoroeqNDechnAVhEFU8eca9OPL1vDl3ExQTgPGbc1G/k024p/VjLP2Mq/TJIJIxht68nISw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 8,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:33ef5ec3ed56ef80830885da5a490a396ff5cf07cf755f7bf8bee76b2f0ebb20",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 8,
+              "offset": 2097152,
+              "sizeBytes": 262144,
+              "nonce": "1392b8ab-6486-4894-b24c-9562f6a783c1",
+              "signature": "AeKBfhADlHRJG/VUlUPyQr2NZkUdZU1vT2Ei4EV8ZYcVGflU9g5Jt/T2TPCj8PgLTLuN9/rSWCY8Et9rPaKngA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:33ef5ec3ed56ef80830885da5a490a396ff5cf07cf755f7bf8bee76b2f0ebb20",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "JcCYSv34BMssNoNfnUgPVsxd0N+PiqBRk43DzBjQGvbILqCTK5Zk4TZHFJUA6iKfPJmWJB4hOVY2IGGRpyK1uw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 9,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:31aae6d0fb5b73f1b2dff9aaab647ea4b334961e5ff4fed9ec7b759a5355b8b6",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 9,
+              "offset": 2359296,
+              "sizeBytes": 262144,
+              "nonce": "027d8596-fce9-48ad-8692-1cc52df70f97",
+              "signature": "iUXTAXiHBUhJgg7ahlgMF6+yO2UMVQLOhHvkIGp+ZeaS/96YsQgajJ/XO2LLpJC3EBB7ZXIXSbAZTkkn9YU7nw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:31aae6d0fb5b73f1b2dff9aaab647ea4b334961e5ff4fed9ec7b759a5355b8b6",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "oc57IkoKixyyOkh0gWzWMokuCOPJPAtjp2GfW9BrIz1CwA7MbeysZImCaAj+/S6yxFf9MA5koSRDCwdh0DrDjg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 10,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:d18a2cfbfa532b6fc357cd1614c0bf6d050decb50d606fa9b4289947a63a1cec",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 10,
+              "offset": 2621440,
+              "sizeBytes": 262144,
+              "nonce": "f8ed9d50-b6dd-4027-827b-14cccf77d361",
+              "signature": "CjJb4VX4G3s3UQgztp9TXpidwo10Q1QuJdGsyDj+B6K9tdDzzjBzM7eRoPDIWFdggxjPB5AXQBbc4jD9uITTLA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:d18a2cfbfa532b6fc357cd1614c0bf6d050decb50d606fa9b4289947a63a1cec",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "aTf4JqvYyeaHpvJ7C07Tt6zKuJMSUKFyt/uUSkfl5jXMJWRuiKe0vtWma2YFDtbTMGXYxyzhPs3LJ1WyrqTj8A=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 11,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:7f6d2eb997f37941b8d3d1a270f1b2b698ef6d5956dd61826fc00c61cb73f439",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 11,
+              "offset": 2883584,
+              "sizeBytes": 262144,
+              "nonce": "59748472-b83b-4066-922c-fa20bf249d4e",
+              "signature": "QfwTVEPurqJE5zvsPLXjlmh32Ui12TRH7Ge4QYBrhHzp7RjZKVcU6cx4pM9mTMEqRrfNpDr4JdUe+ROuEIfYtQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:7f6d2eb997f37941b8d3d1a270f1b2b698ef6d5956dd61826fc00c61cb73f439",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "tJVJIFekT96JiqTEkqLTzMdajPFxfSLyFHO4Kv1NrXF/ztQ9mdHUvGDxdSCQnn0EvngX54lMftgMdxFHdyoQ4w=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 12,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:143faa24e4414686cff98e03864739c0c1fbdb394bd87d85d2e6041e083dbf62",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 12,
+              "offset": 3145728,
+              "sizeBytes": 262144,
+              "nonce": "6392ae3e-3b9d-475d-8fb7-ba145d0ce759",
+              "signature": "W9UM530rF9FKPtNHi95xVjQPgC+zELBnAOOd5D8Tm6dUxCKxOUAvCuZ63AWLpffp25Do2n5Tw9Wy8MWg+bNAaw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:143faa24e4414686cff98e03864739c0c1fbdb394bd87d85d2e6041e083dbf62",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "wz4B/GrImknf86hJOmIU8hLZ1RxMcOaNel0l1aWL9Xr7m9IihS/bA2MqiqrEdXHvusVFYTZ5HD+FFDhdfrBYTQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 13,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:3323755a58e6d29c60951eaccbc1ed282a734f1481f5add8790ce496462f2a31",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 13,
+              "offset": 3407872,
+              "sizeBytes": 262144,
+              "nonce": "693f8cb6-e150-412b-848e-8d6fd0f52e9a",
+              "signature": "a0BlQ1jeTYL55zdKx7nYqqCfR166dWoSe5rprDEElkwqcMQ0SR7kWZbuYq/Gh7cWQOWu8Knbb0H+SHsNG2gQcg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:3323755a58e6d29c60951eaccbc1ed282a734f1481f5add8790ce496462f2a31",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "qD6ta57FNG15Y3/ncTxeqE5lXvkdoPHNw0dSyvhLUFERNCQiSse7bo0PxRfBQJr82VqsOUV9iSqR+6Pxize8vw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 14,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:80794021f1ebfb65c5a63308591433fe1fd1c61044f474c23156c7788f2ab36b",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 14,
+              "offset": 3670016,
+              "sizeBytes": 262144,
+              "nonce": "8a3029b5-c2a9-4e06-b6b6-dda6a1a08c28",
+              "signature": "T9QUw9bXn+7ueZmeK9H8jxVCRTkAPMq20JtBOqLmNKHFiXXisF5VDE2++fFAQaMJDLNKQ3uYXD11lHuAmuFbGA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:80794021f1ebfb65c5a63308591433fe1fd1c61044f474c23156c7788f2ab36b",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "slczdmL63pqjLzi2P1qL0EYJMECZWzB20+3RyHvGA4Q87uvpNBevxZEUOSym7VZqaOYlBh+p/m62w2N1FIoZ5A=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 15,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:374ae7518a5326e7e5a7cf27ad22c7f39bf49d2f8d336a60a2ecc6640ed0d4ff",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "transferId": "79c8d349-de11-479c-baf4-813377c8a135",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 15,
+              "offset": 3932160,
+              "sizeBytes": 262144,
+              "nonce": "1df077c7-2cf2-43cb-bdb8-a79e2283029b",
+              "signature": "wFk36N5c6DZu9ufRycVowqUxcfvBQAglvnJWspMS06bmCvvfqml1JgGnBO8G55a/pVT/Jq2JBKcrG5bpN4w+aA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:374ae7518a5326e7e5a7cf27ad22c7f39bf49d2f8d336a60a2ecc6640ed0d4ff",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "QBUTRYeOhXF6Ve7n1ZK3PX/kLCthq5Vt42BayZmJKM1nmSWtMTSsQbO2VLTcMYCLNSC+3Wtagr4WAtQ0w8RBdg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          }
+        ],
+        "completed": [
+          {
+            "artifactId": "fixture.bin",
+            "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+            "sizeBytes": 4194304
+          }
+        ],
+        "inventories": [
+          {
+            "expiresAt": 1790977042018,
+            "maxBytes": 4194304,
+            "artifacts": [
+              {
+                "artifactId": "fixture.bin",
+                "chunkIndexes": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7,
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ]
+              }
+            ],
+            "schema": "reploid.pool.pack-custody-inventory/v1",
+            "authorizationHash": "sha256:a96ed6783907200a0d5871475eab8d9231433f8dfcb057df6b770e9c58348448",
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "signature": "5QM+MlYMUaCWPQM21Srk4WYeQa6owm1kQPL+HNf6aEgrNvr9uKn7763qSi/nhYZl/vCXqgtJUEeaYhdluu3C0g=="
+          }
+        ],
+        "cacheBytes": 0,
+        "corruptCacheBytes": 0,
+        "persistedBytes": 0,
+        "evictedBytes": 0,
+        "duplicateBytes": 3932160,
+        "maxConcurrentChunks": 1,
+        "peakInFlightBytes": 262144,
+        "peakArtifactBytes": 4194304,
+        "firstArtifactMs": 1579,
+        "elapsedMs": 1583,
+        "browserHeapBytes": null,
+        "wireBytes": null,
+        "relayBytes": null,
+        "interruptedBytes": null
+      }
+    },
+    {
+      "concurrency": 2,
+      "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+      "elapsedMs": 1710.1000003814697,
+      "receipt": {
+        "schema": "reploid.pool.pack-custody-receipt/v1",
+        "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+        "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+        "attempt": 1,
+        "artifactSetIdentity": "sha256:9b6a4d1404c64f326aac6f9971ffdf72701e00cb231ef755686451049a0d9b48",
+        "indexDigest": "sha256:752282af39fbacb43e939847ed3d7d45d1768ad0a3dd16cec15d8660de8fbf3a",
+        "source": "peer",
+        "reservedBytes": 4194304,
+        "receivedBytes": 4194304,
+        "verificationBytes": 8388608,
+        "attempts": [
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 0,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:eaf6d6e69354b09c56cf45d9fb8c640ce97663c7c4c47ee796941d6fe3c56fbd",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 0,
+              "offset": 0,
+              "sizeBytes": 262144,
+              "nonce": "84650e8f-fa72-4ca2-810d-524db55310c9",
+              "signature": "JyFP4u6Tm1sacWxsdNffD0P/bEIOGI0Sjca6dKcRa5R+CnzUO+sdZLoV+hB5oxYRp5jTX3DwgHVAnMDZYJ4BQQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:eaf6d6e69354b09c56cf45d9fb8c640ce97663c7c4c47ee796941d6fe3c56fbd",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "Th+yb0mCtl1wFqEt2vXScPm1aDC04DgD/8Nk5+WZ9bjQMeQf4zIEUvq2m+BM6W6UNtqF9CUsmbR++FGgx6JOkw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 1,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:fca7ac000819538dda09734843fcbc485e65ea03d13268adf71c79eb4acc748c",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 1,
+              "offset": 262144,
+              "sizeBytes": 262144,
+              "nonce": "3cc91f77-c19b-4431-9a60-951768a39ab6",
+              "signature": "iDNPqHFNLSmKbY3wKAY/nwlpdw7TqYVsQ7ICslLNEaQzG0XtYeejErj/ufqPdn1xtb0wIKGjwBA7FVKUKBrLJA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:fca7ac000819538dda09734843fcbc485e65ea03d13268adf71c79eb4acc748c",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "YSTfeeFWclztYR4wFqfSP9tttsYwjaCod38U/NWKIXfoL/R+l7Ma0zFWu+YOvQmN19Q4J9jSGTqud4bmyAbZEQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 2,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:4a73b881361713fc44adb738e418afaaec6258d7739c659fc62d5e633bdf9c9e",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 2,
+              "offset": 524288,
+              "sizeBytes": 262144,
+              "nonce": "59ae0666-e912-48db-acee-f02201a040a6",
+              "signature": "mI6PWzGSykL9UsIX2K3L66eLfYRM8GtJ94RRmAPMxNyAHwfVRjl9YoElryoV1Mj7uCDm8SRQB/n451rVe0VtBQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:4a73b881361713fc44adb738e418afaaec6258d7739c659fc62d5e633bdf9c9e",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "xsYVfHyRQB9hsZ2eIQUbugDuTFNS1QOduKkWF4MvST7BfFvQUtE5XhRkT9NuWUhpDBOlXsaTnTk1DYC3YYpeNA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 3,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:9db74a9b4c9aa3312b18237422f24dcce3c0b74f1be4fbd5e66afaae09031284",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 3,
+              "offset": 786432,
+              "sizeBytes": 262144,
+              "nonce": "1faaceb4-b747-49f4-8c5f-b7ee7d76e6fa",
+              "signature": "9o5RLn+AiQwv+32xSz/P5bnTECewZuLDPLhGZSOSbXahkuVFFlvIgN2sz13kSQBpETphxd3oAADHomdvRmkWcw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:9db74a9b4c9aa3312b18237422f24dcce3c0b74f1be4fbd5e66afaae09031284",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "S2A3wvb6lBrUGsKjjjTbpLE1GKn0KiQa6mjZDhFn1Pf3biE4StCFzbEkXbFWBaHQxmfdZRoUl5Ke5TP2czUG6A=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 4,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:25210308cd8ec7489e20f3247aa285ec68825d69e5e093868afeeccc86e26b91",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 4,
+              "offset": 1048576,
+              "sizeBytes": 262144,
+              "nonce": "749b1e1d-cf6d-4327-a3a2-ab0c76c308f6",
+              "signature": "hk9u2Xq8YbEkWijyWYtMJEJ+wyptBGiWe9NsLs9XUW3AH+yWG2+OmCZdXF07FYEZuHpblX2THzxPNMMazdoAsw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:25210308cd8ec7489e20f3247aa285ec68825d69e5e093868afeeccc86e26b91",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "cIGEx8m7zfds2eMe5YFxxTeBI4A5bMuLHmlDUMsf3QLwRHbs5NyCizcZMJEC09IZ0kD947hcgWVSmBb3S9KCMw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 5,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:0c821faea3b53f157f2c3a0a6548f2cd9ab09eb5a5182bce9ca5b1c980fb9959",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 5,
+              "offset": 1310720,
+              "sizeBytes": 262144,
+              "nonce": "5abe0517-5843-49e5-9df6-dce3feee0202",
+              "signature": "EcjpmutVoYvebg52IF+nF2C1uWOCNvURqg3afeT4RI2HeRujX3XZC0v8ng85NPp8XPAmiPQhl+m3HDytqbgzAg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:0c821faea3b53f157f2c3a0a6548f2cd9ab09eb5a5182bce9ca5b1c980fb9959",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "L9JqnoWUYWcZ2/T+mUeF0XpRhZ9h0Vq36un+vzKpvg1ChwjRBLh5JqC5LAXHpBKqalnoKmD1yUROkQrp+M7OBg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 6,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:ee632ffa170ec3e7e2d6c9b910677543bce84baec97660f040aa68870ee56f71",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 6,
+              "offset": 1572864,
+              "sizeBytes": 262144,
+              "nonce": "d4680699-d541-4d20-98ab-838c9f0033d0",
+              "signature": "j89/JrT3G2GYrqgxQZCIBNRBIjswt34Mx8p8rfL+LjCocT0+8FK9m1wLYMv4HzxtFFWtA0XVRuXyRYxO+YxSGA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:ee632ffa170ec3e7e2d6c9b910677543bce84baec97660f040aa68870ee56f71",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "RVm137sF+NmwaFwILW/ty1J9YRmET0xadBLWwEr0O9E/F0nciAj76peDRGxHmptgSB9zVB5pPjrFl/2RH5xr2Q=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 7,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:3f3f8efe31285b9af3106f55e6da7315e98df660dbb64278328ef8d891fa4c42",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 7,
+              "offset": 1835008,
+              "sizeBytes": 262144,
+              "nonce": "0f991641-9e8a-4530-9027-f9f08fd51ddb",
+              "signature": "58ocVGBLdiik6uXtBIj70npi1da0eB0esEIJSyTBRpOvD96p9U2f7Gx5IjkEAjOU2vz/2HwhSyGz/lJA6TZPVA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:3f3f8efe31285b9af3106f55e6da7315e98df660dbb64278328ef8d891fa4c42",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "vVxSDqPkEQfCi+XJ0l/qMQxAf8n/GpRj2RmIAFvnwFq0/0GlRn96pszAsZgdbMKirWCD/93uyBFB6MEqxgA4BA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 8,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:7bdc182ac312ed88fdcc3e512c24f025904ff4c2548a44db1b88009a5140e6ad",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 8,
+              "offset": 2097152,
+              "sizeBytes": 262144,
+              "nonce": "612462d5-e302-41af-9709-ef90f846a82e",
+              "signature": "lGZATIMewvagyzP64FOdPFhsvE8GugYqMxfookxFVPn8xhIpoqSALC5dMv6/nj14hHi0gt2RKOAZFPbjAz1EtQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:7bdc182ac312ed88fdcc3e512c24f025904ff4c2548a44db1b88009a5140e6ad",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "bYCHGbf6gFhM/nHYKRJWpYHPn6o53sCuwlUi1l10aKh1Ja92QnD3pOEiqiAxds6LSOiew13KZpHJpy4xjxppcQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 9,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:a5e1e54b4bcfe5889946dfd20eb8791623f2fad71c01d297bc17c5cbcbf098b4",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 9,
+              "offset": 2359296,
+              "sizeBytes": 262144,
+              "nonce": "20263cd0-da50-4439-8ac6-c0904dd5808d",
+              "signature": "FMbk6q8HezoBsY2pIRW8MWnfjeCGBB+7R+dbIZ7aSUOLqf4HIzOxk9z9+W2yQQ6ai/TNcJqOrPMd/cN3cOEMeA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:a5e1e54b4bcfe5889946dfd20eb8791623f2fad71c01d297bc17c5cbcbf098b4",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "q+Trz6xiEB+djbWgdEWAeK2XY9lGrwwce+D94zTSPSMWeEX6bfp0Ts8I0Gx4dn9bA3CbA8mOs8Q9qbKWYsfZEw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 10,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:5da1e737ab3a68d5fb7a88f6b5fca4ee57d0daf7545e2380c0b5f2881085325f",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 10,
+              "offset": 2621440,
+              "sizeBytes": 262144,
+              "nonce": "a69c6432-ff15-4554-ac7d-81b631522488",
+              "signature": "aOzBlLB3CRabU5axH3XrTb0Q1D+Sn5UJmRSpKhC16liIoJKI4E4lhh2IcvdRj9HWC0bThdznVCj4b24E+KWo8w=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:5da1e737ab3a68d5fb7a88f6b5fca4ee57d0daf7545e2380c0b5f2881085325f",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "nbleKH3uRhebHc8UrmkLN1EDNwKPz4Q7pEpfey2F3QSfFROIsnzT/ZwpsMszM7Q5Dvt+JH66nVr0w9jVXmzvbg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 11,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:88fea34e332581c208f74bdb4dcb9eab7359d5b8e249c58cd1837a481f15d726",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 11,
+              "offset": 2883584,
+              "sizeBytes": 262144,
+              "nonce": "0c90c2ac-da00-44ab-b4fc-4b84a74a6b8d",
+              "signature": "XKWQAkAO1O5Cw/Ks4lT1xvwujA/87XmXEWLlKn0AHwmoUOt6jnx80pMo7YC2Bqz018NG0iuZU+6CS5P6Aq4a0g=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:88fea34e332581c208f74bdb4dcb9eab7359d5b8e249c58cd1837a481f15d726",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "+J63WM4M7FVGi8PPiPygQAKcWJnaLeelolY8FZSElflJOPixkOq5pvNYGC7JM/4HADhKH6Nmcv5Jad9FmaIEZw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 12,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:82cd412a628e82b7a6f6910ebaa8d2d932c695d9445a6ed1442e8cb020e05688",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 12,
+              "offset": 3145728,
+              "sizeBytes": 262144,
+              "nonce": "ed6f9f11-a93b-4a63-b597-268684401757",
+              "signature": "LEv408OwLimWbh5hlbND1UX8FphrtAiSrIHfiAORXA5c2VrrxooqqMyxBscky5UKM11E6Tu58P462GG7rFz1gw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:82cd412a628e82b7a6f6910ebaa8d2d932c695d9445a6ed1442e8cb020e05688",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "XqXivWmuE/Ng6wevq//mOuEOaEeXUIJFIQaSO25OC0cVV9qtdmbvP2sPWtHnLgejb38xTJ/wX+bRLUxu9+H0IA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 13,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:14274d85fe5da3e08674c42455be49b08ee62c6027a90a0cd4d2599221645092",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 13,
+              "offset": 3407872,
+              "sizeBytes": 262144,
+              "nonce": "688fba96-5b9c-4588-8c42-8db6c481e886",
+              "signature": "oGoUttHkT9IvqMcwc7Tq+bODEGjIeoCNdGGWq7dZ6ktxdliGkZ5AVuxOr/pFGY3iVMya+qeiNdh41s3YJNG0DA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:14274d85fe5da3e08674c42455be49b08ee62c6027a90a0cd4d2599221645092",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "PdSKUSoTK2S3LHJrhqxI8dZQQEJ/Hu0cZRV0eZrCTpy87FVcrbSpmAvgh7pNp6DF0ejQP9h/KJhJZzboKW74wQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 14,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:0425e1495717e42200bf0bebf12d6984d10961078f9db2a209fddd507eae5b82",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 14,
+              "offset": 3670016,
+              "sizeBytes": 262144,
+              "nonce": "ac2c7481-9881-4afe-9f78-a667b28ef6ca",
+              "signature": "8klaidqWOR4ITH1mcw/NdFpJmkE0wvF9ncQ719m4oGMvxQ+iGDzAADIhLnsuh0Krrq5cMItVZSRr/+LIr7iDUQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:0425e1495717e42200bf0bebf12d6984d10961078f9db2a209fddd507eae5b82",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "Ed6DS1ycsxxylBXSsn/4i3sdhszFKdyc5SP45GjcPN4D8rsFlfIsChAu+q9GCaJjKdZMq7gRdd9zX9F1xOWNRA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 15,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:efaaeaaf36904cfaa5e621959c2da04fb2c836973515cf4f3137205274b6dd78",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "transferId": "42d648a3-bd8c-4c83-a880-57e05435c976",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 15,
+              "offset": 3932160,
+              "sizeBytes": 262144,
+              "nonce": "1409f875-cfe0-4ef7-96d0-fe743d4cfb7e",
+              "signature": "+hA67ejTdv5RGSuyd+gY5oaVuJKt7V8rSghEg2rTu0Pw2IB0ggqXMzQCvZAHMwmZBHNf2ERenZWaRfLGXLOdRw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:efaaeaaf36904cfaa5e621959c2da04fb2c836973515cf4f3137205274b6dd78",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "s+08bm3oqQP/lmCW8nU29focCTaMUovT4XfTjTdvvKyhFNQg79WayKe9t3C9dCzfLt6ZP0+Op3IQnQLNDLT98w=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          }
+        ],
+        "completed": [
+          {
+            "artifactId": "fixture.bin",
+            "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+            "sizeBytes": 4194304
+          }
+        ],
+        "inventories": [
+          {
+            "expiresAt": 1790977043908,
+            "maxBytes": 4194304,
+            "artifacts": [
+              {
+                "artifactId": "fixture.bin",
+                "chunkIndexes": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7,
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ]
+              }
+            ],
+            "schema": "reploid.pool.pack-custody-inventory/v1",
+            "authorizationHash": "sha256:fa41323464f4ea70e65fc860a36246f92acfd9bbb3441700412b3819e94af517",
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "signature": "Hm7CWj4pv9q1lqDNdGuornQQKor7RkDoj9oVATAGU4qs5OeNCRfbFPbiosbFR6dUJ+PQpXSVj8kPQduTU0FNiA=="
+          }
+        ],
+        "cacheBytes": 0,
+        "corruptCacheBytes": 0,
+        "persistedBytes": 0,
+        "evictedBytes": 0,
+        "duplicateBytes": 3932160,
+        "maxConcurrentChunks": 2,
+        "peakInFlightBytes": 524288,
+        "peakArtifactBytes": 4194304,
+        "firstArtifactMs": 1562,
+        "elapsedMs": 1565,
+        "browserHeapBytes": null,
+        "wireBytes": null,
+        "relayBytes": null,
+        "interruptedBytes": null
+      }
+    },
+    {
+      "concurrency": 2,
+      "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+      "elapsedMs": 2771.3999996185303,
+      "receipt": {
+        "schema": "reploid.pool.pack-custody-receipt/v1",
+        "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+        "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+        "attempt": 1,
+        "artifactSetIdentity": "sha256:9b6a4d1404c64f326aac6f9971ffdf72701e00cb231ef755686451049a0d9b48",
+        "indexDigest": "sha256:752282af39fbacb43e939847ed3d7d45d1768ad0a3dd16cec15d8660de8fbf3a",
+        "source": "peer",
+        "reservedBytes": 4194304,
+        "receivedBytes": 4194304,
+        "verificationBytes": 8388608,
+        "attempts": [
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 0,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:9ff66f7461270c41e4fdb3ebcb265b87e30785dc884c71bc8d2d528d18f05d64",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 0,
+              "offset": 0,
+              "sizeBytes": 262144,
+              "nonce": "37483d57-7b6f-489e-a4e7-eefd12acbc6c",
+              "signature": "2I2lOn0EOIdVZnt6YOTkOoajJAfNNCLxGhhdOrBKZqvBo4S2AEnVP9e3KlLxL0CZYgvKTbPvsCDaMa9jM9VPNQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:9ff66f7461270c41e4fdb3ebcb265b87e30785dc884c71bc8d2d528d18f05d64",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "HAY+5kn1d5UQuq6gsvyfC7sSbp6i/vkIQG9vskZ2ecYOs1vLUV30FVFsXf6MuB1k/rnoOY85hhO6GrK6CrEgaA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 1,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:085b831edb02e02552f493272a06895e3d22b81ac752781431a1f76da0ef08e8",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 1,
+              "offset": 262144,
+              "sizeBytes": 262144,
+              "nonce": "8ff1d9fa-bb6d-48dc-b813-bf4a05813495",
+              "signature": "WnoukSA+62gQuA/vhhAJcMfZlzPGCiT3Roka/52fFJdYi4OnoN5IxGTP9luI2eYGTnxR+U8p/l2IokqAIsdH7w=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:085b831edb02e02552f493272a06895e3d22b81ac752781431a1f76da0ef08e8",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "mvyc8ijJwsJHoBvIw8NtjexPAzxYZHz4MZ1I7uZtimJ0507wwnz9AfENK5ggizs7lLagsInW5tKbzs+33sFh/w=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 2,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:13b071fd41257bd601e6dc1cbe232d2455c2b48ade614fbd0f04fb1a03bf0d4a",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 2,
+              "offset": 524288,
+              "sizeBytes": 262144,
+              "nonce": "23f18856-e84d-4c43-ab8b-90afa9d7fbca",
+              "signature": "tP5FUyFGatUjowVjc3G+BAJA+/vymhhfKR4mmoe5Rf0wWcF+I3DtptU+yZQ1e5aKuMTl8nN2crhvPgIslIzq6A=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:13b071fd41257bd601e6dc1cbe232d2455c2b48ade614fbd0f04fb1a03bf0d4a",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "cpQrq3Nx6/cbMQfiK+7RlBJscNsG3mkVo4eIuQRFFbsIUC5Vdj9sVO+QSCQX+4Mpz9GNrv7alwVEDxS8+Qxl4Q=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 3,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:a9c77788ac5b8a3967fd254a6dc73122019602fa4fcc7290cd1a41138d88e097",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 3,
+              "offset": 786432,
+              "sizeBytes": 262144,
+              "nonce": "b7d9ba10-6660-47b5-99c7-ba9769acc48b",
+              "signature": "/bKnKo9aee9FZd2ZDHaTYzLDadI0JVqQxxa1qaEjopZb6G7lD2TbDrMh/t+5ITmGIe7jzkjE3KNw6pX6K7y8og=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:a9c77788ac5b8a3967fd254a6dc73122019602fa4fcc7290cd1a41138d88e097",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "MFHiqWATzDD3Bp61xRbvmxOHoLvVJGLcuOcY1vBWbQqqkE5myzpm3lmX5MNAj3Mn6T1JKJ1YOiMOqyBlTfNOVA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 4,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:f39d0ef13986bacfd2a65cb419622cefab6a1b9925d525820616b8654a38f77b",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 4,
+              "offset": 1048576,
+              "sizeBytes": 262144,
+              "nonce": "ee0ccd0a-cf88-4851-9311-f00e5a5b9b22",
+              "signature": "gHV+gVE3r7OT3fVr3Wk1PwfGUd3CyB8GYfdOT+v6It5E39TcOlUYHdBj37VQC70Px/DpgZjonUWb6y91oawl6w=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:f39d0ef13986bacfd2a65cb419622cefab6a1b9925d525820616b8654a38f77b",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "sQm19he1EJSMKcgVsoEF3RpAiM7LKEhwib0yX1ww/9g4t1XSn/tEPt/PCyKJ2gsSakUu3YsSeh88mqXlp+nSfg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 5,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:62911e050c157b1a0967aaac7fe89bd13d894efe55759309b05a1a4209307be3",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 5,
+              "offset": 1310720,
+              "sizeBytes": 262144,
+              "nonce": "5e758f06-1eb2-47fe-920c-b89a635652c5",
+              "signature": "eHMKbbQKY3pK9gZLzoAA14nJlDK7NH9/d/qWOiiRbfCLxLIbEgoLE5/XIF9tEq6cdlnn8yhuu2UW7K3ID7JQFA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:62911e050c157b1a0967aaac7fe89bd13d894efe55759309b05a1a4209307be3",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "+QdBo5nAJvn5hMU9Esm+TrmkN36IK/7eX/1pY8InZYC4PC9jcleW14ybYVoWVvcmQOjgsaDGR3qg0EhHD5YSAw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 6,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:c8a6f9ab0a8ac1906cd3a386fc721492559c5951db20853142468e8780a39269",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 6,
+              "offset": 1572864,
+              "sizeBytes": 262144,
+              "nonce": "d86e9ffa-7242-4289-9d00-ba0581f7e787",
+              "signature": "3b4astjULNbRzM8rUHwakOzS9r+n81TX2xIJsZJ2xib91aDkxbBDdW8/JbOSJ6XIjx893JZSBn71l0MqvS85fQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:c8a6f9ab0a8ac1906cd3a386fc721492559c5951db20853142468e8780a39269",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "oGATrwOBYOK0HjJ+ABOGoN38xFDzWmdf3hrqyvnM63myZLK47zcEOyz2mgn1RaiVJzAGX61yrrWt+vTSuQ7O8w=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 7,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:0c395445d48b86e77580ff6689907bf58a80dcb70037064ae0beb53d1bb26720",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 7,
+              "offset": 1835008,
+              "sizeBytes": 262144,
+              "nonce": "4d9d0479-94e8-4246-8c98-9699241974e0",
+              "signature": "VImDlQRioZUKRKh1RIecQJVXEIftpaSY6kog+LH9C+0T+uDwE7QfXyHgCqFhvCIdwL1zxYC0/dM+Wcto873fcw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:0c395445d48b86e77580ff6689907bf58a80dcb70037064ae0beb53d1bb26720",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "0cRFV8+aHW7TI9tYYAVsXgUMmGuunjuFkd7mqO96jaNOkllK3AcNu1v4J+7r+lbAocjNckl8WcrGkDPczDZRoQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 8,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:6457e997cb19a34518e03b5d659476f09aa04f76338fc3a8fdb399aed2adb1c6",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 8,
+              "offset": 2097152,
+              "sizeBytes": 262144,
+              "nonce": "d4608661-497f-4165-947e-8f52f17ed20d",
+              "signature": "iRKuciBm8yzzRVDRY0rZ6iLhx91pqcJbjrg4ue/TWE8HrqNCvDMSVSQAg2ii5aOcIOcd/Qb8MKxZEgxH5Z0ClA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:6457e997cb19a34518e03b5d659476f09aa04f76338fc3a8fdb399aed2adb1c6",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "V5NQUbhnu84ursKSEe4fJiIZ89ZD9HXmE97PzGMO3n/q7h+0wLizDQEBLpzAMdmVIrdVmIMptr6qR04Ay+EbgA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 9,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:3f3e9901eb7a17dfa3af74050eca398f56105554baa4e3af6381fced27b358cd",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 9,
+              "offset": 2359296,
+              "sizeBytes": 262144,
+              "nonce": "aa67c81b-0dbc-49bc-a640-3af879b36075",
+              "signature": "2VV2RR80sJ271xRgXT56XAtoh5Jsydx0zatLDM0xG9PbMsUwrGsNcsI6wNHIp+qkFuPVGD5UQZh8Bms/UJxBLA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:3f3e9901eb7a17dfa3af74050eca398f56105554baa4e3af6381fced27b358cd",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "zLRiapWUk4Wbm0q86VaAJySumha1qsdY1hDq6pTCAi28gSxu1DkjsmkWLx8aS7qdj2TjK5dNERNAcBbQFUrmFw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 10,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:7a3731a27bb14e6ba97c6f2a86236c427c29a37adb3e3548cb16b63f83924cf1",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 10,
+              "offset": 2621440,
+              "sizeBytes": 262144,
+              "nonce": "e1429ec7-ee8d-4a6e-9f69-203e0affb290",
+              "signature": "whWQN9HN+IMw0mNztdovq6JIuGow7As5qUQMiahlOsySPXx0Ph/x14yYXgln1PrD5Ozu47e68SGH1pBEyalkTg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:7a3731a27bb14e6ba97c6f2a86236c427c29a37adb3e3548cb16b63f83924cf1",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "usBnXrBoY1Pk802zy68uiNmW0KyYp7LdkS2bvNMMVi3euuzekKs8BzoDvEZzKQX8X+274hO3JFO7HbflEBmkcQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 11,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:e588183a6a5d276033f8b1110ee04b43c71ad6b4a5c94815c1e0fac4709cd01c",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 11,
+              "offset": 2883584,
+              "sizeBytes": 262144,
+              "nonce": "43f465fc-9498-42d3-ab7c-b285cdb79c71",
+              "signature": "SuX4Uho3Ul2/CK8ZZuwW80zEQqS+IgJj2QOJ2I9ef/PFu6zRzT1WExEx9RGNNpv9GdbgUMxGKZY9Q0Wrk0Hvtw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:e588183a6a5d276033f8b1110ee04b43c71ad6b4a5c94815c1e0fac4709cd01c",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "1tF6pAb6FUieadPGB3eFGk0Vv2dO2FqFQh73e10r/uF8hgebM7IDc7QdFZUc4qrPdH9YQfahnk9M3aGEWOO6pw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 12,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:cfda22447bbe5bbb1c669483b3e0ab101f063b01f7458d08968797ff11b0ead4",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 12,
+              "offset": 3145728,
+              "sizeBytes": 262144,
+              "nonce": "3bc9cd07-2a31-486d-a540-61f0509d7432",
+              "signature": "X2CkGaTkPglD2kb04q8YwH0RiMYKcRACGUQoHUzml9l7mLgbJItPjWiaXAG/DXe+li2MY2RPkS+hGdnp+vS7RA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:cfda22447bbe5bbb1c669483b3e0ab101f063b01f7458d08968797ff11b0ead4",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "sQV6GX6bo/wdGmzIC4A+eCAIcYoRvpLq0ZEv4FN4o0GMM8HT4ROiOlnjcM/mxkefSGbiNdOE7bTqXBS6Dibx9A=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 13,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:b8c0a9dae2c545e1c75eb8707b27961e48e4f9fae1d61d2ca1d4bff395df50fd",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 13,
+              "offset": 3407872,
+              "sizeBytes": 262144,
+              "nonce": "439b08eb-9a75-4a10-b33d-142b848349a7",
+              "signature": "VAkEfNHBm1T2SMiX/0JCURy38vB1T2Ajt3rFOgf+tWQ9FRKp5U5uU3xnTNdxe5XDv/um2bUkqTnFmGjU0pT5vQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:b8c0a9dae2c545e1c75eb8707b27961e48e4f9fae1d61d2ca1d4bff395df50fd",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "oJvLYze1TBUqq8X+ZtYc1MHFc4Ikc58F2UEJmwoKU8UitQe2El96jmrWsSfBLMn4sB/RlwTDrDDwV5zChD97bQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 14,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:f87e06d123e091586ffbf4299aca48487f1113ae8d81b12e3f5a59b71d2b0b88",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 14,
+              "offset": 3670016,
+              "sizeBytes": 262144,
+              "nonce": "cf1294fb-75c7-4298-b204-d0e4c377c933",
+              "signature": "AJ+bxmKaOsMgE3h2XCuYBVN5T2VO98bZ2Jgxv8fCGNf9d/V/Gwhzn9hvT+BJdQKSPRkk5bdvxo2IogMN+0EYxQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:f87e06d123e091586ffbf4299aca48487f1113ae8d81b12e3f5a59b71d2b0b88",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "2LUUc+8mT9sYtxHdHE00Q2QgdyeXkD0ViFss3QiLM+EAJmrXg+4Vr+LdFijsLDYSSBWf/RFp3cGLJpDsRQyJ2w=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 15,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:eb36c56bbc29a96c8cf004dbc49d352e585dbe4570d55551a78e5de865d72c0a",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "transferId": "132e1829-558e-4a44-91a4-005f1409a7ed",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 15,
+              "offset": 3932160,
+              "sizeBytes": 262144,
+              "nonce": "408e4770-30df-4e63-bab2-23f94f682477",
+              "signature": "4o9kp8Db1aaaaGS6TvJZyHVk8xylTBP9zWwCuY7FbN9M4R2BRnbGU97Pcnd2vnvW7VyXdKsJCOAE9k8UC5gkyw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:eb36c56bbc29a96c8cf004dbc49d352e585dbe4570d55551a78e5de865d72c0a",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "9EzDKZ4BtW7coG1iLR5/iAtRfcTEK76VM+QiPV/KM/+btp+MmWXyzL9Y1LKwlqYsMPjGcvTDEP0wy45KYfH6Lw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          }
+        ],
+        "completed": [
+          {
+            "artifactId": "fixture.bin",
+            "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+            "sizeBytes": 4194304
+          }
+        ],
+        "inventories": [
+          {
+            "expiresAt": 1790977045873,
+            "maxBytes": 4194304,
+            "artifacts": [
+              {
+                "artifactId": "fixture.bin",
+                "chunkIndexes": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7,
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ]
+              }
+            ],
+            "schema": "reploid.pool.pack-custody-inventory/v1",
+            "authorizationHash": "sha256:d8c484e18d3e5242aee54d7d067b73fc8ae312a58f99976cd196a1dc1149f320",
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "signature": "xfqJtk9Q5cSvmOBSYUwqFfnY5LOoJ6wNMRufZg3See/L89DIzs3EjmbOkA6BUAPxHO9jdU/pK3MskeWaVDtXWQ=="
+          }
+        ],
+        "cacheBytes": 0,
+        "corruptCacheBytes": 0,
+        "persistedBytes": 0,
+        "evictedBytes": 0,
+        "duplicateBytes": 3932160,
+        "maxConcurrentChunks": 2,
+        "peakInFlightBytes": 524288,
+        "peakArtifactBytes": 4194304,
+        "firstArtifactMs": 2693,
+        "elapsedMs": 2696,
+        "browserHeapBytes": null,
+        "wireBytes": null,
+        "relayBytes": null,
+        "interruptedBytes": null
+      }
+    },
+    {
+      "concurrency": 1,
+      "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+      "elapsedMs": 2615.2999997138977,
+      "receipt": {
+        "schema": "reploid.pool.pack-custody-receipt/v1",
+        "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+        "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+        "attempt": 1,
+        "artifactSetIdentity": "sha256:9b6a4d1404c64f326aac6f9971ffdf72701e00cb231ef755686451049a0d9b48",
+        "indexDigest": "sha256:752282af39fbacb43e939847ed3d7d45d1768ad0a3dd16cec15d8660de8fbf3a",
+        "source": "peer",
+        "reservedBytes": 4194304,
+        "receivedBytes": 4194304,
+        "verificationBytes": 8388608,
+        "attempts": [
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 0,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:b7d521beeb38da24e32480571ed992e1be407d4f4dbffec27c332dca7f555ff2",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 0,
+              "offset": 0,
+              "sizeBytes": 262144,
+              "nonce": "52be7232-a591-4b16-b97d-c650887433a8",
+              "signature": "1JchSe47nMBqV1NslBKEFbFEeoWR6iQyQRmO2Xlv1DEZvUexWxr37AgtF8Iso9aiS4b5g+4Nie663eOcH/OmKg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:b7d521beeb38da24e32480571ed992e1be407d4f4dbffec27c332dca7f555ff2",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "p5YzURRdzcPWo5IJET82bYmTLcB3KTxQyD2S4RgyyGzZLremwe2lZ5lJXVntTAQsqTTxHzBITNG+KW8WxXrBUA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 1,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:dab74816717dd1ece388430e554f7c52332289d15c82df0d1354920d28121327",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 1,
+              "offset": 262144,
+              "sizeBytes": 262144,
+              "nonce": "3f20f2d0-1128-42cd-81bd-87313333b944",
+              "signature": "VCYWEVPoFzEQDod9E+gcDIHJ5qi0k087nXJslLjkjdDZVhbPQmr/xGtYDHV+Ryy1akchPezZKuWo8VAt7Xr1pQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:dab74816717dd1ece388430e554f7c52332289d15c82df0d1354920d28121327",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "EWaicTtDmK7+up3sbr0uuw6KEjVxsa1VvUyd+lRuBIPL9X5JG+oQUtVU/TB4ifqR1mscb5WH3w91Xqb2n4TLPA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 2,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:cc198c14d7491ca373c7c4de3165f23bca2ff67afe32d2ae43f6377a5f030227",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 2,
+              "offset": 524288,
+              "sizeBytes": 262144,
+              "nonce": "7a0de9e2-c9fe-4056-bf2b-f635edb58402",
+              "signature": "Xem8Ug92E9KrLmi4l76jLAtgAQNH94OfboWYn/ndiQUpMWmVcO1+FBWTO4/cWsDLiyr49O78OaTjRPTSA+MuPg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:cc198c14d7491ca373c7c4de3165f23bca2ff67afe32d2ae43f6377a5f030227",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "G/ySqGdVhQ7kBCnTnzyJqBtubGyGo4Mv8v1KrmXYYPQlcYNAmlpNwcGxx2Nt4vE5uy42tIWyrHuIcZddrdY8aA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 3,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:985bb889da39357644ca9246b84252d0187956c18f0ef42617021ae402debb9b",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 3,
+              "offset": 786432,
+              "sizeBytes": 262144,
+              "nonce": "5f733e68-bc6e-4d05-8408-bcae3bdef307",
+              "signature": "9MZNoq7LxQ2/y0gl1aIVpJh6v+N2OPmh5DhuGnzmh/1Ys3vfWN76fttCmwPCgRZs8yDhugK4OXG6/2E6bmIRqA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:985bb889da39357644ca9246b84252d0187956c18f0ef42617021ae402debb9b",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "DvhPlSk7ayIgN8v/rJ9G54K1/JpNMU/lnAwH04sLEseKH29G4iaqg3LbBQEaH2SS+XjGs9apOcCiz/P0kLotqA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 4,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:18203660256763b3a413319f6d669c9bedc9207c210989104d10c3211b7e2f0b",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 4,
+              "offset": 1048576,
+              "sizeBytes": 262144,
+              "nonce": "8461a9e1-18a9-4d62-ae9f-e70856f7045a",
+              "signature": "+3b0m9K6E9onYAs1GY3DcsrTClyAKVizIvweo/cfkDJbOcUrjQUxXVt1WoF5rZ+nvbiG6U2VcDTAw+XO1pW5uA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:18203660256763b3a413319f6d669c9bedc9207c210989104d10c3211b7e2f0b",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "8YW01iGkhlUQmpccMB+lPm+cQ2iCYD8y7AMGtXC1MlmZXv8e22u60YHNS2kgPrn9xMY0Ltza/Ns2bAwBRD4rFQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 5,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:a289c5e02c79b5223121bf0cb6b2a6ab5ecdcda2e8ad0df4bb9237a3416912d6",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 5,
+              "offset": 1310720,
+              "sizeBytes": 262144,
+              "nonce": "c793293a-7c6b-4091-96d3-cb76f3ad1dab",
+              "signature": "5Rdg0sCQu5S8X7bzsOe/zJTj+fzfxrOHSf5+vcnfDWCRidq27WBQe6jQc2+d0dWmzVcB9WIvqzw8kjYSpKX+ew=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:a289c5e02c79b5223121bf0cb6b2a6ab5ecdcda2e8ad0df4bb9237a3416912d6",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "QhEBRujdtSFnNz4pNmfwn2KdxhGEEBRucPLymfT99qu8tzdDOTC4NMk/p3rUnNgohKMG6tcubdoycbq1oNpsyg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 6,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:e69294cdf0c14fcc70ba5fa09d3d4cf801f8f0059d44ee74788d301d0b37a6c6",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 6,
+              "offset": 1572864,
+              "sizeBytes": 262144,
+              "nonce": "5521ba43-7c0f-444d-9124-b086e41dc973",
+              "signature": "fddF8V8rBr2Bs1VQ96/BWiPS4fV98A6ZER50jwwJPH2iMDRxe8dSS+yhoZyHRuJsv7RQVQ4R+NDbNtQcAi3XJA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:e69294cdf0c14fcc70ba5fa09d3d4cf801f8f0059d44ee74788d301d0b37a6c6",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "4oGuHuDQUEUFwvNnO9aEpXg7+mse1WaxGDySfq/RC7weLHsmSAP82mJdaOustk2tlEz6U/NeQkkrDwH42SYVQw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 7,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:7be41b8e2e709e52a7b870a33d67923b1bc1d277abb504417da646731ff89aa3",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 7,
+              "offset": 1835008,
+              "sizeBytes": 262144,
+              "nonce": "068e33fc-2a5f-4d7e-a6f6-8ebc673e4e25",
+              "signature": "ZvA0sAJ+z++Ck6tlAzZ0+UZmGGTYpsTaWfKXPVUy4a3giaYMa0bokrtr+QGwxnWQ2rU2CRhKoCEdBjVH1Oiu6Q=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:7be41b8e2e709e52a7b870a33d67923b1bc1d277abb504417da646731ff89aa3",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "jAEzBvBPlUewNpsvGvOEM/C5Rj62LhWt4erQaVlL3E4/MWtytAVK0XHSfkabT73yZQG5YsjSr36ZuIjC0wQgmg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 8,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:374dac983f817b7c8e67b795497b1e16be9d41a01a0a80b465571b9fbbd9c32b",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 8,
+              "offset": 2097152,
+              "sizeBytes": 262144,
+              "nonce": "da1d13b2-0c22-4368-a67e-aeabb1f7fbe5",
+              "signature": "d9NM19suzmn5UlUzjuNMqWml5unUWb1/CKVbUcF7wpYFZlY3hSCzKTdgp7poAV1m7TPlY2jek2GYiaPBq+IelQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:374dac983f817b7c8e67b795497b1e16be9d41a01a0a80b465571b9fbbd9c32b",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "z+FlD1vgtnbK0vXLQFPp3ScDimtNv0bUoBMySqrSE0IKz5jDQCjt9qbiN5T0Wi/FMtyWQ5ij7QdmcjH8/2qNag=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 9,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:5f3079d5df69ffc1dd7f0fa0f220845aa8a7408fdaca0e5c4e178f5416fa1436",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 9,
+              "offset": 2359296,
+              "sizeBytes": 262144,
+              "nonce": "3aad362e-65c7-4c8b-82f7-7341b82e3539",
+              "signature": "gjNecFljuuyTB6d/6p8Opu6pVp4zOrzJkDG5ljjKwusE5gj1Q1i4gY+xbOYOC02dlsqm0OYkgcjRptYlQBbrmw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:5f3079d5df69ffc1dd7f0fa0f220845aa8a7408fdaca0e5c4e178f5416fa1436",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "+3TNgtLySFsBEdaoRL8tVjN72h5bzAXkuDooZzosC1notjQ5f7E7qILpk+bd/AznbAKSKvj8bh0qi7F1t6bKLg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 10,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:69ad9f7766793abec548d8355847a2d3264e3bb33e43dee0d135b23fdf723510",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 10,
+              "offset": 2621440,
+              "sizeBytes": 262144,
+              "nonce": "3cbbc937-bd9a-4160-aec4-a2b6973e913d",
+              "signature": "wFrBwEoTMUsNW/Dy0V6V/P6N/IXYmhM/efONZ3jwai/SZfp6cCO5bIz7oKCMQAFAuN/YBpq1d0LH0H2HAnjXTQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:69ad9f7766793abec548d8355847a2d3264e3bb33e43dee0d135b23fdf723510",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "7Zr6dpDpUE7Sc196WuPW4Z+0A2+SRXUht6zQ3igwJWdzlXSESg9ntLU8MsEN9vFU8y7zA1s9eYyXxLRPvXHsmA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 11,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:a01f422390ffc852276ed7f7a40dd6c69bbdf974ac09e7bbfd9ca32c612beaa6",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 11,
+              "offset": 2883584,
+              "sizeBytes": 262144,
+              "nonce": "5fb440d0-36a1-4bf4-8d78-fa4d40c94769",
+              "signature": "6TZiUHt+1IYQRLLLybQPMMMNJcnlJ32kVdmXw3QZjzbQaAlfC+XBc8uD8s1cqL6LZzVyEYloLTDTNiGE3kwKtg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:a01f422390ffc852276ed7f7a40dd6c69bbdf974ac09e7bbfd9ca32c612beaa6",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "z1v9DH277FoIhs+dnPlSCLx2O42csN+9C4j7p8zNGGQSFcFaDxRQnXj9c0zch6/O5r/BOh+12W9i90weUlAFAw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 12,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:8462e75eb8625c8c403501c182845f848be4fceb6a954d47bbc3b5fd3776879c",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 12,
+              "offset": 3145728,
+              "sizeBytes": 262144,
+              "nonce": "d8689128-54c0-4568-8ab9-58e502230f7b",
+              "signature": "YwhPOUU2pwW2Y3HkZMgr00cIl+FWrFsTcnpDVKi9nPiGv1Xv5Xw3XrG0lNhS+bmRg8qkp8O0UW5d+1CxXSRM0A=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:8462e75eb8625c8c403501c182845f848be4fceb6a954d47bbc3b5fd3776879c",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "Z2q84rxUwTjk53Am06ZDnIO9O45Oy4medmZT7w4BfPXf+bXKPse4akxbbqhk4gXLG0U5L8LEEYdE/T4MoK0VmA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 13,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:c10c38d67467b6c0c2882847d1a7122319a5411a167ba46d6102d66177df97ae",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 13,
+              "offset": 3407872,
+              "sizeBytes": 262144,
+              "nonce": "232ec16d-5184-463d-b828-997f60d675e7",
+              "signature": "R1mn9qMkPHbQYupBBjBY94uObyNw4YhsKJ5ZDOTqYp3HUw/JoJmKA1uBkMrh7EJRNsGJ0lDUMI3ud7EiRshKHg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:c10c38d67467b6c0c2882847d1a7122319a5411a167ba46d6102d66177df97ae",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "CIXGOYMbF0MoSfLp8XFhcHhDXFeHD+p2rwfr31nx8LU1uMsoEw2X2lhiT5nfiU+wjiQMWlbRVy1ljE3NuntwGg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 14,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:2c8a4b80840af667783d9e427360e86abe98e4413e2b851bd23c1dd0de4c29e2",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 14,
+              "offset": 3670016,
+              "sizeBytes": 262144,
+              "nonce": "3c727b1f-f98e-47d5-835f-eb305319ff6c",
+              "signature": "rxaIm1XjuY5irMmWhgeAi+0f+kQY+a1w51ckCJPNlUR31hJNm87zpdTkFEzNkQBWplR1wgHfb6yUdbBEFxC9Ww=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:2c8a4b80840af667783d9e427360e86abe98e4413e2b851bd23c1dd0de4c29e2",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "65vXSBz2WIKMVd7m/jF7mERtdS2hhKfHWjJnIJcupkekiFqZ1/WjTwCrb1sDkfEbLVRI9S1lCmbBDKWxwyq6hw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 15,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:cf5f937813977d5ce32a4b265695af3e32f83cbdf1e12c5a86ad7846b37381e7",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "transferId": "93770afa-c229-4955-ad2b-570ce3383773",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 15,
+              "offset": 3932160,
+              "sizeBytes": 262144,
+              "nonce": "88df4013-4fc0-4fdc-bd92-3d25f349556c",
+              "signature": "inZRkUOO09OTRKnro2HjQoAIn9DXCcrLwCLtczwUeKqk6BB+A5oeH28n5jLIB4E2S/vk5X8a3+adJ+xsA7KlNQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:cf5f937813977d5ce32a4b265695af3e32f83cbdf1e12c5a86ad7846b37381e7",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "aw1VK/AmM9vegT3ZP5mRjYp4p11D59QUsy3AdvMd6MDr3QUQHmcsWSnnwVfa9W8PtEjFPMSwbiJLaFzEklK3Mg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          }
+        ],
+        "completed": [
+          {
+            "artifactId": "fixture.bin",
+            "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+            "sizeBytes": 4194304
+          }
+        ],
+        "inventories": [
+          {
+            "expiresAt": 1790977048971,
+            "maxBytes": 4194304,
+            "artifacts": [
+              {
+                "artifactId": "fixture.bin",
+                "chunkIndexes": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7,
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ]
+              }
+            ],
+            "schema": "reploid.pool.pack-custody-inventory/v1",
+            "authorizationHash": "sha256:7adb5b156fe736c4b4b71691d26c4c12474c50d3853b84aaa0e3750363e67e71",
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "signature": "kh/IjHrLlBOQihIjjO9e2+wAXvO9tIM7XnUzu/90g6jM/JqY3UyIfiG6c7FPFNOCKgtUKMK0RQrqY1y7PhKcJA=="
+          }
+        ],
+        "cacheBytes": 0,
+        "corruptCacheBytes": 0,
+        "persistedBytes": 0,
+        "evictedBytes": 0,
+        "duplicateBytes": 3932160,
+        "maxConcurrentChunks": 1,
+        "peakInFlightBytes": 262144,
+        "peakArtifactBytes": 4194304,
+        "firstArtifactMs": 2543,
+        "elapsedMs": 2546,
+        "browserHeapBytes": null,
+        "wireBytes": null,
+        "relayBytes": null,
+        "interruptedBytes": null
+      }
+    },
+    {
+      "concurrency": 1,
+      "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+      "elapsedMs": 1589.1999998092651,
+      "receipt": {
+        "schema": "reploid.pool.pack-custody-receipt/v1",
+        "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+        "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+        "attempt": 1,
+        "artifactSetIdentity": "sha256:9b6a4d1404c64f326aac6f9971ffdf72701e00cb231ef755686451049a0d9b48",
+        "indexDigest": "sha256:752282af39fbacb43e939847ed3d7d45d1768ad0a3dd16cec15d8660de8fbf3a",
+        "source": "peer",
+        "reservedBytes": 4194304,
+        "receivedBytes": 4194304,
+        "verificationBytes": 8388608,
+        "attempts": [
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 0,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:61b193ec23e33c88de6e2fd8d9983ee0a935e2d1a975d8dc18cb132845df062c",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 0,
+              "offset": 0,
+              "sizeBytes": 262144,
+              "nonce": "6c6faa24-d9cc-4253-af95-3fe7757c13d7",
+              "signature": "zAaq8amE24Bf4yM57IzZHpS5GAyzgR26zaREe5kH8K8gBQ4mi3XfYkc5LrKe0MjQqEg/mK2iYocN7EfKD3J5Gw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:61b193ec23e33c88de6e2fd8d9983ee0a935e2d1a975d8dc18cb132845df062c",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "WRlvAoCydYCSj4Jag5r0U1qaKjXB7XhpuhF6KS4akWoFYksfLzOLavhSQmOXQZD8TKQ2WIlaUhD0ATDpe1PCmg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 1,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:a70e5fca39f0c121af988fdd336c555e9f5274bc4a24c7e93d5ea4dfc83c1bc9",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 1,
+              "offset": 262144,
+              "sizeBytes": 262144,
+              "nonce": "68bd1784-fa28-43ac-bd65-b804c3cbbff1",
+              "signature": "w7yirPzVx7LPXWs4i2KfQvCLAAEJtuw9P/l+elJuA9CLigxp/rgvQcOKy3ZS9T3c6QSIfsQEdooHt6siTBiWSg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:a70e5fca39f0c121af988fdd336c555e9f5274bc4a24c7e93d5ea4dfc83c1bc9",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "/DDKOKLSeig8LDc+/jPxwujHub6Ygry1Vy7n7zlbv8jHxfEaiTmhObQyeDod8VpXWGmvjXo7fdkKiEoYmrm9mA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 2,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:66546be421e7e3154b9878ab6a1781afa3a145dfb8985c9981c67e1be7120a78",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 2,
+              "offset": 524288,
+              "sizeBytes": 262144,
+              "nonce": "d163c91c-377d-400a-86d7-af1124e944c8",
+              "signature": "5FmgdB7T1TZN/LAMkoB8bTyL+jdvoF5luDH11JcKRVKWj1W76Z6qxXuQt6CX0ytKlGDISgVYM7zA8hbLcExS9w=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:66546be421e7e3154b9878ab6a1781afa3a145dfb8985c9981c67e1be7120a78",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "tRUcW9I7Yraky1GUGoz05KFe85yYQ1ExRzn2tq+KjRNi1NH3YioWupp+98ePygGPAcepdAMreHF2zinT3GXV8g=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 3,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:b84f40ca4bc4df8261bcefe32e4857628b8c212fde933207e869afcbbf1e3813",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 3,
+              "offset": 786432,
+              "sizeBytes": 262144,
+              "nonce": "996f6497-fde8-4455-90f6-3ca0e97ca0e8",
+              "signature": "zrViGeureg64qa1wjv9UksYiLukmqdEwMpTddoa10S2b9y/APeh5x2qHsRzUBFUqKjeV8xmmXBPFAEQG/ogpPA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:b84f40ca4bc4df8261bcefe32e4857628b8c212fde933207e869afcbbf1e3813",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "XIGptENqZ79XomDOGbtrhEbPj88dKDw42LOUM/0dQ200mdcyY+PsetLTomfEWw0yKOLXE+WmKOs0RB8u+3Tmcg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 4,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:b0eb9365349674cf6decb97f00328a8932a07beb30faa5a74130877fadf6fae4",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 4,
+              "offset": 1048576,
+              "sizeBytes": 262144,
+              "nonce": "b2a6ac3c-ec6a-4b44-ac7b-47d36223c420",
+              "signature": "GSqOeVGIIIcrZql4Gz/rNz93ul6kfkIe5V3M9BJfn9jcO1a7rLfIijPR2eKg/nLQXNjwXUJd2aNjhIOw++343A=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:b0eb9365349674cf6decb97f00328a8932a07beb30faa5a74130877fadf6fae4",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "oi3gWA3PWp7bVb8Udit7meqSTwSzaowvWb68NNfihCenO3tOBA30OyYBc7sLZwxmvxYFhUO10ivvjrUOmlOuFQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 5,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:e9219d98a83faa71a0677a2f1e92ddc3149f2ffc893cf023730d2555e48075b4",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 5,
+              "offset": 1310720,
+              "sizeBytes": 262144,
+              "nonce": "a9e0d1f0-ade2-4923-baba-8c4908a5e8cf",
+              "signature": "INJvwXZ+zgrCmUJYdgY17gEW9ieja7E4oF9Ufs3L2R5t2ILYTKaksllMY5nKmyxO82hTRPoI01WR7oHCuXM4kw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:e9219d98a83faa71a0677a2f1e92ddc3149f2ffc893cf023730d2555e48075b4",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "smDG3vQ3RZ7S/hjrAr3K9G3OSiV8YioMQ/OL6kmPPK19aJPRgypP4qJb91y0hGHADi8rMagcVLwId0q8rUlIXw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 6,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:3bc4886c36c0f9df27f4f6e151a60f12991bb2a64e78660221a9945c17f951c1",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 6,
+              "offset": 1572864,
+              "sizeBytes": 262144,
+              "nonce": "050c15e9-d0bf-4186-a241-2a7e4ab691f9",
+              "signature": "lueGOnXhvKt27ELnjAXFku3xP7fp71RMM8kViv6RPyyr60BukmhShmkTq1LjAxNrEFwk5mgqlAgsdAB9e/1RsA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:3bc4886c36c0f9df27f4f6e151a60f12991bb2a64e78660221a9945c17f951c1",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "CKbuhjH5VXLh0BiWRsuYWNyciy0FXJO2gBFz7d+Dxx9eOLgaW6RxL36tI2SORfxMrZnuL+jwft+fIN0O+56T0A=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 7,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:c778c818ba4fecc0f841739dc38eee2f469c898bc552b5d285c30dfee12e7377",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 7,
+              "offset": 1835008,
+              "sizeBytes": 262144,
+              "nonce": "bc2a6f9a-befe-4b20-8d42-b015963f967d",
+              "signature": "nbTSGUEM5esxiGGTWX4eEl9BPLG3AQagfGF5KevC1L/Fw/0aiyKiziGtj5HtNCYBXbFcXPVgqxHfR+qJgatPLw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:c778c818ba4fecc0f841739dc38eee2f469c898bc552b5d285c30dfee12e7377",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "dSywyqZQ4ywjviSBFAzzIc0+/i3tR9zkSBsKtU7STPtRynttLTuUByLkj/WitgfSN1gjP3vApR4RwlnVUb3Xaw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 8,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:c0393440f3bc2a81e32951a80bd978fdf97dfc82e33c09724dd8ee904cebc9b3",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 8,
+              "offset": 2097152,
+              "sizeBytes": 262144,
+              "nonce": "9564e7fa-4936-41ac-a0e0-b6d06e93311f",
+              "signature": "YkvMV0F1MmlZapJSSUcLPleK1nvDOkKw5545BU6KApuPB4L+BdAaekDrnAD5/cM+Pv9JDnw0u/NF1oAv/CNfXA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:c0393440f3bc2a81e32951a80bd978fdf97dfc82e33c09724dd8ee904cebc9b3",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "StYwJxGGBARNCS43ON2FIBp1GEJDIsAjnQKloqG/1WLT4ZdS9n91QCeh0Wl8fBRevLQdgcRAtfnEdeJsEJ2ZNQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 9,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:c731f4dfd851c5d3d46f85a881da3bf63332d389ccb3b5c371200eea4f8cfc16",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 9,
+              "offset": 2359296,
+              "sizeBytes": 262144,
+              "nonce": "cc058536-36f4-4a00-ac2d-31974e094266",
+              "signature": "nbZEfiCD/U4OArQeL6m4iK12+dlwVJgD3xkKcPyf1dqL5HAcBloXC7cZqMfQ33ndtW9gyBLEuHdOtdhGK+2lUg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:c731f4dfd851c5d3d46f85a881da3bf63332d389ccb3b5c371200eea4f8cfc16",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "hU0JNMhcBRo8IKe8Te3HRzjWToVLGLVO0b17HfUYM3JoS3R5zVketgAeH3NeyS9VbDjpqJPVA+GLVrDuitFmfw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 10,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:00b5b138788832e84e9b9207ef208d2d2877954d4959f27c4dbe7435e14e2edc",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 10,
+              "offset": 2621440,
+              "sizeBytes": 262144,
+              "nonce": "aefd448d-cc4a-4aa1-99a1-d61dc0cc8151",
+              "signature": "0o0RWSODoeM5x71BEzvzx5Oq2rIrAofyYIfMMrF1uL2VUXYm/JmGRJK5ohhcPZS8lfBvEoDZvNmeK9Yx4EvTHw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:00b5b138788832e84e9b9207ef208d2d2877954d4959f27c4dbe7435e14e2edc",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "fUyJ35AcChgJm+nN807A+ndKkd8cfgPH3wlP05BHnjODyiyXfoKMbXRb4bQZgQkjsZri2cBypigZEFmQkaw0hg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 11,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:daa1885c74a4140290d7211b6d2c659bf468126ccf548030734d955a107bbae9",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 11,
+              "offset": 2883584,
+              "sizeBytes": 262144,
+              "nonce": "49bf0c4c-b656-4c74-a3d7-548c6c7a0ae1",
+              "signature": "6wnyT1mE4Zoxd211ywPzBkhQG2+dWGhzwcG6nlLnsFplbzxmWH/fRpijzQ7fJNE1gGyEyomqina6BDqYxAA9gg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:daa1885c74a4140290d7211b6d2c659bf468126ccf548030734d955a107bbae9",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "HSZ1yqk2+QFrTla8fq53YyRx24D4zSB6pbN6Yl6VIMIlNIpBm8cVWKHqRI21Jfq2Fp4eMUEwoAM8JxS3HtgD9w=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 12,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:250fae6a66780895a2bd0d6c3de80a80f5fb4240ecf44679dc8813f2bf2df935",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 12,
+              "offset": 3145728,
+              "sizeBytes": 262144,
+              "nonce": "774d4573-1446-4ba4-8663-62c731537f26",
+              "signature": "tuA2prWXOT8qIFAieovSeOSSC6cUyKMQBcJXB4HJ4LXGiePdXDof4UkQD/a4PjiYRNyScHkO1CT4K1RGzjZ7Uw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:250fae6a66780895a2bd0d6c3de80a80f5fb4240ecf44679dc8813f2bf2df935",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "N9LvlkArv+YvQtcFp0FSJ76dxcAkb+dY+5BmlV11efqAAWpGOvehrKfoW9nORzlHBkM1Ag8Zpg9PuwzqVYAsHg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 13,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:adb00c6544b67bfd58e45bf7565d31e022763e06c3d384014d826dd2c99842dd",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 13,
+              "offset": 3407872,
+              "sizeBytes": 262144,
+              "nonce": "2d7e44ec-3fb4-482a-9446-4e39c74c0206",
+              "signature": "hAz68WHCLuhiCNT87HjUbLnTDHCOBWfPK3TQwGT9jTsC8M2hwRynBTq5HsGnhvLBuT1G+0tu4m3IFLaWycjU6A=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:adb00c6544b67bfd58e45bf7565d31e022763e06c3d384014d826dd2c99842dd",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "rElf1PGVvOMYKK4PpYy6AAxb26/l5nwdWdQ+Hp6vKpKbrNdWLYlVWUXUQ+MBLsjbe4KN8qBlQJos8bDRxasdEg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 14,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:92bf03d352e657a846d0e264e2b26a73aecb5cb95b89ec6102830fac89b4564a",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 14,
+              "offset": 3670016,
+              "sizeBytes": 262144,
+              "nonce": "c79f662a-608d-4c18-9cd5-2274111fbd55",
+              "signature": "CqUMdT5cHL3VdVbKhYi/2/dkneMl34GRXaSqd01dgDqcqwy0QMUUAekDIDlJS5rknhKD6FT8B+jSRZmf2ra/aA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:92bf03d352e657a846d0e264e2b26a73aecb5cb95b89ec6102830fac89b4564a",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "yQArLEvBTElNMgPzg9p/ydOaV+WfhJaKIKXgruypbRqnjWB3e4bTIyL4ixsSoVPffFRAgM6FHbyXdUuQcWZNCw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 15,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:c0b95072c2d03c8127b4cd51ac735dcda3288eaf48dbee8d5250457c627e7b5c",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "transferId": "7ca42179-cff2-4d40-805a-a641a365dcf5",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 15,
+              "offset": 3932160,
+              "sizeBytes": 262144,
+              "nonce": "67a7df91-64d0-4352-9174-c4ad00fc92f5",
+              "signature": "6grTWcBYpQHWnO2jF4UaLYMD0dFKKJ7vn+aBQFoNQe8QylZ3ttJ0aPGEpGCbU+EVASCSL3b7U9FvKodOG86Olw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:c0b95072c2d03c8127b4cd51ac735dcda3288eaf48dbee8d5250457c627e7b5c",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "2Um5SKizIvBpI3xipsm49p7DX4RBmK4XI2QaufP6/ZfeTXKxSXBpcMzQj1Z/0vj414Kx+/RRXnR4hcQH7AWLQg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          }
+        ],
+        "completed": [
+          {
+            "artifactId": "fixture.bin",
+            "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+            "sizeBytes": 4194304
+          }
+        ],
+        "inventories": [
+          {
+            "expiresAt": 1790977051800,
+            "maxBytes": 4194304,
+            "artifacts": [
+              {
+                "artifactId": "fixture.bin",
+                "chunkIndexes": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7,
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ]
+              }
+            ],
+            "schema": "reploid.pool.pack-custody-inventory/v1",
+            "authorizationHash": "sha256:fec9675195e6e4fe70d2e76eea4f8f9204d2c375fbd145672828d26681b70ac6",
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "signature": "RS2tcq2wRvLo2EaaWEg+dLUz/C0W/9iCrRb3lx47ZFw2+mLRNjoU5ccLYnYM8cO1idm4GNgsnrdxOBtu0H6Gcg=="
+          }
+        ],
+        "cacheBytes": 0,
+        "corruptCacheBytes": 0,
+        "persistedBytes": 0,
+        "evictedBytes": 0,
+        "duplicateBytes": 3932160,
+        "maxConcurrentChunks": 1,
+        "peakInFlightBytes": 262144,
+        "peakArtifactBytes": 4194304,
+        "firstArtifactMs": 1448,
+        "elapsedMs": 1452,
+        "browserHeapBytes": null,
+        "wireBytes": null,
+        "relayBytes": null,
+        "interruptedBytes": null
+      }
+    },
+    {
+      "concurrency": 2,
+      "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+      "elapsedMs": 775.5,
+      "receipt": {
+        "schema": "reploid.pool.pack-custody-receipt/v1",
+        "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+        "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+        "attempt": 1,
+        "artifactSetIdentity": "sha256:9b6a4d1404c64f326aac6f9971ffdf72701e00cb231ef755686451049a0d9b48",
+        "indexDigest": "sha256:752282af39fbacb43e939847ed3d7d45d1768ad0a3dd16cec15d8660de8fbf3a",
+        "source": "peer",
+        "reservedBytes": 4194304,
+        "receivedBytes": 4194304,
+        "verificationBytes": 8388608,
+        "attempts": [
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 0,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:0308c549c053a1fc3d57344431340a990c88e12bd307d0172e6392641cd402ae",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 0,
+              "offset": 0,
+              "sizeBytes": 262144,
+              "nonce": "27c570ca-b5af-48ad-bef7-a042ec787395",
+              "signature": "KfwFizCT0YQ1N4TZWR7mHYbXVaD/TDFxbr6zWk5BtWbBKRlk1L4oEd+fWvcj3p5ssVRBDzYluCsbkmn8T7cShw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:0308c549c053a1fc3d57344431340a990c88e12bd307d0172e6392641cd402ae",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "qxbf0DKvr6iOXRvK7rZQB6bcwcyGJxafs3wOzE/bx5fCKXCGeYAlkjyndDxVYrP3t9VDnX9lbwn8CxbP7IMIPA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 1,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:415f2cdcd251cd54ebf5cc2c155567ba061c171b3c28ebdb82ac9b8b54f1bc16",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 1,
+              "offset": 262144,
+              "sizeBytes": 262144,
+              "nonce": "98e5195f-8fd6-4844-bd0e-9b4d59fef9ae",
+              "signature": "hssnjB69wYyLICDsAfMwCU6Nq2J4gA6L15QsivZg82ZmMuFyV9jkFlFMP8H4BclCM8Wcw9Ac9WtOFlHeYE0gTw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:415f2cdcd251cd54ebf5cc2c155567ba061c171b3c28ebdb82ac9b8b54f1bc16",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "P78CUo9VJnCJwyFXoS3L5MH+oc33vM7nfgLggEF/pKr7TtcthW49i/CoOD4r+MBOJbIXBxYL/ANGjexe08obTw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 2,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:e70f71750927440d2401290a87cb61957046979962c850a71961fb92f25e1fdc",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 2,
+              "offset": 524288,
+              "sizeBytes": 262144,
+              "nonce": "27a9197c-8f51-4c55-986d-fe731ef75d8b",
+              "signature": "suEnckvsn7NCWVfSmJ+sK5Cru1G78e4C2FQOH8G8XAeqVtBmDQyDzCk6KVomgHBck5wl31ruSKZoStBvZN6lZQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:e70f71750927440d2401290a87cb61957046979962c850a71961fb92f25e1fdc",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "mVLTuXlGdOO3PM6/79KO+KRqAN49pWPfPfcJo8fjYvsA7mbffElh6watWW1g9LFCYc4BNGWmrZfsH7/oUjKMwA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 3,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:4d91fa719ea75dbb5cb08ddc9f0b3f8f612ee2ac4aa1f872f6a3a539e0cc63d5",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 3,
+              "offset": 786432,
+              "sizeBytes": 262144,
+              "nonce": "e3985ae0-63d4-4158-8108-3383ff05d1b0",
+              "signature": "74H1txKxBdllq2yFs8eFobe6hupNDe4hwP6iESVCtKohHhvtXsPvKNiPJCcxfMamvdNJqQWcsgBDgSiP4z0VNA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:4d91fa719ea75dbb5cb08ddc9f0b3f8f612ee2ac4aa1f872f6a3a539e0cc63d5",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "r8vqroNiBPonawOfaj+w2KU+1zK2Cn4WmAJCnQBEOVDvejs8N4VK3LzuPdlYHrPIaK2FW3vLWpQcCR8tTgEZiQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 4,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:690002dd3475603b62815637285e4b39222f68de0ba428e640691bc9af2feec0",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 4,
+              "offset": 1048576,
+              "sizeBytes": 262144,
+              "nonce": "877dda6a-deee-45b1-a286-74be716914ef",
+              "signature": "wCOaLCyrHuRgreKVb8dJWpWLOoYHz2u6/Zt+TOKxTdPZSZROAy1mDnYQ4oLyebN85BpDs51LcV6Zf1lqdZY8vg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:690002dd3475603b62815637285e4b39222f68de0ba428e640691bc9af2feec0",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "Qc0Coi/erEi9Rpufvx+/3XFpvNYQ4/jVj26wBKtUrlfpjsSXifeTeanx1qUkF4c1YG59HsSizsExTEDZFQks4g=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 5,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:ae98f67765bd8018a398a0aa6725d21f06acdd4d836e72d726c3dfa71381e054",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 5,
+              "offset": 1310720,
+              "sizeBytes": 262144,
+              "nonce": "bf7bf722-2798-44cc-84da-be30ab0ba195",
+              "signature": "FpHD0fsSq3f0n6aXXKylhOjGDd2U5yFOpwGo55yMAkV7+VTNy8VO8Qnx1bBVZFdqJVCoQ4YYlcadWGVzC/+aqg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:ae98f67765bd8018a398a0aa6725d21f06acdd4d836e72d726c3dfa71381e054",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "O/IMm+hGpQviQ6RMSuGmys3yTQFzprXRXioxypzYz6aOITL2gtRu1/o1D8xQiJX11TZHeiaPZRuGIxELpwMzBQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 6,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:0d0cd9da25d3a7327a0a7f85f63ac863bb56e23c1bd4544858ec4c8eaf35f490",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 6,
+              "offset": 1572864,
+              "sizeBytes": 262144,
+              "nonce": "d860d293-83dd-492a-a3c7-b1ef57d500bf",
+              "signature": "3OAY3vYc9sj9wPVVEVhRtRiw1z32BXzu67blCyHldqMGjJ+rKUsyGNaYFSjBPaAgmHof7+Ey+GJYa5nXImEUMA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:0d0cd9da25d3a7327a0a7f85f63ac863bb56e23c1bd4544858ec4c8eaf35f490",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "QSstCBxDFL/cFmldCtrXvHQQfCb/aQhAvVbZs8wSodWA6crxlibI9YmO6MiaqIZPVWf8I/ZJl+tFIDFY06HgrQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 7,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:f5a3ba672c86e278c519ab01281d2604d46f7bc1323bcc5c330983e6ffd6a452",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 7,
+              "offset": 1835008,
+              "sizeBytes": 262144,
+              "nonce": "23cd8c45-f2cc-49fa-964f-21fa347d5c01",
+              "signature": "HcZ6Zh5kRUypOZi16NewJ+stQxCilpe4Om45X4PsbiW1i8EBLnByV5HKyhsYxh4gS9VhI5IneIUCgmWpqi4vdw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:f5a3ba672c86e278c519ab01281d2604d46f7bc1323bcc5c330983e6ffd6a452",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "akPs0hW/CgExqzf6cKCT5ecqhlyDlqK5OvVZ1X6cC+3ttJpjbG0qSq/1J/mWsSyQhGxI5PDTqLUsd7sJAO/wLw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 8,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:69dc2351e231922ba0f416b56f9826925daca52e06100241ce5165feb53ec5d4",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 8,
+              "offset": 2097152,
+              "sizeBytes": 262144,
+              "nonce": "6cb3d04e-668c-4eac-a213-c68a5602818c",
+              "signature": "DxWHVDqjgOvc2MtmqniiEGHWDB8RTd+DOTs1CF7aeV4U3y5ztBrLdFcrVPsnsZtM6jrfGJm42ZmkKtrR24/wBQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:69dc2351e231922ba0f416b56f9826925daca52e06100241ce5165feb53ec5d4",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "aVoPp2Oe9x/fbpWY59tmwyeUaJ1QXQ/NUDh/5dwkGOStH1A/ZsqBi6e7vkG1culAHRjX52qDzKJ0O2Zsqr/YyQ=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 9,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:5c5c0ab5cfc494465e67f41cabb33fb895c24c30563296231f626edb297cfa29",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 9,
+              "offset": 2359296,
+              "sizeBytes": 262144,
+              "nonce": "920210fd-f1bb-40c0-b7e9-41b586135d4b",
+              "signature": "OAkN4dREVJlWS8+VhURq/Sl5MOBCY+5LY1obSyQgy60RJHDM7WOD9sLKeWsI/gfo6OllIHHOZxOP1kfoqlZy/w=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:5c5c0ab5cfc494465e67f41cabb33fb895c24c30563296231f626edb297cfa29",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "N2IK0Oeu/Mjnj4blhDmM8PKHN49AayX6xpKfdGWkbOAwvslbdMLr+rZiILRhw+H4QiUg8evgFxqQRDHfBYXM+A=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 10,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:c1f4abffca2a68764cc7cd8a0ec71dc1f82d738be229c14fdfdec9aa5727ec0b",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 10,
+              "offset": 2621440,
+              "sizeBytes": 262144,
+              "nonce": "83fd69b3-c934-4094-bc77-aa1f396db5ec",
+              "signature": "Kk9ANTM4AB3SDjbAZFrR+laR8SoQqBNZ+ygTwmvEoG7z9CKSKbmRWM/EDv+DmwZIr8ARJ8gOxyiTlt77/hCAug=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:c1f4abffca2a68764cc7cd8a0ec71dc1f82d738be229c14fdfdec9aa5727ec0b",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "YKVecFxhsijFO0KV6AyhhQkDqctv1d673f8OXGljlZtWkKCKcJI9VZRJO3iarPRAVLbWGVyo0L3kpb9dBpAFRg=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 11,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:2300ae283aea5896cd38346f637b89b7f9b7ac1d6b98666e0b249942f49d70c4",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 11,
+              "offset": 2883584,
+              "sizeBytes": 262144,
+              "nonce": "02cd4035-99f8-46ac-9163-082988ccde31",
+              "signature": "nWqKynEl+zNJ35IkTCEh1kSOvC2O4f9VQeoyomoy9xPIBjcTeKe8lr+hM9ugwJcugcxL5stBaqEdrKqzMZLMDA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:2300ae283aea5896cd38346f637b89b7f9b7ac1d6b98666e0b249942f49d70c4",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "dVF2KrToqQpZNoIC6ebsMJH+mS7WNBCgVQbZBUUL5rQPVZ0zCKPU+jNMgsRw3SN20+pdciLfxwvxFwxzJta7NA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 12,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:2701222ce3994832387d16fba45bc5f8ffd8638c51bcb349056f45692266fab8",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 12,
+              "offset": 3145728,
+              "sizeBytes": 262144,
+              "nonce": "8cf28c03-56d4-4c82-b852-be341e79713c",
+              "signature": "jjyzrHBE+E/BdE5stRpyUUkRX+ZZwnt02ZG54QfrNg5boP9lOyynq42Sx2D7okpt5ajvUbF19TxrhOJh1t0Nuw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:2701222ce3994832387d16fba45bc5f8ffd8638c51bcb349056f45692266fab8",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "5shrKLOvgWnWnUDxGnV4CLyFnQ3/iZTKz5lVCrBMsdDoUsKe4xmiTON4XiKAV4IQgS6a5PlygAXJvd8p1GV9bw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 13,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:4cc37cb67cdfee0273f0f7d826dffc381cf4be040197f43ed3dfabc11e971b35",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 13,
+              "offset": 3407872,
+              "sizeBytes": 262144,
+              "nonce": "0f609d84-1111-41a5-aa43-0efa69d805e8",
+              "signature": "lCK0xsYfFX14pupHlfnwWKjzekpVNFP1jFTPXX/3ypWO8lwZhC8rDzo9viU2KwsU7+UM2wLaLnt8EUYeVxDi0Q=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:4cc37cb67cdfee0273f0f7d826dffc381cf4be040197f43ed3dfabc11e971b35",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "5xi0CkJw7u1qlnvvxqmGf6Nk4NgMcmiVicny52t3cZjz6RDu5VipB+/QAyLG44H7bEazxl9dbHzypgVGv6CZSw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 14,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:a11b75d782eea39ed3a096b8cbc48a2e2b8e92da46b981ceb749d9a1b7a4c792",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 14,
+              "offset": 3670016,
+              "sizeBytes": 262144,
+              "nonce": "bc82a099-021d-4c90-96ec-61f58b51d071",
+              "signature": "Rydmgz9Jd0izwgmkIXDXzh2O/mPR8ihgbttvs+VxSkYsEVHl4sL0e24FkJ76+hzaDxgApziBZJ25RSkvpuJ7yA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:a11b75d782eea39ed3a096b8cbc48a2e2b8e92da46b981ceb749d9a1b7a4c792",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "YeF5KCYd3YCkq7TkzzFzMIMlUxUx4+jY6Qm/2b++RE4Qe3G8I7e68NDRt5xTKxUo+DrIle4/XNZIze7gRj4zcA=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          },
+          {
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "artifactId": "fixture.bin",
+            "chunkIndex": 15,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:70c15f34439926d59e3958e4ac9b620d1b4bfff45e0a0f384161f454f832c3c7",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "transferId": "a9783f8a-b2a3-4385-92ae-f1d3b1b35f31",
+              "attempt": 1,
+              "requesterPeerId": "36de9944-f256-41ce-a327-5c7d0a77ee99",
+              "supplierPeerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "artifactId": "fixture.bin",
+              "chunkIndex": 15,
+              "offset": 3932160,
+              "sizeBytes": 262144,
+              "nonce": "3c90fb55-e7e2-4804-b30d-fe69d5bd98a1",
+              "signature": "3EUJUk3B26DDpUehORydh5ciriT9JV6knaapN2yllwS0Gp1DFuFDCjpO8JQxC1pMID6DRN4x6iiX2Junb8oi7Q=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+              "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+              "requestHash": "sha256:70c15f34439926d59e3958e4ac9b620d1b4bfff45e0a0f384161f454f832c3c7",
+              "bytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b",
+              "signature": "7F9aXhQ7SWXUeADREVGMzt8vik3D2ryCSl5dNzKQQVoGpInykgUJekareA+6EWIw3SEGqnOrNYH+slTdCwYJaw=="
+            },
+            "observedBytesHash": "sha256:3a5e1a469f972cf91be8693b81cd882064e42186d23643eed7532e334598981b"
+          }
+        ],
+        "completed": [
+          {
+            "artifactId": "fixture.bin",
+            "hash": "sha256:bce1be3c908a66e4ef845efaf81763bb1549f635ca4e9f212ab3026562c3c810",
+            "sizeBytes": 4194304
+          }
+        ],
+        "inventories": [
+          {
+            "expiresAt": 1790977053492,
+            "maxBytes": 4194304,
+            "artifacts": [
+              {
+                "artifactId": "fixture.bin",
+                "chunkIndexes": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7,
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ]
+              }
+            ],
+            "schema": "reploid.pool.pack-custody-inventory/v1",
+            "authorizationHash": "sha256:63bef10f0b7576657dc2a6e491a3106e6dcb2829d878a1a6b7ab82dfab7db1ee",
+            "peerId": "8efce804-4049-415c-ba5c-fa67dbed0573",
+            "signature": "HpiWpe8LZJrEiNFRjHhxLXUQt9rcucnYrR2V4HaPYZRppYOXCQcz7rPTCk8QwU0B5wvq0PpdidytlxM1UZMgzA=="
+          }
+        ],
+        "cacheBytes": 0,
+        "corruptCacheBytes": 0,
+        "persistedBytes": 0,
+        "evictedBytes": 0,
+        "duplicateBytes": 3932160,
+        "maxConcurrentChunks": 2,
+        "peakInFlightBytes": 524288,
+        "peakArtifactBytes": 4194304,
+        "firstArtifactMs": 706,
+        "elapsedMs": 710,
+        "browserHeapBytes": null,
+        "wireBytes": null,
+        "relayBytes": null,
+        "interruptedBytes": null
+      }
+    }
+  ],
+  "connections": [
+    [
+      {
+        "connectionState": "connected",
+        "localCandidateType": "prflx",
+        "remoteCandidateType": "relay",
+        "protocol": "udp",
+        "relayProtocol": null,
+        "roundTripMs": 39,
+        "bytesSent": 28452003,
+        "bytesReceived": 756039,
+        "channels": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 31,
+            "messagesReceived": 37,
+            "bytesSent": 30732,
+            "bytesReceived": 9594
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "connectionState": "connected",
+        "localCandidateType": "relay",
+        "remoteCandidateType": "prflx",
+        "protocol": "udp",
+        "relayProtocol": "udp",
+        "roundTripMs": 85,
+        "bytesSent": 781243,
+        "bytesReceived": 28188991,
+        "channels": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 37,
+            "messagesReceived": 31,
+            "bytesSent": 9594,
+            "bytesReceived": 30732
+          }
+        ]
+      }
+    ]
+  ],
+  "errors": []
+}

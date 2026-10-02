@@ -5,8 +5,11 @@ import profile from '../config/work-profile.json' with { type: 'json' };
 import policy from '../config/partition-policy.json' with { type: 'json' };
 
 export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress }) {
+  const openedAt = performance.now();
   globalThis.__DOPPLER_KERNEL_BASE_PATH__ = DOPPLER_KERNEL_BASE_URL;
   const runtime = await import(DOPPLER_PARTITIONS_MODULE_URL);
+  await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
+  const acquisitionStarted = performance.now();
   const source = await files.preparePartitionSource(selected, { signal, onProgress });
   const manifest = source.manifest;
   const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
@@ -14,12 +17,17 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   const planId = runtime.hashLayerPartitionPlan(plan);
   const model = { ...selected, generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen } };
   const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
-    runtimeConfig: { inference: { session: { kvcache: { maxSeqLen: policy.maxSeqLen } } } },
+    runtimeConfig: { shared: { debug: { profiler: { enabled: policy.profileGpu } } },
+      inference: { session: { kvcache: { maxSeqLen: policy.maxSeqLen } } } },
     createStorage: async () => source.storage });
   const resident = createResidentPartition({ runtime: factory, model, plan, planId, index,
     participantId, limits: policy.limits });
   try {
     await resident.prepare({ approved: true, signal });
-    return { runtime, model, plan, planId, resident, getReceipt: source.getReceipt };
+    const preparation = { openMs: performance.now() - openedAt,
+      acquisitionAndMaterializationMs: performance.now() - acquisitionStarted,
+      memoryAtOpen: runtime.inspectDeviceMemory() };
+    return { runtime, model, plan, planId, resident,
+      getReceipt: () => ({ ...source.getReceipt(), preparation, memory: runtime.inspectDeviceMemory() }) };
   } catch (error) { await resident.close(); await source.storage.close(); throw error; }
 }

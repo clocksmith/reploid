@@ -1,0 +1,145 @@
+
+
+import { log } from '../../../debug/index.js';
+
+export function preprocessImage(pixels, width, height, config) {
+  const {
+    patchSize,
+    spatialMergeSize,
+    temporalPatchSize,
+    minPixels,
+    maxPixels,
+    normalization = {},
+  } = config;
+  if (!Number.isFinite(patchSize) || patchSize <= 0 || Math.floor(patchSize) !== patchSize) {
+    throw new Error('Vision config patchSize must be a positive integer.');
+  }
+  if (!Number.isFinite(spatialMergeSize) || spatialMergeSize <= 0 || Math.floor(spatialMergeSize) !== spatialMergeSize) {
+    throw new Error('Vision config spatialMergeSize must be a positive integer.');
+  }
+  if (!Number.isFinite(temporalPatchSize) || temporalPatchSize <= 0 || Math.floor(temporalPatchSize) !== temporalPatchSize) {
+    throw new Error('Vision config temporalPatchSize must be a positive integer.');
+  }
+  if (!Number.isFinite(minPixels) || minPixels <= 0 || Math.floor(minPixels) !== minPixels) {
+    throw new Error('Vision config minPixels must be a positive integer.');
+  }
+  if (!Number.isFinite(maxPixels) || maxPixels <= 0 || Math.floor(maxPixels) !== maxPixels) {
+    throw new Error('Vision config maxPixels must be a positive integer.');
+  }
+
+  if (!Array.isArray(normalization.mean) || normalization.mean.length !== 3) {
+    throw new Error('Vision config normalization.mean is required (array of 3 channel means)');
+  }
+  if (!Array.isArray(normalization.std) || normalization.std.length !== 3) {
+    throw new Error('Vision config normalization.std is required (array of 3 channel stds)');
+  }
+  const mean = normalization.mean;
+  const std = normalization.std;
+
+  // Step 1: Compute target dimensions respecting pixel constraints and patch alignment.
+  const mergedPatch = patchSize * spatialMergeSize;
+  const { targetWidth, targetHeight } = computeTargetDimensions(
+    width, height, minPixels, maxPixels, mergedPatch,
+  );
+
+  log.debug('Vision', `preprocess: ${width}x${height} -> ${targetWidth}x${targetHeight} (patch=${patchSize}, merge=${spatialMergeSize})`);
+
+  // Step 2: Resize to target dimensions (bilinear interpolation on CPU).
+  const channels = 3;
+  const resized = resizeBilinear(pixels, width, height, targetWidth, targetHeight, channels);
+
+  // Step 3: Normalize to [0,1] then apply mean/std normalization.
+  const normalized = new Float32Array(channels * targetHeight * targetWidth);
+  for (let c = 0; c < channels; c++) {
+    const m = mean[c];
+    const s = std[c];
+    for (let y = 0; y < targetHeight; y++) {
+      for (let x = 0; x < targetWidth; x++) {
+        const srcIdx = (y * targetWidth + x) * channels + c;
+        const dstIdx = c * targetHeight * targetWidth + y * targetWidth + x;
+        normalized[dstIdx] = (resized[srcIdx] / 255.0 - m) / s;
+      }
+    }
+  }
+
+  // Step 4: Compute grid dimensions for the LLM.
+  //   gridT = 1 for single image (temporalPatchSize frames per temporal patch)
+  //   gridH = targetHeight / patchSize
+  //   gridW = targetWidth / patchSize
+  const gridT = 1;
+  const gridH = Math.floor(targetHeight / patchSize);
+  const gridW = Math.floor(targetWidth / patchSize);
+
+  return {
+    data: normalized,
+    width: targetWidth,
+    height: targetHeight,
+    channels,
+    gridThw: [gridT, gridH, gridW],
+    patchedHeight: targetHeight,
+    patchedWidth: targetWidth,
+  };
+}
+
+function computeTargetDimensions(width, height, minPixels, maxPixels, mergedPatch) {
+  const aspectRatio = width / height;
+
+  // Start from the geometric mean of min/max pixel counts.
+  let targetPixels = Math.sqrt(minPixels * maxPixels);
+  targetPixels = Math.max(minPixels, Math.min(maxPixels, targetPixels));
+
+  // Compute dimensions preserving aspect ratio.
+  let h = Math.sqrt(targetPixels / aspectRatio);
+  let w = h * aspectRatio;
+
+  // Round to nearest mergedPatch multiple.
+  h = Math.max(mergedPatch, Math.round(h / mergedPatch) * mergedPatch);
+  w = Math.max(mergedPatch, Math.round(w / mergedPatch) * mergedPatch);
+
+  // Clamp total pixels.
+  if (h * w > maxPixels) {
+    const scale = Math.sqrt(maxPixels / (h * w));
+    h = Math.max(mergedPatch, Math.round((h * scale) / mergedPatch) * mergedPatch);
+    w = Math.max(mergedPatch, Math.round((w * scale) / mergedPatch) * mergedPatch);
+  }
+  if (h * w < minPixels) {
+    const scale = Math.sqrt(minPixels / (h * w));
+    h = Math.max(mergedPatch, Math.round((h * scale) / mergedPatch) * mergedPatch);
+    w = Math.max(mergedPatch, Math.round((w * scale) / mergedPatch) * mergedPatch);
+  }
+
+  return { targetWidth: w, targetHeight: h };
+}
+
+function resizeBilinear(src, srcW, srcH, dstW, dstH, channels) {
+  const srcChannels = src.length / (srcW * srcH);
+  const out = new Float32Array(dstH * dstW * channels);
+  const scaleX = srcW / dstW;
+  const scaleY = srcH / dstH;
+
+  for (let y = 0; y < dstH; y++) {
+    const srcY = y * scaleY;
+    const y0 = Math.min(Math.floor(srcY), srcH - 1);
+    const y1 = Math.min(y0 + 1, srcH - 1);
+    const fy = srcY - y0;
+
+    for (let x = 0; x < dstW; x++) {
+      const srcX = x * scaleX;
+      const x0 = Math.min(Math.floor(srcX), srcW - 1);
+      const x1 = Math.min(x0 + 1, srcW - 1);
+      const fx = srcX - x0;
+
+      for (let c = 0; c < channels; c++) {
+        const v00 = src[(y0 * srcW + x0) * srcChannels + c];
+        const v01 = src[(y0 * srcW + x1) * srcChannels + c];
+        const v10 = src[(y1 * srcW + x0) * srcChannels + c];
+        const v11 = src[(y1 * srcW + x1) * srcChannels + c];
+        const top = v00 + (v01 - v00) * fx;
+        const bot = v10 + (v11 - v10) * fx;
+        out[(y * dstW + x) * channels + c] = top + (bot - top) * fy;
+      }
+    }
+  }
+
+  return out;
+}

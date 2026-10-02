@@ -118,7 +118,11 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       assert(!prior || samePartitionIdentity(prior.identity, request.identity), 'Partition attempt identity collision');
       assert(prior || active.size < receiverLimits.maxAttempts, 'Remote attempt budget exhausted');
       active.set(request.identity.attemptId, structuredClone(metadata));
-      return endpoint.request(metadata, new Uint8Array(buffer), { signal });
+      let transportTiming = null;
+      const result = await endpoint.request(metadata, new Uint8Array(buffer), {
+        signal, onTiming: value => { transportTiming = value; }
+      });
+      return { ...result, transportTiming };
     },
     async closeAttempt({ identity }) {
       const metadata = active.get(identity.attemptId);

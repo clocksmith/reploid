@@ -1,0 +1,1016 @@
+{
+  "kind": "same-device-resident-partition-diagnostic",
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+  "generation": {
+    "maxTokens": 1024,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "actualModelInference": true,
+  "publicCapsuleAcquisition": false,
+  "steps": [
+    {
+      "thread": 0,
+      "step": 0,
+      "tokenId": 9419,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999999,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 1,
+      "step": 0,
+      "tokenId": 19,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 0,
+      "step": 1,
+      "tokenId": 248046,
+      "stopReason": "eos-token",
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 1,
+      "step": 1,
+      "tokenId": 248046,
+      "stopReason": "eos-token",
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999999,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 0,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 1,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 2,
+      "tokenId": 17,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 3,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 4,
+      "tokenId": 18,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 5,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999999,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 6,
+      "tokenId": 19,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999999,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 7,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 8,
+      "tokenId": 20,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 9,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 10,
+      "tokenId": 21,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 11,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 12,
+      "tokenId": 22,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 13,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 14,
+      "tokenId": 23,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 15,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 16,
+      "tokenId": 24,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 17,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 18,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 19,
+      "tokenId": 15,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 20,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 21,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 22,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 23,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999998,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 24,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999999,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 25,
+      "tokenId": 17,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 26,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 27,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999999,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 28,
+      "tokenId": 18,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 29,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 30,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 31,
+      "tokenId": 19,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 32,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 33,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 34,
+      "tokenId": 20,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999999,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 35,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 36,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999998,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 37,
+      "tokenId": 21,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 38,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 39,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999998,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 40,
+      "tokenId": 22,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 41,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999998,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 42,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 43,
+      "tokenId": 23,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 44,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999998,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 45,
+      "tokenId": 16,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 46,
+      "tokenId": 24,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 47,
+      "tokenId": 198,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 0.9999999999999998,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 48,
+      "tokenId": 17,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 49,
+      "tokenId": 15,
+      "stopReason": null,
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    },
+    {
+      "thread": 2,
+      "step": 50,
+      "tokenId": 248046,
+      "stopReason": "eos-token",
+      "comparison": {
+        "schema": "doppler.partition-comparison-contract/v1",
+        "matches": true,
+        "maxDiff": 0,
+        "mse": 0,
+        "cosineSimilarity": 1.0000000000000002,
+        "tolerance": 0.0001,
+        "minCosineSimilarity": 0.9999,
+        "length": 248320
+      }
+    }
+  ],
+  "provider": {
+    "schema": "doe.webgpu-provider-receipt/v1",
+    "contract": "doe.webgpu-provider/v1",
+    "implementation": "doppler",
+    "providers": [
+      {
+        "id": "pre-installed",
+        "kind": "global"
+      },
+      {
+        "id": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "gpu": {
+          "kind": "factory",
+          "path": "create",
+          "args": [
+            [
+              "enable-dawn-features=allow_unsafe_apis"
+            ]
+          ]
+        },
+        "globals": {
+          "GPUBufferUsage": "globals.GPUBufferUsage",
+          "GPUShaderStage": "globals.GPUShaderStage",
+          "GPUMapMode": "globals.GPUMapMode",
+          "GPUTextureUsage": "globals.GPUTextureUsage"
+        }
+      }
+    ],
+    "providerOrder": [
+      "pre-installed",
+      "webgpu"
+    ],
+    "adapterOptions": null,
+    "globals": {
+      "mode": "replace",
+      "installed": [
+        "GPUBufferUsage",
+        "GPUShaderStage",
+        "GPUMapMode",
+        "GPUTextureUsage",
+        "navigator.gpu"
+      ],
+      "restored": false
+    },
+    "attempts": [
+      {
+        "providerId": "pre-installed",
+        "kind": "global",
+        "module": null,
+        "ok": false,
+        "stage": "gpu.validate",
+        "code": "DOPPLER_PROVIDER_UNAVAILABLE",
+        "detail": "Selected provider does not expose GPU.requestAdapter()."
+      },
+      {
+        "providerId": "webgpu",
+        "kind": "module",
+        "module": "webgpu",
+        "ok": true,
+        "stage": "complete",
+        "code": null,
+        "detail": null
+      }
+    ],
+    "selectedProviderId": "webgpu",
+    "ok": true
+  },
+  "descriptors": [
+    {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+      "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+      "index": 0,
+      "layerRange": [
+        0,
+        11
+      ],
+      "residentWeightBytes": 650989568,
+      "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+    },
+    {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+      "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+      "index": 1,
+      "layerRange": [
+        12,
+        23
+      ],
+      "residentWeightBytes": 285497344,
+      "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+    }
+  ],
+  "texts": [
+    "Hello",
+    "4",
+    "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20"
+  ],
+  "checks": [
+    "isolated-recurrent-buffer-cleanup",
+    "interleaved-attempts",
+    "full-logit-parity",
+    "sampling-penalties",
+    "text-parity",
+    "length-finalization",
+    "closed-replay",
+    "cancel-before-submit"
+  ]
+}

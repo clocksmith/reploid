@@ -1,0 +1,108 @@
+/**
+ * Tokenizer Wrapper
+ *
+ * Provides a unified interface for tokenization across different backends.
+ *
+ * @module inference/tokenizer
+ */
+
+export type { TokenizerConfig, ModelManifest, SpecialTokens } from './tokenizers/types.js';
+
+import type { TokenizerConfig, ModelManifest, SpecialTokens } from './tokenizers/types.js';
+
+/**
+ * Options for tokenizer initialization
+ */
+export interface TokenizerInitOptions {
+  /** Base URL for loading tokenizer files */
+  baseUrl?: string;
+  /** Caller-supplied tokenizer hints as fallback fields (manifest takes precedence) */
+  tokenizerHints?: {
+    bosToken?: string;
+    eosTokens?: string[];
+    padToken?: string;
+    addBosToken?: boolean;
+    addEosToken?: boolean;
+    hfModel?: string;
+    allowArchFallback?: boolean;
+  };
+  /** Optional direct loader for tokenizer.json */
+  loadTokenizerJson?: (() => Promise<Record<string, unknown> | string | null | undefined>) | null;
+  /** Optional direct loader for tokenizer.model (SentencePiece) */
+  loadTokenizerModel?: ((path?: string) => Promise<ArrayBuffer | Uint8Array | null | undefined>) | null;
+}
+
+export type TokenizerLoadTimingPhase =
+  | 'configResolution'
+  | 'cacheLookup'
+  | 'backendCreate'
+  | 'assetLoad'
+  | 'assetParse'
+  | 'backendLoad'
+  | 'cacheStore';
+
+export interface TokenizerLoadTiming {
+  schemaVersion: 1;
+  source: 'doppler-tokenizer';
+  modelId: string | null;
+  status: 'running' | 'complete' | 'failed';
+  tokenizerType: string | null;
+  tokenizerFile: string | null;
+  backend: string | null;
+  assetSource: string | null;
+  cacheHit: boolean;
+  phasesMs: Record<TokenizerLoadTimingPhase, number | null>;
+  totalMs: number | null;
+  error: string | null;
+}
+
+/**
+ * Tokenizer wrapper that auto-detects backend from model manifest
+ * This is a thin wrapper over the backend implementations
+ */
+export declare class Tokenizer {
+  private backend;
+  private config;
+  private loadTiming;
+
+  /**
+   * Initialize from model manifest.
+   * Caller tokenizer hints provide fallback fields when manifest tokenizer is missing them.
+   */
+  initialize(manifest: ModelManifest, options?: TokenizerInitOptions): Promise<void>;
+
+  /**
+   * Encode text to token IDs
+   */
+  encode(text: string): number[];
+
+  /**
+   * Decode token IDs to text
+   * @param skipSpecialTokens - Whether to skip special tokens in output
+   * @param trim - Whether to trim whitespace (default true, set false for streaming)
+   */
+  createIncrementalDecoder(): import('./tokenizers/bundled/incremental-decoder.js').IncrementalTokenDecoder;
+  decode(ids: number[], skipSpecialTokens?: boolean, trim?: boolean): string;
+
+  /**
+   * Get special tokens
+   */
+  getSpecialTokens(): SpecialTokens;
+
+  /**
+   * Get vocabulary size
+   */
+  getVocabSize(): number;
+
+  /**
+   * Get high-priority token IDs for bounded runtime hot caches, or null when unavailable
+   */
+  getHotTokenIds(limit: number): number[] | null;
+
+  /**
+   * Get report-only tokenizer initialization timing.
+   */
+  getLoadTiming(): TokenizerLoadTiming | null;
+}
+
+export default Tokenizer;

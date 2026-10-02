@@ -74,6 +74,16 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     entry.finished = true;
     clearTimeout(entry.timer);
     entry.signal?.removeEventListener('abort', entry.abort);
+    if (!error && entry.onTiming) {
+      const completedAt = performance.now();
+      // Response waiting includes remote authorization and computation.
+      try { entry.onTiming({ authorizationMs: entry.authorizedAt - entry.startedAt,
+        readyWaitMs: entry.uploadStartedAt - entry.authorizedAt,
+        payloadUploadMs: entry.uploadFinishedAt - entry.uploadStartedAt,
+        responseWaitMs: Math.max(0, entry.resultAt - entry.uploadFinishedAt),
+        acceptanceMs: completedAt - Math.max(entry.resultAt, entry.uploadFinishedAt),
+        totalMs: completedAt - entry.startedAt }); } catch {}
+    }
     error ? entry.reject(error) : entry.resolve(value);
     entry.controller.abort(error ?? new Error('Partition request complete'));
     if (!entry.busy) release(outgoing, entry.id, entry);
@@ -143,6 +153,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
 
   async function upload(entry) {
     entry.busy = true;
+    entry.uploadStartedAt = performance.now();
     try {
       await permit('send', entry);
       for (let offset = 0; offset < entry.size; offset += fragmentBytes) {
@@ -157,6 +168,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       }
     } catch (error) { entry.abort(error); }
     finally {
+      entry.uploadFinishedAt = performance.now();
       entry.busy = false;
       if (entry.finished) release(outgoing, entry.id, entry);
       else if (entry.result) disclose(entry);
@@ -194,6 +206,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       return;
     }
     assert(entry.ready && !entry.result && object(frame.result), 'unexpected result');
+    entry.resultAt = performance.now();
     entry.result = frame.result;
     if (!entry.busy) disclose(entry);
   }
@@ -231,7 +244,8 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
   channel.addEventListener('error', onClose);
 
   return Object.freeze({
-    request(metadata, bytes, { signal } = {}) {
+    request(metadata, bytes, { signal, onTiming } = {}) {
+      const startedAt = performance.now();
       assert(!closed && channel.readyState === 'open', 'unavailable');
       signal?.throwIfAborted();
       assert(object(metadata) && bytes instanceof Uint8Array && bytes.length <= policy.maxPayloadBytes, 'request geometry');
@@ -240,7 +254,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       const text = encodeControl({ type: 'request', id: nextId + 1, metadata, size: bytes.length });
       reserve(bytes.length);
       const entry = { metadata: JSON.parse(text).metadata, bytes: bytes.slice(), size: bytes.length,
-        controller: new AbortController(), busy: true, finished: false, signal, id: ++nextId };
+        controller: new AbortController(), busy: true, finished: false, signal, onTiming, startedAt, id: ++nextId };
       outgoing.set(entry.id, entry);
       const result = new Promise((resolve, reject) => { entry.resolve = resolve; entry.reject = reject; });
       entry.abort = error => {
@@ -268,6 +282,7 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
   async function start(entry, text) {
     try {
       await permit('send', entry);
+      entry.authorizedAt = performance.now();
       await send(text, entry.controller.signal);
       entry.sent = true;
       if (entry.finished) cancelRemote(entry);

@@ -71,6 +71,7 @@ const WebRTCSwarm = {
     let _reconnectAttempt = 0;
     let _reconnectTimer = null;
     let _heartbeatTimer = null;
+    let _refreshingRtc = false;
     let _manualStop = false;
     let _cancelConnect = null;
     let _peers = new Map(); // peerId -> { connection, dataChannel, metadata, status, lastSeen }
@@ -499,6 +500,7 @@ const WebRTCSwarm = {
       const peer = {
         id: remotePeerId,
         connection,
+        rtcConfigKey: JSON.stringify(rtcConfig),
         dataChannel,
         metadata: {},
         status: 'connecting',
@@ -562,6 +564,7 @@ const WebRTCSwarm = {
       const peer = {
         id: remotePeerId,
         connection,
+        rtcConfigKey: JSON.stringify(rtcConfig),
         dataChannel: null,
         metadata: {},
         status: 'connecting',
@@ -884,6 +887,25 @@ const WebRTCSwarm = {
     /**
      * Start heartbeat timer
      */
+    const refreshRtcConfiguration = async () => {
+      if (_refreshingRtc || !deps.getRtcConfig || !_peers.size || _manualStop) return;
+      _refreshingRtc = true;
+      const signalingWs = _signalingWs;
+      try {
+        const rtcConfig = await deps.getRtcConfig();
+        if (_manualStop || _signalingWs !== signalingWs) return;
+        const key = JSON.stringify(rtcConfig);
+        for (const peer of _peers.values()) {
+          if (!peer.connection || peer.rtcConfigKey === key) continue;
+          peer.connection.setConfiguration(rtcConfig);
+          peer.rtcConfigKey = key;
+        }
+      } catch {
+        // Retry on the next bounded heartbeat. Keep healthy channels and attempts.
+        logger.warn('[WebRTCSwarm] RTC credential refresh failed; retrying on next heartbeat');
+      } finally { _refreshingRtc = false; }
+    };
+
     const startHeartbeat = () => {
       stopHeartbeat();
       _heartbeatTimer = setInterval(() => {
@@ -893,6 +915,8 @@ const WebRTCSwarm = {
           peerId: _peerId,
           roomId: _roomId
         });
+
+        void refreshRtcConfiguration();
 
         // Ping all peers
         broadcast('ping', { ts: Date.now() });

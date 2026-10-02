@@ -1,20 +1,34 @@
 import { readFile } from 'node:fs/promises';
 
 /** Passive debugger observations: never replace tensors, assign roles, or open a runtime. */
-export async function observeCooperativePage(cdp, evidence) {
+export async function observeCooperativePage(cdp, evidence, { captureLogits = true, maxLogitSteps = 4, acceptStep = async () => true } = {}) {
   const host = (await readFile('self/host/work-partitions.js', 'utf8')).split('\n');
   const peer = (await readFile('self/vendor/reploid/mesh/partitions/partition-peer.js', 'utf8')).split('\n');
   await cdp.send('Debugger.enable');
+  await cdp.send('Debugger.setPauseOnExceptions', { state: 'all' });
   const opened = await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/host/work-partitions\\.js$',
     lineNumber: host.findIndex(line => line.includes('return { runtime, model, plan')) });
-  const step = await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/mesh/partitions/partition-peer\\.js$',
-    lineNumber: peer.findIndex(line => line.includes('const { logits: _logits')), condition: 'result.step < 2' });
+  const step = captureLogits && await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/mesh/partitions/partition-peer\\.js$',
+    lineNumber: peer.findIndex(line => line.includes('const { logits: _logits')), condition: `result.step < ${maxLogitSteps}` });
   cdp.on('Debugger.paused', async event => {
     try {
+      if (['exception', 'promiseRejection'].includes(event.reason)) {
+        evidence.exceptions ||= [];
+        if (!event.data?.description?.includes('NotFoundError') && evidence.exceptions.length < 100) evidence.exceptions.push({
+          description: event.data?.description,
+          frames: event.callFrames.slice(0, 6).map(frame => ({ functionName: frame.functionName, url: frame.url, location: frame.location }))
+        });
+        return;
+      }
       const load = event.hitBreakpoints.includes(opened.breakpointId);
-      if (!load && (!event.hitBreakpoints.includes(step.breakpointId) || evidence.steps.length >= 4)) return;
+      if (!load && (!step || !event.hitBreakpoints.includes(step.breakpointId) || evidence.steps.length >= maxLogitSteps)) return;
+      if (!load) {
+        const identity = await cdp.send('Debugger.evaluateOnCallFrame', { callFrameId: event.callFrames[0].callFrameId,
+          expression: 'result.identity', returnByValue: true });
+        if (!await acceptStep(identity.result.value)) return;
+      }
       const expression = load
-        ? '({descriptor:resident.getState().descriptor,acquisition:source.getReceipt()})'
+        ? '({descriptor:resident.getState().descriptor,acquisition:source.getReceipt(),preparation,memory:runtime.inspectDeviceMemory()})'
         : '({identity:result.identity,step:result.step,tokenId:result.tokenId,done:result.done,stopReason:result.stopReason,logits:Array.from(result.logits)})';
       const result = await cdp.send('Debugger.evaluateOnCallFrame', { callFrameId: event.callFrames[0].callFrameId,
         expression, returnByValue: true });
@@ -42,8 +56,8 @@ export function compareObservedLogits(observations, history, reference, toleranc
       if (!Number.isFinite(step.logits[i])) throw Error('Nonfinite distributed logits');
       maxDifference = Math.max(maxDifference, Math.abs(logits[i] - step.logits[i]));
     }
-    if (maxDifference > tolerance) throw Error(`Distributed logits differ by ${maxDifference}; tolerance ${tolerance}`);
     return { threadId: step.identity.threadId, step: step.step, tokenId: step.tokenId,
-      stopReason: step.stopReason, length: logits.length, maxDifference, tolerance };
+      stopReason: step.stopReason, length: logits.length, maxDifference, tolerance,
+      matches: maxDifference <= tolerance };
   });
 }
