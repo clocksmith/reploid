@@ -3,7 +3,29 @@
 [![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Reploid is a network of agents that run models, coordinate work over WebRTC, and develop, test, and exchange improvements to their own problem-solving methods. Each agent remains useful independently, and each participant controls what it shares and contributes.
+Reploid brings conversations, local AI, and participating devices into one browser
+workspace. Each person controls what their device shares and runs.
+
+**[Try Reploid](https://replo.id/)** · [Run locally](#how-to-use-reploid)
+
+Open a conversation and choose an available model. Local inference needs WebGPU
+and model files; peer execution needs another eligible, connected participant.
+
+```mermaid
+flowchart TD
+    UI[Browser workspace] --> Conversations["Conversations: attempts, cancellation, recovery"]
+    Conversations --> Placement["Placement: permissions and available capacity"]
+    Discovery["Discovery: current peer capabilities"] --> Placement
+    Placement --> Execution["Doppler: model execution"]
+    Custody["Custody: verified model pieces and replicas"] --> Execution
+    Transport["Poolday: WebRTC connections and delivery"] <--> Custody
+    Transport <--> Discovery
+    Execution --> Results[Results and conversation history]
+    Results --> UI
+```
+
+Reploid coordinates work; Doppler owns model computation; Poolday connects
+participants. [Architecture and qualification boundaries](docs/open-mesh-architecture.md).
 
 Zero is its minimal starting configuration; X extends Zero with explicit
 capabilities and supporting blueprints. Poolday supplies optional discovery,
