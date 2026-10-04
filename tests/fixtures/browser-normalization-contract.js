@@ -2,30 +2,72 @@
  * This local-byte diagnostic is separate from the ordinary-page WebRTC proof. */
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
+import { resolve } from 'node:path';
 import { chromium } from 'playwright';
-import { observeBrowserNumerics } from './browser-numerical-observer.js';
 const reference = JSON.parse(await readFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, 'utf8'));
-const originalSource = await readFile('../doppler/src/gpu/kernels/rmsnorm.wgsl', 'utf8');
-const candidate = originalSource.replaceAll('let inv_rms = 1.0 / sqrt(mean_sq + u.eps);', `let rms = sqrt(mean_sq + u.eps);
-    let a = mean_sq + u.eps;
-    let root_error = fma(-rms, rms, a);
-    let refined_root = rms + root_error / (2.0 * rms);
-    let reciprocal = 1.0 / refined_root;
-    let reciprocal_error = fma(-refined_root, reciprocal, 1.0);
-    let inv_rms = fma(reciprocal, reciprocal_error, reciprocal);`);
 const output = process.env.REPLOID_CAPTURE_OUT;
+const placement = process.env.DOPPLER_DISPATCH_PLACEMENT
+  ?? (process.env.REPLOID_DIAGNOSTIC_A === 'mac' ? 'mac-linux' : 'linux-mac');
+assert(['linux-mac', 'mac-linux', 'mac-mac', 'linux-linux'].includes(placement), 'Explicit diagnostic placement required');
+const promptCount = Number(process.env.DOPPLER_DISPATCH_PROMPT_COUNT ?? reference.prompts.length);
+assert(Number.isInteger(promptCount) && promptCount > 0 && promptCount <= reference.prompts.length);
+const sourceRoot = process.env.DOPPLER_DISPATCH_SOURCE_ROOT;
+const sourcePaths = ['config/kernel-path-loader.js', 'gpu/kernels/rmsnorm.js',
+  'inference/pipelines/text/linear-attention.js', 'inference/pipelines/text/attention/interpreter.js',
+  'inference/pipelines/text/ffn/standard.js', 'inference/pipelines/text/logits/index.js',
+  'inference/pipelines/text/logits/gpu.js', 'inference/pipelines/text/logits/gpu-executor.js'];
+const sources = sourceRoot ? await Promise.all(sourcePaths.map(async path => {
+  const body = await readFile(resolve(sourceRoot, path), 'utf8');
+  return { path, body, sha256: createHash('sha256').update(body).digest('hex') };
+})) : [];
+if (process.env.DOPPLER_DISPATCH_RMSNORM_SOURCE) {
+  const body = await readFile(process.env.DOPPLER_DISPATCH_RMSNORM_SOURCE, 'utf8');
+  sources.push({ path: 'gpu/kernels/rmsnorm.wgsl', body, sha256: createHash('sha256').update(body).digest('hex') });
+}
 assert(output && process.env.REPLOID_EXECUTOR_WS, 'Output and physical executor endpoint are required');
 const mac = await chromium.launch({ headless: true, args: ['--enable-unsafe-webgpu', '--use-angle=metal'] });
 const linux = await chromium.connect(process.env.REPLOID_EXECUTOR_WS);
-const hosts = process.env.REPLOID_DIAGNOSTIC_A === 'mac' ? [mac, linux] : [linux, mac];
+const browsers = { mac, linux };
+const hosts = placement.split('-').map(platform => browsers[platform]);
 const contexts = [], pages = [], observers = [], descriptors = [];
 try {
   for (const [index, host] of hosts.entries()) {
     const context = await host.newContext(); contexts.push(context);
+    if (sources.length) await context.route('**/vendor/doppler/**', async route => {
+      const path = new URL(route.request().url()).pathname;
+      const source = sources.find(source => path.endsWith('/' + source.path));
+      if (source) await route.fulfill({ status: 200,
+        contentType: source.path.endsWith('.wgsl') ? 'text/plain' : 'text/javascript', body: source.body });
+      else await route.continue();
+    });
 
     await context.addInitScript(() => {
       const modules = new WeakMap();
       globalThis.pipelineObservations = [];
+      globalThis.bindingObservations = [];
+      const uniformBytes = new WeakMap();
+      const write = GPUQueue.prototype.writeBuffer;
+      GPUQueue.prototype.writeBuffer = function (buffer, offset, data, dataOffset = 0, size) {
+        if (buffer.label?.includes('rmsnorm') && buffer.label?.includes('uniform')) {
+          const scale = data.BYTES_PER_ELEMENT ?? 1;
+          const bytes = ArrayBuffer.isView(data)
+            ? new Uint8Array(data.buffer, data.byteOffset, data.byteLength) : new Uint8Array(data);
+          uniformBytes.set(buffer, Array.from(bytes.slice(dataOffset * scale, size === undefined ? undefined : (dataOffset + size) * scale)));
+        }
+        return write.call(this, buffer, offset, data, dataOffset, size);
+      };
+      const bind = GPUDevice.prototype.createBindGroup;
+      GPUDevice.prototype.createBindGroup = function (descriptor) {
+        if (descriptor.label?.includes('rmsnorm') && bindingObservations.length < 8) {
+          bindingObservations.push({ label: descriptor.label, entries: descriptor.entries.map(entry => ({
+            binding: entry.binding, label: entry.resource.buffer?.label,
+            bytes: entry.resource.buffer?.size, offset: entry.resource.offset ?? 0,
+            bindingSize: entry.resource.size ?? null, uniformBytes: uniformBytes.get(entry.resource.buffer) ?? null,
+          })) });
+        }
+        return bind.call(this, descriptor);
+      };
       const shader = GPUDevice.prototype.createShaderModule;
       GPUDevice.prototype.createShaderModule = function (descriptor) {
         const module = shader.call(this, descriptor); modules.set(module, descriptor.code); return module;
@@ -36,7 +78,7 @@ try {
           const code = modules.get(descriptor.compute.module);
           if (descriptor.label?.includes('rmsnorm')) pipelineObservations.push({label:descriptor.label,
             entryPoint:descriptor.compute.entryPoint, constants:descriptor.compute.constants,
-            candidate:!!code?.includes('refined_root')});
+            shaderSource: code, candidate:!!(code?.includes('refined_root') || code?.includes('reciprocal_residual'))});
           return original.call(this, descriptor);
         };
       }
@@ -46,7 +88,8 @@ try {
     const metadata = [], observationErrors = [];
     const cdp = await context.newCDPSession(page);
     await cdp.send('Debugger.enable');
-    const lines = (await readFile('node_modules/doppler-gpu/src/inference/pipelines/text/linear-attention.js', 'utf8')).split('\n');
+    const lines = (sources.find(source => source.path === 'inference/pipelines/text/linear-attention.js')?.body
+      ?? await readFile('node_modules/doppler-gpu/src/inference/pipelines/text/linear-attention.js', 'utf8')).split('\n');
     const bp = await cdp.send('Debugger.setBreakpointByUrl', {
       urlRegex: '/pipelines/text/linear-attention\\.js$',
       lineNumber: lines.findIndex(line => line.includes('let normedTensor = inputTensor;')),
@@ -57,13 +100,44 @@ try {
         if (!event.hitBreakpoints.includes(bp.breakpointId)) return;
         const value = await cdp.send('Debugger.evaluateOnCallFrame', {
           callFrameId:event.callFrames[0].callFrameId,
-          expression:'({phase, layerIdx, kernelPath:config.kernelPath, dtype:inputTensor.dtype})', returnByValue:true });
+          expression:'(captureNormalizationInputs(inputTensor, layerWeights.inputNorm, numTokens, hiddenSize, recorder), {phase, layerIdx, kernelPath, dtype:inputTensor.dtype})', returnByValue:true });
         if (value.exceptionDetails) throw Error(value.exceptionDetails.text);
         metadata.push({data:value.result.value});
       } catch(error) {observationErrors.push(error.message);}
       finally {await cdp.send('Debugger.resume');}
     });
-    await page.evaluate(() => {globalThis.numericalObservation = {};});
+    await page.evaluate(async () => {
+      globalThis.numericalObservation = {};
+      globalThis.normalizationInputObservations = [];
+      const config = await import('/config/doppler-local-models.js');
+      const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
+      const { getDevice } = await import(new URL('./gpu/device.js', base));
+      const { getBuffer } = await import(new URL('./gpu/weight-buffer.js', base));
+      const { resolveNormWeightDtype } = await import(new URL('./gpu/kernels/rmsnorm.js', base));
+      globalThis.captureNormalizationInputs = (input, weight, numTokens, hiddenSize, recorder) => {
+        if (normalizationInputObservations.length) return;
+        const device = getDevice(), weightDtype = resolveNormWeightDtype(weight, hiddenSize);
+        const inputBytes = input.dtype === 'f16' ? 2 : 4, weightBytes = weightDtype === 'f16' ? 2 : 4;
+        for (const [role, buffer, dtype, offset, length] of [
+          ['input-last-row', input.buffer, input.dtype, (numTokens - 1) * hiddenSize * inputBytes, hiddenSize * inputBytes],
+          ['weight', getBuffer(weight), weightDtype, 0, hiddenSize * weightBytes],
+        ]) {
+          const result = { role, dtype, offset, length, data: null, sha256: null };
+          normalizationInputObservations.push(result);
+          const staging = device.createBuffer({ label: 'normalization_input_observation', size: length,
+            usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+          recorder.getEncoder().copyBufferToBuffer(buffer, offset, staging, 0, length);
+          recorder.enqueueCompletionTask(async () => {
+            try {
+              await staging.mapAsync(GPUMapMode.READ);
+              const bytes = staging.getMappedRange().slice(0);
+              result.data = btoa(String.fromCharCode(...new Uint8Array(bytes)));
+              result.sha256 = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
+            } finally { staging.unmap(); staging.destroy(); }
+          });
+        }
+      };
+    });
     observers.push({read:async()=>({records:metadata,errors:observationErrors}),close:()=>cdp.detach()});
     const opened = await page.evaluate(async ({ reference, index }) => {
       const config = await import('/config/doppler-local-models.js');
@@ -99,7 +173,7 @@ try {
     console.log(`Opened ${index} on ${descriptors.at(-1).platform}`);
   }
   const runs = [];
-  for (const [prompt, messages] of reference.prompts.entries()) {
+  for (const [prompt, messages] of reference.prompts.slice(0, promptCount).entries()) {
     const identity = { modelId: descriptors[0].descriptor.modelId, modelIdentity: reference.modelIdentity,
       planId: reference.planId, participantA: 'diagnostic-A', participantB: 'diagnostic-B', threadId: `prompt-${prompt}`, attemptId: `attempt-${prompt}` };
     const tokenized = await pages[0].evaluate(({ identity, messages }) => resident.tokenize({ identity, messages, signal: new AbortController().signal }), { identity, messages });
@@ -136,8 +210,18 @@ try {
     observations.push(data.records);
   }
   const pipelineObservations = await Promise.all(pages.map(page => page.evaluate(() => globalThis.pipelineObservations)));
-  await writeFile(output, JSON.stringify({ pipelineObservations, surface: 'browser', scope: 'Canonical package dispatch contract diagnosis; metadata observations are not tensor probes or qualification',
-    modelIdentity: reference.modelIdentity, planId: reference.planId, generation: reference.generation, descriptors, runs, observations }));
+  for (const pipelines of pipelineObservations) for (const pipeline of pipelines) {
+    pipeline.shaderSha256 = createHash('sha256').update(pipeline.shaderSource).digest('hex');
+    delete pipeline.shaderSource;
+  }
+  const bindingObservations = await Promise.all(pages.map(page => page.evaluate(() => globalThis.bindingObservations)));
+  const inputObservations = await Promise.all(pages.map(page => page.evaluate(() => globalThis.normalizationInputObservations)));
+  await writeFile(output, JSON.stringify({ pipelineObservations, surface: 'browser', placement,
+    sourceOverrides: sources.map(({ path, sha256 }) => ({ path, sha256 })),
+    scope: sources.length ? 'Test-only source substitution over pinned package; not installed-package or P2P qualification'
+      : 'Canonical package dispatch diagnosis with read-only operand copies; not P2P or numerical qualification',
+    modelIdentity: reference.modelIdentity, planId: reference.planId, generation: reference.generation,
+    bindingObservations, inputObservations, promptCount, descriptors, runs, observations }));
   console.log(JSON.stringify({ output, records: observations.map(records => records.length) }));
 } finally {
   for (const page of pages) await page.evaluate(() => globalThis.resident?.close()).catch(() => {});
