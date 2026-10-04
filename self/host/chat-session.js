@@ -142,7 +142,7 @@ export function createChatSession({
         const draft = await workspace.send(threadId, input);
         if (draft.status !== 'completed' || controller.signal.aborted) return draft;
         operation.phase = 'checking'; notifyAll();
-        return await workspace.send(threadId, COMPARISON_CHECK);
+        return await workspace.send(threadId, COMPARISON_CHECK, { select: false });
       } finally { comparisons.delete(threadId); notifyAll(); } })();
     },
     createThread({ model = getSessionState().defaultModel, purpose = '', sharingScope = 'mesh' } = {}) {

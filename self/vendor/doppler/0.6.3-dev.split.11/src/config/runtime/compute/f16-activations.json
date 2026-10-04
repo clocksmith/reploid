@@ -1,0 +1,31 @@
+{
+  "id": "compute/f16-activations",
+  "name": "f16-activations",
+  "description": "Experimental F16 activations for reduced memory bandwidth",
+  "intent": "investigate",
+  "compatibleIntents": ["investigate"],
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
+  "extends": "default",
+  "runtime": {
+    "inference": {
+      "compute": {
+        "activationDtype": "f16"
+      },
+      "kvcache": {
+        "kvDtype": "f16"
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f16"
+          }
+        },
+        "kvcache": {
+          "kvDtype": "f16"
+        }
+      }
+    }
+  }
+}

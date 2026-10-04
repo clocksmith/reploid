@@ -1,0 +1,38 @@
+export interface MemoryStoreConfig {
+  maxBytes: number;
+}
+
+export interface MemoryWriteStream {
+  write(chunk: Uint8Array | ArrayBuffer): Promise<void>;
+  close(): Promise<void>;
+  abort(): Promise<void>;
+}
+
+export interface MemoryWriteStreamOptions {
+  append?: boolean;
+  expectedOffset?: number | null;
+}
+
+export interface MemoryStore {
+  openModelSession(modelId: string, options?: { create?: boolean }): Promise<MemoryStore>;
+  close(): Promise<void>;
+  init(): Promise<void>;
+  openModel(modelId: string, options?: { create?: boolean }): Promise<null>;
+  getCurrentModelId(): string | null;
+  getFileSize(filename: string): Promise<number>;
+  readFile(filename: string): Promise<ArrayBuffer>;
+  readText(filename: string): Promise<string | null>;
+  writeFile(filename: string, data: Uint8Array | ArrayBuffer): Promise<void>;
+  createWriteStream(filename: string, options?: MemoryWriteStreamOptions): Promise<MemoryWriteStream>;
+  deleteFile(filename: string): Promise<boolean>;
+  listFiles(): Promise<string[]>;
+  listModels(): Promise<string[]>;
+  deleteModel(modelId: string): Promise<boolean>;
+  writeManifest(text: string): Promise<void>;
+  readManifest(): Promise<string | null>;
+  writeTokenizer(text: string): Promise<void>;
+  readTokenizer(): Promise<string | null>;
+  cleanup(): Promise<void>;
+}
+
+export function createMemoryStore(config: MemoryStoreConfig): MemoryStore;
