@@ -1,0 +1,5908 @@
+{
+  "date": "2026-10-04",
+  "scope": "Serial physical Mac/Metal and Linux/Vulkan browser partition runs through installed split.13. Verified local model bytes; Node activation forwarding. Not peer acquisition, fresh onboarding, numerical qualification or deployed availability.",
+  "packageVersion": "0.6.3-dev.split.13",
+  "packageArchive": "deploy/artifacts/doppler-gpu-0.6.3-dev.split.13.tgz",
+  "archiveSha256": "162be004c1d07bbf15e2b2f8cd57f906b459f6ac7b24a1c514a47d9e806fabdb",
+  "requestFixtureSha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+  "unchanged": {
+    "allocationBudgetBytes": 1420000000,
+    "longPromptTokens": 1588,
+    "maxOutputTokens": 1024,
+    "maxSeqLen": 4096,
+    "activationDtype": "f32",
+    "kvDtype": "f16",
+    "prefillChunkLayers": 1
+  },
+  "result": {
+    "repeatedLongGeneration": "passed; successive requests reached configured 1024-token limit with explicit max-tokens stopping",
+    "prefillCancellation": "passed after first submission; cleanup awaited",
+    "allocationGuardRejection": "passed on both executors; direct oversized createBuffer calls, not an injected model-operation failure",
+    "residentReuseAfterCancellationAndRejection": "passed; unchanged 1588-token request reached 1024 steps without reopening weights",
+    "numericalGate": "still failed; see normalization-dispatch-contract.json"
+  },
+  "memoryInterpretation": {
+    "retainedWeightBytes": [
+      650989568,
+      285497344
+    ],
+    "positionalTableBytesPerExecutor": 5242880,
+    "activeAttemptRetentionAfterClosure": "Active ownership inspection after cancellation contains no convolution/recurrent/KV state. Four positional tables remain. No deferred cleanup.",
+    "reusablePool": "Retained bytes increased between attempts while buffer count stayed bounded at 64. These are reusable allocations. Repetition peaks stayed unchanged.",
+    "labelCaveat": "After cancellation, 1179648 bytes retain their recurrent-purpose allocation label but have returned to the reusable pool. Device categories describe allocation purpose, not live attempt ownership.",
+    "afterResidentClosure": "Pool weights, active and reusable allocations are zero. About 10.8 KB of device-level cached uniform buffers remains until device/context teardown.",
+    "budgetScope": "Application GPUBuffer allocations, not measured physical VRAM or RSS."
+  },
+  "cases": [
+    {
+      "case": "reploid-partition-memory-completion.json",
+      "descriptors": [
+        {
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 0,
+            "layerRange": [
+              0,
+              11
+            ],
+            "residentWeightBytes": 650989568,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "packageVersion": "0.6.3-dev.split.13",
+          "beforePreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 0,
+              "peakBytes": 8,
+              "allocations": 2,
+              "rejected": 0,
+              "categories": {
+                "weights": 0,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 0
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 0,
+                "count": 0
+              },
+              "active": {
+                "bytes": 0,
+                "count": 0
+              },
+              "reusable": {
+                "bytes": 0,
+                "count": 0
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "afterPreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 656259344,
+              "peakBytes": 756922768,
+              "allocations": 210,
+              "rejected": 0,
+              "categories": {
+                "weights": 650989568,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 5269776
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 650989568,
+                "count": 172
+              },
+              "active": {
+                "bytes": 5242880,
+                "count": 4
+              },
+              "reusable": {
+                "bytes": 256,
+                "count": 1
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "platform": "mac",
+          "browser": "145.0.7632.6"
+        },
+        {
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "packageVersion": "0.6.3-dev.split.13",
+          "beforePreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 0,
+              "peakBytes": 8,
+              "allocations": 2,
+              "rejected": 0,
+              "categories": {
+                "weights": 0,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 0
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 0,
+                "count": 0
+              },
+              "active": {
+                "bytes": 0,
+                "count": 0
+              },
+              "reusable": {
+                "bytes": 0,
+                "count": 0
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "afterPreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 290767120,
+              "peakBytes": 391430544,
+              "allocations": 211,
+              "rejected": 0,
+              "categories": {
+                "weights": 285497344,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 5269776
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 285497344,
+                "count": 173
+              },
+              "active": {
+                "bytes": 5242880,
+                "count": 4
+              },
+              "reusable": {
+                "bytes": 256,
+                "count": 1
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "platform": "linux",
+          "browser": "146.0.7680.177"
+        }
+      ],
+      "runs": [
+        {
+          "attempt": 0,
+          "generation": {
+            "maxTokens": 1024,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 0,
+            "maxSeqLen": 4096
+          },
+          "steps": 1024,
+          "inputTokens": 494,
+          "stopReason": "max-tokens",
+          "completed": true,
+          "outputSha256": "e5b58ce840947e25ab1600d661ab50f6a4efc727acffc6ce91f9c2e5864f4dfa",
+          "outputCharacters": 4110,
+          "before": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 656259344,
+                "peakBytes": 756922768,
+                "allocations": 210,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 290767120,
+                "peakBytes": 391430544,
+                "allocations": 211,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "after": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 752403768,
+                "peakBytes": 865924408,
+                "allocations": 138492,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 1280,
+                  "recurrent": 0,
+                  "other": 101412920
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 96133888,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 385961000,
+                "peakBytes": 499444904,
+                "allocations": 139517,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 1296,
+                  "recurrent": 0,
+                  "other": 100462360
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 95183360,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "beforeClose": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 864872760,
+                "peakBytes": 865924408,
+                "allocations": 138492,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 100664576,
+                  "recurrent": 4325376,
+                  "other": 108893240
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 17048576,
+                  "count": 58
+                },
+                "reusable": {
+                  "bytes": 96133888,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 498429992,
+                "peakBytes": 499444904,
+                "allocations": 139517,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 100664592,
+                  "recurrent": 4325376,
+                  "other": 107942680
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 17048576,
+                  "count": 58
+                },
+                "reusable": {
+                  "bytes": 95183360,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "prefillSubmissions": [
+            [
+              [
+                759021872,
+                759021872,
+                650989568,
+                7342080,
+                256,
+                0
+              ],
+              [
+                759022128,
+                759022128,
+                650989568,
+                7276800,
+                65792,
+                0
+              ],
+              [
+                759022128,
+                759022128,
+                650989568,
+                7276800,
+                65792,
+                0
+              ],
+              [
+                759022640,
+                759022640,
+                650989568,
+                7277056,
+                66048,
+                0
+              ],
+              [
+                828557680,
+                828557680,
+                650989568,
+                76811264,
+                66560,
+                0
+              ],
+              [
+                828557680,
+                828557680,
+                650989568,
+                8651776,
+                68226048,
+                0
+              ],
+              [
+                828557680,
+                828557680,
+                650989568,
+                8586496,
+                68291328,
+                0
+              ],
+              [
+                828557680,
+                828557680,
+                650989568,
+                8586496,
+                68291328,
+                0
+              ],
+              [
+                828557680,
+                828557680,
+                650989568,
+                8586752,
+                68291072,
+                0
+              ],
+              [
+                829869424,
+                829869424,
+                650989568,
+                78120960,
+                68608,
+                0
+              ],
+              [
+                829869424,
+                829869424,
+                650989568,
+                9963520,
+                68226048,
+                0
+              ],
+              [
+                829869424,
+                829869424,
+                650989568,
+                9898240,
+                68291328,
+                0
+              ],
+              [
+                829869424,
+                829869424,
+                650989568,
+                9898240,
+                68291328,
+                0
+              ],
+              [
+                829869424,
+                829869424,
+                650989568,
+                9898496,
+                68291072,
+                0
+              ],
+              [
+                831181168,
+                831181168,
+                650989568,
+                79432704,
+                68608,
+                0
+              ],
+              [
+                854643320,
+                854643320,
+                650989568,
+                78449664,
+                24513536,
+                0
+              ],
+              [
+                854643320,
+                854643320,
+                650989568,
+                11275264,
+                91687936,
+                0
+              ],
+              [
+                854643320,
+                854643320,
+                650989568,
+                11209984,
+                91753216,
+                0
+              ],
+              [
+                854643320,
+                854643320,
+                650989568,
+                11209984,
+                91753216,
+                0
+              ],
+              [
+                854643320,
+                854643320,
+                650989568,
+                11210240,
+                91752960,
+                0
+              ],
+              [
+                854906488,
+                854906488,
+                650989568,
+                80744448,
+                22481920,
+                0
+              ],
+              [
+                854906488,
+                854906488,
+                650989568,
+                12587008,
+                90639360,
+                0
+              ],
+              [
+                854906488,
+                854906488,
+                650989568,
+                12521728,
+                90704640,
+                0
+              ],
+              [
+                854906488,
+                854906488,
+                650989568,
+                12521728,
+                90704640,
+                0
+              ],
+              [
+                854906488,
+                854906488,
+                650989568,
+                12521984,
+                90704384,
+                0
+              ],
+              [
+                855169656,
+                855169656,
+                650989568,
+                82056192,
+                21433344,
+                0
+              ],
+              [
+                855169656,
+                855169656,
+                650989568,
+                13898752,
+                89590784,
+                0
+              ],
+              [
+                855169656,
+                855169656,
+                650989568,
+                13833472,
+                89656064,
+                0
+              ],
+              [
+                855169656,
+                855169656,
+                650989568,
+                13833472,
+                89656064,
+                0
+              ],
+              [
+                855169656,
+                855169656,
+                650989568,
+                13833728,
+                89655808,
+                0
+              ],
+              [
+                855432824,
+                855432824,
+                650989568,
+                83367936,
+                20384768,
+                0
+              ],
+              [
+                858578552,
+                858578552,
+                650989568,
+                82384896,
+                24513536,
+                0
+              ],
+              [
+                858578552,
+                858578552,
+                650989568,
+                15210496,
+                91687936,
+                0
+              ],
+              [
+                858578552,
+                858578552,
+                650989568,
+                15145216,
+                91753216,
+                0
+              ],
+              [
+                858578552,
+                858578552,
+                650989568,
+                15145216,
+                91753216,
+                0
+              ],
+              [
+                858578552,
+                858578552,
+                650989568,
+                15145472,
+                91752960,
+                0
+              ],
+              [
+                858841720,
+                858841720,
+                650989568,
+                84679680,
+                22481920,
+                0
+              ],
+              [
+                858841720,
+                858841720,
+                650989568,
+                16522240,
+                90639360,
+                0
+              ],
+              [
+                858841720,
+                858841720,
+                650989568,
+                16456960,
+                90704640,
+                0
+              ],
+              [
+                858841720,
+                858841720,
+                650989568,
+                16456960,
+                90704640,
+                0
+              ],
+              [
+                858841720,
+                858841720,
+                650989568,
+                16457216,
+                90704384,
+                0
+              ],
+              [
+                859104888,
+                859104888,
+                650989568,
+                85991424,
+                21433344,
+                0
+              ],
+              [
+                859104888,
+                859104888,
+                650989568,
+                17833984,
+                89590784,
+                0
+              ],
+              [
+                859104888,
+                859104888,
+                650989568,
+                17768704,
+                89656064,
+                0
+              ],
+              [
+                859104888,
+                859104888,
+                650989568,
+                17768704,
+                89656064,
+                0
+              ],
+              [
+                859104888,
+                859104888,
+                650989568,
+                17768960,
+                89655808,
+                0
+              ],
+              [
+                859368056,
+                859368056,
+                650989568,
+                87303168,
+                20384768,
+                0
+              ],
+              [
+                862513784,
+                862513784,
+                650989568,
+                86320128,
+                24513536,
+                0
+              ],
+              [
+                864545400,
+                864545400,
+                650989568,
+                21111808,
+                91753472,
+                0
+              ]
+            ],
+            [
+              [
+                393527568,
+                393527568,
+                285497344,
+                7340032,
+                256,
+                0
+              ],
+              [
+                393527824,
+                393527824,
+                285497344,
+                7274752,
+                65792,
+                0
+              ],
+              [
+                393527824,
+                393527824,
+                285497344,
+                7274752,
+                65792,
+                0
+              ],
+              [
+                393528336,
+                393528336,
+                285497344,
+                7275008,
+                66048,
+                0
+              ],
+              [
+                463063376,
+                463063376,
+                285497344,
+                76809216,
+                66560,
+                0
+              ],
+              [
+                463063376,
+                463063376,
+                285497344,
+                8651776,
+                68224000,
+                0
+              ],
+              [
+                463063376,
+                463063376,
+                285497344,
+                8586496,
+                68289280,
+                0
+              ],
+              [
+                463063376,
+                463063376,
+                285497344,
+                8586496,
+                68289280,
+                0
+              ],
+              [
+                463063376,
+                463063376,
+                285497344,
+                8586752,
+                68289024,
+                0
+              ],
+              [
+                464375120,
+                464375120,
+                285497344,
+                78120960,
+                66560,
+                0
+              ],
+              [
+                464375120,
+                464375120,
+                285497344,
+                9963520,
+                68224000,
+                0
+              ],
+              [
+                464375120,
+                464375120,
+                285497344,
+                9898240,
+                68289280,
+                0
+              ],
+              [
+                464375120,
+                464375120,
+                285497344,
+                9898240,
+                68289280,
+                0
+              ],
+              [
+                464375120,
+                464375120,
+                285497344,
+                9898496,
+                68289024,
+                0
+              ],
+              [
+                465686864,
+                465686864,
+                285497344,
+                79432704,
+                66560,
+                0
+              ],
+              [
+                489149016,
+                489149016,
+                285497344,
+                78449664,
+                24511488,
+                0
+              ],
+              [
+                489149016,
+                489149016,
+                285497344,
+                11275264,
+                91685888,
+                0
+              ],
+              [
+                489149016,
+                489149016,
+                285497344,
+                11209984,
+                91751168,
+                0
+              ],
+              [
+                489149016,
+                489149016,
+                285497344,
+                11209984,
+                91751168,
+                0
+              ],
+              [
+                489149016,
+                489149016,
+                285497344,
+                11210240,
+                91750912,
+                0
+              ],
+              [
+                489412184,
+                489412184,
+                285497344,
+                80744448,
+                22479872,
+                0
+              ],
+              [
+                489412184,
+                489412184,
+                285497344,
+                12587008,
+                90637312,
+                0
+              ],
+              [
+                489412184,
+                489412184,
+                285497344,
+                12521728,
+                90702592,
+                0
+              ],
+              [
+                489412184,
+                489412184,
+                285497344,
+                12521728,
+                90702592,
+                0
+              ],
+              [
+                489412184,
+                489412184,
+                285497344,
+                12521984,
+                90702336,
+                0
+              ],
+              [
+                489675352,
+                489675352,
+                285497344,
+                82056192,
+                21431296,
+                0
+              ],
+              [
+                489675352,
+                489675352,
+                285497344,
+                13898752,
+                89588736,
+                0
+              ],
+              [
+                489675352,
+                489675352,
+                285497344,
+                13833472,
+                89654016,
+                0
+              ],
+              [
+                489675352,
+                489675352,
+                285497344,
+                13833472,
+                89654016,
+                0
+              ],
+              [
+                489675352,
+                489675352,
+                285497344,
+                13833728,
+                89653760,
+                0
+              ],
+              [
+                489938520,
+                489938520,
+                285497344,
+                83367936,
+                20382720,
+                0
+              ],
+              [
+                493084248,
+                493084248,
+                285497344,
+                82384896,
+                24511488,
+                0
+              ],
+              [
+                493084248,
+                493084248,
+                285497344,
+                15210496,
+                91685888,
+                0
+              ],
+              [
+                493084248,
+                493084248,
+                285497344,
+                15145216,
+                91751168,
+                0
+              ],
+              [
+                493084248,
+                493084248,
+                285497344,
+                15145216,
+                91751168,
+                0
+              ],
+              [
+                493084248,
+                493084248,
+                285497344,
+                15145472,
+                91750912,
+                0
+              ],
+              [
+                493347416,
+                493347416,
+                285497344,
+                84679680,
+                22479872,
+                0
+              ],
+              [
+                493347416,
+                493347416,
+                285497344,
+                16522240,
+                90637312,
+                0
+              ],
+              [
+                493347416,
+                493347416,
+                285497344,
+                16456960,
+                90702592,
+                0
+              ],
+              [
+                493347416,
+                493347416,
+                285497344,
+                16456960,
+                90702592,
+                0
+              ],
+              [
+                493347416,
+                493347416,
+                285497344,
+                16457216,
+                90702336,
+                0
+              ],
+              [
+                493610584,
+                493610584,
+                285497344,
+                85991424,
+                21431296,
+                0
+              ],
+              [
+                493610584,
+                493610584,
+                285497344,
+                17833984,
+                89588736,
+                0
+              ],
+              [
+                493610584,
+                493610584,
+                285497344,
+                17768704,
+                89654016,
+                0
+              ],
+              [
+                493610584,
+                493610584,
+                285497344,
+                17768704,
+                89654016,
+                0
+              ],
+              [
+                493610584,
+                493610584,
+                285497344,
+                17768960,
+                89653760,
+                0
+              ],
+              [
+                493873752,
+                493873752,
+                285497344,
+                87303168,
+                20382720,
+                0
+              ],
+              [
+                497019480,
+                497019480,
+                285497344,
+                86320128,
+                24511488,
+                0
+              ],
+              [
+                497019512,
+                497019512,
+                285497344,
+                21112064,
+                89719552,
+                0
+              ],
+              [
+                497023608,
+                497023608,
+                285497344,
+                21115904,
+                89719808,
+                0
+              ],
+              [
+                497023608,
+                497023608,
+                285497344,
+                22164480,
+                88671232,
+                0
+              ],
+              [
+                497023608,
+                497023608,
+                285497344,
+                23213312,
+                87622400,
+                0
+              ],
+              [
+                498072184,
+                498072184,
+                285497344,
+                19145728,
+                92738560,
+                0
+              ]
+            ]
+          ]
+        },
+        {
+          "attempt": 1,
+          "generation": {
+            "maxTokens": 1024,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 0,
+            "maxSeqLen": 4096
+          },
+          "steps": 1024,
+          "inputTokens": 1588,
+          "stopReason": "max-tokens",
+          "completed": true,
+          "outputSha256": "441b65bf7c07aa5381cf091558443fe882cff62e3f097f18dc851f4e472030f1",
+          "outputCharacters": 4118,
+          "before": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 752403768,
+                "peakBytes": 865924408,
+                "allocations": 138492,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 1280,
+                  "recurrent": 0,
+                  "other": 101412920
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 96133888,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 385961000,
+                "peakBytes": 499444904,
+                "allocations": 139517,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 1296,
+                  "recurrent": 0,
+                  "other": 100462360
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 95183360,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "after": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 902556984,
+                "peakBytes": 1269752136,
+                "allocations": 283978,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 1280,
+                  "recurrent": 0,
+                  "other": 251566136
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 246287104,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 524104744,
+                "peakBytes": 903309672,
+                "allocations": 287057,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 1296,
+                  "recurrent": 0,
+                  "other": 238606104
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 233327104,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "beforeClose": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 1015025976,
+                "peakBytes": 1269752136,
+                "allocations": 283978,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 100664576,
+                  "recurrent": 6684672,
+                  "other": 256687160
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 17048576,
+                  "count": 58
+                },
+                "reusable": {
+                  "bytes": 246287104,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 636573736,
+                "peakBytes": 903309672,
+                "allocations": 287057,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 100664592,
+                  "recurrent": 6684672,
+                  "other": 243727128
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 17048576,
+                  "count": 58
+                },
+                "reusable": {
+                  "bytes": 233327104,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "prefillSubmissions": [
+            [
+              [
+                859620696,
+                865924408,
+                650989568,
+                11870208,
+                96060160,
+                0
+              ],
+              [
+                859620696,
+                865924408,
+                650989568,
+                11804928,
+                96125440,
+                0
+              ],
+              [
+                859620696,
+                865924408,
+                650989568,
+                11804928,
+                96125440,
+                0
+              ],
+              [
+                859620696,
+                865924408,
+                650989568,
+                11805184,
+                96125184,
+                0
+              ],
+              [
+                1078642840,
+                1078642840,
+                650989568,
+                231875584,
+                95076608,
+                0
+              ],
+              [
+                1078642344,
+                1078642840,
+                650989568,
+                13173760,
+                153673984,
+                160104448
+              ],
+              [
+                918537896,
+                1078642840,
+                650989568,
+                13108480,
+                153739264,
+                0
+              ],
+              [
+                918537896,
+                1078642840,
+                650989568,
+                13108480,
+                153739264,
+                0
+              ],
+              [
+                918537896,
+                1078642840,
+                650989568,
+                13108736,
+                153739008,
+                0
+              ],
+              [
+                1078905000,
+                1078905000,
+                650989568,
+                233179136,
+                94035712,
+                0
+              ],
+              [
+                1078905000,
+                1078905000,
+                650989568,
+                14485504,
+                204857088,
+                107872256
+              ],
+              [
+                971032744,
+                1078905000,
+                650989568,
+                14420224,
+                204922368,
+                0
+              ],
+              [
+                971032744,
+                1078905000,
+                650989568,
+                14420224,
+                204922368,
+                0
+              ],
+              [
+                971032744,
+                1078905000,
+                650989568,
+                14420480,
+                204922112,
+                0
+              ],
+              [
+                1079167656,
+                1079167656,
+                650989568,
+                234490880,
+                92986624,
+                0
+              ],
+              [
+                1216269224,
+                1216269224,
+                650989568,
+                231083008,
+                171367680,
+                62128128
+              ],
+              [
+                1154140744,
+                1216269224,
+                650989568,
+                15797248,
+                233233664,
+                153419776
+              ],
+              [
+                1000720968,
+                1216269224,
+                650989568,
+                15731968,
+                233298944,
+                0
+              ],
+              [
+                1000720968,
+                1216269224,
+                650989568,
+                15731968,
+                233298944,
+                0
+              ],
+              [
+                1000720968,
+                1216269224,
+                650989568,
+                15732224,
+                233298688,
+                0
+              ],
+              [
+                1109773640,
+                1216269224,
+                650989568,
+                235802624,
+                122280960,
+                0
+              ],
+              [
+                1109773640,
+                1216269224,
+                650989568,
+                17108992,
+                256039936,
+                84934656
+              ],
+              [
+                1024838984,
+                1216269224,
+                650989568,
+                17043712,
+                256105216,
+                0
+              ],
+              [
+                1024838984,
+                1216269224,
+                650989568,
+                17043712,
+                256105216,
+                0
+              ],
+              [
+                1024838984,
+                1216269224,
+                650989568,
+                17043968,
+                256104960,
+                0
+              ],
+              [
+                1111085384,
+                1216269224,
+                650989568,
+                237114368,
+                122280960,
+                0
+              ],
+              [
+                1111085384,
+                1216269224,
+                650989568,
+                18420736,
+                256039936,
+                84934656
+              ],
+              [
+                1026150728,
+                1216269224,
+                650989568,
+                18355456,
+                256105216,
+                0
+              ],
+              [
+                1026150728,
+                1216269224,
+                650989568,
+                18355456,
+                256105216,
+                0
+              ],
+              [
+                1026150728,
+                1216269224,
+                650989568,
+                18355712,
+                256104960,
+                0
+              ],
+              [
+                1112397128,
+                1216269224,
+                650989568,
+                238426112,
+                122280960,
+                0
+              ],
+              [
+                1243010376,
+                1243010376,
+                650989568,
+                235018240,
+                171367424,
+                84934656
+              ],
+              [
+                1158075720,
+                1243010376,
+                650989568,
+                19732480,
+                246275072,
+                140378112
+              ],
+              [
+                1017697608,
+                1243010376,
+                650989568,
+                19667200,
+                246340352,
+                0
+              ],
+              [
+                1017697608,
+                1243010376,
+                650989568,
+                19667200,
+                246340352,
+                0
+              ],
+              [
+                1017697608,
+                1243010376,
+                650989568,
+                19667456,
+                246340096,
+                0
+              ],
+              [
+                1126750536,
+                1243010376,
+                650989568,
+                239737856,
+                135322624,
+                0
+              ],
+              [
+                1126750536,
+                1243010376,
+                650989568,
+                21044224,
+                246275072,
+                107741184
+              ],
+              [
+                1019009352,
+                1243010376,
+                650989568,
+                20978944,
+                246340352,
+                0
+              ],
+              [
+                1019009352,
+                1243010376,
+                650989568,
+                20978944,
+                246340352,
+                0
+              ],
+              [
+                1019009352,
+                1243010376,
+                650989568,
+                20979200,
+                246340096,
+                0
+              ],
+              [
+                1128062280,
+                1243010376,
+                650989568,
+                241049600,
+                135322624,
+                0
+              ],
+              [
+                1128062280,
+                1243010376,
+                650989568,
+                22355968,
+                246275072,
+                107741184
+              ],
+              [
+                1020321096,
+                1243010376,
+                650989568,
+                22290688,
+                246340352,
+                0
+              ],
+              [
+                1020321096,
+                1243010376,
+                650989568,
+                22290688,
+                246340352,
+                0
+              ],
+              [
+                1020321096,
+                1243010376,
+                650989568,
+                22290944,
+                246340096,
+                0
+              ],
+              [
+                1129374024,
+                1243010376,
+                650989568,
+                242361344,
+                135322624,
+                0
+              ],
+              [
+                1269752136,
+                1269752136,
+                650989568,
+                238953472,
+                171367424,
+                107741184
+              ],
+              [
+                1168564552,
+                1269752136,
+                650989568,
+                30155776,
+                246340608,
+                140378112
+              ]
+            ],
+            [
+              [
+                493177896,
+                499444904,
+                285497344,
+                11862016,
+                95117824,
+                0
+              ],
+              [
+                493177896,
+                499444904,
+                285497344,
+                11796736,
+                95183104,
+                0
+              ],
+              [
+                493177896,
+                499444904,
+                285497344,
+                11796736,
+                95183104,
+                0
+              ],
+              [
+                493177896,
+                499444904,
+                285497344,
+                11796992,
+                95182848,
+                0
+              ],
+              [
+                712200040,
+                712200040,
+                285497344,
+                231867392,
+                94134272,
+                0
+              ],
+              [
+                712199640,
+                712200040,
+                285497344,
+                13173760,
+                152723456,
+                160104448
+              ],
+              [
+                552095192,
+                712200040,
+                285497344,
+                13108480,
+                152788736,
+                0
+              ],
+              [
+                552095192,
+                712200040,
+                285497344,
+                13108480,
+                152788736,
+                0
+              ],
+              [
+                552095192,
+                712200040,
+                285497344,
+                13108736,
+                152788480,
+                0
+              ],
+              [
+                712462296,
+                712462296,
+                285497344,
+                233179136,
+                93085184,
+                0
+              ],
+              [
+                712462296,
+                712462296,
+                285497344,
+                14485504,
+                203906560,
+                107872256
+              ],
+              [
+                604590040,
+                712462296,
+                285497344,
+                14420224,
+                203971840,
+                0
+              ],
+              [
+                604590040,
+                712462296,
+                285497344,
+                14420224,
+                203971840,
+                0
+              ],
+              [
+                604590040,
+                712462296,
+                285497344,
+                14420480,
+                203971584,
+                0
+              ],
+              [
+                712724952,
+                712724952,
+                285497344,
+                234490880,
+                92036096,
+                0
+              ],
+              [
+                849826520,
+                849826520,
+                285497344,
+                231083008,
+                170417152,
+                62128128
+              ],
+              [
+                787698024,
+                849826520,
+                285497344,
+                15797248,
+                232283136,
+                153419776
+              ],
+              [
+                634278248,
+                849826520,
+                285497344,
+                15731968,
+                232348416,
+                0
+              ],
+              [
+                634278248,
+                849826520,
+                285497344,
+                15731968,
+                232348416,
+                0
+              ],
+              [
+                634278248,
+                849826520,
+                285497344,
+                15732224,
+                232348160,
+                0
+              ],
+              [
+                743331176,
+                849826520,
+                285497344,
+                235802624,
+                121330688,
+                0
+              ],
+              [
+                743331176,
+                849826520,
+                285497344,
+                17108992,
+                232283136,
+                107741184
+              ],
+              [
+                635589992,
+                849826520,
+                285497344,
+                17043712,
+                232348416,
+                0
+              ],
+              [
+                635589992,
+                849826520,
+                285497344,
+                17043712,
+                232348416,
+                0
+              ],
+              [
+                635589992,
+                849826520,
+                285497344,
+                17043968,
+                232348160,
+                0
+              ],
+              [
+                744642920,
+                849826520,
+                285497344,
+                237114368,
+                121330688,
+                0
+              ],
+              [
+                744642920,
+                849826520,
+                285497344,
+                18420736,
+                232283136,
+                107741184
+              ],
+              [
+                636901736,
+                849826520,
+                285497344,
+                18355456,
+                232348416,
+                0
+              ],
+              [
+                636901736,
+                849826520,
+                285497344,
+                18355456,
+                232348416,
+                0
+              ],
+              [
+                636901736,
+                849826520,
+                285497344,
+                18355712,
+                232348160,
+                0
+              ],
+              [
+                745954664,
+                849826520,
+                285497344,
+                238426112,
+                121330688,
+                0
+              ],
+              [
+                899374440,
+                899374440,
+                285497344,
+                235018240,
+                170417152,
+                107741184
+              ],
+              [
+                791633256,
+                899374440,
+                285497344,
+                19732480,
+                232283136,
+                153419776
+              ],
+              [
+                638213480,
+                899374440,
+                285497344,
+                19667200,
+                232348416,
+                0
+              ],
+              [
+                638213480,
+                899374440,
+                285497344,
+                19667200,
+                232348416,
+                0
+              ],
+              [
+                638213480,
+                899374440,
+                285497344,
+                19667456,
+                232348160,
+                0
+              ],
+              [
+                747266408,
+                899374440,
+                285497344,
+                239737856,
+                121330688,
+                0
+              ],
+              [
+                747266408,
+                899374440,
+                285497344,
+                21044224,
+                232283136,
+                107741184
+              ],
+              [
+                639525224,
+                899374440,
+                285497344,
+                20978944,
+                232348416,
+                0
+              ],
+              [
+                639525224,
+                899374440,
+                285497344,
+                20978944,
+                232348416,
+                0
+              ],
+              [
+                639525224,
+                899374440,
+                285497344,
+                20979200,
+                232348160,
+                0
+              ],
+              [
+                748578152,
+                899374440,
+                285497344,
+                241049600,
+                121330688,
+                0
+              ],
+              [
+                748578152,
+                899374440,
+                285497344,
+                22355968,
+                232283136,
+                107741184
+              ],
+              [
+                640836968,
+                899374440,
+                285497344,
+                22290688,
+                232348416,
+                0
+              ],
+              [
+                640836968,
+                899374440,
+                285497344,
+                22290688,
+                232348416,
+                0
+              ],
+              [
+                640836968,
+                899374440,
+                285497344,
+                22290944,
+                232348160,
+                0
+              ],
+              [
+                749889896,
+                899374440,
+                285497344,
+                242361344,
+                121330688,
+                0
+              ],
+              [
+                903309672,
+                903309672,
+                285497344,
+                238953472,
+                170417152,
+                107741184
+              ],
+              [
+                795568520,
+                903309672,
+                285497344,
+                30156032,
+                225794816,
+                153419776
+              ],
+              [
+                795568520,
+                903309672,
+                285497344,
+                30159872,
+                225790976,
+                153419776
+              ],
+              [
+                796617128,
+                903309672,
+                285497344,
+                31208448,
+                225790976,
+                153419776
+              ],
+              [
+                797665704,
+                903309672,
+                285497344,
+                32257280,
+                225790720,
+                153419776
+              ],
+              [
+                797665704,
+                903309672,
+                285497344,
+                19145728,
+                232344576,
+                159977472
+              ]
+            ]
+          ]
+        },
+        {
+          "attempt": 2,
+          "generation": {
+            "maxTokens": 1024,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 0,
+            "maxSeqLen": 4096
+          },
+          "steps": 1024,
+          "inputTokens": 1588,
+          "stopReason": "max-tokens",
+          "completed": true,
+          "outputSha256": "441b65bf7c07aa5381cf091558443fe882cff62e3f097f18dc851f4e472030f1",
+          "outputCharacters": 4118,
+          "before": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 902556984,
+                "peakBytes": 1269752136,
+                "allocations": 283978,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 1280,
+                  "recurrent": 0,
+                  "other": 251566136
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 246287104,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 524104744,
+                "peakBytes": 903309672,
+                "allocations": 287057,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 1296,
+                  "recurrent": 0,
+                  "other": 238606104
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 233327104,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "after": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 1003514680,
+                "peakBytes": 1269752136,
+                "allocations": 436574,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 1280,
+                  "recurrent": 0,
+                  "other": 352523832
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 347244800,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 615313960,
+                "peakBytes": 903309672,
+                "allocations": 441707,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 1296,
+                  "recurrent": 0,
+                  "other": 329815320
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 324536320,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "beforeClose": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 1115983672,
+                "peakBytes": 1269752136,
+                "allocations": 436574,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 100664576,
+                  "recurrent": 9437184,
+                  "other": 354892344
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 17048576,
+                  "count": 58
+                },
+                "reusable": {
+                  "bytes": 347244800,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 727782952,
+                "peakBytes": 903309672,
+                "allocations": 441707,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 100664592,
+                  "recurrent": 8388608,
+                  "other": 333232408
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 17048576,
+                  "count": 58
+                },
+                "reusable": {
+                  "bytes": 324536320,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "prefillSubmissions": [
+            [
+              [
+                1003220312,
+                1269752136,
+                650989568,
+                11870208,
+                239659776,
+                0
+              ],
+              [
+                1003220312,
+                1269752136,
+                650989568,
+                11804928,
+                239725056,
+                0
+              ],
+              [
+                1003220312,
+                1269752136,
+                650989568,
+                11804928,
+                239725056,
+                0
+              ],
+              [
+                1003220312,
+                1269752136,
+                650989568,
+                11805184,
+                239724800,
+                0
+              ],
+              [
+                1118826648,
+                1269752136,
+                650989568,
+                231875584,
+                135260416,
+                0
+              ],
+              [
+                1118826152,
+                1269752136,
+                650989568,
+                13173760,
+                291834112,
+                62128128
+              ],
+              [
+                1056698024,
+                1269752136,
+                650989568,
+                13108480,
+                291899392,
+                0
+              ],
+              [
+                1056698024,
+                1269752136,
+                650989568,
+                13108480,
+                291899392,
+                0
+              ],
+              [
+                1056698024,
+                1269752136,
+                650989568,
+                13108736,
+                291899136,
+                0
+              ],
+              [
+                1120137384,
+                1269752136,
+                650989568,
+                233179136,
+                135268096,
+                0
+              ],
+              [
+                1120137384,
+                1269752136,
+                650989568,
+                14485504,
+                321193728,
+                32768000
+              ],
+              [
+                1087369384,
+                1269752136,
+                650989568,
+                14420224,
+                321259008,
+                0
+              ],
+              [
+                1087369384,
+                1269752136,
+                650989568,
+                14420224,
+                321259008,
+                0
+              ],
+              [
+                1087369384,
+                1269752136,
+                650989568,
+                14420480,
+                321258752,
+                0
+              ],
+              [
+                1121448616,
+                1269752136,
+                650989568,
+                234490880,
+                135267584,
+                0
+              ],
+              [
+                1173746600,
+                1269752136,
+                650989568,
+                231083008,
+                171312384,
+                19660800
+              ],
+              [
+                1154085448,
+                1269752136,
+                650989568,
+                15797248,
+                324470016,
+                62128128
+              ],
+              [
+                1091957320,
+                1269752136,
+                650989568,
+                15731968,
+                324535296,
+                0
+              ],
+              [
+                1091957320,
+                1269752136,
+                650989568,
+                15731968,
+                324535296,
+                0
+              ],
+              [
+                1091957320,
+                1269752136,
+                650989568,
+                15732224,
+                324535040,
+                0
+              ],
+              [
+                1155396936,
+                1269752136,
+                650989568,
+                235802624,
+                167904256,
+                0
+              ],
+              [
+                1155396936,
+                1269752136,
+                650989568,
+                17108992,
+                347276288,
+                39321600
+              ],
+              [
+                1116075336,
+                1269752136,
+                650989568,
+                17043712,
+                347341568,
+                0
+              ],
+              [
+                1116075336,
+                1269752136,
+                650989568,
+                17043712,
+                347341568,
+                0
+              ],
+              [
+                1116075336,
+                1269752136,
+                650989568,
+                17043968,
+                347341312,
+                0
+              ],
+              [
+                1156708680,
+                1269752136,
+                650989568,
+                237114368,
+                167904256,
+                0
+              ],
+              [
+                1156708680,
+                1269752136,
+                650989568,
+                18420736,
+                347276288,
+                39321600
+              ],
+              [
+                1117387080,
+                1269752136,
+                650989568,
+                18355456,
+                347341568,
+                0
+              ],
+              [
+                1117387080,
+                1269752136,
+                650989568,
+                18355456,
+                347341568,
+                0
+              ],
+              [
+                1117387080,
+                1269752136,
+                650989568,
+                18355712,
+                347341312,
+                0
+              ],
+              [
+                1158020424,
+                1269752136,
+                650989568,
+                238426112,
+                167904256,
+                0
+              ],
+              [
+                1197342024,
+                1269752136,
+                650989568,
+                235018240,
+                171312128,
+                39321600
+              ],
+              [
+                1158020424,
+                1269752136,
+                650989568,
+                19732480,
+                347276288,
+                39321600
+              ],
+              [
+                1118698824,
+                1269752136,
+                650989568,
+                19667200,
+                347341568,
+                0
+              ],
+              [
+                1118698824,
+                1269752136,
+                650989568,
+                19667200,
+                347341568,
+                0
+              ],
+              [
+                1118698824,
+                1269752136,
+                650989568,
+                19667456,
+                347341312,
+                0
+              ],
+              [
+                1159332168,
+                1269752136,
+                650989568,
+                239737856,
+                167904256,
+                0
+              ],
+              [
+                1159332168,
+                1269752136,
+                650989568,
+                21044224,
+                347276288,
+                39321600
+              ],
+              [
+                1120010568,
+                1269752136,
+                650989568,
+                20978944,
+                347341568,
+                0
+              ],
+              [
+                1120010568,
+                1269752136,
+                650989568,
+                20978944,
+                347341568,
+                0
+              ],
+              [
+                1120010568,
+                1269752136,
+                650989568,
+                20979200,
+                347341312,
+                0
+              ],
+              [
+                1160643912,
+                1269752136,
+                650989568,
+                241049600,
+                167904256,
+                0
+              ],
+              [
+                1160643912,
+                1269752136,
+                650989568,
+                22355968,
+                347276288,
+                39321600
+              ],
+              [
+                1121322312,
+                1269752136,
+                650989568,
+                22290688,
+                347341568,
+                0
+              ],
+              [
+                1121322312,
+                1269752136,
+                650989568,
+                22290688,
+                347341568,
+                0
+              ],
+              [
+                1121322312,
+                1269752136,
+                650989568,
+                22290944,
+                347341312,
+                0
+              ],
+              [
+                1161955656,
+                1269752136,
+                650989568,
+                242361344,
+                167904256,
+                0
+              ],
+              [
+                1201277256,
+                1269752136,
+                650989568,
+                238953472,
+                171312128,
+                39321600
+              ],
+              [
+                1168509256,
+                1269752136,
+                650989568,
+                30155776,
+                347341824,
+                39321600
+              ]
+            ],
+            [
+              [
+                624768040,
+                903309672,
+                285497344,
+                11862016,
+                226707968,
+                0
+              ],
+              [
+                624768040,
+                903309672,
+                285497344,
+                11796736,
+                226773248,
+                0
+              ],
+              [
+                624768040,
+                903309672,
+                285497344,
+                11796736,
+                226773248,
+                0
+              ],
+              [
+                624768040,
+                903309672,
+                285497344,
+                11796992,
+                226772992,
+                0
+              ],
+              [
+                739325800,
+                903309672,
+                285497344,
+                231867392,
+                121260032,
+                0
+              ],
+              [
+                739325400,
+                903309672,
+                285497344,
+                13173760,
+                300632064,
+                39321600
+              ],
+              [
+                700003800,
+                903309672,
+                285497344,
+                13108480,
+                300697344,
+                0
+              ],
+              [
+                700003800,
+                903309672,
+                285497344,
+                13108480,
+                300697344,
+                0
+              ],
+              [
+                700003800,
+                903309672,
+                285497344,
+                13108736,
+                300697088,
+                0
+              ],
+              [
+                740636632,
+                903309672,
+                285497344,
+                233179136,
+                121259520,
+                0
+              ],
+              [
+                740636632,
+                903309672,
+                285497344,
+                14485504,
+                313738752,
+                26214400
+              ],
+              [
+                714422232,
+                903309672,
+                285497344,
+                14420224,
+                313804032,
+                0
+              ],
+              [
+                714422232,
+                903309672,
+                285497344,
+                14420224,
+                313804032,
+                0
+              ],
+              [
+                714422232,
+                903309672,
+                285497344,
+                14420480,
+                313803776,
+                0
+              ],
+              [
+                741947864,
+                903309672,
+                285497344,
+                234490880,
+                121259008,
+                0
+              ],
+              [
+                800733912,
+                903309672,
+                285497344,
+                231083008,
+                170345472,
+                13107200
+              ],
+              [
+                787626344,
+                903309672,
+                285497344,
+                15797248,
+                323503104,
+                62128128
+              ],
+              [
+                725498216,
+                903309672,
+                285497344,
+                15731968,
+                323568384,
+                0
+              ],
+              [
+                725498216,
+                903309672,
+                285497344,
+                15731968,
+                323568384,
+                0
+              ],
+              [
+                725498216,
+                903309672,
+                285497344,
+                15732224,
+                323568128,
+                0
+              ],
+              [
+                788938088,
+                903309672,
+                285497344,
+                235802624,
+                166937600,
+                0
+              ],
+              [
+                788938088,
+                903309672,
+                285497344,
+                17108992,
+                323503104,
+                62128128
+              ],
+              [
+                726809960,
+                903309672,
+                285497344,
+                17043712,
+                323568384,
+                0
+              ],
+              [
+                726809960,
+                903309672,
+                285497344,
+                17043712,
+                323568384,
+                0
+              ],
+              [
+                726809960,
+                903309672,
+                285497344,
+                17043968,
+                323568128,
+                0
+              ],
+              [
+                790249832,
+                903309672,
+                285497344,
+                237114368,
+                166937600,
+                0
+              ],
+              [
+                790249832,
+                903309672,
+                285497344,
+                18420736,
+                323503104,
+                62128128
+              ],
+              [
+                728121704,
+                903309672,
+                285497344,
+                18355456,
+                323568384,
+                0
+              ],
+              [
+                728121704,
+                903309672,
+                285497344,
+                18355456,
+                323568384,
+                0
+              ],
+              [
+                728121704,
+                903309672,
+                285497344,
+                18355712,
+                323568128,
+                0
+              ],
+              [
+                791561576,
+                903309672,
+                285497344,
+                238426112,
+                166937600,
+                0
+              ],
+              [
+                853689704,
+                903309672,
+                285497344,
+                235018240,
+                170345472,
+                62128128
+              ],
+              [
+                791561576,
+                903309672,
+                285497344,
+                19732480,
+                323503104,
+                62128128
+              ],
+              [
+                729433448,
+                903309672,
+                285497344,
+                19667200,
+                323568384,
+                0
+              ],
+              [
+                729433448,
+                903309672,
+                285497344,
+                19667200,
+                323568384,
+                0
+              ],
+              [
+                729433448,
+                903309672,
+                285497344,
+                19667456,
+                323568128,
+                0
+              ],
+              [
+                792873320,
+                903309672,
+                285497344,
+                239737856,
+                166937600,
+                0
+              ],
+              [
+                792873320,
+                903309672,
+                285497344,
+                21044224,
+                323503104,
+                62128128
+              ],
+              [
+                730745192,
+                903309672,
+                285497344,
+                20978944,
+                323568384,
+                0
+              ],
+              [
+                730745192,
+                903309672,
+                285497344,
+                20978944,
+                323568384,
+                0
+              ],
+              [
+                730745192,
+                903309672,
+                285497344,
+                20979200,
+                323568128,
+                0
+              ],
+              [
+                794185064,
+                903309672,
+                285497344,
+                241049600,
+                166937600,
+                0
+              ],
+              [
+                794185064,
+                903309672,
+                285497344,
+                22355968,
+                323503104,
+                62128128
+              ],
+              [
+                732056936,
+                903309672,
+                285497344,
+                22290688,
+                323568384,
+                0
+              ],
+              [
+                732056936,
+                903309672,
+                285497344,
+                22290688,
+                323568384,
+                0
+              ],
+              [
+                732056936,
+                903309672,
+                285497344,
+                22290944,
+                323568128,
+                0
+              ],
+              [
+                795496808,
+                903309672,
+                285497344,
+                242361344,
+                166937600,
+                0
+              ],
+              [
+                857624936,
+                903309672,
+                285497344,
+                238953472,
+                170345472,
+                62128128
+              ],
+              [
+                795496840,
+                903309672,
+                285497344,
+                30156032,
+                317014784,
+                62128128
+              ],
+              [
+                795496840,
+                903309672,
+                285497344,
+                30159872,
+                317010944,
+                62128128
+              ],
+              [
+                796545448,
+                903309672,
+                285497344,
+                31208448,
+                317010944,
+                62128128
+              ],
+              [
+                797594024,
+                903309672,
+                285497344,
+                32257280,
+                317010688,
+                62128128
+              ],
+              [
+                797594024,
+                903309672,
+                285497344,
+                19145728,
+                323564544,
+                68685824
+              ]
+            ]
+          ]
+        }
+      ],
+      "afterResidentClose": [
+        {
+          "device": {
+            "scope": "device-gpu-buffers",
+            "maxBytes": 1420000000,
+            "liveBytes": 10792,
+            "peakBytes": 1269752136,
+            "allocations": 436574,
+            "rejected": 0,
+            "categories": {
+              "weights": 0,
+              "attention": 1280,
+              "recurrent": 0,
+              "other": 9512
+            }
+          },
+          "poolResources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          }
+        },
+        {
+          "device": {
+            "scope": "device-gpu-buffers",
+            "maxBytes": 1420000000,
+            "liveBytes": 10776,
+            "peakBytes": 903309672,
+            "allocations": 441707,
+            "rejected": 0,
+            "categories": {
+              "weights": 0,
+              "attention": 1296,
+              "recurrent": 0,
+              "other": 9480
+            }
+          },
+          "poolResources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          }
+        }
+      ],
+      "repeatedLongOutputIdentical": true
+    },
+    {
+      "case": "reploid-partition-memory-cancellation.json",
+      "descriptors": [
+        {
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 0,
+            "layerRange": [
+              0,
+              11
+            ],
+            "residentWeightBytes": 650989568,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "packageVersion": "0.6.3-dev.split.13",
+          "beforePreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 0,
+              "peakBytes": 8,
+              "allocations": 2,
+              "rejected": 0,
+              "categories": {
+                "weights": 0,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 0
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 0,
+                "count": 0
+              },
+              "active": {
+                "bytes": 0,
+                "count": 0
+              },
+              "reusable": {
+                "bytes": 0,
+                "count": 0
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "afterPreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 656259344,
+              "peakBytes": 756922768,
+              "allocations": 210,
+              "rejected": 0,
+              "categories": {
+                "weights": 650989568,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 5269776
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 650989568,
+                "count": 172
+              },
+              "active": {
+                "bytes": 5242880,
+                "count": 4
+              },
+              "reusable": {
+                "bytes": 256,
+                "count": 1
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "platform": "mac",
+          "browser": "145.0.7632.6"
+        },
+        {
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "packageVersion": "0.6.3-dev.split.13",
+          "beforePreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 0,
+              "peakBytes": 8,
+              "allocations": 2,
+              "rejected": 0,
+              "categories": {
+                "weights": 0,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 0
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 0,
+                "count": 0
+              },
+              "active": {
+                "bytes": 0,
+                "count": 0
+              },
+              "reusable": {
+                "bytes": 0,
+                "count": 0
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "afterPreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 290767120,
+              "peakBytes": 391430544,
+              "allocations": 211,
+              "rejected": 0,
+              "categories": {
+                "weights": 285497344,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 5269776
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 285497344,
+                "count": 173
+              },
+              "active": {
+                "bytes": 5242880,
+                "count": 4
+              },
+              "reusable": {
+                "bytes": 256,
+                "count": 1
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "platform": "linux",
+          "browser": "146.0.7680.177"
+        }
+      ],
+      "runs": [
+        {
+          "attempt": 0,
+          "generation": {
+            "maxTokens": 1024,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 0,
+            "maxSeqLen": 4096
+          },
+          "steps": 0,
+          "inputTokens": 1588,
+          "error": "page.evaluate: AbortError: diagnostic prefill cancellation",
+          "cancelled": true,
+          "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outputCharacters": 0,
+          "before": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 656259344,
+                "peakBytes": 756922768,
+                "allocations": 210,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 290767120,
+                "peakBytes": 391430544,
+                "allocations": 211,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "after": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 882958704,
+                "peakBytes": 983622000,
+                "allocations": 272,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 0,
+                  "recurrent": 1179648,
+                  "other": 230789488
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 226699264,
+                  "count": 28
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 290767120,
+                "peakBytes": 391430544,
+                "allocations": 211,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "beforeClose": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 983622000,
+                "peakBytes": 983622000,
+                "allocations": 272,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 100663296,
+                  "recurrent": 1179648,
+                  "other": 230789488
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 6554624,
+                  "count": 10
+                },
+                "reusable": {
+                  "bytes": 225387520,
+                  "count": 22
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 290767120,
+                "peakBytes": 391430544,
+                "allocations": 211,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "prefillSubmissions": [
+            [
+              [
+                763550000,
+                763550000,
+                650989568,
+                11870208,
+                256,
+                0
+              ],
+              [
+                763550256,
+                763550256,
+                650989568,
+                11804928,
+                65792,
+                0
+              ],
+              [
+                763550256,
+                763550256,
+                650989568,
+                11804928,
+                65792,
+                0
+              ],
+              [
+                763550768,
+                763550768,
+                650989568,
+                11805184,
+                66048,
+                0
+              ],
+              [
+                983622000,
+                983622000,
+                650989568,
+                231875584,
+                66560,
+                0
+              ]
+            ],
+            []
+          ],
+          "allocationRejections": [
+            {
+              "scope": "Direct allocation-guard rejection, not an injected model-operation failure",
+              "code": "RESOURCE_EXHAUSTED",
+              "before": {
+                "device": {
+                  "scope": "device-gpu-buffers",
+                  "maxBytes": 1420000000,
+                  "liveBytes": 882958704,
+                  "peakBytes": 983622000,
+                  "allocations": 272,
+                  "rejected": 0,
+                  "categories": {
+                    "weights": 650989568,
+                    "attention": 0,
+                    "recurrent": 1179648,
+                    "other": 230789488
+                  }
+                },
+                "poolResources": {
+                  "retainedModel": {
+                    "bytes": 650989568,
+                    "count": 172
+                  },
+                  "active": {
+                    "bytes": 5242880,
+                    "count": 4
+                  },
+                  "reusable": {
+                    "bytes": 226699264,
+                    "count": 28
+                  },
+                  "deferredCleanup": {
+                    "bytes": 0,
+                    "count": 0
+                  }
+                }
+              },
+              "after": {
+                "device": {
+                  "scope": "device-gpu-buffers",
+                  "maxBytes": 1420000000,
+                  "liveBytes": 882958704,
+                  "peakBytes": 983622000,
+                  "allocations": 272,
+                  "rejected": 1,
+                  "categories": {
+                    "weights": 650989568,
+                    "attention": 0,
+                    "recurrent": 1179648,
+                    "other": 230789488
+                  }
+                },
+                "poolResources": {
+                  "retainedModel": {
+                    "bytes": 650989568,
+                    "count": 172
+                  },
+                  "active": {
+                    "bytes": 5242880,
+                    "count": 4
+                  },
+                  "reusable": {
+                    "bytes": 226699264,
+                    "count": 28
+                  },
+                  "deferredCleanup": {
+                    "bytes": 0,
+                    "count": 0
+                  }
+                }
+              }
+            },
+            {
+              "scope": "Direct allocation-guard rejection, not an injected model-operation failure",
+              "code": "RESOURCE_EXHAUSTED",
+              "before": {
+                "device": {
+                  "scope": "device-gpu-buffers",
+                  "maxBytes": 1420000000,
+                  "liveBytes": 290767120,
+                  "peakBytes": 391430544,
+                  "allocations": 211,
+                  "rejected": 0,
+                  "categories": {
+                    "weights": 285497344,
+                    "attention": 0,
+                    "recurrent": 0,
+                    "other": 5269776
+                  }
+                },
+                "poolResources": {
+                  "retainedModel": {
+                    "bytes": 285497344,
+                    "count": 173
+                  },
+                  "active": {
+                    "bytes": 5242880,
+                    "count": 4
+                  },
+                  "reusable": {
+                    "bytes": 256,
+                    "count": 1
+                  },
+                  "deferredCleanup": {
+                    "bytes": 0,
+                    "count": 0
+                  }
+                }
+              },
+              "after": {
+                "device": {
+                  "scope": "device-gpu-buffers",
+                  "maxBytes": 1420000000,
+                  "liveBytes": 290767120,
+                  "peakBytes": 391430544,
+                  "allocations": 211,
+                  "rejected": 1,
+                  "categories": {
+                    "weights": 285497344,
+                    "attention": 0,
+                    "recurrent": 0,
+                    "other": 5269776
+                  }
+                },
+                "poolResources": {
+                  "retainedModel": {
+                    "bytes": 285497344,
+                    "count": 173
+                  },
+                  "active": {
+                    "bytes": 5242880,
+                    "count": 4
+                  },
+                  "reusable": {
+                    "bytes": 256,
+                    "count": 1
+                  },
+                  "deferredCleanup": {
+                    "bytes": 0,
+                    "count": 0
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "attempt": 1,
+          "generation": {
+            "maxTokens": 1024,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 0,
+            "maxSeqLen": 4096
+          },
+          "steps": 1024,
+          "inputTokens": 1588,
+          "stopReason": "max-tokens",
+          "completed": true,
+          "outputSha256": "441b65bf7c07aa5381cf091558443fe882cff62e3f097f18dc851f4e472030f1",
+          "outputCharacters": 4118,
+          "before": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 882958704,
+                "peakBytes": 983622000,
+                "allocations": 272,
+                "rejected": 1,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 0,
+                  "recurrent": 1179648,
+                  "other": 230789488
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 226699264,
+                  "count": 28
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 290767120,
+                "peakBytes": 391430544,
+                "allocations": 211,
+                "rejected": 1,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "after": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 963542328,
+                "peakBytes": 1077081400,
+                "allocations": 140562,
+                "rejected": 1,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 1280,
+                  "recurrent": 0,
+                  "other": 312551480
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 307272448,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 594639912,
+                "peakBytes": 708177064,
+                "allocations": 143609,
+                "rejected": 1,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 1296,
+                  "recurrent": 0,
+                  "other": 309141272
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 303862272,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "beforeClose": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 1076011320,
+                "peakBytes": 1077081400,
+                "allocations": 140562,
+                "rejected": 1,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 100664576,
+                  "recurrent": 9568256,
+                  "other": 314788920
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 17048576,
+                  "count": 58
+                },
+                "reusable": {
+                  "bytes": 307272448,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 707108904,
+                "peakBytes": 708177064,
+                "allocations": 143609,
+                "rejected": 1,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 100664592,
+                  "recurrent": 9568256,
+                  "other": 311378712
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 17048576,
+                  "count": 58
+                },
+                "reusable": {
+                  "bytes": 303862272,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "prefillSubmissions": [
+            [
+              [
+                983622000,
+                983622000,
+                650989568,
+                11870208,
+                220071936,
+                0
+              ],
+              [
+                983622000,
+                983622000,
+                650989568,
+                11804928,
+                220137216,
+                0
+              ],
+              [
+                983622000,
+                983622000,
+                650989568,
+                11804928,
+                220137216,
+                0
+              ],
+              [
+                983622000,
+                983622000,
+                650989568,
+                11805184,
+                220136960,
+                0
+              ],
+              [
+                983622000,
+                983622000,
+                650989568,
+                231875584,
+                66560,
+                0
+              ],
+              [
+                983622000,
+                983622000,
+                650989568,
+                13173760,
+                218768384,
+                0
+              ],
+              [
+                983622000,
+                983622000,
+                650989568,
+                13108480,
+                218833664,
+                0
+              ],
+              [
+                983622000,
+                983622000,
+                650989568,
+                13108480,
+                218833664,
+                0
+              ],
+              [
+                983622000,
+                983622000,
+                650989568,
+                13108736,
+                218833408,
+                0
+              ],
+              [
+                984933744,
+                984933744,
+                650989568,
+                233179136,
+                74752,
+                0
+              ],
+              [
+                984933744,
+                984933744,
+                650989568,
+                14485504,
+                218768384,
+                0
+              ],
+              [
+                984933744,
+                984933744,
+                650989568,
+                14420224,
+                218833664,
+                0
+              ],
+              [
+                984933744,
+                984933744,
+                650989568,
+                14420224,
+                218833664,
+                0
+              ],
+              [
+                984933744,
+                984933744,
+                650989568,
+                14420480,
+                218833408,
+                0
+              ],
+              [
+                986245488,
+                986245488,
+                650989568,
+                234490880,
+                74752,
+                0
+              ],
+              [
+                1061218936,
+                1061218936,
+                650989568,
+                231083008,
+                78455808,
+                0
+              ],
+              [
+                1061218936,
+                1061218936,
+                650989568,
+                15797248,
+                293741568,
+                0
+              ],
+              [
+                1061218936,
+                1061218936,
+                650989568,
+                15731968,
+                293806848,
+                0
+              ],
+              [
+                1061218936,
+                1061218936,
+                650989568,
+                15731968,
+                293806848,
+                0
+              ],
+              [
+                1061218936,
+                1061218936,
+                650989568,
+                15732224,
+                293806592,
+                0
+              ],
+              [
+                1062530680,
+                1062530680,
+                650989568,
+                235802624,
+                75047936,
+                0
+              ],
+              [
+                1062530680,
+                1062530680,
+                650989568,
+                17108992,
+                293741568,
+                0
+              ],
+              [
+                1062530680,
+                1062530680,
+                650989568,
+                17043712,
+                293806848,
+                0
+              ],
+              [
+                1062530680,
+                1062530680,
+                650989568,
+                17043712,
+                293806848,
+                0
+              ],
+              [
+                1062530680,
+                1062530680,
+                650989568,
+                17043968,
+                293806592,
+                0
+              ],
+              [
+                1063842424,
+                1063842424,
+                650989568,
+                237114368,
+                75047936,
+                0
+              ],
+              [
+                1063842424,
+                1063842424,
+                650989568,
+                18420736,
+                293741568,
+                0
+              ],
+              [
+                1063842424,
+                1063842424,
+                650989568,
+                18355456,
+                293806848,
+                0
+              ],
+              [
+                1063842424,
+                1063842424,
+                650989568,
+                18355456,
+                293806848,
+                0
+              ],
+              [
+                1063842424,
+                1063842424,
+                650989568,
+                18355712,
+                293806592,
+                0
+              ],
+              [
+                1065154168,
+                1065154168,
+                650989568,
+                238426112,
+                75047936,
+                0
+              ],
+              [
+                1065154168,
+                1065154168,
+                650989568,
+                235018240,
+                78455808,
+                0
+              ],
+              [
+                1065154168,
+                1065154168,
+                650989568,
+                19732480,
+                293741568,
+                0
+              ],
+              [
+                1065154168,
+                1065154168,
+                650989568,
+                19667200,
+                293806848,
+                0
+              ],
+              [
+                1065154168,
+                1065154168,
+                650989568,
+                19667200,
+                293806848,
+                0
+              ],
+              [
+                1065154168,
+                1065154168,
+                650989568,
+                19667456,
+                293806592,
+                0
+              ],
+              [
+                1066465912,
+                1066465912,
+                650989568,
+                239737856,
+                75047936,
+                0
+              ],
+              [
+                1066465912,
+                1066465912,
+                650989568,
+                21044224,
+                293741568,
+                0
+              ],
+              [
+                1066465912,
+                1066465912,
+                650989568,
+                20978944,
+                293806848,
+                0
+              ],
+              [
+                1066465912,
+                1066465912,
+                650989568,
+                20978944,
+                293806848,
+                0
+              ],
+              [
+                1066465912,
+                1066465912,
+                650989568,
+                20979200,
+                293806592,
+                0
+              ],
+              [
+                1067777656,
+                1067777656,
+                650989568,
+                241049600,
+                75047936,
+                0
+              ],
+              [
+                1067777656,
+                1067777656,
+                650989568,
+                22355968,
+                293741568,
+                0
+              ],
+              [
+                1067777656,
+                1067777656,
+                650989568,
+                22290688,
+                293806848,
+                0
+              ],
+              [
+                1067777656,
+                1067777656,
+                650989568,
+                22290688,
+                293806848,
+                0
+              ],
+              [
+                1067777656,
+                1067777656,
+                650989568,
+                22290944,
+                293806592,
+                0
+              ],
+              [
+                1069089400,
+                1069089400,
+                650989568,
+                242361344,
+                75047936,
+                0
+              ],
+              [
+                1069089400,
+                1069089400,
+                650989568,
+                238953472,
+                78455808,
+                0
+              ],
+              [
+                1075643000,
+                1075643000,
+                650989568,
+                30155776,
+                293807104,
+                0
+              ]
+            ],
+            [
+              [
+                398049552,
+                398049552,
+                285497344,
+                11862016,
+                256,
+                0
+              ],
+              [
+                398049808,
+                398049808,
+                285497344,
+                11796736,
+                65792,
+                0
+              ],
+              [
+                398049808,
+                398049808,
+                285497344,
+                11796736,
+                65792,
+                0
+              ],
+              [
+                398050320,
+                398050320,
+                285497344,
+                11796992,
+                66048,
+                0
+              ],
+              [
+                618121552,
+                618121552,
+                285497344,
+                231867392,
+                66560,
+                0
+              ],
+              [
+                618121552,
+                618121552,
+                285497344,
+                13173760,
+                218760192,
+                0
+              ],
+              [
+                618121552,
+                618121552,
+                285497344,
+                13108480,
+                218825472,
+                0
+              ],
+              [
+                618121552,
+                618121552,
+                285497344,
+                13108480,
+                218825472,
+                0
+              ],
+              [
+                618121552,
+                618121552,
+                285497344,
+                13108736,
+                218825216,
+                0
+              ],
+              [
+                619433296,
+                619433296,
+                285497344,
+                233179136,
+                66560,
+                0
+              ],
+              [
+                619433296,
+                619433296,
+                285497344,
+                14485504,
+                218760192,
+                0
+              ],
+              [
+                619433296,
+                619433296,
+                285497344,
+                14420224,
+                218825472,
+                0
+              ],
+              [
+                619433296,
+                619433296,
+                285497344,
+                14420224,
+                218825472,
+                0
+              ],
+              [
+                619433296,
+                619433296,
+                285497344,
+                14420480,
+                218825216,
+                0
+              ],
+              [
+                620745040,
+                620745040,
+                285497344,
+                234490880,
+                66560,
+                0
+              ],
+              [
+                695718488,
+                695718488,
+                285497344,
+                231083008,
+                78447616,
+                0
+              ],
+              [
+                695718488,
+                695718488,
+                285497344,
+                15797248,
+                293733376,
+                0
+              ],
+              [
+                695718488,
+                695718488,
+                285497344,
+                15731968,
+                293798656,
+                0
+              ],
+              [
+                695718488,
+                695718488,
+                285497344,
+                15731968,
+                293798656,
+                0
+              ],
+              [
+                695718488,
+                695718488,
+                285497344,
+                15732224,
+                293798400,
+                0
+              ],
+              [
+                697030232,
+                697030232,
+                285497344,
+                235802624,
+                75039744,
+                0
+              ],
+              [
+                697030232,
+                697030232,
+                285497344,
+                17108992,
+                293733376,
+                0
+              ],
+              [
+                697030232,
+                697030232,
+                285497344,
+                17043712,
+                293798656,
+                0
+              ],
+              [
+                697030232,
+                697030232,
+                285497344,
+                17043712,
+                293798656,
+                0
+              ],
+              [
+                697030232,
+                697030232,
+                285497344,
+                17043968,
+                293798400,
+                0
+              ],
+              [
+                698341976,
+                698341976,
+                285497344,
+                237114368,
+                75039744,
+                0
+              ],
+              [
+                698341976,
+                698341976,
+                285497344,
+                18420736,
+                293733376,
+                0
+              ],
+              [
+                698341976,
+                698341976,
+                285497344,
+                18355456,
+                293798656,
+                0
+              ],
+              [
+                698341976,
+                698341976,
+                285497344,
+                18355456,
+                293798656,
+                0
+              ],
+              [
+                698341976,
+                698341976,
+                285497344,
+                18355712,
+                293798400,
+                0
+              ],
+              [
+                699653720,
+                699653720,
+                285497344,
+                238426112,
+                75039744,
+                0
+              ],
+              [
+                699653720,
+                699653720,
+                285497344,
+                235018240,
+                78447616,
+                0
+              ],
+              [
+                699653720,
+                699653720,
+                285497344,
+                19732480,
+                293733376,
+                0
+              ],
+              [
+                699653720,
+                699653720,
+                285497344,
+                19667200,
+                293798656,
+                0
+              ],
+              [
+                699653720,
+                699653720,
+                285497344,
+                19667200,
+                293798656,
+                0
+              ],
+              [
+                699653720,
+                699653720,
+                285497344,
+                19667456,
+                293798400,
+                0
+              ],
+              [
+                700965464,
+                700965464,
+                285497344,
+                239737856,
+                75039744,
+                0
+              ],
+              [
+                700965464,
+                700965464,
+                285497344,
+                21044224,
+                293733376,
+                0
+              ],
+              [
+                700965464,
+                700965464,
+                285497344,
+                20978944,
+                293798656,
+                0
+              ],
+              [
+                700965464,
+                700965464,
+                285497344,
+                20978944,
+                293798656,
+                0
+              ],
+              [
+                700965464,
+                700965464,
+                285497344,
+                20979200,
+                293798400,
+                0
+              ],
+              [
+                702277208,
+                702277208,
+                285497344,
+                241049600,
+                75039744,
+                0
+              ],
+              [
+                702277208,
+                702277208,
+                285497344,
+                22355968,
+                293733376,
+                0
+              ],
+              [
+                702277208,
+                702277208,
+                285497344,
+                22290688,
+                293798656,
+                0
+              ],
+              [
+                702277208,
+                702277208,
+                285497344,
+                22290688,
+                293798656,
+                0
+              ],
+              [
+                702277208,
+                702277208,
+                285497344,
+                22290944,
+                293798400,
+                0
+              ],
+              [
+                703588952,
+                703588952,
+                285497344,
+                242361344,
+                75039744,
+                0
+              ],
+              [
+                703588952,
+                703588952,
+                285497344,
+                238953472,
+                78447616,
+                0
+              ],
+              [
+                703588984,
+                703588984,
+                285497344,
+                30156032,
+                287245056,
+                0
+              ],
+              [
+                703593080,
+                703593080,
+                285497344,
+                30159872,
+                287245312,
+                0
+              ],
+              [
+                704641656,
+                704641656,
+                285497344,
+                31208448,
+                287245312,
+                0
+              ],
+              [
+                705690232,
+                705690232,
+                285497344,
+                32257280,
+                287245056,
+                0
+              ],
+              [
+                706738808,
+                706738808,
+                285497344,
+                19145728,
+                301405184,
+                0
+              ]
+            ]
+          ]
+        }
+      ],
+      "afterResidentClose": [
+        {
+          "device": {
+            "scope": "device-gpu-buffers",
+            "maxBytes": 1420000000,
+            "liveBytes": 10792,
+            "peakBytes": 1077081400,
+            "allocations": 140562,
+            "rejected": 1,
+            "categories": {
+              "weights": 0,
+              "attention": 1280,
+              "recurrent": 0,
+              "other": 9512
+            }
+          },
+          "poolResources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          }
+        },
+        {
+          "device": {
+            "scope": "device-gpu-buffers",
+            "maxBytes": 1420000000,
+            "liveBytes": 10776,
+            "peakBytes": 708177064,
+            "allocations": 143609,
+            "rejected": 1,
+            "categories": {
+              "weights": 0,
+              "attention": 1296,
+              "recurrent": 0,
+              "other": 9480
+            }
+          },
+          "poolResources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          }
+        }
+      ]
+    },
+    {
+      "case": "reploid-partition-memory-cancel-ownership.json",
+      "descriptors": [
+        {
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 0,
+            "layerRange": [
+              0,
+              11
+            ],
+            "residentWeightBytes": 650989568,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "packageVersion": "0.6.3-dev.split.13",
+          "beforePreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 0,
+              "peakBytes": 8,
+              "allocations": 2,
+              "rejected": 0,
+              "categories": {
+                "weights": 0,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 0
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 0,
+                "count": 0
+              },
+              "active": {
+                "bytes": 0,
+                "count": 0
+              },
+              "reusable": {
+                "bytes": 0,
+                "count": 0
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "afterPreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 656259344,
+              "peakBytes": 756922768,
+              "allocations": 210,
+              "rejected": 0,
+              "categories": {
+                "weights": 650989568,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 5269776
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 650989568,
+                "count": 172
+              },
+              "active": {
+                "bytes": 5242880,
+                "count": 4
+              },
+              "reusable": {
+                "bytes": 256,
+                "count": 1
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "platform": "mac",
+          "browser": "145.0.7632.6"
+        },
+        {
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "packageVersion": "0.6.3-dev.split.13",
+          "beforePreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 0,
+              "peakBytes": 8,
+              "allocations": 2,
+              "rejected": 0,
+              "categories": {
+                "weights": 0,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 0
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 0,
+                "count": 0
+              },
+              "active": {
+                "bytes": 0,
+                "count": 0
+              },
+              "reusable": {
+                "bytes": 0,
+                "count": 0
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "afterPreparation": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 290767120,
+              "peakBytes": 391430544,
+              "allocations": 211,
+              "rejected": 0,
+              "categories": {
+                "weights": 285497344,
+                "attention": 0,
+                "recurrent": 0,
+                "other": 5269776
+              }
+            },
+            "poolResources": {
+              "retainedModel": {
+                "bytes": 285497344,
+                "count": 173
+              },
+              "active": {
+                "bytes": 5242880,
+                "count": 4
+              },
+              "reusable": {
+                "bytes": 256,
+                "count": 1
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          },
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "platform": "linux",
+          "browser": "146.0.7680.177"
+        }
+      ],
+      "runs": [
+        {
+          "attempt": 0,
+          "generation": {
+            "maxTokens": 1024,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "repetitionPenalty": 1,
+            "repetitionPenaltyWindow": 0,
+            "maxSeqLen": 4096
+          },
+          "steps": 0,
+          "inputTokens": 1588,
+          "error": "page.evaluate: AbortError: diagnostic prefill cancellation",
+          "cancelled": true,
+          "outputSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "outputCharacters": 0,
+          "before": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 656259344,
+                "peakBytes": 756922768,
+                "allocations": 210,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 290767120,
+                "peakBytes": 391430544,
+                "allocations": 211,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "after": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 882958704,
+                "peakBytes": 983622000,
+                "allocations": 272,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 0,
+                  "recurrent": 1179648,
+                  "other": 230789488
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 226699264,
+                  "count": 28
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 290767120,
+                "peakBytes": 391430544,
+                "allocations": 211,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "beforeClose": [
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 983622000,
+                "peakBytes": 983622000,
+                "allocations": 272,
+                "rejected": 0,
+                "categories": {
+                  "weights": 650989568,
+                  "attention": 100663296,
+                  "recurrent": 1179648,
+                  "other": 230789488
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 650989568,
+                  "count": 172
+                },
+                "active": {
+                  "bytes": 6554624,
+                  "count": 10
+                },
+                "reusable": {
+                  "bytes": 225387520,
+                  "count": 22
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            },
+            {
+              "device": {
+                "scope": "device-gpu-buffers",
+                "maxBytes": 1420000000,
+                "liveBytes": 290767120,
+                "peakBytes": 391430544,
+                "allocations": 211,
+                "rejected": 0,
+                "categories": {
+                  "weights": 285497344,
+                  "attention": 0,
+                  "recurrent": 0,
+                  "other": 5269776
+                }
+              },
+              "poolResources": {
+                "retainedModel": {
+                  "bytes": 285497344,
+                  "count": 173
+                },
+                "active": {
+                  "bytes": 5242880,
+                  "count": 4
+                },
+                "reusable": {
+                  "bytes": 256,
+                  "count": 1
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              }
+            }
+          ],
+          "prefillSubmissions": [
+            [
+              [
+                763550000,
+                763550000,
+                650989568,
+                11870208,
+                256,
+                0
+              ],
+              [
+                763550256,
+                763550256,
+                650989568,
+                11804928,
+                65792,
+                0
+              ],
+              [
+                763550256,
+                763550256,
+                650989568,
+                11804928,
+                65792,
+                0
+              ],
+              [
+                763550768,
+                763550768,
+                650989568,
+                11805184,
+                66048,
+                0
+              ],
+              [
+                983622000,
+                983622000,
+                650989568,
+                231875584,
+                66560,
+                0
+              ]
+            ],
+            []
+          ],
+          "ownedConversationStateAfterClose": [
+            [],
+            []
+          ],
+          "ownedPositionalTables": [
+            [
+              {
+                "label": "rope_cos",
+                "bytes": 2621440,
+                "count": 2
+              },
+              {
+                "label": "rope_sin",
+                "bytes": 2621440,
+                "count": 2
+              }
+            ],
+            [
+              {
+                "label": "rope_cos",
+                "bytes": 2621440,
+                "count": 2
+              },
+              {
+                "label": "rope_sin",
+                "bytes": 2621440,
+                "count": 2
+              }
+            ]
+          ],
+          "allocationRejections": [
+            {
+              "scope": "Direct allocation-guard rejection, not an injected model-operation failure",
+              "code": "RESOURCE_EXHAUSTED",
+              "before": {
+                "device": {
+                  "scope": "device-gpu-buffers",
+                  "maxBytes": 1420000000,
+                  "liveBytes": 882958704,
+                  "peakBytes": 983622000,
+                  "allocations": 272,
+                  "rejected": 0,
+                  "categories": {
+                    "weights": 650989568,
+                    "attention": 0,
+                    "recurrent": 1179648,
+                    "other": 230789488
+                  }
+                },
+                "poolResources": {
+                  "retainedModel": {
+                    "bytes": 650989568,
+                    "count": 172
+                  },
+                  "active": {
+                    "bytes": 5242880,
+                    "count": 4
+                  },
+                  "reusable": {
+                    "bytes": 226699264,
+                    "count": 28
+                  },
+                  "deferredCleanup": {
+                    "bytes": 0,
+                    "count": 0
+                  }
+                }
+              },
+              "after": {
+                "device": {
+                  "scope": "device-gpu-buffers",
+                  "maxBytes": 1420000000,
+                  "liveBytes": 882958704,
+                  "peakBytes": 983622000,
+                  "allocations": 272,
+                  "rejected": 1,
+                  "categories": {
+                    "weights": 650989568,
+                    "attention": 0,
+                    "recurrent": 1179648,
+                    "other": 230789488
+                  }
+                },
+                "poolResources": {
+                  "retainedModel": {
+                    "bytes": 650989568,
+                    "count": 172
+                  },
+                  "active": {
+                    "bytes": 5242880,
+                    "count": 4
+                  },
+                  "reusable": {
+                    "bytes": 226699264,
+                    "count": 28
+                  },
+                  "deferredCleanup": {
+                    "bytes": 0,
+                    "count": 0
+                  }
+                }
+              }
+            },
+            {
+              "scope": "Direct allocation-guard rejection, not an injected model-operation failure",
+              "code": "RESOURCE_EXHAUSTED",
+              "before": {
+                "device": {
+                  "scope": "device-gpu-buffers",
+                  "maxBytes": 1420000000,
+                  "liveBytes": 290767120,
+                  "peakBytes": 391430544,
+                  "allocations": 211,
+                  "rejected": 0,
+                  "categories": {
+                    "weights": 285497344,
+                    "attention": 0,
+                    "recurrent": 0,
+                    "other": 5269776
+                  }
+                },
+                "poolResources": {
+                  "retainedModel": {
+                    "bytes": 285497344,
+                    "count": 173
+                  },
+                  "active": {
+                    "bytes": 5242880,
+                    "count": 4
+                  },
+                  "reusable": {
+                    "bytes": 256,
+                    "count": 1
+                  },
+                  "deferredCleanup": {
+                    "bytes": 0,
+                    "count": 0
+                  }
+                }
+              },
+              "after": {
+                "device": {
+                  "scope": "device-gpu-buffers",
+                  "maxBytes": 1420000000,
+                  "liveBytes": 290767120,
+                  "peakBytes": 391430544,
+                  "allocations": 211,
+                  "rejected": 1,
+                  "categories": {
+                    "weights": 285497344,
+                    "attention": 0,
+                    "recurrent": 0,
+                    "other": 5269776
+                  }
+                },
+                "poolResources": {
+                  "retainedModel": {
+                    "bytes": 285497344,
+                    "count": 173
+                  },
+                  "active": {
+                    "bytes": 5242880,
+                    "count": 4
+                  },
+                  "reusable": {
+                    "bytes": 256,
+                    "count": 1
+                  },
+                  "deferredCleanup": {
+                    "bytes": 0,
+                    "count": 0
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ],
+      "afterResidentClose": [
+        {
+          "device": {
+            "scope": "device-gpu-buffers",
+            "maxBytes": 1420000000,
+            "liveBytes": 352,
+            "peakBytes": 983622000,
+            "allocations": 272,
+            "rejected": 1,
+            "categories": {
+              "weights": 0,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 352
+            }
+          },
+          "poolResources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          }
+        },
+        {
+          "device": {
+            "scope": "device-gpu-buffers",
+            "maxBytes": 1420000000,
+            "liveBytes": 0,
+            "peakBytes": 391430544,
+            "allocations": 211,
+            "rejected": 1,
+            "categories": {
+              "weights": 0,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 0
+            }
+          },
+          "poolResources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 0,
+              "count": 0
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "rawArtifacts": [
+    {
+      "file": "artifacts/open-mesh/local-normalization/reploid-partition-memory-completion.json",
+      "sha256": "29a00e6b57bace8f1e311b3fd1c36335d3d119eff5bb5f48d2bf035c2dcdf981",
+      "bytes": 9116110,
+      "availability": "retained locally; not published"
+    },
+    {
+      "file": "artifacts/open-mesh/local-normalization/reploid-partition-memory-cancellation.json",
+      "sha256": "a319cc813be7d15f71b1a3c74402150034a333bdbab21de6666d4be7a9bf0c10",
+      "bytes": 3270992,
+      "availability": "retained locally; not published"
+    },
+    {
+      "file": "artifacts/open-mesh/local-normalization/reploid-partition-memory-cancel-ownership.json",
+      "sha256": "c343a4427b0c526c5270f3ca3994ced07801a0831bf6a3999cf4162fcddd392a",
+      "bytes": 642465,
+      "availability": "retained locally; not published"
+    }
+  ],
+  "reproduce": "REPLOID_DIAGNOSTIC_REQUESTS=/path/to/original-requests.json REPLOID_CAPTURE_OUT=/path/to/memory.json REPLOID_EXECUTOR_WS=ws://localhost:9223/BROWSER_ID node tests/fixtures/browser-partition-memory-completion.js; repeat with REPLOID_MEMORY_PHASE=cancellation for cancellation, guard rejection and resident reuse; cancel-only isolates settled ownership.",
+  "remaining": "A qualified replacement package requires unchanged numerical gates in both directions and installed-consumer validation. No dependency replacement or public deployment occurred.",
+  "prefillSubmissionColumns": [
+    "liveBytes",
+    "peakBytes",
+    "retainedWeightBytes",
+    "activeBytes",
+    "reusableBytes",
+    "deferredCleanupBytes"
+  ]
+}
