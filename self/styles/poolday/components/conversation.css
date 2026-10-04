@@ -2,8 +2,8 @@
 .reploid-chat-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 3fr);
-  gap: var(--pool-space-lg);
-  padding-block: var(--pool-space-lg);
+  gap: var(--pool-space-page-gap);
+  padding-block: 0;
   color: var(--pool-surface-ink);
   font-family: var(--pool-type-ui-family);
 }

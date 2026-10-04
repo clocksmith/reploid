@@ -58,6 +58,8 @@
   --pool-space-md: var(--space-md);
   --pool-space-lg: var(--space-lg);
   --pool-space-xl: var(--space-xl);
+  --pool-space-page-gutter: var(--space-xl);
+  --pool-space-page-gap: var(--space-lg);
 
   /* === TYPE SCALE PASSTHROUGH === */
   --pool-text-xs: var(--pool-dim-12);
@@ -454,4 +456,11 @@
   --pool-surface-optical-edge: var(--pool-gradient-optical-light-edge);
   --pool-surface-optical-focus: var(--pool-gradient-optical-light-focus);
   --pool-surface-optical-signal: var(--pool-gradient-optical-light-signal);
+}
+
+@media (max-width: 760px) {
+  .pool-home {
+    --pool-space-page-gutter: var(--space-md);
+    --pool-space-page-gap: var(--space-md);
+  }
 }
