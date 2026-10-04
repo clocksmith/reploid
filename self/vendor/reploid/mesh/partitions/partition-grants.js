@@ -8,9 +8,10 @@ const bytes = value => new TextEncoder().encode(canonicalPartitionJson(value));
 const bounds = ['maxTokens', 'maxPromptTokens', 'maxActivationBytes', 'maxOutputCharacters'];
 
 /** The host calls issue only after disclosure approval. B separately consents by preparing its resident. */
-export function createPartitionGrantAuthority({ identity, meshId, maxGrants, maxTtlMs, now = Date.now }) {
+export function createPartitionGrantAuthority({ identity, meshId, maxGrants, maxTtlMs, maxClockSkewMs = 0, now = Date.now }) {
   assert(identity?.privateJwk && identity?.publicJwk && typeof meshId === 'string' && meshId
-    && Number.isSafeInteger(maxGrants) && maxGrants > 0 && Number.isSafeInteger(maxTtlMs) && maxTtlMs > 0,
+    && Number.isSafeInteger(maxGrants) && maxGrants > 0 && Number.isSafeInteger(maxTtlMs) && maxTtlMs > 0
+    && Number.isSafeInteger(maxClockSkewMs) && maxClockSkewMs >= 0,
   'Explicit partition signing identity, mesh and grant budgets required');
   const signer = structuredClone(identity);
   const issued = new Map();
@@ -24,7 +25,7 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
         || !['partition-activations', 'partition-activations-and-tokens'].includes(claim.disclosure)
         || !/^sha256:[a-f0-9]{64}$/.test(claim.generationDigest)
         || !Number.isSafeInteger(claim.issuedAt) || !Number.isSafeInteger(claim.expiresAt)
-        || claim.issuedAt > now() || claim.expiresAt <= claim.issuedAt || claim.expiresAt - claim.issuedAt > maxTtlMs
+        || claim.issuedAt > now() + maxClockSkewMs || claim.expiresAt <= claim.issuedAt || claim.expiresAt - claim.issuedAt > maxTtlMs
         || typeof claim.id !== 'string' || claim.id.length > 128
         || bounds.some(key => !Number.isSafeInteger(claim.limits?.[key]) || claim.limits[key] <= 0)) return false;
       if (!settlement && (claim.expiresAt <= now() || issued.get(claim.id)?.revoked === true

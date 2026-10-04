@@ -22,6 +22,7 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
       ? authority.verify(request.grant, { ...request, identity: request }) : Promise.resolve(false) });
   return Object.freeze({
     getModels: models,
+    getState: () => runner.getState(),
     subscribe(listener) { listeners.add(listener); listener(models()); return () => listeners.delete(listener); },
     async refresh(options) { await remote.refresh(options); notify(); return models(); },
     async generate(request, controls) {

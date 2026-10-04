@@ -1,5 +1,5 @@
 /** Explicit compatibility text swarm, separate from admitted signed Pack operations. */
-import { createLegacyGenerationMesh, createPartitionNetwork, createAutomaticPartitions } from '../vendor/reploid/mesh/index.js';
+import { createLegacyGenerationMesh, createAutomaticPartitions } from '../vendor/reploid/mesh/index.js';
 import { createSwarmTransport } from '../vendor/reploid/transport/index.js';
 import { resolveConfig } from '../vendor/reploid/config/index.js';
 import { createLegacyNetworkOptions } from '../capabilities/communication/library-adapter.js';
@@ -14,6 +14,7 @@ import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkPeerOffers } from './work-peer-offers.js';
 import { createWorkModelFiles } from './work-model-files.js';
 import { loadWorkPartition } from './work-partitions.js';
+import { createWorkPartitionNetworks } from './work-partition-networks.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
@@ -24,7 +25,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let connection = null;
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
   let automaticAllowed = options.autoConnect !== false;
-  const requests = new Map(), partitionNetworks = new Set();
+  const requests = new Map();
+  let partitionNetworks = null;
   let consumerTransport = null;
   let modelFiles = null, partitionMesh = null, consumerIdentity = null;
   const partitionListeners = new Set();
@@ -121,6 +123,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         await peerOffers?.attach();
         modelFiles = createModelFiles({ getTransport: () => consumerTransport, onChange: notify });
         await modelFiles.attach();
+        partitionNetworks = createWorkPartitionNetworks({ transport: consumerTransport,
+          verifyPeer: (peerId, signal) => active.verifyPeerIdentity(peerId, signal) });
         partitionMesh = createPartitions({ identity: consumerIdentity, meshId: options.config.value.mesh.roomId,
           models: LOCAL_DOPPLER_MODELS.filter(model => model.source?.files.some(file => file.role === 'model-piece-index')),
           policy: partitionPolicy,
@@ -141,7 +145,16 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       } else await consumer.connect();
       return getState();
     }
-    catch (cause) { await partitionMesh?.close(); partitionMesh = null; peerOffers?.close(); await modelFiles?.close(); modelFiles = null; await consumer?.close(); consumer = null; consumerTransport = null; if (version === generation) error = cause.message; throw cause; }
+    catch (cause) {
+      const owners = [partitionMesh, partitionNetworks, modelFiles, consumer];
+      partitionMesh = null; partitionNetworks = null; modelFiles = null; consumer = null; consumerTransport = null;
+      peerOffers?.close();
+      const results = await Promise.allSettled(owners.map(owner => Promise.resolve().then(() => owner?.close())));
+      if (version === generation) error = cause.message;
+      const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
+      if (failures.length) throw new AggregateError([cause, ...failures], cause.message + '; connection cleanup failed');
+      throw cause;
+    }
     finally { connecting = false; notify(); }
   };
   const connect = async ({ automatic = false } = {}) => {
@@ -210,8 +223,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     const previousConsumer = consumer;
     consumer = null; consumerTransport?.disconnect(); consumerTransport = null;
     peerOffers?.close();
-    const networkStops = [...partitionNetworks].map(network => network.close()); partitionNetworks.clear();
-    const pending = [connection, contributionStop, previousConsumer?.close(), fileStop, partitionStop, ...networkStops];
+    const networkStop = partitionNetworks?.close(); partitionNetworks = null;
+    const pending = [connection, contributionStop, previousConsumer?.close(), fileStop, partitionStop, networkStop];
     disconnecting = (async () => {
       const results = await Promise.allSettled(pending);
       peerOffers?.close();
@@ -224,15 +237,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     return disconnecting;
   };
   function openPartitionNetwork({ createEndpoint, maxPeers, timeoutMs, onPeer, label }) {
-      if (closed || paused || !consumerTransport || !consumer) throw new Error('Connect before opening partition channels');
-      const owner = consumer;
-      const network = createPartitionNetwork({ transport: consumerTransport,
-        verifyPeer: (peerId, signal) => owner.verifyPeerIdentity(peerId, signal), createEndpoint, maxPeers, timeoutMs, onPeer, label });
-      const ownerNetwork = Object.freeze({ ...network,
-        async close() { try { await network.close(); } finally { partitionNetworks.delete(ownerNetwork); } }
-      });
-      partitionNetworks.add(ownerNetwork);
-      return ownerNetwork;
+      if (closed || paused || !partitionNetworks) throw new Error('Connect before opening partition channels');
+      return partitionNetworks.open({ createEndpoint, maxPeers, timeoutMs, onPeer, label });
     }
   return Object.freeze({ getState, connect, disconnect, partitions,
     getPartitionState: () => partitionMesh?.getState() || null,

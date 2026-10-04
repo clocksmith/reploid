@@ -3,9 +3,9 @@ import { assertPartition as assert } from './partition-contract.js';
 
 /** Owns bounded capability observation, never placement, loading or permission. */
 export function createPartitionDiscovery({ identity, catalog, policy, peers, createNetwork,
-  describe, onChange = () => {}, now = Date.now }) {
+  describe, onChange = () => {}, now = () => Date.now() }) {
   const connections = new Map(), lifetime = new AbortController();
-  let refreshing = null, closed = false;
+  let refreshing = null, closed = false, closing = null;
   const snapshot = () => [...connections.entries()].map(([transportId, peer]) => {
     const expiresAt = peer.observedAt + policy.inputLimits.descriptorTtlMs;
     return { transportId, participantId: peer.participantId, observedAt: peer.observedAt,
@@ -49,6 +49,9 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
             const description = await peer.endpoint.request({ operation: 'describe' }, new Uint8Array(), { signal: lifetime.signal });
             assert(description.participantId === peer.participantId && Array.isArray(description.models)
               && description.models.length <= catalog.length && [null, 0, 1].includes(description.index)
+              && (!description.capacity || Number.isSafeInteger(description.capacity.availableSlots)
+                && description.capacity.availableSlots >= 0 && Number.isSafeInteger(description.capacity.active)
+                && description.capacity.active >= 0 && typeof description.capacity.closed === 'boolean')
               && ['idle', 'waiting', 'loading', 'ready', 'failed'].includes(description.phase),
             'Partition capability identity or inventory mismatch');
             if (!closed) { peer.description = structuredClone(description); peer.observedAt = now(); peer.reason = null; }
@@ -58,9 +61,16 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
       })().finally(() => { refreshing = null; });
       return refreshing;
     },
-    async close() {
-      if (closed) return; closed = true; lifetime.abort(new Error('Partition discovery closed'));
-      await network.close(); await refreshing; connections.clear();
+    close() {
+      if (closing) return closing;
+      closed = true; lifetime.abort(new Error('Partition discovery closed'));
+      closing = (async () => {
+        const results = await Promise.allSettled([Promise.resolve().then(() => network.close()), refreshing]);
+        connections.clear();
+        const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
+        if (failures.length) throw new AggregateError(failures, 'Partition discovery settlement failed');
+      })();
+      return closing;
     }
   });
 }

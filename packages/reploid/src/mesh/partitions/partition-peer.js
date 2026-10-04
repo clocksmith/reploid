@@ -9,6 +9,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
   assert(runtime?.deserializeActivationFrame && authority?.verify, 'Partition codecs and grant verifier required');
   assert(!contributor || contributor.index === 1 && contributor.id === localParticipantId, 'Remote serving requires the local B contributor');
   const active = new Map(), outputCharacters = new Map(), listeners = new Set();
+  const reservations = new Map();
   let remoteDescriptor = null, closing = null;
   const binding = identity => identity?.modelId === plan.modelId && identity.modelIdentity === modelIdentity
     && identity.planId === planId;
@@ -78,6 +79,7 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       if (metadata.identity.participantA !== (outbound ? localParticipantId : remoteParticipantId)
         || metadata.identity.participantB !== (outbound ? remoteParticipantId : localParticipantId)) return false;
       if (metadata.operation === 'settle') return byteLength === 0 && verify(metadata, 'mesh.execute_partition_b', true);
+      if (metadata.operation === 'reserve') return byteLength === 0 && verify(metadata, 'mesh.execute_partition_b');
       if (metadata.operation !== 'step' || !validFrame(metadata) || metadata.frame.byteLength !== byteLength) return false;
       if (!outbound && !(contributor?.canAccept ? contributor.canAccept(metadata.identity) : contributor?.getState().ready)) return false;
       return verify(metadata, action === 'respond' || action === 'accept'
@@ -85,7 +87,27 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
     },
     async serve(metadata, payload, { signal }) {
       if (metadata.operation === 'describe') return { descriptor: contributor?.getState().ready ? contributor.getState().descriptor : null };
-      if (metadata.operation === 'settle') { await receiver.closeAttempt(metadata.identity); return { settled: true }; }
+      if (metadata.operation === 'reserve') {
+        assert(!closing, 'Partition peer closed');
+        assert(reservations.has(metadata.identity.attemptId) || reservations.size < receiverLimits.maxAttempts,
+          'Remote reservation budget exhausted');
+        signal.throwIfAborted();
+        let reservation;
+        try { reservation = contributor.reserve(metadata.identity); }
+        catch (cause) {
+          if (['Contributor reservation capacity exhausted', 'Contributor reservation history exhausted',
+            'Partition contributor is not ready'].includes(cause.message)) return { accepted: false, reason: cause.message };
+          throw cause;
+        }
+        reservations.set(metadata.identity.attemptId, structuredClone(metadata.identity));
+        return { accepted: true, reservation };
+      }
+      if (metadata.operation === 'settle') {
+        await receiver.closeAttempt(metadata.identity);
+        await contributor.closeAttempt({ identity: metadata.identity });
+        reservations.delete(metadata.identity.attemptId);
+        return { settled: true };
+      }
       return receiver.receive({ ...metadata, payload }, { signal });
     },
   });
@@ -93,7 +115,13 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
     descriptor: structuredClone(remoteDescriptor), participantId: remoteParticipantId, receipt: endpoint.getReceipt() });
   const close = () => {
     if (closing) return closing;
-    closing = Promise.resolve().then(() => receiver.close());
+    closing = (async () => {
+      const results = await Promise.allSettled([receiver.close(), ...[...reservations.values()]
+        .map(identity => Promise.resolve().then(() => contributor.closeAttempt({ identity })))]);
+      reservations.clear();
+      const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
+      if (failures.length) throw new AggregateError(failures, 'Partition peer settlement failed');
+    })();
     endpoint.close(); remoteDescriptor = null; active.clear();
     notify(); return closing;
   };
@@ -101,6 +129,19 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
   channel.addEventListener('close', disconnected, { once: true });
   return Object.freeze({
     id: remoteParticipantId, getState,
+    async reserve({ identity, grant, generation, generationDigest, inputTokenCount, signal }) {
+      assert(!active.has(identity.attemptId), 'Remote attempt already reserved');
+      assert(active.size < receiverLimits.maxAttempts, 'Remote attempt budget exhausted');
+      const metadata = { operation: 'reserve', identity, grant, generation, generationDigest, inputTokenCount, step: 0 };
+      active.set(identity.attemptId, structuredClone(metadata));
+      const result = await endpoint.request(metadata, new Uint8Array(), { signal });
+      assert(result.accepted === true, result.reason || 'Partition reservation declined');
+      assert(samePartitionIdentity(result.reservation?.identity, identity)
+        && result.reservation.participantId === remoteParticipantId && result.reservation.index === 1
+        && result.reservation.phase === 'reserved' && result.reservation.resources?.attemptSlots === 1,
+      'Remote partition reservation identity mismatch');
+      return { reservation: result.reservation };
+    },
     subscribe(listener) { listeners.add(listener); listener(getState()); return () => listeners.delete(listener); },
     async refresh({ signal } = {}) {
       const { descriptor } = await endpoint.request({ operation: 'describe' }, new Uint8Array(), { signal });

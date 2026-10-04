@@ -159,6 +159,8 @@ describe('partition autoregressive orchestration (injected execution)', () => {
       'thread', 'other-thread', 'other-thread', 'other-thread'
     ]);
     expect(f.deviceA.closeAttempt).toHaveBeenCalledTimes(2);
+    expect(f.runner.getState().attempts.map(attempt => attempt.phase)).toEqual(['cancelled', 'completed']);
+    expect(f.runner.getState().attempts.every(attempt => attempt.cleanupSettledAt !== null)).toBe(true);
   });
 
   it('fairly interleaves two complete generations instead of monopolizing resident weights', async () => {
@@ -216,6 +218,8 @@ describe('partition autoregressive orchestration (injected execution)', () => {
     f.deviceA.closeAttempt.mockRejectedValue(new Error('failed cleanup'));
     await expect(f.runner.execute(f.request)).rejects.toThrow('settlement failed');
     expect(f.deviceB.closeAttempt).toHaveBeenCalledTimes(1);
+    expect(f.runner.getState().attempts[0]).toMatchObject({ phase: 'cleanup-failed', cleanupSettledAt: null,
+      cleanup: expect.arrayContaining([{ participantId: 'a', status: 'failed', settledAt: null, error: 'failed cleanup' }]) });
   });
 
   it('snapshots caller grants, identities and prompt before asynchronous authorization', async () => {

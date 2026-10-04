@@ -29,7 +29,18 @@ export interface DopplerPartitionSessionFactory {
     index: 0 | 1; participantId: string; limits: PartitionLimits; signal: AbortSignal;
   }): Promise<DopplerResidentPartitionSession>;
 }
+export interface PartitionReservation {
+  identity: PartitionBinding; participantId: string; index: 0 | 1;
+  phase: 'reserved' | 'settling' | 'settled' | 'failed';
+  reservedAt: number | null; settlingAt: number | null; settledAt: number | null; failure: string | null;
+  resources: { attemptSlots: 1; maxPromptTokens: number; maxTokens: number;
+    maxActivationBytes: number; scope: 'application-attempt-limits' } | null;
+}
+export interface PartitionReservationsState {
+  closed: boolean; active: number; availableSlots: number; records: PartitionReservation[];
+}
 export interface ResidentPartitionState {
+  reservations: PartitionReservationsState;
   activeAttempts: number;
   phase: 'idle' | 'loading' | 'ready' | 'draining' | 'failed' | 'stopping' | 'closed'; ready: boolean;
   error: string | null; descriptor: ResidentPartitionDescriptor | null;
@@ -38,6 +49,7 @@ export interface ResidentPartitionState {
 export interface ResidentPartition extends PartitionDeviceA, PartitionDeviceB {
   readonly index: 0 | 1;
   canAccept(identity: PartitionBinding): boolean;
+  reserve(identity: PartitionBinding): PartitionReservation;
   drain(): Promise<void>;
   getState(): ResidentPartitionState;
   subscribe(listener: (state: ResidentPartitionState) => void): () => void;

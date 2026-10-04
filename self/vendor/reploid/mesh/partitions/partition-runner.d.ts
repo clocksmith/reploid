@@ -111,6 +111,15 @@ export interface PartitionRequest {
   signal?: AbortSignal;
   onDelta?: (delta: string) => void | Promise<void>;
 }
+export interface PartitionAttemptReceipt {
+  identity: PartitionBinding;
+  /** Immutable admission acknowledgements, not current capacity or physical memory measurements. */
+  reservations: import('./resident-partition.js').PartitionReservation[];
+  phase: 'executing' | 'settling' | 'completed' | 'failed' | 'cancelled' | 'cleanup-failed';
+  startedAt: number; failure: string | null; cleanupStartedAt: number | null; cleanupSettledAt: number | null;
+  cleanup: Array<{ participantId: string; status: 'settled' | 'failed'; settledAt: number | null; error: string | null }>;
+}
+export interface PartitionRunnerState { closed: boolean; active: number; attempts: PartitionAttemptReceipt[] }
 export interface PartitionResult {
   content: string;
   tokenIds: number[];
@@ -118,6 +127,7 @@ export interface PartitionResult {
   stopReason: string;
   execution: PartitionBinding & {
     schema: 'reploid.mesh.partition-execution/v2';
+    settlement: PartitionAttemptReceipt;
     placement: 'two-device-layer-partition';
     splitLayer: number;
     activationBytes: number;
@@ -130,6 +140,7 @@ export interface PartitionResult {
 }
 export interface LayerPartitionRunner {
   readonly plan: Readonly<PartitionPlan>;
+  getState(): PartitionRunnerState;
   execute(options: PartitionRequest): Promise<PartitionResult>;
   close(): Promise<void>;
 }

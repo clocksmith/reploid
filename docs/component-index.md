@@ -43,6 +43,6 @@ Recursive authority charters discovered from the repository root.
 | Peer Transport | [`packages/reploid/src/transport/CATSCAN.md`](../packages/reploid/src/transport/CATSCAN.md) | Reploid Browser Library | Provide Poolday's WebRTC connections and authorized peer exchange. |
 | Artifact Custody | [`packages/reploid/src/artifacts/custody/CATSCAN.md`](../packages/reploid/src/artifacts/custody/CATSCAN.md) | Reploid Browser Library | Exchange authorized model shards and retain useful pieces across network participants without redundant downloads where verified custody permits reuse. |
 | Complete Peer Jobs | [`packages/reploid/src/mesh/jobs/CATSCAN.md`](../packages/reploid/src/mesh/jobs/CATSCAN.md) | Reploid Browser Library | Delegate complete requests to authorized network participants with explicit host ports and bounded lifecycle. |
-| Model Partition Coordination | [`packages/reploid/src/mesh/partitions/CATSCAN.md`](../packages/reploid/src/mesh/partitions/CATSCAN.md) | Reploid Browser Library | Coordinate conversations across Doppler-defined partitions. |
+| Model Partition Coordination | [`packages/reploid/src/mesh/partitions/CATSCAN.md`](../packages/reploid/src/mesh/partitions/CATSCAN.md) | Reploid Browser Library | Coordinate Doppler-partitioned conversations. |
 
 *Generated from CATSCAN.md files.*

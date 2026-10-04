@@ -4,12 +4,14 @@ Parent: [Reploid Browser Library](../../../CATSCAN.md)
 
 ## Target
 
-Coordinate conversations across Doppler-defined partitions.
+Coordinate Doppler-partitioned conversations.
 
 ## Authority
 
-Owns attempts, placement, signed grants and host-session lifecycle. Doppler owns weight dependencies, original
-layer positions, generation state, execution and stopping. Hosts own sessions; discovery grants no authority.
+Discovery owns expiring capability snapshots and control channels. Placement
+selects from snapshots. Residents own admission across channels. Runners own
+attempts, grants, sequencing and settlement. Doppler owns dependencies, layer
+positions, computation, generation state and stopping. Hosts own sessions.
 
 ## Scope
 
@@ -17,39 +19,35 @@ Subtree.
 
 ## Contracts
 
-Inputs: Doppler plan/codecs, identified executors, verifying authorization,
-bounded transport, allocation limits and grants.
-Outputs: deltas, tokens, step costs and settlement.
-Every token traverses both partitions; B returns one selected token to A.
+Inputs: Doppler plans/codecs, authenticated executors, grants and bounded resources.
+Outputs: deltas, tokens, costs and settlement receipts.
+Every token traverses both partitions; B returns one selected token.
 Session: [Doppler handoff](../../../../../docs/doppler-partition-handoff.md).
 
 ## Invariants
 
-- Authorization precedes work. Verify recipients, scope,
-  expiration, revocation and budgets.
-- Bind model, plan, thread, attempt, participants and token position at boundaries.
-- No invented continuation. New attempts require new identities. Receiver
-  duplicates must not advance state twice.
-- Per-thread cancellation settles both owned attempts, not shared model weights.
-- Threads share FIFO token leases. A coordinates authenticated remote B. A
-  requester may use a separately authorized entry channel without owning weights;
-  requester identity and placement generation remain bound to the attempt.
-- No runtime downloads, imports of Doppler, or connections at module import.
-- Injected tests prove neither GPU execution nor residency.
+- Authorization precedes work; verify recipients, scope, expiration, revocation and budgets.
+- Bind model, plan, thread, attempt, participants and token position.
+- Discovery grants no authority; advertise capacity counts, never conversation identities.
+- Signed reservations are authoritative. Release slots only after confirmed runtime cleanup.
+- Bound receipts by attempt budgets; distinguish cleanup failure from settlement.
+  Admission limits are not physical-memory measurements.
+- Busy replicas never move existing conversations. Recovery requires fresh identities
+  unless Doppler supports continuation. Duplicates never advance state twice.
+- Cancellation settles the named attempts, preserving shared weights and independent threads.
+- FIFO token leases share weights. Weightless requesters bind requester identity and placement generation.
+- No import-time connections, downloads or Doppler imports.
 
 ## Acceptance
 
-Evidence: [partition tests](../../../../../tests/unit/partition-runner.test.js).
-Milestone: partial loading, binary WebRTC, chat integration, numerical parity and
-real two-tab answers. Unit tests do not qualify execution. Physical-device evidence remains separate.
+Evidence: [partition tests](../../../../../tests/unit/partition-api.test.js).
+Physical-device evidence qualifies selective loading, WebRTC, complete
+answers and numerical agreement; injected tests prove neither execution nor residency.
 
 ## Non-goals
 
-Model math, new chat UI, fabricated inference, or whole-model execution on B
-presented as a distributed generation loop.
+Model math, new UI, fabricated inference or whole-model execution disguised as partitioning.
 
 ## Freedom
 
-Preserve boundaries.
-
-*Last updated: September 2026*
+Preserve these boundaries.

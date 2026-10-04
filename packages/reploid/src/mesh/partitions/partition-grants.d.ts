@@ -18,4 +18,6 @@ export interface PartitionGrantAuthority {
   close(): void;
 }
 export function createPartitionGrantAuthority(options: { identity: SigningIdentity; meshId: string;
-  maxGrants: number; maxTtlMs: number; now?: () => number }): PartitionGrantAuthority;
+  maxGrants: number; maxTtlMs: number;
+  /** Issuance-time clock tolerance only; expiration never receives a grace period. Defaults to zero. */
+  maxClockSkewMs?: number; now?: () => number }): PartitionGrantAuthority;
