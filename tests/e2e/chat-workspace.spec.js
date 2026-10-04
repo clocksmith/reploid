@@ -37,7 +37,7 @@ test('Verification Worker accepts the conversation and scheduler modules', async
   const snapshot = Object.fromEntries(await Promise.all(files.map(async file => [
     '/vendor/reploid/chat/' + file, await readFile('packages/reploid/src/chat/' + file, 'utf8')
   ])));
-  for (const file of ['host/chat-session.js', 'host/work-model-files.js', 'providers/work-resident-provider.js',
+  for (const file of ['host/chat-session.js', 'host/chat-execution.js', 'host/chat-view.js', 'host/readonly-view.js', 'host/work-view.js', 'host/work-model-files.js', 'providers/work-resident-provider.js',
     'infrastructure/pack-transfer-storage.js', 'ui/pool-home/conversation-workspace.js', 'vendor/reploid/artifacts/custody/exchange.js']) {
     snapshot['/' + file] = await readFile('self/' + file, 'utf8');
   }
@@ -110,4 +110,38 @@ test('file checkpoints repair missing and truncated files without stale index en
   expect(result.truncated).toBeNull();
   expect(result.repairedTruncated).toEqual(Array(32).fill(7));
   expect(result.stats).toMatchObject({ storedBytes: 32, chunks: 1 });
+});
+
+test('browser host restores accepted placement without owning a borrowed scheduler', async ({ page }) => {
+  await page.goto('/');
+  const evidence = await page.evaluate(async () => {
+    const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
+    let calls = 0, closes = 0;
+    const scheduler = {
+      getState: () => ({ queued: 0 }), close: async () => { closes++; },
+      async schedule(request, controls) {
+        calls++;
+        const content = 'Injected host result: ' + request.messages.at(-1).content;
+        controls.onDelta(content);
+        return { model: request.model.id, modelIdentity: request.model.identity, adapterIdentities: [], content };
+      }
+    };
+    const storage = { getItem: () => localStorage.getItem('host-boundary-test'),
+      setItem: (_key, value) => localStorage.setItem('host-boundary-test', value) };
+    const session = createChatSession({ storage, scheduler, models: [CANONICAL_CHAT_MODELS[1]] });
+    const a = session.createThread({ sharingScope: 'local' }), b = session.createThread({ sharingScope: 'local' });
+    await Promise.all([session.send(a, 'First'), session.send(b, 'Second')]);
+    const before = session.getState();
+    await session.close();
+    const restored = createChatSession({ storage, scheduler, models: [CANONICAL_CHAT_MODELS[1]] });
+    const after = restored.getState();
+    const immutable = Object.isFrozen(after) && Object.isFrozen(after.threads[0].attempts[0].execution);
+    await restored.close();
+    return { before: before.placements, after: after.placements, calls, closes, immutable,
+      running: after.runningIds, messages: after.threads.map(thread => thread.messages.at(-1).content) };
+  });
+  expect(evidence.after).toEqual(evidence.before);
+  expect(Object.keys(evidence.after)).toHaveLength(2);
+  expect(evidence).toMatchObject({ calls: 2, closes: 0, immutable: true, running: [],
+    messages: ['Injected host result: First', 'Injected host result: Second'] });
 });

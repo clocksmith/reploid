@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
+import { createChatScheduler } from '../../self/vendor/reploid/chat/index.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 const storage = () => {
   const values = new Map();
@@ -162,4 +163,169 @@ it('projects loading, available capacity, busy capacity and departed providers f
   expect(available()).toMatchObject({ availability: 'ready', providerIds: ['contributor'] });
   peer.availableSlots = 0; expect(available().availability).toBe('busy');
   peers = []; expect(available().availability).toBe('unavailable'); await session.close();
+});
+
+describe('Chat host ownership boundaries', () => {
+  it('does not close a borrowed scheduler or expose its lifecycle controls', async () => {
+    const scheduler = { schedule: vi.fn(), getState: () => ({ queued: 0 }), close: vi.fn() };
+    const session = createChatSession({ storage: null, service: createChatTestService(), scheduler });
+    expect(session.getState().scheduler).toEqual({ queued: 0 });
+    await session.close();
+    expect(scheduler.close).not.toHaveBeenCalled();
+    expect(session.scheduler).toBeUndefined();
+  });
+
+  it('restores placement from accepted attempts and does not retain a rejected provider claim', async () => {
+    const store = storage(), service = createChatTestService();
+    const session = createChatSession({ storage: store, service });
+    const id = session.createThread({ sharingScope: 'local' });
+    const result = await session.send(id, 'Retain this result');
+    expect(result.status).toBe('completed');
+    const placements = session.getState().placements;
+    await session.close();
+    const restored = createChatSession({ storage: store, service });
+    expect(restored.getState().placements).toEqual(placements);
+    await restored.close();
+    const badScheduler = { getState: () => ({}), close: async () => {},
+      schedule: async request => ({ model: request.model.id, modelIdentity: 'sha256:' + 'f'.repeat(64), adapterIdentities: [], content: 'wrong model' }) };
+    const rejected = createChatSession({ storage: null, service, scheduler: badScheduler });
+    const failedId = rejected.createThread({ sharingScope: 'local' });
+    expect((await rejected.send(failedId, 'Check identity')).status).toBe('failed');
+    expect(rejected.getState().placements[failedId]).toBeUndefined();
+    await rejected.close();
+  });
+
+  it('publishes immutable snapshots so one listener cannot corrupt the next listener', async () => {
+    const session = createChatSession({ storage: null, service: createChatTestService() });
+    let blocked = false, seen;
+    session.subscribe(state => {
+      try { state.models[0].identity = 'forged'; } catch { blocked = true; }
+    });
+    session.subscribe(state => { seen = state.models[0].identity; });
+    session.refreshNetwork();
+    expect(blocked).toBe(true);
+    expect(seen).toBe(CANONICAL_CHAT_MODELS[0].identity);
+    await session.close();
+  });
+
+  it('invalidates late discovery and rejects new operations once close begins', async () => {
+    let resolve;
+    const peers = { discover: () => new Promise(done => { resolve = done; }) };
+    const swarm = { connect: vi.fn(), share: vi.fn() };
+    const session = createChatSession({ storage: null, service: createChatTestService(), peers, swarm });
+    const pending = session.discoverPeers();
+    await session.close();
+    resolve([{ ...CANONICAL_CHAT_MODELS[0], id: 'late-model' }]);
+    await pending;
+    expect(session.getState().models.some(model => model.id === 'late-model')).toBe(false);
+    await expect(session.connect()).rejects.toThrow('closed');
+    await expect(session.setSharing(true, CANONICAL_CHAT_MODELS[0].id, true)).rejects.toThrow('closed');
+    expect(swarm.connect).not.toHaveBeenCalled();
+    expect(swarm.share).not.toHaveBeenCalled();
+  });
+});
+
+it('keeps an owned execution slot until close settles and makes shutdown single-flight', async () => {
+  let finish;
+  const service = createChatTestService();
+  const open = service.open;
+  service.open = async (...args) => {
+    const resident = await open(...args);
+    resident.stream = async function* () {
+      await new Promise(resolve => { finish = resolve; });
+      yield { type: 'text-delta', text: 'Late answer' };
+    };
+    return resident;
+  };
+  const session = createChatSession({ storage: null, service });
+  const id = session.createThread({ sharingScope: 'local' });
+  const response = session.send(id, 'Wait for settlement');
+  await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+  const closed = session.close();
+  expect(session.close()).toBe(closed);
+  expect(() => session.send(id, 'Must not start')).toThrow('closed');
+  let settled = false;
+  closed.then(() => { settled = true; });
+  await Promise.resolve();
+  expect(settled).toBe(false);
+  expect(service.closed).toHaveLength(0);
+  finish();
+  await closed;
+  expect((await response).status).toBe('cancelled');
+  expect(service.closed).toHaveLength(1);
+  expect(session.getState().runningIds).toEqual([]);
+});
+
+it('does not advertise a different artifact with the same model name as loading', async () => {
+  const model = CANONICAL_CHAT_MODELS[0];
+  const swarm = { getState: () => ({ consumer: { peers: [{
+    peerId: 'wrong-artifact', model: model.id, modelIdentity: 'sha256:' + 'f'.repeat(64), readiness: 'loading'
+  }] } }) };
+  const session = createChatSession({ storage: null, service: createChatTestService(), swarm });
+  expect(session.getState().models.find(item => item.id === model.id).availability).toBe('unavailable');
+  await session.close();
+});
+
+it('forwards each workspace transition once and releases subscriptions once', async () => {
+  const unsubscribe = vi.fn();
+  const partitions = { getModels: () => [], subscribe: () => unsubscribe };
+  const session = createChatSession({ storage: null, service: createChatTestService(), partitions });
+  const listener = vi.fn();
+  session.subscribe(listener);
+  listener.mockClear();
+  session.createThread();
+  expect(listener).toHaveBeenCalledOnce();
+  listener.mockClear();
+  session.select(null);
+  expect(listener).toHaveBeenCalledOnce();
+  await Promise.all([session.close(), session.close()]);
+  expect(unsubscribe).toHaveBeenCalledOnce();
+  listener.mockClear();
+  session.refreshNetwork();
+  expect(listener).not.toHaveBeenCalled();
+});
+
+it('closing one host preserves another host queued on the same borrowed scheduler', async () => {
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const closeResident = vi.fn();
+  const scheduler = createChatScheduler({ observe: () => {}, open: async () => ({
+    reset() {}, setAdapters() {}, close: closeResident,
+    async run(request) {
+      if (request.participantId === 'first-owner') await gate;
+      return { model: request.model.id, modelIdentity: request.model.identity, adapterIdentities: [], content: request.participantId };
+    }
+  }) });
+  const first = createChatSession({ storage: null, scheduler, participantId: 'first-owner' });
+  const second = createChatSession({ storage: null, scheduler, participantId: 'second-owner' });
+  const a = first.createThread({ sharingScope: 'local' }), b = second.createThread({ sharingScope: 'local' });
+  const cancelled = first.send(a, 'Stop this owner');
+  const completed = second.send(b, 'Preserve this owner');
+  try {
+    await vi.waitFor(() => expect(first.getState().activeThread.attempts[0].status).toBe('executing'));
+    const closing = first.close();
+    expect(scheduler.getState().queued).toBe(1);
+    release();
+    await closing;
+    expect((await cancelled).status).toBe('cancelled');
+    expect((await completed).status).toBe('completed');
+    expect(second.getState().activeThread.messages.at(-1).content).toBe('second-owner');
+    expect(scheduler.getState().closed).toBe(false);
+    expect(closeResident).not.toHaveBeenCalled();
+  } finally {
+    release();
+    await Promise.all([first.close(), second.close()]);
+    await scheduler.close();
+  }
+  expect(closeResident).toHaveBeenCalledOnce();
+});
+
+it('does not let a borrowed contribution port mutate retained model descriptions', async () => {
+  const model = { ...CANONICAL_CHAT_MODELS[1], availableAdapters: [{ id: 'adapter', name: 'Original',
+    identity: 'sha256:' + 'a'.repeat(64), baseModelIdentity: CANONICAL_CHAT_MODELS[1].identity }] };
+  const swarm = { shareFiles: async catalog => { catalog.availableAdapters[0].name = 'Changed by port'; } };
+  const session = createChatSession({ storage: null, service: createChatTestService(), models: [model], swarm });
+  await session.setFileSharing(true, model.id, true);
+  expect(session.getState().models[0].availableAdapters[0].name).toBe('Original');
+  await session.close();
 });

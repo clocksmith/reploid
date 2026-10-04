@@ -3,11 +3,11 @@
  * and Poolday peer execution. Manages multithreaded conversations, persistent scopes,
  * fair device scheduling, and truthful execution placement.
  */
-import { createChatWorkspace, createChatScheduler } from '../vendor/reploid/chat/index.js';
+import { createChatWorkspace } from '../vendor/reploid/chat/index.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
-import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
-import { createWorkAdapterResolver } from '../providers/work-adapter.js';
-import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
+import { createChatExecution } from './chat-execution.js';
+import { projectChatCatalog, projectChatPlacements } from './chat-view.js';
+import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 
@@ -48,141 +48,34 @@ export function createChatSession({
     }
   };
 
+  // Catalog identity is resolved once; discovery snapshots cannot mutate it.
+  models = copy(models);
   const listeners = new Set();
+  let closed = false, closing = null;
+  const assertOpen = () => assert(!closed, 'Chat session is closed');
 
   let peerModels = [];
   let discovering = false;
 
-  // Track active execution placements and latencies per thread
-  const threadPlacements = new Map();
-  const resolveAdapter = createWorkAdapterResolver({ models });
-
-  const sessionScheduler = scheduler || createChatScheduler({
-    open: async reqModel => {
-      const resident = createWorkResidentProvider({ service, model: reqModel,
-        resolveAdapter, generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters });
-      await resident.prepare();
-      return {
-        run: (req, { signal: runSignal, onDelta }) => resident.generate(req.messages, onDelta,
-          { signal: runSignal, adapters: req.model.adapters || [] }),
-        reset: async () => assert(resident.getState().ready, 'Resident session requires replacement'),
-        // The resident applies and removes adapters inside the same device lease as generation.
-        setAdapters: async () => {},
-        close: resident.close
-      };
-    },
-    observe: () => {}
-  });
-
-  // Reuse the existing network provider. No simulated production responses.
-  const execute = async (request, controls) => {
-    const { threadId, attemptId, model } = request;
-    assert(model.provider === 'doppler', 'Chat requires a Doppler participant');
-    const catalogModel = [...models, ...peerModels, ...(partitions?.getModels() || [])].find(m => m.id === model.id && m.identity === model.identity);
-    assert(catalogModel, 'Selected model is not in the verified catalog');
-    const allowedAdapters = catalogModel.availableAdapters || [];
-    for (const adapter of model.adapters || []) {
-      const verified = allowedAdapters.some(a => a.identity === adapter.identity && a.baseModelIdentity === model.identity);
-      assert(verified, 'This execution path cannot apply the selected adapter');
-    }
-    let sequence = 0;
-    const state = (status, execution) => controls.onState({ threadId, attemptId, status, execution });
-
-    if (model.partition) {
-      assert(partitions?.generate, 'Partition execution service is unavailable');
-      const result = await partitions.generate(request, controls);
-      threadPlacements.set(threadId, result.execution);
-      return result;
-    }
-
-    if (request.permissions?.sharingScope === 'local') {
-      const maxOutputTokens = Math.min(
-        request.maxOutputTokens || profile.generation?.maxTokens || 1024,
-        4096
-      );
-      state('queued', { provider: 'doppler', placement: 'local-webgpu' });
-      const result = await sessionScheduler.schedule({
-        ...request,
-        maxOutputTokens
-      }, {
-        signal: controls.signal,
-        onDelta: text => controls.onDelta({ threadId, attemptId, sequence: sequence++, text }),
-        onState: status => state(status, { provider: 'doppler', placement: 'local-webgpu' })
-      });
-      const execution = { provider: 'doppler', placement: 'local-webgpu', modelId: result.model,
-        modelIdentity: result.modelIdentity, adapterIdentities: result.adapterIdentities };
-      threadPlacements.set(threadId, execution);
-      return {
-        threadId,
-        attemptId,
-        modelId: result.model,
-        modelIdentity: result.modelIdentity,
-        adapterIdentities: result.adapterIdentities,
-        content: result.content,
-        execution
-      };
-    }
-
-    assert(swarm?.generate, 'No connected participant can execute this model');
-    const provider = createWorkNetworkProvider({
-      model, service, scope: 'chat:' + attemptId, signal: controls.signal,
-      swarm: request.permissions?.sharingScope === 'local' ? null : swarm,
-      generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters,
-      controls: {
-        async approve(preview) {
-          return controls.requestApproval({ ...preview, peerId: preview.providerId, threadId, attemptId });
-        },
-        async record(record) {
-          if (record.stage === 'approved') state('executing', {
-            provider: 'peer', placement: 'peer-whole-request', peerId: record.preview.providerId
-          });
-        }
-      },
-      onProgress(progress) {
-        // The network provider emits text; Doppler's loader emits progress records.
-        const loading = progress !== null && typeof progress === 'object';
-        const local = loading || (typeof progress === 'string' && /executing on this device/i.test(progress));
-        state(local ? 'loading' : 'queued', local ? { provider: 'doppler', placement: 'local-webgpu' } : null);
-      }
-    });
-    state('queued', null);
-    const result = await provider.generate(request.messages, text => {
-      controls.onDelta({ threadId, attemptId, sequence: sequence++, text });
-    }, { signal: controls.signal });
-    const execution = result.peerId
-      ? { provider: 'peer', placement: 'peer-whole-request', peerId: result.peerId }
-      : { provider: 'doppler', placement: 'local-webgpu' };
-    Object.assign(execution, { modelId: result.model, modelIdentity: result.modelIdentity, adapterIdentities: result.adapterIdentities });
-    threadPlacements.set(threadId, execution);
-    return { threadId, attemptId, modelId: result.model, modelIdentity: result.modelIdentity,
-      adapterIdentities: result.adapterIdentities, content: result.content, execution };
-  };
+  const execution = createChatExecution({ service, swarm, partitions, scheduler, models,
+    getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile });
 
   const workspace = createChatWorkspace({
     meshId,
     participantId,
     store,
-    execute,
+    execute: execution.execute,
     now,
     id
   });
 
-  const getCatalogModels = () => {
-    const peers = swarm?.getState?.().consumer?.peers || [];
-    const selections = [...models, ...peerModels].flatMap(model => [model, ...(model.availableAdapters || []).map(adapter => ({
-      ...model, name: adapter.name, selectionId: model.id + '/' + adapter.id, adapters: [adapter]
-    }))]);
-    return copy(selections.map(model => {
-      const compatible = peers.filter(peer => peer.model === model.id && peer.modelIdentity === model.identity
-        && (model.adapters || []).every(adapter => peer.adapterIdentities?.includes(adapter.identity)));
-      const ready = compatible.filter(peer => peer.readiness === 'ready' && peer.hasInference);
-      const loading = peers.some(peer => peer.model === model.id && peer.readiness === 'loading');
-      return { ...model, availability: ready.length ? (ready.some(peer => peer.availableSlots > 0) ? 'ready' : 'busy')
-        : loading ? 'loading' : 'unavailable', providerIds: ready.map(peer => peer.peerId) };
-    })).concat(copy(partitions?.getModels() || []));
-  };
+  const getCatalogModels = () => copy(projectChatCatalog({
+    models: [...models, ...peerModels], peers: swarm?.getState?.().consumer?.peers || [],
+    partitionModels: partitions?.getModels() || []
+  }));
 
   const notifyAll = () => {
+    if (closed) return;
     const st = getSessionState();
     for (const listener of listeners) {
       try { listener(st); } catch (e) { console.error('[ChatSession] listener error', e); }
@@ -194,21 +87,22 @@ export function createChatSession({
     const activeThread = wsState.threads.find(t => t.id === wsState.selectedId) || null;
     const catalog = getCatalogModels();
     const preferred = candidates => candidates.find(model => model.id === profile.defaultModelId) || candidates[0];
-    return {
+    return readonlyView({
       ...wsState,
+      closed,
       activeThread,
       models: catalog,
       defaultModel: preferred(catalog.filter(model => model.availability === 'ready'))
         || preferred(catalog.filter(model => model.availability === 'busy')) || preferred(catalog) || null,
       discovering,
       network: copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null }),
-      scheduler: sessionScheduler?.getState() || null,
-      placements: Object.fromEntries(threadPlacements.entries())
-    };
+      scheduler: execution.getState(),
+      placements: projectChatPlacements(wsState.threads)
+    });
   };
 
   // Re-emit workspace updates
-  workspace.subscribe(() => {
+  const unsubscribeWorkspace = workspace.subscribe(() => {
     notifyAll();
   });
 
@@ -217,26 +111,27 @@ export function createChatSession({
   return Object.freeze({
     getState: getSessionState,
     subscribe(listener) {
+      assertOpen();
       listeners.add(listener);
       listener(getSessionState());
       return () => listeners.delete(listener);
     },
     refreshNetwork: notifyAll,
     createThread({ model = getSessionState().defaultModel, purpose = '', sharingScope = 'mesh' } = {}) {
+      assertOpen();
       assert(model, 'Model required to create thread');
-      const threadId = workspace.createThread({
+      return workspace.createThread({
         model,
         purpose,
         permissions: { sharingScope }
       });
-      notifyAll();
-      return threadId;
     },
     select(threadId) {
+      assertOpen();
       workspace.select(threadId);
-      notifyAll();
     },
     send(threadId, content, attachments = []) {
+      assertOpen();
       assert(threadId, 'threadId required');
       assert(Array.isArray(attachments) && attachments.length <= profile.files.maxInputs, 'Too many attachments');
       let total = 0;
@@ -248,44 +143,41 @@ export function createChatSession({
         return '\n\nAttached file: ' + file.name + '\n' + file.text;
       }).join('');
       assert(total <= profile.files.maxInputBytes, 'Attachments exceed the input allowance');
-      const res = workspace.send(threadId, content + appended);
-      notifyAll();
-      return res;
+      return workspace.send(threadId, content + appended);
     },
     cancel(threadId) {
-      const res = workspace.cancel(threadId);
-      notifyAll();
-      return res;
+      assertOpen();
+      return workspace.cancel(threadId);
     },
     cancelAll() {
+      assertOpen();
       const state = workspace.getState();
       for (const tid of state.runningIds) {
-        try { workspace.cancel(tid); } catch {}
+        workspace.cancel(tid);
       }
-      notifyAll();
     },
     retry(threadId, attemptId) {
-      const res = workspace.retry(threadId, attemptId);
-      notifyAll();
-      return res;
+      assertOpen();
+      return workspace.retry(threadId, attemptId);
     },
     approve(threadId, attemptId, previewId, accepted, options) {
+      assertOpen();
       workspace.approve(threadId, attemptId, previewId, accepted, options);
-      notifyAll();
     },
-    revokeGrant(threadId, grantId) { workspace.revokeGrant(threadId, grantId); },
+    revokeGrant(threadId, grantId) { assertOpen(); workspace.revokeGrant(threadId, grantId); },
     closeThread(threadId) {
+      assertOpen();
       workspace.closeThread(threadId);
-      notifyAll();
     },
     async discoverPeers() {
+      assertOpen();
       if (!peers || discovering) return;
       discovering = true;
       notifyAll();
       try {
         const found = await peers.discover();
-        if (Array.isArray(found)) {
-          peerModels = found.map(m => ({
+        if (!closed && Array.isArray(found)) {
+          peerModels = copy(found).map(m => ({
             ...m,
             identity: m.identity,
             provider: 'doppler'
@@ -299,14 +191,17 @@ export function createChatSession({
       }
     },
     async connect() {
+      assertOpen();
       assert(swarm?.connect, 'Peer connection is unavailable');
       try { await swarm.connect(); } finally { notifyAll(); }
     },
     async disconnect() {
+      assertOpen();
       assert(swarm?.disconnect, 'Peer disconnection is unavailable');
       try { await swarm.disconnect(); } finally { notifyAll(); }
     },
     async setSharing(enabled, selectionId, approved) {
+      assertOpen();
       assert(swarm, 'Contribution is unavailable');
       try {
         if (enabled) {
@@ -318,6 +213,7 @@ export function createChatSession({
       } finally { notifyAll(); }
     },
     async setFileSharing(enabled, selectionId, approved) {
+      assertOpen();
       assert(swarm?.shareFiles, 'File contribution is unavailable');
       try {
         if (!enabled) { swarm.stopFiles(); return; }
@@ -327,12 +223,18 @@ export function createChatSession({
         await swarm.shareFiles(model, true);
       } finally { notifyAll(); }
     },
-    async close() {
-      unsubscribePartitions?.();
-      await workspace.close();
-      if (sessionScheduler) await sessionScheduler.close();
-      listeners.clear();
-    },
-    scheduler: sessionScheduler
+    close() {
+      if (closing) return closing;
+      closed = true;
+      discovering = false;
+      closing = Promise.resolve().then(async () => {
+        try { await workspace.close(); }
+        finally {
+          try { await execution.close(); }
+          finally { unsubscribeWorkspace(); unsubscribePartitions?.(); listeners.clear(); }
+        }
+      });
+      return closing;
+    }
   });
 }
