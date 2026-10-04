@@ -174,4 +174,59 @@ console.log('☡ Deprecated API');
 
 ---
 
-*Last updated: December 2025*
+## Poolday design system
+
+Poolday extends `self/styles/rd.css`. Keep Zero and X independent. The ordered
+manifest in `self/styles/poolday/layers.json` owns the stylesheet list. Both
+`self/pool-entry.html` and the synchronous fallback loader in `self/index.html`
+mirror it so browsers fetch styles in parallel without CSS imports. The CSS
+verifier rejects missing modules or entry lists that drift from the manifest.
+
+| Layer | Ownership |
+|-------|-----------|
+| `tokens.css` | Raw colors, dimensions, shadows, gradients and motion values |
+| `primitives.css` | Semantic surface, spacing, typography and motion variables; light/dark mapping |
+| `components/materials.css` | Shared surfaces, buttons, inputs and interaction states |
+| `components/conversation.css` | Conversation layout and local component states |
+| `components/optical.css` | Composable glass and state-driven light effects |
+| `components.css` | Existing navigation, work, network and other route layouts |
+
+Compose material classes with local layout classes. Do not copy border, shadow,
+background and focus recipes into individual components. Existing work selectors
+alias the shared materials so older views use the same recipe. New markup uses
+the explicit classes. Keep component values semantic (`--pool-surface-*`,
+`--pool-space-*`, etc.); component-local parameters use `--pool-param-*`.
+
+| Class | Contract |
+|-------|----------|
+| `pool-surface` | Opaque raised panel; component owns padding and layout |
+| `pool-button` | Shared control, 44px minimum height, hover/pressed/focus states; `btn-primary` inverts contrast |
+| `pool-focus-within` | Focus ring for a label wrapping a native control |
+| `pool-input` | Inset field material and keyboard focus; component owns dimensions |
+| `pool-glass` | Restrained prismatic fill and edge |
+| `pool-glass-focus` | Applies glass only while focused |
+| `pool-glass-selected` | Applies glass when `aria-current="page"` or `aria-pressed="true"` |
+| `pool-activity-edge` | Noninteractive light on a positioned wrapper; `data-activity` selects its state |
+
+```html
+<section class="chat-conversation-area pool-surface">
+  <div class="chat-composer-field pool-activity-edge" data-activity="idle">
+    <textarea class="pool-input pool-glass-focus" aria-label="Message"></textarea>
+  </div>
+  <button class="pool-button btn-primary" type="submit">Send</button>
+</section>
+```
+
+Large reading surfaces stay opaque. Glass accents belong on selected navigation,
+model choice and composer focus. `ready` gives one brief glint; `executing` moves
+only while the selected thread is actually executing. Queuing, loading, approval,
+cancellation and completion are idle. These attributes project host state; they
+never start execution or grant permission. Text remains the authoritative status.
+Reduced motion removes animation, and forced colors preserves control outlines.
+
+Run `npm run verify:pool:css` after changing any layer. It checks all manifest
+modules, variable ownership, undefined references and both entry paths. Browser
+coverage in `tests/e2e/chat-material.spec.js` checks themes, narrow layouts, focus
+and activity states using explicit presentation fixtures.
+
+*Last updated: October 2026*

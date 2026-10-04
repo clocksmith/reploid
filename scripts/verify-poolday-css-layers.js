@@ -9,7 +9,7 @@
  *                                  vars or rd tokens; alpha composition via
  *                                  rgb(var(--pool-color-*-rgb) / N%) is legal;
  *                                  @keyframes bodies are exempt.
- * - styles/poolday/components.css  pool-* rules consuming only primitive vars;
+ * - styles/poolday/components*.css pool-* rules consuming only primitive vars;
  *                                  no color literals, no token-category vars,
  *                                  no bare rd tokens.
  *
@@ -21,7 +21,7 @@
  *   --warn  report violations but exit 0 (used during migration)
  */
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -98,9 +98,26 @@ const varRefs = (value) => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) =>
 
 const main = () => {
   const rdTokens = rdTokenAllowlist();
-  const tokens = readLayer('tokens.css');
-  const primitives = readLayer('primitives.css');
-  const components = readLayer('components.css');
+  const manifest = JSON.parse(readFileSync(path.join(STYLES, 'poolday/layers.json'), 'utf8'));
+  const files = [manifest.tokens, manifest.primitives, ...manifest.components];
+  if (new Set(files).size !== files.length || files.some(file => !/^[a-z][a-z/-]*\.css$/.test(file))) {
+    throw new Error('Poolday layer manifest must contain unique local CSS paths');
+  }
+  const discovered = readdirSync(path.join(STYLES, 'poolday'), { recursive: true })
+    .filter(file => file.endsWith('.css')).sort();
+  if (JSON.stringify(discovered) !== JSON.stringify([...files].sort())) {
+    report('layers.json', 1, 'every Poolday stylesheet must belong to exactly one layer');
+  }
+  const entry = readFileSync(path.join(ROOT, 'self/pool-entry.html'), 'utf8');
+  const linked = [...entry.matchAll(/href=["']\/styles\/poolday\/([^"'?]+)(?:\?[^"']*)?["']/g)].map(match => match[1]);
+  const fallback = readFileSync(path.join(ROOT, 'self/index.html'), 'utf8');
+  const fallbackFiles = JSON.parse(fallback.match(/const pooldayStylesheets = (\[[^;]+\]);/)?.[1] || '[]');
+  for (const [name, actual] of [['pool-entry.html', linked], ['index.html', fallbackFiles]]) {
+    if (JSON.stringify(actual) !== JSON.stringify(files)) report(name, 1, 'stylesheet load order differs from layers.json');
+  }
+  const tokens = readLayer(manifest.tokens);
+  const primitives = readLayer(manifest.primitives);
+  const componentLayers = manifest.components.map(readLayer);
 
   walkDeclarations(tokens.clean, ({ property, value, line, context }) => {
     if (context[0] !== '.pool-home') {
@@ -145,7 +162,7 @@ const main = () => {
     }
   });
 
-  walkDeclarations(components.clean, ({ property, value, line, context }) => {
+  for (const components of componentLayers) walkDeclarations(components.clean, ({ property, value, line, context }) => {
     if (inKeyframes(context)) return;
     if (property.startsWith('--') && !JS_CONTRACT_VARS.has(property) && !PARAMETER_VAR.test(property)) {
       report(components.file, line, `custom property defined in component layer: ${property}`);
@@ -175,10 +192,10 @@ const main = () => {
   /* Existence check: every --pool-* reference must be defined in some layer.
      Category checks alone cannot catch a well-named but undefined var. */
   const definedPool = new Set();
-  for (const layer of [tokens, primitives, components]) {
+  for (const layer of [tokens, primitives, ...componentLayers]) {
     for (const match of layer.clean.matchAll(/(--pool-[\w-]+)\s*:/g)) definedPool.add(match[1]);
   }
-  for (const layer of [primitives, components]) {
+  for (const layer of [primitives, ...componentLayers]) {
     const lines = layer.clean.split('\n');
     lines.forEach((text, index) => {
       for (const match of text.matchAll(/var\(\s*(--pool-[\w-]+)/g)) {

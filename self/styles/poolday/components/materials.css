@@ -1,0 +1,48 @@
+/* Shared materials: compose these classes with component layout; page geometry stays in components.
+   Existing work selectors are compatibility aliases for the same recipe. */
+.pool-home :is(.pool-surface, :where(
+  .pool-work-composer:not(.pool-work-embedded), .pool-work-output:not(.pool-work-embedded),
+  .pool-work-task-header:not(.pool-work-embedded), .pool-work-task, .pool-thread-list,
+  .pool-work-approval, .pool-control-panel, .pool-agent-network)) {
+  border: var(--pool-border-hairline) solid var(--pool-surface-line);
+  border-radius: var(--pool-radius-panel);
+  background: var(--pool-surface-raised);
+  color: var(--pool-surface-ink);
+  box-shadow: var(--pool-surface-shadow-raised);
+}
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)) {
+  min-height: var(--pool-px-44);
+  padding: var(--pool-space-sm) var(--pool-space-md);
+  border: var(--pool-border-hairline) solid var(--pool-surface-control-line);
+  border-radius: var(--pool-radius-control);
+  background: var(--pool-surface-raised);
+  color: var(--pool-surface-ink);
+  box-shadow: var(--pool-surface-shadow-raised);
+  font: inherit;
+  font-size: var(--pool-text-sm);
+  cursor: pointer;
+  transition: background var(--pool-transition-fast), border-color var(--pool-transition-fast), box-shadow var(--pool-transition-fast);
+}
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)).btn-primary {
+  background: var(--pool-surface-ink);
+  color: var(--pool-surface-page);
+}
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):hover:not(:disabled) { border-color: var(--pool-surface-focus); }
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):is(:active, [aria-pressed='true']):not(:disabled) { box-shadow: var(--pool-surface-shadow-inset); }
+.pool-home :is(.pool-button, :where(.pool-work-shell .btn)):disabled { cursor: not-allowed; }
+.pool-home :is(.pool-input, :where(.pool-work-shell select, .pool-work-shell input[type='file'], .pool-work-composer textarea)) {
+  background: var(--pool-surface-inset);
+  color: var(--pool-surface-ink);
+  border: var(--pool-border-hairline) solid var(--pool-surface-control-line);
+  border-radius: var(--pool-radius-control);
+  box-shadow: var(--pool-surface-shadow-inset);
+  font: inherit;
+}
+.pool-home :focus-visible,
+.pool-home .pool-focus-within:focus-within {
+  outline: var(--pool-px-2) solid var(--pool-surface-focus);
+  outline-offset: var(--pool-px-2);
+}
+@media (prefers-reduced-motion: reduce) {
+  .pool-home :is(.pool-button, :where(.pool-work-shell .btn)) { transition: none; }
+}

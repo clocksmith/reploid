@@ -37,16 +37,19 @@
         '/examples'
       ]);
       const productRoute = productPaths.has(pathname);
+      // Keep this synchronous boot list aligned with styles/poolday/layers.json.
+      const pooldayStylesheets = ["tokens.css", "primitives.css", "components.css", "components/materials.css", "components/conversation.css", "components/optical.css"];
       const ensurePooldayStylesheet = () => {
         const version = encodeURIComponent(window.REPLOID_BUILD_VERSION || '');
         // Layer order is load order: tokens -> primitives -> components.
-        for (const layer of ['tokens', 'primitives', 'components']) {
+        for (const file of pooldayStylesheets) {
+          const layer = file.replace(/\.css$/, '').replaceAll('/', '-');
           const id = `poolday-route-stylesheet-${layer}`;
           if (document.getElementById(id)) continue;
           const link = document.createElement('link');
           link.id = id;
           link.rel = 'stylesheet';
-          link.href = `/styles/poolday/${layer}.css?v=${version}`;
+          link.href = `/styles/poolday/${file}?v=${version}`;
           document.head.appendChild(link);
         }
       };

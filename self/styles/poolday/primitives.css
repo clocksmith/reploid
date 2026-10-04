@@ -437,3 +437,21 @@
   --pool-surface-dark-button: var(--pool-gradient-dark-button);
   --pool-surface-dark-button-shadow: var(--pool-dim-dark-button-shadow);
 }
+
+.pool-home {
+  --pool-surface-optical-fill: var(--pool-gradient-optical-dark-fill);
+  --pool-surface-optical-edge: var(--pool-gradient-optical-dark-edge);
+  --pool-surface-optical-focus: var(--pool-gradient-optical-dark-focus);
+  --pool-surface-optical-glint: var(--pool-gradient-optical-glint);
+  --pool-surface-optical-signal: var(--pool-gradient-optical-dark-signal);
+  --pool-px-optical-blur: var(--pool-dim-optical-blur);
+  --pool-motion-optical-settle: var(--pool-motion-duration-optical-settle);
+  --pool-motion-optical-ready: var(--pool-motion-duration-optical-ready);
+  --pool-motion-optical-active: var(--pool-motion-duration-optical-active);
+}
+.pool-home[data-pool-theme='light'] {
+  --pool-surface-optical-fill: var(--pool-gradient-optical-light-fill);
+  --pool-surface-optical-edge: var(--pool-gradient-optical-light-edge);
+  --pool-surface-optical-focus: var(--pool-gradient-optical-light-focus);
+  --pool-surface-optical-signal: var(--pool-gradient-optical-light-signal);
+}

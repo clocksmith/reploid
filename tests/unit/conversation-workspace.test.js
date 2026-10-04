@@ -91,6 +91,34 @@ describe('Conversation workspace', () => {
     expect(find('[data-message-stream]').textContent).toContain('Fixture: Second');
   });
 
+  it('shows activity only for the executing selected thread and clears it on cancellation and teardown', async () => {
+    let release;
+    const pending = new Promise(resolve => { release = resolve; });
+    const scheduler = { getState: () => ({}), close: async () => {},
+      async schedule(request, controls) {
+        controls.onDelta('Working');
+        await pending;
+        return { content: 'Done', model: request.model.id, modelIdentity: request.model.identity, adapterIdentities: [] };
+      } };
+    dispose(); await session.close();
+    session = createChatSession({ storage: null, service, scheduler });
+    dispose = bindConversationWorkspace(root, session);
+    const thread = session.createThread({ sharingScope: 'local' });
+    const completion = session.send(thread, 'Hello');
+    try {
+      await vi.waitFor(() => expect(find('[data-composer-field]').dataset.activity).toBe('executing'));
+      session.select(null);
+      expect(find('[data-composer-field]').dataset.activity).toBe('idle');
+      session.select(thread);
+      expect(find('[data-composer-field]').dataset.activity).toBe('executing');
+      session.cancel(thread);
+      expect(find('[data-composer-field]').dataset.activity).toBe('idle');
+    } finally { release(); await completion; }
+    expect(find('[data-composer-field]').dataset.activity).toBe('idle');
+    dispose();
+    expect(find('[data-model-control]').dataset.activity).toBe('idle');
+  });
+
   it('retries a failed response as a new attempt and preserves its partial text', async () => {
     let invocation = 0;
     const scheduler = { getState: () => ({}), close: async () => {},
@@ -120,13 +148,16 @@ describe('Conversation workspace', () => {
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ discoveryScope: 'public', consumer: { peers } }) } });
     dispose = bindConversationWorkspace(root, session);
     expect(find('[data-composer-send]').disabled).toBe(true);
+    expect(find('[data-model-control]').dataset.activity).toBe('idle');
     peers = [{ peerId: 'ready-peer', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];
     session.refreshNetwork();
     expect(find('[data-active-model-select]').value).toBe(model.id);
     expect(find('[data-composer-send]').disabled).toBe(false);
     expect(find('[data-mesh-invite]').hidden).toBe(true);
+    expect(find('[data-model-control]').dataset.activity).toBe('ready');
     session.createThread();
     peers = []; session.refreshNetwork();
+    expect(find('[data-model-control]').dataset.activity).toBe('idle');
     expect(find('[data-active-model-select]').value).toBe(model.id);
     expect(find('[data-active-model-select]').disabled).toBe(true);
     expect(find('[data-composer-send]').disabled).toBe(true);

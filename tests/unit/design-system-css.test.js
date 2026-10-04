@@ -48,8 +48,9 @@ describe('RD stylesheet ownership', () => {
     // Poolday is split into the three design-system layers; the legacy
     // single-file bundle must stay retired.
     expect(existsSync(path.join(stylesRoot, 'poolday.css'))).toBe(false);
-    const poolday = ['tokens', 'primitives', 'components']
-      .map((layer) => readRepoFile(`self/styles/poolday/${layer}.css`))
+    const layers = JSON.parse(readRepoFile('self/styles/poolday/layers.json'));
+    const poolday = [layers.tokens, layers.primitives, ...layers.components]
+      .map((file) => readRepoFile(`self/styles/poolday/${file}`))
       .join('\n');
     const index = readRepoFile('self/index.html');
     const poolEntry = readRepoFile('self/pool-entry.html');

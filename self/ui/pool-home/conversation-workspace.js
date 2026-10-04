@@ -4,51 +4,51 @@ const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&a
 
 export function renderConversationWorkspace() {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
-    <aside class="chat-thread-sidebar" data-thread-sidebar aria-label="Threads">
-      <header class="chat-sidebar-header"><h2>Threads</h2><button class="btn btn-ghost" type="button" data-new-thread>New thread</button></header>
+    <aside class="chat-thread-sidebar pool-surface" data-thread-sidebar aria-label="Threads">
+      <header class="chat-sidebar-header"><h2>Threads</h2><button class="btn pool-button btn-ghost" type="button" data-new-thread>New thread</button></header>
       <div class="chat-thread-list" data-thread-list></div>
     </aside>
-    <section class="chat-conversation-area" data-conversation-area aria-label="Current conversation">
+    <section class="chat-conversation-area pool-surface" data-conversation-area aria-label="Current conversation">
       <header class="chat-thread-header" data-network-header>
         <div class="chat-thread-info"><label class="chat-visually-hidden" for="chat-model">Model</label>
-          <select id="chat-model" data-active-model-select aria-label="Model"></select>
+          <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select></span>
           <span class="chat-execution-state" data-execution-state role="status"></span></div>
-        <button class="btn btn-ghost" type="button" data-toggle-inspector aria-expanded="false" aria-controls="chat-network-details">Network <span data-mesh-peers>0 peers</span></button>
+        <button class="btn pool-button btn-ghost" type="button" data-toggle-inspector aria-expanded="false" aria-controls="chat-network-details">Network <span data-mesh-peers>0 peers</span></button>
       </header>
       <section class="chat-network-details" id="chat-network-details" data-contextual-inspector hidden aria-label="Network">
-        <header class="chat-network-heading"><h2>Network</h2><button class="btn btn-ghost" type="button" data-close-inspector>Close</button></header>
+        <header class="chat-network-heading"><h2>Network</h2><button class="btn pool-button btn-ghost" type="button" data-close-inspector>Close</button></header>
         <ul data-insp-device-list></ul>
-        <div class="chat-network-actions"><button class="btn btn-ghost" type="button" data-mesh-connect>Connect peers</button><button class="btn btn-ghost" type="button" data-mesh-invite>Invite</button></div>
+        <div class="chat-network-actions"><button class="btn pool-button btn-ghost" type="button" data-mesh-connect>Connect peers</button><button class="btn pool-button btn-ghost" type="button" data-mesh-invite>Invite</button></div>
         <p data-network-message role="status" hidden></p>
         <details data-thread-permissions hidden><summary>Thread permissions</summary>
           <p data-thread-permission-description>Approved recipients can receive this thread’s messages and attached text as public data, using its selected model. Revoking stops active work and future sharing; it cannot recall data already sent.</p>
           <ul data-thread-grants></ul></details>
-        <label>Model to contribute <select data-contribution-model aria-label="Model to contribute"></select></label>
+        <label>Model to contribute <select class="pool-input" data-contribution-model aria-label="Model to contribute"></select></label>
         <details><summary>Contribution <span data-contrib-label>Not sharing</span></summary>
           <div class="chat-contribution-controls"><p data-contribution-limits></p><p data-contribution-progress role="status" hidden></p>
             <label><input type="checkbox" data-contribution-consent> Run peers’ public prompts on this device</label>
-            <button class="btn btn-ghost" type="button" data-toggle-contribution>Start sharing</button></div></details>
+            <button class="btn pool-button btn-ghost" type="button" data-toggle-contribution>Start sharing</button></div></details>
         <details><summary>Files <span data-file-contribution-label>Not sharing</span></summary>
           <div class="chat-contribution-controls"><p>Cache this model and its selected adapter (up to 3 GiB), and distribute up to 4 GiB to peers. This does not share conversations or enable compute.</p><p data-file-progress role="status" hidden></p>
             <label><input type="checkbox" data-file-contribution-consent> Allow file storage and distribution</label>
-            <button class="btn btn-ghost" type="button" data-toggle-file-contribution>Start sharing files</button></div></details>
+            <button class="btn pool-button btn-ghost" type="button" data-toggle-file-contribution>Start sharing files</button></div></details>
       </section>
       <div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
         <h2>Review before sending</h2><p data-approval-recipient></p><pre data-approval-payload></pre>
         <label><input type="checkbox" data-approval-consent> <span data-approval-description>Share this exact input with this peer as public data</span></label>
         <label data-approval-remember-label hidden><input type="checkbox" data-approval-remember> Also allow future messages and attached text in this thread to this recipient, using this model, until revoked</label>
-        <div class="chat-network-actions"><button class="btn btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn btn-ghost" type="button" data-approval-decline>Decline</button></div>
+        <div class="chat-network-actions"><button class="btn pool-button btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn pool-button btn-ghost" type="button" data-approval-decline>Decline</button></div>
       </section>
       <p class="chat-error" role="alert" data-chat-error hidden></p>
       <p data-model-status role="status" hidden></p>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
-        <textarea id="chat-message" data-composer-input rows="3" required placeholder="${escape(pickGoalPlaceholder())}"></textarea>
+        <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="${escape(pickGoalPlaceholder())}"></textarea></div>
         <div class="chat-composer-toolbar">
-          <label class="btn btn-ghost chat-file-label">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
-          <button class="btn btn-primary" type="submit" data-composer-send>Send</button>
-          <button class="btn btn-ghost" type="button" data-composer-stop hidden>Stop</button>
+          <label class="btn pool-button btn-ghost chat-file-label pool-focus-within">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
+          <button class="btn pool-button btn-primary" type="submit" data-composer-send>Send</button>
+          <button class="btn pool-button btn-ghost" type="button" data-composer-stop hidden>Stop</button>
         </div><div class="chat-attachments" data-attachments-preview hidden></div>
       </form></footer>
     </section>
@@ -77,7 +77,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   };
   const showFiles = () => {
     const preview = find('[data-attachments-preview]'); preview.hidden = !files.length;
-    preview.innerHTML = files.map((file, index) => `<span>${escape(file.name)} <button type="button" class="btn btn-ghost" data-remove-file="${index}" aria-label="Remove ${escape(file.name)}">Remove</button></span>`).join('');
+    preview.innerHTML = files.map((file, index) => `<span>${escape(file.name)} <button type="button" class="btn pool-button btn-ghost" data-remove-file="${index}" aria-label="Remove ${escape(file.name)}">Remove</button></span>`).join('');
   };
   const render = state => {
     if (controller.signal.aborted) return;
@@ -117,6 +117,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
         : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding available models…'
           : 'No model is ready. Waiting for contributors.';
     modelStatus.hidden = !modelStatus.textContent;
+    find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
     const threads = state.threads.filter(item => !item.closed);
     const nextList = JSON.stringify([state.selectedId, threads.map(item => [item.id, item.purpose, item.messages.find(m => m.role === 'user')?.content, item.attempts.at(-1)?.status])]);
     if (nextList !== listKey) {
@@ -132,6 +133,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     find('[data-execution-state]').textContent = [location, attempt?.status].filter(Boolean).join(' · ');
     find('[data-composer-send]').hidden = busy; find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;
+    find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
     const stream = find('[data-message-stream]'), nextMessages = JSON.stringify([thread?.id, thread?.messages, usable, busy]);
     if (nextMessages !== messageKey) {
       const nearBottom = stream.scrollHeight - stream.scrollTop - stream.clientHeight < 80;
@@ -139,7 +141,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       stream.innerHTML = (thread?.messages || []).map(m => {
         const retryable = m.attemptId === attempt?.id && !busy && ['failed', 'cancelled', 'interrupted'].includes(m.status);
         return `<article class="chat-message-row is-${m.role === 'user' ? 'user' : 'assistant'}"><span class="chat-message-author">${m.role === 'user' ? 'You' : 'Assistant'}</span><div class="chat-message-content">${escape(m.content)}</div>${retryable
-          ? `<button class="btn btn-ghost" type="button" data-retry-attempt="${escape(m.attemptId)}"${usable ? '' : ' disabled'}>Retry response</button><small>Starts a new attempt; keeps this response.</small>` : ''}</article>`;
+          ? `<button class="btn pool-button btn-ghost" type="button" data-retry-attempt="${escape(m.attemptId)}"${usable ? '' : ' disabled'}>Retry response</button><small>Starts a new attempt; keeps this response.</small>` : ''}</article>`;
       }).join('');
       if (nearBottom) stream.scrollTop = stream.scrollHeight;
     }
@@ -165,7 +167,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const nextGrants = JSON.stringify([thread?.id, grants]);
     if (nextGrants !== grantsKey) {
       grantsKey = nextGrants;
-      find('[data-thread-grants]').innerHTML = grants.map(grant => `<li>${escape(grant.recipientIdentity)} · ${escape(grant.modelId)} <button class="btn btn-ghost" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
+      find('[data-thread-grants]').innerHTML = grants.map(grant => `<li>${escape(grant.recipientIdentity)} · ${escape(grant.modelId)} <button class="btn pool-button btn-ghost" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
     }
     error(state.storageError || attempt?.error || '');
     const network = state.network || {}, peers = network.consumer?.peers || network.supplier?.peers || [];
@@ -263,5 +265,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const button = event.target.closest('[data-revoke-grant]');
     if (button) act(() => session.revokeGrant(session.getState().selectedId, button.dataset.revokeGrant));
   });
-  return () => { controller.abort(); fileRevision++; unsubscribe(); };
+  return () => {
+    controller.abort(); fileRevision++; unsubscribe();
+    find('[data-composer-field]').dataset.activity = 'idle';
+    find('[data-model-control]').dataset.activity = 'idle';
+  };
 }
