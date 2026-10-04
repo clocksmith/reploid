@@ -3,7 +3,7 @@
 <title>Reploid asset-delivery check</title>
 <pre id="result">Checking pinned runtime assets...</pre>
 <script type="module">
-  import { resolveDopplerBrowserAssets } from '/config/doppler-local-models.js';
+  import { resolveDopplerBrowserAssets, DOPPLER_PACKAGE_VERSION } from '/config/doppler-local-models.js';
   const assets = resolveDopplerBrowserAssets({ pageUrl: location.href });
   window.__DOPPLER_KERNEL_BASE_PATH__ = assets.kernelBaseUrl;
   window.repairReady = (async () => {
@@ -11,7 +11,8 @@
     await import(assets.storageModuleUrl);
     await import(assets.baseUrl + '/src/tooling-exports.browser.js');
     const manifest = await (await fetch('/config/browser-bundle-manifest.json')).json();
-    const files = manifest.files.filter(file => file.path.startsWith('vendor/doppler/0.6.2/src/gpu/kernels/') && file.path.endsWith('.wgsl'));
+    if (runtime.DOPPLER_VERSION !== DOPPLER_PACKAGE_VERSION) throw new Error('Runtime package identity mismatch');
+    const files = manifest.files.filter(file => file.path.startsWith(`vendor/doppler/${DOPPLER_PACKAGE_VERSION}/src/gpu/kernels/`) && file.path.endsWith('.wgsl'));
     if (!files.length) throw new Error('Bundle contains no Doppler shaders');
     let next = 0;
     await Promise.all(Array.from({ length: 8 }, async () => {

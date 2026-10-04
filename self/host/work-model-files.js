@@ -18,7 +18,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
   let activePieces = 0;
   const pinned = new Set(), lastUsed = new Map();
   const retainedPieces = new Map();
-  let supplyController = null;
+  let supplyController = null, sharedModel = null;
   const lifetime = new AbortController(), operations = new Set(), receipts = [];
   const own = operation => {
     operations.add(operation); operation.finally(() => operations.delete(operation)).catch(() => {}); return operation;
@@ -44,6 +44,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
     }
   });
   const getState = () => ({ ...(exchange?.getState() || { sharing: false, suppliedBytes: 0, pending: 0, peers: [] }),
+    model: sharedModel && { ...sharedModel },
     preparing, error, progress: structuredClone(progress), receivedBytes: receipts.reduce((sum, item) => sum + item.receivedBytes, 0),
     verifiedFiles: receipts.flatMap(item => item.completed || []).map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })),
     limits: { storedBytes: policy.maxStoredBytes, supplyBytes: policy.maxSupplyBytes } });
@@ -260,7 +261,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
     async share(model, approved, { retainedOnly = false } = {}) {
       assert(approved === true, 'Approve distributing model files separately from compute');
       assert(!preparing, 'File contribution is already preparing');
-      preparing = true; error = ''; supplyController = new AbortController();
+      preparing = true; error = ''; sharedModel = { id: model.id, name: model.name }; supplyController = new AbortController();
       const signal = AbortSignal.any([lifetime.signal, supplyController.signal]); notify();
       const onProgress = value => { progress = value; notify(); };
       try {
@@ -277,17 +278,17 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
             if (await cached(file)) { inventory.push(file); pinned.add(fileKey(file)); }
           }
           assert(inventory.some(file => file.path.startsWith('piece-')), 'No retained model pieces are available to share');
-          signal.throwIfAborted(); exchange.offer(inventory); return;
+          signal.throwIfAborted(); exchange.offer(inventory); sharedModel = { id: model.id, name: model.name }; return;
         }
         files.push(...(model.adapters || []).map(adapterFile));
         for (const file of files) pinned.add(fileKey(file));
         // The explicit file contribution prepares its bounded inventory, not strangers' prompts.
         for (const file of files) await read(file, { signal, originOnly: true, onProgress });
-        signal.throwIfAborted(); exchange.offer(files);
+        signal.throwIfAborted(); exchange.offer(files); sharedModel = { id: model.id, name: model.name };
       } catch (cause) { pinned.clear(); error = cause.message; throw cause; }
       finally { preparing = false; progress = null; notify(); }
     },
-    stop() { supplyController?.abort(new Error('File contribution stopped')); exchange?.stopSupply(); pinned.clear(); notify(); },
+    stop() { sharedModel = null; supplyController?.abort(new Error('File contribution stopped')); exchange?.stopSupply(); pinned.clear(); notify(); },
     getReceipts: () => structuredClone(receipts),
     async close() {
       closed = true; lifetime.abort(new Error('File exchange closed')); const retiring = exchange?.close();

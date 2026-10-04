@@ -1,0 +1,33 @@
+{
+  "component": "Reploid product interface and swarm bootstrap",
+  "intent": "preserved",
+  "changes": [
+    "Network uses chat-session snapshots for tab contribution, partition offers and peer models",
+    "Compute and file consent remain separate",
+    "Changes uses cards and opt-in attempt inspection",
+    "Shared shadow opacity reduced 50 percent",
+    "Model selector and composer use shared materials",
+    "Application room URLs no longer require private swarm capabilities"
+  ],
+  "evidence": {
+    "vitest": {
+      "passed": 2858,
+      "skipped": 29
+    },
+    "chatMaterialBrowser": 7,
+    "networkChangesBrowser": 7,
+    "swarmBootstrapUnit": 15,
+    "swarmBootstrapBrowser": "passed public discovery, private isolation, disconnect and reload with exact reported room URL",
+    "cssLayers": "passed",
+    "libraryTypes": "passed",
+    "architectureLayers": "passed",
+    "registry": "passed",
+    "catscan": "passed"
+  },
+  "limits": [
+    "UI state fixtures establish presentation and permission controls, not inference",
+    "Browser smoke uses isolated contexts on one machine",
+    "Distributed numerical qualification remains unresolved",
+    "The repeated 1588-token physical prompt still exceeds the unchanged 1420000000-byte GPU allowance"
+  ]
+}

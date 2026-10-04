@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
+import pin from '../self/config/doppler-package.json' with { type: 'json' };
 
 const index = process.argv.indexOf('--url');
 const base = index >= 0 ? process.argv[index + 1] : 'http://localhost:8000';
@@ -18,11 +19,12 @@ try {
   }
   await pages[0].goto(new URL('/repair-smoke.html', base).href);
   const assets = await pages[0].evaluate(() => window.repairReady);
-  assert.equal(assets.version, '0.6.2');
+  assert.equal(assets.version, pin.version);
   console.log('Pinned module graph and shaders:', assets);
-  const missing = await pages[0].request.get(new URL('/vendor/doppler/0.6.2/src/missing-runtime-module.js', base).href);
+  const missing = await pages[0].request.get(new URL(`/vendor/doppler/${pin.version}/src/missing-runtime-module.js`, base).href);
   assert.equal(missing.status(), 404);
-  await Promise.all(pages.slice(0, 2).map(page => page.goto(new URL('/', base).href)));
+  await Promise.all(pages.slice(0, 2).map((page, i) => page.goto(new URL(i === 0
+    ? '/?room=reploid-default&reploidBootRetry=2026091901' : '/?room=another-application-room', base).href)));
   for (const page of pages.slice(0, 2)) {
     await page.waitForFunction(() => Number.parseInt(document.querySelector('[data-mesh-peers]')?.textContent) >= 1, null, { timeout: 60000 });
     assert.equal(await page.locator('[data-contrib-label]').textContent(), 'Not sharing');

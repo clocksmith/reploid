@@ -11,6 +11,7 @@ import { createWorkPeerJobs } from '../../host/work-peer-jobs.js';
 import { createChatSession } from '../../host/chat-session.js';
 import { getCurrentReploidStorage } from '../../instance.js';
 import { bindWorkSurface } from './work.js';
+import { bindNetworkControls } from './network-controls.js';
 import { bindConversationWorkspace } from './conversation-workspace.js';
 import { createOperationParticipation } from '../../pool/operation-participation.js';
 import { bindOperationSharing, refreshOperationSharing } from './operation-sharing.js';
@@ -366,6 +367,8 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     disposeOperationSharing = bindOperationSharing(mount, operationSharing);
     if (routeId === 'home') {
       disposeChatWorkspace = bindConversationWorkspace(mount, chatSession, { getInviteUrl: () => swarm.getInviteUrl() });
+    } else if (routeId === 'network') {
+      disposeChatWorkspace = bindNetworkControls(mount.querySelector('[data-network-workspace]'), chatSession, { getInviteUrl: () => swarm.getInviteUrl() });
     } else {
       disposeWorkView = bindWorkSurface(mount, work, { evolution, swarm });
     }

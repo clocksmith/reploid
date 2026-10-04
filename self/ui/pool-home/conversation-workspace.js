@@ -1,4 +1,5 @@
 /** Conversation presentation; the host owns execution and disclosure. */
+import { renderSharingControls, bindNetworkControls } from './network-controls.js';
 import comparisonSample from '../../config/document-comparison-sample.json' with { type: 'json' };
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -23,15 +24,7 @@ export function renderConversationWorkspace() {
         <details data-thread-permissions hidden><summary>Thread permissions</summary>
           <p data-thread-permission-description>Approved recipients can receive this thread’s messages and attached text as public data, using its selected model. Revoking stops active work and future sharing; it cannot recall data already sent.</p>
           <ul data-thread-grants></ul></details>
-        <label>Model to contribute <select class="pool-input" data-contribution-model aria-label="Model to contribute"></select></label>
-        <details><summary>Contribution <span data-contrib-label>Not sharing</span></summary>
-          <div class="chat-contribution-controls"><p data-contribution-limits></p><p data-contribution-progress role="status" hidden></p>
-            <label><input type="checkbox" data-contribution-consent> Run peers’ public prompts on this device</label>
-            <button class="btn pool-button btn-ghost" type="button" data-toggle-contribution>Start sharing</button></div></details>
-        <details><summary>Files <span data-file-contribution-label>Not sharing</span></summary>
-          <div class="chat-contribution-controls"><p>Cache this model and its selected adapter (up to 3 GiB), and distribute up to 4 GiB to peers. This does not share conversations or enable compute.</p><p data-file-progress role="status" hidden></p>
-            <label><input type="checkbox" data-file-contribution-consent> Allow file storage and distribution</label>
-            <button class="btn pool-button btn-ghost" type="button" data-toggle-file-contribution>Start sharing files</button></div></details>
+        ${renderSharingControls()}
       </section>
       <div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
@@ -44,7 +37,7 @@ export function renderConversationWorkspace() {
       <p data-model-status role="status" hidden></p>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
-        <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="Ask a question, or attach documents to compare."></textarea></div>
+        <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="Ask a question, or attach documents to compare."></textarea></div>
         <div class="chat-composer-toolbar">
           <label class="btn pool-button btn-ghost chat-file-label pool-focus-within">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
           <button class="btn pool-button btn-ghost" type="button" data-comparison-sample>Try sample documents</button>
@@ -64,7 +57,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
-  const contributionSelect = find('[data-contribution-model]');
+  const disposeNetwork = bindNetworkControls(container, session, { getInviteUrl });
   let files = [], fileRevision = 0, reading = false, approvalKey = '', messageKey = '', listKey = '', grantsKey = '';
   const drafts = new Map();
   const persisted = session.getDraft?.(session.getState().selectedId);
@@ -97,14 +90,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     }
     const thread = state.activeThread, catalogModels = state.models || [];
     const keyFor = model => model?.selectionId || model?.id;
-    const contributionKey = contributionSelect.value || keyFor(state.defaultModel);
-    const contributionCatalog = JSON.stringify(catalogModels.filter(model => !model.partition).map(model => [keyFor(model), model.name]));
-    if (contributionSelect.dataset.catalog !== contributionCatalog) {
-      contributionSelect.innerHTML = catalogModels.filter(model => !model.partition)
-        .map(model => `<option value="${escape(keyFor(model))}">${escape(model.name)}</option>`).join('');
-      contributionSelect.dataset.catalog = contributionCatalog;
-      if ([...contributionSelect.options].some(option => option.value === contributionKey)) contributionSelect.value = contributionKey;
-    }
     const models = catalogModels.filter(model => ['ready', 'busy'].includes(model.availability));
     if (thread && !models.some(model => keyFor(model) === keyFor(thread.model))) {
       models.push(catalogModels.find(model => keyFor(model) === keyFor(thread.model)) || { ...thread.model, availability: 'unavailable' });
@@ -198,36 +183,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       find('[data-thread-grants]').innerHTML = grants.map(grant => `<li>${escape(grant.recipientIdentity)} · ${escape(grant.modelId)} <button class="btn pool-button btn-ghost" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
     }
     error(state.storageError || attempt?.error || '');
-    const network = state.network || {}, peers = network.consumer?.peers || network.supplier?.peers || [];
-    find('[data-mesh-invite]').hidden = network.discoveryScope !== 'private';
-    contributionSelect.disabled = !!network.sharing || !!network.stopping || !!network.files?.sharing || !!network.files?.preparing;
-    find('[data-mesh-peers]').textContent = peers.length + (peers.length === 1 ? ' peer' : ' peers');
-    find('[data-insp-device-list]').innerHTML = '<li>This device</li>' + peers.map(peer => `<li>Peer ${escape(peer.peerId?.slice(0, 8))}${peer.model ? ' · ' + escape(peer.model) : ''}</li>`).join('');
-    const discoveryState = network.consumer?.connectionState;
-    const activeDiscovery = network.connecting || ['connected', 'connecting', 'retrying'].includes(discoveryState);
-    const connectControl = find('[data-mesh-connect]');
-    connectControl.disabled = false;
-    connectControl.dataset.disconnect = String(!!activeDiscovery);
-    connectControl.textContent = activeDiscovery ? 'Disconnect' : network.error ? 'Retry' : 'Connect';
-    const message = find('[data-network-message]');
-    message.textContent = network.error || (network.connecting ? 'Connecting…' : ''); message.hidden = !message.textContent;
-    find('[data-contrib-label]').textContent = network.stopping ? 'Stopping' : network.sharing
-      ? ({ loading: 'Loading', ready: 'Ready', executing: 'Executing', failed: 'Failed' }[network.contribution?.phase] || 'Sharing') : 'Not sharing';
-    find('[data-toggle-contribution]').textContent = network.sharing ? 'Stop sharing' : 'Start sharing';
-    find('[data-toggle-contribution]').disabled = !!network.stopping;
-    find('[data-contribution-consent]').disabled = !!network.sharing || !!network.stopping;
-    find('[data-contribution-limits]').textContent = network.limits ? network.limits.maxInboundJobs + ' request at a time · ' + network.limits.maxOutputTokens + ' output tokens per request' : '';
-    const progress = network.contribution?.progress;
-    const progressText = typeof progress === 'string' ? progress : progress?.message || progress?.stage || progress?.phase || '';
-    const progressNode = find('[data-contribution-progress]');
-    progressNode.textContent = network.contribution?.error || progressText;
-    progressNode.hidden = !progressNode.textContent;
-    const sharingFiles = network.files?.sharing || network.files?.preparing;
-    find('[data-file-contribution-label]').textContent = network.files?.error || (network.files?.preparing ? 'Preparing' : sharingFiles ? 'Sharing' : 'Not sharing');
-    find('[data-file-progress]').textContent = network.files?.progress?.message || '';
-    find('[data-file-progress]').hidden = !find('[data-file-progress]').textContent;
-    find('[data-file-contribution-consent]').disabled = !!sharingFiles;
-    find('[data-toggle-file-contribution]').textContent = sharingFiles ? 'Stop sharing files' : 'Start sharing files';
+
   };
   const unsubscribe = session.subscribe(render);
   showFiles();
@@ -290,18 +246,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   });
   on('[data-toggle-inspector]', 'click', () => setNetworkOpen(find('[data-contextual-inspector]').hidden));
   on('[data-close-inspector]', 'click', () => setNetworkOpen(false));
-  on('[data-mesh-connect]', 'click', () => act(() => find('[data-mesh-connect]').dataset.disconnect === 'true'
-    ? session.disconnect() : session.connect()));
-  on('[data-mesh-invite]', 'click', () => act(async () => {
-    if (!getInviteUrl) throw new Error('Mesh invitation is unavailable');
-    await navigator.clipboard.writeText(getInviteUrl());
-    const node = find('[data-network-message]'); node.textContent = 'Invite copied'; node.hidden = false;
-  }));
-  on('[data-toggle-contribution]', 'click', () => act(() => session.setSharing(!session.getState().network?.sharing, contributionSelect.value, find('[data-contribution-consent]').checked)));
-  on('[data-toggle-file-contribution]', 'click', () => act(() => {
-    const files = session.getState().network?.files;
-    return session.setFileSharing(!(files?.sharing || files?.preparing), contributionSelect.value, find('[data-file-contribution-consent]').checked);
-  }));
   const approve = accepted => act(() => {
     const thread = session.getState().activeThread, attempt = thread?.attempts.at(-1);
     if (attempt?.approval) session.approve(thread.id, attempt.id, attempt.approval.id, accepted,
@@ -315,7 +259,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     if (button) act(() => session.revokeGrant(session.getState().selectedId, button.dataset.revokeGrant));
   });
   return () => {
-    controller.abort(); fileRevision++; unsubscribe();
+    controller.abort(); fileRevision++; unsubscribe(); disposeNetwork();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';
   };

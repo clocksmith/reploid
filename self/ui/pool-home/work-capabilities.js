@@ -2,8 +2,8 @@
 import { renderAgentNetwork, refreshAgentNetwork } from './agent-network.js';
 import { renderToolOfferImport, bindToolOffers } from './work-tool-offers.js';
 const escape = value => String(value ?? '').replace(/[&<>"']/g, value => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[value]);
-export const renderToolExperiments = () => '<section class="pool-work-experiments" id="reploid-improvements" data-work-experiments aria-label="Tool improvements">'
-  + '<h2 class="type-h2">Changes</h2><p class="pool-control-help" data-improvement-empty>No tool changes yet.</p>'
+export const renderToolExperiments = () => '<section class="pool-work-experiments pool-surface network-card" id="reploid-improvements" data-work-experiments aria-label="Tool improvements">'
+  + '<h2 class="type-h2">Tool updates</h2><p class="pool-control-help" data-improvement-empty>No tool changes yet.</p>'
   + renderToolOfferImport() + '<div data-work-candidates></div><p role="status" data-experiment-status></p></section>';
 export const renderTextSwarm = renderAgentNetwork;
 const candidateState = item => ({ evaluating: 'Testing', 'awaiting-approval': 'Tested · approval needed',
@@ -37,20 +37,20 @@ export function bindWorkCapabilities(root, application, { evolution, swarm } = {
           const evaluation = item.evaluation;
           const busy = state.anyBusy ? ' disabled' : '';
           const origin = state.records.find(row => row.improvements?.some(change => change.id === item.id));
-          return '<article class="pool-work-candidate"><h3>' + escape(item.targetId) + ' <span class="type-caption">' + escape(candidateState(item)) + '</span></h3>'
+          return '<article class="pool-work-candidate change-card"><h3>' + escape(item.targetId) + ' <span class="type-caption">' + escape(candidateState(item)) + '</span></h3>'
             + (origin ? '<button class="pool-candidate-origin" data-work-select="' + escape(origin.id) + '">From task: ' + escape(origin.goal) + '</button>' : '')
             + (item.origin ? '<p class="type-caption">Imported candidate · local evaluation</p>' : '')
             + '<p>' + escape(item.reason) + '</p>'
             + (evaluation ? '<p>Current: ' + evaluation.baselinePassed + '/' + evaluation.total + ' checks. Candidate: '
               + evaluation.candidatePassed + '/' + evaluation.total + ' checks.</p>' : '')
-            + (evaluation?.latency ? '<details><summary>Measured execution</summary><p>Current: '
+            + (evaluation?.latency ? '<details class="pool-disclosure"><summary>Measured execution</summary><p>Current: '
               + evaluation.latency.baselineMedianMs.toFixed(1) + ' ms. Candidate: ' + evaluation.latency.candidateMedianMs.toFixed(1)
               + ' ms. ' + (evaluation.improvementKind === 'latency' ? 'Qualifying latency improvement.' : evaluation.improvementKind === 'correctness' ? 'Qualified by correctness repair.' : 'No qualifying improvement.')
               + '</p><p class="pool-control-help">Objective ' + escape(evaluation.latency.objectiveId) + ' v'
               + evaluation.latency.objectiveVersion + '. Host measurements include sandbox startup. '
               + evaluation.latency.fasterPairs + '/' + evaluation.latency.observations.length + ' pairs were faster.</p></details>' : '')
             + (item.error ? '<p class="pool-work-error">' + escape(item.error) + '</p>' : '')
-            + '<details><summary>Code &amp; sharing</summary><pre>' + escape(item.code) + '</pre>'
+            + '<details class="pool-disclosure"><summary>Code &amp; sharing</summary><pre>' + escape(item.code) + '</pre>'
             + (evolution.offerLimits ? '<p class="pool-control-help">The candidate file includes this code and description. Check both before sharing.</p>'
               + '<button class="btn btn-ghost" data-tool-offer-export="' + escape(item.id) + '"' + busy + '>Download candidate</button>' : '')
             + (swarm && evolution.offerLimits ? '<div class="pool-work-actions"><label>Recipient <select data-tool-peer="' + escape(item.id) + '"><option value="">Connect a peer</option></select></label>'

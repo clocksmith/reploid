@@ -1,0 +1,21 @@
+{
+  "packageVersion": "0.6.3-dev.split.11",
+  "physicalDevices": 2,
+  "allocationBudgetBytes": 1420000000,
+  "memoryFailureReproduced": false,
+  "completedAttempts": 6,
+  "failedAttempt": [
+    {
+      "status": "failed",
+      "error": "Partition peer declined or failed request"
+    }
+  ],
+  "streamedCharacters": 4110,
+  "firstFailure": [
+    "Error: Draft exceeds its allowance.",
+    "Error: Partition request cancelled or timed out",
+    "Error: Partition channel: peer disconnected",
+    "Error: Partition channel: control frame too large"
+  ],
+  "status": "Incomplete: generation streamed but the oversized completion receipt was rejected; numerical qualification not established."
+}

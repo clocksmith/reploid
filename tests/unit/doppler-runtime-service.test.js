@@ -1,3 +1,4 @@
+import pin from '../../self/config/doppler-package.json' with { type: 'json' };
 import { describe, expect, it, vi } from 'vitest';
 
 import { createReploidDopplerRuntimeService } from '../../self/core/doppler-runtime-service.js';
@@ -137,7 +138,7 @@ describe('Reploid DopplerRuntimeService', () => {
         dr: { open: vi.fn() }
       })
     });
-    await expect(wrong.open({ source: 'model' })).rejects.toThrow('requires Doppler 0.6.3-dev.split.10');
+    await expect(wrong.open({ source: 'model' })).rejects.toThrow(`requires Doppler ${pin.version}`);
 
     const legacy = createReploidDopplerRuntimeService({ expectedVersion: '0.5.1',
       loadModule: async () => ({

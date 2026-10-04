@@ -306,8 +306,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 5138,
-      "sha256": "ebc82c55022a5684d25a39b38a156474c99e21f11bf158fa381a8bcfdbc4b86c"
+      "bytes": 5202,
+      "sha256": "5582acd07b54420b00c49e5be7dcae0c94e66c4c9b18d593a1c8195b3e13db15"
     },
     {
       "path": "chat/index.js",
@@ -331,8 +331,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 15323,
-      "sha256": "98e260096b3b2bafe9e666fabf3e915e6972e6c2c9746c524397072b5b7ec66a"
+      "bytes": 15421,
+      "sha256": "890b244a6c588521679295394d6b97fd51536755393731e68b32547a89cf4b0f"
     },
     {
       "path": "config/defaults.json",
@@ -626,8 +626,8 @@
     },
     {
       "path": "mesh/partitions/partition-entry.js",
-      "bytes": 11022,
-      "sha256": "3b279d7b18304bcb295a750665f741580289b8dd9d79d2365661dba5e3f628fb"
+      "bytes": 11121,
+      "sha256": "aafa0d00aaced1db7e70fd34ca1ba2c5fd05fdbf541a5259340b5652ef12bf87"
     },
     {
       "path": "mesh/partitions/partition-grants.d.ts",
@@ -686,8 +686,8 @@
     },
     {
       "path": "mesh/partitions/partition-runner.js",
-      "bytes": 17695,
-      "sha256": "6f5f6e54f0f3eaf0048302193f0d3540afba124c2842e7e3b1ce9df01c8e74aa"
+      "bytes": 17707,
+      "sha256": "53f00dbac7b5e6e9455a965e92a5c4eef4c760c6ea1c7aadfcc049470108c25b"
     },
     {
       "path": "mesh/partitions/partition-step-receiver.d.ts",
@@ -698,6 +698,16 @@
       "path": "mesh/partitions/partition-step-receiver.js",
       "bytes": 7042,
       "sha256": "283c0fd1554246de92becd8832b4328fb986ae7bc4cfe2f9f20b5a475e555dfe"
+    },
+    {
+      "path": "mesh/partitions/partition-summary.d.ts",
+      "bytes": 98,
+      "sha256": "a8b120aac641ccb2c45afcae3d9772f8bb85f4c0af568719a7af77261869a638"
+    },
+    {
+      "path": "mesh/partitions/partition-summary.js",
+      "bytes": 2173,
+      "sha256": "56bb695ecbfc998810ec4855f6bd10a9d2e743db2c3378a7d1ce8671dccee9d1"
     },
     {
       "path": "mesh/partitions/resident-partition.d.ts",
@@ -781,13 +791,18 @@
     },
     {
       "path": "transport/partition-data-channel.d.ts",
-      "bytes": 2388,
-      "sha256": "5bac9daae5704ccee53da60c14d226ecba4e6ac6c0816ce16fb16d6dc78684c8"
+      "bytes": 2714,
+      "sha256": "f3769daa6b1ece9dc8e9a555f4cb87c36a057968c16c58709f5591e25e13102a"
     },
     {
       "path": "transport/partition-data-channel.js",
-      "bytes": 14156,
-      "sha256": "3fa7644a9bb1be63a0fb08c6b43128e318ee56b9a9a8b7dcd425c78ab7a9a7ab"
+      "bytes": 15074,
+      "sha256": "970d53ee1e57080ff257f66504bf555bff1568ce4987e5fe8a61859d056ce697"
+    },
+    {
+      "path": "transport/partition-errors.json",
+      "bytes": 285,
+      "sha256": "e79f6c2add505c86d4e102303c1c8a352a6feb685913d37e338428cafc12c63f"
     },
     {
       "path": "transport/retry-policy.d.ts",

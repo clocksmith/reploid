@@ -1,0 +1,18 @@
+{
+  "version": "0.6.3-dev.split.12",
+  "base": "doppler-gpu-0.6.3-dev.split.10.tgz",
+  "baseSha256": "2ca115ac0ce243f4ee3fcc1d8c335af8e88836603f864e64e88ff37842a150ea",
+  "changes": [
+    "src/inference/pipelines/text/linear-attention.js normalization observation only",
+    "src/inference/pipelines/text/partition-execution.js bounded prefill chunk lifetimes",
+    "src/memory/device-budget.js stable resource error code",
+    "package.json and src/version.js version identity"
+  ],
+  "sourceHashes": {
+    "src/inference/pipelines/text/linear-attention.js": "0be67f8c401ce22ddf03b69886c52f24fb4088a645b978f2f9231225f8373b73",
+    "src/inference/pipelines/text/partition-execution.js": "27b188baaeae06e48bdb8533e7de5bdc4bd895f559cc1bb93e05012c7e36f475",
+    "src/memory/device-budget.js": "90b51128e9e20d17e278a839b8df21dabfbed33cbe2686b8b18f5f2828e6b00a"
+  },
+  "archiveSha256": "9f8012a96e0fe43302fdccb4a09bb3faace62bdeb202271389f7a2bafd9f6893",
+  "precisionAndKernelSourceChanges": false
+}

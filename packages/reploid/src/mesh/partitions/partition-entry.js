@@ -1,5 +1,6 @@
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
 import { assertPartition as assert } from './partition-contract.js';
+import { summarizePartitionExecution } from './partition-summary.js';
 
 /** Requester-to-A channel. This module imports no tokenizer, tensor codec or GPU runtime.
  * The host authenticates the channel and grants input disclosure to both stages.
@@ -82,7 +83,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           && result.execution?.requesterId === m.requesterId
           && result.execution.attemptId === m.attemptId
           && result.execution.placementGeneration === m.placementGeneration, 'Execution returned an unbound result');
-        return { content: result.content, execution: result.execution };
+        return { content: result.content, execution: summarizePartitionExecution(result.execution) };
       } finally { active.delete(m.attemptId); }
     },
   });

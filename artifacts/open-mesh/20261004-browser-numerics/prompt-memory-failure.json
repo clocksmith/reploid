@@ -1,0 +1,45 @@
+{
+  "kind": "physical-cooperative-prompt-memory-failure",
+  "physicalDevices": 2,
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "packageVersion": "0.6.3-dev.split.10.probe.2",
+  "allocationBudgetBytes": 1420000000,
+  "completedControlConversations": 6,
+  "failedAttempts": [
+    {
+      "id": "5817e493-fa25-4cda-830e-6017b18740d3",
+      "attemptId": "51c99f62-c23d-4b9c-b448-387be521b8a4",
+      "error": "Partition peer declined or failed request",
+      "inputCharacters": 1851
+    }
+  ],
+  "exceptions": [
+    {
+      "host": "linux-128",
+      "error": "Error: Draft exceeds its allowance.",
+      "stack": "Error: Draft exceeds its allowance.\n    at validate (http://localhost:8000/host/chat-drafts.js:6:158)\n    at Object.get [as getDraft] (http://localhost:8000/host/chat-drafts.js:18:20)\n    at bindConversationWorkspace (http://localhost:8000/ui/pool-home/conversation-workspace.js:70:39)\n    at render (http://localhost:8000/ui/pool-home/index.js:368:30)\n    at initPoolHome (http://localhost:8000/ui/pool-home/index.js:407:3)\n    at http://localhost:8000/:92:9"
+    },
+    {
+      "host": "mac",
+      "error": "Error: Draft exceeds its allowance.",
+      "stack": "Error: Draft exceeds its allowance.\n    at validate (http://localhost:8000/host/chat-drafts.js:6:158)\n    at Object.get [as getDraft] (http://localhost:8000/host/chat-drafts.js:18:20)\n    at bindConversationWorkspace (http://localhost:8000/ui/pool-home/conversation-workspace.js:70:39)\n    at render (http://localhost:8000/ui/pool-home/index.js:368:30)\n    at initPoolHome (http://localhost:8000/ui/pool-home/index.js:407:3)\n    at http://localhost:8000/:92:9"
+    },
+    {
+      "host": "mac",
+      "error": "Error: Partition request cancelled or timed out",
+      "stack": "Error: Partition request cancelled or timed out\n    at cancelIncoming (http://localhost:8000/vendor/reploid/transport/partition-data-channel.js:68:28)\n    at receiveControl (http://localhost:8000/vendor/reploid/transport/partition-data-channel.js:194:18)\n    at RTCDataChannel.onMessage (http://localhost:8000/vendor/reploid/transport/partition-data-channel.js:238:14)"
+    },
+    {
+      "host": "mac",
+      "error": "Error: GPU memory budget exceeded: L4.linear_conv_out_12189696 requires 12189696 bytes; 1412096568 live, 1420000000 allowed.",
+      "stack": "Error: GPU memory budget exceeded: L4.linear_conv_out_12189696 requires 12189696 bytes; 1412096568 live, 1420000000 allowed.\n    at device.createBuffer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.10.probe.2/src/memory/device-budget.js:24:13)\n    at BufferPool.acquire (http://localhost:8000/vendor/doppler/0.6.3-dev.split.10.probe.2/src/memory/buffer-pool.js:277:27)\n    at acquireBuffer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.10.probe.2/src/memory/buffer-pool.js:789:19)\n    at runLinearAttentionCoreGPU (http://localhost:8000/vendor/doppler/0.6.3-dev.split.10.probe.2/src/gpu/kernels/linear-attention-core.js:409:19)\n    at async runLinearAttentionLayer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.10.probe.2/src/inference/pipelines/text/linear-attention.js:635:24)\n    at async processLayerGPU (http://localhost:8000/vendor/doppler/0.6.3-dev.split.10.probe.2/src/inference/pipelines/text/layer.js:340:18)\n    at async executePartitionLayers (http://localhost:8000/vendor/doppler/0.6.3-dev.split.10.probe.2/src/inference/pipelines/text/partition-execution.js:115:20)\n    at async http://localhost:8000/vendor/doppler/0.6.3-dev.split.10.probe.2/src/inference/pipelines/text/resident-partition.js:114:24\n    at async invoke (http://localhost:8000/vendor/doppler/0.6.3-dev.split.10.probe.2/src/inference/pipelines/shader-scoped-pipeline.js:163:16)\n    at async runWithShaderSourceScope (http://localhost:8000/vendor/doppler/0.6.3-dev.split.10.probe.2/src/gpu/kernels/shader-source-scope.js:70:16)"
+    }
+  ],
+  "requesterWeightRequests": 0,
+  "executorOriginRequests": 0,
+  "notes": [
+    "Actual normal-page WebRTC with selectively acquired verified pieces; origin blocked.",
+    "The local diagnostic identified GPU allocation exhaustion; transport hid the cause.",
+    "No numerical qualification inferred from completed controls."
+  ]
+}

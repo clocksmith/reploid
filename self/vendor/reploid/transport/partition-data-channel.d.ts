@@ -15,6 +15,10 @@ export interface PartitionChannelReceipt {
   completedRequests: number; cancelledRequests: number; discardedFrames: number;
   pendingRequests: number; inboundRequests: number; reservedBytes: number; closed: boolean;
   wireBytes: null; relayBytes: null;
+  /** Local diagnostic only; raw failure details are never transmitted. Settlement
+   * means the transport callback returned, not independent proof of GPU cleanup. */
+  lastFailure: null | { requestId: number; phase: 'admission' | 'execution'; code: string;
+    message: string; failedAt: number; settledAt: number | null };
 }
 export function createPartitionDataChannel(options: {
   /** Ownership transfers to this endpoint; close closes the dedicated RTC channel. */

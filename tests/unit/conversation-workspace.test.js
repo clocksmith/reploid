@@ -54,10 +54,10 @@ describe('Conversation workspace', () => {
     expect(find('[data-composer-input]').value).toBe('New draft');
   });
 
-  it('uses new placeholders and does not create empty stored threads', () => {
+  it('keeps the stable placeholder and does not create empty stored threads', () => {
     const previous = find('[data-composer-input]').placeholder;
     find('[data-new-thread]').click();
-    expect(find('[data-composer-input]').placeholder).not.toBe(previous);
+    expect(find('[data-composer-input]').placeholder).toBe(previous);
     expect(session.getState().threads).toHaveLength(0);
   });
 

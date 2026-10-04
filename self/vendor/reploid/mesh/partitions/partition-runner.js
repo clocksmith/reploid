@@ -215,7 +215,7 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
       return { content, tokenIds: outputTokens, logits, stopReason,
         execution: { schema: 'reploid.mesh.partition-execution/v2', ...binding,
           placement: 'two-device-layer-partition', splitLayer: plan.splitLayer,
-          activationBytes, steps, settlement: receipt } };
+          activationBytes, steps, stopReason, settlement: receipt } };
     } catch (error) {
       failure = error;
       receipt.failure = String(error?.message || error);

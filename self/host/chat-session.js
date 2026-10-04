@@ -9,7 +9,6 @@ import { createChatExecution } from './chat-execution.js';
 import { projectChatCatalog, projectChatPlacements } from './chat-view.js';
 import { createChatDrafts } from './chat-drafts.js';
 import { comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
-import chatPolicy from '../vendor/reploid/chat/policy.json' with { type: 'json' };
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
@@ -53,9 +52,6 @@ export function createChatSession({
 
   // Catalog identity is resolved once; discovery snapshots cannot mutate it.
   models = copy(models);
-  const drafts = createChatDrafts({ storage, key: `${STORAGE_KEY}:drafts`, maxThreads: chatPolicy.maxThreads,
-    maxCharacters: chatPolicy.maxMessageCharacters, maxFiles: profile.files.maxInputs,
-    maxFileBytes: profile.files.maxFileBytes, maxInputBytes: profile.files.maxInputBytes });
   const comparisons = new Map();
   const listeners = new Set();
   let closed = false, closing = null;
@@ -75,6 +71,10 @@ export function createChatSession({
     now,
     id
   });
+  const allowances = workspace.getState().limits;
+  const drafts = createChatDrafts({ storage, key: `${STORAGE_KEY}:drafts`, maxThreads: allowances.maxThreads,
+    maxCharacters: allowances.maxMessageCharacters, maxFiles: profile.files.maxInputs,
+    maxFileBytes: profile.files.maxFileBytes, maxInputBytes: profile.files.maxInputBytes });
 
   const getCatalogModels = () => copy(projectChatCatalog({
     models: [...models, ...peerModels], peers: swarm?.getState?.().consumer?.peers || [],
