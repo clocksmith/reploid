@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Reploid document comparison study</title><link rel="stylesheet" href="/styles/rd.css"></head>
+<body><main>
+  <h1>Try a document comparison</h1>
+  <p>Use the fictional contractor quotes available in Reploid to decide which quote best fits a $12,000 budget and completion before June 1. Find supporting passages, ask a followup that changes an assumption, and save your result.</p>
+  <p>Work without coaching. You may stop at any point. Use only the fictional sample documents; do not upload personal information for this study.</p>
+  <p>The model’s answer may be wrong. Evaluate it against the supplied quotes.</p>
+  <button type="button" id="start">Start task in Reploid</button>
+  <p id="status" role="status"></p>
+  <h2>Tell us what happened</h2>
+  <form id="feedback">
+    <p><label>Participant code from the organizer <input name="participant" required pattern="[A-Za-z0-9_-]{1,32}" maxlength="32" autocomplete="off"></label></p>
+    <p><label>Did you finish the task? <select name="completed" required><option value="">Choose</option><option value="yes">Yes</option><option value="partly">Partly</option><option value="no">No</option></select></label></p>
+    <p><label>Could you check the answer against its sources? <select name="sources" required><option value="">Choose</option><option value="yes">Yes</option><option value="partly">Partly</option><option value="no">No</option></select></label></p>
+    <p><label>Did you save the comparison? <select name="saved" required><option value="">Choose</option><option value="yes">Yes</option><option value="no">No</option></select></label></p>
+    <p><label>Would you return for a similar task? <select name="returnIntent" required><option value="">Choose</option><option value="yes">Yes</option><option value="maybe">Maybe</option><option value="no">No</option></select></label></p>
+    <p><label>Where did you hesitate or get stuck? <textarea name="hesitations" rows="4" maxlength="4000" required></textarea></label></p>
+    <p><label>What was useful, wrong, or missing? <textarea name="outcome" rows="4" maxlength="4000" required></textarea></label></p>
+    <p><label><input type="checkbox" name="consent" required> I agree to share these answers with the study organizer. No conversation or document contents are included automatically.</label></p>
+    <button type="submit">Download feedback</button>
+  </form>
+  <p>Send the downloaded JSON file to your organizer using the channel they provided. This page does not upload feedback. Keep your participant code when revising feedback.</p>
+</main><script type="module" src="/host/document-study.js"></script></body></html>

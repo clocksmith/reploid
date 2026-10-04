@@ -1,0 +1,8 @@
+{
+  "question": "Compare these three fictional contractor quotes. My budget is $12,000 and completion before June 1 matters. Explain tradeoffs, missing costs, and questions to send back, citing the passages.",
+  "files": [
+    { "name": "Maple quote.txt", "text": "Kitchen work: base price $10,800. Includes cabinets, installation, and removal of old cabinets. Sales tax is excluded.\n\nElectrical and plumbing changes are excluded and will be quoted after inspection.\n\nEstimated completion May 25. Schedule is subject to material availability. Deposit: 30%." },
+    { "name": "Harbor quote.txt", "text": "Kitchen work: fixed price $11,600 including cabinets, installation, removal, and sales tax.\n\nIncludes up to $800 of electrical work. Plumbing is excluded. Changes above the allowance require written approval.\n\nCompletion promised by May 28 if the deposit is received by April 10. Deposit: 40%." },
+    { "name": "Cedar quote.txt", "text": "Kitchen work: $9,900 for cabinets and installation. Removal is an additional $650. Sales tax and electrical work are excluded.\n\nPage 1 states plumbing reconnection is included. Page 2 states all plumbing work is excluded.\n\nEstimated start May 20, with three weeks of work. Deposit: 50%." }
+  ]
+}

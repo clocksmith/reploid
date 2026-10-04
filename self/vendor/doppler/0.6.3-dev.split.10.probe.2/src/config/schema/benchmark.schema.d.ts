@@ -1,0 +1,63 @@
+export interface BenchmarkOutputConfig {
+  schemaVersion: number;
+}
+
+export interface BenchmarkRunConfig {
+  promptName: string;
+  customPrompt: string | null;
+  maxNewTokens: number;
+  seed: number | null;
+  runType: string;
+  warmupRuns: number;
+  timedRuns: number;
+  sampling: {
+    temperature: number;
+    topK: number;
+    topP: number;
+    seed?: number;
+  };
+  debug: boolean;
+  profile: boolean;
+  executionObserver: {
+    enabled: boolean;
+    includeDispatchGeometry: boolean;
+    estimateBytesMoved: boolean;
+  };
+  useChatTemplate?: boolean;
+  captureMemoryTimeSeries: boolean;
+  memoryTimeSeriesIntervalMs: number;
+}
+
+export interface BenchmarkStatsConfig {
+  outlierIqrMultiplier: number;
+  warmupStabilityPercent: number;
+  thermalSlowdownPercent: number;
+  minSamplesForComparison: number;
+}
+
+export interface BenchmarkComparisonConfig {
+  regressionThresholdPercent: number;
+  failOnRegression: boolean;
+}
+
+export interface BenchmarkBaselineConfig {
+  enabled: boolean;
+  file: string;
+  failOnOutOfRange: boolean;
+  requireQualityOk: boolean;
+}
+
+export interface BenchmarkConfig {
+  output: BenchmarkOutputConfig;
+  run: BenchmarkRunConfig;
+  stats: BenchmarkStatsConfig;
+  comparison: BenchmarkComparisonConfig;
+  baselines: BenchmarkBaselineConfig;
+}
+
+export declare const DEFAULT_BENCHMARK_OUTPUT_CONFIG: BenchmarkOutputConfig;
+export declare const DEFAULT_BENCHMARK_RUN_CONFIG: BenchmarkRunConfig;
+export declare const DEFAULT_BENCHMARK_STATS_CONFIG: BenchmarkStatsConfig;
+export declare const DEFAULT_BENCHMARK_COMPARISON_CONFIG: BenchmarkComparisonConfig;
+export declare const DEFAULT_BENCHMARK_BASELINE_CONFIG: BenchmarkBaselineConfig;
+export declare const DEFAULT_BENCHMARK_CONFIG: BenchmarkConfig;
