@@ -6,10 +6,11 @@ import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
 import { observeBrowserNumerics } from './browser-numerical-observer.js';
+import { observeNormalizationDispatch } from './normalization-dispatch-observer.js';
 const reference = JSON.parse(await readFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, 'utf8'));
 const output = process.env.REPLOID_CAPTURE_OUT;
 const observationMode = process.env.DOPPLER_DISPATCH_OBSERVATION ?? 'dispatch';
-assert(['dispatch', 'layers'].includes(observationMode));
+assert(['dispatch', 'layers', 'calls'].includes(observationMode));
 const placement = process.env.DOPPLER_DISPATCH_PLACEMENT
   ?? (process.env.REPLOID_DIAGNOSTIC_A === 'mac' ? 'mac-linux' : 'linux-mac');
 assert(['linux-mac', 'mac-linux', 'mac-mac', 'linux-linux'].includes(placement), 'Explicit diagnostic placement required');
@@ -144,7 +145,8 @@ try {
       };
     });
     observers.push(cdp ? {read:async()=>({records:metadata,errors:observationErrors}),close:()=>cdp.detach()}
-      : await observeBrowserNumerics(page, 'node_modules/doppler-gpu'));
+      : observationMode === 'calls' ? await observeNormalizationDispatch(page, sources)
+        : await observeBrowserNumerics(page, 'node_modules/doppler-gpu'));
     const opened = await page.evaluate(async ({ reference, index }) => {
       const config = await import('/config/doppler-local-models.js');
       const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
@@ -209,11 +211,12 @@ try {
     for (const page of pages) await page.evaluate(identity => resident.closeAttempt({ identity }), identity);
     console.log(JSON.stringify({ prompt, text, steps: steps.length }));
   }
-  const observations = [];
+  const observations = [], dispatchPipelines = [];
   for (const observer of observers) {
     const data = await observer.read(); assert.deepEqual(data.errors, []);
     assert(data.records.every(record => record.data && !record.error), 'Incomplete partition capture');
     observations.push(data.records);
+    if (data.pipelines) dispatchPipelines.push(data.pipelines);
   }
   const pipelineObservations = await Promise.all(pages.map(page => page.evaluate(() => globalThis.pipelineObservations)));
   for (const pipelines of pipelineObservations) for (const pipeline of pipelines) {
@@ -227,7 +230,7 @@ try {
     scope: sources.length ? 'Test-only source substitution over pinned package; not installed-package or P2P qualification'
       : 'Canonical package dispatch diagnosis with read-only operand copies; not P2P or numerical qualification',
     modelIdentity: reference.modelIdentity, planId: reference.planId, generation: reference.generation,
-    bindingObservations, inputObservations, promptCount, descriptors, runs, observations }));
+    bindingObservations, inputObservations, promptCount, descriptors, runs, observations, dispatchPipelines }));
   console.log(JSON.stringify({ output, records: observations.map(records => records.length) }));
 } finally {
   for (const page of pages) await page.evaluate(() => globalThis.resident?.close()).catch(() => {});
