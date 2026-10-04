@@ -1,0 +1,18 @@
+[
+  {
+    "version": "0.6.3-dev.split.10.probe.1",
+    "url": "/vendor/doppler/0.6.3-dev.split.10.probe.1/src/inference/pipelines/text/linear-attention.js",
+    "hash": "0be67f8c401ce22ddf03b69886c52f24fb4088a645b978f2f9231225f8373b73",
+    "probe": true,
+    "platform": "mac",
+    "browser": "145.0.7632.6"
+  },
+  {
+    "version": "0.6.3-dev.split.10.probe.1",
+    "url": "/vendor/doppler/0.6.3-dev.split.10.probe.1/src/inference/pipelines/text/linear-attention.js",
+    "hash": "0be67f8c401ce22ddf03b69886c52f24fb4088a645b978f2f9231225f8373b73",
+    "probe": true,
+    "platform": "linux",
+    "browser": "146.0.7680.177"
+  }
+]

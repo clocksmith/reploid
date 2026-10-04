@@ -183,6 +183,28 @@ test('one model executes cooperatively on discovered physical peers from selecti
         expect(thread.messages.at(-1).content).toBe(reference.expected[index].text);
       }
     }
+    if (process.env.REPLOID_E2E_DOCUMENTS === '1') {
+      await requester.locator('[data-new-thread]').click();
+      await requester.locator('[data-comparison-sample]').click();
+      await requester.locator('[data-composer-compare]').click();
+      await approve(requester);
+      const documentId = (await history(requester)).threads.at(-1).id;
+      await expect.poll(async () => {
+        const attempts = (await history(requester)).threads.find(thread => thread.id === documentId).attempts;
+        if (attempts.some(attempt => attempt.status === 'failed')) throw new Error(attempts.find(attempt => attempt.status === 'failed').error);
+        return attempts.length;
+      }, { timeout: 300000 }).toBe(2);
+      await approve(requester); await waitCompleted(documentId);
+      const documents = (await history(requester)).threads.find(thread => thread.id === documentId);
+      await writeFile(info.outputPath('document-comparison.json'), JSON.stringify({
+        modelIdentity: model.identity, physicalDevices: remote ? 2 : 1, thread: documents,
+        qualityStatus: 'requires source-grounded evaluation; successful generation is not proof of useful comparison'
+      }, null, 2));
+      expect(documents.attempts.map(attempt => attempt.status)).toEqual(['completed', 'completed']);
+      await expect(requester.locator('[data-message-stream] details')).toHaveCount(3);
+      const download = requester.waitForEvent('download');
+      await requester.locator('[data-conversation-download]').click(); await download;
+    }
     completed = await history(requester);
     // A stopped executor settles the attempt. Retry starts from authorized input.
     const recoveryId = await sendNew('Count from one to twenty, one number per line.');

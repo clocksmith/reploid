@@ -1,5 +1,5 @@
 /** Conversation presentation; the host owns execution and disclosure. */
-import { pickGoalPlaceholder } from './work-goal-composer.js';
+import comparisonSample from '../../config/document-comparison-sample.json' with { type: 'json' };
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
 export function renderConversationWorkspace() {
@@ -35,7 +35,7 @@ export function renderConversationWorkspace() {
       </section>
       <div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
-        <h2>Review before sending</h2><p data-approval-recipient></p><pre data-approval-payload></pre>
+        <h2>Review before sending</h2><p>Other people’s computers will process what you share. Review the recipients and exact input below.</p><p data-approval-recipient></p><pre data-approval-payload></pre>
         <label><input type="checkbox" data-approval-consent> <span data-approval-description>Share this exact input with this peer as public data</span></label>
         <label data-approval-remember-label hidden><input type="checkbox" data-approval-remember> Also allow future messages and attached text in this thread to this recipient, using this model, until revoked</label>
         <div class="chat-network-actions"><button class="btn pool-button btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn pool-button btn-ghost" type="button" data-approval-decline>Decline</button></div>
@@ -44,10 +44,13 @@ export function renderConversationWorkspace() {
       <p data-model-status role="status" hidden></p>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
-        <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="${escape(pickGoalPlaceholder())}"></textarea></div>
+        <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="Ask a question, or attach documents to compare."></textarea></div>
         <div class="chat-composer-toolbar">
           <label class="btn pool-button btn-ghost chat-file-label pool-focus-within">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
+          <button class="btn pool-button btn-ghost" type="button" data-comparison-sample>Try sample documents</button>
+          <button class="btn pool-button btn-primary" type="submit" data-composer-compare hidden>Compare documents</button>
           <button class="btn pool-button btn-primary" type="submit" data-composer-send>Send</button>
+          <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
           <button class="btn pool-button btn-ghost" type="button" data-composer-stop hidden>Stop</button>
         </div><div class="chat-attachments" data-attachments-preview hidden></div>
       </form></footer>
@@ -64,6 +67,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   const contributionSelect = find('[data-contribution-model]');
   let files = [], fileRevision = 0, reading = false, approvalKey = '', messageKey = '', listKey = '', grantsKey = '';
   const drafts = new Map();
+  const persisted = session.getDraft?.(session.getState().selectedId);
+  if (persisted) { input.value = persisted.text; files = persisted.files; }
+  const saveDraft = () => {
+    const value = { text: input.value, files };
+    drafts.set(selectedId, structuredClone(value)); session.saveDraft?.(selectedId, value);
+  };
   let selectedId = session.getState().selectedId;
   const error = cause => {
     const node = find('[data-chat-error]');
@@ -77,13 +86,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   };
   const showFiles = () => {
     const preview = find('[data-attachments-preview]'); preview.hidden = !files.length;
+    find('[data-composer-compare]').hidden = files.length < 2;
     preview.innerHTML = files.map((file, index) => `<span>${escape(file.name)} <button type="button" class="btn pool-button btn-ghost" data-remove-file="${index}" aria-label="Remove ${escape(file.name)}">Remove</button></span>`).join('');
   };
   const render = state => {
     if (controller.signal.aborted) return;
     if (selectedId !== state.selectedId) {
       drafts.set(selectedId, { text: input.value, files }); selectedId = state.selectedId; fileRevision++;
-      const draft = drafts.get(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
+      const draft = drafts.get(selectedId) || session.getDraft?.(selectedId); input.value = draft?.text || ''; files = draft?.files || []; showFiles();
     }
     const thread = state.activeThread, catalogModels = state.models || [];
     const keyFor = model => model?.selectionId || model?.id;
@@ -128,19 +138,37 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
         return `<button type="button" class="chat-thread-item" data-thread-item-id="${escape(item.id)}" aria-current="${item.id === state.selectedId ? 'true' : 'false'}"><span>${escape(title)}</span>${status && status !== 'completed' ? `<small>${escape(status)}</small>` : ''}</button>`;
       }).join('');
     }
-    const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id), execution = attempt?.execution;
+    const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase, execution = attempt?.execution;
     const location = execution?.placement === 'two-device-layer-partition' ? 'Two contributors' : execution?.peerId ? 'Peer ' + execution.peerId.slice(0, 8) : execution?.placement === 'local-webgpu' ? 'This device' : '';
-    find('[data-execution-state]').textContent = [location, attempt?.status].filter(Boolean).join(' · ');
+    find('[data-execution-state]').textContent = [location, state.comparisonPhase || attempt?.status].filter(Boolean).join(' · ');
     find('[data-composer-send]').hidden = busy; find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;
+    find('[data-composer-compare]').disabled = busy || reading || !usable;
+    find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
     const stream = find('[data-message-stream]'), nextMessages = JSON.stringify([thread?.id, thread?.messages, usable, busy]);
     if (nextMessages !== messageKey) {
       const nearBottom = stream.scrollHeight - stream.scrollTop - stream.clientHeight < 80;
       messageKey = nextMessages;
+      let passageTargets = new Map();
       stream.innerHTML = (thread?.messages || []).map(m => {
         const retryable = m.attemptId === attempt?.id && !busy && ['failed', 'cancelled', 'interrupted'].includes(m.status);
-        return `<article class="chat-message-row is-${m.role === 'user' ? 'user' : 'assistant'}"><span class="chat-message-author">${m.role === 'user' ? 'You' : 'Assistant'}</span><div class="chat-message-content">${escape(m.content)}</div>${retryable
+        const source = m.role === 'user' && session.getDocumentSources?.(m.content);
+        let body = escape(m.content);
+        if (source) {
+          passageTargets = new Map();
+          body = escape(source.question.split('\n')[0]) + source.documents.map(document => `<details><summary>${escape(document.name)}</summary>`
+            + document.passages.map(passage => {
+              const anchor = `source-${m.id}-${passage.id.replace(':', '-')}`;
+              passageTargets.set(passage.id, anchor);
+              return `<p id="${escape(anchor)}" tabindex="-1"><strong>[${escape(passage.id)}]</strong> ${escape(passage.text)}</p>`;
+            }).join('') + '</details>').join('');
+        } else if (m.role === 'assistant') {
+          body = body.replace(/\[(D\d+:P\d+)\]/g, (label, id) => passageTargets.has(id)
+            ? `<a href="#${escape(passageTargets.get(id))}" data-source-reference>${label}</a>`
+            : `<span title="No supplied passage has this reference">${label}</span>`);
+        }
+        return `<article class="chat-message-row is-${m.role === 'user' ? 'user' : 'assistant'}"><span class="chat-message-author">${m.role === 'user' ? 'You' : 'Assistant'}</span><div class="chat-message-content">${body}</div>${retryable
           ? `<button class="btn pool-button btn-ghost" type="button" data-retry-attempt="${escape(m.attemptId)}"${usable ? '' : ' disabled'}>Retry response</button><small>Starts a new attempt; keeps this response.</small>` : ''}</article>`;
       }).join('');
       if (nearBottom) stream.scrollTop = stream.scrollHeight;
@@ -202,8 +230,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     find('[data-toggle-file-contribution]').textContent = sharingFiles ? 'Stop sharing files' : 'Start sharing files';
   };
   const unsubscribe = session.subscribe(render);
-  on('[data-new-thread]', 'click', () => { session.select(null); input.placeholder = pickGoalPlaceholder(input.placeholder); input.focus(); });
-  on('[data-thread-list]', 'click', event => { const button = event.target.closest('[data-thread-item-id]'); if (button) session.select(button.dataset.threadItemId); });
+  showFiles();
+  on('[data-composer-input]', 'input', () => { try { saveDraft(); } catch (cause) { error(cause); } });
+  on('[data-new-thread]', 'click', () => { saveDraft(); session.select(null); input.focus(); });
+  on('[data-thread-list]', 'click', event => { const button = event.target.closest('[data-thread-item-id]'); if (button) { saveDraft(); session.select(button.dataset.threadItemId); } });
   on('[data-composer-form]', 'submit', event => {
     event.preventDefault();
     const content = input.value.trim(), state = session.getState();
@@ -213,7 +243,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value), attachments = files.map(file => ({ ...file }));
       const threadId = state.selectedId || session.createThread({ model, sharingScope: 'mesh' });
       input.value = content; files = attachments; showFiles();
-      const completion = session.send(threadId, content, attachments);
+      const compare = event.submitter?.hasAttribute('data-composer-compare');
+      const completion = compare ? session.compareDocuments(threadId, content, attachments) : session.send(threadId, content, attachments);
+      session.saveDraft?.(null, null); session.saveDraft?.(threadId, null);
       input.value = ''; files = []; drafts.delete(null); drafts.delete(threadId); showFiles();
       await completion;
     });
@@ -234,11 +266,28 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
         if (chosen.length + files.length > 8 || chosen.some(file => file.size > 65536) || [...chosen, ...files].reduce((sum, file) => sum + (file.size ?? file.bytes), 0) > 131072) throw new Error('Attach up to 8 text files, 64 KB each and 128 KB total.');
         const loaded = await Promise.all(chosen.map(async file => ({ name: file.name, bytes: file.size, text: await file.text() })));
         if (controller.signal.aborted || revision !== fileRevision) return;
-        files.push(...loaded); showFiles();
+        files.push(...loaded); saveDraft(); showFiles();
       } finally { reading = false; if (!controller.signal.aborted) render(session.getState()); }
     });
   });
-  on('[data-attachments-preview]', 'click', event => { const button = event.target.closest('[data-remove-file]'); if (button) { files.splice(Number(button.dataset.removeFile), 1); showFiles(); } });
+  on('[data-attachments-preview]', 'click', event => { const button = event.target.closest('[data-remove-file]'); if (button) { files.splice(Number(button.dataset.removeFile), 1); saveDraft(); showFiles(); } });
+  on('[data-comparison-sample]', 'click', () => act(() => {
+    if (session.getState().runningIds.includes(selectedId)) return;
+    files = structuredClone(comparisonSample.files); input.value = comparisonSample.question;
+    saveDraft(); showFiles(); input.focus();
+  }));
+  on('[data-conversation-download]', 'click', () => act(() => {
+    const text = session.exportConversation(selectedId);
+    const url = URL.createObjectURL(new Blob([text], { type: 'text/markdown;charset=utf-8' }));
+    const link = document.createElement('a'); link.href = url; link.download = 'reploid-conversation.md';
+    link.click(); setTimeout(() => URL.revokeObjectURL(url), 0);
+  }));
+  on('[data-message-stream]', 'click', event => {
+    const link = event.target.closest('[data-source-reference]');
+    if (!link) return;
+    const target = document.getElementById(link.getAttribute('href').slice(1));
+    if (target) { event.preventDefault(); target.closest('details').open = true; target.focus(); target.scrollIntoView({ block: 'nearest' }); }
+  });
   on('[data-toggle-inspector]', 'click', () => setNetworkOpen(find('[data-contextual-inspector]').hidden));
   on('[data-close-inspector]', 'click', () => setNetworkOpen(false));
   on('[data-mesh-connect]', 'click', () => act(() => find('[data-mesh-connect]').dataset.disconnect === 'true'

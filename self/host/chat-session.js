@@ -7,6 +7,9 @@ import { createChatWorkspace } from '../vendor/reploid/chat/index.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { createChatExecution } from './chat-execution.js';
 import { projectChatCatalog, projectChatPlacements } from './chat-view.js';
+import { createChatDrafts } from './chat-drafts.js';
+import { comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
+import chatPolicy from '../vendor/reploid/chat/policy.json' with { type: 'json' };
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
@@ -50,6 +53,10 @@ export function createChatSession({
 
   // Catalog identity is resolved once; discovery snapshots cannot mutate it.
   models = copy(models);
+  const drafts = createChatDrafts({ storage, key: `${STORAGE_KEY}:drafts`, maxThreads: chatPolicy.maxThreads,
+    maxCharacters: chatPolicy.maxMessageCharacters, maxFiles: profile.files.maxInputs,
+    maxFileBytes: profile.files.maxFileBytes, maxInputBytes: profile.files.maxInputBytes });
+  const comparisons = new Map();
   const listeners = new Set();
   let closed = false, closing = null;
   const assertOpen = () => assert(!closed, 'Chat session is closed');
@@ -91,6 +98,7 @@ export function createChatSession({
       ...wsState,
       closed,
       activeThread,
+      comparisonPhase: comparisons.get(wsState.selectedId)?.phase || null,
       models: catalog,
       defaultModel: preferred(catalog.filter(model => model.availability === 'ready'))
         || preferred(catalog.filter(model => model.availability === 'busy')) || preferred(catalog) || null,
@@ -117,6 +125,26 @@ export function createChatSession({
       return () => listeners.delete(listener);
     },
     refreshNetwork: notifyAll,
+    getDraft: drafts.get,
+    saveDraft: drafts.save,
+    getDocumentSources: comparisonSources,
+    exportConversation(threadId) {
+      assertOpen();
+      return comparisonExport(workspace.getState().threads.find(thread => thread.id === threadId));
+    },
+    compareDocuments(threadId, question, files) {
+      assertOpen();
+      assert(!comparisons.has(threadId), 'This comparison is already running');
+      const input = comparisonInput(question, files);
+      const controller = new AbortController(), operation = { controller, phase: 'comparing' };
+      comparisons.set(threadId, operation);
+      return (async () => { try {
+        const draft = await workspace.send(threadId, input);
+        if (draft.status !== 'completed' || controller.signal.aborted) return draft;
+        operation.phase = 'checking'; notifyAll();
+        return await workspace.send(threadId, COMPARISON_CHECK);
+      } finally { comparisons.delete(threadId); notifyAll(); } })();
+    },
     createThread({ model = getSessionState().defaultModel, purpose = '', sharingScope = 'mesh' } = {}) {
       assertOpen();
       assert(model, 'Model required to create thread');
@@ -147,10 +175,12 @@ export function createChatSession({
     },
     cancel(threadId) {
       assertOpen();
+      comparisons.get(threadId)?.controller.abort();
       return workspace.cancel(threadId);
     },
     cancelAll() {
       assertOpen();
+      for (const operation of comparisons.values()) operation.controller.abort();
       const state = workspace.getState();
       for (const tid of state.runningIds) {
         workspace.cancel(tid);
@@ -167,7 +197,9 @@ export function createChatSession({
     revokeGrant(threadId, grantId) { assertOpen(); workspace.revokeGrant(threadId, grantId); },
     closeThread(threadId) {
       assertOpen();
+      comparisons.get(threadId)?.controller.abort();
       workspace.closeThread(threadId);
+      drafts.save(threadId, null);
     },
     async discoverPeers() {
       assertOpen();
@@ -226,6 +258,7 @@ export function createChatSession({
     close() {
       if (closing) return closing;
       closed = true;
+      for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {
         try { await workspace.close(); }

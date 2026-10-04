@@ -1,0 +1,683 @@
+import {
+  modelExists,
+  openModelStore,
+  loadManifestFromStore,
+  saveManifest,
+  deleteModel,
+  getFileStoredSize,
+  loadFileFromStore,
+  computeHash,
+  computeSHA256,
+} from './shard-manager.js';
+import { requireManifestHashAlgorithm } from './shards/integrity.js';
+import { createOpfsArtifactStorageContext } from './artifact-storage-context.js';
+import { downloadModel, estimateTimeRemaining, formatSpeed } from './downloader.js';
+import { createAbortError } from './download/retry.js';
+import { isOPFSAvailable, formatBytes } from './quota.js';
+import { parseManifest, getManifestUrl, getExpectedShardHash } from '../formats/rdrr/index.js';
+import { getRuntimeConfig } from '../config/runtime.js';
+import { cloneJsonValue } from '../formats/clone-json.js';
+import { log } from '../debug/index.js';
+import {
+  resolveSourceArtifact,
+  verifyStoredSourceArtifact,
+} from './source-artifact-store.js';
+
+const MODULE = 'OPFSCache';
+let cacheOperationQueue = Promise.resolve();
+let cacheOperationSequence = 0;
+let cacheQueueDepth = 0;
+
+function runCacheOperation(modelId, onProgress, run) {
+  const operationId = ++cacheOperationSequence;
+  const enqueuedAtMs = performance.now();
+  const queueDepth = ++cacheQueueDepth;
+  try {
+    onProgress?.({ stage: 'cache-queued', modelId, operationId, queueDepth,
+      queueWaitMs: 0, message: `OPFS cache operation queued: ${modelId}`, percent: 0 });
+  } catch (error) {
+    cacheQueueDepth--;
+    throw error;
+  }
+  const execute = async () => {
+    try {
+      onProgress?.({ stage: 'cache-start', modelId, operationId, queueDepth,
+        queueWaitMs: Math.max(0, performance.now() - enqueuedAtMs),
+        message: `OPFS cache operation started: ${modelId}`, percent: 0 });
+      return await run();
+    } finally {
+      cacheQueueDepth--;
+    }
+  };
+  const operation = cacheOperationQueue.then(execute, execute);
+  cacheOperationQueue = operation.then(() => undefined, () => undefined);
+  return operation;
+}
+
+function toErrorMessage(error) {
+  if (error instanceof Error && typeof error.message === 'string' && error.message.length > 0) {
+    return error.message;
+  }
+  return String(error);
+}
+
+function throwIfAborted(signal) {
+  if (signal?.aborted) throw createAbortError();
+}
+
+function normalizeExpectedManifestHash(value) {
+  const raw = value && typeof value === 'object'
+    ? value.hex ?? value.hash ?? value.digest ?? ''
+    : value;
+  const normalized = String(raw || '').trim().toLowerCase().replace(/^sha256:/, '');
+  if (!normalized) return null;
+  if (!/^[0-9a-f]{64}$/.test(normalized)) {
+    throw new Error('expectedManifestHash must be a SHA-256 hex digest.');
+  }
+  return normalized;
+}
+
+function manifestTotalBytes(manifest) {
+  const declared = Number(manifest?.totalSize);
+  if (Number.isFinite(declared) && declared >= 0) return Math.floor(declared);
+  const shards = Array.isArray(manifest?.shards) ? manifest.shards : [];
+  return shards.reduce((total, shard) => {
+    const size = Number(shard?.size);
+    return total + (Number.isFinite(size) && size > 0 ? Math.floor(size) : 0);
+  }, 0);
+}
+
+async function sha256Text(text) {
+  return computeSHA256(new TextEncoder().encode(String(text || '')));
+}
+
+function normalizeShardDescriptor(shard, hashAlgorithm = null) {
+  return {
+    filename: shard?.filename || shard?.fileName || null,
+    size: Number.isFinite(shard?.size) ? shard.size : null,
+    hash: getExpectedShardHash(shard, hashAlgorithm) || null,
+  };
+}
+
+function hasSameShardSet(aManifest, bManifest) {
+  const aShards = Array.isArray(aManifest?.shards) ? aManifest.shards : [];
+  const bShards = Array.isArray(bManifest?.shards) ? bManifest.shards : [];
+  if (aShards.length !== bShards.length) {
+    return false;
+  }
+  for (let i = 0; i < aShards.length; i += 1) {
+    const a = normalizeShardDescriptor(aShards[i], aManifest?.hashAlgorithm);
+    const b = normalizeShardDescriptor(bShards[i], bManifest?.hashAlgorithm);
+    if (a.filename !== b.filename || a.size !== b.size || a.hash !== b.hash) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function preserveCachedSourceRuntimeMetadata(remoteManifest, cachedManifest) {
+  const cachedSourceRuntime = cachedManifest?.metadata?.sourceRuntime;
+  if (!cachedSourceRuntime || typeof cachedSourceRuntime !== 'object') {
+    return {
+      manifest: remoteManifest,
+      changed: false,
+    };
+  }
+  if (resolveSourceArtifact(remoteManifest)) {
+    return {
+      manifest: remoteManifest,
+      changed: false,
+    };
+  }
+
+  const mergedManifest = cloneJsonValue(remoteManifest);
+  if (!mergedManifest || typeof mergedManifest !== 'object' || Array.isArray(mergedManifest)) {
+    return {
+      manifest: remoteManifest,
+      changed: false,
+    };
+  }
+
+  const metadata = (
+    mergedManifest.metadata
+    && typeof mergedManifest.metadata === 'object'
+    && !Array.isArray(mergedManifest.metadata)
+  )
+    ? cloneJsonValue(mergedManifest.metadata)
+    : {};
+  metadata.sourceRuntime = cloneJsonValue(cachedSourceRuntime);
+  mergedManifest.metadata = metadata;
+
+  return {
+    manifest: mergedManifest,
+    changed: true,
+  };
+}
+
+// buildManifestFingerprint compares a deliberate subset of manifest fields.
+// Compared fields (partial match by design):
+//   - modelId, modelHash, hashAlgorithm: identity and integrity algorithm
+//   - quantization, quantizationInfo (weights/embeddings/compute/variantTag/layout):
+//     determines weight format compatibility
+//   - inference.layerPattern (type/globalPattern/period/offset/layerTypes):
+//     determines layer dispatch structure
+//   - shards (filename/size/hash per shard): data identity
+//   - sourceArtifactFingerprint: tracks direct-source asset changes
+//
+// NOT compared (intentionally excluded because they change without affecting
+// cached shard validity):
+//   - manifest.version, manifest.config, manifest.architecture,
+//     manifest.inference.execution, manifest.tokenizer, manifest.moeConfig,
+//     manifest.inference.attention, manifest.inference.output
+// This partial match avoids spurious re-downloads when only non-shard-affecting
+// metadata changes. Cache hits still require exact manifest-text equality below;
+// when text changes but shards do not, we refresh only the cached manifest.
+function buildManifestFingerprint(manifest) {
+  const sourceArtifactFingerprint = resolveSourceArtifact(manifest)?.fingerprint ?? null;
+  const inference = manifest?.inference ?? {};
+  const layerPattern = inference?.layerPattern ?? {};
+  const quantizationInfo = manifest?.quantizationInfo ?? {};
+  const shards = Array.isArray(manifest?.shards)
+    ? manifest.shards.map((shard) => normalizeShardDescriptor(shard, manifest.hashAlgorithm))
+    : [];
+  return JSON.stringify({
+    modelId: manifest?.modelId ?? null,
+    modelHash: manifest?.modelHash ?? null,
+    hashAlgorithm: manifest?.hashAlgorithm ?? null,
+    quantization: manifest?.quantization ?? null,
+    quantizationInfo: {
+      weights: quantizationInfo.weights ?? null,
+      embeddings: quantizationInfo.embeddings ?? null,
+      compute: quantizationInfo.compute ?? null,
+      variantTag: quantizationInfo.variantTag ?? null,
+      layout: quantizationInfo.layout ?? null,
+    },
+    inference: {
+      layerPattern: {
+        type: layerPattern.type ?? null,
+        globalPattern: layerPattern.globalPattern ?? null,
+        period: layerPattern.period ?? null,
+        offset: layerPattern.offset ?? null,
+        layerTypes: Array.isArray(layerPattern.layerTypes)
+          ? [...layerPattern.layerTypes]
+          : null,
+      },
+    },
+    shards,
+    sourceArtifactFingerprint,
+  });
+}
+
+async function fetchRemoteManifest(modelBaseUrl, signal = null) {
+  const manifestUrl = getManifestUrl(modelBaseUrl);
+  const response = await fetch(manifestUrl, { cache: 'no-store', signal });
+  if (!response.ok) {
+    throw new Error(`manifest fetch failed (${response.status})`);
+  }
+  const text = await response.text();
+  return { text, manifest: parseManifest(text) };
+}
+
+async function loadCachedManifest(modelId) {
+  await openModelStore(modelId);
+  const text = await loadManifestFromStore();
+  if (!text) {
+    return { text: null, manifest: null };
+  }
+  try {
+    return { text, manifest: parseManifest(text) };
+  } catch (error) {
+    // Legacy metadata may describe reusable bytes, but is never an execution
+    // manifest. Only a separately validated source can authorize cache refresh.
+    let unvalidatedManifest = null;
+    try {
+      const metadata = JSON.parse(text);
+      if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+        unvalidatedManifest = metadata;
+      }
+    } catch {
+      // Malformed JSON cannot even supply shard-comparison metadata.
+    }
+    log.warn(
+      MODULE,
+      `Cached manifest for "${modelId}" is not executable; source refresh required: ${toErrorMessage(error)}`
+    );
+    return { text, manifest: null, unvalidatedManifest };
+  }
+}
+
+async function verifyCachedArtifact(manifest) {
+  if (resolveSourceArtifact(manifest)) {
+    return verifyStoredSourceArtifact(manifest, { checkHashes: true });
+  }
+  // A persistent cache hit is security-relevant: a matching filename and
+  // length do not establish that the bytes still match the immutable model
+  // contract. Verify the manifest-declared shard digests before exposing OPFS
+  // bytes to a runtime load or calling the cache a verified hit.
+  // Use this validated manifest, not the parser's process-global current
+  // manifest, which another remote or cached parse may have replaced.
+  const algorithm = requireManifestHashAlgorithm(manifest, 'cache integrity check');
+  const missingShards = [];
+  const corruptShards = [];
+  for (let i = 0; i < manifest.shards.length; i += 1) {
+    const shard = manifest.shards[i];
+    const storedSize = await getFileStoredSize(shard.filename);
+    if (storedSize == null) {
+      missingShards.push(i);
+      continue;
+    }
+    if (storedSize !== shard.size) {
+      corruptShards.push(i);
+      continue;
+    }
+    const expectedHash = getExpectedShardHash(shard, algorithm);
+    if (!expectedHash) {
+      corruptShards.push(i);
+      continue;
+    }
+    const bytes = await loadFileFromStore(shard.filename);
+    if (await computeHash(bytes, algorithm) !== expectedHash) {
+      corruptShards.push(i);
+    }
+  }
+  return {
+    valid: missingShards.length === 0 && corruptShards.length === 0,
+    missingShards,
+    corruptShards,
+  };
+}
+
+async function resolvePinnedCacheHit(modelId, expectedManifestHash, onProgress, signal = null) {
+  throwIfAborted(signal);
+  if (!expectedManifestHash || !isOPFSAvailable() || !await modelExists(modelId)) {
+    return null;
+  }
+  try {
+    throwIfAborted(signal);
+    const cachedManifest = await loadCachedManifest(modelId);
+    if (!cachedManifest.text || !cachedManifest.manifest) return null;
+    if (await sha256Text(cachedManifest.text) !== expectedManifestHash) return null;
+    throwIfAborted(signal);
+    const integrity = await verifyCachedArtifact(cachedManifest.manifest);
+    if (!integrity.valid) return null;
+    throwIfAborted(signal);
+    const totalBytes = manifestTotalBytes(cachedManifest.manifest);
+    onProgress?.({
+      stage: 'cache-hit',
+      modelId,
+      message: `Verified OPFS cache hit: ${modelId}`,
+      percent: 100,
+      totalBytes,
+      downloadedBytes: totalBytes,
+    });
+    return {
+      cached: true,
+      fromCache: true,
+      cacheState: 'verified-hit',
+      modelId,
+      error: null,
+      manifestText: cachedManifest.text,
+      manifestHash: expectedManifestHash,
+      manifest: cachedManifest.manifest,
+      totalBytes,
+    };
+  } catch (error) {
+    if (error?.name === 'AbortError') throw error;
+    log.warn(MODULE, `Pinned cache validation failed for "${modelId}": ${toErrorMessage(error)}`);
+    return null;
+  }
+}
+
+function buildDownloadProgress(progress) {
+  if (!progress) return null;
+  const totalBytes = Number.isFinite(progress.totalBytes) ? progress.totalBytes : 0;
+  const downloadedBytes = Number.isFinite(progress.downloadedBytes) ? progress.downloadedBytes : 0;
+  const speed = Number.isFinite(progress.speed) ? progress.speed : 0;
+  const remainingBytes = Math.max(0, totalBytes - downloadedBytes);
+  return {
+    stage: 'downloading',
+    modelId: progress.modelId || null,
+    totalShards: Number.isFinite(progress.totalShards) ? progress.totalShards : 0,
+    completedShards: Number.isFinite(progress.completedShards) ? progress.completedShards : 0,
+    totalBytes,
+    downloadedBytes,
+    percent: Number.isFinite(progress.percent) ? progress.percent : 0,
+    speed,
+    speedFormatted: speed > 0 ? formatSpeed(speed) : '',
+    totalFormatted: totalBytes > 0 ? formatBytes(totalBytes) : '',
+    downloadedFormatted: downloadedBytes > 0 ? formatBytes(downloadedBytes) : '',
+    eta: speed > 0 && remainingBytes > 0 ? estimateTimeRemaining(remainingBytes, speed) : '',
+    message: buildDownloadStatusLine(progress, speed, remainingBytes),
+  };
+}
+
+function buildDownloadStatusLine(progress, speed, remainingBytes) {
+  const parts = [];
+  const downloaded = Number.isFinite(progress.downloadedBytes) ? formatBytes(progress.downloadedBytes) : '0 B';
+  const total = Number.isFinite(progress.totalBytes) ? formatBytes(progress.totalBytes) : '?';
+  parts.push(`${downloaded} / ${total}`);
+  if (Number.isFinite(progress.completedShards) && Number.isFinite(progress.totalShards)) {
+    parts.push(`shard ${progress.completedShards}/${progress.totalShards}`);
+  }
+  if (speed > 0) {
+    parts.push(formatSpeed(speed));
+  }
+  if (speed > 0 && remainingBytes > 0) {
+    parts.push(`~${estimateTimeRemaining(remainingBytes, speed)} remaining`);
+  }
+  return parts.join(' | ');
+}
+
+async function ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress = null, options = {}) {
+  const signal = options?.signal || null;
+  const expectedManifestHash = normalizeExpectedManifestHash(options.expectedManifestHash);
+  throwIfAborted(signal);
+  if (!modelId || !modelBaseUrl) {
+    return {
+      cached: false,
+      fromCache: false,
+      cacheState: 'error',
+      modelId,
+      error: 'missing-args',
+    };
+  }
+
+  if (!isOPFSAvailable()) {
+    log.warn(MODULE, 'OPFS not available in this browser');
+    return {
+      cached: false,
+      fromCache: false,
+      cacheState: 'error',
+      modelId,
+      error: 'opfs-unavailable',
+    };
+  }
+
+  let needsFullImport = false;
+
+  try {
+    const exists = await modelExists(modelId);
+    throwIfAborted(signal);
+    if (exists) {
+      try {
+        const [{ text: remoteManifestText, manifest: remoteManifest }, cachedPayload] = await Promise.all([
+          fetchRemoteManifest(modelBaseUrl, signal),
+          loadCachedManifest(modelId),
+        ]);
+        throwIfAborted(signal);
+        if (expectedManifestHash && await sha256Text(remoteManifestText) !== expectedManifestHash) {
+          throw new Error(`Remote manifest hash mismatch for "${modelId}"; cached model left unchanged.`);
+        }
+        const cachedManifestText = cachedPayload.text;
+        // Raw legacy metadata participates only in comparison, never execution.
+        const cachedManifest = cachedPayload.manifest ?? cachedPayload.unvalidatedManifest;
+
+        if (!cachedManifestText || !cachedManifest) {
+          log.warn(MODULE, `Cache miss: "${modelId}" has no readable manifest in OPFS; re-importing`);
+          needsFullImport = true;
+        } else {
+          const cachedSourceArtifact = resolveSourceArtifact(cachedManifest);
+          const sourceIntegrity = cachedSourceArtifact
+            ? await verifyStoredSourceArtifact(cachedManifest, { checkHashes: true })
+            : null;
+          const sourceIntegrityValid = !sourceIntegrity || sourceIntegrity.valid;
+          if (sourceIntegrity && !sourceIntegrity.valid) {
+            log.warn(
+              MODULE,
+              `Cache stale: "${modelId}" direct-source assets are incomplete (${sourceIntegrity.missingFiles.join(', ')})`
+            );
+          }
+          const cachedFingerprint = buildManifestFingerprint(cachedManifest);
+          const remoteFingerprint = buildManifestFingerprint(remoteManifest);
+          const manifestTextMatches = cachedManifestText === remoteManifestText;
+          if (cachedPayload.manifest && sourceIntegrityValid && manifestTextMatches && cachedFingerprint === remoteFingerprint) {
+            const shardIntegrity = cachedSourceArtifact
+              ? sourceIntegrity
+              : await verifyCachedArtifact(cachedManifest);
+            if (shardIntegrity.valid) {
+              log.info(MODULE, `Cache hit: "${modelId}"`);
+              onProgress?.({ stage: 'cache-hit', modelId, message: `OPFS cache hit: ${modelId}`, percent: 100 });
+              return {
+                cached: true,
+                fromCache: true,
+                cacheState: 'hit',
+                modelId,
+                error: null,
+              };
+            }
+            log.warn(
+              MODULE,
+              `Cache incomplete: "${modelId}" is missing shards ${shardIntegrity.missingShards.join(', ')}`
+            );
+            needsFullImport = true;
+          }
+
+          if (!needsFullImport) {
+            const sameShards = hasSameShardSet(cachedManifest, remoteManifest);
+            const sameHashAlgorithm = (cachedManifest?.hashAlgorithm ?? null) === (remoteManifest?.hashAlgorithm ?? null);
+            if (sourceIntegrityValid && sameShards && sameHashAlgorithm) {
+              // A pinned manifest must retain its exact bytes. Invalid cached
+              // metadata must not contribute runtime configuration either.
+              const preservedManifest = expectedManifestHash || !cachedPayload.manifest
+                ? { manifest: remoteManifest, changed: false }
+                : preserveCachedSourceRuntimeMetadata(remoteManifest, cachedManifest);
+              const manifestTextToSave = preservedManifest.changed
+                ? JSON.stringify(preservedManifest.manifest)
+                : remoteManifestText;
+              const refreshManifest = preservedManifest.changed
+                ? parseManifest(manifestTextToSave)
+                : remoteManifest;
+              const integrity = await verifyCachedArtifact(refreshManifest);
+              throwIfAborted(signal);
+              if (integrity.valid) {
+                await openModelStore(modelId);
+                await saveManifest(manifestTextToSave);
+                const refreshMessage = preservedManifest.changed
+                  ? `Manifest refreshed: ${modelId} (verified shards unchanged, preserved direct-source metadata)`
+                  : `Manifest refreshed: ${modelId} (verified shards unchanged)`;
+                log.info(MODULE, `Cache manifest refreshed: "${modelId}" (cached bytes verified)`);
+                onProgress?.({ stage: 'cache-refresh', modelId, message: refreshMessage, percent: 100 });
+                return {
+                  cached: true,
+                  fromCache: false,
+                  cacheState: 'manifest-refresh',
+                  modelId,
+                  error: null,
+                };
+              }
+              log.warn(MODULE, `Cache integrity failed for "${modelId}"; metadata-only refresh refused`);
+            }
+          }
+
+          log.info(MODULE, `Cache stale: "${modelId}" manifest/shards changed; deleting old version and re-importing`);
+          onProgress?.({ stage: 'cache-invalidate', modelId, message: `Purging stale OPFS cache for ${modelId}`, percent: 0 });
+          try {
+            await deleteModel(modelId);
+            log.info(MODULE, `Deleted stale OPFS cache for "${modelId}"`);
+          } catch (deleteError) {
+            log.warn(MODULE, `Failed to delete stale cache for "${modelId}": ${toErrorMessage(deleteError)}`);
+          }
+          needsFullImport = true;
+        }
+      } catch (error) {
+        if (error?.name === 'AbortError') throw error;
+        const message = toErrorMessage(error);
+        log.warn(MODULE, `Cache validation failed (${message}); refusing cached model "${modelId}"`);
+        return {
+          cached: false,
+          fromCache: false,
+          cacheState: 'error',
+          modelId,
+          error: message,
+        };
+      }
+    }
+  } catch (error) {
+    if (error?.name === 'AbortError') throw error;
+    const message = toErrorMessage(error);
+    log.warn(MODULE, `Cache check failed: ${message}`);
+    return {
+      cached: false,
+      fromCache: false,
+      cacheState: 'error',
+      modelId,
+      error: message,
+    };
+  }
+
+  if (!needsFullImport) {
+    log.info(MODULE, `Cache miss: "${modelId}". Triggering full model download from ${modelBaseUrl}`);
+  }
+
+  onProgress?.({ stage: 'download-start', modelId, message: `Downloading ${modelId}...`, percent: 0 });
+
+  try {
+    const success = await downloadModel(modelBaseUrl, (progress) => {
+      if (signal?.aborted) return;
+      if (!progress) return;
+      const enriched = buildDownloadProgress(progress);
+      if (enriched) {
+        onProgress?.(enriched);
+      }
+      const shard = Number.isFinite(progress.completedShards) ? progress.completedShards : '?';
+      const total = Number.isFinite(progress.totalShards) ? progress.totalShards : '?';
+      const mb = Number.isFinite(progress.downloadedBytes)
+        ? (progress.downloadedBytes / (1024 * 1024)).toFixed(1)
+        : '?';
+      log.verbose(MODULE, `Shard ${shard}/${total} (${mb} MB)`);
+    }, { signal });
+
+    if (success) {
+      throwIfAborted(signal);
+      log.info(MODULE, `Import complete: "${modelId}"`);
+      onProgress?.({ stage: 'download-complete', modelId, message: `Download complete: ${modelId}`, percent: 100 });
+      return {
+        cached: true,
+        fromCache: false,
+        cacheState: 'imported',
+        modelId,
+        error: null,
+      };
+    }
+    return {
+      cached: false,
+      fromCache: false,
+      cacheState: 'error',
+      modelId,
+      error: 'download-incomplete',
+    };
+  } catch (error) {
+    if (error?.name === 'AbortError') throw error;
+    const message = toErrorMessage(error);
+    log.error(MODULE, `Import failed: ${message}`);
+    return {
+      cached: false,
+      fromCache: false,
+      cacheState: 'error',
+      modelId,
+      error: message,
+    };
+  }
+}
+
+export function ensureModelCached(modelId, modelBaseUrl, onProgress = null) {
+  return runCacheOperation(modelId, onProgress, () => ensureModelCachedUnlocked(modelId, modelBaseUrl, onProgress));
+}
+
+export function ensureModelCachedSource(modelId, modelBaseUrl, onProgress = null, options = {}) {
+  return runCacheOperation(modelId, onProgress, async () => {
+    const signal = options?.signal || null;
+    throwIfAborted(signal);
+    const expectedManifestHash = normalizeExpectedManifestHash(options.expectedManifestHash);
+    const pinnedHit = await resolvePinnedCacheHit(
+      modelId,
+      expectedManifestHash,
+      onProgress,
+      signal,
+    );
+    const cache = pinnedHit ?? await ensureModelCachedUnlocked(
+      modelId,
+      modelBaseUrl,
+      onProgress,
+      { signal, expectedManifestHash },
+    );
+    throwIfAborted(signal);
+    if (!cache.cached) {
+      throw new Error(`Persistent model cache failed for "${modelId}": ${cache.error || cache.cacheState}`);
+    }
+    const cachedManifest = cache.manifest && cache.manifestText
+      ? { manifest: cache.manifest, text: cache.manifestText }
+      : await loadCachedManifest(modelId);
+    if (!cachedManifest.text || !cachedManifest.manifest) {
+      throw new Error(`Persistent model cache for "${modelId}" has no readable manifest.`);
+    }
+    const manifestHash = await sha256Text(cachedManifest.text);
+    if (expectedManifestHash && manifestHash !== expectedManifestHash) {
+      await deleteModel(modelId).catch(() => {});
+      throw new Error(`Persistent model cache manifest hash mismatch for "${modelId}".`);
+    }
+    const runtime = getRuntimeConfig();
+    const opfsPath = runtime.loading.opfsPath;
+    const opfs = runtime.loading.storage.backend.opfs;
+    const storageContext = await createOpfsArtifactStorageContext(modelId, cachedManifest.manifest, {
+      opfsRootDir: opfsPath.opfsRootDir,
+      useSyncAccessHandle: opfs.useSyncAccessHandle,
+      maxConcurrentHandles: opfs.maxConcurrentHandles,
+      verifyHashes: false,
+      hashesTrusted: true,
+    });
+    if (signal?.aborted) {
+      await storageContext.close?.().catch(() => {});
+      throw createAbortError();
+    }
+    return {
+      ...cache,
+      manifest: cachedManifest.manifest,
+      manifestText: cachedManifest.text,
+      manifestHash,
+      storageContext,
+      storageBackend: 'opfs',
+      totalBytes: cache.totalBytes ?? manifestTotalBytes(cachedManifest.manifest),
+    };
+  });
+}
+
+export function loadPersistentModelSource(modelId, onProgress = null) {
+  return runCacheOperation(modelId, onProgress, async () => {
+    if (!isOPFSAvailable() || !await modelExists(modelId)) {
+      return null;
+    }
+    const cachedManifest = await loadCachedManifest(modelId);
+    if (!cachedManifest.text || !cachedManifest.manifest) {
+      return null;
+    }
+    const integrity = await verifyCachedArtifact(cachedManifest.manifest);
+    if (!integrity.valid) {
+      return null;
+    }
+    const manifestHash = await sha256Text(cachedManifest.text);
+    const runtime = getRuntimeConfig();
+    const opfsPath = runtime.loading.opfsPath;
+    const opfs = runtime.loading.storage.backend.opfs;
+    const storageContext = await createOpfsArtifactStorageContext(modelId, cachedManifest.manifest, {
+      opfsRootDir: opfsPath.opfsRootDir,
+      useSyncAccessHandle: opfs.useSyncAccessHandle,
+      maxConcurrentHandles: opfs.maxConcurrentHandles,
+      verifyHashes: false,
+      hashesTrusted: true,
+    });
+    return {
+      cached: true,
+      fromCache: true,
+      cacheState: 'verified-hit',
+      modelId,
+      error: null,
+      manifest: cachedManifest.manifest,
+      manifestText: cachedManifest.text,
+      manifestHash,
+      storageContext,
+      storageBackend: 'opfs',
+      totalBytes: manifestTotalBytes(cachedManifest.manifest),
+    };
+  });
+}

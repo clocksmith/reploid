@@ -1,0 +1,104 @@
+{
+  "id": "default",
+  "name": "default",
+  "description": "Default DOPPLER configuration with balanced settings",
+  "intent": "investigate",
+  "compatibleIntents": ["investigate"],
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "logOutput": {
+          "stdout": true,
+          "file": null,
+          "append": true
+        },
+        "logHistory": {
+          "maxLogHistoryEntries": 1000
+        },
+        "logLevel": {
+          "defaultLogLevel": "info"
+        },
+        "trace": {
+          "enabled": false,
+          "categories": [
+            "all"
+          ],
+          "layers": null,
+          "maxDecodeSteps": 0,
+          "file": null
+        }
+      }
+    },
+    "loading": {
+      "storage": {
+        "alignment": {
+          "bufferAlignmentBytes": 256
+        }
+      },
+      "distribution": {
+        "cdnBasePath": "https://huggingface.co",
+        "progressUpdateIntervalMs": 100
+      },
+      "allowF32UpcastNonMatmul": false
+    },
+    "inference": {
+      "compute": {
+        "activationDtype": "f16"
+      },
+      "prompt": "Hello from Doppler.",
+      "batching": {
+        "maxTokens": 128
+      },
+      "sampling": {
+        "temperature": 1,
+        "topK": 32,
+        "topP": 0.95,
+        "repetitionPenalty": 1,
+        "greedyThreshold": 0.01
+      },
+      "kvcache": {
+        "maxSeqLen": 8192,
+        "layout": "contiguous",
+        "pageSize": 256,
+        "kvDtype": "f16"
+      },
+      "moe": {
+        "routing": {
+          "topK": 2,
+          "routerDtype": "f32",
+          "normalizeWeights": true
+        },
+        "cache": {
+          "dequantCacheMaxEntries": 8
+        }
+      },
+      "session": {
+        "compute": {
+          "defaults": {
+            "activationDtype": "f16"
+          }
+        },
+        "kvcache": {
+          "maxSeqLen": 8192,
+          "layout": "contiguous",
+          "kvDtype": "f16",
+          "pageSize": 256
+        },
+        "useLargeBatchF16F32FusedGateUp": false,
+        "skipEmbeddingKVCacheWrites": false
+      },
+      "kernelPathPolicy": {
+        "mode": "capability-aware",
+        "sourceScope": [
+          "model",
+          "manifest",
+          "config"
+        ],
+        "onIncompatible": "remap"
+      }
+    }
+  }
+}
