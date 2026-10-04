@@ -5,8 +5,11 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
+import { observeBrowserNumerics } from './browser-numerical-observer.js';
 const reference = JSON.parse(await readFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, 'utf8'));
 const output = process.env.REPLOID_CAPTURE_OUT;
+const observationMode = process.env.DOPPLER_DISPATCH_OBSERVATION ?? 'dispatch';
+assert(['dispatch', 'layers'].includes(observationMode));
 const placement = process.env.DOPPLER_DISPATCH_PLACEMENT
   ?? (process.env.REPLOID_DIAGNOSTIC_A === 'mac' ? 'mac-linux' : 'linux-mac');
 assert(['linux-mac', 'mac-linux', 'mac-mac', 'linux-linux'].includes(placement), 'Explicit diagnostic placement required');
@@ -86,26 +89,28 @@ try {
     const page = await context.newPage(); pages.push(page);
     await page.goto('http://localhost:8000/config/chat-files.json');
     const metadata = [], observationErrors = [];
-    const cdp = await context.newCDPSession(page);
-    await cdp.send('Debugger.enable');
-    const lines = (sources.find(source => source.path === 'inference/pipelines/text/linear-attention.js')?.body
-      ?? await readFile('node_modules/doppler-gpu/src/inference/pipelines/text/linear-attention.js', 'utf8')).split('\n');
-    const bp = await cdp.send('Debugger.setBreakpointByUrl', {
-      urlRegex: '/pipelines/text/linear-attention\\.js$',
-      lineNumber: lines.findIndex(line => line.includes('let normedTensor = inputTensor;')),
-      condition: 'layerIdx === 0'
-    });
-    cdp.on('Debugger.paused', async event => {
-      try {
-        if (!event.hitBreakpoints.includes(bp.breakpointId)) return;
-        const value = await cdp.send('Debugger.evaluateOnCallFrame', {
-          callFrameId:event.callFrames[0].callFrameId,
-          expression:'(captureNormalizationInputs(inputTensor, layerWeights.inputNorm, numTokens, hiddenSize, recorder), {phase, layerIdx, kernelPath, dtype:inputTensor.dtype})', returnByValue:true });
-        if (value.exceptionDetails) throw Error(value.exceptionDetails.text);
-        metadata.push({data:value.result.value});
-      } catch(error) {observationErrors.push(error.message);}
-      finally {await cdp.send('Debugger.resume');}
-    });
+    const cdp = observationMode === 'dispatch' ? await context.newCDPSession(page) : null;
+    if (cdp) {
+      await cdp.send('Debugger.enable');
+      const lines = (sources.find(source => source.path === 'inference/pipelines/text/linear-attention.js')?.body
+        ?? await readFile('node_modules/doppler-gpu/src/inference/pipelines/text/linear-attention.js', 'utf8')).split('\n');
+      const bp = await cdp.send('Debugger.setBreakpointByUrl', {
+        urlRegex: '/pipelines/text/linear-attention\\.js$',
+        lineNumber: lines.findIndex(line => line.includes('let normedTensor = inputTensor;')),
+        condition: 'layerIdx === 0'
+      });
+      cdp.on('Debugger.paused', async event => {
+        try {
+          if (!event.hitBreakpoints.includes(bp.breakpointId)) return;
+          const value = await cdp.send('Debugger.evaluateOnCallFrame', {
+            callFrameId:event.callFrames[0].callFrameId,
+            expression:'(captureNormalizationInputs(inputTensor, layerWeights.inputNorm, numTokens, hiddenSize, recorder), {phase, layerIdx, kernelPath, dtype:inputTensor.dtype})', returnByValue:true });
+          if (value.exceptionDetails) throw Error(value.exceptionDetails.text);
+          metadata.push({data:value.result.value});
+        } catch(error) {observationErrors.push(error.message);}
+        finally {await cdp.send('Debugger.resume');}
+      });
+    }
     await page.evaluate(async () => {
       globalThis.numericalObservation = {};
       globalThis.normalizationInputObservations = [];
@@ -138,7 +143,8 @@ try {
         }
       };
     });
-    observers.push({read:async()=>({records:metadata,errors:observationErrors}),close:()=>cdp.detach()});
+    observers.push(cdp ? {read:async()=>({records:metadata,errors:observationErrors}),close:()=>cdp.detach()}
+      : await observeBrowserNumerics(page, 'node_modules/doppler-gpu'));
     const opened = await page.evaluate(async ({ reference, index }) => {
       const config = await import('/config/doppler-local-models.js');
       const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
@@ -216,7 +222,7 @@ try {
   }
   const bindingObservations = await Promise.all(pages.map(page => page.evaluate(() => globalThis.bindingObservations)));
   const inputObservations = await Promise.all(pages.map(page => page.evaluate(() => globalThis.normalizationInputObservations)));
-  await writeFile(output, JSON.stringify({ pipelineObservations, surface: 'browser', placement,
+  await writeFile(output, JSON.stringify({ pipelineObservations, surface: 'browser', placement, observationMode,
     sourceOverrides: sources.map(({ path, sha256 }) => ({ path, sha256 })),
     scope: sources.length ? 'Test-only source substitution over pinned package; not installed-package or P2P qualification'
       : 'Canonical package dispatch diagnosis with read-only operand copies; not P2P or numerical qualification',
