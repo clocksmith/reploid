@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-04",
+  "scope": "Replay eight identical captured pre-final-normalization rows through the existing isolated RMSNorm diagnostic on physical macOS Metal and Linux Vulkan. These are not integrated generation results.",
+  "inputCapturePackage": "0.6.3-dev.split.10.probe.1",
+  "kernelMatchesPinnedPackage": "0.6.3-dev.split.13",
+  "weightBytesSha256": "0b84acaee77234381e2d1b6d0c10aa7c31f715fd454abdc8d7bd64a5fecfbc55",
+  "kernelSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+  "evidenceSha256": "a3701c37192870983f1c60253ac9d64f0466d46f4cf57bd0f207a344eb252049",
+  "inputSha256": "889f358d29b6c3f52cc376b6471802f4a44d56e49d58e593a62dbd24de5e30b3",
+  "platforms": [
+    {
+      "platform": "mac",
+      "browser": "145.0.7632.6",
+      "adapter": {
+        "vendor": "apple",
+        "architecture": "metal-3",
+        "description": ""
+      }
+    },
+    {
+      "platform": "linux",
+      "browser": "146.0.7680.177",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "description": ""
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "prompt": 0,
+      "step": 0,
+      "variants": {
+        "canonical": 0.0,
+        "refined-f32-diagnostic": 0.0
+      }
+    },
+    {
+      "prompt": 0,
+      "step": 1,
+      "variants": {
+        "canonical": 0.0,
+        "refined-f32-diagnostic": 0.0
+      }
+    },
+    {
+      "prompt": 1,
+      "step": 0,
+      "variants": {
+        "canonical": 0.0,
+        "refined-f32-diagnostic": 0.0
+      }
+    },
+    {
+      "prompt": 1,
+      "step": 1,
+      "variants": {
+        "canonical": 0.0,
+        "refined-f32-diagnostic": 0.0
+      }
+    },
+    {
+      "prompt": 2,
+      "step": 0,
+      "variants": {
+        "canonical": 0.0,
+        "refined-f32-diagnostic": 0.0
+      }
+    },
+    {
+      "prompt": 2,
+      "step": 1,
+      "variants": {
+        "canonical": 0.0,
+        "refined-f32-diagnostic": 0.0
+      }
+    },
+    {
+      "prompt": 2,
+      "step": 25,
+      "variants": {
+        "canonical": 0.0,
+        "refined-f32-diagnostic": 0.0
+      }
+    },
+    {
+      "prompt": 2,
+      "step": 50,
+      "variants": {
+        "canonical": 0.0,
+        "refined-f32-diagnostic": 0.0
+      }
+    }
+  ],
+  "finding": "The main entry point matches exactly for these identical inputs. A subsequent dispatch trace found that actual inference uses main_subgroup. This isolated main-entry result therefore does not qualify the final normalization used by the model or establish the generation failure cause.",
+  "numericallyQualified": false,
+  "weightTensor": {
+    "name": "model.language_model.norm.weight",
+    "shard": 11,
+    "offset": 52118208,
+    "size": 2048,
+    "dtype": "F16",
+    "shape": [
+      1024
+    ]
+  },
+  "parameters": {
+    "entryPoint": "main",
+    "workgroupSize": 256,
+    "epsilon": 1e-06,
+    "weightOffset": true,
+    "inputDtype": "f32",
+    "weightUpload": "lossless F16-to-F32 expansion"
+  }
+}
