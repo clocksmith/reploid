@@ -1,0 +1,12 @@
+{
+  "date": "2026-10-04",
+  "scope": "First physical verification after sharing-switch UI changes, with other browser tests running concurrently.",
+  "packageVersion": "0.6.3-dev.split.13",
+  "physicalDevices": 2,
+  "passed": false,
+  "stage": "selective peer acquisition",
+  "failure": "Pipeline load phase \"loadWeights\" failed: storageContext.loadShardRange failed for shard 15: No peer offers the required verified model piece",
+  "causeEstablished": false,
+  "followup": "Repeat without concurrent browser tests; mock recipient-grant test moved to a private namespace.",
+  "logSha256": "cd4102316e2f983675cf1ce2502d16717b1ac436dfdf42ccc10e75c4de203700"
+}

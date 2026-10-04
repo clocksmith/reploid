@@ -2,7 +2,7 @@
  * Views request host actions; task execution and disclosure enforcement live in the host.
  * Refactored into decomposed sub-components within a centered reading layout.
  */
-import { renderSharingControls } from './network-controls.js';
+import { renderSharingControls, renderConnectionControl } from './network-controls.js';
 import policy from '../../config/work-profile.json' with { type: 'json' };
 import { DEFAULT_WORK_MODELS, deriveOutcomeTags } from '../../host/work-session.js';
 import { renderOperationSharing } from './operation-sharing.js';
@@ -61,10 +61,11 @@ export function renderNetworkSurface() {
     </section>
     <section class="pool-surface network-card" aria-label="Connected peers">
       <header class="network-card-heading"><h2>Peers</h2><span data-mesh-peers>0 peers</span></header>
+      ${renderConnectionControl()}
       <ul class="network-peer-list" data-insp-device-list></ul>
       <footer class="network-card-heading"><p data-network-message role="status" hidden></p>
         <div class="chat-network-actions"><button class="btn pool-button btn-ghost" type="button" data-mesh-invite hidden>Invite</button>
-        <button class="btn pool-button btn-ghost" type="button" data-mesh-connect>Connect</button></div></footer>
+        </div></footer>
     </section>
     <details class="pool-disclosure network-advanced"><summary>Specialized model jobs</summary>
       <div class="pool-disclosure-body">${renderOperationSharing()}</div>

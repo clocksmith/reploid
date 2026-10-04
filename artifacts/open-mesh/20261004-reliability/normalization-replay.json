@@ -1,0 +1,69 @@
+{
+  "scope": "Isolated layer-zero normalization; eight captured input rows; candidate shader only in diagnostic; no integrated generation qualification",
+  "rawSha256": "ff25d460db7003b8c128c0a45c06c59045a88378faa3b881e4010faeb0533b29",
+  "captureSha256": "1d94bb4d6d0874242b7b428901c8d194b484c8e72a6c31dc016f7f43ae4f6665",
+  "diagnostic": "doppler/tests/kernels/rmsnorm-platform-diagnostic.js",
+  "adapters": [
+    {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "description": ""
+    },
+    {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "description": ""
+    }
+  ],
+  "comparison": [
+    {
+      "prompt": 0,
+      "step": 0,
+      "canonicalDifference": 4.76837158203125e-7,
+      "candidateDifference": 0
+    },
+    {
+      "prompt": 0,
+      "step": 1,
+      "canonicalDifference": 0,
+      "candidateDifference": 0
+    },
+    {
+      "prompt": 1,
+      "step": 0,
+      "canonicalDifference": 4.76837158203125e-7,
+      "candidateDifference": 0
+    },
+    {
+      "prompt": 1,
+      "step": 1,
+      "canonicalDifference": 4.76837158203125e-7,
+      "candidateDifference": 0
+    },
+    {
+      "prompt": 2,
+      "step": 0,
+      "canonicalDifference": 4.76837158203125e-7,
+      "candidateDifference": 0
+    },
+    {
+      "prompt": 2,
+      "step": 1,
+      "canonicalDifference": 7.152557373046875e-7,
+      "candidateDifference": 0
+    },
+    {
+      "prompt": 2,
+      "step": 25,
+      "canonicalDifference": 7.152557373046875e-7,
+      "candidateDifference": 0
+    },
+    {
+      "prompt": 2,
+      "step": 50,
+      "canonicalDifference": 0,
+      "candidateDifference": 0
+    }
+  ],
+  "qualification": "Isolated candidate agreement only. Does not establish the cause of accumulated logit differences, improved accuracy, or passing integrated generation."
+}

@@ -1,0 +1,245 @@
+/**
+ * browser-harness.ts - Browser diagnostics harness
+ *
+ * @module inference/browser-harness
+ */
+
+import type { InitializeResult, RuntimeOverrides, InferenceHarnessOptions } from './test-harness.js';
+import type { InferencePipeline } from './pipelines/text.js';
+import type { DiffusionPipeline } from '../experimental/diffusion/pipeline.js';
+import type { EnergyPipeline } from '../experimental/energy/pipeline.js';
+import type { SavedReportInfo, SaveReportOptions } from '../storage/reports.js';
+import type { DebugSnapshot } from '../debug/history.js';
+import type { CommandContext } from '../tooling/command-context.js';
+import type { ToolingIntent } from '../tooling/command-api.js';
+
+
+export interface RuntimeConfigLoadOptions {
+  baseUrl?: string;
+  profileBaseUrl?: string;
+  signal?: AbortSignal;
+}
+
+export type BrowserHarnessMode = 'verify' | 'debug' | 'bench';
+export type BrowserWorkload = 'kernels' | 'inference' | 'embedding' | 'rerank' | 'training' | 'diffusion' | 'energy';
+export type BrowserSuite = 'kernels' | 'inference' | 'embedding' | 'rerank' | 'training' | 'bench' | 'debug' | 'diffusion' | 'energy';
+
+export interface SuiteTestResult {
+  name: string;
+  passed: boolean;
+  duration: number;
+  error?: string;
+  skipped?: boolean;
+}
+
+export interface SuiteSummary {
+  suite: string;
+  passed: number;
+  failed: number;
+  skipped: number;
+  duration: number;
+  results: SuiteTestResult[];
+}
+
+export interface TrainingSuiteMetrics {
+  testsRun: number;
+  selectedTests: string[];
+  availableTests: string[];
+  trainingSchemaVersion?: number;
+}
+
+export interface TrainingSuiteResult extends SuiteSummary {
+  modelId: string;
+  metrics: TrainingSuiteMetrics;
+  deviceInfo: Record<string, unknown> | null;
+}
+
+export interface DiffusionOutput {
+  pixels: Uint8ClampedArray;
+  width: number;
+  height: number;
+}
+
+export interface BrowserSuiteOptions extends InferenceHarnessOptions {
+  mode?: BrowserHarnessMode;
+  workload?: BrowserWorkload;
+  suite?: BrowserSuite;
+  command?: string;
+  intent?: ToolingIntent;
+  commandContext?: CommandContext;
+  surface?: string;
+  expectedModelType?: 'embedding' | 'rerank';
+  inferenceInput?: {
+    prompt?: string | Record<string, unknown> | Array<unknown> | null;
+    image?: Record<string, unknown> | null;
+    maxTokens?: number | null;
+    softTokenBudget?: number | null;
+    sequence?: string | null;
+    sequenceAlphabet?: 'amino_acid' | 'nucleotide' | null;
+    includeTokenEmbeddings?: boolean | null;
+    includeLogits?: boolean | null;
+    probePositions?: number[] | null;
+    sequenceQualificationAbort?: 'before_execution' | 'after_start' | null;
+    sequenceQualificationStaleAfterStart?: boolean | null;
+  } | null;
+  modelUrl?: string;
+  modelId?: string;
+  workloadType?: string;
+  trainingTests?: string[];
+  trainingStage?: 'stage1_joint' | 'stage2_base' | 'stage_a' | 'stage_b';
+  trainingConfig?: Record<string, unknown>;
+  stage1Artifact?: string;
+  stage1ArtifactHash?: string;
+  ulArtifactDir?: string;
+  stageAArtifact?: string;
+  stageAArtifactHash?: string;
+  distillArtifactDir?: string;
+  teacherModelId?: string;
+  studentModelId?: string;
+  distillDatasetId?: string;
+  distillDatasetPath?: string;
+  distillLanguagePair?: string;
+  distillSourceLangs?: string[];
+  distillTargetLangs?: string[];
+  distillPairAllowlist?: string[];
+  strictPairContract?: boolean;
+  distillShardIndex?: number;
+  distillShardCount?: number;
+  resumeFrom?: string;
+  forceResume?: boolean;
+  forceResumeReason?: string;
+  forceResumeSource?: string;
+  checkpointOperator?: string;
+  trainingSchemaVersion?: number;
+  trainingBenchSteps?: number;
+  checkpointEvery?: number;
+  cacheMode?: 'cold' | 'warm' | null;
+  loadMode?: 'opfs' | 'http' | 'memory' | null;
+  configChain?: string[] | null;
+  runtimeProfile?: string | null;
+  runtimeConfigUrl?: string | null;
+  runtimeConfig?: Record<string, unknown> | null;
+  captureOutput?: boolean;
+  keepPipeline?: boolean;
+  report?: Record<string, unknown>;
+  harnessOverride?: Record<string, unknown> | (
+    (options: BrowserSuiteOptions) => Promise<Record<string, unknown>> | Record<string, unknown>
+  );
+  timestamp?: string | Date;
+  searchParams?: URLSearchParams;
+}
+
+export interface BrowserSuiteTiming {
+  modelLoadMs: number;
+  firstTokenMs: number | null;
+  firstResponseMs: number | null;
+  prefillMs: number;
+  decodeMs: number;
+  totalRunMs: number;
+  cacheMode: 'cold' | 'warm' | null;
+  loadMode: 'opfs' | 'http' | 'memory' | null;
+}
+
+export interface BrowserSuiteResult extends SuiteSummary {
+  mode?: BrowserHarnessMode;
+  workload?: BrowserWorkload;
+  modelId?: string;
+  timing?: BrowserSuiteTiming | null;
+  metrics?: Record<string, unknown>;
+  env?: Record<string, unknown>;
+  cacheMode?: 'cold' | 'warm' | null;
+  loadMode?: 'opfs' | 'http' | 'memory' | null;
+  output?: string | DiffusionOutput | null;
+  deviceInfo?: Record<string, unknown> | null;
+  memoryStats?: ReturnType<InferencePipeline['getMemoryStats']> | null;
+  debugSnapshot?: DebugSnapshot | null;
+  pipeline?: InferencePipeline | DiffusionPipeline | EnergyPipeline | null;
+  report: Record<string, unknown>;
+  reportInfo: SavedReportInfo;
+}
+
+export interface BrowserManifestRun extends BrowserSuiteOptions {
+  label?: string;
+  runtimeConfigUrl?: string | null;
+  runtimeConfig?: Record<string, unknown> | null;
+}
+
+export interface BrowserManifest {
+  defaults?: BrowserManifestRun;
+  runs: BrowserManifestRun[];
+  reportModelId?: string;
+  id?: string;
+  report?: Record<string, unknown> | null;
+}
+
+export interface BrowserManifestResult {
+  results: BrowserSuiteResult[];
+  summary: {
+    totalRuns: number;
+    passedRuns: number;
+    failedRuns: number;
+    durationMs: number;
+  };
+  report: Record<string, unknown>;
+  reportInfo: SavedReportInfo | null;
+}
+
+export declare function loadRuntimeConfigFromUrl(
+  url: string,
+  options?: RuntimeConfigLoadOptions
+): Promise<{ config: Record<string, unknown>; runtime: Record<string, unknown> }>;
+
+export declare function applyRuntimeConfigFromUrl(
+  url: string,
+  options?: RuntimeConfigLoadOptions
+): Promise<Record<string, unknown>>;
+
+export declare function loadRuntimeProfile(
+  profileId: string,
+  options?: RuntimeConfigLoadOptions
+): Promise<{ config: Record<string, unknown>; runtime: Record<string, unknown> }>;
+
+export declare function applyRuntimeProfile(
+  profileId: string,
+  options?: RuntimeConfigLoadOptions
+): Promise<Record<string, unknown>>;
+
+export declare function applyRuntimeForRun(
+  run: BrowserManifestRun,
+  options?: RuntimeConfigLoadOptions & { runtime?: RuntimeOverrides }
+): Promise<void>;
+
+export declare function resolveExecutionGraphHash(
+  manifest: Record<string, unknown> | null | undefined
+): string | null;
+
+export declare function buildReferenceTranscriptSeed(
+  run: Record<string, unknown>,
+  context?: Record<string, unknown>
+): Record<string, unknown>;
+
+export declare function runBrowserSuite(
+  options: BrowserSuiteOptions
+): Promise<BrowserSuiteResult>;
+
+export declare function runTrainingSuite(
+  options?: BrowserSuiteOptions
+): Promise<TrainingSuiteResult>;
+
+export declare function buildSuiteSummary(
+  suiteName: string,
+  results: SuiteTestResult[],
+  startTimeMs: number
+): SuiteSummary;
+
+export declare function getBrowserSupportedSuites(): BrowserWorkload[];
+export declare function getBrowserSuiteDispatchMap(): Record<BrowserHarnessMode, Record<string, string>>;
+
+export declare function runBrowserManifest(
+  manifest: BrowserManifest,
+  options?: RuntimeConfigLoadOptions & {
+    saveReport?: boolean;
+    timestamp?: string | Date;
+    onProgress?: (progress: { index: number; total: number; label: string }) => void;
+  }
+): Promise<BrowserManifestResult>;

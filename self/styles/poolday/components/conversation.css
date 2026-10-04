@@ -128,6 +128,18 @@
 .network-card label { display: grid; gap: var(--pool-space-sm); font-size: var(--pool-text-sm); }
 .network-card select { width: 100%; min-width: 0; padding: var(--pool-space-sm); }
 .network-sharing-summary { margin: 0; font-size: var(--pool-text-base); overflow-wrap: anywhere; }
+.network-sharing-row { display: flex; align-items: center; justify-content: space-between; gap: var(--pool-space-md); padding-block: var(--pool-space-sm); min-width: 0; }
+.network-sharing-row > div { display: grid; gap: var(--pool-space-xs); min-width: 0; }
+.network-sharing-row strong { font-size: var(--pool-text-sm); }
+.network-sharing-row p, .network-sharing-row strong span, .network-sharing-row > div > span { margin: 0; font-size: var(--pool-text-sm); color: var(--pool-surface-muted); font-weight: var(--pool-type-weight-regular); }
+.network-sharing-row strong span { display: block; margin-top: var(--pool-space-xs); }
+.network-switch { flex: none; display: grid; align-items: center; width: var(--pool-px-64); height: var(--pool-px-48); padding: var(--pool-space-xs); border: var(--pool-border-hairline) solid var(--pool-surface-line); border-radius: var(--pool-px-64); background: var(--pool-surface-inset); cursor: pointer; }
+.network-switch > span { width: var(--pool-px-24); height: var(--pool-px-24); border-radius: var(--pool-px-64); background: var(--pool-surface-muted); }
+.network-switch[aria-checked="true"] { background: var(--pool-surface-ink); }
+.network-switch[aria-checked="true"] > span { justify-self: end; background: var(--pool-surface-raised); }
+.network-switch:focus-visible { outline: var(--pool-px-2) solid var(--pool-surface-ink); outline-offset: var(--pool-px-4); }
+.network-switch:disabled { opacity: var(--pool-opacity-disabled); cursor: wait; }
+.chat-network-actions > .network-sharing-row { flex: 1; }
 .network-peer-list { list-style: none; padding: 0; margin: 0; display: grid; }
 .network-peer-row { display: flex; align-items: center; justify-content: space-between; gap: var(--pool-space-md); padding-block: var(--pool-space-md); border-bottom: var(--pool-border-hairline) solid var(--pool-surface-line); }
 .network-peer-row:last-child { border-bottom: 0; }

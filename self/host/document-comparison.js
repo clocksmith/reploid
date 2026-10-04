@@ -44,11 +44,12 @@ export const COMPARISON_CHECK = 'Check the preceding comparison against the orig
 
 export function comparisonExport(thread) {
   if (!thread) throw Error('Choose a conversation to download.');
-  return `# ${thread.purpose || 'Document comparison'}\n\n`
+  return `# ${thread.purpose || 'Conversation'}\n\n`
     + thread.messages.map(message => {
       const sources = comparisonSources(message.content);
       const body = sources ? sources.question + '\n\n' + sources.documents.map(document =>
         `### ${document.name}\n\n` + document.passages.map(passage => `[${passage.id}] ${passage.text}`).join('\n\n')).join('\n\n') : message.content;
       return `## ${message.role === 'user' ? 'Request' : 'Response'} (${message.status})\n\n${body}`;
-    }).join('\n\n') + '\n\nPassage links identify supplied text. A second model pass does not guarantee factual accuracy.\n';
+    }).join('\n\n') + (thread.messages.some(message => comparisonSources(message.content))
+      ? '\n\nPassage links identify supplied text. A second model pass does not guarantee factual accuracy.\n' : '\n');
 }

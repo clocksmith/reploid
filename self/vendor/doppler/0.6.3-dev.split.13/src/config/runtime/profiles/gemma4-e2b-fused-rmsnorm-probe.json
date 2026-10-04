@@ -1,0 +1,42 @@
+{
+  "id": "profiles/gemma4-e2b-fused-rmsnorm-probe",
+  "name": "gemma4-e2b-fused-rmsnorm-probe",
+  "description": "One-off diagnostic profile with useFusedRmsnormWideTile=true and layer-0 kernel-debug dumps. Compares fused RMSNorm+Q4K WideTile output to baseline rmsnorm+matmul chain at q/k/v_proj call sites. Not for perf measurement — only correctness probe.",
+  "intent": "investigate",
+  "compatibleIntents": ["investigate"],
+  "stability": "experimental",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-04-18T00:00:00Z",
+  "extends": "profiles/throughput",
+  "model": "gemma-4-e2b-it-q4k-ehf16-af32",
+  "runtime": {
+    "shared": {
+      "debug": {
+        "logLevel": {
+          "defaultLogLevel": "debug"
+        },
+        "pipeline": {
+          "enabled": true,
+          "categories": [
+            "kernel"
+          ],
+          "layers": [
+            0
+          ],
+          "maxDecodeSteps": 1
+        }
+      }
+    },
+    "inference": {
+      "batching": {
+        "maxTokens": 4
+      },
+      "sampling": {
+        "temperature": 0
+      },
+      "session": {
+        "useFusedRmsnormWideTile": true
+      }
+    }
+  }
+}

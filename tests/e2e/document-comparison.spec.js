@@ -17,19 +17,19 @@ async function installFixture(page, createThread = true) {
   }, createThread);
 }
 
-test('sample comparison, separate check, source link, export and persisted draft', async ({ page }) => {
+test('ordinary attachments, export and persisted draft without sample controls', async ({ page }) => {
   await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await installFixture(page);
-  await page.locator('[data-comparison-sample]').click();
-  await expect(page.locator('[data-composer-compare]')).toBeVisible();
-  await page.locator('[data-composer-compare]').click();
-  await expect.poll(() => page.evaluate(() => documentSession.getState().activeThread.attempts.map(a => a.status))).toEqual(['completed', 'completed']);
-  await expect(page.locator('[data-message-stream] details')).toHaveCount(3);
-  await page.locator('[data-source-reference]').first().click();
-  await expect(page.locator('[data-message-stream] details').first()).toHaveAttribute('open', '');
+  await expect(page.locator('[data-comparison-sample], [data-composer-compare]')).toHaveCount(0);
+  await page.locator('[data-composer-input]').fill('Explain these notes.');
+  await page.locator('[data-composer-files]').setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('Keep contributions optional.') });
+  await expect(page.locator('[data-attachments-preview]')).toContainText('notes.txt');
+  await page.locator('[data-composer-send]').click();
+  await expect.poll(() => page.evaluate(() => documentSession.getState().activeThread.attempts.map(a => a.status))).toEqual(['completed']);
+  await expect(page.locator('[data-message-stream]')).toContainText('Keep contributions optional.');
   const download = page.waitForEvent('download');
   await page.locator('[data-conversation-download]').click();
-  expect(await readFile(await (await download).path(), 'utf8')).toContain('Maple quote.txt');
+  expect(await readFile(await (await download).path(), 'utf8')).toContain('notes.txt');
   await page.locator('[data-composer-input]').fill('Reconsider the deadline.');
   await page.reload(); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
   await installFixture(page, false);

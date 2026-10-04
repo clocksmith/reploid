@@ -1,0 +1,196 @@
+import { InferencePipeline } from '../text/pipeline.js';
+import { registerPipeline } from '../registry.js';
+import { createInitializedPipeline } from '../factory.js';
+
+const STRUCTURED_JSON_HEAD_MODEL_TYPES = Object.freeze([
+  'structured_json_head',
+  'structured-json-head',
+  'dream_structured',
+  'dream_intent_posterior_head',
+  'dream_d1_to2_bridge',
+  'dream_synthesis',
+  'dream_energy_compose',
+  'dream-intent-posterior-head',
+  'dream-d1-to2-bridge',
+  'dream-synthesis',
+  'dream-energy-compose',
+]);
+
+function isObj(value) {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function toHex(bytes) {
+  let out = '';
+  for (let i = 0; i < bytes.length; i++) {
+    out += bytes[i].toString(16).padStart(2, '0');
+  }
+  return out;
+}
+
+function nodeModule(specifier) {
+  return `node:${specifier}`;
+}
+
+async function sha256HexText(text) {
+  const payload = String(text ?? '');
+  const bytes = new TextEncoder().encode(payload);
+
+  let subtle = globalThis?.crypto?.subtle ?? null;
+  if (!subtle) {
+    try {
+      const nodeCrypto = await import(nodeModule('crypto'));
+      subtle = nodeCrypto?.webcrypto?.subtle ?? null;
+    } catch {}
+  }
+  if (!subtle) {
+    throw new Error('StructuredJsonHeadPipeline: SHA-256 requires WebCrypto subtle API.');
+  }
+
+  const digest = await subtle.digest('SHA-256', bytes);
+  return toHex(new Uint8Array(digest));
+}
+
+function parseStructuredJSONObject(rawText) {
+  const raw = String(rawText || '');
+  const trimmed = raw.trim();
+  if (!trimmed) {
+    throw new Error('StructuredJsonHeadPipeline: structured decode output is empty.');
+  }
+
+  try {
+    return JSON.parse(trimmed);
+  } catch {}
+
+  const fenced = trimmed.match(/```(?:json)?\s*([\s\S]*?)\s*```/i);
+  if (fenced && fenced[1]) {
+    try {
+      return JSON.parse(String(fenced[1]).trim());
+    } catch {}
+  }
+
+  const firstBrace = trimmed.indexOf('{');
+  const lastBrace = trimmed.lastIndexOf('}');
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    const candidate = trimmed.slice(firstBrace, lastBrace + 1);
+    try {
+      return JSON.parse(candidate);
+    } catch {}
+  }
+
+  throw new Error(`StructuredJsonHeadPipeline: invalid JSON decode output (head="${trimmed.slice(0, 96)}").`);
+}
+
+function resolveStructuredRuntime(manifest, runtimeConfig) {
+  const modelCfg = isObj(manifest?.inference?.structuredJsonHead)
+    ? manifest.inference.structuredJsonHead
+    : null;
+  if (!modelCfg) {
+    throw new Error('StructuredJsonHeadPipeline: manifest.inference.structuredJsonHead is required.');
+  }
+  const runtimeCfg = isObj(runtimeConfig?.inference?.structuredJsonHead)
+    ? runtimeConfig.inference.structuredJsonHead
+    : {};
+  const resolvedMaxTokens = Number.isFinite(runtimeCfg.maxTokens)
+    ? Math.max(1, Math.floor(runtimeCfg.maxTokens))
+    : (Number.isFinite(modelCfg.maxTokens) ? Math.max(1, Math.floor(modelCfg.maxTokens)) : null);
+  const resolvedTemperature = Number.isFinite(runtimeCfg.temperature)
+    ? Number(runtimeCfg.temperature)
+    : (Number.isFinite(modelCfg.temperature) ? Number(modelCfg.temperature) : null);
+  const resolvedMaxOutputChars = Number.isFinite(runtimeCfg.maxOutputChars)
+    ? Math.max(4096, Math.floor(runtimeCfg.maxOutputChars))
+    : (Number.isFinite(modelCfg.maxOutputChars) ? Math.max(4096, Math.floor(modelCfg.maxOutputChars)) : null);
+  if (!Number.isFinite(resolvedMaxTokens)) {
+    throw new Error('StructuredJsonHeadPipeline: structuredJsonHead.maxTokens is required.');
+  }
+  if (!Number.isFinite(resolvedTemperature)) {
+    throw new Error('StructuredJsonHeadPipeline: structuredJsonHead.temperature is required.');
+  }
+  if (!Number.isFinite(resolvedMaxOutputChars)) {
+    throw new Error('StructuredJsonHeadPipeline: structuredJsonHead.maxOutputChars is required.');
+  }
+  return {
+    maxTokens: resolvedMaxTokens,
+    temperature: resolvedTemperature,
+    maxOutputChars: resolvedMaxOutputChars,
+  };
+}
+
+export class StructuredJsonHeadPipeline extends InferencePipeline {
+  async inferJSON(request = {}) {
+    const prompt = String(request?.prompt ?? request?.text ?? '');
+    if (!prompt.trim()) {
+      throw new Error('StructuredJsonHeadPipeline.inferJSON: prompt is required.');
+    }
+
+    const runtime = resolveStructuredRuntime(this.manifest, this.runtimeConfig);
+    const maxTokens = Number.isFinite(request?.maxTokens)
+      ? Math.max(1, Math.floor(request.maxTokens))
+      : runtime.maxTokens;
+    const temperature = Number.isFinite(request?.temperature)
+      ? Number(request.temperature)
+      : runtime.temperature;
+    const maxOutputChars = Number.isFinite(request?.maxOutputChars)
+      ? Math.max(4096, Math.floor(request.maxOutputChars))
+      : runtime.maxOutputChars;
+
+    if (typeof this.reset === 'function') {
+      this.reset();
+    }
+
+    const options = isObj(request?.options) ? { ...request.options } : {};
+    options.maxTokens = maxTokens;
+    options.temperature = temperature;
+
+    let rawText = '';
+    for await (const chunk of this.generate(prompt, options)) {
+      rawText += String(chunk || '');
+      if (rawText.length > maxOutputChars) {
+        throw new Error(`StructuredJsonHeadPipeline.inferJSON: output exceeded ${maxOutputChars} chars.`);
+      }
+    }
+
+    const output = parseStructuredJSONObject(rawText);
+    if (!isObj(output)) {
+      throw new Error('StructuredJsonHeadPipeline.inferJSON: output must be a JSON object.');
+    }
+
+    const createdAt = String(request?.nowIso || new Date().toISOString());
+    const promptHashHex = await sha256HexText(
+      JSON.stringify({ prompt, maxTokens, temperature, createdAt })
+    );
+
+    return {
+      output,
+      rawText,
+      createdAt,
+      modelId: String(this.manifest?.modelId || ''),
+      modelHash: this.manifest?.modelHash || null,
+      promptHash: { alg: 'sha256', hex: promptHashHex },
+    };
+  }
+
+  async infer(request = {}) {
+    const result = await this.inferJSON(request);
+    return result.output;
+  }
+}
+
+export function isStructuredJsonHeadModelType(modelType) {
+  const value = String(modelType || '');
+  return STRUCTURED_JSON_HEAD_MODEL_TYPES.includes(value);
+}
+
+export async function createStructuredJsonHeadPipeline(manifest, contexts = {}) {
+  return createInitializedPipeline(StructuredJsonHeadPipeline, manifest, contexts);
+}
+
+for (const modelType of STRUCTURED_JSON_HEAD_MODEL_TYPES) {
+  registerPipeline(modelType, createStructuredJsonHeadPipeline);
+}
+
+export class DreamStructuredPipeline extends StructuredJsonHeadPipeline {}
+
+export const isDreamStructuredModelType = isStructuredJsonHeadModelType;
+
+export const createDreamStructuredPipeline = createStructuredJsonHeadPipeline;

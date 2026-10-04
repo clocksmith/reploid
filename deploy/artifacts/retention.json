@@ -11,6 +11,10 @@
     },
     {
       "version": "0.6.3-dev.split.12",
+      "reason": "Previous hosted runtime and unchanged failure baseline"
+    },
+    {
+      "version": "0.6.3-dev.split.13",
       "reason": "Active package-lock and browser pin"
     }
   ],
