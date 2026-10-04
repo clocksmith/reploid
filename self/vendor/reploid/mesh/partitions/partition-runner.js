@@ -52,6 +52,7 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
   const participants = Object.freeze([deviceA.id, deviceB.id]);
   const usedAttempts = new Set();
   const active = new Map();
+  const receipts = new Map();
   let closed = false;
   // FIFO token leases let two conversations share resident weights fairly.
   let tail = Promise.resolve();
@@ -93,6 +94,9 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
     let settle;
     const settled = new Promise(resolve => { settle = resolve; });
     active.set(binding.attemptId, { controller, settled });
+    const receipt = { identity: binding, phase: 'executing', startedAt: Date.now(), failure: null,
+      reservations: [], cleanupStartedAt: null, cleanupSettledAt: null, cleanup: [] };
+    receipts.set(binding.attemptId, receipt);
     const generationDigestPromise = partitionFingerprint(settings);
     let input = inputTokens, continuationA = null, continuationB = null;
     let content = '', activationBytes = 0, position = 0, logits = null;
@@ -106,6 +110,17 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
       combined.throwIfAborted();
     };
     try {
+      if (deviceA.reserve) receipt.reservations.push(snapshot(await deviceA.reserve(binding)));
+      if (deviceB.reserve) {
+        const generationDigest = await generationDigestPromise;
+        combined.throwIfAborted();
+        const step = { step: 0, tokenPosition: 0, inputTokenCount: inputTokens.length, maxTokens, generationDigest };
+        await permit('mesh.execute_partition_b', authority.executionB, step);
+        await permit('mesh.transfer_token_context', authority.tokenContext, step);
+        const admission = await deviceB.reserve({ identity: binding, grant: authority.executionB, generation: settings,
+          generationDigest, inputTokenCount: inputTokens.length, signal: combined });
+        receipt.reservations.push(snapshot(admission.reservation));
+      }
       for (let index = 0; index < maxTokens; index++) {
         const terminal = await lease(async () => {
           combined.throwIfAborted();
@@ -200,24 +215,37 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
       return { content, tokenIds: outputTokens, logits, stopReason,
         execution: { schema: 'reploid.mesh.partition-execution/v2', ...binding,
           placement: 'two-device-layer-partition', splitLayer: plan.splitLayer,
-          activationBytes, steps } };
+          activationBytes, steps, settlement: receipt } };
     } catch (error) {
       failure = error;
+      receipt.failure = String(error?.message || error);
       throw error;
     } finally {
       // Settle both owned attempts even when cancellation arrives during a port call.
       // Shared resident weights remain owned by the host, not this conversation.
-      const results = await Promise.allSettled([deviceA, deviceB].map(device =>
-        Promise.resolve().then(() => device.closeAttempt({ identity: binding }))));
+      receipt.phase = 'settling'; receipt.cleanupStartedAt = Date.now();
+      const results = await Promise.allSettled([deviceA, deviceB].map(async device => {
+        try {
+          await device.closeAttempt({ identity: binding });
+          receipt.cleanup.push({ participantId: device.id, status: 'settled', settledAt: Date.now(), error: null });
+        } catch (cause) {
+          receipt.cleanup.push({ participantId: device.id, status: 'failed', settledAt: null,
+            error: String(cause?.message || cause) });
+          throw cause;
+        }
+      }));
       active.delete(binding.attemptId);
       settle();
       const cleanupErrors = results.filter(result => result.status === 'rejected').map(result => result.reason);
+      receipt.cleanupSettledAt = cleanupErrors.length ? null : Date.now();
+      receipt.phase = cleanupErrors.length ? 'cleanup-failed' : combined.aborted ? 'cancelled' : failure ? 'failed' : 'completed';
       if (cleanupErrors.length) throw new AggregateError(failure ? [failure, ...cleanupErrors] : cleanupErrors,
         'Partition attempt settlement failed');
     }
   }
 
   return Object.freeze({ plan, execute,
+    getState: () => ({ closed, active: active.size, attempts: snapshot([...receipts.values()]) }),
     async close() {
       closed = true;
       const pending = [...active.values()];

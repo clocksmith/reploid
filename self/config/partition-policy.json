@@ -3,6 +3,7 @@
   "maxPeers": 8,
   "connectTimeoutMs": 30000,
   "grantMs": 900000,
+  "grantClockSkewMs": 250,
   "maxSeqLen": 4096,
   "maxGpuBufferBytes": 1420000000,
   "profileGpu": false,

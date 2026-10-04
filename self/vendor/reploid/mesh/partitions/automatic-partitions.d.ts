@@ -1,16 +1,25 @@
 import type { SigningIdentity } from '../../artifacts/identity.js';
 import type { ChatModel, ChatRequest, ChatControls, ChatResult } from '../../chat/index.js';
-import type { PartitionPlan, PartitionRuntime, PartitionLimits } from './partition-runner.js';
-import type { ResidentPartition, ResidentPartitionDescriptor } from './resident-partition.js';
+import type { PartitionPlan, PartitionRuntime, PartitionLimits, PartitionAttemptReceipt } from './partition-runner.js';
+import type { ResidentPartition, ResidentPartitionDescriptor, PartitionReservationsState } from './resident-partition.js';
 import type { PartitionChannelLimits } from '../../transport/partition-data-channel.js';
 import type { PartitionNetwork } from './partition-network.js';
+export interface PartitionCapability {
+  transportId: string; participantId: string; observedAt: number; expiresAt: number;
+  available: boolean; reason: string; description: Record<string, unknown> | null;
+}
 export interface AutomaticPartitionState {
+  capabilities: PartitionCapability[];
+  placementDecision: { participants: string[]; reason: string; eligibility: Array<{
+    participantId: string; transportId: string; observedAt: number; expiresAt: number; reason: string; index: 0 | 1 | null;
+  }> } | null;
+  reservations: PartitionReservationsState | null; attempts: PartitionAttemptReceipt[];
   phase: 'idle' | 'waiting' | 'loading' | 'ready' | 'failed'; error: string | null;
   offering: boolean; modelId: string | null; placement: string[] | null;
   descriptor: ResidentPartitionDescriptor | null; acquisition: unknown; models: ChatModel[];
 }
 export interface AutomaticPartitionPolicy {
-  pollMs: number; maxPeers: number; connectTimeoutMs: number; grantMs: number;
+  pollMs: number; maxPeers: number; connectTimeoutMs: number; grantMs: number; grantClockSkewMs?: number;
   limits: PartitionLimits; inputChannel: PartitionChannelLimits;
   executionChannel: PartitionChannelLimits; controlChannel: PartitionChannelLimits;
   inputLimits: { maxInputCharacters: number; maxOutputCharacters: number; maxAttempts: number;

@@ -14,8 +14,18 @@ export async function observeCooperativePage(cdp, evidence, { captureLogits = tr
     try {
       if (['exception', 'promiseRejection'].includes(event.reason)) {
         evidence.exceptions ||= [];
+        const authorization = event.callFrames.find(frame => frame.functionName === 'permit');
+        let denied = null;
+        if (authorization && event.data?.description?.includes('authorization declined')) {
+          const inspected = await cdp.send('Debugger.evaluateOnCallFrame', { callFrameId: authorization.callFrameId,
+            expression: `({ action, now: Date.now(), operation: entry.metadata.operation,
+              identity: entry.metadata.identity, step: entry.metadata.step, inputTokenCount: entry.metadata.inputTokenCount,
+              maxTokens: entry.metadata.maxTokens, generationDigest: entry.metadata.generationDigest,
+              frame: entry.metadata.frame, grantClaim: entry.metadata.grant?.claim })`, returnByValue: true });
+          denied = inspected.result?.value ?? null;
+        }
         if (!event.data?.description?.includes('NotFoundError') && evidence.exceptions.length < 100) evidence.exceptions.push({
-          description: event.data?.description,
+          description: event.data?.description, denied,
           frames: event.callFrames.slice(0, 6).map(frame => ({ functionName: frame.functionName, url: frame.url, location: frame.location }))
         });
         return;

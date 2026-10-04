@@ -13,6 +13,17 @@ import {
 const repoRoot = path.resolve('/workspace/reploid');
 
 describe('layer verification', () => {
+  it.each([
+    ['partition-discovery.js', './partition-placement.js'],
+    ['partition-placement.js', '../../transport/partition-data-channel.js'],
+    ['partition-reservations.js', './resident-partition.js'],
+  ])('keeps %s independent from %s', (owner, dependency) => {
+    const violations = findLayerViolations({ repoRoot,
+      sourcePath: path.join(repoRoot, 'packages/reploid/src/mesh/partitions', owner),
+      source: `import '${dependency}';` });
+    expect(violations).toHaveLength(1);
+    expect(violations[0].reason).toContain('must remain independent');
+  });
   it('classifies architectural source roots', () => {
     expect(classifyLayer('self/pool/config.js')).toBe('self/pool');
     expect(classifyLayer('self/core/agent-loop.js')).toBe('self/core');

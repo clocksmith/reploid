@@ -35,7 +35,7 @@ async function fixture(options = {}) {
   const plan = runtime.createLayerPartitionPlan({ modelId: model.id, numLayers: 4, hiddenSize: 8, vocabSize: 128, splitLayer: 2 });
   const planId = runtime.hashLayerPartitionPlan(plan);
   const factory = createPartitionRuntimeFixture(options);
-  const makeResident = (index, participantId) => createResidentPartition({ runtime: factory, model, plan, planId, index, participantId, limits: policy });
+  const makeResident = (index, participantId) => createResidentPartition({ runtime: factory, model, plan, planId, index, participantId, limits: { ...policy, ...options.limits } });
   const local = makeResident(0, a.peerId), supplier = makeResident(1, b.peerId);
   const [left, right] = channels();
   const base = { runtime, plan, planId, modelIdentity: model.identity, limits: channelPolicy, receiverLimits: { maxAttempts: 32, maxSteps: 8 } };
@@ -100,6 +100,28 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
       now: () => grant.claim.expiresAt });
     expect(await expired.verify(grant, request)).toBe(false);
     expect(await expired.verify(grant, request, { settlement: true })).toBe(true);
+  });
+
+  it('admits immediate reservations within explicit clock skew without extending expiry', async () => {
+    const f = await fixture();
+    let clock = 1000;
+    const issuer = createPartitionGrantAuthority({ identity: f.a, meshId: 'mesh', maxGrants: 1,
+      maxTtlMs: 10000, now: () => 1008 });
+    const strict = createPartitionGrantAuthority({ identity: f.b, meshId: 'mesh', maxGrants: 1,
+      maxTtlMs: 10000, now: () => clock });
+    const receiver = createPartitionGrantAuthority({ identity: f.b, meshId: 'mesh', maxGrants: 1,
+      maxTtlMs: 10000, maxClockSkewMs: 250, now: () => clock });
+    const grant = await issuer.issue(f.binding, policy, { approved: true, ttlMs: 10000,
+      disclosure: 'partition-activations-and-tokens', generationDigest: f.generationDigest });
+    const request = { identity: f.binding, action: 'mesh.execute_partition_b', step: 0,
+      inputTokenCount: 1, generationDigest: f.generationDigest };
+    expect(await strict.verify(grant, request)).toBe(false);
+    expect(await receiver.verify(grant, request)).toBe(true);
+    clock = grant.claim.issuedAt - 251;
+    expect(await receiver.verify(grant, request)).toBe(false);
+    clock = grant.claim.expiresAt;
+    expect(await receiver.verify(grant, request)).toBe(false);
+    expect(await receiver.verify(grant, request, { settlement: true })).toBe(true);
   });
 
   it('streams two conversations through the host, reuses resident weights and remembers scoped disclosure', async () => {
@@ -196,6 +218,68 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     await vi.waitFor(() => expect(session.getState().activeThread.attempts[1].approval).toBeTruthy());
     approve(session, id); expect((await next).status).toBe('completed');
     expect(session.getState().activeThread.messages.at(-1).content).toBe('11 12 13 ');
+  });
+
+  it('shares admission across independent channels and holds capacity until cleanup settles', async () => {
+    const f = await fixture({ limits: { maxConcurrentAttempts: 1 } });
+    await f.supplier.prepare({ approved: true });
+    const [left, right] = channels();
+    const base = { runtime, plan: f.plan, planId: f.planId, modelIdentity: f.model.identity,
+      limits: channelPolicy, receiverLimits: { maxAttempts: 32, maxSteps: 8 } };
+    const second = createPartitionPeer({ ...base, channel: left, localParticipantId: f.a.peerId,
+      remoteParticipantId: f.b.peerId, authority: f.authority });
+    const server = createPartitionPeer({ ...base, channel: right, localParticipantId: f.b.peerId,
+      remoteParticipantId: f.a.peerId, authority: f.otherAuthority, contributor: f.supplier });
+    cleanup.push(() => Promise.all([second.close(), server.close()]));
+    const reserve = async (peer, identity) => {
+      const grant = await f.authority.issue(identity, policy, { approved: true, ttlMs: 10000,
+        disclosure: 'partition-activations-and-tokens', generationDigest: f.generationDigest });
+      return peer.reserve({ identity, grant, generation: f.generation,
+        generationDigest: f.generationDigest, inputTokenCount: 1 });
+    };
+    const other = { ...f.binding, attemptId: 'other', threadId: 'other' };
+    await reserve(f.remote, f.binding);
+    await expect(reserve(second, other)).rejects.toThrow('capacity exhausted');
+    expect(f.factory.log.steps).toEqual([]);
+    expect(f.supplier.getState().reservations.active).toBe(1);
+    await f.remote.closeAttempt({ identity: f.binding });
+    expect(f.supplier.getState().reservations.records[0]).toMatchObject({ phase: 'settled', settledAt: expect.any(Number) });
+    const fresh = { ...other, attemptId: 'fresh' };
+    await reserve(second, fresh);
+    await second.close(); await server.close();
+    expect(f.supplier.getState().reservations.active).toBe(0);
+    expect(f.supplier.getState().ready).toBe(true);
+  });
+
+  it('does not release a reservation on failed cleanup, and records full-owner settlement', async () => {
+    const f = await fixture({ limits: { maxConcurrentAttempts: 1 } });
+    const open = f.factory.openResidentPartition;
+    const entered = gate(), release = gate();
+    cleanup.push(() => release.resolve());
+    f.factory.openResidentPartition = async options => {
+      const session = await open(options);
+      return { ...session, async closeAttempt() { entered.resolve(); await release.promise; throw new Error('cleanup refused'); } };
+    };
+    await f.local.prepare({ approved: true });
+    f.local.reserve(f.binding);
+    const closing = f.local.closeAttempt({ identity: f.binding });
+    const rejected = expect(closing).rejects.toThrow('cleanup refused');
+    await entered.promise;
+    expect(f.local.getState().reservations).toMatchObject({ active: 1, availableSlots: 0 });
+    expect(() => f.local.reserve({ ...f.binding, attemptId: 'next' })).toThrow('capacity exhausted');
+    release.resolve(); await rejected;
+    expect(f.local.getState().reservations.records[0]).toMatchObject({ phase: 'settling', settledAt: null, failure: 'cleanup refused' });
+    await f.local.close();
+    expect(f.local.getState().reservations).toMatchObject({ active: 0, closed: true });
+    expect(f.local.getState().reservations.records[0]).toMatchObject({ phase: 'failed', settledAt: expect.any(Number) });
+  });
+
+  it('prevents a delayed reservation from reopening an already cancelled attempt', async () => {
+    const f = await fixture();
+    await f.local.prepare({ approved: true });
+    await f.local.closeAttempt({ identity: f.binding });
+    expect(() => f.local.reserve(f.binding)).toThrow('retired');
+    expect(f.local.getState().reservations.active).toBe(0);
   });
 
   it('rejects unavailable split selection without loading a whole model', async () => {

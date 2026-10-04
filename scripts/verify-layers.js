@@ -58,6 +58,16 @@ export function findLayerViolations({ repoRoot, sourcePath, source }) {
     if (/packages\/reploid\/src\/agent\/(task-strategy|lab-strategy)\.js$/.test(relative)
       && /\/(lifecycle|cancellation|tool-dispatch)\.js$/.test(target)) reason = 'strategies must use the execution engine';
     if (relative.startsWith('packages/reploid/src/transport/') && /\/(adapters|agent|chat|mesh|improvement)\//.test(target)) reason = 'transport cannot own execution or application policy';
+    const partitionRoot = 'packages/reploid/src/mesh/partitions/';
+    const partitionDependencies = {
+      'partition-discovery.js': [partitionRoot + 'partition-contract.js', 'packages/reploid/src/transport/partition-data-channel.js'],
+      'partition-placement.js': [],
+      'partition-reservations.js': [partitionRoot + 'partition-contract.js']
+    };
+    const partitionOwner = relative.startsWith(partitionRoot) ? relative.slice(partitionRoot.length) : null;
+    if (partitionOwner in partitionDependencies && !partitionDependencies[partitionOwner].includes(target)) {
+      reason = 'discovery, placement and reservation owners must remain independent';
+    }
     if (relative === 'self/host/chat-session.js' && target.startsWith('self/providers/')) {
       reason = 'chat session must adapt execution through its execution port';
     }

@@ -1,5 +1,5 @@
 import { createPartitionDiscovery } from './partition-discovery.js';
-import { selectPartitionPlacement } from './partition-placement.js';
+import { selectPartitionPlacement, selectPartitionExecution } from './partition-placement.js';
 import { createPartitionPeer } from './partition-peer.js';
 import { createPartitionEntry } from './partition-entry.js';
 import { createPartitionChat } from './partition-chat.js';
@@ -19,14 +19,15 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
   let offer = null, program = null, execution = null, chat = null, executionPeer = null, preparing = null;
   let contributionController = null;
   let phase = 'idle', error = null, progress = null, placement = null, closed = false, ticking = null;
-  let placementDecision = null;
+  let placementDecision = null, closing = null;
   const authority = createPartitionGrantAuthority({ identity, meshId,
-    maxGrants: config.limits.maxAttempts, maxTtlMs: config.grantMs });
+    maxGrants: config.limits.maxAttempts, maxTtlMs: config.grantMs, maxClockSkewMs: config.grantClockSkewMs });
   const getModels = () => discovery.getModels();
   const getState = () => ({ phase, error, progress: structuredClone(progress), offering: !!offer, modelId: offer?.id || null,
     placement: structuredClone(placement), placementDecision: structuredClone(placementDecision),
     capabilities: discovery.getSnapshot(), descriptor: program?.resident.getState().descriptor || null,
-    acquisition: program?.getReceipt?.() || null, models: getModels() });
+    acquisition: program?.getReceipt?.() || null, models: getModels(),
+    reservations: program?.resident.getState().reservations || null, attempts: chat?.getState().attempts || [] });
   const notify = () => { onChange(getState()); for (const listener of listeners) listener(getModels()); };
   const service = {
     getModels: () => chat?.getModels() || [],
@@ -57,11 +58,15 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
     describe: () => ({ participantId: identity.peerId, offer: offer && { id: offer.id, identity: offer.identity },
       phase, placement, index: program?.resident.index ?? placement?.indexOf(identity.peerId) ?? null,
       planId: program?.planId ?? null, models: chat?.getModels() || [],
-      reservations: program?.resident.getState().reservations || null }) });
+      // Discovery advertises capacity only; attempt identities remain with their owners.
+      capacity: program ? (({ active, availableSlots, closed }) => ({ active, availableSlots, closed }))(
+        program.resident.getState().reservations) : null }) });
   async function retire() {
-    await chat?.close(); chat = null; executionPeer = null;
-    await execution?.close(); execution = null;
-    await program?.resident.close(); program = null; placement = null;
+    const owners = [chat, execution, program?.resident];
+    chat = null; executionPeer = null; execution = null; program = null; placement = null;
+    const results = await Promise.allSettled(owners.map(owner => Promise.resolve().then(() => owner?.close())));
+    const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
+    if (failures.length) throw new AggregateError(failures, 'Partition contribution settlement failed');
   }
   async function reconcile() {
     if (!offer || preparing || closed || phase === 'failed') return;
@@ -141,10 +146,9 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
     },
     async stop() { offer = null; contributionController?.abort(new Error('Partition contribution stopped')); await preparing?.catch(() => {}); await retire(); phase = 'idle'; error = null; notify(); },
     async generate(request, controls) {
-      const selected = discovery.getSnapshot().find(peer => peer.available && peer.description.models?.some(model =>
-        model.id === request.model.id && model.identity === request.model.identity && model.availability === 'ready'));
-      assert(selected, 'No prepared cooperative partition path is available');
-      const entry = await entries.connect(selected.transportId);
+      const decision = selectPartitionExecution({ model: request.model, capabilities: discovery.getSnapshot() });
+      assert(decision.transportId, 'No prepared cooperative partition path is available');
+      const entry = await entries.connect(decision.transportId);
       const refreshed = await entry.refresh({ signal: controls.signal });
       const model = refreshed.descriptor.models.find(model => model.id === request.model.id
         && model.identity === request.model.identity && model.availability === 'ready');
@@ -168,13 +172,21 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
         const result = await entry.generate(input, { signal: controls.signal,
           onDelta: text => controls.onDelta({ threadId: request.threadId, attemptId: request.attemptId, sequence: sequence++, text }) });
         return { ...result, threadId: request.threadId, attemptId: request.attemptId,
-          modelId: model.id, modelIdentity: model.identity, adapterIdentities: [] };
+          modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
+          execution: { ...result.execution, selection: decision } };
       } finally { admissions.delete(request.attemptId); }
     },
-    async close() {
-      if (closed) return; closed = true; clearInterval(timer); lifetime.abort(new Error('Partition mesh closed'));
-      await Promise.allSettled([entries.close(), discovery.close(), ticking]);
-      await retire(); authority.close(); listeners.clear(); admissions.clear();
+    close() {
+      if (closing) return closing;
+      closed = true; clearInterval(timer); lifetime.abort(new Error('Partition mesh closed'));
+      closing = (async () => {
+        const results = await Promise.allSettled([Promise.resolve().then(() => entries.close()), discovery.close(), ticking]);
+        results.push(...await Promise.allSettled([retire()]));
+        authority.close(); listeners.clear(); admissions.clear();
+        const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
+        if (failures.length) throw new AggregateError(failures, 'Partition mesh settlement failed');
+      })();
+      return closing;
     }
   });
 }

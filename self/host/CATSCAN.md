@@ -7,15 +7,15 @@ Parent: [Browser Runtime](../CATSCAN.md)
 Boot surfaces from trusted seeds.
 
 ## Authority
-- Owns seeding, loading, startup, tools and independent threads.
+- Owns seeding, startup, tools and independent threads.
 - Disclosure requires exact-payload approval or revocable recipient/mesh/thread/model/adapter grants.
-- Separates helpers/swarms/previews/isolation/evaluation/activation from Pack jobs.
-- Tasks validate; repositories version; providers execute; views expose immutable state.
+- Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
+- Tasks validate; repositories version; providers execute; views are immutable.
 - Excludes policy, module semantics and recovery-root mutation.
 
 ## Scope
 
-- This tree.
+Subtree.
 
 ## Contracts
 
@@ -26,19 +26,20 @@ Outputs:
 - Application startup through [start-reploid.js](start-reploid.js).
 
 ## Invariants
-- Keep seed identity/destination explicit.
-- Never substitute missing or unverified modules.
+- Explicit seed identity/destination.
+- Never substitute missing/unverified modules.
 - Disconnect prevents rejoin. Discovery grants no compute/disclosure/files/improvement authority.
+- Partition network owners expose open/close; successful closure requires all channels settled.
 - Received files cannot grant permissions or prove correctness.
 - Viewing/stopping threads cannot change another's objective, grants or execution.
-- Peer candidate delivery grants no evaluation or adoption authority.
+- Candidate delivery grants no evaluation/adoption authority.
 - Peer operations require current grants, exact identities and evidence; changed recipients/models/adapters require approval.
 - File contribution requires separate bounded consent. Explicit compute may acquire
   selected files, not redistribute them. Discovery never downloads weights.
-- Host-pinned Doppler storage verifies catalog files; inventories cannot select code.
+- Pinned Doppler storage verifies files; inventories cannot select code.
   Resident leases include adapter application/evidence/removal and cancellation settlement.
 - Candidates cannot read protected tests or self-activate; attempts pin versions and retain rollback sources.
-- Version objectives/measures outside candidate isolation; changed objectives require reevaluation.
+- Version objectives/measures outside isolation; changed objectives require reevaluation.
 
 ## Acceptance
 - Seeded modules are complete; VFS round trips succeed.

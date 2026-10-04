@@ -1,3 +1,4 @@
+import { createPartitionReservations } from './partition-reservations.js';
 import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
 
 /** Owns an explicitly contributed runtime session; never implements model computation. */
@@ -9,15 +10,18 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
   const allocation = structuredClone({ model, plan, planId, index, participantId, limits });
   const lifetime = new AbortController(), operations = new Set(), listeners = new Set([onChange]);
   const attempts = new Set();
+  const reservations = createPartitionReservations({ limits, participantId, index });
   let draining = null, finishDrain = null;
   let phase = 'idle', error = null, session = null, preparing = null, closing = null, disposal = null, descriptor = null;
   let tail = Promise.resolve();
   const state = () => ({ phase, ready: phase === 'ready' && !lifetime.signal.aborted,
-    activeAttempts: attempts.size,
+    activeAttempts: attempts.size, reservations: reservations.getState(),
     error, descriptor: structuredClone(descriptor), index, participantId,
     modelId: allocation.model.id, modelIdentity: allocation.model.identity, planId });
   const notify = () => { for (const listener of listeners) { try { listener(state()); } catch {} } };
-  const dispose = () => disposal ||= Promise.resolve().then(() => session?.close());
+  const dispose = () => disposal ||= Promise.resolve().then(() => session?.close()).then(() => {
+    reservations.close(); reservations.settleAll(); attempts.clear(); finishDrain?.();
+  });
   const check = () => {
     const actual = session?.getDescriptor();
     assert(actual?.schema === 'doppler.resident-partition/v1' && actual.ready === true
@@ -28,10 +32,14 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     'Doppler resident partition identity or readiness mismatch');
     return structuredClone(actual);
   };
-  const invoke = (method, request) => {
-    assert((phase === 'ready' || phase === 'draining' && attempts.has(request.identity?.attemptId))
+  const reserve = identity => {
+    assert((phase === 'ready' || phase === 'draining' && attempts.has(identity?.attemptId))
       && !lifetime.signal.aborted, 'Partition contributor is not ready');
-    attempts.add(request.identity.attemptId);
+    const record = reservations.reserve(identity);
+    attempts.add(identity.attemptId); notify(); return record;
+  };
+  const invoke = (method, request) => {
+    reserve(request.identity);
     const { signal, ...input } = request;
     const snapshot = structuredClone(input);
     const combined = signal ? AbortSignal.any([signal, lifetime.signal]) : lifetime.signal;
@@ -41,10 +49,13 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       combined.throwIfAborted(); check();
       return structuredClone(result);
     }).catch(async cause => {
+      reservations.fail(request.identity, cause);
       if (!combined.aborted) {
         try {
           check();
+          reservations.settling(snapshot.identity);
           await session.closeAttempt({ identity: snapshot.identity });
+          reservations.settled(snapshot.identity);
           attempts.delete(snapshot.identity.attemptId);
           if (!attempts.size) finishDrain?.();
         } catch {
@@ -59,9 +70,9 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     return operation;
   };
   return Object.freeze({
-    id: participantId, index, getState: state,
-    canAccept(identity) { return !lifetime.signal.aborted && (phase === 'ready'
-      || phase === 'draining' && attempts.has(identity?.attemptId)); },
+    id: participantId, index, getState: state, reserve,
+    canAccept(identity) { return !lifetime.signal.aborted && ((phase === 'ready' || phase === 'draining')
+      && attempts.has(identity?.attemptId) || phase === 'ready' && reservations.getState().availableSlots > 0); },
     subscribe(listener) { listeners.add(listener); listener(state()); return () => listeners.delete(listener); },
     prepare({ approved, signal } = {}) {
       assert(approved === true, 'Explicit partition contribution approval required');
@@ -90,9 +101,13 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     executeGroup0(request) { assert(index === 0, 'This contributor is partition B'); return invoke('executeGroup0', request); },
     executeGroup1(request) { assert(index === 1, 'This contributor is partition A'); return invoke('executeGroup1', request); },
     async closeAttempt({ identity }) {
-      // Runtime settlement must await its submitted work without unloading shared weights.
-      try { if (session) await session.closeAttempt({ identity: structuredClone(identity) }); }
-      finally { attempts.delete(identity.attemptId); if (!attempts.size) finishDrain?.(); }
+      // Never free admission capacity before the runtime confirms cleanup.
+      reservations.settling(identity);
+      try {
+        if (session) await session.closeAttempt({ identity: structuredClone(identity) });
+        reservations.settled(identity); attempts.delete(identity.attemptId);
+        if (!attempts.size) finishDrain?.(); notify();
+      } catch (cause) { reservations.fail(identity, cause); throw cause; }
     },
     drain() {
       if (draining) return draining;
@@ -107,6 +122,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     },
     close() {
       if (closing) return closing;
+      reservations.close();
       lifetime.abort(new Error('Partition contribution stopped')); phase = 'stopping'; notify();
       closing = (async () => {
         await preparing?.catch(() => {});
