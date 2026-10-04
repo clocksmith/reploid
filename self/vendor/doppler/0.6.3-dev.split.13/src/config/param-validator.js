@@ -1,0 +1,354 @@
+import { log } from '../debug/index.js';
+import { PARAM_CATEGORIES, CategoryRules } from './param-categories.js';
+import {
+  REFACTOR_RECEIPT_POLICIES,
+  TOOLING_DIAGNOSTICS,
+} from './schema/tooling.schema.js';
+import { validateEcosystemConfig } from './schema/ecosystem.schema.js';
+import { isPlainObject } from '../formats/plain-object.js';
+
+const MODEL_OVERRIDE_ALLOWED_PREFIXES = Object.freeze([
+  'vision_config',
+  'audio_config',
+]);
+
+export function validateCallTimeOptions(options) {
+  if (!options) return;
+
+  const violations = [];
+  for (const [key, value] of Object.entries(options)) {
+    if (value === undefined) continue;
+
+    const category = PARAM_CATEGORIES[key];
+    if (!category) continue;
+
+    if (!CategoryRules[category].callTime) {
+      violations.push({ param: key, category });
+    }
+  }
+
+  if (violations.length === 0) return;
+
+  const violation = violations[0];
+  const guidance = violation.category === 'model'
+    ? 'Set in the conversion config/manifest. Runtime modelOverrides are limited to an explicit allowlist.'
+    : 'Set via setRuntimeConfig() before generation.';
+
+  throw new Error(
+    `DopplerConfigError: "${violation.param}" is a ${violation.category} param. ` +
+    'Cannot override at call-time.\n' +
+    guidance
+  );
+}
+
+export function validateRuntimeOverrides(overrides) {
+  if (!isPlainObject(overrides)) {
+    throw new Error('DopplerConfigError: runtime overrides must be an object when provided.');
+  }
+
+  for (const key of ['shared', 'loading', 'inference', 'emulation']) {
+    assertRuntimeOverrideObject(overrides, key);
+  }
+  for (const key of ['batching', 'compute', 'generation', 'kernelPathPolicy']) {
+    assertRuntimeOverrideObject(overrides?.inference, key, 'runtime.inference');
+  }
+  validateRuntimeKernelPath('runtime.inference.kernelPath', overrides?.inference?.kernelPath);
+  if (overrides?.shared?.tooling?.intent !== undefined) {
+    throw new Error(
+      'DopplerConfigError: runtime.shared.tooling.intent is removed. ' +
+      'Command intent is normalized from the command request.'
+    );
+  }
+
+  const modelOverrides = overrides?.inference?.modelOverrides;
+  validateModelOverrides(modelOverrides, 'runtime.inference.modelOverrides');
+}
+
+export function validateModelOverrides(modelOverrides, label = 'runtime.inference.modelOverrides') {
+  if (modelOverrides !== undefined && modelOverrides !== null && !isPlainObject(modelOverrides)) {
+    throw new Error(`DopplerConfigError: ${label} must be an object when provided.`);
+  }
+  if (!modelOverrides) return;
+
+  const params = flattenObject(modelOverrides);
+  if (params.length === 0) return;
+
+  const disallowed = params.filter((param) => !isAllowedModelOverridePath(param));
+  if (disallowed.length > 0) {
+    throw new Error(
+      `DopplerConfigError: ${label} may only override ` +
+      `${MODEL_OVERRIDE_ALLOWED_PREFIXES.join(', ')}. ` +
+      `Disallowed model param(s): ${disallowed.join(', ')}. ` +
+      'Move model inference params to the conversion config/manifest.'
+    );
+  }
+
+  log.warn(
+    'Config',
+    `Experimental: Overriding ${params.length} allowlisted model param(s) via runtime: ${params.join(', ')}. ` +
+      'Manifest values are recommended.'
+  );
+}
+
+export function validateRuntimeConfig(runtimeConfig) {
+  if (!runtimeConfig) return;
+
+  const generation = runtimeConfig.inference?.generation;
+  const batching = runtimeConfig.inference?.batching;
+  const compute = runtimeConfig.inference?.compute;
+  const kernelPath = runtimeConfig.inference?.kernelPath;
+  const kernelPathPolicy = runtimeConfig.inference?.kernelPathPolicy;
+  const session = runtimeConfig.inference?.session;
+
+  if (batching) {
+    if (batching.readbackInterval !== undefined) {
+      assertNullablePositiveInt('runtime.inference.batching.readbackInterval', batching.readbackInterval);
+    }
+    if (batching.ringTokens !== undefined) {
+      assertNullablePositiveInt('runtime.inference.batching.ringTokens', batching.ringTokens);
+    }
+    if (batching.ringStop !== undefined) {
+      assertNullablePositiveInt('runtime.inference.batching.ringStop', batching.ringStop);
+    }
+    if (batching.ringStaging !== undefined) {
+      assertNullablePositiveInt('runtime.inference.batching.ringStaging', batching.ringStaging);
+    }
+  }
+  if (compute?.deferredRoundingWindowTokens !== undefined) {
+    assertPositiveInt('runtime.inference.compute.deferredRoundingWindowTokens', compute.deferredRoundingWindowTokens);
+  }
+  if (generation?.maxTokens !== undefined) {
+    assertPositiveInt('runtime.inference.generation.maxTokens', generation.maxTokens);
+  }
+  if (generation?.multimodalMaxTokens !== undefined) {
+    assertPositiveInt('runtime.inference.generation.multimodalMaxTokens', generation.multimodalMaxTokens);
+  }
+  if (session?.prefillTokenChunkSize !== undefined) {
+    assertNullablePositiveInt('runtime.inference.session.prefillTokenChunkSize', session.prefillTokenChunkSize);
+  }
+  if (session?.skipEmbeddingKVCacheWrites !== undefined) {
+    assertNullableBoolean(
+      'runtime.inference.session.skipEmbeddingKVCacheWrites',
+      session.skipEmbeddingKVCacheWrites
+    );
+  }
+  if (session?.useLargeBatchF16F32FusedGateUp !== undefined) {
+    assertNullableBoolean(
+      'runtime.inference.session.useLargeBatchF16F32FusedGateUp',
+      session.useLargeBatchF16F32FusedGateUp
+    );
+  }
+  if (session?.decodeLoop?.maxBatchDecodeTokens !== undefined) {
+    assertNullablePositiveInt(
+      'runtime.inference.session.decodeLoop.maxBatchDecodeTokens',
+      session.decodeLoop.maxBatchDecodeTokens
+    );
+  }
+  if (kernelPathPolicy) {
+    validateKernelPathPolicy('runtime.inference.kernelPathPolicy', kernelPathPolicy);
+  }
+  validateRuntimeKernelPath('runtime.inference.kernelPath', kernelPath);
+  if (compute?.rangeAwareSelectiveWidening !== undefined) {
+    validateRangeAwareSelectiveWidening(
+      'runtime.inference.compute.rangeAwareSelectiveWidening',
+      compute.rangeAwareSelectiveWidening
+    );
+  }
+  if (generation?.embeddingMode !== undefined) {
+    assertEmbeddingMode('runtime.inference.generation.embeddingMode', generation.embeddingMode);
+  }
+  if (generation?.disableCommandBatching !== undefined) {
+    throw new Error(
+      'DopplerConfigError: runtime.inference.generation.disableCommandBatching is removed. ' +
+      'Use runtime.inference.session.decodeLoop.disableCommandBatching.'
+    );
+  }
+
+  validateToolingDiagnostics(runtimeConfig);
+  validateEcosystemConfig(runtimeConfig.shared?.ecosystem);
+
+  const debug = runtimeConfig.shared?.debug;
+  const debugEnabled = isDebugMode(debug);
+  const allowF32Upcast = runtimeConfig.loading?.allowF32UpcastNonMatmul === true;
+  const keepF32Weights = compute?.keepF32Weights === true;
+
+  if (!debugEnabled && (allowF32Upcast || keepF32Weights)) {
+    const flags = [];
+    if (allowF32Upcast) flags.push('runtime.loading.allowF32UpcastNonMatmul');
+    if (keepF32Weights) flags.push('runtime.inference.compute.keepF32Weights');
+    throw new Error(
+      'DopplerConfigError: F32 weight upcast/retention is debug-only. ' +
+      `Disable ${flags.join(', ')} or enable runtime.shared.debug.pipeline.enabled ` +
+      'or runtime.shared.debug.trace.enabled (or set log level to debug/verbose).'
+    );
+  }
+}
+
+function validateRuntimeKernelPath(label, value) {
+  if (value === undefined || value === null) return;
+  if (typeof value === 'string') {
+    throw new Error(
+      `DopplerConfigError: ${label} no longer accepts string registry IDs. ` +
+      'Use an inline kernel path object generated from execution-v1, or leave kernelPath null.'
+    );
+  }
+  if (!isPlainObject(value)) {
+    throw new Error(`DopplerConfigError: ${label} must be an inline kernel path object or null.`);
+  }
+}
+
+function validateToolingDiagnostics(runtimeConfig) {
+  const tooling = runtimeConfig.shared?.tooling;
+  const diagnostics = tooling?.diagnostics ?? null;
+
+  if (diagnostics !== null && !TOOLING_DIAGNOSTICS.includes(diagnostics)) {
+    throw new Error(
+      `DopplerConfigError: runtime.shared.tooling.diagnostics must be one of ` +
+      `${TOOLING_DIAGNOSTICS.join(', ')}.`
+    );
+  }
+  const refactorReceipts = tooling?.refactorReceipts ?? null;
+  if (
+    refactorReceipts !== null
+    && !REFACTOR_RECEIPT_POLICIES.includes(refactorReceipts)
+  ) {
+    throw new Error(
+      'DopplerConfigError: runtime.shared.tooling.refactorReceipts must be one of ' +
+      `${REFACTOR_RECEIPT_POLICIES.join(', ')}.`
+    );
+  }
+}
+
+function flattenObject(obj, prefix = '') {
+  const result = [];
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === undefined) continue;
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (isPlainObject(value)) {
+      result.push(...flattenObject(value, path));
+    } else {
+      result.push(path);
+    }
+  }
+  return result;
+}
+
+function isAllowedModelOverridePath(path) {
+  return MODEL_OVERRIDE_ALLOWED_PREFIXES.some((prefix) => {
+    return path === prefix || path.startsWith(`${prefix}.`);
+  });
+}
+
+function isDebugMode(debug) {
+  if (!debug) return false;
+  if (debug.pipeline?.enabled) return true;
+  if (debug.trace?.enabled) return true;
+  const level = debug.logLevel?.defaultLogLevel;
+  return level === 'debug' || level === 'verbose';
+}
+
+function assertPositiveInt(label, value, { nullable = false } = {}) {
+  if (value === undefined) {
+    throw new Error(`DopplerConfigError: ${label} is required.`);
+  }
+  if (nullable && value === null) return;
+  if (!Number.isFinite(value) || value <= 0 || Math.floor(value) !== value) {
+    const suffix = nullable ? ' or null' : '';
+    throw new Error(`DopplerConfigError: ${label} must be a positive integer${suffix}.`);
+  }
+}
+
+function assertNullablePositiveInt(label, value) {
+  assertPositiveInt(label, value, { nullable: true });
+}
+
+function assertNullableBoolean(label, value) {
+  if (value === null) return;
+  if (typeof value !== 'boolean') {
+    throw new Error(`DopplerConfigError: ${label} must be boolean or null.`);
+  }
+}
+
+function assertEmbeddingMode(label, value) {
+  if (value === undefined) {
+    throw new Error(`DopplerConfigError: ${label} is required.`);
+  }
+  if (value !== 'last' && value !== 'mean') {
+    throw new Error(`DopplerConfigError: ${label} must be "last" or "mean".`);
+  }
+}
+
+function validateRangeAwareSelectiveWidening(label, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`DopplerConfigError: ${label} is required.`);
+  }
+  if (value.enabled !== true && value.enabled !== false) {
+    throw new Error(`DopplerConfigError: ${label}.enabled must be boolean.`);
+  }
+  if (value.includeNonFinite !== true && value.includeNonFinite !== false) {
+    throw new Error(`DopplerConfigError: ${label}.includeNonFinite must be boolean.`);
+  }
+  if (value.onTrigger !== undefined && value.onTrigger !== 'error' && value.onTrigger !== 'fallback-plan') {
+    throw new Error(
+      `DopplerConfigError: ${label}.onTrigger must be "error" or "fallback-plan".`
+    );
+  }
+  if (!Number.isFinite(value.absThreshold) || value.absThreshold <= 0) {
+    throw new Error(`DopplerConfigError: ${label}.absThreshold must be a positive number.`);
+  }
+}
+
+function validateKernelPathPolicy(label, value) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error(`DopplerConfigError: ${label} must be an object.`);
+  }
+  if (
+    value.sourceScope !== undefined
+    && value.allowSources !== undefined
+    && !arraysEqual(value.sourceScope, value.allowSources)
+  ) {
+    throw new Error(
+      `DopplerConfigError: ${label}.sourceScope and ${label}.allowSources must match exactly when both are provided.`
+    );
+  }
+  if (value.mode !== 'locked' && value.mode !== 'capability-aware') {
+    throw new Error(`DopplerConfigError: ${label}.mode must be "locked" or "capability-aware".`);
+  }
+  const sourceScope = value.sourceScope ?? value.allowSources;
+  if (!Array.isArray(sourceScope) || sourceScope.length === 0) {
+    throw new Error(`DopplerConfigError: ${label}.sourceScope must be a non-empty array.`);
+  }
+  if (value.onIncompatible !== 'error' && value.onIncompatible !== 'remap') {
+    throw new Error(`DopplerConfigError: ${label}.onIncompatible must be "error" or "remap".`);
+  }
+  const validSources = new Set(['model', 'manifest', 'config']);
+  for (const source of sourceScope) {
+    if (!validSources.has(source)) {
+      throw new Error(
+        `DopplerConfigError: ${label}.sourceScope entries must be model|manifest|config.`
+      );
+    }
+  }
+}
+
+function assertRuntimeOverrideObject(container, key, prefix = 'runtime') {
+  if (!isPlainObject(container) || !Object.prototype.hasOwnProperty.call(container, key)) {
+    return;
+  }
+  if (container[key] === null) {
+    throw new Error(`DopplerConfigError: ${prefix}.${key} must not be null.`);
+  }
+  if (!isPlainObject(container[key])) {
+    throw new Error(`DopplerConfigError: ${prefix}.${key} must be an object when provided.`);
+  }
+}
+
+function arraysEqual(left, right) {
+  if (!Array.isArray(left) || !Array.isArray(right)) {
+    return false;
+  }
+  if (left.length !== right.length) {
+    return false;
+  }
+  return left.every((value, index) => value === right[index]);
+}

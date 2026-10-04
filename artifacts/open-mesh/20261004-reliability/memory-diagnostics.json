@@ -1,0 +1,671 @@
+{
+  "scope": "Single physical Mac executor, exact local model bytes, partition A prefill only; no peer acquisition or full-generation claim.",
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "requestFixtureSha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+  "candidateSourceCommit": "35e7c289",
+  "runtimeReplacements": "Experiments named session-rope use diagnostic source interception; final experiment uses canonical committed init-rope and linear-attention-core sources. Package metadata alone does not identify these diagnostic substitutions.",
+  "unchanged": {
+    "allocationBudgetBytes": 1420000000,
+    "maxSeqLen": 4096,
+    "activationDtype": "f32",
+    "kvDtype": "f16"
+  },
+  "cases": [
+    {
+      "experiment": "baseline",
+      "rawSha256": "2bf3f9e4141d98d426cdbed7010c9594c0605830c8b72f49061a1b643a7e4b83",
+      "packageVersion": "0.6.3-dev.split.12",
+      "chunkLayers": null,
+      "runs": [
+        {
+          "index": 0,
+          "tokens": 494,
+          "error": null,
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 986560912,
+            "peakBytes": 1087224208,
+            "categories": {
+              "weights": 650989568,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 335571344
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1190980216,
+            "peakBytes": 1368975992,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 4325376,
+              "other": 535665256
+            }
+          },
+          "execution": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1293675128,
+            "peakBytes": 1368975992,
+            "categories": {
+              "weights": 650989568,
+              "attention": 100663312,
+              "recurrent": 4325376,
+              "other": 537696872
+            }
+          }
+        },
+        {
+          "index": 1,
+          "tokens": 1588,
+          "error": "GPU memory budget exceeded: rmsnorm_output_6553600 requires 6553600 bytes; 1414198136 live, 1420000000 allowed.",
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1190980216,
+            "peakBytes": 1368975992,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 4325376,
+              "other": 535665256
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1300427640,
+            "peakBytes": 1414198136,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 3538944,
+              "other": 645899112
+            }
+          },
+          "execution": null
+        }
+      ],
+      "failures": [
+        {
+          "description": "Error: GPU memory budget exceeded: rmsnorm_output_6553600 requires 6553600 bytes; 1414198136 live, 1420000000 allowed.\n    at device.createBuffer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/device-budget.js:24:27)\n    at BufferPool.acquire (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/buffer-pool.js:277:27)\n    at acquireBuffer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/buffer-pool.js:789:19)\n    at recordRMSNorm (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/gpu/kernels/rmsnorm.js:247:37)\n    at doRMSNorm (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/inference/pipelines/text/ops.js:52:13)\n    at processFFNStandard (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/inference/pipelines/text/ffn/standard.js:155:30)\n    at processLayerGPU (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/inference/pipelines/text/layer.js:699:26)\n    at async executePartitionLayers (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/inference/pipelines/text/partition-execution.js:129:20)\n    at async http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/inference/pipelines/text/resident-partition.js:114:24\n    at async invoke (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/inference/pipelines/shader-scoped-pipeline.js:163:16)",
+          "pool": {
+            "allocations": 358,
+            "reuses": 139,
+            "totalBytesAllocated": 1549312000,
+            "peakBytesAllocated": 1313507328,
+            "currentBytesAllocated": 1313507328,
+            "totalBytesRequested": 1544179968,
+            "peakBytesRequested": 1262496768,
+            "currentBytesRequested": 1116555008,
+            "resources": {
+              "retainedModel": {
+                "bytes": 650989568,
+                "count": 172
+              },
+              "active": {
+                "bytes": 467543040,
+                "count": 21
+              },
+              "reusable": {
+                "bytes": 194974720,
+                "count": 56
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeBuffers": 193,
+            "pooledBuffers": 56,
+            "budgetMaxBytes": 0,
+            "budgetUtilization": 0,
+            "hitRate": "28.0%"
+          }
+        }
+      ]
+    },
+    {
+      "experiment": "reclaim-idle-only",
+      "rawSha256": "402b86f611484d724bf55044bfdf1578634f6e093ee0ac8ea801aca3e390f218",
+      "packageVersion": "0.6.3-dev.split.12",
+      "chunkLayers": null,
+      "runs": [
+        {
+          "index": 0,
+          "tokens": 494,
+          "error": null,
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 986560912,
+            "peakBytes": 1087224208,
+            "categories": {
+              "weights": 650989568,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 335571344
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1190980216,
+            "peakBytes": 1368975992,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 4325376,
+              "other": 535665256
+            }
+          },
+          "execution": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1293675128,
+            "peakBytes": 1368975992,
+            "categories": {
+              "weights": 650989568,
+              "attention": 100663312,
+              "recurrent": 4325376,
+              "other": 537696872
+            }
+          }
+        },
+        {
+          "index": 1,
+          "tokens": 1588,
+          "error": "GPU memory budget exceeded: matmul_output_6553600 requires 6553600 bytes; 1419700184 live, 1420000000 allowed.",
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 986561144,
+            "peakBytes": 1368975992,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 0,
+              "other": 335571560
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1319036888,
+            "peakBytes": 1419700184,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 2359296,
+              "other": 665688008
+            }
+          },
+          "execution": null
+        }
+      ],
+      "failures": [
+        {
+          "description": "Error: GPU memory budget exceeded: matmul_output_6553600 requires 6553600 bytes; 1419700184 live, 1420000000 allowed.\n    at device.createBuffer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/device-budget.js:24:27)\n    at BufferPool.acquire (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/buffer-pool.js:277:27)\n    at acquireBuffer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/buffer-pool.js:789:19)\n    at resolveMatmulOutput (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/gpu/kernels/matmul-selection.js:685:34)\n    at executeMatmul (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/gpu/kernels/matmul.js:469:24)",
+          "pool": {
+            "allocations": 389,
+            "reuses": 132,
+            "totalBytesAllocated": 1751362560,
+            "peakBytesAllocated": 1319009280,
+            "currentBytesAllocated": 1319009280,
+            "totalBytesRequested": 1745514752,
+            "peakBytesRequested": 1316390144,
+            "currentBytesRequested": 1316390144,
+            "resources": {
+              "retainedModel": {
+                "bytes": 650989568,
+                "count": 172
+              },
+              "active": {
+                "bytes": 667953152,
+                "count": 40
+              },
+              "reusable": {
+                "bytes": 66560,
+                "count": 4
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeBuffers": 212,
+            "pooledBuffers": 4,
+            "budgetMaxBytes": 0,
+            "budgetUtilization": 0,
+            "hitRate": "25.3%"
+          }
+        }
+      ]
+    },
+    {
+      "experiment": "one-layer-and-reclaim",
+      "rawSha256": "a7df71b5196a800251fa615239f1e26dc96e109e7dd1143c6d3a262fbead1a12",
+      "packageVersion": "0.6.3-dev.split.12",
+      "chunkLayers": 1,
+      "runs": [
+        {
+          "index": 0,
+          "tokens": 494,
+          "error": null,
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 986560912,
+            "peakBytes": 1087224208,
+            "categories": {
+              "weights": 650989568,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 335571344
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1094183544,
+            "peakBytes": 1194846840,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 4325376,
+              "other": 438868584
+            }
+          },
+          "execution": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1194846840,
+            "peakBytes": 1194846840,
+            "categories": {
+              "weights": 650989568,
+              "attention": 100663312,
+              "recurrent": 4325376,
+              "other": 438868584
+            }
+          }
+        },
+        {
+          "index": 1,
+          "tokens": 1588,
+          "error": null,
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 986561144,
+            "peakBytes": 1194846840,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 0,
+              "other": 335571560
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1305281752,
+            "peakBytes": 1405945048,
+            "categories": {
+              "weights": 650989568,
+              "attention": 32,
+              "recurrent": 9568256,
+              "other": 644723896
+            }
+          },
+          "execution": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1405945048,
+            "peakBytes": 1405945048,
+            "categories": {
+              "weights": 650989568,
+              "attention": 100663328,
+              "recurrent": 9568256,
+              "other": 644723896
+            }
+          }
+        }
+      ],
+      "failures": []
+    },
+    {
+      "experiment": "session-rope-only",
+      "rawSha256": "f835bcb6317e3d067bdb50707447d83e6e6f165845ec012bff400fe235c583af",
+      "packageVersion": "0.6.3-dev.split.12",
+      "chunkLayers": null,
+      "runs": [
+        {
+          "index": 0,
+          "tokens": 494,
+          "error": null,
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 656259472,
+            "peakBytes": 756922768,
+            "categories": {
+              "weights": 650989568,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 5269904
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 860678776,
+            "peakBytes": 1038674552,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 4325376,
+              "other": 205363816
+            }
+          },
+          "execution": {
+            "maxBytes": 1420000000,
+            "liveBytes": 963373688,
+            "peakBytes": 1038674552,
+            "categories": {
+              "weights": 650989568,
+              "attention": 100663312,
+              "recurrent": 4325376,
+              "other": 207395432
+            }
+          }
+        },
+        {
+          "index": 1,
+          "tokens": 1588,
+          "error": "GPU memory budget exceeded: matmul_output_39059456 requires 39059456 bytes; 1390998488 live, 1420000000 allowed.",
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 860678776,
+            "peakBytes": 1038674552,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 4325376,
+              "other": 205363816
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1123677144,
+            "peakBytes": 1390998488,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 3670016,
+              "other": 469017544
+            }
+          },
+          "execution": null
+        }
+      ],
+      "failures": [
+        {
+          "description": "Error: GPU memory budget exceeded: matmul_output_39059456 requires 39059456 bytes; 1390998488 live, 1420000000 allowed.\n    at device.createBuffer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/device-budget.js:24:27)\n    at BufferPool.acquire (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/buffer-pool.js:277:27)\n    at acquireBuffer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/buffer-pool.js:789:19)\n    at resolveMatmulOutput (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/gpu/kernels/matmul-selection.js:685:34)\n    at executeMatmul (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/gpu/kernels/matmul.js:469:24)",
+          "pool": {
+            "allocations": 382,
+            "reuses": 159,
+            "totalBytesAllocated": 1526112256,
+            "peakBytesAllocated": 1290307584,
+            "currentBytesAllocated": 1290307584,
+            "totalBytesRequested": 1519987456,
+            "peakBytesRequested": 1094658560,
+            "currentBytesRequested": 1094658304,
+            "resources": {
+              "retainedModel": {
+                "bytes": 650989568,
+                "count": 172
+              },
+              "active": {
+                "bytes": 446704640,
+                "count": 55
+              },
+              "reusable": {
+                "bytes": 192613376,
+                "count": 46
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeBuffers": 227,
+            "pooledBuffers": 46,
+            "budgetMaxBytes": 0,
+            "budgetUtilization": 0,
+            "hitRate": "29.4%"
+          }
+        }
+      ]
+    },
+    {
+      "experiment": "session-rope-and-reclaim",
+      "rawSha256": "34ade9a9046304514b792d0b2a10dad2b17baa50ea3796d18704859f8481b50b",
+      "packageVersion": "0.6.3-dev.split.12",
+      "chunkLayers": null,
+      "runs": [
+        {
+          "index": 0,
+          "tokens": 494,
+          "error": null,
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 656259472,
+            "peakBytes": 756922768,
+            "categories": {
+              "weights": 650989568,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 5269904
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 860678776,
+            "peakBytes": 1038674552,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 4325376,
+              "other": 205363816
+            }
+          },
+          "execution": {
+            "maxBytes": 1420000000,
+            "liveBytes": 963373688,
+            "peakBytes": 1038674552,
+            "categories": {
+              "weights": 650989568,
+              "attention": 100663312,
+              "recurrent": 4325376,
+              "other": 207395432
+            }
+          }
+        },
+        {
+          "index": 1,
+          "tokens": 1588,
+          "error": "GPU memory budget exceeded: matmul_output_26017792 requires 26017792 bytes; 1410657240 live, 1420000000 allowed.",
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 656259704,
+            "peakBytes": 1038674552,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 0,
+              "other": 5270120
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1208544216,
+            "peakBytes": 1410657240,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 3538944,
+              "other": 554015688
+            }
+          },
+          "execution": null
+        }
+      ],
+      "failures": [
+        {
+          "description": "Error: GPU memory budget exceeded: matmul_output_26017792 requires 26017792 bytes; 1410657240 live, 1420000000 allowed.\n    at device.createBuffer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/device-budget.js:24:27)\n    at BufferPool.acquire (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/buffer-pool.js:277:27)\n    at acquireBuffer (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/memory/buffer-pool.js:789:19)\n    at resolveMatmulOutput (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/gpu/kernels/matmul-selection.js:685:34)\n    at executeMatmul (http://localhost:8000/vendor/doppler/0.6.3-dev.split.12/src/gpu/kernels/matmul.js:469:24)",
+          "pool": {
+            "allocations": 419,
+            "reuses": 138,
+            "totalBytesAllocated": 1742319616,
+            "peakBytesAllocated": 1309966336,
+            "currentBytesAllocated": 1309966336,
+            "totalBytesRequested": 1735380736,
+            "peakBytesRequested": 1306256384,
+            "currentBytesRequested": 1306256128,
+            "resources": {
+              "retainedModel": {
+                "bytes": 650989568,
+                "count": 172
+              },
+              "active": {
+                "bytes": 658910208,
+                "count": 70
+              },
+              "reusable": {
+                "bytes": 66560,
+                "count": 4
+              },
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            "activeBuffers": 242,
+            "pooledBuffers": 4,
+            "budgetMaxBytes": 0,
+            "budgetUtilization": 0,
+            "hitRate": "24.8%"
+          }
+        }
+      ]
+    },
+    {
+      "experiment": "session-rope-cleanup-and-one-layer",
+      "rawSha256": "0abb733d9dc2694f96485609616a8e31c68367655d9b2b98ce21964af30320fe",
+      "packageVersion": "0.6.3-dev.split.12",
+      "chunkLayers": 1,
+      "runs": [
+        {
+          "index": 0,
+          "tokens": 494,
+          "error": null,
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 656259472,
+            "peakBytes": 756922768,
+            "categories": {
+              "weights": 650989568,
+              "attention": 0,
+              "recurrent": 0,
+              "other": 5269904
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 763882104,
+            "peakBytes": 864545400,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 4325376,
+              "other": 108567144
+            }
+          },
+          "execution": {
+            "maxBytes": 1420000000,
+            "liveBytes": 864545400,
+            "peakBytes": 864545400,
+            "categories": {
+              "weights": 650989568,
+              "attention": 100663312,
+              "recurrent": 4325376,
+              "other": 108567144
+            }
+          }
+        },
+        {
+          "index": 1,
+          "tokens": 1588,
+          "error": null,
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 763882104,
+            "peakBytes": 864545400,
+            "categories": {
+              "weights": 650989568,
+              "attention": 16,
+              "recurrent": 4325376,
+              "other": 108567144
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1067584728,
+            "peakBytes": 1168248024,
+            "categories": {
+              "weights": 650989568,
+              "attention": 32,
+              "recurrent": 4718592,
+              "other": 411876536
+            }
+          },
+          "execution": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1168248024,
+            "peakBytes": 1168248024,
+            "categories": {
+              "weights": 650989568,
+              "attention": 100663328,
+              "recurrent": 4718592,
+              "other": 411876536
+            }
+          }
+        },
+        {
+          "index": 2,
+          "tokens": 1588,
+          "error": null,
+          "before": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1067584728,
+            "peakBytes": 1168248024,
+            "categories": {
+              "weights": 650989568,
+              "attention": 32,
+              "recurrent": 4718592,
+              "other": 411876536
+            }
+          },
+          "after": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1067584728,
+            "peakBytes": 1168248024,
+            "categories": {
+              "weights": 650989568,
+              "attention": 32,
+              "recurrent": 8650752,
+              "other": 407944376
+            }
+          },
+          "execution": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1168248024,
+            "peakBytes": 1168248024,
+            "categories": {
+              "weights": 650989568,
+              "attention": 100663328,
+              "recurrent": 8650752,
+              "other": 407944376
+            }
+          }
+        }
+      ],
+      "failures": []
+    }
+  ]
+}

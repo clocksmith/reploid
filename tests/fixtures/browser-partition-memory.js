@@ -41,7 +41,8 @@ try {
     await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
     const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: identity,
       runtimeConfig: { shared: { debug: { profiler: { enabled: false } } }, inference: { session: {
-        kvcache: { maxSeqLen: requests[0].model.generation.maxSeqLen }, ...(chunkLayers ? { prefillChunkLayers: chunkLayers } : {}) } } },
+        kvcache: { maxSeqLen: requests[0].model.generation.maxSeqLen },
+        prefillChunkLayers: chunkLayers ?? policy.prefillChunkLayers } } },
       createStorage: () => createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) });
     const resident = await factory.openResidentPartition({ model: requests[0].model, plan, planId, index: 0,
       participantId: 'diagnostic-A', limits: policy.limits, signal: new AbortController().signal });

@@ -15,6 +15,8 @@ async function networkFixture(page) {
     } };
     let listener;
     const session = { getState: () => state, subscribe(fn) { listener = fn; fn(state); return () => {}; },
+      async connect() { state.network.paused = false; state.network.consumer.connectionState = 'connected'; listener(state); },
+      async disconnect() { state.network.paused = true; state.network.consumer.connectionState = 'disconnected'; state.network.sharing = false; state.network.files.sharing = false; listener(state); },
       async setSharing(enabled, model, approved) {
         if (enabled && !approved) throw Error('Approve public prompt execution before sharing');
         state.network.sharing = enabled; listener(state);
@@ -23,6 +25,7 @@ async function networkFixture(page) {
         state.network.files = { sharing: enabled, model: { id: 'qwen', name: 'Qwen 3.5 0.8B' } }; listener(state);
       }
     };
+    globalThis.networkFixture = { state, session, notify: () => listener(state) };
     bindNetworkControls(root, session);
   });
 }
@@ -39,21 +42,31 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(page.locator('[data-insp-device-list] li')).toHaveCount(3);
     await expect(page.locator('[data-insp-device-list]')).toContainText('Partition 2 · ready');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.evaluate(() => scrollTo(0, 0));
+    expect(await page.locator('.pool-primary-nav').evaluate(node => node.getBoundingClientRect().bottom))
+      .toBeLessThan((await page.locator('.network-card').first().boundingBox()).y);
     await page.screenshot({ path: info.outputPath('network.png'), fullPage: true });
-    await page.locator('summary').filter({ hasText: /^Compute/ }).click();
-    await page.locator('[data-toggle-contribution]').click();
+    const compute = page.getByRole('switch', { name: 'Share compute', exact: true });
+    const files = page.getByRole('switch', { name: 'Share model files', exact: true });
+    const connection = page.getByRole('switch', { name: 'Connect to network' });
+    await expect(compute).toHaveAttribute('aria-checked', 'true');
+    await compute.click();
     await expect(page.locator('[data-tab-sharing-summary]')).toHaveText('No models shared by this tab');
-    await page.locator('[data-toggle-contribution]').click();
-    await expect(page.locator('[data-network-message]')).toHaveText('Approve public prompt execution before sharing');
-    await page.locator('[data-contribution-consent]').check();
-    await page.locator('[data-toggle-contribution]').click();
+    await compute.click();
     await expect(page.locator('[data-contrib-label]')).toHaveText('Ready');
-    await page.locator('summary').filter({ hasText: /^Model files/ }).click();
-    await page.locator('[data-toggle-file-contribution]').click();
-    await expect(page.locator('[data-network-message]')).toHaveText('Approve file distribution separately from compute');
-    await page.locator('[data-file-contribution-consent]').check();
-    await page.locator('[data-toggle-file-contribution]').click();
-    await expect(page.locator('[data-file-contribution-label]')).toHaveText('Sharing');
+    await expect(files).toHaveAttribute('aria-checked', 'false');
+    await files.click();
+    await expect(files).toHaveAttribute('aria-checked', 'true');
+    await compute.click();
+    await expect(files).toHaveAttribute('aria-checked', 'true');
+    await connection.click();
+    await expect(connection).toHaveAttribute('aria-checked', 'false');
+    await expect(files).toHaveAttribute('aria-checked', 'false');
+    // One explicit compute switch reconnects a deliberately disconnected tab.
+    await compute.click();
+    await expect(connection).toHaveAttribute('aria-checked', 'true');
+    await expect(compute).toHaveAttribute('aria-checked', 'true');
+    await expect(files).toHaveAttribute('aria-checked', 'false');
     expect(errors).toEqual([]);
   });
 }
@@ -77,4 +90,21 @@ test('Changes keeps old failures in cards and opens detail only on selection', a
   await page.locator('[data-work-select]').click();
   await expect(page.locator('[data-change-inspection]')).toBeVisible();
   await expect(page.locator('[data-work-result-error]')).toHaveText('The contributor disconnected.');
+});
+
+test('failed sharing stays off and remains visible during peer updates', async ({ page }) => {
+  await page.goto('/network'); await expect(page.locator('[data-network-workspace]')).toBeVisible();
+  await networkFixture(page);
+  await page.evaluate(() => {
+    networkFixture.state.network.sharing = false;
+    networkFixture.session.setSharing = async () => { throw Error('GPU memory unavailable'); };
+    networkFixture.notify();
+  });
+  const compute = page.getByRole('switch', { name: 'Share compute', exact: true });
+  await compute.click();
+  await expect(page.locator('[data-network-message]')).toHaveText('GPU memory unavailable');
+  await page.evaluate(() => networkFixture.notify());
+  await expect(compute).toHaveAttribute('aria-checked', 'false');
+  await expect(page.locator('[data-network-message]')).toHaveText('GPU memory unavailable');
+  await expect(page.getByRole('switch', { name: 'Share model files', exact: true })).toHaveAttribute('aria-checked', 'false');
 });

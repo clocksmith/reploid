@@ -15,6 +15,11 @@ describe('Document workflow ownership', () => {
     expect(comparisonSources(input.replace('"D1:P1"', '"D2:P1"'))).toBeNull();
     expect(comparisonExport({ messages: [{ role: 'user', content: input, status: 'completed' }] })).toContain('[D3:P2] Page 1');
   });
+  it('exports ordinary conversations without document-workflow labels', () => {
+    const text = comparisonExport({ messages: [{ role: 'user', content: 'Hello', status: 'completed' }] });
+    expect(text).toContain('# Conversation');
+    expect(text).not.toMatch(/Document comparison|Passage links|second model pass/);
+  });
   it('runs the checking pass as a separate retained attempt using injected execution', async () => {
     const session = createChatSession({ storage: storage(), service: createChatTestService() });
     const id = session.createThread({ sharingScope: 'local' });

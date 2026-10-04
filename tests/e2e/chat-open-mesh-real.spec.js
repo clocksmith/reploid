@@ -69,14 +69,10 @@ test('open chat discovers a real contributor, streams without requester weights,
     await expect(requester.locator('[data-composer-send]')).toBeDisabled();
     await expect(requester.locator('[data-mesh-invite]')).toBeHidden();
     await openContribution(seed);
-    await seed.locator('details').filter({ has: seed.locator('[data-toggle-file-contribution]') }).locator('summary').click();
-    await seed.locator('[data-file-contribution-consent]').check();
     await seed.locator('[data-toggle-file-contribution]').click();
     await expect(seed.locator('[data-file-contribution-label]')).toHaveText('Sharing', { timeout: 180000 });
     console.log('Exact catalog files cached by the consenting seed', seedFiles.length);
     await openContribution(contributor);
-    await contributor.locator('details').filter({ has: contributor.locator('[data-toggle-contribution]') }).locator('summary').click();
-    await contributor.locator('[data-contribution-consent]').check();
     await contributor.locator('[data-toggle-contribution]').click();
     let lastProgress = '';
     await expect.poll(async () => {

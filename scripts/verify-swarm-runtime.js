@@ -42,7 +42,7 @@ try {
   const count = joins[0].length;
   await new Promise(resolve => setTimeout(resolve, 12000));
   assert.equal(joins[0].length, count);
-  assert.equal(await pages[0].locator('[data-mesh-connect]').textContent(), 'Connect');
+  assert.equal(await pages[0].locator('[data-mesh-connect]').getAttribute('aria-checked'), 'false');
   await pages[0].reload();
   await pages[0].locator('[data-chat-workspace]').waitFor();
   await new Promise(resolve => setTimeout(resolve, 1500));

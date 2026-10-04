@@ -1,3 +1,4 @@
+import { comparisonInput, COMPARISON_CHECK } from '../../self/host/document-comparison.js';
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -95,15 +96,11 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await expect(requester.locator('[data-composer-send]')).toBeDisabled();
     await expect(requester.locator('[data-mesh-invite]')).toBeHidden();
     await openContribution(seed);
-    await seed.locator('details').filter({ has: seed.locator('[data-toggle-file-contribution]') }).locator('summary').click();
-    await seed.locator('[data-file-contribution-consent]').check();
     await seed.locator('[data-toggle-file-contribution]').click();
     await expect(seed.locator('[data-file-contribution-label]')).toHaveText('Sharing', { timeout: 180000 });
     console.log('Exact catalog files cached by the consenting seed', seedFiles.length);
     for (const executor of [contributor, second]) {
     await openContribution(executor);
-    await executor.locator('details').filter({ has: executor.locator('[data-toggle-contribution]') }).locator('summary').click();
-    await executor.locator('[data-contribution-consent]').check();
     await executor.locator('[data-toggle-contribution]').click();
     }
     let lastProgress = '';
@@ -185,15 +182,15 @@ test('one model executes cooperatively on discovered physical peers from selecti
     }
     if (process.env.REPLOID_E2E_DOCUMENTS === '1') {
       await requester.locator('[data-new-thread]').click();
-      await requester.locator('[data-comparison-sample]').click();
-      await requester.locator('[data-composer-compare]').click();
+      // Preserve the exact long-prompt workload through the ordinary composer.
+      const sample = JSON.parse(await readFile('self/config/document-comparison-sample.json', 'utf8'));
+      await requester.locator('[data-composer-input]').fill(comparisonInput(sample.question, sample.files));
+      await requester.locator('[data-composer-send]').click();
       await approve(requester);
       const documentId = (await history(requester)).threads.at(-1).id;
-      await expect.poll(async () => {
-        const attempts = (await history(requester)).threads.find(thread => thread.id === documentId).attempts;
-        if (attempts.some(attempt => attempt.status === 'failed')) throw new Error(attempts.find(attempt => attempt.status === 'failed').error);
-        return attempts.length;
-      }, { timeout: 300000 }).toBe(2);
+      await waitCompleted(documentId);
+      await requester.locator('[data-composer-input]').fill(COMPARISON_CHECK);
+      await requester.locator('[data-composer-send]').click();
       await approve(requester); await waitCompleted(documentId);
       const documents = (await history(requester)).threads.find(thread => thread.id === documentId);
       await writeFile(info.outputPath('document-comparison.json'), JSON.stringify({
@@ -237,8 +234,6 @@ test('one model executes cooperatively on discovered physical peers from selecti
       const bHost = bIndex === 0 ? (remote || browser) : browser;
       // Each executor separately authorizes redistribution of retained pieces.
       for (const executor of [contributor, second]) {
-        await executor.locator('details').filter({ has: executor.locator('[data-toggle-file-contribution]') }).locator('summary').click();
-        await executor.locator('[data-file-contribution-consent]').check();
         await executor.locator('[data-toggle-file-contribution]').click();
         await expect(executor.locator('[data-file-contribution-label]')).toHaveText('Sharing', { timeout: 60000 });
       }
@@ -261,8 +256,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
         quotaSize: executorQuotaMiB * 1024 * 1024 });
       await page.goto(info.project.use.baseURL); await page.locator('[data-chat-workspace]').waitFor();
       await openContribution(page);
-      await page.locator('details').filter({ has: page.locator('[data-toggle-contribution]') }).locator('summary').click();
-      await page.locator('[data-contribution-consent]').check(); await page.locator('[data-toggle-contribution]').click();
+      await page.locator('[data-toggle-contribution]').click();
       await expect(page.locator('[data-contrib-label]')).toHaveText('Ready', { timeout: 1800000 });
       expect(observation.loads[0].descriptor.index).toBe(1);
       const pinnedId = await sendNew('Reply with only the word Hello.'); await waitCompleted(pinnedId);

@@ -1,0 +1,17 @@
+{
+  "version": "0.6.3-dev.split.13",
+  "base": "doppler-gpu-0.6.3-dev.split.12.tgz",
+  "baseSha256": "9f8012a96e0fe43302fdccb4a09bb3faace62bdeb202271389f7a2bafd9f6893",
+  "changes": [
+    "src/inference/pipelines/text/init-rope.js",
+    "src/inference/pipelines/text/init-rope.d.ts",
+    "src/gpu/kernels/linear-attention-core.js"
+  ],
+  "sourceHashes": {
+    "src/inference/pipelines/text/init-rope.js": "34c76845bfa2e6bac061810152487b3a0d4a8ee85eeac4c57208ab11244f03f3",
+    "src/inference/pipelines/text/init-rope.d.ts": "0d445ccba3a6a48cb2589d26b6dc2f0ccfbc71ab8953487c847a1c919c6b9467",
+    "src/gpu/kernels/linear-attention-core.js": "b82e165dad5c01912ded0389415aaf8142d575b7c9feaa692d1027f8ff536082"
+  },
+  "archiveSha256": "162be004c1d07bbf15e2b2f8cd57f906b459f6ac7b24a1c514a47d9e806fabdb",
+  "precisionAndKernelSourceChanges": false
+}

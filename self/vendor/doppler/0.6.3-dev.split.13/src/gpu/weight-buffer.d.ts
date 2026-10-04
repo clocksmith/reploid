@@ -1,0 +1,214 @@
+/**
+ * Weight Buffer Abstraction
+ *
+ * Wraps GPUBuffer with weight-specific metadata (dtype, layout).
+ * Parallel to Tensor but for weights which have:
+ * - Quantized dtypes (q4k, q8, bf16)
+ * - Layout metadata (row/column for transposeB)
+ *
+ * Use Tensor for activations (f16/f32 flowing through pipeline).
+ * Use WeightBuffer for model weights (static, may be quantized).
+ */
+
+export type WeightDtype = 'f16' | 'f32' | 'bf16' | 'q4k' | 'q8' | 'litert_int4' | 'w4a16';
+export type WeightLayout = 'row' | 'column';
+export type WeightStorageEncoding = 'signed' | 'offset_binary';
+export type WeightScaleDtype = 'f16' | 'bf16' | 'f32';
+
+export interface WeightMetadata {
+  readonly storageEncoding?: WeightStorageEncoding;
+  readonly scaleBuffer?: GPUBuffer;
+  readonly scaleDtype?: WeightScaleDtype;
+  readonly groupsPerRow?: number;
+  readonly splitGatherSectionCount?: number;
+  readonly sourceKernel?: {
+    readonly kernel?: string | null;
+    readonly entry?: string | null;
+    readonly digest?: string | null;
+  };
+  readonly storageType?: 'functional_descriptor' | string;
+  readonly descriptorHash?: string;
+  readonly descriptorBytes?: number;
+  readonly denseF16Bytes?: number;
+  readonly compressionRatio?: number | null;
+  readonly proofStatus?: string | null;
+  readonly proofStatusGate?: Record<string, string> | null;
+  readonly descriptorShape?: readonly [number, number];
+  readonly cropShape?: readonly [number, number];
+}
+
+export interface CpuTensorRangeSource {
+  readonly kind: 'tensor_range_source';
+  readonly sourceDtype: string;
+  loadRange(byteOffset: number, byteLength: number): Promise<ArrayBuffer | Uint8Array | ArrayBufferView>;
+}
+
+/**
+ * CPU-resident weight buffer with layout metadata.
+ * Used for oversized weights that cannot be bound as a single GPU buffer.
+ */
+export interface CpuWeightBuffer {
+  readonly data: Float32Array | Uint16Array | CpuTensorRangeSource;
+  readonly dtype: WeightDtype;
+  readonly layout: WeightLayout;
+  readonly shape: readonly number[];
+  readonly label?: string;
+  gpuSplitWeight?: SplitWeightBuffer | null;
+  readonly metadata?: WeightMetadata;
+}
+
+/**
+ * A weight buffer with explicit dtype and layout.
+ * Use this instead of raw GPUBuffer for weight matrices.
+ */
+export interface WeightBuffer {
+  readonly buffer: GPUBuffer;
+  readonly dtype: WeightDtype;
+  readonly layout: WeightLayout;
+  readonly shape: readonly number[];
+  readonly label?: string;
+  readonly materializations?: Readonly<Partial<Record<WeightDtype, {
+    readonly buffer: GPUBuffer;
+    readonly layout: WeightLayout;
+  }>>>;
+  readonly metadata?: WeightMetadata;
+}
+
+export interface SplitWeightSection {
+  readonly buffer: GPUBuffer;
+  readonly rowStart: number;
+  readonly rowCount: number;
+}
+
+/**
+ * GPU-resident weight whose row dimension is split across multiple buffers.
+ */
+export interface SplitWeightBuffer {
+  readonly kind: 'split_weight_buffer';
+  readonly sections: readonly SplitWeightSection[];
+  readonly dtype: WeightDtype;
+  readonly layout: WeightLayout;
+  readonly shape: readonly number[];
+  readonly label?: string;
+  readonly metadata?: WeightMetadata;
+}
+
+/**
+ * Tensor-like buffer with dtype + shape metadata.
+ * Used by matmul when activations are passed in place of weights.
+ */
+export interface TensorLike {
+  readonly buffer: GPUBuffer;
+  readonly dtype: 'f16' | 'f32';
+  readonly shape: readonly number[];
+  readonly label?: string;
+}
+
+/**
+ * Check if a value is a GPUBuffer in environments where the global constructor
+ * may be absent.
+ */
+export function isGpuBufferInstance(value: unknown): value is GPUBuffer;
+
+/**
+ * Attach runtime dtype metadata to a raw GPUBuffer.
+ * Used when non-matmul paths keep plain GPUBuffer values.
+ */
+export function tagBufferDtype(buffer: GPUBuffer, dtype: string): void;
+
+/**
+ * Read runtime dtype metadata from a raw GPUBuffer.
+ */
+export function getBufferDtype(buffer: GPUBuffer): string | null;
+
+/**
+ * Create a weight buffer from a GPU buffer with explicit metadata.
+ */
+export function createWeightBuffer(
+  buffer: GPUBuffer,
+  dtype: WeightDtype,
+  layout: WeightLayout,
+  shape: number[],
+  label?: string,
+  materializations?: Partial<Record<WeightDtype, {
+    buffer: GPUBuffer;
+    layout?: WeightLayout;
+  }>> | null,
+  metadata?: WeightMetadata | null
+): WeightBuffer;
+
+/**
+ * Create a CPU-resident weight buffer with explicit metadata.
+ */
+export function createCpuWeightBuffer(
+  data: Float32Array | Uint16Array | CpuTensorRangeSource,
+  dtype: WeightDtype,
+  layout: WeightLayout,
+  shape: number[],
+  label?: string
+): CpuWeightBuffer;
+
+/**
+ * Create a GPU split weight buffer with explicit row-section metadata.
+ */
+export function createSplitWeightBuffer(
+  sections: SplitWeightSection[],
+  dtype: WeightDtype,
+  layout: WeightLayout,
+  shape: number[],
+  label?: string,
+  metadata?: WeightMetadata | null
+): SplitWeightBuffer;
+
+/**
+ * Check if weight is stored in column-major (pre-transposed) format.
+ * Column-major weights use transposeB=false in matmul.
+ */
+export function isColumnMajor(weight: WeightBuffer): boolean;
+
+/**
+ * Check if weight buffer is a specific type for type guards.
+ */
+export function isWeightBuffer(value: unknown): value is WeightBuffer;
+
+/**
+ * Check if value is a CPU-resident weight buffer.
+ */
+export function isCpuWeightBuffer(value: unknown): value is CpuWeightBuffer;
+
+/**
+ * Check if value is a GPU-resident split weight buffer.
+ */
+export function isSplitWeightBuffer(value: unknown): value is SplitWeightBuffer;
+
+/**
+ * Extract the raw GPUBuffer from either a WeightBuffer or raw GPUBuffer.
+ * Used for backwards compatibility during migration.
+ */
+export function getBuffer(weight: GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer): GPUBuffer | SplitWeightBuffer;
+
+/**
+ * Get layout from WeightBuffer, or null for raw GPUBuffer.
+ * Used for auto-resolving transposeB in matmul.
+ */
+export function getLayout(weight: GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer): WeightLayout | null;
+
+/**
+ * Get dtype from WeightBuffer, tagged raw GPUBuffer, or TensorLike.
+ */
+export function getWeightDtype(weight: GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer): WeightDtype | TensorLike['dtype'] | null;
+export function requireWeightDtype(weight: unknown, label: string): 'f16' | 'f32';
+
+/**
+ * Get optional quantized-weight metadata from a weight wrapper.
+ */
+export function getWeightMetadata(weight: unknown): WeightMetadata | null;
+
+/**
+ * Resolve a preferred materialization view from a WeightBuffer when alternate
+ * dense/quantized buffers are available.
+ */
+export function resolveWeightBufferMaterialization(
+  weight: GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer,
+  preferredDtype?: WeightDtype | TensorLike['dtype'] | null
+): GPUBuffer | WeightBuffer | TensorLike | SplitWeightBuffer;

@@ -18,6 +18,7 @@ test('real WebRTC proves recipients and retains revocable grants through request
   const contexts = await Promise.all([browser.newContext(), browser.newContext(), browser.newContext()]);
   const [supplier, requester, replacement] = await Promise.all(contexts.map(context => context.newPage()));
   const errors = [];
+  const route = '/?swarm=grant-test-' + Date.now() + '&swarmToken=grant-test-capability-0123456789abcdef';
   for (const page of [supplier, requester, replacement]) page.setDefaultTimeout(15000);
   const fixture = (await readFile('self/infrastructure/doppler-runtime-service.js', 'utf8')).replace('export function createReploidDopplerRuntimeService(', 'function unusedRuntimeService(')
     + (await readFile('tests/fixtures/chat-service.js', 'utf8'))
@@ -36,12 +37,11 @@ test('real WebRTC proves recipients and retains revocable grants through request
           acquireAdapter: async () => { throw new Error('No fixture adapter'); }
         }; }
       ` }));
-      await page.goto('/'); await page.locator('[data-chat-workspace]').waitFor();
+      await page.goto(route); await page.locator('[data-chat-workspace]').waitFor();
     }
     const contribute = async page => {
       await page.locator('[data-toggle-inspector]').click();
-      await page.locator('summary').filter({ hasText: 'Contribution' }).click();
-      await page.locator('[data-contribution-consent]').check();
+      await page.locator('[data-contribution-model]').selectOption('qwen-3-5-2b-q4k-ehaf16');
       await page.locator('[data-toggle-contribution]').click();
       await expect(page.locator('[data-contrib-label]')).toHaveText('Ready');
     };
