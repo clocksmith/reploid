@@ -1,0 +1,175 @@
+import type { RDRRManifest, HashAlgorithm } from '../formats/rdrr/types.js';
+import type { OpfsPathConfigSchema } from '../config/schema/loading.schema.js';
+
+export { getManifest } from '../formats/rdrr/parsing.js';
+
+export interface ShardWriteOptions {
+  verify?: boolean;
+}
+
+export interface ShardWriteResult {
+  success: boolean;
+  hash: string | null;
+}
+
+export interface ShardReadOptions {
+  verify?: boolean;
+  tensorId?: string | null;
+}
+
+export interface ShardRangeStreamOptions extends ShardReadOptions {
+  chunkBytes?: number;
+}
+
+export interface IntegrityResult {
+  valid: boolean;
+  missingShards: number[];
+  corruptShards: number[];
+  corruptTensors: string[];
+}
+
+export interface ModelInfo {
+  exists: boolean;
+  shardCount: number;
+  totalSize: number;
+  hasManifest: boolean;
+}
+
+export interface StreamingHasher {
+  update(data: Uint8Array): void;
+  finalize(): Promise<Uint8Array>;
+}
+
+export interface ShardWriteStream {
+  write(chunk: Uint8Array | ArrayBuffer): Promise<void>;
+  close(): Promise<void>;
+  abort(): Promise<void>;
+}
+
+export interface ShardWriterOptions {
+  append?: boolean;
+  expectedOffset?: number | null;
+}
+
+export interface StorageCapabilities {
+  opfs: boolean;
+  indexeddb: boolean;
+  sharedArrayBuffer: boolean;
+  byob: boolean;
+  syncAccessHandle: boolean;
+}
+
+export function setOpfsPathConfig(config: OpfsPathConfigSchema): void;
+export function getOpfsPathConfig(): OpfsPathConfigSchema;
+export function getHashAlgorithm(): HashAlgorithm | null;
+export function hexToBytes(hex: string): Uint8Array;
+export function computeBlake3(data: Uint8Array | ArrayBuffer): Promise<string>;
+export function computeSHA256(data: Uint8Array | ArrayBuffer): Promise<string>;
+export function computeHash(data: Uint8Array | ArrayBuffer, algorithm: HashAlgorithm): Promise<string>;
+export function createStreamingHasher(algorithm: HashAlgorithm): Promise<StreamingHasher>;
+
+export function getStorageCapabilities(): StorageCapabilities;
+export function getStorageBackendType(): string | null;
+
+export function initStorage(): Promise<void>;
+export function openModelStore(modelId: string): Promise<FileSystemDirectoryHandle | null>;
+export function getCurrentModelId(): string | null;
+
+export function writeShard(
+  shardIndex: number,
+  data: ArrayBuffer | Uint8Array,
+  options?: ShardWriteOptions
+): Promise<ShardWriteResult>;
+
+export function createShardWriter(
+  shardIndex: number,
+  options?: ShardWriterOptions
+): Promise<ShardWriteStream>;
+
+export function createConversionShardWriter(
+  shardIndex: number
+): Promise<ShardWriteStream>;
+
+export function createFileWriter(
+  filename: string,
+  options?: ShardWriterOptions
+): Promise<ShardWriteStream>;
+
+export function loadShard(
+  shardIndex: number,
+  options?: ShardReadOptions
+): Promise<ArrayBuffer>;
+
+export function loadShardRange(
+  shardIndex: number,
+  offset?: number,
+  length?: number | null,
+  options?: ShardReadOptions
+): Promise<ArrayBuffer>;
+
+export function streamShardRange(
+  shardIndex: number,
+  offset?: number,
+  length?: number | null,
+  options?: ShardRangeStreamOptions
+): AsyncIterable<Uint8Array>;
+
+export function loadShardSync(
+  shardIndex: number,
+  offset?: number,
+  length?: number
+): Promise<Uint8Array>;
+
+export function checkFileExistsInBackend(
+  storageBackend: Record<string, unknown>,
+  filename: string
+): Promise<boolean>;
+export function getFileSizeInBackend(
+  storageBackend: Record<string, unknown>,
+  filename: string
+): Promise<number | null>;
+export function shardExists(shardIndex: number): Promise<boolean>;
+export function getShardStoredSize(shardIndex: number): Promise<number>;
+export function verifyIntegrity(options?: { checkHashes?: boolean; checkTensorRoots?: boolean }): Promise<IntegrityResult>;
+export function deleteShard(shardIndex: number): Promise<boolean>;
+export function deleteModel(modelId: string): Promise<boolean>;
+export function listModels(): Promise<string[]>;
+export function listFilesInStore(): Promise<string[]>;
+export function getFileStoredSize(filename: string): Promise<number | null>;
+export function loadFileFromStore(filename: string): Promise<ArrayBuffer>;
+export function loadFileRangeFromStore(
+  filename: string,
+  offset?: number,
+  length?: number | null
+): Promise<ArrayBuffer>;
+export function streamFileFromStore(
+  filename: string,
+  options?: { chunkBytes?: number; offset?: number; length?: number | null }
+): AsyncIterable<Uint8Array> | null;
+export function getModelInfo(modelId: string): Promise<ModelInfo>;
+export function modelExists(modelId: string): Promise<boolean>;
+
+export function saveManifest(manifestJson: string): Promise<void>;
+export function loadManifestFromStore(): Promise<string | null>;
+export function loadTensorsFromStore(): Promise<string | null>;
+export function saveTensorsToStore(tensorsJson: string): Promise<void>;
+export function saveTokenizer(tokenizerJson: string): Promise<void>;
+export function loadTokenizerFromStore(): Promise<string | null>;
+export function saveTokenizerModel(tokenizerModel: ArrayBuffer | Uint8Array): Promise<void>;
+export function loadTokenizerModelFromStore(): Promise<ArrayBuffer | null>;
+
+export function saveAuxFile(filename: string, data: string | ArrayBuffer | Uint8Array): Promise<void>;
+export function loadAuxFile(filename: string): Promise<ArrayBuffer | null>;
+export function loadAuxText(filename: string): Promise<string | null>;
+export function deleteFileFromStore(filename: string): Promise<boolean>;
+
+export function cleanup(): Promise<void>;
+export function openModelReadSession(modelId?: string): Promise<import('./model-read-session.js').ModelReadSession>;
+export type ModelStoreSession = Pick<typeof import('./shard-manager.js'),
+  'writeShard' | 'createShardWriter' | 'createFileWriter' | 'loadShard' | 'loadShardRange'
+  | 'streamShardRange' | 'shardExists' | 'getShardStoredSize' | 'deleteShard'
+  | 'loadFileFromStore' | 'loadFileRangeFromStore' | 'streamFileFromStore' | 'getFileStoredSize'
+  | 'deleteFileFromStore' | 'saveManifest' | 'loadManifestFromStore' | 'saveTokenizer'
+  | 'saveTokenizerModel' | 'saveAuxFile' | 'loadAuxFile' | 'loadAuxText' | 'listFilesInStore'>
+  & { readonly modelId: string; close(): Promise<void> };
+export function openModelStoreSession(modelId: string, manifest: RDRRManifest): Promise<ModelStoreSession>;

@@ -89,7 +89,7 @@ export function createChatWorkspace(options: {
   select(threadId: string | null): void;
   closeThread(threadId: string): void;
   reopenThread(threadId: string): void;
-  send(threadId: string, content: string): Promise<ChatAttempt>;
+  send(threadId: string, content: string, options?: { select?: boolean }): Promise<ChatAttempt>;
   retry(threadId: string, attemptId: string): Promise<ChatAttempt>;
   approve(threadId: string, attemptId: string, previewId: string, accepted: boolean, options?: { remember?: boolean }): void;
   revokeGrant(threadId: string, grantId: string): void;

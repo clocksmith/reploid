@@ -57,7 +57,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       && value.adapters.every(adapter => /^sha256:[a-f0-9]{64}$/.test(adapter.identity)), 'Select identified adapters');
     return copy(value);
   };
-  const start = (thread, request, userMessageId, retryOf = null) => {
+  const start = (thread, request, userMessageId, retryOf = null, select = true) => {
     current();
     assert(!runs.has(thread.id), 'This conversation already has an active response');
     assert(runs.size < limits.maxConcurrentAttempts, 'Concurrent conversation limit reached');
@@ -70,7 +70,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     thread.attempts.push(attempt); thread.messages.push(response);
     const run = { controller, approval: null, completion: null, nextSequence: 0 };
     runs.set(thread.id, run);
-    selectedId = thread.id;
+    if (select) selectedId = thread.id;
     try { persist(); }
     catch (error) { runs.delete(thread.id); thread.attempts.pop(); thread.messages.pop(); throw error; }
     const matches = envelope => envelope?.threadId === thread.id && envelope?.attemptId === attempt.id;
@@ -161,7 +161,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; notify(); },
     closeThread(threadId) { current(); find(threadId).closed = true; if (selectedId === threadId) selectedId = null; persist(); },
     reopenThread(threadId) { current(); find(threadId).closed = false; selectedId = threadId; persist(); },
-    send(threadId, content) {
+    send(threadId, content, { select = true } = {}) {
       current(); const thread = find(threadId);
       assert(!thread.closed && !runs.has(threadId), 'Open an idle conversation before sending');
       assert(runs.size < limits.maxConcurrentAttempts && thread.messages.length + 2 <= limits.maxMessagesPerThread, 'Conversation allowance reached');
@@ -172,7 +172,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
         && (item.role === 'assistant' || completedUsers.has(item.id) || item.id === message.id))
         .map(({ role, content }) => ({ role, content }));
       if (thread.purpose) messages.unshift({ role: 'system', content: thread.purpose });
-      try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages }, message.id); }
+      try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages }, message.id, null, select); }
       catch (error) { thread.messages.pop(); throw error; }
     },
     retry(threadId, attemptId) {

@@ -27,6 +27,17 @@ describe('Document workflow ownership', () => {
     expect(session.exportConversation(id)).toContain('not guarantee factual accuracy');
     await session.close();
   });
+  it('keeps the selected conversation while a background comparison starts checking', async () => {
+    const session = createChatSession({ storage: storage(), service: createChatTestService() });
+    const first = session.createThread({ sharingScope: 'local' });
+    const completion = session.compareDocuments(first, sample.question, sample.files);
+    const second = session.createThread({ sharingScope: 'local' });
+    await completion;
+    expect(session.getState().selectedId).toBe(second);
+    expect(session.getState().threads.find(thread => thread.id === first).attempts.map(attempt => attempt.status))
+      .toEqual(['completed', 'completed']);
+    await session.close();
+  });
   it('does not launch checking after cancellation', async () => {
     const service = createChatTestService({ delayMs: 100 });
     const session = createChatSession({ storage: storage(), service });

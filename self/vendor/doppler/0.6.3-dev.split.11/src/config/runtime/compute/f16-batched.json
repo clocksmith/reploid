@@ -1,0 +1,35 @@
+{
+  "id": "compute/f16-batched",
+  "name": "f16-batched",
+  "description": "F16 activations with multi-token decode batching for lower submit/readback overhead.",
+  "intent": "investigate",
+  "compatibleIntents": ["investigate"],
+  "stability": "canonical",
+  "owner": "doppler-core",
+  "createdAtUtc": "2026-02-25T00:00:00Z",
+  "extends": "compute/f16-activations",
+  "runtime": {
+    "inference": {
+      "batching": {
+        "batchSize": 16,
+        "stopCheckMode": "batch",
+        "readbackInterval": 8,
+        "readbackMode": "sequential",
+        "ringTokens": 8,
+        "ringStop": 8,
+        "ringStaging": 8
+      },
+      "session": {
+        "decodeLoop": {
+          "batchSize": 16,
+          "stopCheckMode": "batch",
+          "readbackInterval": 8,
+          "readbackMode": "sequential",
+          "ringTokens": 8,
+          "ringStop": 8,
+          "ringStaging": 8
+        }
+      }
+    }
+  }
+}
