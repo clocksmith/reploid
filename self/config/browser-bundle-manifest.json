@@ -1305,8 +1305,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 884447,
-      "sha256": "sha256:a767de8b676eb8250e13c87da9acb18ea23018b5509587700fc2c9e82fbf64ff"
+      "byteLength": 2064282,
+      "sha256": "sha256:74b7c6347b52be248d8183456cfead66ea116baefd12c9dd5a3f040fe6ecadff"
     },
     {
       "path": "config/module-registry.json",
@@ -1355,8 +1355,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 467642,
-      "sha256": "sha256:a925431e8d310f56e19fd1ba3cf315b0e2fbe13ca4bbcd10011f34a0e82496a1"
+      "byteLength": 775407,
+      "sha256": "sha256:aa812dd59593d76357ef1bb59f7e4f1e14f0befb8bab93b7735e8d1c28013bad"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1659,9 +1659,24 @@
       "sha256": "sha256:4da8152bc278c0617835a684f4ce08be5608581ce664f41bbce1b075ebad9c78"
     },
     {
+      "path": "host/chat-execution.js",
+      "byteLength": 5779,
+      "sha256": "sha256:7ab8a5df303e39e7674c8e00e4dcee63613d99d2b1e035cb939e2e41e24b7d4e"
+    },
+    {
       "path": "host/chat-session.js",
-      "byteLength": 13966,
-      "sha256": "sha256:f2d6f2df4c767ab0a7fcbb977436dd1afb1df86abb0f4db7ffde487a278cf7c7"
+      "byteLength": 8510,
+      "sha256": "sha256:8b2fe2678bdd7a38e542ed40f22f60ee4ec63d36196b79c64f38c5bf763216ca"
+    },
+    {
+      "path": "host/chat-view.js",
+      "byteLength": 1322,
+      "sha256": "sha256:ea7fcd044dfbc7d66a04837430e58d27166eddcbbdf040c588c0ab921391cd6f"
+    },
+    {
+      "path": "host/readonly-view.js",
+      "byteLength": 329,
+      "sha256": "sha256:8ac047cd82c8f366aadf2861739e5f73dbc142543cd2fd9ed33060183cf2b988"
     },
     {
       "path": "host/seed-vfs.js",
@@ -1750,8 +1765,8 @@
     },
     {
       "path": "host/work-view.js",
-      "byteLength": 2385,
-      "sha256": "sha256:924209532f2acdba4c3b70a2c165f66064c3bdaed0b1cb63e1a3356c2d888517"
+      "byteLength": 2227,
+      "sha256": "sha256:75c11e9fa7798e2e6b33703fc28c473fbcf0772f378f75c97f59b4eb4e3d0313"
     },
     {
       "path": "identity.js",
@@ -51209,5 +51224,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:197e716d4c8d3b7cf437c231777f09206c8302e187c53ce9b58bca1801ea4387"
+  "bundleHash": "sha256:ce039ca998230bec44b55e662895111e1e69ae476e6c3c992fdc74ec889bd815"
 }

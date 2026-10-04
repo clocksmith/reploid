@@ -57,7 +57,15 @@ export function findLayerViolations({ repoRoot, sourcePath, source }) {
     if (forbidden[sourceLayer]?.includes(targetLayer)) reason = 'forbidden layer dependency';
     if (/packages\/reploid\/src\/agent\/(task-strategy|lab-strategy)\.js$/.test(relative)
       && /\/(lifecycle|cancellation|tool-dispatch)\.js$/.test(target)) reason = 'strategies must use the execution engine';
-    if (relative.startsWith('packages/reploid/src/transport/') && /\/(adapters|agent|mesh|improvement)\//.test(target)) reason = 'transport cannot own execution or application policy';
+    if (relative.startsWith('packages/reploid/src/transport/') && /\/(adapters|agent|chat|mesh|improvement)\//.test(target)) reason = 'transport cannot own execution or application policy';
+    if (relative === 'self/host/chat-session.js' && target.startsWith('self/providers/')) {
+      reason = 'chat session must adapt execution through its execution port';
+    }
+    if (['self/host/chat-view.js', 'self/host/readonly-view.js'].includes(relative)) {
+      reason = 'conversation projections must remain independent of runtime owners';
+    }
+    if (/^self\/host\/chat-[^/]+\.js$/.test(relative) && target.startsWith('self/vendor/reploid/chat/')
+      && target !== 'self/vendor/reploid/chat/index.js') reason = 'chat hosts must use the public chat entry';
     return reason ? [{ source: relative, sourceLayer, specifier, target, targetLayer, reason }] : [];
   });
 }

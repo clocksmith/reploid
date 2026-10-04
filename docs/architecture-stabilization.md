@@ -123,3 +123,52 @@ The peer replay regression checks bounded redelivery of the identical signed job
 including loss of both a request and a completion. It asserts one executor call
 and verifies the accepted episode; wall-clock signing latency cannot make an
 exact transport delivery count part of the execution contract.
+
+## Conversation host boundaries (October 2026)
+
+The conversation journey now has the following dependency path. These are source
+ownership boundaries, not a claim of qualified physical inference.
+
+```text
+conversation-workspace.js (UI actions)
+  -> chat-session.js (host composition, storage, lifecycle)
+     -> reploid/chat public entry -> workspace.js (attempts, grants, recovery)
+     -> chat-view.js (pure catalog and accepted-history projections)
+     -> chat-execution.js (host execution adapter)
+        -> reploid/chat public entry -> scheduler.js (local queue and resident slot)
+        -> work-network-provider.js -> work-swarm.js (mesh placement)
+           -> reploid/mesh (generation and partition protocols)
+           -> reploid/transport (connections and bounded delivery)
+           -> work-model-files.js -> custody/exchange.js (authorized verified files)
+        -> work-resident-provider.js -> Doppler runtime service (model computation)
+```
+
+`chat-session.js` retains the browser storage adapter. Workspace persistence owns
+attempt history and restarts unfinished attempts only through an explicit retry.
+Discovery describes current capacity; it does not rewrite completed execution
+history or authorize disclosure. Provider results still pass workspace identity
+and stream validation before becoming completed attempts.
+
+| Observed coupling/failure | Change and regression evidence |
+| --- | --- |
+| Session directly imports three provider adapters and exposes its scheduler | `chat-execution.js` owns provider adaptation; the host exposes detached scheduler diagnostics through `getState()` only |
+| Closing a session closes an injected scheduler | Created schedulers are owned; injected schedulers remain borrowed. Closing is single-flight, blocks new actions immediately and waits for the session's attempts to settle |
+| Separate placement map disappears on reload and can retain rejected provider metadata | `chat-view.js` derives placement from the most recent completed attempt. Accepted histories survive peer departure and reload |
+| A listener mutates the snapshot seen by later listeners | Chat and Work share `readonly-view.js`; descriptions are detached and deeply frozen |
+| Late discovery publishes into a closed session | Closure invalidates discovery results and notifications; subscriptions are released once |
+| Workspace transitions are notified again by forwarding methods | The workspace subscription is the single notification path for its mutations |
+| Loading advertisements match a name but not artifact identity | Catalog projection requires compatible model and adapter identities before advertising loading capacity |
+
+Regressions live in `tests/unit/chat-session.test.js`. The layer verifier rejects
+provider imports in chat composition, runtime imports in pure projections,
+private chat implementation imports in hosts, and chat dependencies in transport.
+Existing cycle and canonical-delivery checks still apply. Browser Verification
+Worker coverage includes the extracted modules. The three-tab test exercises
+verified test-file transfer, independent concurrent conversations, cancellation
+settlement, reload and executor loss using injected generation.
+
+The remaining architectural investigation belongs to the existing transport,
+custody, discovery and placement owners. Do not combine piece-transfer recovery
+with inference retries: each has distinct identity, grant and settlement rules.
+Numerical parity and additional physical model capacity require their own
+Doppler-backed runs; this host refactor does not establish either result.

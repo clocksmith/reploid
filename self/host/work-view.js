@@ -1,3 +1,6 @@
+import { readonlyView } from './readonly-view.js';
+export { readonlyView } from './readonly-view.js';
+
 export function deriveOutcomeTags(row) {
   if (!row) return [];
   const tags = [];
@@ -35,16 +38,6 @@ export function deriveOutcomeTags(row) {
   return tags;
 }
 
-export function readonlyView(value) {
-  const freeze = item => {
-    if (item && typeof item === 'object') {
-      Object.values(item).forEach(freeze);
-      Object.freeze(item);
-    }
-    return item;
-  };
-  return freeze(JSON.parse(JSON.stringify(value)));
-}
 
 export const projectWorkRecord = row => readonlyView({
     revision: row.revision, persistence: row.persistence, execution: row.execution,

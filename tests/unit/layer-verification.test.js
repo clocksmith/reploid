@@ -70,7 +70,12 @@ describe('layer verification', () => {
     ['packages/reploid/src/agent/turn.js', '../../../../self/config/models.js'],
     ['packages/reploid/src/agent/turn.js', 'firebase-admin'],
     ['packages/reploid/src/transport/peer.js', '../adapters/doppler.js'],
-    ['self/ui/page.js', '../../functions/index.js']
+    ['self/ui/page.js', '../../functions/index.js'],
+    ['packages/reploid/src/transport/peer.js', '../chat/index.js'],
+    ['self/host/chat-session.js', '../providers/work-network-provider.js'],
+    ['self/host/chat-execution.js', '../vendor/reploid/chat/scheduler.js'],
+    ['self/host/chat-view.js', './chat-execution.js'],
+    ['self/host/readonly-view.js', '../infrastructure/storage.js']
   ])('rejects the boundary crossing from %s', (source, target) => {
     expect(findLayerViolations({ repoRoot, sourcePath: path.join(repoRoot, source),
       source: `export * from '${target}';` })).toHaveLength(1);
