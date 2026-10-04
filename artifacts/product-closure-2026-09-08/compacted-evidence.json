@@ -1,0 +1,30 @@
+{
+  "schema": "reploid.lossless-evidence/v1",
+  "encoding": "gzip",
+  "files": [
+    {
+      "original": "simulatte-preview-failed.json",
+      "archive": "simulatte-preview-failed.json.gz",
+      "originalBytes": 9679071,
+      "archivedBytes": 450589,
+      "sha256": "e09e3f1ab8eaff63c24a264e5cbe5a40a65621cab8f67a899b09c981e5c42b54",
+      "archiveSha256": "33fd4f689bdeb0174b9b60c17aa01c329c30a5a7b47a919a304ef5144a6ab604"
+    },
+    {
+      "original": "simulatte-preview-isolated.json",
+      "archive": "simulatte-preview-isolated.json.gz",
+      "originalBytes": 9678976,
+      "archivedBytes": 450515,
+      "sha256": "a3245c336eb55a4edabb0d562554f72aa459cd47e56b61144bcc8a19576f3596",
+      "archiveSha256": "0b5f72c7f0206455f36c56852bb2ecbc045157296a433049113649440a4eb6c2"
+    },
+    {
+      "original": "simulatte-live-desktop.json",
+      "archive": "simulatte-live-desktop.json.gz",
+      "originalBytes": 9678289,
+      "archivedBytes": 450439,
+      "sha256": "44f663727c1b23db9b4ff4c4391bd6af9dec357ff18c8d020884177b3926840a",
+      "archiveSha256": "95a84dad7dc56802109f8c1d72ac14eb18b0560e19c9f6590a01a5b4ee39d8ba"
+    }
+  ]
+}

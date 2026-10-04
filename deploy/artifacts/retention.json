@@ -1,0 +1,47 @@
+{
+  "schema": "reploid.doppler-retention/v1",
+  "expandedVersions": [
+    {
+      "version": "0.6.2",
+      "reason": "Deployment compatibility configuration"
+    },
+    {
+      "version": "0.6.3-dev.split.1",
+      "reason": "Signed-opening and physical partition regression fixtures"
+    },
+    {
+      "version": "0.6.3-dev.split.12",
+      "reason": "Active package-lock and browser pin"
+    }
+  ],
+  "archivedVersions": [
+    {
+      "version": "0.6.3-dev.split.4",
+      "archive": "deploy/artifacts/doppler-gpu-0.6.3-dev.split.4.tgz",
+      "integrity": "sha512-F2lOURJGz32NMWMMnR5fDwKofQE0CDylkQb4ZvYnfTB/5ZTjjeEut23neYGG3/OUxMf9x5jrQR3vDONBmt/A7g==",
+      "expandedFiles": 1885,
+      "expandedBytes": 11462009
+    },
+    {
+      "version": "0.6.3-dev.split.6",
+      "archive": "deploy/artifacts/doppler-gpu-0.6.3-dev.split.6.tgz",
+      "integrity": "sha512-JXyQMp6RmnqO1iL0tWelcz6w/Uzt/TPYX7x0hrBv7MR+RDUdJIpTlsR2E9L/8Ts9xFS8ppUKFAcMfYOob5jRVg==",
+      "expandedFiles": 1885,
+      "expandedBytes": 11463724
+    },
+    {
+      "version": "0.6.3-dev.split.10",
+      "archive": "deploy/artifacts/doppler-gpu-0.6.3-dev.split.10.tgz",
+      "integrity": "sha512-eApILms57GlXr3/zVDqGhts0cobIe/p9/Qch4odhO39/ldf+NjjoHw1qfUaMwFiF5ASipoYsOxYvjgwdWCcifw==",
+      "expandedFiles": 1887,
+      "expandedBytes": 11474328
+    },
+    {
+      "version": "0.6.3-dev.split.11",
+      "archive": "deploy/artifacts/doppler-gpu-0.6.3-dev.split.11.tgz",
+      "integrity": "sha512-Q4YtY9D2mQB1UBAbo9dTYeswKNzdUx+1avkv5tOlitjpUFTG6X7Xg9V2+Zpdkp6LA77JxY82pLOlNi2166Bw1Q==",
+      "expandedFiles": 1887,
+      "expandedBytes": 11475066
+    }
+  ]
+}

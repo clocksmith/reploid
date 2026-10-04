@@ -81,7 +81,9 @@
     "catscan:chain": "node scripts/verify-catscan.js --chain",
     "lint": "eslint .",
     "verify:library-types": "tsc -p tsconfig.library.json",
-    "verify:library-delivery": "node scripts/verify-layers.js"
+    "verify:library-delivery": "node scripts/verify-layers.js",
+    "verify:showcase-privacy": "node scripts/curate-showcase.js --check",
+    "verify:retained-artifacts": "node scripts/restore-doppler-evidence.js --check"
   },
   "keywords": [
     "reploid",
