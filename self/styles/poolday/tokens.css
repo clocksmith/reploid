@@ -20,8 +20,8 @@
   --pool-color-control-line: #454545;
   --pool-color-muted: #b4b4b4;
   --pool-color-focus: #ffffff;
-  --pool-dim-shadow-raised: 6px 6px 14px rgb(0 0 0 / 13%), -4px -4px 11px rgb(80 80 80 / 7%), inset 1px 1px 0 rgb(255 255 255 / 1.5%);
-  --pool-dim-shadow-inset: inset 3px 3px 7px rgb(0 0 0 / 15%), inset -2px -2px 6px rgb(75 75 75 / 6%);
+  --pool-dim-shadow-raised: 4.5px 4.5px 14px rgb(0 0 0 / 9.75%), -3px -3px 11px rgb(80 80 80 / 5.25%), inset 0 1px 0 rgb(255 255 255 / 5%);
+  --pool-dim-shadow-inset: inset 2.25px 2.25px 7px rgb(0 0 0 / 11.25%), inset -1.5px -1.5px 6px rgb(75 75 75 / 4.5%);
   --pool-dim-radius-control: var(--radius-control);
   --pool-dim-radius-panel: var(--radius-panel);
   --pool-dim-wordmark: 64px;
@@ -286,8 +286,8 @@
   --pool-color-light-control-line: #bdbdbd;
   --pool-color-light-muted: #5e5e5e;
   --pool-color-light-focus: #242424;
-  --pool-dim-light-shadow-raised: 10px 10px 24px rgb(120 120 120 / 13.5%), -10px -10px 24px rgb(255 255 255 / 44%), inset 1px 1px 0 rgb(255 255 255 / 22.5%);
-  --pool-dim-light-shadow-inset: inset 5px 5px 12px rgb(120 120 120 / 12%), inset -5px -5px 12px rgb(255 255 255 / 42.5%);
+  --pool-dim-light-shadow-raised: 7.5px 7.5px 24px rgb(120 120 120 / 10.125%), -7.5px -7.5px 24px rgb(255 255 255 / 33%), inset 0 1px 0 rgb(255 255 255 / 34%);
+  --pool-dim-light-shadow-inset: inset 3.75px 3.75px 12px rgb(120 120 120 / 9%), inset -3.75px -3.75px 12px rgb(255 255 255 / 31.875%);
   --pool-gradient-light-ambient-mesh: none;
   --pool-gradient-light-prism-fill-idle: linear-gradient(rgb(237 237 237 / 96%), rgb(237 237 237 / 96%));
   --pool-gradient-light-prism-fill-hover: linear-gradient(122deg, rgb(172 172 172 / 10%), rgb(141 141 141 / 7%), rgb(158 158 158 / 7%));
@@ -306,4 +306,21 @@
   --pool-dim-dark-button-shadow: 8px 8px 16px rgb(0 0 0 / 20%),
     -5px -5px 13px rgb(76 76 76 / 8%),
     inset 1px 1px 0 rgb(255 255 255 / 2.5%);
+}
+
+/* Restrained optical material. Reading surfaces retain their neutral fills. */
+.pool-home {
+  --pool-gradient-optical-dark-fill: linear-gradient(145deg, rgb(43 43 43 / 96%), rgb(30 30 30 / 94%));
+  --pool-gradient-optical-light-fill: linear-gradient(145deg, rgb(247 247 247 / 96%), rgb(235 235 235 / 94%));
+  --pool-gradient-optical-dark-edge: linear-gradient(125deg, rgb(186 223 228 / 28%), rgb(206 190 230 / 18%) 28%, rgb(228 194 208 / 14%) 46%, rgb(255 255 255 / 6%) 62%);
+  --pool-gradient-optical-light-edge: linear-gradient(125deg, rgb(112 165 177 / 28%), rgb(155 135 179 / 22%) 28%, rgb(185 143 159 / 18%) 46%, rgb(120 120 120 / 10%) 62%);
+  --pool-gradient-optical-dark-focus: linear-gradient(125deg, rgb(167 217 227 / 55%), rgb(194 171 225 / 40%) 30%, rgb(222 173 194 / 32%) 48%, rgb(255 255 255 / 16%) 70%);
+  --pool-gradient-optical-light-focus: linear-gradient(125deg, rgb(97 160 178 / 52%), rgb(145 123 178 / 40%) 30%, rgb(181 128 148 / 32%) 48%, rgb(120 120 120 / 16%) 70%);
+  --pool-gradient-optical-glint: linear-gradient(110deg, transparent 25%, rgb(255 255 255 / 22%) 50%, transparent 75%);
+  --pool-gradient-optical-dark-signal: linear-gradient(90deg, transparent, rgb(164 213 223 / 64%), rgb(196 175 223 / 58%), rgb(221 183 199 / 44%), transparent);
+  --pool-gradient-optical-light-signal: linear-gradient(90deg, transparent, rgb(87 147 163 / 58%), rgb(143 121 176 / 52%), rgb(173 120 145 / 42%), transparent);
+  --pool-dim-optical-blur: 12px;
+  --pool-motion-duration-optical-settle: 200ms;
+  --pool-motion-duration-optical-ready: 900ms;
+  --pool-motion-duration-optical-active: 2400ms;
 }

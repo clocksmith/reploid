@@ -18,9 +18,9 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
 
 ## Invariants
 
-- Preserve monochrome neumorphism. No promotional banners, stacked slogans, or preset-prompt grids on the main workspace. Communicate through live state and concise controls.
+- Monochrome, shallow depth; prismatic navigation/model/focus accents. Motion reflects readiness/execution; respect reduced motion. Concise controls; no banners, slogans or preset-prompt grids.
 - Preserve Reploid/Poolday identities, shared components/tokens, aligned gutters,
-  accessible themes and responsive scrolling. Activities prescribe no navigation hierarchy.
+  accessible themes/responsive scrolling. Activities prescribe no navigation hierarchy.
 - Link tasks/helpers/jobs/results/candidates; show observed states and missing admission/evaluators.
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
 - Disclose execution location; approve exact public payloads or explicitly grant
@@ -37,7 +37,7 @@ Outputs: [markup](view.js), [Room-1](room-view.js).
 
 - Compare measured benefit/cost against local/centralized baselines. Injected providers prove no inference.
 - Desktop/mobile, both themes: empty/active/approval/completed screenshots.
-- Evidence: [visuals](../../../tests/e2e/workspace-material.spec.js), [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js).
+- Evidence: [conversation materials](../../../tests/e2e/chat-material.spec.js), [CSS layers](../../../scripts/verify-poolday-css-layers.js), [visuals](../../../tests/e2e/workspace-material.spec.js), [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js).
 
 ## Non-goals
 Primary scientific administration, reputation, protocol internals.

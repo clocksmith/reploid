@@ -6,7 +6,7 @@ const evidence = process.env.REPLOID_E2E_ARTIFACT_DIR || 'artifacts/monochrome-w
 test('header and workspace retain aligned gutters during viewport changes', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto('/');
-  await expect(page.locator('[data-work-goal]')).toBeVisible();
+  await expect(page.locator('.pool-primary-nav')).toBeVisible();
   for (const width of [390, 1440, 320, 390]) {
     await page.setViewportSize({ width, height: 1000 });
     const bounds = await page.evaluate(async () => {
@@ -85,7 +85,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
   test(`${theme} workspace at ${width}px retains material and visible consent`, async ({ page }) => {
     await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 });
     await page.goto('/');
-    await expect(page.locator('[data-work-goal]')).toBeVisible();
+    await expect(page.locator('.pool-primary-nav')).toBeVisible();
     await installWorkspace(page, theme);
     for (const state of ['empty', 'active', 'approval', 'completed', 'paused']) {
       await page.evaluate(state => window.setVisualState(state), state);

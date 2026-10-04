@@ -1548,10 +1548,10 @@ export const renderNav = (activeRoute) => {
     const ariaLabel = escapeHtml(label);
     const shortLabel = escapeHtml({ home: 'Work', network: 'Network', improve: 'Improve', records: 'Jobs' }[id] || label);
     const roomPath = roomHref(path, getPeerRoomId());
-    return `<a class="pool-nav-link pool-segment${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-id="${id}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
+    return `<a class="pool-nav-link pool-segment pool-glass-selected${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-id="${id}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
   };
   return `
-    <nav class="pool-nav-rail pool-primary-nav" aria-label="${escapeHtml(POOLDAY_NAME)}">
+    <nav class="pool-nav-rail pool-primary-nav pool-surface" aria-label="${escapeHtml(POOLDAY_NAME)}">
       <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${escapeHtml(roomHref('/', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/', getPeerRoomId()))}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
       <div class="pool-nav-menu pool-segmented" id="pool-nav-menu">
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}

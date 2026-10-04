@@ -1,0 +1,76 @@
+/* Optical accents stay on navigation, model choice and the focused composer. */
+.pool-home .pool-primary-nav .pool-segment {
+  position: relative;
+  overflow: hidden;
+  border: var(--pool-border-hairline) solid transparent;
+}
+.pool-home .pool-glass,
+.pool-home .pool-glass-focus:focus,
+.pool-home .pool-glass-selected:is([aria-current='page'], [aria-pressed='true']) {
+  border: var(--pool-border-hairline) solid transparent;
+  background: var(--pool-surface-optical-fill) padding-box, var(--pool-surface-optical-edge) border-box;
+  backdrop-filter: blur(var(--pool-px-optical-blur));
+}
+.pool-home .pool-primary-nav .pool-segment[aria-current='page'] {
+  box-shadow: var(--pool-surface-shadow-raised);
+}
+.pool-home .pool-glass:focus,
+.pool-home .pool-glass-focus:focus {
+  background: var(--pool-surface-optical-fill) padding-box, var(--pool-surface-optical-focus) border-box;
+}
+.pool-home .pool-primary-nav .pool-segment[aria-current='page']::after {
+  content: '';
+  display: block;
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--pool-surface-optical-glint);
+  pointer-events: none;
+  opacity: 0;
+  animation: pool-optical-settle var(--pool-motion-optical-settle) ease-out;
+}
+.pool-activity-edge { position: relative; min-width: 0; display: grid; }
+.pool-activity-edge::after {
+  content: '';
+  position: absolute;
+  left: var(--pool-space-md);
+  right: var(--pool-space-md);
+  bottom: 0;
+  height: var(--pool-px-2);
+  border-radius: var(--pool-radius-control);
+  background: var(--pool-surface-optical-signal);
+  background-size: 200% 100%;
+  opacity: 0;
+  pointer-events: none;
+}
+.pool-activity-edge[data-activity='ready']::after {
+  animation: pool-optical-ready var(--pool-motion-optical-ready) ease-out;
+}
+.pool-activity-edge[data-activity='executing']::after {
+  opacity: 1;
+  animation: pool-optical-flow var(--pool-motion-optical-active) ease-in-out infinite alternate;
+}
+@keyframes pool-optical-settle {
+  from { opacity: .6; transform: translateX(-15%); }
+  to { opacity: 0; transform: translateX(0); }
+}
+@keyframes pool-optical-ready {
+  0% { opacity: 0; background-position: 100% 0; }
+  25% { opacity: 1; }
+  100% { opacity: 0; background-position: -100% 0; }
+}
+@keyframes pool-optical-flow {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pool-home .pool-primary-nav .pool-segment[aria-current='page']::after,
+  .pool-activity-edge[data-activity='ready']::after,
+  .pool-activity-edge[data-activity='executing']::after { animation: none; }
+}
+@media (forced-colors: active) {
+  .pool-home .pool-glass-selected,
+  .pool-home .pool-glass,
+  .pool-home .pool-glass-focus:focus { border-color: ButtonText; }
+  .pool-activity-edge::after { display: none; }
+}

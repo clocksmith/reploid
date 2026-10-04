@@ -254,7 +254,7 @@ describe('poolday home navigation', () => {
   it('keeps the dashboard option on the same minimal primary navigation', () => {
     const html = renderNav('home', { dashboard: true, dashboardView: 'compute' });
 
-    expect(html).toContain('class="pool-nav-rail pool-primary-nav"');
+    expect(html).toContain('class="pool-nav-rail pool-primary-nav pool-surface"');
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
     expect(html).toContain('>Work</a>');
     expect(html).toContain('>Network</a>');
