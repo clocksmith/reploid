@@ -14,7 +14,7 @@ function channelPair() {
   });
   return channels;
 }
-async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, commitArtifact } = {}) {
+async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, commitArtifact, onChange = () => {} } = {}) {
   const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [];
   const file = { path: 'shard.bin', role: 'model-weights', sizeBytes: 5, hash: (await sha256Hex(bytes)).slice(7), hashAlgorithm: 'sha256' };
   const policy = { maxTransfers: 2, maxPeers, maxAcquisitionAttempts: 4, maxSupplyBytes: 100, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
@@ -41,7 +41,8 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, c
           putChunk: async (chunk, data) => { checkpoints.set(chunk.hash, data.slice()); afterCheckpoint(chunk); },
           deleteChunk: async chunk => { checkpoints.delete(chunk.hash); }
         },
-        hash: hashDopplerEvidence, hashBytes: sha256Hex, observe: receipt => receipts.push(receipt) } }));
+        hash: hashDopplerEvidence, hashBytes: sha256Hex, observe: receipt => receipts.push(receipt),
+        onChange: () => onChange(i) } }));
   }
   return { owners, file, bytes, reads, receipts, stores, close: () => owners.forEach(owner => owner.close()) };
 }
@@ -109,6 +110,43 @@ it('stop while artifact verification is pending does not publish a late custody 
     await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
     b.stopSupply(); finish(f.bytes); await failure;
     expect(f.receipts).toEqual([]); expect(b.getState().sharing).toBe(false);
+  } finally { f.close(); }
+});
+
+it('replaces an approved inventory without advertising a false withdrawal', async () => {
+  const observed = [], sharing = [];
+  let capture = false;
+  const f = await fixture({ onChange: index => {
+    if (!capture) return;
+    if (index === 0) observed.push(f.owners[0].has(f.file));
+    if (index === 1) sharing.push(f.owners[1].getState().sharing);
+  } });
+  const [a, b] = f.owners;
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    capture = true;
+    b.offer([f.file]);
+    await vi.waitFor(() => expect(observed.length).toBeGreaterThan(0));
+    expect(observed.every(Boolean)).toBe(true);
+    expect(sharing.every(Boolean)).toBe(true);
+    capture = false;
+    expect(await a.acquire(f.file, { signal: new AbortController().signal })).toEqual(f.bytes);
+    b.offer([]); await vi.waitFor(() => expect(a.has(f.file)).toBe(false));
+    await expect(a.acquire(f.file, { signal: new AbortController().signal })).rejects.toThrow('No authorized peer');
+  } finally { f.close(); }
+});
+
+it('replacing an inventory revokes a pending grant even when the file remains offered', async () => {
+  const f = await fixture(), [a, b] = f.owners;
+  let finish; f.reads.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    const acquisition = a.acquire(f.file, { signal: new AbortController().signal });
+    const failure = expect(acquisition).rejects.toThrow('stopped');
+    await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
+    b.offer([f.file]); finish(f.bytes); await failure;
+    expect(f.receipts).toEqual([]);
+    expect(await a.acquire(f.file, { signal: new AbortController().signal })).toEqual(f.bytes);
   } finally { f.close(); }
 });
 

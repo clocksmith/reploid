@@ -82,11 +82,12 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       ready.then(resolve, reject).finally(() => signal.removeEventListener('abort', abort));
     });
   };
-  const stopSupply = () => {
+  const revokeSupply = () => {
     supply = false; supplyEpoch++;
     for (const entry of suppliers.values()) { clearTimeout(entry.timer); entry.supplier.close(); }
-    suppliers.clear(); announce(); notify();
+    suppliers.clear();
   };
+  const stopSupply = () => { revokeSupply(); announce(); notify(); };
   const unsub = transport.onDataChannel('reploid-custody', install);
   transport.onMessage('reploid:custody-offer', (peer, message) => {
     if (closed || !Array.isArray(message?.artifacts) || message.artifacts.length > policy.maxInventoryFiles
@@ -239,7 +240,11 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     has: artifact => candidates(artifact).length > 0,
     offer(artifacts) {
       if (!Array.isArray(artifacts) || artifacts.length > policy.maxInventoryFiles || !artifacts.every(valid)) throw new Error('Invalid file inventory');
-      live(); stopSupply(); offered = structuredClone(artifacts); reserved = 0; supply = true; announce(); notify();
+      live();
+      const replacement = structuredClone(artifacts);
+      // Revoke old grants, but publish only the complete replacement. A transient
+      // empty inventory can make peers reject acquisition of a still-offered file.
+      revokeSupply(); offered = replacement; reserved = 0; supply = true; announce(); notify();
     },
     stopSupply,
     async acquire(artifact, { signal, range = null }) {
