@@ -357,6 +357,16 @@ test('one model executes cooperatively on discovered physical peers from selecti
         storage: await navigator.storage.estimate()
       })); } catch (error) { return { diagnosticsError: error.message }; }
     }));
+    if (reference && states[0]?.history) {
+      let evidence;
+      try {
+        const comparison = compareObservedLogits(observations, states[0].history, reference, 0.001);
+        evidence = { expectedSteps: reference.expected.reduce((sum, item) => sum + item.steps.length, 0),
+          observedSteps: comparison.length, comparison,
+          scope: 'Retained even when a later lifecycle check fails; incomplete observation is not qualification.' };
+      } catch (error) { evidence = { error: error.message, qualified: false }; }
+      await info.attach('numerical-at-exit.json', { contentType: 'application/json', body: JSON.stringify(evidence, null, 2) });
+    }
     await info.attach('state-at-exit.json', { contentType: 'application/json', body: JSON.stringify({
       physicalDevices: remote ? 2 : 1, browserContexts: contexts.length, adapterInfo, browser: browser.version(), modelIdentity: model.identity,
       states, replicaObservation, observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), requesterWeights, contributorOrigins, seedFiles, errors

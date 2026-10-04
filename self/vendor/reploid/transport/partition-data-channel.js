@@ -1,4 +1,5 @@
 import { createBoundedChannelWriter } from './bounded-channel-writer.js';
+import failureMessages from './partition-errors.json' with { type: 'json' };
 
 const SCHEMA = 'reploid.partition-channel/v1';
 const HEADER_BYTES = 12;
@@ -35,6 +36,13 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
   let nextId = 0;
   let reservedBytes = 0;
   let closed = false;
+  let lastFailure = null;
+  const failureCode = error => Object.hasOwn(failureMessages, error?.code) ? error.code : 'EXECUTION_FAILED';
+  const recordFailure = (entry, phase, error) => {
+    lastFailure = { requestId: entry.id, phase, code: failureCode(error),
+      message: String(error?.message || error).slice(0, policy.maxControlBytes),
+      failedAt: Date.now(), settledAt: null };
+  };
   channel.binaryType = 'arraybuffer';
   channel.bufferedAmountLowThreshold = 0;
   const send = createBoundedChannelWriter({ channel, limits: policy, signal: lifecycle.signal,
@@ -56,12 +64,14 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     const allowed = await authorize({ action, localParticipantId, remoteParticipantId,
       metadata: structuredClone(entry.metadata), byteLength: entry.size }, { signal: entry.controller.signal });
     entry.controller.signal.throwIfAborted();
-    assert(allowed === true, 'authorization declined');
+    if (allowed !== true) throw Object.assign(new Error('Partition channel: authorization declined'),
+      { code: 'AUTHORIZATION_DENIED' });
   }
   function release(map, id, entry) {
     clearTimeout(entry.timer);
     entry.signal?.removeEventListener('abort', entry.abort);
     if (map.delete(id)) reservedBytes -= entry.size;
+    if (map === incoming && lastFailure?.requestId === id) lastFailure.settledAt = Date.now();
   }
   function cancelIncoming(entry) {
     clearTimeout(entry.timer);
@@ -122,9 +132,10 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       // Mark ready before sending: a local test port may deliver synchronously.
       entry.ready = true;
       await control({ type: 'ready', id: entry.id }, entry.controller.signal);
-    } catch {
+    } catch (error) {
+      recordFailure(entry, 'admission', error);
       cancelIncoming(entry);
-      if (!closed) await control({ type: 'error', id: entry.id }).catch(failDelivery);
+      if (!closed) await control({ type: 'error', id: entry.id, code: failureCode(error) }).catch(failDelivery);
     } finally {
       entry.busy = false;
       if (entry.controller.signal.aborted) release(incoming, entry.id, entry);
@@ -143,8 +154,9 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
       await permit('respond', entry);
       assert(object(result), 'JSON result object required');
       await control({ type: 'result', id: entry.id, result }, entry.controller.signal);
-    } catch {
-      if (!closed && !entry.controller.signal.aborted) await control({ type: 'error', id: entry.id }).catch(failDelivery);
+    } catch (error) {
+      recordFailure(entry, 'execution', error);
+      if (!closed && !entry.controller.signal.aborted) await control({ type: 'error', id: entry.id, code: failureCode(error) }).catch(failDelivery);
     } finally {
       entry.busy = false;
       release(incoming, entry.id, entry);
@@ -197,7 +209,10 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     assert(['ready', 'error', 'result'].includes(frame.type) && frame.id <= nextId, 'unexpected response');
     const entry = outgoing.get(frame.id);
     if (!entry || entry.finished) { counters.discardedFrames++; return; }
-    if (frame.type === 'error') { finish(entry, new Error('Partition peer declined or failed request')); return; }
+    if (frame.type === 'error') {
+      const code = failureCode(frame);
+      finish(entry, Object.assign(new Error(failureMessages[code]), { code })); return;
+    }
     if (frame.type === 'ready') {
       assert(!entry.ready, 'duplicate ready');
       entry.ready = true;
@@ -270,7 +285,8 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
     },
     close,
     getReceipt: () => ({ schema: SCHEMA, ...counters, pendingRequests: outgoing.size,
-      inboundRequests: incoming.size, reservedBytes, closed, wireBytes: null, relayBytes: null }),
+      inboundRequests: incoming.size, reservedBytes, closed, wireBytes: null, relayBytes: null,
+      lastFailure: structuredClone(lastFailure) }),
   });
 
   function cancelRemote(entry) {

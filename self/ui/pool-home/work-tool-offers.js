@@ -1,6 +1,6 @@
 /** Explicit file handoff. Only the host evaluates and activates imported code. */
 export const renderToolOfferImport = () => `
-  <details class="pool-work-settings" data-tool-offer-panel hidden>
+  <details class="pool-work-settings pool-disclosure" data-tool-offer-panel hidden>
     <summary>Import a tool</summary>
     <div class="pool-work-drawer-body">
       <label class="pool-consent-row"><input type="checkbox" data-tool-offer-receive disabled> Receive tool offers from connected peers</label>
@@ -8,7 +8,7 @@ export const renderToolOfferImport = () => `
       <div data-tool-offer-preview hidden>
         <strong data-tool-offer-target></strong><p data-tool-offer-reason></p>
         <p class="pool-control-help" data-tool-offer-source></p>
-        <details><summary>Inspect code</summary><pre data-tool-offer-code></pre></details>
+        <details class="pool-disclosure"><summary>Inspect code</summary><pre data-tool-offer-code></pre></details>
         <p class="pool-control-help">Test against this device’s current tool. Adoption requires your separate approval.</p>
         <button type="button" class="btn btn-primary" data-tool-offer-evaluate disabled>Evaluate on this device</button>
       </div>

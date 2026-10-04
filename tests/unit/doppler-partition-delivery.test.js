@@ -20,10 +20,35 @@ describe('partition candidate delivery', () => {
     expect(readFileSync(hosted)).toEqual(packed);
     expect(readFileSync(path.join('node_modules/doppler-gpu', modulePath))).toEqual(packed);
     const browser = await import(hosted);
+    const versionPath = 'src/version.js';
+    const packedVersion = execFileSync('tar', ['-xOf', archive, 'package/' + versionPath]);
+    expect(readFileSync(path.join('node_modules/doppler-gpu', versionPath))).toEqual(packedVersion);
+    const version = await import(path.resolve('self/vendor/doppler', pin.version, versionPath));
+    expect(version.DOPPLER_VERSION).toBe(pin.version);
     expect(Object.keys(browser).sort()).toEqual(Object.keys(installed).sort());
     const args = { modelId: 'delivery-contract', numLayers: 4, hiddenSize: 2,
       vocabSize: 8, splitLayer: 2, activationDtype: 'f32' };
     expect(browser.createLayerPartitionPlan(args)).toEqual(installed.createLayerPartitionPlan(args));
+  });
+
+  it('rejects a correctly hashed archive with mismatched runtime identity before delivery', () => {
+    const fixture = mkdtempSync(path.join(os.tmpdir(), 'reploid-doppler-identity-'));
+    try {
+      mkdirSync(path.join(fixture, 'scripts'));
+      mkdirSync(path.join(fixture, 'package/src'), { recursive: true });
+      cpSync('scripts/vendor-doppler.js', path.join(fixture, 'scripts/vendor-doppler.js'));
+      writeFileSync(path.join(fixture, 'package/package.json'), JSON.stringify({ name: pin.name, version: pin.version }));
+      writeFileSync(path.join(fixture, 'package/src/version.js'), "export const DOPPLER_VERSION = '0.0.0';\n");
+      const invalid = path.join(fixture, 'invalid.tgz');
+      execFileSync('tar', ['-czf', invalid, '-C', fixture, 'package']);
+      writeFileSync(path.join(fixture, 'package.json'), JSON.stringify({ type: 'module' }));
+      writeFileSync(path.join(fixture, 'package-lock.json'), JSON.stringify({ packages: {
+        'node_modules/doppler-gpu': { ...pin, integrity: sha512(readFileSync(invalid)) },
+      } }));
+      expect(() => execFileSync(process.execPath, [path.join(fixture, 'scripts/vendor-doppler.js'), invalid],
+        { stdio: 'pipe' })).toThrow(/runtime version differs/);
+      expect(existsSync(path.join(fixture, 'self/vendor/doppler'))).toBe(false);
+    } finally { rmSync(fixture, { recursive: true, force: true }); }
   });
 
   it('replaces stale generated files and rejects changed archive bytes before replacing assets', () => {

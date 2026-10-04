@@ -1,5 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import pin from '../../self/config/doppler-package.json' with { type: 'json' };
 import policy from '../../self/config/swarm-bootstrap.json' with { type: 'json' };
 import { resolveSwarmJoin, resolveSwarmSignalingUrl } from '../../self/capabilities/communication/swarm-join-policy.js';
 import { resolveDopplerBrowserAssets, DOPPLER_MODULE_URL } from '../../self/config/doppler-local-models.js';
@@ -12,7 +13,7 @@ const location = search => ({ href: 'https://replo.id/' + search });
 const join = (search = '', values = {}) => resolveSwarmJoin({ location: location(search), storage: storage(values), policy });
 
 test('public defaults ignore saved private rooms and signaling alone; opt-out is explicit', () => {
-  for (const query of ['', '?swarm=public', '?signaling=wss://example.com/swarm']) {
+  for (const query of ['', '?swarm=public', '?signaling=wss://example.com/swarm', '?room=reploid-default&reploidBootRetry=2026091901', '?room=journey-room']) {
     assert.deepEqual(join(query, { REPLOID_SWARM_ROOM_ID: 'secret' }), {
       scope: 'public', roomId: policy.publicRoomId, token: policy.publicJoinMarker, autoConnect: true
     });
@@ -25,7 +26,10 @@ test('public defaults ignore saved private rooms and signaling alone; opt-out is
 
 test('private invitations require their scoped capability and preserve their endpoint', () => {
   assert.throws(() => join('?swarm=private-room'), /capability/);
-  assert.throws(() => join('?room=private-room', { REPLOID_SWARM_ROOM_TOKEN: 'x'.repeat(32) }), /capability/);
+  assert.throws(() => join('?room=reploid-swarm-private-room', { REPLOID_SWARM_ROOM_TOKEN: 'x'.repeat(32) }), /capability/);
+  assert.throws(() => join('?room=private-room&swarmToken=short'), /capability/);
+  assert.equal(join('?room=private-room&swarmToken=' + 'a'.repeat(32)).scope, 'private');
+  assert.equal(join('?room=reploid-default&swarm=private-room&swarmToken=' + 'a'.repeat(32)).scope, 'private');
   const invited = join('?swarm=private-room&swarmToken=' + 'a'.repeat(32));
   assert.equal(invited.scope, 'private');
   assert.equal(invited.roomId, 'reploid-swarm-private-room');
@@ -35,7 +39,7 @@ test('private invitations require their scoped capability and preserve their end
 });
 
 test('assets stay origin-relative in Node and obsolete saved defaults cannot win', () => {
-  assert.equal(DOPPLER_MODULE_URL, '/vendor/doppler/0.6.2/src/index.js');
+  assert.equal(DOPPLER_MODULE_URL, `/vendor/doppler/${pin.version}/src/index.js`);
   for (const pageUrl of ['https://replo.id/', 'http://localhost:8000/']) {
     for (const storedBase of [null, '/doppler', 'https://cdn.jsdelivr.net/npm/doppler-gpu@0.6.2']) {
       const assets = resolveDopplerBrowserAssets({ pageUrl, storedBase });

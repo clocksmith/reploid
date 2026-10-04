@@ -35,7 +35,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     }
   }
   const snapshot = () => copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId,
-    selectedId, threads, runningIds: [...runs.keys()], storageError });
+    selectedId, threads, runningIds: [...runs.keys()], storageError,
+    limits: { maxThreads: limits.maxThreads, maxMessageCharacters: limits.maxMessageCharacters } });
   const notify = () => { for (const listener of listeners) {
     try { listener(snapshot()); } catch (error) { console.error('[ChatWorkspace] listener failed', error); }
   } };

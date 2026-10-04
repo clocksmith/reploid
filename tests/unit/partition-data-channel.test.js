@@ -44,6 +44,17 @@ function fixture(overrides = {}) {
 const frames = channel => channel.frames.filter(frame => frame instanceof ArrayBuffer);
 
 describe('partition binary transport (injected host ports)', () => {
+  it('transmits bounded failure codes while retaining local cause and callback settlement', async () => {
+    const f = fixture({ server: { serve: async () => {
+      throw Object.assign(Error('private device allocation detail'), { code: 'RESOURCE_EXHAUSTED' });
+    } } });
+    await expect(f.client.request({}, new Uint8Array())).rejects.toMatchObject({ code: 'RESOURCE_EXHAUSTED' });
+    await vi.waitFor(() => expect(f.server.getReceipt().lastFailure.settledAt).toEqual(expect.any(Number)));
+    expect(f.server.getReceipt().lastFailure).toMatchObject({ phase: 'execution', message: 'private device allocation detail' });
+    expect(JSON.stringify(f.b.frames)).not.toContain('private device allocation detail');
+    const receipt = f.server.getReceipt(); receipt.lastFailure.message = 'changed';
+    expect(f.server.getReceipt().lastFailure.message).toBe('private device allocation detail');
+  });
   it('observes bounded request phases without letting an observer break delivery', async () => {
     const f = fixture();
     let measured;

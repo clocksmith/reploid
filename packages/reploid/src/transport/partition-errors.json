@@ -1,0 +1,5 @@
+{
+  "RESOURCE_EXHAUSTED": "A contributor exhausted its resource allowance. Retry with prepared capacity or a shorter conversation.",
+  "AUTHORIZATION_DENIED": "A contributor declined authorization for this request.",
+  "EXECUTION_FAILED": "Partition peer declined or failed request"
+}

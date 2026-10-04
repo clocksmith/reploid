@@ -70,6 +70,7 @@ export interface ChatThread {
 export interface ChatState {
   schema: 'reploid.chat-workspace/v1'; meshId: string; participantId: string;
   threads: ChatThread[]; selectedId: string | null; runningIds: string[]; storageError: string | null;
+  limits: { maxThreads: number; maxMessageCharacters: number };
 }
 export interface ChatControls {
   signal: AbortSignal;

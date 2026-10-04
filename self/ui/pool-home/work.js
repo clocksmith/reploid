@@ -2,6 +2,7 @@
  * Views request host actions; task execution and disclosure enforcement live in the host.
  * Refactored into decomposed sub-components within a centered reading layout.
  */
+import { renderSharingControls } from './network-controls.js';
 import policy from '../../config/work-profile.json' with { type: 'json' };
 import { DEFAULT_WORK_MODELS, deriveOutcomeTags } from '../../host/work-session.js';
 import { renderOperationSharing } from './operation-sharing.js';
@@ -52,47 +53,36 @@ export function renderWorkSurface() {
 }
 
 export function renderNetworkSurface() {
-  return '<section class="pool-work-shell" data-work-surface aria-label="Network">'
-    + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
-    + renderWorkHeading('Network')
-    + renderTextSwarm()
-    + '<details class="pool-work-settings"><summary>Specialized model jobs</summary><div class="pool-work-grid pool-network-grid">'
-    + '<section class="pool-control-panel" aria-labelledby="network-provide-title">'
-    + '<h2 class="type-h2" id="network-provide-title">Provide compute</h2>'
-    + '<p class="pool-control-help">Let this device run public jobs for others. Sharing stays off until you turn it on.</p>'
-    + renderOperationSharing() + '</section>'
-    + '<section class="pool-control-panel" aria-labelledby="network-request-title">'
-    + '<h2 class="type-h2" id="network-request-title">Request assistance</h2>'
-    + '<div class="pool-control-stack">'
-    + '<p class="pool-control-help">See what other devices can run. Looking for peers sends no task inputs; each job needs your approval.</p>'
-    + '<div class="pool-control-actions">'
-    + '<button class="btn btn-ghost" type="button" data-work-discover>Find compatible peers</button>'
-    + '<p class="pool-control-status" role="status" aria-live="polite" data-work-peer-status>Discovery has not run.</p></div>'
-    + '<div class="pool-control-group" data-work-peer-models></div>'
-    + '<div class="pool-control-footer">'
-    + route('/', 'Start a task with peer assistance') + '</div></div></section></div></details>'
-    + '<details class="pool-network-notes"><summary>How sharing works</summary>'
-    + '<p class="pool-control-help">Execution, artifact distribution, and improvement adoption have separate permissions.</p>'
-    + '<p class="pool-control-help">These controls offer whole operations, not a model split across GPUs. '
-    + route('/compute', 'Legacy sequence provider controls') + ' remain available.</p></details>'
-    + renderApprovalPanel() + links() + '</section>';
+  return `<section class="pool-work-shell network-workspace" data-network-workspace aria-label="Network">
+    ${renderWorkHeading('Network')}
+    <section class="pool-surface network-card" aria-label="Models shared by this tab">
+      <header class="network-card-heading"><h2>This tab</h2><span class="network-status">Your contribution</span></header>
+      ${renderSharingControls()}
+    </section>
+    <section class="pool-surface network-card" aria-label="Connected peers">
+      <header class="network-card-heading"><h2>Peers</h2><span data-mesh-peers>0 peers</span></header>
+      <ul class="network-peer-list" data-insp-device-list></ul>
+      <footer class="network-card-heading"><p data-network-message role="status" hidden></p>
+        <div class="chat-network-actions"><button class="btn pool-button btn-ghost" type="button" data-mesh-invite hidden>Invite</button>
+        <button class="btn pool-button btn-ghost" type="button" data-mesh-connect>Connect</button></div></footer>
+    </section>
+    <details class="pool-disclosure network-advanced"><summary>Specialized model jobs</summary>
+      <div class="pool-disclosure-body">${renderOperationSharing()}</div>
+    </details>
+  </section>`;
 }
 
 export function renderImproveSurface() {
-  return '<section class="pool-work-shell" data-work-surface aria-label="Improve">'
+  return '<section class="pool-work-shell changes-workspace" data-work-surface aria-label="Changes">'
     + '<p class="pool-work-error" role="alert" data-work-error hidden></p>'
-    + '<div class="pool-work-column">'
     + renderWorkHeading('Changes')
-    + '<div class="pool-work-empty" data-work-empty hidden><h2 class="type-h2">No work to review yet.</h2>'
-    + '<p>Start a task, then come back to review its result or try a revision.</p>' + route('/', 'Start your first task') + '</div>'
+    + renderToolExperiments()
+    + renderTaskHistory()
+    + '<details class="pool-disclosure" data-change-inspection hidden><summary>Selected attempt</summary><div class="pool-disclosure-body">'
     + '<section class="pool-work-comparison" data-work-comparison hidden><h2 class="type-h2">Earlier attempt</h2>'
     + '<p data-work-parent-feedback></p><pre data-work-parent-output></pre></section>'
-    + renderToolExperiments() + renderResultView() + renderTaskHistory()
-    + '<details class="pool-work-boundary"><summary>What counts as improvement?</summary>'
-    + '<p>Task revisions and your acceptance are not independent evaluation or proof of recursive improvement. '
-    + 'Tool candidates above use protected tests and require your separate approval. Adoption applies to new tasks and retains the previous version.</p>'
-    + '<a href="/x" data-pool-substrate-route="x">Open governed improvement workspace</a></details>'
-    + links() + '</div></section>';
+    + renderResultView({ embedded: true }) + '</div></details>'
+    + '</section>';
 }
 
 const download = (name, text, type) => {
@@ -371,6 +361,7 @@ export function bindWorkSurface(root, application, services = {}) {
     for (const attempt of [...state.records].reverse()) {
       const item = document.createElement('article'), title = document.createElement('button');
       item.className = 'pool-work-attempt';
+      if (root.querySelector('.changes-workspace')) item.classList.add('pool-surface', 'change-card');
       title.type = 'button'; title.className = 'pool-work-attempt-title';
       title.textContent = attempt.goal; title.dataset.workSelect = attempt.id;
       title.setAttribute('aria-pressed', String(showSelected && attempt.id === state.selectedId));
@@ -381,9 +372,11 @@ export function bindWorkSurface(root, application, services = {}) {
       }
       const metadata = document.createElement('p'), button = document.createElement('button');
       metadata.className = 'type-caption';
-      metadata.textContent = [attempt.status, attempt.modelName, new Date(attempt.createdAt).toLocaleString(),
-        attempt.parentId ? 'revision of an earlier attempt' : 'original attempt'].join(' / ');
-      button.type = 'button'; button.className = 'btn btn-ghost'; button.textContent = 'Revise with feedback';
+      metadata.textContent = [attempt.modelName, new Date(attempt.createdAt).toLocaleDateString()].filter(Boolean).join(' · ');
+      const badge = document.createElement('span'); badge.className = 'network-status';
+      badge.textContent = attempt.status === 'review' ? 'Ready to review' : attempt.status;
+      item.append(badge);
+      button.type = 'button'; button.className = 'btn btn-ghost'; button.textContent = 'Revise';
       button.dataset.workRevise = attempt.id; button.disabled = state.runningIds?.includes(attempt.id) || !state.available;
       item.append(title, metadata, button);
       if (attempt.error) {
@@ -396,6 +389,11 @@ export function bindWorkSurface(root, application, services = {}) {
   const draft = application.getDraft();
   if (draft) { showSelected = false; fillDraft(draft); application.select(null); }
   else if (form) application.select(null);
+  root.addEventListener('click', event => {
+    if (!event.target.closest('[data-work-select]')) return;
+    const panel = find('[data-change-inspection]');
+    if (panel) { panel.hidden = false; panel.open = true; panel.scrollIntoView({ block: 'nearest' }); }
+  }, options);
   const unsubscribe = application.subscribe(render);
   find('[data-work-files]')?.addEventListener('change', async event => {
     const revision = ++fileRevision, selected = Array.from(event.target.files);

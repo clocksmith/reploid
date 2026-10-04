@@ -42,6 +42,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
   const getState = () => ({ sharing, stopping, connecting, paused, error, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
+    partitionPeers: partitionMesh?.getState?.()?.capabilities || [],
     contribution: { ...contribution }, limits: { maxInboundJobs: contribution.partition ? partitionPolicy.limits.maxConcurrentAttempts : 1, maxOutputTokens: profile.generation.maxTokens },
     consumer: consumer?.getSwarmSnapshot() || null, supplier: supplier?.getSwarmSnapshot() || null,
     offers: peerOffers?.getState() || null });

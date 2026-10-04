@@ -1,10 +1,14 @@
 /** Pure discovery selection. Namespace membership grants no resource permission. */
-export function resolveSwarmJoin({ location, storage, policy, randomId }) {
+export function resolveSwarmJoin({ location, storage, policy }) {
   const url = new URL(location.href);
   const mode = url.searchParams.get('swarm');
   const disabled = ['off', 'false'].includes(mode) || storage?.getItem('REPLOID_SWARM_ENABLED') === 'false';
+  const room = url.searchParams.get('room');
+  // Application room links are not invitations. Preserve explicitly scoped legacy links.
+  const legacyInvitation = room && (room.startsWith('reploid-swarm-') || url.searchParams.has('swarmToken'))
+    ? room : null;
   const privateRoom = mode && !['true', 'public', 'off', 'false'].includes(mode)
-    ? mode : mode === 'public' ? null : url.searchParams.get('room');
+    ? mode : mode === 'public' ? null : legacyInvitation;
   if (!privateRoom) return { scope: 'public', roomId: policy.publicRoomId,
     token: policy.publicJoinMarker, autoConnect: policy.autoConnect && !disabled };
   const roomId = privateRoom.startsWith('reploid-swarm-') ? privateRoom : `reploid-swarm-${privateRoom}`;

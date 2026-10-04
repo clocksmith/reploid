@@ -1,3 +1,4 @@
+import pin from '../../self/config/doppler-package.json' with { type: 'json' };
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
@@ -27,13 +28,13 @@ const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
 describe('local Doppler model contract', () => {
   it('exposes the same identified Qwen models for requests and contribution', () => {
     expect(DOPPLER_PACKAGE_NAME).toBe('doppler-gpu');
-    expect(DOPPLER_PACKAGE_VERSION).toBe('0.6.3-dev.split.10');
-    expect(DOPPLER_BROWSER_RUNTIME_VERSION).toBe('0.6.3-dev.split.10');
-    expect(DOPPLER_BROWSER_RELEASE_REF).toBe('doppler-gpu@0.6.3-dev.split.10');
-    expect(DOPPLER_MODULE_URL).toBe('/vendor/doppler/0.6.3-dev.split.10/src/index.js');
-    expect(DOPPLER_KERNEL_BASE_URL).toBe('/vendor/doppler/0.6.3-dev.split.10/src/gpu/kernels');
-    expect(DOPPLER_TOOLING_URL).toBe('/vendor/doppler/0.6.3-dev.split.10/src/tooling-exports.browser.js');
-    expect(DOPPLER_STORAGE_TOOLING_URL).toBe('/vendor/doppler/0.6.3-dev.split.10/src/tooling-exports/storage.js');
+    expect(DOPPLER_PACKAGE_VERSION).toBe(`${pin.version}`);
+    expect(DOPPLER_BROWSER_RUNTIME_VERSION).toBe(`${pin.version}`);
+    expect(DOPPLER_BROWSER_RELEASE_REF).toBe(`doppler-gpu@${pin.version}`);
+    expect(DOPPLER_MODULE_URL).toBe(`/vendor/doppler/${pin.version}/src/index.js`);
+    expect(DOPPLER_KERNEL_BASE_URL).toBe(`/vendor/doppler/${pin.version}/src/gpu/kernels`);
+    expect(DOPPLER_TOOLING_URL).toBe(`/vendor/doppler/${pin.version}/src/tooling-exports.browser.js`);
+    expect(DOPPLER_STORAGE_TOOLING_URL).toBe(`/vendor/doppler/${pin.version}/src/tooling-exports/storage.js`);
     expect(DEFAULT_DOPPLER_MODEL_ID).toBe('qwen-3-5-2b-q4k-ehaf16');
     expect(LOCAL_DOPPLER_MODELS.map((model) => model.id)).toEqual([
       'qwen-3-5-0-8b-q4k-ehaf16', DEFAULT_DOPPLER_MODEL_ID

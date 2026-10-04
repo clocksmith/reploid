@@ -5585,7 +5585,7 @@ body[data-pool-route-id='home'] #app {
 .pool-work-secondary > summary { cursor: pointer; min-height: var(--pool-px-44); padding-block: var(--pool-space-sm); font-size: var(--pool-text-base); }
 .pool-candidate-origin { color: var(--pool-surface-muted); text-align: left; text-decoration: underline; font-size: var(--pool-text-sm); min-height: var(--pool-px-44); overflow-wrap: anywhere; }
 .pool-connected-shell [data-work-answer]:empty, .pool-connected-shell [data-work-draft]:empty { display: none; }
-.pool-home[data-pool-route-id='home'] .pool-primary-network { visibility: hidden; }
+.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network'], [data-pool-route-id='improve']) .pool-primary-network { visibility: hidden; }
 @media (max-width: 900px) {
   .pool-connected-layout { grid-template-columns: minmax(0, 1fr); gap: var(--pool-space-xl); }
   .pool-thread-list [data-work-history] { display: flex; overflow-x: auto; gap: var(--pool-space-sm); }
