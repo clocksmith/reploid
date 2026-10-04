@@ -1,0 +1,15 @@
+{
+  "date": "2026-10-04",
+  "scope": "Second physical verification after sharing-switch UI changes, without concurrent browser tests.",
+  "packageVersion": "0.6.3-dev.split.13",
+  "physicalDevices": 2,
+  "executorStorageQuotaBytes": 335544320,
+  "passed": false,
+  "status": "incomplete",
+  "processExitCode": 1,
+  "lastRecordedProgress": "Receiving required model pieces: 500 MB verified",
+  "failureReason": "No terminal Playwright assertion or diagnostic reason retained; process ended with Node.js version text.",
+  "causeEstablished": false,
+  "logSha256": "1add09b20a364d6ecc7c2d68589f1a92667744b352b8b27f4d4147d157447878",
+  "followup": "Run the previously exercised replica configuration with 1536 MiB storage per executor and the unchanged 1.42-billion-byte GPU allocation limit. This does not qualify the 320 MiB storage case."
+}

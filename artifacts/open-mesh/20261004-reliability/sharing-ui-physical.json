@@ -1,0 +1,90 @@
+{
+  "schema": "reploid.sharing-ui-physical/v1",
+  "date": "2026-10-04",
+  "reploidCommit": "d15b364a",
+  "scope": "Local ordinary interface, physical Linux and macOS executors, exact catalog seed; isolated browser test with replica coverage. Does not qualify smaller-cache acquisition, numerics, long prompts or public capacity.",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.3-dev.split.13",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.13.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.13.tgz",
+    "integrity": "sha512-kp2KwWEZ6giy8tqs2ihTICDCIi5Ai/aNeUc1fNstxcT8H4uCqHwaawQzpMS4hewHKWB3DsGkVPAEo1qjNLOekA=="
+  },
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "passed": true,
+  "executorStorageQuotaMiB": 1536,
+  "physicalDevices": 2,
+  "browserContexts": 5,
+  "requesterWeightRequests": 0,
+  "executorOriginRequests": 0,
+  "pageErrors": [],
+  "threadAttemptStatuses": [
+    [
+      "completed",
+      "completed"
+    ],
+    [
+      "completed"
+    ],
+    [
+      "completed"
+    ],
+    [
+      "completed"
+    ],
+    [
+      "cancelled"
+    ],
+    [
+      "failed",
+      "completed"
+    ],
+    [
+      "completed"
+    ],
+    [
+      "failed",
+      "completed"
+    ]
+  ],
+  "memory": [
+    {
+      "scope": "device-gpu-buffers",
+      "maxBytes": 1420000000,
+      "liveBytes": 670942584,
+      "peakBytes": 891485288,
+      "allocations": 27481,
+      "rejected": 0,
+      "categories": {
+        "weights": 650989568,
+        "attention": 912,
+        "recurrent": 0,
+        "other": 19952104
+      }
+    },
+    {
+      "scope": "device-gpu-buffers",
+      "maxBytes": 1420000000,
+      "liveBytes": 9816,
+      "peakBytes": 529134344,
+      "allocations": 19185,
+      "rejected": 0,
+      "categories": {
+        "weights": 0,
+        "attention": 912,
+        "recurrent": 0,
+        "other": 8904
+      }
+    }
+  ],
+  "replica": {
+    "recoveryMs": 6486,
+    "originalSeedStoppedBeforeAcquisition": true
+  },
+  "numerical": null,
+  "earlierAcquisitionCauseEstablished": false,
+  "evidenceSha256": {
+    "cooperative-completed.json": "724820c1bae5d31b1c60a7299e932fefe7aef450b3c934cdaef8d53fe0b4ceb3",
+    "playwright.log": "0f17e39771b3022d3cea47478b906db2e0e8e299fc06608cb43f52fb9a1df876"
+  }
+}

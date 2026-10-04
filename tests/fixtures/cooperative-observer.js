@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 
 /** Passive debugger observations: never replace tensors, assign roles, or open a runtime. */
-export async function observeCooperativePage(cdp, evidence, { captureLogits = true, maxLogitSteps = 4, acceptStep = async () => true } = {}) {
+export async function observeCooperativePage(cdp, evidence, { captureCustody = false, captureLogits = true, maxLogitSteps = 4, acceptStep = async () => true } = {}) {
   const host = (await readFile('self/host/work-partitions.js', 'utf8')).split('\n');
   const peer = (await readFile('self/vendor/reploid/mesh/partitions/partition-peer.js', 'utf8')).split('\n');
   await cdp.send('Debugger.enable');
@@ -10,8 +10,38 @@ export async function observeCooperativePage(cdp, evidence, { captureLogits = tr
     lineNumber: host.findIndex(line => line.includes('return { runtime, model, plan')) });
   const step = captureLogits && await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/mesh/partitions/partition-peer\\.js$',
     lineNumber: peer.findIndex(line => line.includes('const { logits: _logits')), condition: `result.step < ${maxLogitSteps}` });
+  const custody = new Map();
+  if (captureCustody) {
+    const source = (await readFile('self/vendor/reploid/artifacts/custody/exchange.js', 'utf8')).split('\n');
+    const probes = [
+      { kind: 'offer-received', marker: 'const first = !peers.has(peer);',
+        expression: '({peer, artifacts:message.artifacts, connected:[...connected()]})' },
+      { kind: 'missing-source', marker: 'return [...peers.entries()].filter',
+        condition: 'artifact.path.startsWith("shard_") && ![...peers.values()].some(files => files.some(item => key(item) === key(artifact)))',
+        expression: '({artifact, connected:[...ids], inventories:[...peers].map(([peer, files]) => ({peer, artifacts:files}))})' },
+      { kind: 'supply-stopped', marker: 'supply = false; supplyEpoch++;',
+        expression: '({supply, supplyEpoch, offered, reserved, preparing})' }
+    ];
+    for (const probe of probes) {
+      const lineNumber = source.findIndex(line => line.includes(probe.marker));
+      if (lineNumber < 0) throw Error('Custody observation boundary missing: ' + probe.kind);
+      const breakpoint = await cdp.send('Debugger.setBreakpointByUrl', {
+        urlRegex: '/artifacts/custody/exchange\\.js$', lineNumber, condition: probe.condition || '' });
+      custody.set(breakpoint.breakpointId, probe);
+    }
+  }
   cdp.on('Debugger.paused', async event => {
     try {
+      const probe = event.hitBreakpoints?.map(id => custody.get(id)).find(Boolean);
+      if (probe) {
+        const result = await cdp.send('Debugger.evaluateOnCallFrame', {
+          callFrameId: event.callFrames[0].callFrameId, expression: probe.expression, returnByValue: true });
+        if (result.exceptionDetails) throw Error(result.exceptionDetails.text);
+        evidence.custody ||= [];
+        evidence.custody.push({ kind: probe.kind, observedAt: Date.now(), ...result.result.value });
+        if (evidence.custody.length > 512) evidence.custody.shift();
+        return;
+      }
       if (['exception', 'promiseRejection'].includes(event.reason)) {
         evidence.exceptions ||= [];
         const authorization = event.callFrames.find(frame => frame.functionName === 'permit');

@@ -1,0 +1,167 @@
+{
+  "schema": "reploid.small-cache-physical/v1",
+  "date": "2026-10-04",
+  "reploidCommit": "d15b364a",
+  "scope": "Isolated ordinary-page run with optional test-only custody breakpoints on both physical executors and the seed. Instrumentation affects timing. Exact catalog seed; executor origins blocked.",
+  "packageVersion": "0.6.3-dev.split.13",
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "passed": true,
+  "executorStorageQuotaMiB": 320,
+  "physicalDevices": 2,
+  "requesterWeightRequests": 0,
+  "executorOriginRequests": 0,
+  "numerical": null,
+  "earlierAcquisitionCauseEstablished": false,
+  "findings": [
+    {
+      "platform": "linux",
+      "acceptedOfferSizes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        21,
+        0,
+        0,
+        21,
+        0,
+        0
+      ],
+      "missingSourceLookups": 0,
+      "observationErrors": [],
+      "loads": [
+        {
+          "partitionIndex": 1,
+          "requestedBytes": 293025600,
+          "verifiedBytes": 307887776,
+          "custody": {
+            "queueMs": 450185.79999923706,
+            "peerTransferMs": 177439.60000133514,
+            "cacheReadMs": 19896.500004291534,
+            "peerBytes": 307887776,
+            "cacheBytes": 704643072,
+            "transfers": 75,
+            "failures": 0
+          }
+        }
+      ]
+    },
+    {
+      "platform": "mac",
+      "acceptedOfferSizes": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        21,
+        0,
+        21,
+        0,
+        0,
+        0,
+        0
+      ],
+      "missingSourceLookups": 0,
+      "observationErrors": [],
+      "loads": [
+        {
+          "partitionIndex": 0,
+          "requestedBytes": 658550592,
+          "verifiedBytes": 671788512,
+          "custody": {
+            "queueMs": 114196.40000081062,
+            "peerTransferMs": 130747.00000023842,
+            "cacheReadMs": 24043.100001096725,
+            "peerBytes": 675982816,
+            "cacheBytes": 767557632,
+            "transfers": 162,
+            "failures": 0
+          }
+        },
+        {
+          "partitionIndex": 0,
+          "requestedBytes": 649462112,
+          "verifiedBytes": 662700032,
+          "custody": {
+            "queueMs": 88725.2999998331,
+            "peerTransferMs": 94632.80000126362,
+            "cacheReadMs": 24745.800000071526,
+            "peerBytes": 662700032,
+            "cacheBytes": 771751936,
+            "transfers": 158,
+            "failures": 0
+          }
+        }
+      ]
+    }
+  ],
+  "threadAttemptStatuses": [
+    [
+      "completed",
+      "completed"
+    ],
+    [
+      "completed"
+    ],
+    [
+      "completed"
+    ],
+    [
+      "completed"
+    ],
+    [
+      "cancelled"
+    ],
+    [
+      "failed",
+      "completed"
+    ]
+  ],
+  "memory": [
+    {
+      "scope": "device-gpu-buffers",
+      "maxBytes": 1420000000,
+      "liveBytes": 307002472,
+      "peakBytes": 529134344,
+      "allocations": 18006,
+      "rejected": 0,
+      "categories": {
+        "weights": 285497344,
+        "attention": 912,
+        "recurrent": 0,
+        "other": 21504216
+      }
+    },
+    {
+      "scope": "device-gpu-buffers",
+      "maxBytes": 1420000000,
+      "liveBytes": 661832056,
+      "peakBytes": 891485288,
+      "allocations": 17180,
+      "rejected": 0,
+      "categories": {
+        "weights": 650989568,
+        "attention": 912,
+        "recurrent": 0,
+        "other": 10841576
+      }
+    }
+  ],
+  "evidenceSha256": {
+    "cooperative-completed.json": "16dc9febfa481de721b92cb49de4112695f9e44aa48eecca618e3458e65ee7d2",
+    "state-at-exit.json": "cb0f0c81ee974922fb396a3835ec65abf6295594c73c8c8f6b8909b2aee0b358"
+  },
+  "observerSourceSha256": "6203603ba9f039db28ba8e89d3d82222e2395f7acd0c506df643bcf60af267bf"
+}

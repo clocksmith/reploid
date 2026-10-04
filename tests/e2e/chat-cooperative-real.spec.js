@@ -23,6 +23,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
   const observations = [1, 3].map(index => ({ physicalHost: index === 1 && remote ? 'linux-128' : 'mac', loads: [], steps: [], errors: [] }));
   const reference = process.env.DOPPLER_PARTITION_REFERENCE_OUT
     ? JSON.parse(await readFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, 'utf8')) : null;
+  const captureCustody = process.env.REPLOID_E2E_CUSTODY_TRACE === '1';
+  const seedObservation = { loads: [], steps: [], errors: [] };
   const replicaEnabled = process.env.REPLOID_E2E_REPLICA === '1';
   const executorQuotaMiB = replicaEnabled ? 1536 : 320;
   const allPages = [requester, contributor, seed, second];
@@ -71,13 +73,14 @@ test('one model executes cooperatively on discovered physical peers from selecti
     // browser storage limits, not a claim about physical memory or disk capacity.
     for (const [index, page] of [requester, contributor, seed, second].entries()) {
       const cdp = await contexts[index].newCDPSession(page);
-      if ([1, 3].includes(index)) await observeCooperativePage(cdp, observations[index === 1 ? 0 : 1], { captureLogits: !!reference,
+      if ([1, 3].includes(index)) await observeCooperativePage(cdp, observations[index === 1 ? 0 : 1], { captureCustody, captureLogits: !!reference,
         maxLogitSteps: reference?.expected.reduce((sum, item) => sum + item.steps.length, 0) || 4,
         acceptStep: async identity => {
           const thread = (await history(requester)).threads.find(thread => thread.id === identity.threadId);
           return thread?.attempts[0]?.id === identity.attemptId
             && reference.prompts.some(messages => messages.at(-1).content === thread.messages[0].content);
         } });
+      if (index === 2 && captureCustody) await observeCooperativePage(cdp, seedObservation, { captureCustody, captureLogits: false });
       await cdp.send('Storage.overrideQuotaForOrigin', { origin: new URL(info.project.use.baseURL).origin,
         quotaSize: (index === 2 ? 1536 : executorQuotaMiB) * 1024 * 1024 });
     }
@@ -361,10 +364,13 @@ test('one model executes cooperatively on discovered physical peers from selecti
       } catch (error) { evidence = { error: error.message, qualified: false }; }
       await info.attach('numerical-at-exit.json', { contentType: 'application/json', body: JSON.stringify(evidence, null, 2) });
     }
-    await info.attach('state-at-exit.json', { contentType: 'application/json', body: JSON.stringify({
+    const stateAtExit = JSON.stringify({
+      executorQuotaMiB, seedObservation,
       physicalDevices: remote ? 2 : 1, browserContexts: contexts.length, adapterInfo, browser: browser.version(), modelIdentity: model.identity,
       states, replicaObservation, observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), requesterWeights, contributorOrigins, seedFiles, errors
-    }, null, 2) });
+    }, null, 2);
+    await writeFile(info.outputPath('state-at-exit.json'), stateAtExit);
+    await info.attach('state-at-exit.json', { contentType: 'application/json', body: stateAtExit });
     await Promise.all(contexts.map(context => context.close()));
     await remote?.close();
   }
