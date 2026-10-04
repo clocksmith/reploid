@@ -1,0 +1,48 @@
+{
+  "kind": "physical-clock-signed-grant-probe",
+  "scope": "real remote issuer and local verifier; no model computation",
+  "maxClockSkewMs": 250,
+  "expiryGraceMs": 0,
+  "samples": [
+    {
+      "issuedAheadMs": 0,
+      "strict": true,
+      "bounded": true
+    },
+    {
+      "issuedAheadMs": -2,
+      "strict": true,
+      "bounded": true
+    },
+    {
+      "issuedAheadMs": 1,
+      "strict": false,
+      "bounded": true
+    },
+    {
+      "issuedAheadMs": 1,
+      "strict": false,
+      "bounded": true
+    },
+    {
+      "issuedAheadMs": 1,
+      "strict": false,
+      "bounded": true
+    },
+    {
+      "issuedAheadMs": 1,
+      "strict": false,
+      "bounded": true
+    },
+    {
+      "issuedAheadMs": -1,
+      "strict": true,
+      "bounded": true
+    },
+    {
+      "issuedAheadMs": 1,
+      "strict": false,
+      "bounded": true
+    }
+  ]
+}

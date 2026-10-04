@@ -1,0 +1,133 @@
+{
+  "schema": "reploid.partition-ownership-qualification/v1",
+  "date": "2026-10-04",
+  "status": "functional-journey-passed-numerical-qualification-failed",
+  "source": {
+    "reploidCommit": "7498e28a6a6baf9446c76830936391a839e3dc6b",
+    "dopplerDiagnosticCommit": "f6d0c4bd",
+    "executedDopplerPackage": "0.6.3-dev.split.10",
+    "diagnosticProbeInstalledInBrowser": false
+  },
+  "componentIntent": "preserved",
+  "boundaryEffects": [
+    "Discovery publishes availability snapshots; placement chooses eligible peers without owning discovery.",
+    "Resident partitions own bounded reservations shared across all channels.",
+    "Signed admission precedes partition execution; attempt receipts expose admission, failure and cleanup settlement.",
+    "Doppler adds an observation boundary only; model computation policy remains unchanged."
+  ],
+  "fixes": [
+    "A joining replica waits for an advertised existing input owner instead of accidentally loading partition A.",
+    "Signed grants tolerate at most 250 ms future issuance; expiry has no grace."
+  ],
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "physical": {
+    "receipt": "physical-final/cooperative-completed.json",
+    "physicalDevices": 2,
+    "browserContexts": 5,
+    "threadsExercised": 9,
+    "includesIntentionalCancellation": true,
+    "automaticDiscovery": true,
+    "selectivePeerAcquisition": true,
+    "executorModelOriginsBlocked": true,
+    "requesterModelWeights": [],
+    "contributorOriginRequests": [],
+    "pageErrors": [],
+    "retainedWeights": true,
+    "concurrentConversations": true,
+    "isolatedCancellation": true,
+    "reloadPreservesHistory": true,
+    "replacementUsesFreshAttempt": true,
+    "replicaRecoveryMs": 5896,
+    "originalSeedStoppedBeforeReplicaAcquisition": true,
+    "partitionPlacement": [
+      {
+        "platform": "linux-128",
+        "index": 0,
+        "layers": [
+          0,
+          11
+        ],
+        "verifiedBytes": 671788512
+      },
+      {
+        "platform": "mac",
+        "index": 1,
+        "layers": [
+          12,
+          23
+        ],
+        "verifiedBytes": 307887776
+      }
+    ]
+  },
+  "capacity": {
+    "scope": "application GPUBuffer allocation budgets, not total physical memory",
+    "maxGpuBufferBytes": 1420000000,
+    "finalPeaks": [
+      1417398872,
+      1054584488
+    ],
+    "standaloneDenials": [
+      "physical-before-final-admission/standalone-denial-1.json",
+      "physical-before-final-admission/standalone-denial-2.json"
+    ],
+    "standaloneControlsRepeatedInFinalRun": false,
+    "controlReason": "Both platform controls completed in the preceding run with the same model, precision, generation settings and allocation budget; final admission changes do not alter model loading."
+  },
+  "numerical": {
+    "qualified": false,
+    "receipt": "physical-final/numerical-comparison.json",
+    "tolerance": 0.001,
+    "comparedSteps": 55,
+    "failedSteps": 25,
+    "maxDifference": 0.0036873817443847656,
+    "matchesRetainedFailure": true,
+    "diagnosis": "platform-boundaries.json",
+    "causeEstablished": false,
+    "nextExecutionBoundary": "Doppler platform computation: first captured difference is layer 0 input normalization; establish which operation causes sustained logits to exceed tolerance before changing computation.",
+    "oppositePlacementRun": {
+      "receipt": "physical-before-final-admission/numerical-comparison.json",
+      "failedSteps": 1,
+      "comparedSteps": 55,
+      "maxDifference": 0.0015010833740234375,
+      "interpretation": "Different platform placement; does not prove an accuracy improvement."
+    }
+  },
+  "clockAdmission": "clock-admission.json",
+  "validation": {
+    "reploidUnit": {
+      "passed": 2848,
+      "skipped": 29
+    },
+    "reploidChecks": [
+      "verify:library-types",
+      "verify:layers",
+      "verify:catscan",
+      "module registry unresolved dependencies: 0",
+      "registry generation idempotence"
+    ],
+    "dopplerUnit": {
+      "initialPassed": 882,
+      "initialFailed": 1,
+      "failedSourceSentinelFixed": true,
+      "focusedRerunPassed": 3
+    },
+    "dopplerChecks": [
+      "source style",
+      "architecture",
+      "CATSCAN"
+    ],
+    "physicalTestExit": "failed at unchanged numerical assertion; preceding functional assertions passed"
+  },
+  "limitations": [
+    "Local ordinary page with temporary relay credentials; not a public hosting qualification.",
+    "Two physical hosts; replica shares one host, so this does not prove three-host fault tolerance.",
+    "Application allocation budgets do not prove neither physical device can fit the complete model.",
+    "Node diagnostic observations do not establish identical browser kernels or causation of accumulated logit error.",
+    "Numerical qualification is unresolved; no tolerance, model, precision, or CPU fallback was changed."
+  ],
+  "retainedEarlierFailures": [
+    "replica-placement-failure/pair-completed.json",
+    "concurrent-failure/state-at-exit.json"
+  ]
+}

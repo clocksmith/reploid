@@ -1,0 +1,350 @@
+{
+  "schema": "reploid.partition-platform-boundaries/v1",
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "packageVersion": "0.6.3-dev.split.10",
+  "source": "explicit-diagnostic-source",
+  "linearAttentionSourceHash": "0be67f8c401ce22ddf03b69886c52f24fb4088a645b978f2f9231225f8373b73",
+  "sourceMatches": true,
+  "generation": {
+    "maxTokens": 1024,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "prompt": [
+    {
+      "role": "user",
+      "content": "Reply with only the word Hello."
+    }
+  ],
+  "texts": [
+    "Hello",
+    "Hello"
+  ],
+  "captures": [
+    {
+      "file": "reploid-platform-norm-mac.json",
+      "sha256": "e64158f5bf8f124f7b2c1b999ca4984083fa099d10deca8669b4bab41a5f7fa9",
+      "bytes": 43402963
+    },
+    {
+      "file": "reploid-platform-norm-linux.json",
+      "sha256": "520473ff9d36011ef06a444b69f7b3b28d481598071fed4bef7dc9b481cf6ec4",
+      "bytes": 43402409
+    }
+  ],
+  "boundaries": [
+    {
+      "opId": "embed.out",
+      "shape": [
+        19,
+        1024
+      ],
+      "dtype": "f32",
+      "fullTensorHashes": [
+        "sha256:ebc91e604ca241fe45267c409801ed5b0cb0ae467b27135c30090a4c4869740e",
+        "sha256:ebc91e604ca241fe45267c409801ed5b0cb0ae467b27135c30090a4c4869740e"
+      ],
+      "hashesEqual": true,
+      "comparisonScope": "captured-sample",
+      "comparedElements": 8,
+      "differentElements": 0,
+      "maxDifference": 0.0,
+      "samples": [
+        [
+          0.0142822265625,
+          0.0087890625,
+          -0.0081787109375,
+          -0.005615234375,
+          -0.0181884765625,
+          -0.006195068359375,
+          0.006103515625,
+          0.0050048828125
+        ],
+        [
+          0.0142822265625,
+          0.0087890625,
+          -0.0081787109375,
+          -0.005615234375,
+          -0.0181884765625,
+          -0.006195068359375,
+          0.006103515625,
+          0.0050048828125
+        ]
+      ]
+    },
+    {
+      "opId": "layer.0.attn.post_input_norm",
+      "shape": [
+        19,
+        1024
+      ],
+      "dtype": "f32",
+      "fullTensorHashes": [
+        "sha256:5d18317b550078b499aacaddad8e8cda64bc6393a09aacb26d1c5618a40fbc1f",
+        "sha256:a685555f80ab9f93431b28d60eb2939c5bd02f7024c403a441918fbac543af33"
+      ],
+      "hashesEqual": false,
+      "comparisonScope": "full-tensor",
+      "comparedElements": 19456,
+      "differentElements": 5006,
+      "maxDifference": 4.76837158203125e-07,
+      "samples": [
+        [
+          1.7286550998687744,
+          0.6887610554695129,
+          -0.7598360776901245,
+          -0.5933594703674316,
+          -1.496297836303711,
+          -0.4891420900821686,
+          0.466763436794281,
+          0.3910279870033264
+        ],
+        [
+          1.7286550998687744,
+          0.6887610554695129,
+          -0.7598360776901245,
+          -0.5933594703674316,
+          -1.496297836303711,
+          -0.4891420900821686,
+          0.466763436794281,
+          0.3910279870033264
+        ]
+      ]
+    },
+    {
+      "opId": "layer.0.attn.qkv_proj",
+      "shape": [
+        19,
+        6144
+      ],
+      "dtype": "f32",
+      "fullTensorHashes": [
+        "sha256:5abf5c830373d196d09047109a855e753f8f760745fdbbd93aa67b6a683e6fb5",
+        "sha256:d789afb4a9729719a004b3c178856bbe7099cba2c1024d1490839614f98a3ead"
+      ],
+      "hashesEqual": false,
+      "comparisonScope": "full-tensor",
+      "comparedElements": 116736,
+      "differentElements": 111130,
+      "maxDifference": 2.09808349609375e-05,
+      "samples": [
+        [
+          -0.11873578280210495,
+          -0.5106950402259827,
+          0.5888397693634033,
+          -2.0902719497680664,
+          -0.3576022684574127,
+          1.8189427852630615,
+          0.7864152789115906,
+          0.4222680628299713
+        ],
+        [
+          -0.11873576045036316,
+          -0.5106950998306274,
+          0.5888394713401794,
+          -2.09027361869812,
+          -0.3576021194458008,
+          1.818943977355957,
+          0.7864153981208801,
+          0.42226842045783997
+        ]
+      ]
+    },
+    {
+      "opId": "layer.0.attn.linear_z_proj",
+      "shape": [
+        19,
+        2048
+      ],
+      "dtype": "f32",
+      "fullTensorHashes": [
+        "sha256:8b77dbae693cfdda282add942dd15f9365ef6ea808529c46c5826a9ab83a5540",
+        "sha256:a10c971b135f05c2fe9417e446182abd7082915ad3639b732b2f8926da93fc32"
+      ],
+      "hashesEqual": false,
+      "comparisonScope": "full-tensor",
+      "comparedElements": 38912,
+      "differentElements": 37143,
+      "maxDifference": 9.059906005859375e-06,
+      "samples": [
+        [
+          -0.6977084875106812,
+          -1.6162822246551514,
+          0.25141462683677673,
+          -0.11274775862693787,
+          -0.4570762813091278,
+          1.1199514865875244,
+          0.9591337442398071,
+          -0.8152838349342346
+        ],
+        [
+          -0.6977090835571289,
+          -1.6162818670272827,
+          0.25141441822052,
+          -0.11274772882461548,
+          -0.45707592368125916,
+          1.1199522018432617,
+          0.9591330885887146,
+          -0.8152838945388794
+        ]
+      ]
+    },
+    {
+      "opId": "layer.0.attn.linear_a_proj",
+      "shape": [
+        19,
+        16
+      ],
+      "dtype": "f32",
+      "fullTensorHashes": [
+        "sha256:f6764fb6a9f1017e20e767347fffc0c729c3a9e42448e0688692c4646980c3f4",
+        "sha256:aedf133ad6419ecfa6ba0ef6263febb25d6ea7f435a6339b80578d44a47f2f1a"
+      ],
+      "hashesEqual": false,
+      "comparisonScope": "full-tensor",
+      "comparedElements": 304,
+      "differentElements": 86,
+      "maxDifference": 1.9073486328125e-06,
+      "samples": [
+        [
+          -2.4182918071746826,
+          6.1507568359375,
+          3.9541120529174805,
+          -2.388796329498291,
+          -1.8679819107055664,
+          6.242178916931152,
+          0.9224936962127686,
+          1.2192882299423218
+        ],
+        [
+          -2.4182918071746826,
+          6.1507568359375,
+          3.9541120529174805,
+          -2.388796329498291,
+          -1.8679819107055664,
+          6.242178916931152,
+          0.9224936962127686,
+          1.2192882299423218
+        ]
+      ]
+    },
+    {
+      "opId": "layer.0.attn.linear_b_proj",
+      "shape": [
+        19,
+        16
+      ],
+      "dtype": "f32",
+      "fullTensorHashes": [
+        "sha256:1e07b0d67ff4a2390f997155c78307e7a0b7c48a3eee2131aad7bb1ea80bd1a5",
+        "sha256:c28b265ef760b7c0f030af3bd7a1efb02a69ec9b87edfcf0269d72c71c82c7e7"
+      ],
+      "hashesEqual": false,
+      "comparisonScope": "full-tensor",
+      "comparedElements": 304,
+      "differentElements": 82,
+      "maxDifference": 9.5367431640625e-07,
+      "samples": [
+        [
+          0.746224045753479,
+          2.4196934700012207,
+          2.482083797454834,
+          5.204892635345459,
+          1.9654858112335205,
+          1.4306402206420898,
+          -0.9841094613075256,
+          2.0383501052856445
+        ],
+        [
+          0.746224045753479,
+          2.4196934700012207,
+          2.482083797454834,
+          5.204892635345459,
+          1.9654858112335205,
+          1.4306402206420898,
+          -0.9841094613075256,
+          2.0383501052856445
+        ]
+      ]
+    },
+    {
+      "opId": "layer.0.attn.linear_core_out",
+      "shape": [
+        19,
+        2048
+      ],
+      "dtype": "f32",
+      "fullTensorHashes": [
+        "sha256:f13da1b5e7698afcb7cb190ef6a278e51b255b078c8f318b0d6cec648a66024a",
+        "sha256:71bdef6ff261070ddaa9a62fc374adea8e3e4c662adfcaf7dee698aa1609643f"
+      ],
+      "hashesEqual": false,
+      "comparisonScope": "full-tensor",
+      "comparedElements": 38912,
+      "differentElements": 37819,
+      "maxDifference": 4.172325134277344e-06,
+      "samples": [
+        [
+          0.0002925742301158607,
+          0.0002478943206369877,
+          -0.002749216975644231,
+          -0.0002721810305956751,
+          -3.688417564262636e-05,
+          0.0007771198288537562,
+          -0.0001206533852382563,
+          -0.00043669098522514105
+        ],
+        [
+          0.0002925741137005389,
+          0.00024789429153315723,
+          -0.0027492153458297253,
+          -0.000272180768661201,
+          -3.688392462208867e-05,
+          0.0007771192467771471,
+          -0.00012065330520272255,
+          -0.0004366912762634456
+        ]
+      ]
+    }
+  ],
+  "rmsNormReference": {
+    "method": "double-precision RMSNorm over identical captured embeddings and manifest-addressed F16 norm weights; manifest epsilon and weight-offset semantics",
+    "maxAbsoluteErrorMac": 5.143836663279444e-07,
+    "maxAbsoluteErrorLinux": 5.143836663279444e-07,
+    "role": "diagnostic reference only; never used for runtime inference"
+  },
+  "qualification": {
+    "status": "unresolved",
+    "retainedTolerance": 0.001,
+    "causeEstablished": false,
+    "findings": [
+      "Installed-package captures match full embedding hashes and differ by the first captured QKV projection.",
+      "A permanent diagnostic probe narrows the first captured difference to layer 0 input normalization.",
+      "Both normalization outputs have similarly small errors against the diagnostic double-precision reference."
+    ],
+    "limits": [
+      "Node captures do not establish identical browser behavior.",
+      "Observation enables diagnostic execution; later fusion choices can differ from unobserved execution.",
+      "The first floating-point difference is not proof of the source of the sustained logit tolerance failure.",
+      "No tolerance, precision, model bytes or production execution policy was changed."
+    ]
+  },
+  "reproduction": {
+    "script": "tests/fixtures/partition-platform-capture.js",
+    "requiredEnvironment": [
+      "DOPPLER_CHAT_MODEL_DIR",
+      "DOPPLER_PARTITION_REFERENCE_OUT",
+      "REPLOID_CAPTURE_OUT"
+    ],
+    "optionalObserverSource": "DOPPLER_CAPTURE_SOURCE_DIR",
+    "command": "node tests/fixtures/partition-platform-capture.js"
+  }
+}
