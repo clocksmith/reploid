@@ -11,6 +11,7 @@ Guide to all documentation in the REPLOID project.
 3. **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Connection modes and boot configuration
 4. **[Work, helpers, peers, and tool improvement](./work-collaboration.md)** - Models, optional collaboration, evaluated tool changes, and operator controls
 5. **[Concurrent mesh chat MVP](./chat-mvp.md)** - Required conversation, file, adapter, inference and physical-device acceptance boundaries
+6. **[P2P development sessions](./p2p-testing.md)** - Tailscale access, persistent terminals, contribution and testing with placeholder connection details
 
 ---
 
