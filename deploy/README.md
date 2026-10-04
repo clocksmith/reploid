@@ -91,3 +91,23 @@ Cloud Run remains authoritative for:
 - Abuse controls.
 
 Prompt, output, token, and full receipt payload envelopes can move over P2P DataChannel after the configured reveal gates. Cloud signaling must stay metadata-only.
+
+## Historical Doppler packages
+
+The current browser pin remains in `package-lock.json` and
+`self/config/doppler-package.json`. Expanded 0.6.2 and split.1 also remain because
+checked-in deployment settings and regression fixtures reference them.
+
+Obsolete expanded copies are consolidated into their byte-identical archives in
+[artifacts/](artifacts/). [retention.json](artifacts/retention.json) records their
+SHA-512 integrity, original file counts and byte counts. No archive or physical
+qualification receipt was removed. Verify and restore a historical version into
+an empty directory without changing the active pin:
+
+```sh
+npm run verify:retained-artifacts
+node scripts/restore-doppler-evidence.js --restore 0.6.3-dev.split.10 /tmp/reploid-split-10
+```
+
+Historical evidence must use its recorded package identity, not the current
+runtime. The retained archives are repository-relative durable references.

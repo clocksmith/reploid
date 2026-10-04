@@ -31,6 +31,8 @@ jobs:
 
     - name: Verify surface and runtime contracts
       run: |
+        npm run verify:showcase-privacy
+        npm run verify:retained-artifacts
         npm run verify:catscan
         npm run verify:surface-claims
         npm run verify:layers

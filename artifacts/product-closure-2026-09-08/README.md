@@ -37,3 +37,19 @@ Boundary effects: runtime cancellation UI, evidence capture, Sun Walker renderin
 Doppler source `a44933e0` passed the full `ci:check`, including all 797 unit-test files. `doppler-ci.log.gz` retains the complete run; `doppler-ci.json` states its scope. Npm publisher identity still returned HTTP 401 afterward.
 
 A concurrent workspace deployment subsequently advanced Mandate to `2b00bc67`, executable 0.20.3. `mandate-live-0203.json` verifies both viewport games, all fourteen links, and private-source exclusions. The earlier observation remains retained.
+
+## Lossless evidence compaction
+
+The three large `simulatte-*.json.gz` reports retain the exact original JSON
+bytes, including the failed preview. [compacted-evidence.json](compacted-evidence.json)
+records both compressed and original SHA-256 identities. `SHA256SUMS` verifies
+the current files; `SHA256SUMS.original` retains the earlier checksum manifest.
+To read or reconstruct a report without replacing its evidence identity:
+
+```sh
+gzip -dc simulatte-preview-failed.json.gz > /tmp/simulatte-preview-failed.json
+shasum -a 256 /tmp/simulatte-preview-failed.json
+```
+
+Compare that digest with `compacted-evidence.json`. This storage change does not
+alter any recorded result or turn a failed run into a pass.

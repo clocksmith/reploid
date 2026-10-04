@@ -81,23 +81,16 @@ The agent built an evolutionary feedback loop to empirically optimize sub-agent 
 
 ---
 
-## Replay System
+## Run evidence
 
-REPLOID has a built-in Replay tab for run playback:
+The tracked files in [runs/](runs/) are privacy-curated summaries containing
+counts and source digests. They cannot be replayed or imported as a VFS. Full
+conversation, prompt, state and filesystem payloads are omitted. The surrounding
+historical write-ups remain separate claims; summaries do not validate them.
 
-1. Click Replay tab in sidebar
-2. Load exported JSON file from `showcase/runs/`
-3. Set speed (1x/2x/5x/10x/50x)
-4. Watch event log replay
-
-```javascript
-// Quick Import via Console
-const run = await fetch(
-  "/showcase/runs/reploid-export-1768773433577.json",
-).then((r) => r.json());
-const vfs = await window.REPLOID_DI.resolve("VFS");
-await vfs.importAll(run.vfs, true);
-```
+Private session exports can still be used with the application's import/export
+features. Do not publish a full session export merely to make a demonstration
+replayable. See [the publication check](runs/README.md).
 
 ---
 
@@ -118,5 +111,5 @@ showcase/
 ├── rsi-blocker-refactor.md
 ├── iframe-inception.md
 ├── neural-interface-rebuild.md
-└── runs/                        # Exported JSON logs
+└── runs/                        # Privacy-curated summaries
 ```

@@ -1,0 +1,49 @@
+{
+  "component": "Showcase publication and repository artifact retention",
+  "intent": "preserved",
+  "sourceCommit": "3bee8700d50b70d82b13ef7d273d3fba05c11dfa",
+  "trackedBytesBefore": 463245506,
+  "trackedBytesAfterBeforeReceipt": 354913081,
+  "savedBytesBeforeReceipt": 108332425,
+  "showcase": {
+    "sanitizedExports": 5,
+    "publicContent": "counts and source digests only; not replayable",
+    "originals": "preserved in a private local backup outside the repository",
+    "history": "unchanged; original exports remain reachable in historical commits",
+    "credentialReview": "One credential-shaped match belonged to Firebase browser configuration; no secret credential was established by this scan"
+  },
+  "doppler": {
+    "expandedVersionsRetained": [
+      "0.6.2",
+      "0.6.3-dev.split.1",
+      "0.6.3-dev.split.12"
+    ],
+    "duplicateVersionsArchived": [
+      "0.6.3-dev.split.4",
+      "0.6.3-dev.split.6",
+      "0.6.3-dev.split.10",
+      "0.6.3-dev.split.11"
+    ],
+    "archiveIndex": "../../../deploy/artifacts/retention.json",
+    "allDeploymentArchivesRetained": true,
+    "restoredSplit10MatchesOriginalExpandedTree": true
+  },
+  "evidence": {
+    "compactedReports": 3,
+    "lossless": true,
+    "originalHashesVerified": true,
+    "failureResultsPreserved": true
+  },
+  "checks": {
+    "vitestPassed": 2860,
+    "vitestSkipped": 29,
+    "showcasePrivacy": "passed",
+    "historicalArchiveIntegrity": "passed",
+    "artifactSHA256SUMS": "passed",
+    "cssOrRuntimeImplementationChanges": "none",
+    "libraryLayers": "passed",
+    "registry": "passed",
+    "browserBundle": "passed",
+    "localSwarmSmoke": "passed; does not qualify physical inference"
+  }
+}
