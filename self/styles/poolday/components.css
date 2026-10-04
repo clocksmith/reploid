@@ -20,38 +20,35 @@
    These names are load-bearing; do not rename without updating the JS.
    ============================================ */
 
-.pool-home {
-  --pool-param-page-width: calc(100% - var(--pool-space-xl) * 2);
-}
+html[data-pool-route-id] { scrollbar-gutter: stable; }
+
+.pool-home > .pool-nav-rail.pool-primary-nav,
 .pool-home > .pool-route-content {
-  width: var(--pool-param-page-width);
+  box-sizing: border-box;
+  width: 100%;
   max-width: var(--pool-metric-nav-width);
   margin-inline: auto;
-  padding-bottom: calc(var(--pool-px-64) + var(--pool-space-lg));
+}
+.pool-home > .pool-route-content {
+  display: grid;
+  gap: var(--pool-space-page-gap);
+  padding-bottom: var(--pool-space-page-gap);
 }
 /* The route frame owns horizontal sizing; page roots fill the same header frame. */
 .pool-home > .pool-route-content > * {
   box-sizing: border-box;
   width: 100%;
-  min-width: 100%;
+  min-width: 0;
   max-width: 100%;
-  margin-inline: 0;
-}
-@media (max-width: 760px) {
-  .pool-home { --pool-param-page-width: calc(100% - var(--pool-space-lg)); }
+  margin: 0;
 }
 .pool-work-shell {
   width: 100%;
   max-width: var(--pool-metric-work-shell);
   margin: 0 auto;
-  padding: var(--pool-space-xl) 0;
+  padding: 0;
   display: grid;
-  gap: var(--pool-space-xl);
-}
-@media (max-width: 760px) {
-  .pool-work-shell {
-    padding: var(--pool-space-lg) 0;
-  }
+  gap: var(--pool-space-page-gap);
 }
 .pool-work-column {
   width: 100%;
@@ -410,7 +407,8 @@
 .pool-home {
   --pool-param-ask-dock-height: var(--pool-metric-action);
   min-height: min(100vh, 100dvh);
-  padding: calc(var(--pool-space-lg) + var(--pool-px-44)) var(--pool-space-lg) var(--pool-space-lg);
+  position: relative;
+  padding: var(--pool-space-page-gap) var(--pool-space-page-gutter) 0;
   overflow-x: clip;
   background-color: var(--pool-surface-page);
   background-image: var(--pool-surface-ambient-mesh), var(--pool-surface-pattern);
@@ -419,7 +417,7 @@
   color: var(--pool-surface-ink);
   display: flex;
   flex-direction: column;
-  gap: var(--pool-space-lg);
+  gap: var(--pool-space-page-gap);
   font-family: var(--pool-type-ui-family);
 }
 
@@ -454,23 +452,6 @@
 .pool-home .pool-result,
 .pool-home .pool-stream-output {
   font-family: var(--pool-type-mono-family);
-}
-
-.pool-home[data-pool-route-id='home'] {
-  min-height: 100vh;
-  min-height: 100dvh;
-  height: auto;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-  gap: 0;
-  overflow-x: clip;
-  overflow-y: visible;
-}
-
-.pool-home:not([data-pool-route-id='home']) {
-  padding-left: calc(var(--pool-space-md) + var(--pool-metric-nav-rail) + var(--pool-space-sm));
 }
 
 html[data-pool-route-id='home'],
@@ -2996,19 +2977,6 @@ body[data-pool-route-id='home'] #app {
 }
 
 @media (max-width: 720px) {
-  .pool-home {
-    padding: calc(var(--pool-space-md) + var(--pool-px-44)) var(--pool-space-md) var(--pool-space-md);
-    gap: var(--pool-space-md);
-  }
-
-  .pool-home[data-pool-route-id='home'] {
-    padding: 0;
-  }
-
-  .pool-home:not([data-pool-route-id='home']) {
-    padding-left: calc(var(--pool-px-8) + var(--pool-metric-nav-rail) + var(--pool-space-sm));
-  }
-
   .pool-nav-rail {
     top: 0;
     bottom: 0;
@@ -3555,10 +3523,6 @@ body[data-pool-route-id='home'] #app {
 /* An expanded desktop rail reserves layout space instead of overlaying the
    active Poolday surface. The stage then centers within the visible region. */
 @media (min-width: 721px) {
-  .pool-home:not([data-pool-route-id='home']):has(.pool-nav-rail.is-open) {
-    padding-left: calc(var(--pool-metric-nav-panel) + var(--pool-space-md));
-  }
-
   .pool-home[data-pool-route-id='home']:has(.pool-nav-rail.is-open) .pool-home-toolbar {
     margin-left: var(--pool-metric-nav-panel);
     padding-left: clamp(var(--pool-px-r0-9), 2vw, var(--pool-px-r1-5));
@@ -4248,11 +4212,9 @@ body[data-pool-route-id='home'] #app {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
-  width: var(--pool-param-page-width);
-  max-width: var(--pool-metric-nav-width);
   height: auto;
   min-height: calc(var(--pool-px-36) * 2);
-  margin: var(--pool-space-lg) auto 0;
+  margin-block: 0;
   padding: var(--pool-space-sm) var(--pool-space-lg);
   overflow: visible;
   backdrop-filter: none;
@@ -4802,23 +4764,12 @@ body[data-pool-route-id='home'] #app {
   text-underline-offset: var(--pool-px-3);
 }
 
-.pool-home:not([data-pool-route-id='home']) {
-  padding: 0 0 var(--pool-px-64);
-  gap: var(--pool-space-xl);
-}
-
 .pool-home:not([data-pool-route-id='home']) .pool-route-shell {
-  width: min(var(--pool-px-r48), calc(100% - var(--pool-space-xl) * 2));
-  margin: var(--pool-space-xl) auto 0;
-  padding: var(--pool-px-36);
+  padding: var(--pool-space-lg);
   border: var(--pool-border-thin) solid var(--pool-tint-white-88);
   border-radius: var(--pool-radius-panel);
   background: var(--pool-surface-raised);
   box-shadow: var(--pool-surface-shadow-raised);
-}
-
-.pool-home:not([data-pool-route-id='home']) .pool-route-shell[data-pool-route-shell='room-1'] {
-  width: min(var(--pool-px-1180), calc(100% - var(--pool-space-xl) * 2));
 }
 
 .pool-provider-layout,
@@ -4899,9 +4850,6 @@ body[data-pool-route-id='home'] #app {
 @media (max-width: 760px) {
   .pool-home .pool-nav-rail.pool-primary-nav {
     top: var(--pool-space-sm);
-    width: calc(100vw - var(--pool-space-lg));
-    max-width: calc(100vw - var(--pool-space-lg));
-    margin-top: var(--pool-space-sm);
     grid-template-columns: 1fr auto;
     gap: var(--pool-space-sm);
     padding: var(--pool-space-sm) var(--pool-space-md);
@@ -4929,8 +4877,7 @@ body[data-pool-route-id='home'] #app {
   .pool-home[data-pool-route-id='home'] .pool-home-toolbar-leading { gap: var(--pool-space-sm); }
   .pool-prism { position: relative; width: var(--pool-px-96); margin: 0; }
   .pool-home[data-pool-route-id='home'] .pool-home-task { width: 100%; }
-  .pool-home:not([data-pool-route-id='home']) .pool-route-shell { width: calc(100% - var(--pool-space-lg)); padding: var(--pool-space-lg); }
-  .pool-home:not([data-pool-route-id='home']) .pool-route-shell[data-pool-route-shell='room-1'] { width: calc(100% - var(--pool-space-lg)); }
+  .pool-home:not([data-pool-route-id='home']) .pool-route-shell { padding: var(--pool-space-md); }
   .pool-primary-network-details { max-width: calc(100vw - var(--pool-space-xl)); }
 }
 
