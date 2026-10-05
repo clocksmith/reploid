@@ -21,6 +21,7 @@ export async function measureStandaloneDenial(page, model) {
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
     const runtime = await import(config.DOPPLER_PARTITIONS_MODULE_URL);
     const { createPipeline } = await import(new URL('./inference/pipelines/text.js', base).href);
+    const { getBufferPool } = await import(new URL('./memory/buffer-pool.js', base).href);
     const { createHttpArtifactStorageContext } = await import(new URL('./storage/artifact-storage-context.js', base).href);
     const bytes = await (await fetch(selected.source.baseUrl + 'manifest.json')).arrayBuffer();
     const identity = 'sha256:' + Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
@@ -38,7 +39,7 @@ export async function measureStandaloneDenial(page, model) {
     finally { await pipeline?.unload(); }
     return { modelIdentity: identity, stage: 'opening',
       generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen }, maxSeqLen: policy.maxSeqLen, maxGpuBufferBytes: policy.maxGpuBufferBytes,
-      elapsedMs: performance.now() - started, error, memory: runtime.inspectDeviceMemory() };
+      elapsedMs: performance.now() - started, error, memory: runtime.inspectDeviceMemory(), pool: getBufferPool().getStats() };
   }, model);
 }
 

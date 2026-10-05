@@ -2,6 +2,7 @@ import { comparisonInput, COMPARISON_CHECK } from '../../self/host/document-comp
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { createLayerPartitionPlan } from 'doppler-gpu/partitions';
 import { observeCooperativePage, compareObservedLogits } from '../fixtures/cooperative-observer.js';
 import { inspectExecutorMemory, measureStandaloneDenial, routeDiagnosticModel, inspectConnections } from '../fixtures/capacity-observer.js';
 
@@ -9,9 +10,11 @@ import { inspectExecutorMemory, measureStandaloneDenial, routeDiagnosticModel, i
 // still use the normal page, real WebRTC, signed custody and installed WebGPU.
 const directory = process.env.DOPPLER_CHAT_MODEL_DIR;
 test('one model executes cooperatively on discovered physical peers from selectively acquired pieces', async ({ browser }, info) => {
-  test.skip(!directory, 'DOPPLER_CHAT_MODEL_DIR must contain the exact catalog Qwen 0.8B files');
+  test.skip(!directory, 'DOPPLER_CHAT_MODEL_DIR must contain the exact selected catalog files');
   test.setTimeout(2400000);
-  const model = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'))[0];
+  const models = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'));
+  const model = models.find(model => model.id === (process.env.REPLOID_TEST_MODEL || models[0].id));
+  expect(model, 'Selected model must belong to the application catalog').toBeTruthy();
   const remote = process.env.REPLOID_EXECUTOR_WS
     ? await chromium.connect(process.env.REPLOID_EXECUTOR_WS) : null;
   const contexts = await Promise.all([browser.newContext(), (remote || browser).newContext(), browser.newContext(), browser.newContext()]);
@@ -26,7 +29,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
   const captureCustody = process.env.REPLOID_E2E_CUSTODY_TRACE === '1';
   const seedObservation = { loads: [], steps: [], errors: [] };
   const replicaEnabled = process.env.REPLOID_E2E_REPLICA === '1';
-  const executorQuotaMiB = replicaEnabled ? 1536 : 320;
+  const seedQuotaMiB = model.id === models[0].id ? 1536 : 3072;
+  const executorQuotaMiB = replicaEnabled ? seedQuotaMiB : 320;
   const allPages = [requester, contributor, seed, second];
   const errors = [], requesterWeights = [], contributorOrigins = [], seedFiles = [];
   let adapterInfo = null, replicaObservation = null;
@@ -82,7 +86,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
         } });
       if (index === 2 && captureCustody) await observeCooperativePage(cdp, seedObservation, { captureCustody, captureLogits: false });
       await cdp.send('Storage.overrideQuotaForOrigin', { origin: new URL(info.project.use.baseURL).origin,
-        quotaSize: (index === 2 ? 1536 : executorQuotaMiB) * 1024 * 1024 });
+        quotaSize: (index === 2 ? seedQuotaMiB : executorQuotaMiB) * 1024 * 1024 });
     }
     await Promise.all([requester, contributor, seed, second].map(page => page.goto(info.project.use.baseURL)));
     adapterInfo = await contributor.evaluate(async () => {
@@ -287,8 +291,12 @@ test('one model executes cooperatively on discovered physical peers from selecti
       await page.locator('[data-toggle-contribution]').click();
     }
     const allocations = observations.map(device => device.loads[0]);
-    expect(allocations.map(load => load.descriptor.layerRange).sort((a, b) => a[0] - b[0])).toEqual([[0, 11], [12, 23]]);
-    const allBytes = JSON.parse(await readFile(path.join(directory, 'manifest.json'), 'utf8')).shards.reduce((sum, shard) => sum + shard.size, 0);
+    const manifest = JSON.parse(await readFile(path.join(directory, 'manifest.json'), 'utf8'));
+    const plan = createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
+      splitLayer: model.partitionSplitLayer, activationDtype: manifest.inference.session.compute.defaults.activationDtype });
+    expect(allocations.map(load => load.descriptor.layerRange).sort((a, b) => a[0] - b[0]))
+      .toEqual(plan.partitions.map(partition => partition.layerRange));
+    const allBytes = manifest.shards.reduce((sum, shard) => sum + shard.size, 0);
     for (const allocation of allocations) expect(allocation.acquisition.verifiedBytes).toBeLessThan(allBytes);
     for (const [index, allocation] of allocations.entries()) {
       expect(allocation.acquisition.pieces.some(piece => !allocations[1 - index].acquisition.pieces.includes(piece))).toBe(true);
@@ -333,6 +341,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
           expect(denial.error).toContain('GPU memory budget exceeded');
           expect(denial.memory.rejected).toBeGreaterThan(0);
           expect(denial.memory.peakBytes).toBeLessThanOrEqual(denial.maxGpuBufferBytes);
+          expect(denial.pool.resources.retainedModel.count, 'Failed loading must release all model weights').toBe(0);
           standaloneDenials.push(denial);
           await writeFile(info.outputPath(`standalone-denial-${standaloneDenials.length}.json`), JSON.stringify(denial, null, 2));
         } finally { await diagnostic.close(); }

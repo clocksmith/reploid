@@ -7,7 +7,7 @@
   "maxTransfers": 4,
   "maxPeers": 16,
   "maxAcquisitionAttempts": 4,
-  "maxInventoryFiles": 256,
+  "maxInventoryFiles": 1024,
   "maxReceipts": 32,
   "grantMs": 1800000,
   "channel": {
