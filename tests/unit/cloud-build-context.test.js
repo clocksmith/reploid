@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -11,6 +12,22 @@ const repoRoot = path.resolve(__dirname, '..', '..');
 const readRootFile = (relativePath) => readFile(path.join(repoRoot, relativePath), 'utf8');
 
 describe('Cloud Run build context', () => {
+  it('includes the exact lockfile-pinned Doppler archive in both build contexts', async () => {
+    const lock = JSON.parse(await readRootFile('package-lock.json'));
+    const pin = lock.packages['node_modules/doppler-gpu'];
+    const archivePath = pin.resolved.replace(/^file:/, '');
+    const archive = await readFile(path.join(repoRoot, archivePath));
+    const integrity = `sha512-${createHash('sha512').update(archive).digest('base64')}`;
+    expect(integrity).toBe(pin.integrity);
+
+    const dockerfile = await readRootFile('Dockerfile');
+    expect(dockerfile).toContain(`COPY ${archivePath} `);
+    for (const ignorePath of ['.gcloudignore', '.dockerignore']) {
+      const ignore = await readRootFile(ignorePath);
+      expect(ignore.split('\n')).toContain(`!${archivePath}`);
+    }
+  });
+
   it('uploads only Cloud Build inputs and coordinator runtime files', async () => {
     const ignore = await readRootFile('.gcloudignore');
 
