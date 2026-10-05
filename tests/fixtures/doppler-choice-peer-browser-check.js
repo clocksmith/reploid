@@ -5,6 +5,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { resolve, dirname, sep } from 'node:path';
 import { chromium } from 'playwright';
+import { physicalWebGpuBrowserOptions } from './physical-webgpu-browser.js';
 
 const [dopplerArg, reploidArg, capsuleArg, referencePath, archivePath, outputPath] = process.argv.slice(2);
 assert(outputPath, 'Expected installed Doppler/Reploid roots, qualified Capsule directory, reference, archive and output');
@@ -68,8 +69,8 @@ const pages = [], requesterWeights = [], executorOriginRequests = [];
 try {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
-  browser = await chromium.launch({ channel: process.env.REPLOID_E2E_CHROMIUM_CHANNEL || 'chrome', headless: true,
-    args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-angle=vulkan', '--disable-gpu-sandbox'] });
+  report.browserLaunch = physicalWebGpuBrowserOptions(process.platform, process.env.REPLOID_E2E_CHROMIUM_CHANNEL || 'chrome');
+  browser = await chromium.launch(report.browserLaunch);
   report.browserVersion = browser.version();
   const providerContext = await browser.newContext(), requesterContext = await browser.newContext();
   const provider = await providerContext.newPage(), requester = await requesterContext.newPage(); pages.push(provider, requester);
