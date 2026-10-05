@@ -451,11 +451,14 @@ it('shows only changes awaiting approval and clears the review indicator after d
   const root = document.createElement('div'); root.innerHTML = renderNav('home');
   expect(root.querySelector('.pool-nav-menu')).toBeNull();
   expect(root.querySelector('.pool-primary-network')).toBeNull();
+  expect(root.querySelector('[data-pool-changes]').closest('[data-pool-settings]')).not.toBeNull();
   updateChangesControl(root, [{ status: 'awaiting-approval' }, { status: 'awaiting-approval' }, { status: 'evaluating' }, { status: 'adopted' }]);
   expect(root.querySelector('[data-pool-change-count]').textContent).toBe('2');
   expect(root.querySelector('[data-pool-change-count]').hidden).toBe(false);
+  expect(root.querySelector('[data-pool-settings-review]').hidden).toBe(false);
   expect(root.querySelector('[data-pool-changes]').getAttribute('aria-label')).toBe('Changes: 2 awaiting review');
   updateChangesControl(root, [{ status: 'adopted' }, { status: 'rejected' }]);
   expect(root.querySelector('[data-pool-change-count]').hidden).toBe(true);
+  expect(root.querySelector('[data-pool-settings-review]').hidden).toBe(true);
   expect(root.querySelector('[data-pool-changes]').dataset.reviewNeeded).toBe('false');
 });

@@ -23,11 +23,12 @@ export function renderThemeSelector() {
   </div>`;
 }
 
-export function renderSettings(icon) {
+export function renderSettings(icon, content = '') {
   return `<details class="pool-settings" data-pool-settings>
-    <summary class="pool-button" aria-label="Settings" title="Settings">${icon}</summary>
+    <summary class="pool-button" aria-label="Settings" title="Settings">${icon}<span class="pool-settings-notice" data-pool-settings-review aria-hidden="true" hidden></span></summary>
     <section class="pool-settings-panel pool-surface" aria-label="Settings">
       ${renderThemeSelector()}
+      ${content}
     </section>
   </details>`;
 }
