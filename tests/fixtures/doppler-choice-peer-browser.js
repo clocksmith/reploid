@@ -21,10 +21,10 @@ let pc, bus, provider, requester, session, model, identity, ready;
 let calls = 0;
 const errors = [];
 
-export async function start({ role, selectedModel, capsuleUrl, publicKey }) {
+export async function start({ role, selectedModel, capsuleUrl, publicKey, preparedSession = null }) {
   if (role === 'provider') {
     const host = await import('doppler-gpu/host');
-    session = await host.openCapsule(capsuleUrl, { trustedSigners: { 'local-choice-acceptance': publicKey }, requiredOperations: ['scoreChoices'] });
+    session = preparedSession ?? await host.openCapsule(capsuleUrl, { trustedSigners: { 'local-choice-acceptance': publicKey }, requiredOperations: ['scoreChoices'] });
     const binding = { ...session.capsuleIdentity, artifacts: session.verification.capsule.artifacts,
       requiredOperation: 'scoreChoices', acceptedTargetPlanDigests: [session.selectedTargetPlanDigest] };
     model = { modelId: session.modelId, modelHash: binding.semanticRoot, manifestHash: binding.envelopeDigest,

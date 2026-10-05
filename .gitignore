@@ -6,6 +6,7 @@ node_modules/
 /artifacts/doppler-choice/package-difference/
 !/artifacts/doppler-choice/summary.json
 !/artifacts/doppler-choice/failed-observations.json
+!/artifacts/doppler-choice/custody-summary.json
 /artifacts/library-acceptance/2026-10-05T02-12-38-345Z/*
 !/artifacts/library-acceptance/2026-10-05T02-12-38-345Z/report.json
 

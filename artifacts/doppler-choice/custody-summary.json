@@ -1,0 +1,391 @@
+{
+  "schema": "reploid.choice-custody-acceptance/v1",
+  "scope": "Installed public Doppler/Reploid decision execution after verified OPFS peer storage and signed WebRTC acquisition; one physical machine",
+  "passed": true,
+  "runs": [
+    {
+      "path": "artifacts/doppler-choice/peer-custody-first.json",
+      "sha256": "100bbd5be7ed3bb4b605b0df2f80b1941fbf07da448c4363437abc2400198c52",
+      "sizeBytes": 2214777,
+      "passed": true,
+      "archiveSha256": "9d87c021969d20695a0b8ee6c2c0b9e1cbbd5ae39d98a2bd3e39c816072b355d",
+      "capsuleSha256": "4616afeedb68373ea7bbf25e2d3eb45579a568db7e8268db81dd9ce28588616e",
+      "qualificationSha256": "496d3c8769a9f1afecd2fb9df3204d6a90f36a61b0104f8569d774f5b3d18b6f",
+      "physicalMachines": 1,
+      "browserContexts": 4,
+      "browserVersion": "146.0.7680.177",
+      "deviceProfile": {
+        "surface": "browser-webgpu",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "subgroup_id",
+          "readonly_and_readwrite_storage_textures",
+          "unrestricted_pointer_parameters",
+          "texture_and_sampler_let",
+          "pointer_composite_access",
+          "uniform_buffer_standard_layout"
+        ],
+        "maxBufferSize": 4294967292,
+        "adapter": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "unknown",
+          "description": ""
+        }
+      },
+      "cases": [
+        {
+          "id": "capital",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:6352199ec6a448e6f96d75df384783bb5a6f2e92096dc5b54ff543d9b058bd84"
+        },
+        {
+          "id": "capital-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:076eac30388a67b3107627dc02765f0ca8d8449dff03fde8b5d5404f1adc5b3c"
+        },
+        {
+          "id": "plant",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:e8e1b4220daa492ca85dc157ae6858f382f8b8c58c29faf3b1b9c421d26d12a9"
+        },
+        {
+          "id": "plant-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:cd34db9cb7386c2fbc705d3421777a9eabae5b67f47f5b59b82467e02c2d4986"
+        },
+        {
+          "id": "reset",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:9301fdaf0cb0937072d4b9279f3450aa6715d66115ddd21e95593841c976e617"
+        },
+        {
+          "id": "reset-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:203af45924acc332fd2d930728bd159b483a8317b82d4b4a8d333bbc76531194"
+        },
+        {
+          "id": "invoice",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:b00cf1ebfa806a481e2a2e710dd069ac47541de83a512ca51b12a5489a50ac87"
+        },
+        {
+          "id": "invoice-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:550d1d739da7ed25cf5be8799366c2378ea2e30327f4af9d560487130989a47c"
+        },
+        {
+          "id": "refund",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:1934c20a39623ee946a474319b6702083ca94369097b77618856ebc662f77c6a"
+        },
+        {
+          "id": "refund-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:0c35710d1819b0c500122040363d9b0769e5f1eaebe7a1ebdcaff8483fe58e25"
+        },
+        {
+          "id": "python",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:d7687c43019cc20fca61c0c23ee4c767c99206fbc94364bb7695dbf823f01e2a"
+        },
+        {
+          "id": "python-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:7ce073180651ef9a387fce77c36c5e1dc8840328b9c7c84a1627e8e1e365c706"
+        }
+      ],
+      "custody": {
+        "source": "peer",
+        "receivedBytes": 945323341,
+        "verificationBytes": 1889598106,
+        "reservedBytes": 1012432205,
+        "persistedBytes": 0,
+        "completedArtifacts": 40,
+        "peakArtifactBytes": 67108864,
+        "peakInFlightBytes": 4194304,
+        "maxConcurrentChunks": 4,
+        "rejectedAttempts": 65,
+        "rejectionReasons": [
+          "Pack custody: chunk integrity mismatch",
+          "Pack channel: transport disconnected",
+          "Pack channel: channel unavailable"
+        ],
+        "elapsedMs": 25466,
+        "wireBytes": null,
+        "browserHeapBytes": null
+      },
+      "suppliers": {
+        "healthy": {
+          "heldBytes": 944291422,
+          "heldChunks": 927,
+          "storage": {
+            "storedBytes": 944274765,
+            "chunks": 926,
+            "maxBytes": 1420000000,
+            "storage": "opfs",
+            "persistence": "browser-managed"
+          }
+        },
+        "faulty": {
+          "heldBytes": 134217728,
+          "heldChunks": 128,
+          "storage": {
+            "storedBytes": 134217728,
+            "chunks": 128,
+            "maxBytes": 134217728,
+            "storage": "opfs",
+            "persistence": "browser-managed"
+          }
+        },
+        "faults": [
+          {
+            "type": "corrupt-contribution",
+            "artifactId": "weight-shard:shard_00000.bin:e43dc1fe4741",
+            "chunkIndex": 0
+          },
+          {
+            "type": "supplier-departure",
+            "artifactId": "weight-shard:shard_00001.bin:b1a9ca6f91fb",
+            "chunkIndex": 1
+          },
+          {
+            "type": "corrupt-contribution",
+            "artifactId": "weight-shard:shard_00001.bin:b1a9ca6f91fb",
+            "chunkIndex": 0
+          }
+        ]
+      },
+      "suppliersClosedBeforeInference": true,
+      "requesterArtifactFetches": [],
+      "executorOriginRequests": [],
+      "providerCalls": 12,
+      "hasRequesterModelSession": false,
+      "cleanupErrors": []
+    },
+    {
+      "path": "artifacts/doppler-choice/peer-custody-final.json",
+      "sha256": "3a7c7095bbb16275c5348253232224d4aac6447454cd66bb3083d7339e143caa",
+      "sizeBytes": 2214801,
+      "passed": true,
+      "archiveSha256": "9d87c021969d20695a0b8ee6c2c0b9e1cbbd5ae39d98a2bd3e39c816072b355d",
+      "capsuleSha256": "4616afeedb68373ea7bbf25e2d3eb45579a568db7e8268db81dd9ce28588616e",
+      "qualificationSha256": "496d3c8769a9f1afecd2fb9df3204d6a90f36a61b0104f8569d774f5b3d18b6f",
+      "physicalMachines": 1,
+      "browserContexts": 4,
+      "browserVersion": "146.0.7680.177",
+      "deviceProfile": {
+        "surface": "browser-webgpu",
+        "hasF16": true,
+        "hasSubgroups": true,
+        "wgslLanguageFeatures": [
+          "packed_4x8_integer_dot_product",
+          "subgroup_uniformity",
+          "subgroup_id",
+          "readonly_and_readwrite_storage_textures",
+          "unrestricted_pointer_parameters",
+          "pointer_composite_access",
+          "texture_and_sampler_let",
+          "uniform_buffer_standard_layout"
+        ],
+        "maxBufferSize": 4294967292,
+        "adapter": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "unknown",
+          "description": ""
+        }
+      },
+      "cases": [
+        {
+          "id": "capital",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:fc801b3792a4f1279fc544076909ac3a85a95e67929af8fc9e8b0982db90ce33"
+        },
+        {
+          "id": "capital-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:cee9c37a0504a5eb8c7ed0c3280028a9e4e392a5e5d54dac2b0a631cfdad1d15"
+        },
+        {
+          "id": "plant",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:f99592fcfdd5451a8b896d61e4580571e301b92baf79b8b315eeed5f7a65352e"
+        },
+        {
+          "id": "plant-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:fc539001064914a727b9009a250dbb64eb523cfe2bec70b44ff5ad1b0c1317f7"
+        },
+        {
+          "id": "reset",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:d75db38c3672b22b33ee30e9aec92044263e629db5673178d4d4d0474b6f37ce"
+        },
+        {
+          "id": "reset-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:067edeb218492421635dfffd35dd31d371814831e9bc34cef617176405a1141a"
+        },
+        {
+          "id": "invoice",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:16bf4447a9a2edd42d8ebc7e2e156f4c150d1ffe84b4e67c467b713520d7958e"
+        },
+        {
+          "id": "invoice-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:ee26e77cdfbc0d58aad7150259d05ff50551bf7859cdaa35bc579b523a37cbc8"
+        },
+        {
+          "id": "refund",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:4cfb31565b2aee13f304aa6a7d492f6428412c570f0619e77c75e80854ebf76d"
+        },
+        {
+          "id": "refund-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:bfd69730475f47d1fd3c20e2164c9cd7a4f557414833d99517222ab3d929dee4"
+        },
+        {
+          "id": "python",
+          "accepted": true,
+          "selectedId": "relevant",
+          "receiptDigest": "sha256:b3bb9a06ff14c74c456248e6bc6d2da0c8bf3a0439b4c70172bd90358b2d2ff3"
+        },
+        {
+          "id": "python-other",
+          "accepted": true,
+          "selectedId": "irrelevant",
+          "receiptDigest": "sha256:4670c2eba895e92a030007f0887f23130c926191bd19cf5a4fd41246cc563fa3"
+        }
+      ],
+      "custody": {
+        "source": "peer",
+        "receivedBytes": 945323341,
+        "verificationBytes": 1889598106,
+        "reservedBytes": 1012432205,
+        "persistedBytes": 0,
+        "completedArtifacts": 40,
+        "peakArtifactBytes": 67108864,
+        "peakInFlightBytes": 4194304,
+        "maxConcurrentChunks": 4,
+        "rejectedAttempts": 65,
+        "rejectionReasons": [
+          "Pack custody: chunk integrity mismatch",
+          "Pack channel: transport disconnected",
+          "Pack channel: channel unavailable"
+        ],
+        "elapsedMs": 25834,
+        "wireBytes": null,
+        "browserHeapBytes": null
+      },
+      "suppliers": {
+        "healthy": {
+          "heldBytes": 944291422,
+          "heldChunks": 927,
+          "storage": {
+            "storedBytes": 944274765,
+            "chunks": 926,
+            "maxBytes": 1420000000,
+            "storage": "opfs",
+            "persistence": "browser-managed"
+          }
+        },
+        "faulty": {
+          "heldBytes": 134217728,
+          "heldChunks": 128,
+          "storage": {
+            "storedBytes": 134217728,
+            "chunks": 128,
+            "maxBytes": 134217728,
+            "storage": "opfs",
+            "persistence": "browser-managed"
+          }
+        },
+        "faults": [
+          {
+            "type": "corrupt-contribution",
+            "artifactId": "weight-shard:shard_00000.bin:e43dc1fe4741",
+            "chunkIndex": 0
+          },
+          {
+            "type": "supplier-departure",
+            "artifactId": "weight-shard:shard_00001.bin:b1a9ca6f91fb",
+            "chunkIndex": 1
+          },
+          {
+            "type": "corrupt-contribution",
+            "artifactId": "weight-shard:shard_00001.bin:b1a9ca6f91fb",
+            "chunkIndex": 0
+          }
+        ]
+      },
+      "suppliersClosedBeforeInference": true,
+      "requesterArtifactFetches": [],
+      "executorOriginRequests": [],
+      "providerCalls": 12,
+      "hasRequesterModelSession": false,
+      "cleanupErrors": []
+    }
+  ],
+  "sources": [
+    {
+      "path": "tests/fixtures/doppler-choice-peer-browser-check.js",
+      "sha256": "0ddace706e030897e37703a9bfda2f540ee3a696790e4ea952364538997dc3bc"
+    },
+    {
+      "path": "tests/fixtures/doppler-choice-peer-browser.js",
+      "sha256": "3b200bc6a5abf8154c8f1f29377bc2c452f5c0e830a74124b71d5cd31d4b4f57"
+    },
+    {
+      "path": "tests/fixtures/peer-pack-browser.js",
+      "sha256": "4ff5f86563bdd651f1760cbd07bfe46b88a359f7dadfa42f7798a5249e638682"
+    }
+  ],
+  "regression": {
+    "command": "REPLOID_E2E_CHROMIUM_CHANNEL=chrome REPLOID_E2E_SKIP_LOCAL_SERVER=1 npx playwright test tests/e2e/peer-pack-custody.spec.js tests/e2e/peer-pack-jobs.spec.js --config /tmp/reploid-choice-acceptance.config.js --project chromium --grep \"browser crypto|durable checkpoints|Verification Worker accepts|common operations\"",
+    "passed": 4,
+    "failed": 0,
+    "logSha256": "2abeb015b03cf4cf70523d8b8b4c5e22fba59c14138de2badbccd10645b045bc",
+    "presentationInspection": false,
+    "screenshots": false
+  },
+  "productionPinChanged": false,
+  "publicRelease": false,
+  "boundaryEffects": "Test fixture composition only; existing signed custody, OPFS staging, public Capsule opening and complete-job protocol",
+  "limitations": [
+    "Uncalibrated query/document relevance on twelve reviewed cases, not arbitrary decisions.",
+    "Four contexts on one AMD machine, not separate physical capacity.",
+    "Whole-request model closure, not selective partition acquisition.",
+    "Executor has no durable acquisition checkpoint in this fixture.",
+    "Recorded byte counters do not establish total host memory or physical GPU residency.",
+    "Earlier chat-model missing-piece failure and both-direction partition numerical gate remain open.",
+    "Capsule uses local test release metadata, not public model release authorization."
+  ]
+}

@@ -18,6 +18,30 @@ The [Doppler record](https://github.com/clocksmith/doppler/blob/main/reports/cho
 independent CPU reference, frozen task, derived model dependencies and package.
 The Capsule uses explicit local test release metadata, not a public model release.
 
+## Verified peer storage into real decisions
+
+[custody-summary.json](custody-summary.json) records two fresh physical-browser
+runs through supplier storage, peer acquisition, signed Capsule opening and
+weightless-requester decisions. Suppliers retain verified chunks in OPFS. The
+executor's artifact origin is blocked; it rejects a corrupt contribution and
+recovers from a departing supplier. Both suppliers close before the twelve real
+decisions run. All answers pass the independent reference, and cleanup succeeds.
+
+The final run acquires 945,323,341 payload bytes, including rejected corruption;
+verification accounts for both chunks and reconstructed artifacts. The healthy
+supplier retains 944,274,765 bytes in OPFS, including content deduplication.
+Executor acquisition has a 67,108,864-byte maximum artifact buffer and a
+4,194,304-byte maximum in-flight chunk allowance. These are distinct observed
+counters, not physical GPU residency or total browser-memory measurements.
+The executor has no persistent chunk checkpoint in this fixture. Four browser
+contexts still share one physical machine. This whole-request model closure
+does not prove selective partition acquisition or solve the earlier chat-model
+missing-piece failure.
+
+To exercise this path, prefix the peer command below with
+`REPLOID_CHOICE_PEER_ACQUISITION=1`. The fixture blocks model-origin requests,
+retains failure observations, and requires real corruption and departure events.
+
 ## Reproduction
 
 After separate Node/browser qualification and signed Rig construction, run from
@@ -53,8 +77,8 @@ operation framing and Verification Worker checks pass in Chromium. The
 also passed; its model fixtures are synthetic and separately identified.
 
 The new public adapter does not change the app's split.13 dependency. Upgrade,
-selective acquisition, contributor recovery and both physical numerical directions
-remain separately gated. No deployment, published package, calibration or general
+selective partition acquisition, chat-model recovery and both physical numerical
+directions remain separately gated. No deployment, published package, calibration or general
 decision-quality claim is made.
 
 Component: Reploid Doppler adapters and complete peer jobs.
