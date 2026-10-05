@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 export async function observeCooperativePage(cdp, evidence, { captureCustody = false, captureLogits = true, maxLogitSteps = 4, acceptStep = async () => true } = {}) {
   const host = (await readFile('self/host/work-partitions.js', 'utf8')).split('\n');
   const peer = (await readFile('self/vendor/reploid/mesh/partitions/partition-peer.js', 'utf8')).split('\n');
+  const scriptUrls = new Map();
+  cdp.on('Debugger.scriptParsed', event => scriptUrls.set(event.scriptId, event.url));
   await cdp.send('Debugger.enable');
   await cdp.send('Debugger.setPauseOnExceptions', { state: 'all' });
   const opened = await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/host/work-partitions\\.js$',
@@ -11,6 +13,32 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
   const step = captureLogits && await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/mesh/partitions/partition-peer\\.js$',
     lineNumber: peer.findIndex(line => line.includes('const { logits: _logits')), condition: `result.step < ${maxLogitSteps}` });
   const custody = new Map();
+  let fileProbesInstalled = false;
+  const installFileProbes = async () => {
+    const sources = [
+      { file: 'self/host/work-model-files.js', urlRegex: '/host/work-model-files\\.js$', probes: [
+        { kind: 'cache-read', marker: 'const handle = await (await root()).getFileHandle(fileKey(file));', expression: '({file, key:fileKey(file), directory:directory?.name})' },
+        { kind: 'cache-miss', marker: "} catch (cause) { if (cause.name === 'NotFoundError') return null; throw cause; }", expression: '({file, error:{name:cause.name,message:cause.message,stack:cause.stack}})' },
+        { kind: 'cache-enumerate', marker: 'const stored = await handle.getFile(); used += stored.size;', expression: '({file,key,name,used})' }
+      ] },
+      { file: 'self/infrastructure/pack-transfer-storage.js', urlRegex: '/infrastructure/pack-transfer-storage\\.js$', probes: [
+        { kind: 'staging-read', marker: "const readIndex = async () => JSON.parse", expression: '({directory:directory.name,closed})' }
+      ] },
+      { file: 'self/vendor/reploid/mesh/partitions/automatic-partitions.js', urlRegex: '/mesh/partitions/automatic-partitions\\.js$', probes: [
+        { kind: 'load-failed', marker: "catch (cause) { phase = 'failed'; error = cause.message; notify(); throw cause; }", expression: '({placement,model:selectedOffer.id,error:{name:cause.name,message:cause.message,stack:cause.stack}})' }
+      ] }
+    ];
+    for (const source of sources) {
+      const lines = (await readFile(source.file, 'utf8')).split('\n');
+      for (const probe of source.probes) {
+        const lineNumber = lines.findIndex(line => line.includes(probe.marker));
+        if (lineNumber < 0) throw Error('File observation boundary missing: ' + probe.kind);
+        const breakpoint = await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: source.urlRegex, lineNumber });
+        custody.set(breakpoint.breakpointId, { ...probe, target: 'files' });
+      }
+    }
+    fileProbesInstalled = true;
+  };
   if (captureCustody) {
     const source = (await readFile('self/vendor/reploid/artifacts/custody/exchange.js', 'utf8')).split('\n');
     const probes = [
@@ -39,9 +67,10 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
         const result = await cdp.send('Debugger.evaluateOnCallFrame', {
           callFrameId: event.callFrames[0].callFrameId, expression: probe.expression, returnByValue: true });
         if (result.exceptionDetails) throw Error(result.exceptionDetails.text);
-        evidence.custody ||= [];
-        evidence.custody.push({ kind: probe.kind, observedAt: Date.now(), ...result.result.value });
-        if (evidence.custody.length > 512) evidence.custody.shift();
+        const target = probe.target || 'custody';
+        evidence[target] ||= [];
+        evidence[target].push({ kind: probe.kind, observedAt: Date.now(), ...result.result.value });
+        if (evidence[target].length > (target === 'files' ? 64 : 512)) evidence[target].shift();
         return;
       }
       if (['exception', 'promiseRejection'].includes(event.reason)) {
@@ -56,10 +85,16 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
               frame: entry.metadata.frame, grantClaim: entry.metadata.grant?.claim })`, returnByValue: true });
           denied = inspected.result?.value ?? null;
         }
-        if (!event.data?.description?.includes('NotFoundError') && evidence.exceptions.length < 100) evidence.exceptions.push({
+        const exception = {
           description: event.data?.description, denied,
-          frames: event.callFrames.slice(0, 6).map(frame => ({ functionName: frame.functionName, url: frame.url, location: frame.location }))
-        });
+          frames: event.callFrames.slice(0, 6).map(frame => ({ functionName: frame.functionName,
+            url: frame.url || scriptUrls.get(frame.location.scriptId), location: frame.location }))
+        };
+        if (event.data?.description?.includes('NotFoundError')) {
+          evidence.missingFiles ||= [];
+          evidence.missingFiles.push(exception);
+          if (evidence.missingFiles.length > 128) evidence.missingFiles.shift();
+        } else if (evidence.exceptions.length < 100) evidence.exceptions.push(exception);
         return;
       }
       const load = event.hitBreakpoints.includes(opened.breakpointId);
@@ -75,7 +110,12 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
       const result = await cdp.send('Debugger.evaluateOnCallFrame', { callFrameId: event.callFrames[0].callFrameId,
         expression, returnByValue: true });
       if (result.exceptionDetails) throw Error(result.exceptionDetails.text);
-      if (load) evidence.loads.push(result.result.value); else evidence.steps.push(result.result.value);
+      if (load) {
+        evidence.loads.push(result.result.value);
+        // Record local file boundaries only after initial acquisition; normal
+        // cache misses during first loading are not the rejoin failure.
+        if (captureCustody && !fileProbesInstalled) await installFileProbes();
+      } else evidence.steps.push(result.result.value);
     } catch (error) { evidence.errors.push(error.message); }
     finally { await cdp.send('Debugger.resume').catch(() => {}); }
   });

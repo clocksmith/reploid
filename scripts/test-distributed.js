@@ -16,6 +16,7 @@ const modelArgument = process.argv.indexOf('--model');
 const modelId = modelArgument < 0 ? 'qwen-3-5-0-8b-q4k-ehaf16' : process.argv[modelArgument + 1];
 if (!modelId || modelId.startsWith('--')) throw new Error('--model requires a catalog model ID');
 const capacityDiagnostic = process.argv.includes('--capacity');
+const documentWorkload = process.env.REPLOID_E2E_DOCUMENTS !== '0';
 const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic;
 const peer = process.env.REPLOID_TEST_PEER || 'x@128.tail995236.ts.net';
 const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || '/home/x/deco/reploid';
@@ -184,7 +185,7 @@ try {
         REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
         REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_E2E_SKIP_LOCAL_SERVER: '1',
         REPLOID_E2E_CHROMIUM_CHANNEL: 'chrome', REPLOID_E2E_CUSTODY_TRACE: '1', REPLOID_E2E_REPLICA: '1',
-        REPLOID_E2E_DOCUMENTS: '1',
+        REPLOID_E2E_DOCUMENTS: documentWorkload ? '1' : '0',
         REPLOID_TRACK_NUMERICAL_DRIFT: numericalPolicy === 'tracked' ? '1' : '0'
       } });
     test.stdout.pipe(process.stdout);
@@ -213,7 +214,9 @@ try {
   const profile = JSON.parse(await readFile(resolve(root, 'self/config/work-profile.json')));
   const policy = JSON.parse(await readFile(resolve(root, 'self/config/partition-policy.json')));
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId,
-    scope: capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof' : 'Physical cooperative conversation',
+    scope: capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
+      : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
+    documentWorkload,
     frozenReferenceApplicable: frozenWorkloads,
     numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },

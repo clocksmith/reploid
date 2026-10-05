@@ -1,3 +1,4 @@
+import { QUOTE_CASES, extractQuoteCode, evaluateQuoteCode } from '../fixtures/quote-code-evaluation.js';
 import { test, expect } from '@playwright/test';
 const evidenceDir = process.env.REPLOID_E2E_ARTIFACT_DIR || 'artifacts/network-home-2026-09-19';
 import { readFile } from 'node:fs/promises';
@@ -191,4 +192,32 @@ test('two browsers exchange an approved text request over WebRTC and settle shar
     await Promise.all([provider.evaluate(()=>window.testSwarm?.close()).catch(()=>{}),requester.evaluate(()=>window.testSwarm?.close()).catch(()=>{})]);
     await providerContext.close();await requesterContext.close();await signaling.close();
   }
+});
+
+
+test('quote extractor and isolated evaluator preserve correct results, exceptions and mutation observations', async ({ page }) => {
+  await page.goto('/');
+  const code = `function chooseQuote(quotes, budgetCents, deadline) {
+    const eligible = quotes.map(q => ({ id:q.id, completionDate:q.completionDate,
+      totalCents:q.taxIncluded ? q.subtotalCents : Math.round(q.subtotalCents * (1 + q.taxPercent / 100)) }))
+      .filter(q => q.totalCents <= budgetCents && q.completionDate <= deadline)
+      .sort((a,b) => a.totalCents - b.totalCents || a.id.localeCompare(b.id));
+    return eligible.length ? { id:eligible[0].id, totalCents:eligible[0].totalCents } : null;
+  }`;
+  for (const answer of [code, '```javascript\n' + code + '\n```']) {
+    expect(extractQuoteCode(answer).trim()).toBe(code);
+    for (const sample of QUOTE_CASES) {
+      const actual = await evaluateQuoteCode(page, extractQuoteCode(answer), {
+        quotes:sample.quotes, budget:sample.budget, deadline:sample.deadline
+      });
+      expect(actual.exception).toBeNull(); expect(actual.value).toEqual(sample.expected);
+      expect(actual.mutationPreserved).toBe(true);
+    }
+  }
+  const input = { quotes:[{id:'original'}], budget:0, deadline:'2026-06-01' };
+  const mutation = await evaluateQuoteCode(page, 'function chooseQuote(quotes) { quotes[0].id = "changed"; return null; }', input);
+  expect(mutation.mutationPreserved).toBe(false);
+  const exception = await evaluateQuoteCode(page, 'function chooseQuote(quotes) { quotes[0].id = "changed"; throw new Error("candidate failed"); }', input);
+  expect(exception.exception.message).toBe('candidate failed'); expect(exception.mutationPreserved).toBe(false);
+  expect(input.quotes[0].id).toBe('original');
 });

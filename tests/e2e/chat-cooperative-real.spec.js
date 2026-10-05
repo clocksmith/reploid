@@ -1,3 +1,4 @@
+import { QUOTE_CASES, extractQuoteCode, evaluateQuoteCode } from '../fixtures/quote-code-evaluation.js';
 import { comparisonInput, COMPARISON_CHECK } from '../../self/host/document-comparison.js';
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -72,6 +73,39 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await page.locator('[data-approval-consent]').check();
     await page.locator('[data-approval-send]').click();
   };
+  const standaloneDenials = [];
+  let capacityControls = null;
+  const runCapacityControls = () => capacityControls ||= (async () => {
+    if (process.env.REPLOID_E2E_CAPACITY === '1') {
+      for (const [hostIndex, host] of [browser, remote || browser].entries()) {
+        let diagnostic = null;
+        try {
+          diagnostic = await host.newContext();
+          await routeDiagnosticModel(diagnostic, model, directory);
+          const page = await diagnostic.newPage(); await page.goto(info.project.use.baseURL);
+          const denial = await measureStandaloneDenial(page, model);
+          standaloneDenials.push(denial);
+          await writeFile(info.outputPath(`standalone-denial-${hostIndex + 1}.json`), JSON.stringify(denial, null, 2));
+          expect.soft(denial.error).toContain('GPU memory budget exceeded');
+          expect.soft(denial.memory.rejected).toBeGreaterThan(0);
+          expect.soft(denial.memory.peakBytes).toBeLessThanOrEqual(denial.maxGpuBufferBytes);
+          expect.soft(denial.pool.resources.retainedModel.count, 'Failed loading must release all model weights').toBe(0);
+
+        } catch (error) {
+          const failure = { hostIndex, exception: { name: error.name, message: error.message } };
+          standaloneDenials.push(failure);
+          await writeFile(info.outputPath(`standalone-denial-${hostIndex + 1}.json`), JSON.stringify(failure, null, 2));
+          expect.soft(error, `Independent capacity control ${hostIndex}`).toBeNull();
+        } finally {
+          try { await diagnostic?.close(); }
+          catch (error) {
+            standaloneDenials.push({ hostIndex, stage: 'cleanup', exception: { name: error.name, message: error.message } });
+            expect.soft(error, `Capacity control ${hostIndex} cleanup`).toBeNull();
+          }
+        }
+      }
+    }
+  })();
   try {
     // Fixed test quotas exercise bounded cache operation reproducibly; these are
     // browser storage limits, not a claim about physical memory or disk capacity.
@@ -214,23 +248,32 @@ test('one model executes cooperatively on discovered physical peers from selecti
       await requester.locator('[data-conversation-download]').click(); await download;
     }
     completed = await history(requester);
-    // A stopped executor settles the attempt. Retry starts from authorized input.
-    const recoveryId = await sendNew('Count from one to twenty, one number per line.');
-    await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === recoveryId)
-      .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
-    await second.locator('[data-toggle-contribution]').click();
-    await expect.poll(async () => (await lastAttempt(recoveryId)).status, { timeout: 30000 }).toBe('failed');
-    const failedRecovery = await lastAttempt(recoveryId);
-    await expect(second.locator('[data-contrib-label]')).toHaveText('Not sharing');
-    await second.locator('[data-toggle-contribution]').click();
-    await expect(second.locator('[data-contrib-label]')).toHaveText('Ready', { timeout: 180000 });
-    await expect(requester.locator('[data-active-model-select] option:checked')).toContainText('ready');
-    await requester.locator('[data-retry-attempt]').click(); await approve(requester); await waitCompleted(recoveryId);
-    expect((await lastAttempt(recoveryId)).id).not.toBe(failedRecovery.id);
-    completed = await history(requester);
-    const recovered = completed.threads.find(thread => thread.id === recoveryId);
-    expect(recovered.attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
-    expect(recovered.messages.at(-1).content).toContain('20');
+    // Each contributor role must settle loss and support an explicit retry.
+    let recovered;
+    for (const returning of [second, contributor]) {
+      const recoveryId = await sendNew('Count from one to twenty, one number per line.');
+      await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === recoveryId)
+        .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
+      await returning.locator('[data-toggle-contribution]').click();
+      await expect.poll(async () => (await lastAttempt(recoveryId)).status, { timeout: 30000 }).toBe('failed');
+      const failedRecovery = await lastAttempt(recoveryId);
+      await expect(returning.locator('[data-contrib-label]')).toHaveText('Not sharing');
+      await returning.locator('[data-toggle-contribution]').click();
+      await expect.poll(async () => {
+        const state = await returning.evaluate(() => ({ phase: document.querySelector('[data-contrib-label]').textContent,
+          error: document.querySelector('[data-network-message]').textContent }));
+        if (state.error || state.phase === 'Failed') throw new Error('Contributor rejoin failed: ' + state.error);
+        return state.phase;
+      }, { timeout: 180000 }).toBe('Ready');
+      await expect(requester.locator('[data-active-model-select] option:checked')).toContainText('ready');
+      await requester.locator('[data-retry-attempt]').click(); await approve(requester); await waitCompleted(recoveryId);
+      expect((await lastAttempt(recoveryId)).id).not.toBe(failedRecovery.id);
+      completed = await history(requester);
+      recovered = completed.threads.find(thread => thread.id === recoveryId);
+      expect(recovered.attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
+      expect(recovered.messages.at(-1).content).toContain('20');
+      console.log('Contributor rejoin and explicit retry completed', returning === second ? 'mac' : 'linux');
+    }
     await writeFile(info.outputPath('pair-completed.json'), JSON.stringify({
       physicalDevices: remote ? 2 : 1, modelIdentity: model.identity, completed, concurrent,
       memory: await Promise.all([contributor, second].map(inspectExecutorMemory)),
@@ -262,7 +305,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       const observation = { physicalHost: observations[bIndex].physicalHost, loads: [], steps: [], errors: [] };
       replicaObservation = observation;
       const cdp = await context.newCDPSession(page);
-      await observeCooperativePage(cdp, observation, { captureLogits: false });
+      await observeCooperativePage(cdp, observation, { captureCustody, captureLogits: false });
       await cdp.send('Storage.overrideQuotaForOrigin', { origin: new URL(info.project.use.baseURL).origin,
         quotaSize: executorQuotaMiB * 1024 * 1024 });
       await page.goto(info.project.use.baseURL); await page.locator('[data-chat-workspace]').waitFor();
@@ -289,38 +332,29 @@ test('one model executes cooperatively on discovered physical peers from selecti
         replacementAttempt: replacement, originalSeedStoppedBeforeAcquisition: true };
       completed = await history(requester);
     }
+    await runCapacityControls();
     let usefulCode = null;
     if (process.env.REPLOID_E2E_CAPACITY === '1') {
       const prompt = 'Write a JavaScript function chooseQuote(quotes, budgetCents, deadline). Each quote has id, subtotalCents, taxPercent, taxIncluded, and completionDate (YYYY-MM-DD). Calculate the total in integer cents: included tax is already in the subtotal; otherwise add the stated percentage and round to the nearest cent. Only quotes within budget and completed on or before deadline are eligible. Return {id, totalCents} for the cheapest eligible quote, breaking ties by id alphabetically; return null if none qualify. Do not mutate the input. Return only the function code.';
       const id = await sendNew(prompt); await waitCompleted(id, 600000);
       const thread = (await history(requester)).threads.find(thread => thread.id === id);
       const answer = thread.messages.at(-1).content;
-      const code = answer.match(/```(?:javascript|js)?\s*([\s\S]*?)```/i)?.[1] || answer;
-      const cases = [
-        { quotes: [
-          { id: 'Harbor', subtotalCents: 1160000, taxPercent: 8, taxIncluded: true, completionDate: '2026-05-28' },
-          { id: 'Maple', subtotalCents: 1080000, taxPercent: 8, taxIncluded: false, completionDate: '2026-05-25' },
-          { id: 'Cedar', subtotalCents: 1055000, taxPercent: 0, taxIncluded: false, completionDate: '2026-06-10' },
-        ], budget: 1200000, deadline: '2026-06-01', expected: { id: 'Harbor', totalCents: 1160000 } },
-        { quotes: [{ id: 'rounding', subtotalCents: 101, taxPercent: 7.5, taxIncluded: false, completionDate: '2026-06-01' }],
-          budget: 109, deadline: '2026-06-01', expected: { id: 'rounding', totalCents: 109 } },
-        { quotes: [{ id: 'over', subtotalCents: 100, taxPercent: 10, taxIncluded: false, completionDate: '2026-06-01' }],
-          budget: 109, deadline: '2026-06-01', expected: null },
-        { quotes: ['z', 'a'].map(id => ({ id, subtotalCents: 100, taxPercent: 0, taxIncluded: true, completionDate: '2026-06-01' })),
-          budget: 100, deadline: '2026-06-01', expected: { id: 'a', totalCents: 100 } },
-        { quotes: [], budget: 0, deadline: '2026-06-01', expected: null },
-      ];
+      const code = extractQuoteCode(answer);
+      const cases = QUOTE_CASES;
       usefulCode = { prompt, answer, thread, cases, results: [] };
       await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
-      for (const sample of cases) {
-        const { value, quotes } = await requester.evaluate(async ({ code, input }) => {
-          const { runIsolatedCode } = await import('/infrastructure/code-sandbox.js');
-          return runIsolatedCode(`input => { ${code}\nreturn { value: chooseQuote(input.quotes, input.budget, input.deadline), quotes: input.quotes }; }`,
-            input, { timeoutMs: 1000, maxResultBytes: 65536 });
-        }, { code, input: { quotes: sample.quotes, budget: sample.budget, deadline: sample.deadline } });
-        usefulCode.results.push(value);
-        expect(value).toEqual(sample.expected);
-        expect(quotes, 'Generated quote selection must not mutate the input').toEqual(sample.quotes);
+      for (const [caseIndex, sample] of cases.entries()) {
+        const actual = await evaluateQuoteCode(requester, code, {
+          quotes: sample.quotes, budget: sample.budget, deadline: sample.deadline
+        });
+        usefulCode.results.push({ caseIndex, ...actual });
+        // Retain each result and mutation/exception observation before asserting.
+        await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
+        expect.soft(actual.exception, `Quote case ${caseIndex} execution`).toBeNull();
+        if (!actual.exception) {
+          expect.soft(actual.value, `Quote case ${caseIndex} result`).toEqual(sample.expected);
+          expect.soft(actual.mutationPreserved, `Quote case ${caseIndex} must preserve input`).toBe(true);
+        }
       }
       expect(thread.attempts.at(-1).execution.stopReason).toBe('eos-token');
       await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
@@ -366,23 +400,6 @@ test('one model executes cooperatively on discovered physical peers from selecti
       observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })),
       numerical, requesterWeights, contributorOrigins, storage, acquired, seedFiles, errors };
     await writeFile(info.outputPath('cooperative-completed.json'), JSON.stringify(cooperativeReceipt, null, 2));
-    const standaloneDenials = [];
-    if (process.env.REPLOID_E2E_CAPACITY === '1') {
-      for (const host of [browser, remote || browser]) {
-        const diagnostic = await host.newContext();
-        try {
-          await routeDiagnosticModel(diagnostic, model, directory);
-          const page = await diagnostic.newPage(); await page.goto(info.project.use.baseURL);
-          const denial = await measureStandaloneDenial(page, model);
-          expect(denial.error).toContain('GPU memory budget exceeded');
-          expect(denial.memory.rejected).toBeGreaterThan(0);
-          expect(denial.memory.peakBytes).toBeLessThanOrEqual(denial.maxGpuBufferBytes);
-          expect(denial.pool.resources.retainedModel.count, 'Failed loading must release all model weights').toBe(0);
-          standaloneDenials.push(denial);
-          await writeFile(info.outputPath(`standalone-denial-${standaloneDenials.length}.json`), JSON.stringify(denial, null, 2));
-        } finally { await diagnostic.close(); }
-      }
-    }
     await info.attach('open-mesh-real.json', { contentType: 'application/json', body: JSON.stringify({
       physicalDevices: remote ? 2 : 1, browserContexts: contexts.length, actualInference: true, origin: 'identified local seed bytes; executor origin blocked',
       automaticDiscovery: true, adapterInfo, completed, acquired, storage, numerical, memory, standaloneDenials, replica, concurrent, connections, usefulCode,
@@ -395,6 +412,9 @@ test('one model executes cooperatively on discovered physical peers from selecti
       expect(numerical.filter(step => !step.matches), 'Distributed numerical tolerance failures').toEqual([]);
     }
   } finally {
+    // Capacity controls also run after earlier acquisition/recovery failures.
+    await runCapacityControls();
+    await writeFile(info.outputPath('capacity-controls.json'), JSON.stringify(standaloneDenials, null, 2));
     // Retain the actual failed boundary as well as successful run evidence.
     const states = await Promise.all(allPages.map(async page => {
       try { return await page.evaluate(async () => ({
