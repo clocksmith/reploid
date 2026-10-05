@@ -19,6 +19,7 @@ const createPooldayRoute = (route) => Object.freeze({
 export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   createPooldayRoute({
     id: 'home',
+    primary: false,
     path: '/',
     label: 'Work',
     eyebrow: POOLDAY_PROTOCOL,
@@ -36,6 +37,7 @@ export const POOLDAY_ROUTE_DEFINITIONS = Object.freeze([
   }),
   createPooldayRoute({
     id: 'network',
+    primary: false,
     path: '/network',
     label: 'Network',
     eyebrow: POOLDAY_PROTOCOL,

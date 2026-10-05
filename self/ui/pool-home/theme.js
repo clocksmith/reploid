@@ -55,6 +55,8 @@ export function bindThemeSelector(root, { storage = globalThis.localStorage, med
     if (!button || !root.contains(button)) return;
     choice = normalizeTheme(button.dataset.poolThemeChoice);
     sync();
+    const panel = button.closest('[data-pool-settings]');
+    if (panel) { panel.open = false; panel.querySelector('summary').focus(); }
     try { storage?.setItem(THEME_STORAGE_KEY, choice); }
     catch { /* Appearance persistence is optional. */ }
   };

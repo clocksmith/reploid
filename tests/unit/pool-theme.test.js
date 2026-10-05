@@ -5,6 +5,7 @@ import {
   bindThemeSelector,
   getPreferredTheme,
   renderThemeSelector,
+  renderSettings,
   THEME_STORAGE_KEY
 } from '../../self/ui/pool-home/theme.js';
 
@@ -59,4 +60,17 @@ it('follows system changes until overridden and resumes following when System is
   binding.dispose();
   media.matches = true; media.dispatchEvent(new Event('change'));
   expect(surface.dataset.poolTheme).toBe('dark');
+});
+
+it('closes settings and restores focus after choosing appearance', () => {
+  const root = document.createElement('div');
+  root.innerHTML = `<main class="pool-home">${renderSettings('7')}</main>`;
+  document.body.append(root);
+  const binding = bindThemeSelector(root, { storage: null });
+  const panel = root.querySelector('details'); panel.open = true;
+  root.querySelector('[data-pool-theme-choice=light]').click();
+  expect(panel.open).toBe(false);
+  expect(document.activeElement).toBe(panel.querySelector('summary'));
+  expect(root.querySelector('[data-pool-theme-choice=light]').getAttribute('aria-pressed')).toBe('true');
+  binding.dispose(); root.remove();
 });

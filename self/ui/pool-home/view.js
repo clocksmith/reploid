@@ -1543,40 +1543,29 @@ export const getPoolDashboardView = () => {
 const renderPowerTower = (inverse = false) => `<span class="pool-power-tower" aria-hidden="true">${inverse ? '<span>7</span><sup>7</sup>' : '<sup>7</sup><span>7</span>'}</span>`;
 
 export const renderNav = (activeRoute) => {
-  const renderItem = ({ id, path, label }) => {
-    const isActive = activeRoute === id || (activeRoute === 'ask' && id === 'home');
-    const currentAttr = isActive ? ' aria-current="page"' : '';
-    const ariaLabel = escapeHtml(label);
-    const shortLabel = escapeHtml({ home: 'Work', network: 'Network', improve: 'Improve', records: 'Jobs' }[id] || label);
-    const roomPath = roomHref(path, getPeerRoomId());
-    return `<a class="pool-nav-link pool-segment pool-glass-selected${isActive ? ' is-active' : ''}" href="${escapeHtml(roomPath)}" aria-label="${ariaLabel}" data-pool-nav-id="${id}" data-pool-nav-short-label="${shortLabel}" data-pool-route-link="${escapeHtml(roomPath)}"${currentAttr}>${ariaLabel}</a>`;
-  };
+  const home = escapeHtml(roomHref('/', getPeerRoomId()));
+  const changes = POOLDAY_NAV_ROUTES.find(route => route.id === 'improve');
+  const changesPath = escapeHtml(roomHref(changes.path, getPeerRoomId()));
   return `
     <nav class="pool-nav-rail pool-primary-nav pool-surface" aria-label="${escapeHtml(POOLDAY_NAME)}">
-      <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${escapeHtml(roomHref('/', getPeerRoomId()))}" data-pool-route-link="${escapeHtml(roomHref('/', getPeerRoomId()))}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
-      <div class="pool-nav-menu pool-segmented" id="pool-nav-menu">
-        ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
-      </div>
+      <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
       <div class="pool-primary-actions">
-      <details class="pool-primary-network" data-pool-network-state="simulation">
-        <summary aria-label="Network availability">
-          <span class="pool-primary-network-dot" aria-hidden="true"></span>
-          <span data-work-helper-count hidden></span>
-          <span data-pool-network-label>Searching</span>
-          <span data-pool-network-count hidden>0</span>
-        </summary>
-        <div class="pool-primary-network-details">
-          <span><b>Room</b><code data-pool-room-id>${escapeHtml(getPeerRoomId())}</code></span>
-          <span><b>Relay</b><code data-pool-relay-mode>${escapeHtml(getPeerRelayLabel())}</code></span>
-          <span><b>Version</b><code>${escapeHtml(POOLDAY_VERSION_TAG)}</code></span>
-          <a href="${escapeHtml(getPeerInviteUrl())}" data-pool-invite-link>Invite</a>
-        </div>
-      </details>
-      ${renderSettings(renderPowerTower(true))}
+        <a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count" data-pool-change-count aria-hidden="true" hidden></span></a>
+        ${renderSettings(renderPowerTower(true))}
       </div>
     </nav>
   `;
 };
+
+export function updateChangesControl(root, candidates) {
+  const control = root.querySelector('[data-pool-changes]');
+  if (!control) return;
+  const count = candidates.filter(item => item.status === 'awaiting-approval').length;
+  const badge = control.querySelector('[data-pool-change-count]');
+  badge.textContent = String(count); badge.hidden = count === 0;
+  control.dataset.reviewNeeded = String(count > 0);
+  control.setAttribute('aria-label', count ? `Changes: ${count} awaiting review` : 'Changes');
+}
 
 export const renderActiveResearchRoom = (routeId = getRouteId()) => {
   const roomId = getPeerRoomId();
