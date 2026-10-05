@@ -1743,7 +1743,7 @@ app.use((req, res) => {
 
 // Create HTTP server (needed for WebSocket)
 const server = http.createServer(app);
-const publicSwarmServer = new PublicSwarmServer();
+const publicSwarmServer = new PublicSwarmServer({ localPort: PORT });
 
 if (!POOL_BACKEND_ONLY) {
   // Initialize WebRTC Signaling Server

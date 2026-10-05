@@ -70,6 +70,9 @@ export function synchronizeRuntimeConfig({
   storageModuleUrl = DOPPLER_STORAGE_TOOLING_URL,
   kernelBaseUrl = DOPPLER_KERNEL_BASE_URL
 }) {
+  if (browserRuntimeVersion !== packageVersion) {
+    throw new Error('Every browser consumer must use the installed Doppler package version');
+  }
   const manifestSpec = packageManifest.dependencies?.[DOPPLER_PACKAGE_NAME];
   if (manifestSpec !== DOPPLER_PACKAGE_SPEC) {
     throw new Error(`package.json must pin ${DOPPLER_PACKAGE_NAME} exactly to ${DOPPLER_PACKAGE_SPEC}`);
@@ -160,13 +163,7 @@ if (isMain) {
     cloudRunYaml: fs.readFileSync(filePaths.cloudRunYaml, 'utf8')
   };
   const poolConfig = JSON.parse(current.poolConfig);
-  // Poolday's qualified Pack consumer keeps its own declared runtime. Updating
-  // chat/partition execution must not silently promote an unrelated Pack.
-  const versions = new Set((poolConfig.modelCatalog || [])
-    .filter(model => model.enabled !== false && model.executionMode === 'complete_pack_browser')
-    .map(model => model.runtimeVersion));
-  if (versions.size > 1 || versions.has(undefined)) throw new Error('Enabled Poolday Packs require one explicit runtime version');
-  const browserRuntimeVersion = versions.size ? [...versions][0] : DOPPLER_BROWSER_RUNTIME_VERSION;
+  const browserRuntimeVersion = DOPPLER_BROWSER_RUNTIME_VERSION;
   const runtimeBase = `/vendor/doppler/${browserRuntimeVersion}`;
   const synchronized = synchronizeRuntimeConfig({
     poolConfig,

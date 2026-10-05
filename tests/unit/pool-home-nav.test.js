@@ -339,7 +339,7 @@ describe('poolday home navigation', () => {
     }
 
     const syntheticSmoke = readFileSync('scripts/pool-browser-smoke.js', 'utf8');
-    expect(syntheticSmoke).toContain("'/': '[data-work-form]'");
+    expect(syntheticSmoke).toContain("'/': '[data-composer-form]'");
     expect(syntheticSmoke).toContain("'/examples': '#pool-home-ask-form'");
     expect(syntheticSmoke).toContain("'/ask': '#pool-run-prompt'");
     expect(syntheticSmoke).toContain("'/compute': '#pool-provider-worker-toggle'");

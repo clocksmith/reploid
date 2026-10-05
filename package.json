@@ -15,6 +15,8 @@
     "reploid-config": "./bin/reploid-config"
   },
   "scripts": {
+    "package:hosting": "node scripts/package-hosting.js",
+    "prepare:hosting": "npm run verify:browser-bundle:local && npm run package:hosting",
     "verify:swarm-bootstrap": "node --test scripts/repair-checks/swarm-join.test.js",
     "verify:swarm-cloudflare": "vitest run --config tests/cloudflare/vitest.config.js",
     "build:swarm-cloudflare": "wrangler deploy --config deploy/cloudflare/wrangler.jsonc --dry-run",
@@ -22,6 +24,8 @@
     "smoke:swarm-bootstrap": "node scripts/verify-swarm-runtime.js",
     "sync:library": "node scripts/sync-reploid-library.js",
     "start": "npx tsx bin/reploid-cli.ts start",
+    "dev": "npm start",
+    "deploy": "node scripts/deploy.js",
     "start:signaling": "node server/reploid-signaling.js",
     "test": "npx tsx bin/reploid-cli.ts test",
     "test:unit": "npx tsx bin/reploid-cli.ts test --unit",
@@ -29,6 +33,7 @@
     "test:doppler-consumer": "node tests/fixtures/doppler-installed-generation.js",
     "test:agent-peer": "node tests/agent-peer-acceptance.js",
     "test:e2e": "npx tsx bin/reploid-cli.ts test --e2e",
+    "test:distributed": "node scripts/test-distributed.js",
     "test:e2e:p2p": "npx playwright test tests/e2e/p2p-mesh.spec.js",
     "test:e2e:p2p:actual": "REPLOID_E2E_ACTUAL_INFERENCE=1 npx playwright test tests/e2e/p2p-actual-inference.spec.js",
     "test:e2e:p2p:actual:server": "REPLOID_E2E_ACTUAL_INFERENCE=1 REPLOID_E2E_RELAY_MODE=server npx playwright test tests/e2e/p2p-actual-inference.spec.js --project=chromium",
@@ -48,6 +53,7 @@
     "build:vfs-manifest": "node scripts/build-vfs-manifest.js",
     "build:browser-bundle": "node scripts/build-browser-bundle-manifest.js",
     "sync:runtime-config": "node scripts/sync-runtime-config.js --write",
+    "sync:doppler": "node scripts/sync-doppler.js",
     "sync:doppler-generation": "node scripts/sync-doppler-generation-contract.js",
     "verify:doppler-generation": "node scripts/sync-doppler-generation-contract.js --check",
     "deploy:pool-env": "node scripts/print-pool-env.js",
@@ -97,7 +103,7 @@
   "license": "MIT",
   "dependencies": {
     "acorn": "^8.15.0",
-    "doppler-gpu": "file:deploy/artifacts/doppler-gpu-0.6.3-dev.split.13.tgz",
+    "doppler-gpu": "file:deploy/artifacts/doppler-gpu-0.6.4.tgz",
     "dotenv": "^16.3.1",
     "express": "^4.22.2",
     "jose": "6.2.12",

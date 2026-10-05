@@ -9,7 +9,8 @@
   "hosting": [
     {
       "target": "reploid",
-      "public": "self",
+      "public": ".firebase-hosting/reploid",
+      "predeploy": "npm run prepare:hosting",
       "ignore": [
         "**/.*",
         "**/node_modules/**"

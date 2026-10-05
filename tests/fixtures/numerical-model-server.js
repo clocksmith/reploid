@@ -6,7 +6,7 @@ const root = process.env.DOPPLER_CHAT_MODEL_DIR;
 if (!root) throw Error('DOPPLER_CHAT_MODEL_DIR is required');
 const port = Number(process.env.REPLOID_MODEL_PORT || 9230);
 const server = createServer(async (request, response) => {
-  response.setHeader('Access-Control-Allow-Origin', 'http://localhost:8000');
+  response.setHeader('Access-Control-Allow-Origin', process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000');
   response.setHeader('Access-Control-Allow-Headers', 'Range');
   response.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
   if (request.method === 'OPTIONS') { response.writeHead(204).end(); return; }

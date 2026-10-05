@@ -6,7 +6,7 @@ Recursive authority charters discovered from the repository root.
 | Component | Charter | Parent | Target |
 | --- | --- | --- | --- |
 | Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Coordinate and evolve distributed intelligence that expands participants' capability or improves results, reliability, or total resource cost. |
-| Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible hosted deployment inputs and service boundaries for Reploid runtime surfaces. |
+| Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible deployment inputs and service boundaries. |
 | Documentation | [`docs/CATSCAN.md`](CATSCAN.md) | Reploid | Keep product intent, contracts, mechanisms, claims, and current evidence discoverable without conflating their authority. |
 | Hosted Zero Function | [`functions/CATSCAN.md`](../functions/CATSCAN.md) | Reploid | Expose the bounded Gemini-backed Zero function with explicit authentication, App Check, input, quota, and failure contracts. |
 | Browser Runtime | [`self/CATSCAN.md`](../self/CATSCAN.md) | Reploid | Boot the selected Reploid surface in a browser with explicit configuration, recoverable state, and inspectable authority boundaries. |
@@ -37,7 +37,7 @@ Recursive authority charters discovered from the repository root.
 | Reploid Product Interface | [`self/ui/pool-home/CATSCAN.md`](../self/ui/pool-home/CATSCAN.md) | Browser Interfaces | Present connected conversations, agents, models, results and evaluated changes. |
 | X Operator Workbench | [`self/ui/proto/CATSCAN.md`](../self/ui/proto/CATSCAN.md) | Browser Interfaces | Let operators inspect the full causal improvement episode, compare generations, quarantine, replay, promote, and roll back substrate candidates without crossing into product admission. |
 | Zero Proposal Interface | [`self/ui/zero/CATSCAN.md`](../self/ui/zero/CATSCAN.md) | Browser Interfaces | Give Zero operators a focused interface for objectives, tool-growing experiments, and candidate proposals. |
-| Pinned Doppler Assets | [`self/vendor/doppler/CATSCAN.md`](../self/vendor/doppler/CATSCAN.md) | Generated Browser Library Assets | Serve the complete pinned Doppler package from the application origin. |
+| Pinned Doppler Assets | [`self/vendor/doppler/CATSCAN.md`](../self/vendor/doppler/CATSCAN.md) | Generated Browser Library Assets | Serve the standard pinned Doppler package's required browser graph from the application origin. |
 | Agent Execution | [`packages/reploid/src/agent/CATSCAN.md`](../packages/reploid/src/agent/CATSCAN.md) | Reploid Browser Library | Pursue network objectives: divide work, select models, recruit complementary participants, inspect results and revise approaches through bounded agents. |
 | Conversation Workspace | [`packages/reploid/src/chat/CATSCAN.md`](../packages/reploid/src/chat/CATSCAN.md) | Reploid Browser Library | Concurrent conversations from authorized peers, without a global objective. |
 | Peer Transport | [`packages/reploid/src/transport/CATSCAN.md`](../packages/reploid/src/transport/CATSCAN.md) | Reploid Browser Library | Provide Poolday's WebRTC connections and authorized peer exchange. |

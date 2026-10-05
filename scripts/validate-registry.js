@@ -5,6 +5,8 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { buildInventory } from './build-module-inventory.js';
+import { buildHostingFileSet } from './hosting-file-set.js';
+import { toCanonicalBrowserPath } from './browser-tree-paths.js';
 import { buildBlueprintRegistry, renderBlueprintInventory } from './build-blueprint-registry.js';
 import { buildModuleRegistry } from './build-module-registry.js';
 
@@ -106,7 +108,10 @@ export function registryExitCode(report) {
   return report.issues.length ? 1 : 0;
 }
 
-export async function auditRegistry({ selfDir = SELF_DIR } = {}) {
+export async function auditRegistry({ selfDir = SELF_DIR, hostingFiles } = {}) {
+  hostingFiles ||= selfDir === SELF_DIR
+    ? (await buildHostingFileSet({ selfDir })).map(toCanonicalBrowserPath)
+    : null;
   const load = async (name) => JSON.parse(await fs.readFile(path.join(selfDir, 'config', name + '.json'), 'utf8'));
   const [genesis, blueprints, registry, vfs, inventory, actual] = await Promise.all([
     load('genesis-levels'), load('blueprint-registry'), load('module-registry'),
@@ -161,8 +166,17 @@ export async function auditRegistry({ selfDir = SELF_DIR } = {}) {
     vfsFiles.add(file);
     if (file.endsWith('.js') && !actualByPath.has(file)) add('vfs_missing_source', { file });
   }
-  for (const file of actualByPath.keys()) {
+  const expectedVfsSources = hostingFiles
+    ? hostingFiles.filter(file => file.endsWith('.js'))
+    : [...actualByPath.keys()];
+  for (const file of expectedVfsSources) {
     if (!vfsFiles.has(file)) add('source_missing_from_vfs', { file });
+  }
+  if (hostingFiles) {
+    const served = new Set(hostingFiles);
+    for (const file of vfsFiles) {
+      if (!served.has(file)) add('vfs_unhosted_file', { file });
+    }
   }
 
   let declared;

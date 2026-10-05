@@ -2,20 +2,8 @@
   "schema": "reploid.doppler-retention/v1",
   "expandedVersions": [
     {
-      "version": "0.6.2",
-      "reason": "Deployment compatibility configuration"
-    },
-    {
-      "version": "0.6.3-dev.split.1",
-      "reason": "Signed-opening and physical partition regression fixtures"
-    },
-    {
-      "version": "0.6.3-dev.split.12",
-      "reason": "Previous hosted runtime and unchanged failure baseline"
-    },
-    {
-      "version": "0.6.3-dev.split.13",
-      "reason": "Active package-lock and browser pin"
+      "version": "0.6.4",
+      "reason": "Current standard package-lock and browser pin"
     }
   ],
   "archivedVersions": [
@@ -46,6 +34,26 @@
       "integrity": "sha512-Q4YtY9D2mQB1UBAbo9dTYeswKNzdUx+1avkv5tOlitjpUFTG6X7Xg9V2+Zpdkp6LA77JxY82pLOlNi2166Bw1Q==",
       "expandedFiles": 1887,
       "expandedBytes": 11475066
+    },
+    {
+      "version": "0.6.2",
+      "archive": "deploy/artifacts/doppler-gpu-0.6.2.tgz",
+      "integrity": "sha512-AoBqh/YJKu8tHXFBdhsvYTP9EoNlzls0M5bwHPudCb4QPB2lrw/1zBLtFvwftIyQ5HWPMc04WvJ5zqqp465vLw=="
+    },
+    {
+      "version": "0.6.3-dev.split.1",
+      "archive": "deploy/artifacts/doppler-gpu-0.6.3-dev.split.1.tgz",
+      "integrity": "sha512-g5Cxf/Epo+o0GFrEZUYkLg4mtcRjciUhJ/cTqIXI8JTDneh5KZCg67EUKRANbSgG/xcbDWBZeRII818xj92kMA=="
+    },
+    {
+      "version": "0.6.3-dev.split.12",
+      "archive": "deploy/artifacts/doppler-gpu-0.6.3-dev.split.12.tgz",
+      "integrity": "sha512-ehVtPI+1tpW455PoXRFTD8S308iCtgrqle71VRaR/o1M6rrNi08Aanlarp7C7pFkfLUz4ntPV4tayx8It9M6/w=="
+    },
+    {
+      "version": "0.6.3-dev.split.13",
+      "archive": "deploy/artifacts/doppler-gpu-0.6.3-dev.split.13.tgz",
+      "integrity": "sha512-kp2KwWEZ6giy8tqs2ihTICDCIi5Ai/aNeUc1fNstxcT8H4uCqHwaawQzpMS4hewHKWB3DsGkVPAEo1qjNLOekA=="
     }
   ]
 }

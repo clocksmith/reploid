@@ -60,6 +60,7 @@ test-results/
 
 # Firebase
 .firebase/
+.firebase-hosting/
 firebase-debug.log
 
 # Backup files
@@ -107,4 +108,5 @@ showcase/runs/*.json
 # Regenerated deploy verification screenshots
 artifacts/deploy-surface/
 artifacts/pool-release/
+artifacts/distributed/
 docs/diagrams/reploid-diagram/test/*-preview.png
