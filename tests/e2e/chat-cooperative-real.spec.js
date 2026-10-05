@@ -2,7 +2,6 @@ import { comparisonInput, COMPARISON_CHECK } from '../../self/host/document-comp
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
-import { Script } from 'node:vm';
 import { createLayerPartitionPlan } from 'doppler-gpu/partitions';
 import { observeCooperativePage, compareObservedLogits } from '../fixtures/cooperative-observer.js';
 import { inspectExecutorMemory, measureStandaloneDenial, routeDiagnosticModel, inspectConnections } from '../fixtures/capacity-observer.js';
@@ -314,12 +313,14 @@ test('one model executes cooperatively on discovered physical peers from selecti
       usefulCode = { prompt, answer, thread, cases, results: [] };
       await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
       for (const sample of cases) {
-        const context = { quotes: structuredClone(sample.quotes), budget: sample.budget, deadline: sample.deadline };
-        const encoded = new Script(`${code}\nJSON.stringify(chooseQuote(quotes, budget, deadline));`)
-          .runInNewContext(context, { timeout: 1000 });
-        const result = JSON.parse(encoded); usefulCode.results.push(result);
-        expect(result).toEqual(sample.expected);
-        expect(context.quotes, 'Generated quote selection must not mutate the input').toEqual(sample.quotes);
+        const { value, quotes } = await requester.evaluate(async ({ code, input }) => {
+          const { runIsolatedCode } = await import('/infrastructure/code-sandbox.js');
+          return runIsolatedCode(`input => { ${code}\nreturn { value: chooseQuote(input.quotes, input.budget, input.deadline), quotes: input.quotes }; }`,
+            input, { timeoutMs: 1000, maxResultBytes: 65536 });
+        }, { code, input: { quotes: sample.quotes, budget: sample.budget, deadline: sample.deadline } });
+        usefulCode.results.push(value);
+        expect(value).toEqual(sample.expected);
+        expect(quotes, 'Generated quote selection must not mutate the input').toEqual(sample.quotes);
       }
       expect(thread.attempts.at(-1).execution.stopReason).toBe('eos-token');
       await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));

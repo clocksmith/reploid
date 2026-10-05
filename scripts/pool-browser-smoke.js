@@ -10,26 +10,8 @@ if (!baseUrl) {
   process.exit(1);
 }
 
-const localPeerUrl = (route, room) => {
-  const url = new URL(route, baseUrl);
-  url.searchParams.set('room', room);
-  url.searchParams.set('relay', 'local');
-  return url.toString();
-};
-
-const { getEnabledPoolModelContract } = await import('../self/pool/model-contract.js');
-const { makeSyntheticSequenceReceipt } = await import('../tests/helpers/pool-sequence-fixture.js');
-// Keep the synthetic lane on the same enabled contract as production.  A
-// mocked text-only model made this gate fail before it could exercise the
-// browser route and peer receipt path.
-const SYNTHETIC_MODEL_ID = 'esm2-t12-35m-ur50d-f32-af32';
-const SYNTHETIC_MODEL = getEnabledPoolModelContract(SYNTHETIC_MODEL_ID);
-if (!SYNTHETIC_MODEL) {
-  console.error(`Synthetic pool smoke model is not enabled: ${SYNTHETIC_MODEL_ID}`);
-  process.exit(1);
-}
-// This is a Poolday release gate.  Zero is an experimental, separately
-// governed surface and must not make Poolday deployment health depend on it.
+// Deployment checks exercise the real application without injecting a model.
+// The separate distributed test proves acquisition, generation and recovery.
 const routes = ['/', '/work', '/network', '/improve', '/examples', '/ask', '/compute', '/records', '/room-1', '/history'];
 const requiredSelectors = {
   '/': '[data-composer-form]',
@@ -44,156 +26,15 @@ const requiredSelectors = {
   '/history': '#pool-record-ledger'
 };
 
-const { chromium } = await import('@playwright/test');
-const browser = await chromium.launch({
-  args: [
-    '--enable-unsafe-webgpu',
-    '--use-angle=swiftshader',
-    '--disable-gpu-sandbox'
-  ]
-});
-const installSmokeRuntime = async (targetContext) => {
-  await targetContext.exposeBinding('__reploidSyntheticSequenceReceipt', (_source, input) =>
-    makeSyntheticSequenceReceipt(input));
-  return targetContext.addInitScript((launchModel) => {
-  const model = { ...launchModel };
-  const textEncoder = new TextEncoder();
-  const bytesToHex = (bytes) => Array.from(bytes)
-    .map((byte) => byte.toString(16).padStart(2, '0'))
-    .join('');
-  const canonicalize = (value) => {
-    if (value === null || typeof value !== 'object') return JSON.stringify(value);
-    if (Array.isArray(value)) return `[${value.map((item) => canonicalize(item)).join(',')}]`;
-    return `{${Object.keys(value)
-      .sort()
-      .map((key) => `${JSON.stringify(key)}:${canonicalize(value[key])}`)
-      .join(',')}}`;
-  };
-  const sha256Hex = async (value) => {
-    const input = value instanceof Uint8Array ? value : textEncoder.encode(String(value));
-    const digest = await crypto.subtle.digest('SHA-256', input);
-    return `sha256:${bytesToHex(new Uint8Array(digest))}`;
-  };
-  const hashJson = async (value) => sha256Hex(canonicalize(value));
-  const hashFloat32 = async (values) => {
-    const bytes = new Uint8Array(values.length * 4);
-    const view = new DataView(bytes.buffer);
-    values.forEach((value, index) => view.setFloat32(index * 4, Number(value), true));
-    return sha256Hex(bytes);
-  };
-  const buildRuntimeProfile = () => ({
-    profileVersion: 'pool-smoke',
-    model,
-    runtime: {
-      runtime: model.runtime,
-      backend: model.backend,
-      publicApi: 'encodeSequence'
-    },
-    device: { hasWebGPU: true, probeStatus: 'smoke' },
-    browser: { userAgent: 'pool-smoke' }
-  });
-  window.REPLOID_POOL_RELAY = 'local';
-  window.REPLOID_POOL_DISCOVERY_WINDOW_MS = 30000;
-  window.REPLOID_POOL_RECEIPT_WINDOW_MS = 30000;
-  window.REPLOID_POOL_STRICT_ARTIFACT_PREFLIGHT = false;
-  window.REPLOID_DOPPLER_RUNTIME = {
-    isReady: () => true,
-    loadModel: async () => ({ ok: true, model }),
-    getModelInfo: () => model,
-    getRuntimeInfo: () => ({
-      runtime: 'doppler',
-      backend: 'browser-webgpu',
-      publicApi: 'encodeSequence',
-      profile: { smoke: true }
-    }),
-    getRuntimeProfile: async () => {
-      const runtimeProfile = buildRuntimeProfile();
-      return {
-        runtimeProfile,
-        runtimeProfileHash: await hashJson(runtimeProfile)
-      };
-    },
-    getDeviceInfo: async () => ({
-      hasWebGPU: true,
-      probeStatus: 'smoke',
-      adapterInfo: { vendor: 'playwright', architecture: 'pool-smoke' },
-      features: ['datachannel', 'shader-f16', 'subgroups'],
-      capabilityBenchmark: {
-        status: 'measured',
-        samplesMs: [1, 1, 1, 1, 1],
-        medianMs: 1,
-        gigaOpsPerSecond: 100,
-        stability: 1
-      },
-      limits: {
-        maxBufferSize: 1_073_741_824,
-        maxStorageBufferBindingSize: 536_870_912,
-        maxComputeInvocationsPerWorkgroup: 256
-      }
-    }),
-    encodeSequence: async ({ sequence, request, assignment }) => {
-      const tokens = Array.from(sequence, (_, index) => index % 33);
-      const pooledEmbedding = Array.from(
-        { length: Number(model.embeddingDimensions) },
-        (_, index) => ((index % 17) - 8) / 16
-      );
-      const pooledEmbeddingHash = await hashFloat32(pooledEmbedding);
-      const sequenceResult = {
-        schema: 'reploid.pool.sequence_result/v1',
-        workload: request.workload,
-        alphabet: request.alphabet,
-        sequenceHash: request.sequenceHash,
-        sequenceLength: request.sequenceLength,
-        tokenCount: tokens.length,
-        tokensHash: await hashJson(tokens),
-        includedTokenCount: tokens.length,
-        embeddingDim: pooledEmbedding.length,
-        vocabSize: 33,
-        pooledEmbeddingHash,
-        tokenEmbeddingsHash: null,
-        maskedLogitsHash: null,
-        coordinateSystem: request.coordinateSystem,
-        sequenceIndices: request.sequenceIndices,
-        tokenIndices: request.tokenIndices,
-        topK: request.topK
-      };
-      const sequenceResultHash = await hashJson(sequenceResult);
-      return {
-        // This fixture exercises receipt admission, not physical model execution.
-        dopplerProviderReceipt: await window.__reploidSyntheticSequenceReceipt({
-          assignment, sequence, output: sequenceResult
-        }),
-        outputKind: request.workload,
-        outputText: '',
-        tokenIds: [],
-        vectorHash: pooledEmbeddingHash,
-        sequenceResultHash,
-        sequenceResult,
-        sequenceOutput: {
-          pooledEmbedding,
-          tokenEmbeddings: null,
-          maskedLogits: []
-        },
-        embeddingDimensions: pooledEmbedding.length,
-        embeddingStats: { dimensions: pooledEmbedding.length, nonFiniteCount: 0, l2Norm: 0.935414 },
-        transcript: {
-          outputKind: request.workload,
-          sequenceResultHash,
-          sequenceResult
-        },
-        tokenCounts: { input: sequence.length, output: 0 },
-        timing: {
-          startedAt: '2026-06-14T00:00:00.000Z',
-          completedAt: '2026-06-14T00:00:01.000Z'
-        },
-        status: 'completed'
-      };
-    }
-  };
-}, SYNTHETIC_MODEL);
-};
+const { chromium, expect } = await import('@playwright/test');
+const channel = args.find(arg => arg.startsWith('--channel='))?.slice('--channel='.length);
+const browser = await chromium.launch({ ...(channel ? { channel } : {}) });
 const context = await browser.newContext();
-await installSmokeRuntime(context);
+const weightRequests = [], browserErrors = [];
+context.on('request', request => {
+  if (/huggingface\.co|shard_\d+\.bin/.test(request.url())) weightRequests.push(request.url());
+});
+context.on('page', page => page.on('pageerror', error => browserErrors.push(error.message)));
 const page = await context.newPage();
 const failures = [];
 
@@ -246,93 +87,32 @@ for (const route of routes) {
 }
 
 try {
-  console.log('[pool-smoke] protein input lane');
-  const routePage = await context.newPage();
-  await gotoRoute(routePage, '/examples');
-  await routePage.evaluate(() => {
-    window.__REPLOID_POOL_SMOKE_MARKER = 'protein-lane';
-  });
-  await routePage.waitForSelector('.pool-home-stage[data-pool-lane="sequence"]');
-  const laneCount = await routePage.locator('.pool-home-stage[data-pool-lane="sequence"]').count();
-  if (laneCount !== 1) failures.push(`expected one active protein lane, found ${laneCount}`);
-  const laneMarker = await routePage.evaluate(() => window.__REPLOID_POOL_SMOKE_MARKER);
-  if (laneMarker !== 'protein-lane') failures.push('protein lane check reloaded the boot document');
-  await routePage.close();
-  console.log('[pool-smoke] protein input lane passed');
-} catch (error) {
-  failures.push(`protein input lane smoke failed: ${error.message}`);
-}
-
-let provider = null;
-let requester = null;
-let peerContext = null;
-try {
-  console.log('[pool-smoke] synthetic peer receipt flow');
-  const room = `pool-smoke-${Date.now().toString(36)}`;
-  peerContext = await browser.newContext();
-  await installSmokeRuntime(peerContext);
-  provider = await peerContext.newPage();
-  requester = await peerContext.newPage();
-  await provider.goto(localPeerUrl('/compute', room), { waitUntil: 'domcontentloaded' });
-  await provider.waitForSelector('.pool-home', { timeout: 30000 });
-  await provider.waitForSelector('#pool-provider-worker-toggle');
-  await provider.selectOption('#pool-provider-model', SYNTHETIC_MODEL_ID);
-  await provider.click('#pool-provider-worker-toggle');
-  await provider.waitForSelector('[data-pool-provider-status][data-provider-state="online"]');
-  await provider.waitForFunction(() => document.querySelector('#pool-provider-result-raw')?.textContent.includes('peer_room_listening'));
-  await requester.goto(localPeerUrl('/ask', room), { waitUntil: 'domcontentloaded' });
-  await requester.waitForSelector('.pool-home', { timeout: 30000 });
-  await requester.waitForSelector('#pool-run-submit');
-  await requester.selectOption('#pool-run-model', SYNTHETIC_MODEL_ID);
-  await requester.fill('#pool-run-prompt', 'MKTAYIAKQRQISFVKSHFSRQ');
-  await requester.check('#pool-run-sequence-public');
-  // A provider-signed local peer receipt proves receipt flow only. It is not a
-  // verifier decision and therefore cannot authorize research-record publication.
-  await requester.click('#pool-run-submit');
-  await requester.waitForFunction(() => (
-    document.querySelector('[data-pool-run-status]')?.textContent.includes('Protein embedding verified')
-  ));
-  await requester.goto(localPeerUrl('/records', room), { waitUntil: 'domcontentloaded' });
-  await requester.waitForSelector('.pool-home', { timeout: 30000 });
-  await requester.waitForSelector('#pool-peer-ledger', { timeout: 30000, state: 'attached' });
-  const peerLedger = await requester.evaluate(() => {
-    const ledger = document.querySelector('#pool-peer-ledger');
-    return {
-      exists: !!ledger,
-      hasScoreTable: !!ledger?.querySelector('[aria-label="Local contributor scores"]'),
-      text: ledger?.textContent || ''
-    };
-  });
-  if (!peerLedger.exists || (!peerLedger.hasScoreTable && !peerLedger.text.toLowerCase().includes('local scores'))) {
-    failures.push('peer job records did not expose local peer scores');
+  console.log('[pool-smoke] ordinary conversation and unsent draft');
+  await gotoRoute(page, '/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await expect(page.locator('[data-active-model-select]')).toBeAttached();
+  await expect(page.locator('[data-new-thread]')).toBeVisible();
+  await expect(page.locator('[data-chat-approval]')).toBeHidden();
+  await expect(page.locator('[data-mesh-invite]')).toBeHidden();
+  await page.locator('[data-toggle-inspector]').click();
+  for (const selector of ['[data-toggle-contribution]', '[data-toggle-file-contribution]']) {
+    await expect(page.locator(selector)).toHaveAttribute('aria-checked', 'false');
   }
-  await provider.close();
-  await requester.close();
-  await peerContext.close();
-  console.log('[pool-smoke] synthetic peer receipt flow passed');
+  await expect(page.locator('[data-contrib-label]')).toHaveText('Not sharing');
+  await expect(page.locator('[data-file-contribution-label]')).toHaveText('Not sharing');
+  await expect(page.locator('[data-contribution-model] option')).not.toHaveCount(0);
+  await page.locator('[data-close-inspector]').click();
+  const draft = 'Unsent deployment check: retain this draft across reload and navigation.';
+  await page.locator('[data-composer-input]').fill(draft);
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
+  await gotoRoute(page, '/work');
+  await expect(page.locator('[data-composer-input]')).toHaveValue(draft);
+  await expect(page.locator('[data-message-stream] .chat-message-row')).toHaveCount(0);
+  await expect(page.locator('[data-chat-approval]')).toBeHidden();
+  console.log('[pool-smoke] conversation controls, optional contribution and draft persistence passed');
 } catch (error) {
-  const providerState = provider && !provider.isClosed()
-    ? await provider.evaluate(() => ({
-      url: window.location.href,
-      status: document.querySelector('[data-pool-provider-status]')?.textContent?.trim() || null,
-      providerState: document.querySelector('[data-pool-provider-status]')?.dataset?.providerState || null,
-      result: document.querySelector('#pool-provider-result')?.textContent?.trim() || null,
-      raw: document.querySelector('#pool-provider-result-raw')?.textContent?.trim() || null,
-      capability: window.REPLOID_POOL_DEVICE_CAPABILITY || null
-    })).catch((stateError) => ({ diagnosticError: stateError.message }))
-    : null;
-  const requesterState = requester && !requester.isClosed()
-    ? await requester.evaluate(() => ({
-      url: window.location.href,
-      status: document.querySelector('[data-pool-run-status]')?.textContent?.trim() || null,
-      result: document.querySelector('#pool-run-result-stream')?.textContent?.trim() || null,
-      raw: document.querySelector('#pool-run-result-raw')?.textContent?.trim() || null,
-      modelId: document.querySelector('#pool-run-model')?.value || null
-    })).catch((stateError) => ({ diagnosticError: stateError.message }))
-    : null;
-  failures.push(`peer browser smoke failed: ${error.message}; provider=${JSON.stringify(providerState)}; requester=${JSON.stringify(requesterState)}`);
-} finally {
-  await peerContext?.close().catch(() => null);
+  failures.push(`conversation browser smoke failed: ${error.message}`);
 }
 
 try {
@@ -354,6 +134,8 @@ try {
   failures.push(`deployment check failed in browser: ${error.message}`);
 }
 
+if (weightRequests.length) failures.push(`Idle requester downloaded model weights: ${weightRequests.join(', ')}`);
+if (browserErrors.length) failures.push(`Browser errors: ${browserErrors.join('; ')}`);
 await browser.close();
 
 if (failures.length > 0) {
@@ -362,4 +144,4 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log(`Pool browser smoke passed for ${baseUrl}`);
+console.log(`Application browser smoke passed for ${baseUrl}; no model execution asserted`);
