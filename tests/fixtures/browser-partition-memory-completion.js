@@ -10,7 +10,7 @@ assert.equal(createHash('sha256').update(raw).digest('hex'), '794960332f164cb250
 const requests = JSON.parse(raw), output = process.env.REPLOID_CAPTURE_OUT;
 const policy = JSON.parse(await readFile(new URL('../../self/config/partition-policy.json', import.meta.url)));
 const profile = JSON.parse(await readFile(new URL('../../self/config/work-profile.json', import.meta.url)));
-const generation = { ...requests[0].model.generation, maxTokens: profile.generation.maxTokens,
+const generation = { ...requests[0].model.generation, ...profile.generation, ...policy.generation,
   maxSeqLen: policy.maxSeqLen };
 assert(generation.maxTokens <= policy.limits.maxTokens);
 assert.equal(generation.maxSeqLen, policy.maxSeqLen);
