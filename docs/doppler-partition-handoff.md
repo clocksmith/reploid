@@ -5,8 +5,8 @@
 This records the user's selected Reploid/Doppler work and takeover constraints.
 It does not replace either repository's goals, component ownership, or acceptance
 receipts. The numerical source checkpoint is Doppler `f0bd469b`; the reported UI
-deployment is Reploid `787aeb78`. This update records source inspection and user
-handoffs only; it does not rerun physical inference, browser checks or deployment.
+deployment is Reploid `787aeb78`. The decision and package-isolation sections below
+record identified physical executions; the UI deployment was not rerun.
 
 ### Product goal and boundaries
 
@@ -74,6 +74,23 @@ fails 16/55 in that same placement, with maximum difference about `0.001768`.
 This does not identify the implementation responsible or prove the reference
 wrong. Cross-platform arithmetic alone cannot explain this package-dependent
 failure. Locate the earliest differing operation before another substitution.
+
+The [local entry-point isolation](https://github.com/clocksmith/doppler/blob/main/tests/fixtures/partition-package-entry-evidence.json)
+now identifies that boundary for the first retained prompt on Linux. Embeddings
+match exactly. Split.13 silently selects `main_subgroup` for input normalization;
+the candidate honors the manifest's declared `main`. Shader bytes and constants
+match. Two unchanged split.13 runs and an identity substitution match exactly.
+Changing only the old package's normalization entry point to `main` reproduces
+the candidate's logits and all 11,070 captured tensors exactly. The baseline versus
+candidate logit maximum is `0.0015213489532470703`. Independent Float64 checks on
+the identical observed embeddings find comparable normalization accuracy, not
+evidence that the legacy trajectory is mathematically superior.
+
+This is a test-only entry-point substitution, not a production arithmetic change.
+It uses an older local reference with a different hash from the latest frozen
+55-step reference. It does not resolve that reference's acceptance or establish
+both physical directions. Preserve manifest enforcement, the frozen gate and the
+Reploid pin; do not restore silent entry-point replacement to recover old output.
 
 Compare exact archive/source/shader identities and matched execution settings.
 Keep upstream projection and normalization unchanged during isolation. Preserve
