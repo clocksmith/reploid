@@ -23,7 +23,7 @@ try {
   const directory = resolve(root, '.deployment-checkouts');
   await mkdir(directory, { recursive: true });
   checkout = await mkdtemp(resolve(directory, 'release-'));
-  await run('git', ['clone', '--no-hardlinks', '--single-branch', '--branch', 'main', root, checkout], root);
+  await run('git', ['clone', '--no-local', '--depth', '1', '--single-branch', '--branch', 'main', root, checkout], root);
   await run('npm', ['ci', '--ignore-scripts'], checkout);
   await run('npm', ['ci', '--ignore-scripts'], resolve(checkout, 'functions'));
   await run('npm', ['run', 'verify:pool'], checkout);

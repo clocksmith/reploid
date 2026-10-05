@@ -20,7 +20,9 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
         condition: 'artifact.path.startsWith("shard_") && ![...peers.values()].some(files => files.some(item => key(item) === key(artifact)))',
         expression: '({artifact, connected:[...ids], inventories:[...peers].map(([peer, files]) => ({peer, artifacts:files}))})' },
       { kind: 'supply-stopped', marker: 'supply = false; supplyEpoch++;',
-        expression: '({supply, supplyEpoch, offered, reserved, preparing})' }
+        expression: '({supply, supplyEpoch, offered, reserved, preparing})' },
+      { kind: 'supply-failed', marker: "if (!closed) transport.sendToPeer(peer, 'reploid:custody-response', { id: message?.id, error: error.message });",
+        expression: '({peer, artifact:message?.artifact, range:message?.range, error:{name:error.name,message:error.message,stack:error.stack}})' }
     ];
     for (const probe of probes) {
       const lineNumber = source.findIndex(line => line.includes(probe.marker));
