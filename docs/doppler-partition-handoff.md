@@ -65,6 +65,13 @@ with uncalibrated scores and local test release metadata. The injected public
 operation does not change the app's split.13 pin or close the numerical,
 selective-acquisition, public-release or cross-device partition gates below.
 
+The [peer-custody decision receipt](../artifacts/doppler-choice/custody-summary.json)
+additionally records verified OPFS supplier storage, origin-blocked executor
+acquisition, corruption rejection and supplier-departure recovery. Both suppliers
+close before all twelve decisions execute for a weightless requester. Two fresh
+runs pass on one machine. This qualifies the identified whole-request decision
+journey, not selective partition acquisition or the separate chat-model failure.
+
 ### Doppler: trace the package difference before upgrading Reploid
 
 Start at [the recurrent-state controls receipt](https://github.com/clocksmith/doppler/blob/f0bd469b/tests/fixtures/partition-recurrent-state-controls-evidence.json).

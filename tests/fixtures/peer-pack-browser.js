@@ -1,6 +1,7 @@
 /** Physical-browser proof plumbing. All identities here have one internal operator. */
 import { createSigningKeyPair, exportPublicKey, exportPrivateKey, importSigningKeyPair } from '../../self/pool/inference-receipt.js';
-import { createPeerPackSupplier } from '../../self/pool/peer-pack-custody.js';
+import { createPeerPackSupplier, createPeerPackArtifactStore } from '../../self/pool/peer-pack-custody.js';
+import { openPeerPackFileCheckpoints } from '../../self/infrastructure/pack-transfer-storage.js';
 import { openPeerPack } from '../../self/pool/peer-pack-session.js';
 import { createPeerPackDataChannel } from '../../self/pool/peer-pack-data-channel.js';
 import { createReploidDopplerRuntimeService } from '../../self/infrastructure/doppler-runtime-service.js';
@@ -16,6 +17,7 @@ let remote;
 const connections = new Map();
 const injectedFaults = [];
 const chunks = new Map();
+let chunkStore;
 
 export function remoteReady() { return remote?.isReady() === true; }
 export async function remoteAnswer(offer) { return remote.answer(offer); }
@@ -34,25 +36,44 @@ export async function retainIdentityForRestart() {
   return { privateKey: await exportPrivateKey(key.privateKey), publicKey: await exportPublicKey(key.publicKey) };
 }
 
-export async function configure({ authorization, index, inventory, limits, faulty }) {
+export async function configure({ authorization, index, inventory, limits, faulty, persistent = false }) {
   transportLimits = limits;
   faultMode = faulty === true;
   if (!inventory) return;
+  if (persistent) chunkStore = await openPeerPackFileCheckpoints({
+    name: `fixture-custody-${ownId}`, maxBytes: inventory.maxBytes });
+  let heldChunks = 0, heldBytes = 0;
   for (const artifact of inventory.artifacts) {
     for (const chunkIndex of artifact.chunkIndexes) {
       const response = await fetch(`/bootstrap/${encodeURIComponent(ownId)}/${encodeURIComponent(artifact.artifactId)}/${chunkIndex}`);
       if (!response.ok) throw new Error(`Supplier bootstrap failed: ${response.status}`);
-      chunks.set(`${artifact.artifactId}:${chunkIndex}`, new Uint8Array(await response.arrayBuffer()));
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      if (chunkStore) {
+        const chunk = index.artifacts.find(item => item.artifactId === artifact.artifactId).chunks[chunkIndex];
+        await chunkStore.putChunk(chunk, bytes);
+      } else chunks.set(`${artifact.artifactId}:${chunkIndex}`, bytes);
+      heldChunks++; heldBytes += bytes.length;
     }
   }
   supplier = await createPeerPackSupplier({ authorization, index, inventory, peerId: ownId, privateKey: key.privateKey,
     readChunk: async (id, chunk) => {
-      const value = chunks.get(`${id}:${chunk.index}`);
+      const value = chunkStore ? await chunkStore.getChunk(chunk) : chunks.get(`${id}:${chunk.index}`);
       if (!value) throw new Error('Supplier does not hold this chunk');
       return value;
     } });
-  return { inventory: supplier.inventory, heldChunks: chunks.size,
-    heldBytes: [...chunks.values()].reduce((sum, bytes) => sum + bytes.length, 0) };
+  return { inventory: supplier.inventory, heldChunks, heldBytes,
+    storage: chunkStore ? await chunkStore.getStats() : { storage: 'memory' } };
+}
+
+export async function createStore(options) {
+  return createPeerPackArtifactStore({ ...options, requesterPrivateKey: key.privateKey,
+    requestChunk: (peerId, request, limits) => connections.get(peerId).transport.requestChunk(request, limits) });
+}
+
+export function close() {
+  supplier?.close(); chunkStore?.close(); chunks.clear();
+  for (const entry of connections.values()) { entry.transport?.close(); entry.pc.close(); }
+  connections.clear();
 }
 
 function installChannel(peerId, channel, pc) {
