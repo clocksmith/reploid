@@ -19,7 +19,7 @@ describe('Conversation workspace', () => {
   it('offers model setup while waiting for shared intelligence', () => {
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-active-model-select]').textContent).toBe('No models available');
-    expect(find('[data-model-status]').textContent).toContain('Download one');
+    expect(find('[data-model-status]').textContent).toBe('A model is needed to reply.');
     expect(find('[data-model-control]').hidden).toBe(true);
     expect(find('[data-model-setup]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(true);

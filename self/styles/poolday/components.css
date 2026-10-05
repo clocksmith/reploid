@@ -5488,14 +5488,10 @@ body[data-pool-route-id='home'] #app {
   position: absolute; z-index: var(--pool-z-dropdown); right: 0;
   top: calc(100% + var(--pool-space-sm)); width: var(--pool-px-r15);
   max-width: calc(100vw - var(--pool-space-page-gutter) * 2);
-  padding: var(--pool-space-lg); display: grid; gap: var(--pool-space-md);
+  padding: var(--pool-space-sm); display: grid; gap: var(--pool-space-md);
 }
-.pool-settings-panel h2 { margin: 0; font-size: var(--pool-text-base); }
-.pool-settings-panel label { display: grid; gap: var(--pool-space-sm); font-size: var(--pool-text-sm); }
-.pool-home .pool-theme-selector {
-  width: 100%; min-width: 0; max-width: 100%; min-height: var(--pool-px-44);
-  margin: 0; padding: var(--pool-space-sm); font-size: var(--pool-text-sm);
-}
+.pool-home .pool-theme-selector { width: 100%; }
+.pool-home .pool-theme-selector .pool-segment { flex: 1; min-width: 0; padding-inline: var(--pool-space-sm); }
 @media (max-width: 760px) {
   .pool-primary-actions { grid-column: 2; grid-row: 1; }
 }

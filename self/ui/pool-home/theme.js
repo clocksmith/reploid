@@ -18,19 +18,16 @@ export function getPreferredTheme(storage = globalThis.localStorage, media = sys
 }
 
 export function renderThemeSelector() {
-  return `<select class="pool-theme-selector pool-button" aria-label="Appearance" data-pool-theme-choice>
-    <option value="system">System</option>
-    <option value="dark">Dark</option>
-    <option value="light">Light</option>
-  </select>`;
+  return `<div class="pool-theme-selector pool-segmented" role="group" aria-label="Appearance">
+    ${['system', 'light', 'dark'].map(choice => `<button class="pool-segment" type="button" data-pool-theme-choice="${choice}" aria-pressed="false">${choice[0].toUpperCase() + choice.slice(1)}</button>`).join('')}
+  </div>`;
 }
 
 export function renderSettings(icon) {
   return `<details class="pool-settings" data-pool-settings>
     <summary class="pool-button" aria-label="Settings" title="Settings">${icon}</summary>
     <section class="pool-settings-panel pool-surface" aria-label="Settings">
-      <h2>Settings</h2>
-      <label>Appearance${renderThemeSelector()}</label>
+      ${renderThemeSelector()}
     </section>
   </details>`;
 }
@@ -44,7 +41,7 @@ export function applyTheme(root, theme, media = systemMedia) {
     globalThis.document.documentElement.dataset.reploidTheme = selected;
     globalThis.document.documentElement.style.colorScheme = selected;
   }
-  root?.querySelectorAll?.('[data-pool-theme-choice]').forEach(select => { select.value = choice; });
+  root?.querySelectorAll?.('[data-pool-theme-choice]').forEach(button => { button.setAttribute('aria-pressed', String(button.dataset.poolThemeChoice === choice)); });
   return selected;
 }
 
@@ -54,9 +51,9 @@ export function bindThemeSelector(root, { storage = globalThis.localStorage, med
   const sync = () => applyTheme(root, choice, system ? () => system : undefined);
   const onSystemChange = () => { if (choice === 'system') sync(); };
   const onChange = event => {
-    const select = event.target.closest?.('[data-pool-theme-choice]');
-    if (!select || !root.contains(select)) return;
-    choice = normalizeTheme(select.value);
+    const button = event.target.closest?.('[data-pool-theme-choice]');
+    if (!button || !root.contains(button)) return;
+    choice = normalizeTheme(button.dataset.poolThemeChoice);
     sync();
     try { storage?.setItem(THEME_STORAGE_KEY, choice); }
     catch { /* Appearance persistence is optional. */ }
@@ -74,11 +71,11 @@ export function bindThemeSelector(root, { storage = globalThis.localStorage, med
   root.ownerDocument?.addEventListener('pointerdown', closeSettings);
   root.addEventListener('keydown', closeSettings);
   system?.addEventListener?.('change', onSystemChange);
-  root.addEventListener('change', onChange);
+  root.addEventListener('click', onChange);
   return {
     sync,
     dispose() {
-      root.removeEventListener('change', onChange);
+      root.removeEventListener('click', onChange);
       root.removeEventListener('keydown', closeSettings);
       root.ownerDocument?.removeEventListener('pointerdown', closeSettings);
       system?.removeEventListener?.('change', onSystemChange);

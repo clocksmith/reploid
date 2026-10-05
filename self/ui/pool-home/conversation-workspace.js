@@ -10,7 +10,7 @@ export function renderConversationWorkspace() {
     </aside>
     <section class="chat-conversation-area pool-surface" data-conversation-area aria-label="Current conversation">
       <header class="chat-thread-header" data-network-header>
-        <div class="chat-thread-info"><label class="chat-visually-hidden" for="chat-model">Model</label>
+        <div class="chat-thread-info">
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select></span>
           <span class="chat-execution-state" data-execution-state role="status"></span></div>
         <button class="btn pool-button btn-ghost" type="button" data-toggle-inspector aria-expanded="false" aria-controls="chat-network-details">Network <span data-mesh-peers>0 peers</span></button>
@@ -33,16 +33,18 @@ export function renderConversationWorkspace() {
         <div class="chat-network-actions"><button class="btn pool-button btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn pool-button btn-ghost" type="button" data-approval-decline>Decline</button></div>
       </section>
       <p class="chat-error" role="alert" data-chat-error hidden></p>
-      <p data-model-status role="status" hidden></p>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
         <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="Ask a question…"></textarea></div>
         <div class="chat-composer-toolbar">
           <label class="btn pool-button btn-ghost chat-file-label pool-focus-within">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
-          <button class="btn pool-button btn-primary" type="submit" data-composer-send>Send</button>
-          <button class="btn pool-button btn-primary" type="button" data-model-setup hidden>Download a model</button>
           <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
-          <button class="btn pool-button btn-ghost" type="button" data-composer-stop hidden>Stop</button>
+          <div class="chat-composer-submit">
+            <p class="chat-setup-hint" id="chat-model-status" data-model-status role="status" hidden></p>
+            <button class="btn pool-button btn-primary" type="submit" data-composer-send>Send</button>
+            <button class="btn pool-button btn-primary" type="button" data-model-setup aria-describedby="chat-model-status" hidden>Download model</button>
+            <button class="btn pool-button btn-ghost" type="button" data-composer-stop hidden>Stop</button>
+          </div>
         </div><div class="chat-attachments" data-attachments-preview hidden></div>
       </form></footer>
       <dialog class="chat-model-setup pool-surface" data-model-dialog aria-labelledby="model-setup-title">
@@ -117,7 +119,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       : usable ? '' : state.network?.paused ? 'Disconnected. Connect from Network to find models.'
       : catalogModels.some(model => model.availability === 'loading') ? 'A contributor is loading a model…'
         : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding available models…'
-          : 'No shared model is ready. Download one to run here.';
+          : 'A model is needed to reply.';
     modelStatus.hidden = !modelStatus.textContent;
     find('[data-model-control]').hidden = !usable;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
@@ -137,7 +139,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     find('[data-composer-send]').hidden = busy || !usable;
     find('[data-model-setup]').hidden = busy || usable;
     find('[data-model-setup]').disabled = preparing;
-    find('[data-model-setup]').textContent = preparing ? 'Downloading…' : 'Download a model'; find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
+    find('[data-model-setup]').textContent = preparing ? 'Downloading…' : 'Download model'; find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
