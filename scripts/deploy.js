@@ -36,8 +36,8 @@ try {
     `--substitutions=COMMIT_SHA=${revision}`, '.'], checkout);
   await run('firebase', ['deploy', '--project', 'reploid', '--only',
     'functions,firestore:indexes,firestore:rules,hosting:reploid', '--non-interactive'], checkout);
-  await run('npm', ['run', 'verify:pool:release', '--', '--url', 'https://reploid.web.app', '--channel=chrome'], checkout);
-  console.log(`[deploy] verified https://reploid.web.app at ${revision}`);
+  await run('npm', ['run', 'verify:pool:release', '--', '--url', 'https://replo.id', '--channel=chrome'], checkout);
+  console.log(`[deploy] verified https://replo.id at ${revision}`);
 } catch (error) {
   console.error(`[deploy] ${error.message}`); process.exitCode = 1;
 } finally {
