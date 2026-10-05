@@ -7,7 +7,7 @@
 !package-lock.json
 !deploy/
 !deploy/artifacts/
-!deploy/artifacts/doppler-gpu-0.6.8.tgz
+!deploy/artifacts/doppler-gpu-0.6.10.tgz
 
 !server/
 !server/**

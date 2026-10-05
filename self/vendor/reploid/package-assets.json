@@ -322,7 +322,7 @@
     {
       "path": "chat/policy.json",
       "bytes": 388,
-      "sha256": "9888d7e0d04badd561eba10653e8ddea22cb087ac1a3cc36f5ecfaee172a665d"
+      "sha256": "a6b0281191c5d753fd6c5471f7f265fbc4d342d86322c8fecd3854c04b0994d4"
     },
     {
       "path": "chat/scheduler.js",

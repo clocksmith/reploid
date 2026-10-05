@@ -86,7 +86,8 @@ try {
       const beforePreparation = { device: runtime.inspectDeviceMemory() };
       const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: identity,
         runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: false } } }, inference: { session: {
-          kvcache: { maxSeqLen: model.generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers } } },
+          kvcache: { maxSeqLen: model.generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
+          prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
         createStorage: () => createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) });
       globalThis.resident = await factory.openResidentPartition({ model, plan, planId, index,
         participantId: index ? 'memory-B' : 'memory-A', limits: policy.limits, signal: new AbortController().signal });
