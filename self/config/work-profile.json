@@ -17,7 +17,7 @@
     "topK": 1,
     "topP": 1,
     "repetitionPenalty": 1.1,
-    "repetitionPenaltyWindow": 64,
+    "repetitionPenaltyWindow": 0,
     "stopSequences": [],
     "useChatTemplate": true
   },

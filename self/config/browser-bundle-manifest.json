@@ -1345,8 +1345,8 @@
     },
     {
       "path": "config/work-profile.json",
-      "byteLength": 4929,
-      "sha256": "sha256:20963864e2e4a5355f260496b9db97eefecbe68d5f3e55b09667f5430d8d112f"
+      "byteLength": 4928,
+      "sha256": "sha256:cf49115a229ae17aed1e424a41336340b125b474f72907ba03d20482bb32648c"
     },
     {
       "path": "config/zero-access.json",
@@ -9349,5 +9349,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:098c0bcfce5f326a2b05632e07a8a786979245a77360689a7b876f75f85d6574"
+  "bundleHash": "sha256:4e7019ef6bea5ac444fcd751e6e7976685aab75529f0e0cb8417f78d9c495ec5"
 }
