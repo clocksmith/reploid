@@ -20,7 +20,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
     runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
       inference: { session: { kvcache: { maxSeqLen: policy.maxSeqLen },
-        prefillChunkLayers: policy.prefillChunkLayers } } },
+        prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
     createStorage: async () => source.storage });
   const resident = createResidentPartition({ runtime: factory, model, plan, planId, index,
     participantId, limits: policy.limits });

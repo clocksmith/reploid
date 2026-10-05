@@ -2,6 +2,7 @@ import { comparisonInput, COMPARISON_CHECK } from '../../self/host/document-comp
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { Script } from 'node:vm';
 import { createLayerPartitionPlan } from 'doppler-gpu/partitions';
 import { observeCooperativePage, compareObservedLogits } from '../fixtures/cooperative-observer.js';
 import { inspectExecutorMemory, measureStandaloneDenial, routeDiagnosticModel, inspectConnections } from '../fixtures/capacity-observer.js';
@@ -290,6 +291,41 @@ test('one model executes cooperatively on discovered physical peers from selecti
       completed = await history(requester);
       await page.locator('[data-toggle-contribution]').click();
     }
+    let usefulCode = null;
+    if (process.env.REPLOID_E2E_CAPACITY === '1') {
+      const prompt = 'Write a JavaScript function chooseQuote(quotes, budgetCents, deadline). Each quote has id, subtotalCents, taxPercent, taxIncluded, and completionDate (YYYY-MM-DD). Calculate the total in integer cents: included tax is already in the subtotal; otherwise add the stated percentage and round to the nearest cent. Only quotes within budget and completed on or before deadline are eligible. Return {id, totalCents} for the cheapest eligible quote, breaking ties by id alphabetically; return null if none qualify. Do not mutate the input. Return only the function code.';
+      const id = await sendNew(prompt); await waitCompleted(id, 600000);
+      const thread = (await history(requester)).threads.find(thread => thread.id === id);
+      const answer = thread.messages.at(-1).content;
+      const code = answer.match(/```(?:javascript|js)?\s*([\s\S]*?)```/i)?.[1] || answer;
+      const cases = [
+        { quotes: [
+          { id: 'Harbor', subtotalCents: 1160000, taxPercent: 8, taxIncluded: true, completionDate: '2026-05-28' },
+          { id: 'Maple', subtotalCents: 1080000, taxPercent: 8, taxIncluded: false, completionDate: '2026-05-25' },
+          { id: 'Cedar', subtotalCents: 1055000, taxPercent: 0, taxIncluded: false, completionDate: '2026-06-10' },
+        ], budget: 1200000, deadline: '2026-06-01', expected: { id: 'Harbor', totalCents: 1160000 } },
+        { quotes: [{ id: 'rounding', subtotalCents: 101, taxPercent: 7.5, taxIncluded: false, completionDate: '2026-06-01' }],
+          budget: 109, deadline: '2026-06-01', expected: { id: 'rounding', totalCents: 109 } },
+        { quotes: [{ id: 'over', subtotalCents: 100, taxPercent: 10, taxIncluded: false, completionDate: '2026-06-01' }],
+          budget: 109, deadline: '2026-06-01', expected: null },
+        { quotes: ['z', 'a'].map(id => ({ id, subtotalCents: 100, taxPercent: 0, taxIncluded: true, completionDate: '2026-06-01' })),
+          budget: 100, deadline: '2026-06-01', expected: { id: 'a', totalCents: 100 } },
+        { quotes: [], budget: 0, deadline: '2026-06-01', expected: null },
+      ];
+      usefulCode = { prompt, answer, thread, cases, results: [] };
+      await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
+      for (const sample of cases) {
+        const context = { quotes: structuredClone(sample.quotes), budget: sample.budget, deadline: sample.deadline };
+        const encoded = new Script(`${code}\nJSON.stringify(chooseQuote(quotes, budget, deadline));`)
+          .runInNewContext(context, { timeout: 1000 });
+        const result = JSON.parse(encoded); usefulCode.results.push(result);
+        expect(result).toEqual(sample.expected);
+        expect(context.quotes, 'Generated quote selection must not mutate the input').toEqual(sample.quotes);
+      }
+      expect(thread.attempts.at(-1).execution.stopReason).toBe('eos-token');
+      await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
+      completed = await history(requester);
+    }
     const allocations = observations.map(device => device.loads[0]);
     const manifest = JSON.parse(await readFile(path.join(directory, 'manifest.json'), 'utf8'));
     const plan = createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
@@ -326,7 +362,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     expect(acquired.some(file => file.name.startsWith('sha256-'))).toBe(true);
     expect(errors).toEqual([]);
     const cooperativeReceipt = { physicalDevices: remote ? 2 : 1, browserContexts: contexts.length,
-      modelIdentity: model.identity, completed, memory, replica, concurrent, connections,
+      modelIdentity: model.identity, completed, memory, replica, concurrent, connections, usefulCode,
       observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })),
       numerical, requesterWeights, contributorOrigins, storage, acquired, seedFiles, errors };
     await writeFile(info.outputPath('cooperative-completed.json'), JSON.stringify(cooperativeReceipt, null, 2));
@@ -349,7 +385,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     }
     await info.attach('open-mesh-real.json', { contentType: 'application/json', body: JSON.stringify({
       physicalDevices: remote ? 2 : 1, browserContexts: contexts.length, actualInference: true, origin: 'identified local seed bytes; executor origin blocked',
-      automaticDiscovery: true, adapterInfo, completed, acquired, storage, numerical, memory, standaloneDenials, replica, concurrent, connections,
+      automaticDiscovery: true, adapterInfo, completed, acquired, storage, numerical, memory, standaloneDenials, replica, concurrent, connections, usefulCode,
       observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), configuredExecutorQuotaBytes: executorQuotaMiB * 1024 * 1024,
       requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2) });

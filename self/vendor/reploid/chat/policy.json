@@ -5,7 +5,7 @@
   "maxMessageCharacters": 16384,
   "maxResponseCharacters": 32768,
   "maxConcurrentAttempts": 8,
-  "attemptTimeoutMs": 300000,
+  "attemptTimeoutMs": 900000,
   "maxQueuedRequests": 32,
   "maxRecordedAttempts": 4096,
   "maxRequestsPerParticipant": 2,
