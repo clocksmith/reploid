@@ -2810,8 +2810,8 @@
     },
     {
       "path": "styles/poolday/tokens.css",
-      "byteLength": 13633,
-      "sha256": "sha256:948416b33060063eb16bb17eec7c938615630069a51f8f6b5f246d8c21f3273a"
+      "byteLength": 15548,
+      "sha256": "sha256:2794a3dde35f33c0919c5de54e813304835577026bd4852be7f616f517285f6c"
     },
     {
       "path": "styles/proto/components.css",
@@ -41874,5 +41874,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:c03838471ce8eaf058f9ccc2bffd4c7ec476d39c308cee2d02bb6514825364e5"
+  "bundleHash": "sha256:a446ff1469fa45a4ecf01e34a0bbc14f9965e32183828530522a8d7eda9f542e"
 }

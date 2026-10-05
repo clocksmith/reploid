@@ -20,8 +20,10 @@
   --pool-color-control-line: #454545;
   --pool-color-muted: #b4b4b4;
   --pool-color-focus: #ffffff;
-  --pool-dim-shadow-raised: 10px 10px 24px rgb(0 0 0 / 48%), -8px -8px 20px rgb(80 80 80 / 26%), inset 1px 1px 0 rgb(255 255 255 / 5%);
-  --pool-dim-shadow-inset: inset 5px 5px 12px rgb(0 0 0 / 55%), inset -4px -4px 10px rgb(75 75 75 / 22%);
+  /* 1 restores the original material depth; scale offsets, blur and opacity together. */
+  --pool-dim-depth: 0.8;
+  --pool-dim-shadow-raised: calc(10px * var(--pool-dim-depth)) calc(10px * var(--pool-dim-depth)) calc(24px * var(--pool-dim-depth)) rgb(0 0 0 / calc(48% * var(--pool-dim-depth))), calc(-8px * var(--pool-dim-depth)) calc(-8px * var(--pool-dim-depth)) calc(20px * var(--pool-dim-depth)) rgb(80 80 80 / calc(26% * var(--pool-dim-depth))), inset calc(1px * var(--pool-dim-depth)) calc(1px * var(--pool-dim-depth)) 0 rgb(255 255 255 / calc(5% * var(--pool-dim-depth)));
+  --pool-dim-shadow-inset: inset calc(5px * var(--pool-dim-depth)) calc(5px * var(--pool-dim-depth)) calc(12px * var(--pool-dim-depth)) rgb(0 0 0 / calc(55% * var(--pool-dim-depth))), inset calc(-4px * var(--pool-dim-depth)) calc(-4px * var(--pool-dim-depth)) calc(10px * var(--pool-dim-depth)) rgb(75 75 75 / calc(22% * var(--pool-dim-depth)));
   --pool-dim-radius-control: var(--radius-control);
   --pool-dim-radius-panel: var(--radius-panel);
   --pool-dim-wordmark: 64px;
@@ -286,8 +288,8 @@
   --pool-color-light-control-line: #bdbdbd;
   --pool-color-light-muted: #5e5e5e;
   --pool-color-light-focus: #242424;
-  --pool-dim-light-shadow-raised: 10px 10px 24px rgb(120 120 120 / 27%), -10px -10px 24px rgb(255 255 255 / 88%), inset 1px 1px 0 rgb(255 255 255 / 45%);
-  --pool-dim-light-shadow-inset: inset 5px 5px 12px rgb(120 120 120 / 24%), inset -5px -5px 12px rgb(255 255 255 / 85%);
+  --pool-dim-light-shadow-raised: calc(10px * var(--pool-dim-depth)) calc(10px * var(--pool-dim-depth)) calc(24px * var(--pool-dim-depth)) rgb(120 120 120 / calc(27% * var(--pool-dim-depth))), calc(-10px * var(--pool-dim-depth)) calc(-10px * var(--pool-dim-depth)) calc(24px * var(--pool-dim-depth)) rgb(255 255 255 / calc(88% * var(--pool-dim-depth))), inset calc(1px * var(--pool-dim-depth)) calc(1px * var(--pool-dim-depth)) 0 rgb(255 255 255 / calc(45% * var(--pool-dim-depth)));
+  --pool-dim-light-shadow-inset: inset calc(5px * var(--pool-dim-depth)) calc(5px * var(--pool-dim-depth)) calc(12px * var(--pool-dim-depth)) rgb(120 120 120 / calc(24% * var(--pool-dim-depth))), inset calc(-5px * var(--pool-dim-depth)) calc(-5px * var(--pool-dim-depth)) calc(12px * var(--pool-dim-depth)) rgb(255 255 255 / calc(85% * var(--pool-dim-depth)));
   --pool-gradient-light-ambient-mesh: none;
   --pool-gradient-light-prism-fill-idle: linear-gradient(rgb(237 237 237 / 96%), rgb(237 237 237 / 96%));
   --pool-gradient-light-prism-fill-hover: linear-gradient(122deg, rgb(172 172 172 / 10%), rgb(141 141 141 / 7%), rgb(158 158 158 / 7%));
@@ -298,14 +300,14 @@
 .pool-home {
   --pool-color-dark-hover: rgb(255 255 255 / 5%);
   --pool-gradient-dark-selected: linear-gradient(145deg, rgb(30 30 30 / 98%), rgb(18 18 18 / 98%));
-  --pool-dim-dark-selected-shadow: 5px 5px 12px rgb(0 0 0 / 72%),
-    -4px -4px 10px rgb(76 76 76 / 28%),
-    inset 1px 1px 0 rgb(255 255 255 / 9%);
+  --pool-dim-dark-selected-shadow: calc(5px * var(--pool-dim-depth)) calc(5px * var(--pool-dim-depth)) calc(12px * var(--pool-dim-depth)) rgb(0 0 0 / calc(72% * var(--pool-dim-depth))),
+    calc(-4px * var(--pool-dim-depth)) calc(-4px * var(--pool-dim-depth)) calc(10px * var(--pool-dim-depth)) rgb(76 76 76 / calc(28% * var(--pool-dim-depth))),
+    inset calc(1px * var(--pool-dim-depth)) calc(1px * var(--pool-dim-depth)) 0 rgb(255 255 255 / calc(9% * var(--pool-dim-depth)));
   --pool-gradient-dark-nav: linear-gradient(145deg, rgb(27 27 27 / 96%), rgb(15 15 15 / 96%));
   --pool-gradient-dark-button: linear-gradient(145deg, rgb(31 31 31 / 98%), rgb(18 18 18 / 98%));
-  --pool-dim-dark-button-shadow: 14px 14px 30px rgb(0 0 0 / 74%),
-    -10px -10px 24px rgb(76 76 76 / 30%),
-    inset 1px 1px 0 rgb(255 255 255 / 10%);
+  --pool-dim-dark-button-shadow: calc(14px * var(--pool-dim-depth)) calc(14px * var(--pool-dim-depth)) calc(30px * var(--pool-dim-depth)) rgb(0 0 0 / calc(74% * var(--pool-dim-depth))),
+    calc(-10px * var(--pool-dim-depth)) calc(-10px * var(--pool-dim-depth)) calc(24px * var(--pool-dim-depth)) rgb(76 76 76 / calc(30% * var(--pool-dim-depth))),
+    inset calc(1px * var(--pool-dim-depth)) calc(1px * var(--pool-dim-depth)) 0 rgb(255 255 255 / calc(10% * var(--pool-dim-depth)));
 }
 
 /* Restrained optical material. Reading surfaces retain their neutral fills. */
