@@ -32,8 +32,8 @@ if (!SYNTHETIC_MODEL) {
 // governed surface and must not make Poolday deployment health depend on it.
 const routes = ['/', '/work', '/network', '/improve', '/examples', '/ask', '/compute', '/records', '/room-1', '/history'];
 const requiredSelectors = {
-  '/': '[data-work-form]',
-  '/work': '[data-work-form]',
+  '/': '[data-composer-form]',
+  '/work': '[data-composer-form]',
   '/network': '[data-operation-sharing]',
   '/improve': '[data-work-history]',
   '/examples': '#pool-home-ask-form',
@@ -232,7 +232,7 @@ for (const route of routes) {
       }
     }
     if (route === '/' || route === '/work') {
-      for (const selector of ['[data-work-criteria]', '[data-work-files]', '[data-work-start]', '[data-work-output]']) {
+      for (const selector of ['[data-composer-input]', '[data-composer-files]', '[data-composer-send]', '[data-message-stream]']) {
         await routePage.waitForSelector(selector, { timeout: 30000, state: 'attached' });
       }
       if (await routePage.locator('[data-work-example]').count()) failures.push(route + ' still exposes prompt-only task buttons');

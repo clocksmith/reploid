@@ -19,11 +19,12 @@ describe('bounded partition completion receipt', () => {
       result: { content: '字'.repeat(policy.inputLimits.maxOutputCharacters), execution: summary } };
     expect(new TextEncoder().encode(JSON.stringify(frame)).byteLength).toBeLessThan(policy.inputChannel.maxControlBytes);
     expect(summary.stepSummary.count).toBe(policy.limits.maxTokens);
-    expect(summary.stepSummary.metrics.localStepMs).toEqual({ count: 1024, total: 524800, min: 1, max: 1024 });
+    const count = policy.limits.maxTokens;
+    expect(summary.stepSummary.metrics.localStepMs).toEqual({ count, total: count * (count + 1) / 2, min: 1, max: count });
     expect(summary.stepSummary.metrics['computationA.gpuKernelsMs']).toBeUndefined();
     expect(summary.stopReason).toBe('max-tokens');
     expect(summary.settlement).toEqual(execution.settlement);
     expect(summary.transport.lastFailure).toBeUndefined();
-    expect(execution.steps).toHaveLength(1024);
+    expect(execution.steps).toHaveLength(count);
   });
 });

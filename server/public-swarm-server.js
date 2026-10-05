@@ -4,7 +4,16 @@ import policy from '../self/config/swarm-bootstrap.json' with { type: 'json' };
 /** Bounded rendezvous only. The legacy endpoint retains its original access gates. */
 export class PublicSwarmServer extends SignalingServer {
   constructor(options = {}) {
-    const bootstrap = options.policy || policy;
+    let bootstrap = options.policy || policy;
+    if (options.localPort !== undefined) {
+      const port = Number(options.localPort);
+      if (!Number.isInteger(port) || port < 1 || port > 65535) throw new Error('Invalid local discovery port');
+      bootstrap = { ...bootstrap, allowedOrigins: bootstrap.allowedOrigins.map(origin => {
+        const url = new URL(origin);
+        if (url.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(url.hostname)) url.port = String(port);
+        return url.origin;
+      }) };
+    }
     super({ ...bootstrap.server, path: bootstrap.path, localOnly: false,
       allowedOrigins: bootstrap.allowedOrigins, logger: options.logger, virtualPeers: [] });
     this.bootstrap = bootstrap;

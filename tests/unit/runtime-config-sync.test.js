@@ -62,6 +62,10 @@ const createFixture = () => ({
 });
 
 describe('runtime config synchronization', () => {
+  it('rejects a separate browser runtime version', () => {
+    expect(() => synchronizeRuntimeConfig({ ...createFixture(), browserRuntimeVersion: '0.0.1' }))
+      .toThrow('Every browser consumer must use the installed Doppler package version');
+  });
   it('projects the canonical Doppler runtime into Pool and deployment mirrors', () => {
     const synchronized = synchronizeRuntimeConfig(createFixture());
 

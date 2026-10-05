@@ -1,0 +1,97 @@
+import type { ExecutionRegistries, ResolvedExecutionRegistries } from '../../config/execution-registry-contract.js';
+import type { CapsuleAdapterArtifactStore } from './capsule-adapter-execution.js';
+import type { CapsuleV2Artifact } from '../../config/capsule-v2.js';
+import type { DopplerCapsule, CapsuleIdentity, verifyCapsule } from '../../config/capsule.js';
+import type { CapsuleReleaseEvent, CapsuleReleasePolicy, ReleaseCheckpoint } from '../../config/capsule-release-events.js';
+import type { TargetPlan, TargetPlanSelectionPolicy } from '../../config/target-plan.js';
+import type { InitialExecutionIdentity } from '../../config/initial-execution-identity.js';
+import type { DeviceProfile } from './target-selector.js';
+import type { GenerationRunOptions, GenerationResult } from './session-controller.js';
+import type { GenerationOutput } from '../../config/generation-contract.js';
+import type { GENERATION_CONTRACT } from '../../config/generation-contract.js';
+import type { CapsuleRerankReceipt, CapsuleRerankRequest } from './capsule-rerank.js';
+import type { CapsuleOperationRequest } from '../../config/capsule-operation.js';
+import type { CapsuleOperationEvent } from './capsule-operation-executor.js';
+import type { CapsuleForecastRequest, CapsuleForecastResult } from './capsule-forecast.js';
+import type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
+import type { CapsuleAcquisitionOptions, CapsuleArtifactReader } from './capsule-acquisition.js';
+import type { CapsuleArtifactBacking, createVerifiedCapsuleArtifactStore } from './verified-capsule-artifact-store.js';
+export type { CapsuleEmbeddingRequest, CapsuleEmbeddingResult } from './capsule-embedding.js';
+
+export { createForecastProgramFactory } from './capsule-forecast-program.js';
+
+export const RUN_CORE_VERSION: '2.0.0';
+
+export interface CapsuleSessionOptions extends TargetPlanSelectionPolicy, CapsuleAcquisitionOptions {
+  /** Explicit placement of the verified program; whole-model qualification does not qualify distributed execution. */
+  residentPartition?: import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionAllocation;
+  releaseEvents?: CapsuleReleaseEvent[];
+  releaseTrustedSigners?: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
+  releasePolicy?: CapsuleReleasePolicy;
+  persistReleaseCheckpoint?: (checkpoint: ReleaseCheckpoint) => Promise<void> | void;
+}
+
+export interface RunPorts {
+  registries?: ExecutionRegistries | null;
+  artifactBacking?: CapsuleArtifactBacking;
+  device: object;
+  capsuleSource?: { fetchCapsule(id: string, options?: object): Promise<DopplerCapsule> };
+  artifactStore: CapsuleArtifactReader & {
+    hashArtifact?(artifact: CapsuleV2Artifact): Promise<{ hash: string; sizeBytes: number }>;
+  };
+  trustedSigners: Map<string, JsonWebKey> | Record<string, JsonWebKey>;
+  /** The host's pure manifest-bound partition validator; required for resident opening. */
+  resolveResidentPartitionAllocation?: (manifest: Record<string, unknown>, manifestHash: string,
+    allocation: NonNullable<CapsuleSessionOptions['residentPartition']>) => NonNullable<CapsuleSessionOptions['residentPartition']>;
+  programFactory(args: {
+    capsule: DopplerCapsule; targetPlan: TargetPlan;
+    artifactStore: ReturnType<typeof createVerifiedCapsuleArtifactStore>;
+    deviceProfile: DeviceProfile; options: CapsuleSessionOptions;
+    registries: ResolvedExecutionRegistries | null;
+    observer: RunPorts['observer'];
+  }): Promise<object>;
+  cache?: { set(key: string, value: unknown): Promise<void> | void } | null;
+  observer?: { observe(event: Record<string, unknown>): void } | null;
+}
+
+export interface DopplerRunSession {
+  readonly residentPartition?: import('../../inference/pipelines/text/resident-partition-contract.js').ResidentPartitionSession;
+  readonly generationContract: typeof GENERATION_CONTRACT;
+  schema: 'doppler.capsule-session/v1';
+  readonly loaded: boolean;
+  readonly closed: boolean;
+  capsuleIdentity: CapsuleIdentity;
+  readonly manifest: Readonly<Record<string, unknown>>;
+  readonly manifestHash: string;
+  modelId: string;
+  capsuleId: string;
+  semanticRoot: string;
+  selectedTargetId: string;
+  selectedTargetPlanDigest: string;
+  selectedPlan: TargetPlan;
+  observedInitialExecutionIdentity: InitialExecutionIdentity | null;
+  deviceProfile: DeviceProfile;
+  verification: Awaited<ReturnType<typeof verifyCapsule>>;
+  generate(options: GenerationRunOptions): AsyncGenerator<number, GenerationResult, void>;
+  generateText(options: GenerationRunOptions): Promise<GenerationOutput & { modelId: string }>;
+  rerank(request: CapsuleRerankRequest): Promise<CapsuleRerankReceipt>;
+  scoreChoices(request: import('../../config/choice-scoring.js').ChoiceScoringRequest,
+    control?: { signal?: AbortSignal }): Promise<import('../../config/choice-scoring.js').ChoiceScoringResult>;
+  forecast(request: CapsuleForecastRequest): Promise<CapsuleForecastResult>;
+  embed(request: CapsuleEmbeddingRequest): Promise<CapsuleEmbeddingResult>;
+  encodeSequence(sequence: string, options?: Record<string, unknown> & { signal?: AbortSignal }): Promise<Record<string, unknown>>;
+  executeOperation(request: CapsuleOperationRequest, control?: { signal?: AbortSignal | null; adapterArtifactStore?: CapsuleAdapterArtifactStore | null }): AsyncGenerator<CapsuleOperationEvent, void, void>;
+  resetGenerationState(): void | Promise<void>;
+  close(): Promise<void>;
+}
+
+export interface DopplerRun {
+  version: string;
+  ports: RunPorts;
+  openCapsule(capsuleOrId: string | DopplerCapsule, options?: CapsuleSessionOptions): Promise<DopplerRunSession>;
+}
+
+export declare function createDopplerRun(ports: RunPorts): DopplerRun;
+
+export { createDopplerRun as createDopplerRuntime, RUN_CORE_VERSION as RUNTIME_CORE_VERSION };
+export type { DopplerRun as DopplerRuntime, DopplerRunSession as DopplerRuntimeSession, RunPorts as RuntimePorts };

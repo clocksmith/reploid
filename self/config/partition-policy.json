@@ -4,13 +4,13 @@
   "connectTimeoutMs": 30000,
   "grantMs": 900000,
   "grantClockSkewMs": 250,
-  "maxSeqLen": 4096,
+  "maxSeqLen": 8192,
   "maxGpuBufferBytes": 1420000000,
   "profileGpu": false,
   "prefillChunkLayers": 1,
   "limits": {
-    "maxTokens": 1024,
-    "maxPromptTokens": 2048,
+    "maxTokens": 4096,
+    "maxPromptTokens": 4096,
     "maxActivationBytes": 8388608,
     "maxOutputCharacters": 16000,
     "maxAttempts": 128,
@@ -58,7 +58,7 @@
   },
   "receiver": {
     "maxAttempts": 128,
-    "maxSteps": 1024
+    "maxSteps": 4096
   },
   "generation": {
     "repetitionPenalty": 1,

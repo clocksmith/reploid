@@ -6,6 +6,7 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { buildHostingFileSet } from './hosting-file-set.js';
 
 import {
   BROWSER_BUNDLE_DESCRIPTOR_PATH,
@@ -20,28 +21,10 @@ const SELF_DIR = path.join(ROOT, 'self');
 const OUTPUT_PATH = path.join(SELF_DIR, BROWSER_BUNDLE_DESCRIPTOR_PATH);
 const checkOnly = process.argv.includes('--check');
 
-const isFirebaseIgnored = (relativePath) => relativePath
-  .split('/')
-  .some((segment) => segment.startsWith('.') || segment === 'node_modules');
-
-async function walkPublicFiles(directory = SELF_DIR) {
-  const dirents = await fs.readdir(directory, { withFileTypes: true });
-  const files = [];
-  for (const dirent of dirents) {
-    const filePath = path.join(directory, dirent.name);
-    const relativePath = path.relative(SELF_DIR, filePath).split(path.sep).join('/');
-    if (isFirebaseIgnored(relativePath)) continue;
-    if (dirent.isDirectory()) {
-      files.push(...await walkPublicFiles(filePath));
-    } else if (dirent.isFile() && relativePath !== BROWSER_BUNDLE_DESCRIPTOR_PATH) {
-      files.push({ path: relativePath, bytes: new Uint8Array(await fs.readFile(filePath)) });
-    }
-  }
-  return files;
-}
-
 async function main() {
-  const entries = await walkPublicFiles();
+  const files = await buildHostingFileSet({ selfDir: SELF_DIR });
+  const entries = await Promise.all(files.filter(file => file !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
+    .map(async file => ({ path: file, bytes: new Uint8Array(await fs.readFile(path.join(SELF_DIR, file))) })));
   const manifest = await buildBrowserBundleManifest(entries);
   if (checkOnly) {
     let existing;

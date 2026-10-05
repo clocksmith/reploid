@@ -5,15 +5,15 @@ import WebSocket from 'ws';
 import { PublicSwarmServer } from '../../server/public-swarm-server.js';
 import policy from '../../self/config/swarm-bootstrap.json' with { type: 'json' };
 
-async function fixture(limits = {}) {
-  const signaling = new PublicSwarmServer({ policy: { ...policy, server: { ...policy.server, ...limits } }, logger: { log() {}, error() {} } });
+async function fixture(limits = {}, localPort) {
+  const signaling = new PublicSwarmServer({ localPort, policy: { ...policy, server: { ...policy.server, ...limits } }, logger: { log() {}, error() {} } });
   const server = http.createServer();
   server.on('upgrade', (...args) => signaling.handleUpgrade(...args));
   server.listen(0, '127.0.0.1'); await once(server, 'listening');
   const url = `ws://127.0.0.1:${server.address().port}/swarm`;
   const sockets = [];
-  const open = async (scope = 'public') => {
-    const ws = new WebSocket(url + '?scope=' + scope, { origin: 'https://replo.id' });
+  const open = async (scope = 'public', origin = 'https://replo.id') => {
+    const ws = new WebSocket(url + '?scope=' + scope, { origin });
     sockets.push(ws); const messages = [];
     ws.on('message', data => messages.push(JSON.parse(data.toString())));
     await once(ws, 'open');
@@ -26,6 +26,19 @@ const publicJoin = peerId => ({ type: 'join', peerId, roomId: policy.publicRoomI
 const wait = async (peer, type) => { await expect.poll(() => peer.messages.find(m => m.type === type)).toBeTruthy(); return peer.messages.find(m => m.type === type); };
 
 describe('public discovery signaling, not application relay', () => {
+  it('admits the configured local application origin while retaining exact origin checks', async () => {
+    const f = await fixture({}, 8123);
+    try {
+      const peer = await f.open('public', 'http://localhost:8123');
+      peer.send(publicJoin('local-peer')); await wait(peer, 'joined');
+      const ws = new WebSocket(f.url + '?scope=public', { origin: 'http://localhost:8124' });
+      const status = await new Promise(resolve => {
+        ws.on('unexpected-response', (req, res) => { resolve(res.statusCode); req.destroy(); });
+        ws.on('error', () => {});
+      });
+      expect(status).toBe(403);
+    } finally { await f.close(); }
+  });
   it('joins the shared namespace and forwards negotiation only between its members', async () => {
     const f = await fixture();
     try {
