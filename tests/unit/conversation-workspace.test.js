@@ -11,18 +11,41 @@ describe('Conversation workspace', () => {
     service = createChatTestService();
     session = createChatSession({ storage: null, service, models: [CANONICAL_CHAT_MODELS[1]] });
     root.innerHTML = renderConversationWorkspace();
-    dispose = bindConversationWorkspace(root, session);
+    dispose = bindConversationWorkspace(root, { ...session,
+      getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
-  it('waits for available intelligence without offering unavailable catalog entries', () => {
+  it('offers model setup while waiting for shared intelligence', () => {
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-active-model-select]').textContent).toBe('No models available');
-    expect(find('[data-model-status]').textContent).toContain('Waiting for contributors');
+    expect(find('[data-model-status]').textContent).toContain('Download one');
+    expect(find('[data-model-control]').hidden).toBe(true);
+    expect(find('[data-model-setup]').disabled).toBe(false);
+    expect(find('[data-composer-send]').hidden).toBe(true);
     expect(find('[data-contribution-model]').value).toBe(CANONICAL_CHAT_MODELS[1].id);
     expect(find('[data-contextual-inspector]').hidden).toBe(true);
     expect(find('[data-composer-input]').placeholder).toBeTruthy();
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
+  });
+
+  it('shows download size, preserves the draft, and enables local chat without sharing', async () => {
+    find('[data-composer-input]').value = 'Keep this question';
+    find('[data-model-setup]').click();
+    await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
+    expect(find('[data-model-dialog]').open).toBe(true);
+    expect(find('[data-download-size]').textContent).toBe('123 MB download');
+    expect(service.calls).toHaveLength(0);
+    find('[data-download-confirm]').click();
+    await vi.waitFor(() => expect(session.getState().localModel?.ready).toBe(true));
+    expect(find('[data-composer-input]').value).toBe('Keep this question');
+    expect(find('[data-composer-send]').hidden).toBe(false);
+    expect(find('[data-composer-send]').disabled).toBe(false);
+    expect(session.getState().network.sharing).toBe(false);
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(session.getState().activeThread?.attempts[0]?.status).toBe('completed'));
+    expect(session.getState().activeThread.permissions.sharingScope).toBe('local');
+    expect(service.calls).toHaveLength(1);
   });
 
   it('starts directly, appends followups and pins the conversation model', async () => {

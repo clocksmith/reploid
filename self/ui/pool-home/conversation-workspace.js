@@ -40,10 +40,18 @@ export function renderConversationWorkspace() {
         <div class="chat-composer-toolbar">
           <label class="btn pool-button btn-ghost chat-file-label pool-focus-within">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
           <button class="btn pool-button btn-primary" type="submit" data-composer-send>Send</button>
+          <button class="btn pool-button btn-primary" type="button" data-model-setup hidden>Download a model</button>
           <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
           <button class="btn pool-button btn-ghost" type="button" data-composer-stop hidden>Stop</button>
         </div><div class="chat-attachments" data-attachments-preview hidden></div>
       </form></footer>
+      <dialog class="chat-model-setup pool-surface" data-model-dialog aria-labelledby="model-setup-title">
+        <h2 id="model-setup-title">Run on this device</h2>
+        <label>Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
+        <p data-download-size role="status">Checking download size…</p>
+        <p>Stored on this device. Sharing stays off.</p>
+        <div class="chat-network-actions"><button class="pool-button" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download model</button></div>
+      </dialog>
     </section>
   </section>`;
 }
@@ -103,11 +111,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       || models.some(model => keyFor(model) === current && ['ready', 'busy'].includes(model.availability));
     const modelStatus = find('[data-model-status]');
     const networkState = state.network?.consumer?.connectionState;
-    modelStatus.textContent = usable ? '' : state.network?.paused ? 'Disconnected. Connect from Network to find models.'
+    const preparing = state.localModel?.phase === 'loading';
+    modelStatus.textContent = preparing ? 'Downloading model…' + (Number.isFinite(state.localModel.progress?.progress) ? ' ' + Math.round(state.localModel.progress.progress * 100) + '%' : '')
+      : state.localModel?.error && !usable ? 'Download failed: ' + state.localModel.error
+      : usable ? '' : state.network?.paused ? 'Disconnected. Connect from Network to find models.'
       : catalogModels.some(model => model.availability === 'loading') ? 'A contributor is loading a model…'
         : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding available models…'
-          : 'No model is ready. Waiting for contributors.';
+          : 'No shared model is ready. Download one to run here.';
     modelStatus.hidden = !modelStatus.textContent;
+    find('[data-model-control]').hidden = !usable;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
     const threads = state.threads.filter(item => !item.closed);
     const nextList = JSON.stringify([state.selectedId, threads.map(item => [item.id, item.purpose, item.messages.find(m => m.role === 'user')?.content, item.attempts.at(-1)?.status])]);
@@ -122,7 +134,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase, execution = attempt?.execution;
     const location = execution?.placement === 'two-device-layer-partition' ? 'Two contributors' : execution?.peerId ? 'Peer ' + execution.peerId.slice(0, 8) : execution?.placement === 'local-webgpu' ? 'This device' : '';
     find('[data-execution-state]').textContent = [location, state.comparisonPhase || attempt?.status].filter(Boolean).join(' · ');
-    find('[data-composer-send]').hidden = busy; find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
+    find('[data-composer-send]').hidden = busy || !usable;
+    find('[data-model-setup]').hidden = busy || usable;
+    find('[data-model-setup]').disabled = preparing;
+    find('[data-model-setup]').textContent = preparing ? 'Downloading…' : 'Download a model'; find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
@@ -182,6 +197,41 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   };
   const unsubscribe = session.subscribe(render);
   showFiles();
+  let metadataController = null;
+  const dialog = find('[data-model-dialog]');
+  const checkDownload = async () => {
+    metadataController?.abort();
+    const request = metadataController = new AbortController();
+    find('[data-download-confirm]').disabled = true;
+    find('[data-download-size]').textContent = 'Checking download size…';
+    try {
+      const info = await session.getModelDownload(find('[data-download-model]').value, { signal: request.signal });
+      if (request.signal.aborted || controller.signal.aborted) return;
+      find('[data-download-size]').textContent = Math.ceil(info.sizeBytes / 1e6) + ' MB download';
+      find('[data-download-confirm]').disabled = false;
+    } catch (cause) {
+      if (!request.signal.aborted && !controller.signal.aborted) find('[data-download-size]').textContent = cause.message;
+    }
+  };
+  on('[data-model-setup]', 'click', () => {
+    saveDraft();
+    const state = session.getState(), currentModel = state.activeThread?.model;
+    const models = state.models.filter(model => !model.partition && !model.adapters?.length);
+    const select = find('[data-download-model]');
+    select.innerHTML = models.map(model => `<option value="${escape(model.id)}">${escape(model.name)}</option>`).join('');
+    if (currentModel) select.value = currentModel.id;
+    select.disabled = !!currentModel;
+    dialog.showModal();
+    void checkDownload();
+  });
+  on('[data-download-model]', 'change', () => { void checkDownload(); });
+  on('[data-download-cancel]', 'click', () => dialog.close());
+  on('[data-model-dialog]', 'close', () => { metadataController?.abort(); });
+  on('[data-download-confirm]', 'click', () => {
+    const modelId = find('[data-download-model]').value;
+    dialog.close();
+    void act(() => session.prepareLocalModel(modelId));
+  });
   on('[data-composer-input]', 'input', () => { try { saveDraft(); } catch (cause) { error(cause); } });
   on('[data-new-thread]', 'click', () => { saveDraft(); session.select(null); input.focus(); });
   on('[data-thread-list]', 'click', event => { const button = event.target.closest('[data-thread-item-id]'); if (button) { saveDraft(); session.select(button.dataset.threadItemId); } });
@@ -189,10 +239,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     event.preventDefault();
     const content = input.value.trim(), state = session.getState();
     if (!content || reading || state.runningIds.includes(state.selectedId)) return;
+    if (!find('[data-model-setup]').hidden) { find('[data-model-setup]').click(); return; }
     if (find('[data-composer-send]').disabled) return;
     act(async () => {
       const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value), attachments = files.map(file => ({ ...file }));
-      const threadId = state.selectedId || session.createThread({ model, sharingScope: 'mesh' });
+      const threadId = state.selectedId || session.createThread({ model, sharingScope: model?.localReady ? 'local' : 'mesh' });
       input.value = content; files = attachments; showFiles();
       const completion = session.send(threadId, content, attachments);
       session.saveDraft?.(null, null); session.saveDraft?.(threadId, null);
@@ -248,6 +299,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     if (button) act(() => session.revokeGrant(session.getState().selectedId, button.dataset.revokeGrant));
   });
   return () => {
+    metadataController?.abort();
+    if (dialog.open) dialog.close();
     controller.abort(); fileRevision++; unsubscribe(); disposeNetwork();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';

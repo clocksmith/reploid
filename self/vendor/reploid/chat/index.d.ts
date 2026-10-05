@@ -116,5 +116,6 @@ export function createChatScheduler(options: {
   schedule(request: ScheduledChatRequest, controls: {
     signal: AbortSignal; onDelta?(delta: string): void; onState?(status: string): void;
   }): Promise<unknown>;
+  prepare(model: ChatModel): Promise<void>;
   close(): Promise<void>;
 };

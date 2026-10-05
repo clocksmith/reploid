@@ -286,8 +286,8 @@
   --pool-color-light-control-line: #bdbdbd;
   --pool-color-light-muted: #5e5e5e;
   --pool-color-light-focus: #242424;
-  --pool-dim-light-shadow-raised: 7.5px 7.5px 24px rgb(120 120 120 / 5.0625%), -7.5px -7.5px 24px rgb(255 255 255 / 16.5%), inset 0 1px 0 rgb(255 255 255 / 17%);
-  --pool-dim-light-shadow-inset: inset 3.75px 3.75px 12px rgb(120 120 120 / 4.5%), inset -3.75px -3.75px 12px rgb(255 255 255 / 15.9375%);
+  --pool-dim-light-shadow-raised: 7.5px 7.5px 24px rgb(120 120 120 / 6.58125%), -7.5px -7.5px 24px rgb(255 255 255 / 21.45%), inset 0 1px 0 rgb(255 255 255 / 22.1%);
+  --pool-dim-light-shadow-inset: inset 3.75px 3.75px 12px rgb(120 120 120 / 5.85%), inset -3.75px -3.75px 12px rgb(255 255 255 / 20.7188%);
   --pool-gradient-light-ambient-mesh: none;
   --pool-gradient-light-prism-fill-idle: linear-gradient(rgb(237 237 237 / 96%), rgb(237 237 237 / 96%));
   --pool-gradient-light-prism-fill-hover: linear-gradient(122deg, rgb(172 172 172 / 10%), rgb(141 141 141 / 7%), rgb(158 158 158 / 7%));
