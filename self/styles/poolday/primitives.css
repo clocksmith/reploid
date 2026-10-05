@@ -464,3 +464,12 @@
     --pool-space-page-gap: var(--space-md);
   }
 }
+
+.pool-home {
+  --pool-surface-marble: var(--pool-gradient-marble-dark);
+  --pool-surface-marble-shadow: var(--pool-dim-marble-dark-shadow);
+}
+.pool-home[data-pool-theme='light'] {
+  --pool-surface-marble: var(--pool-gradient-marble-light);
+  --pool-surface-marble-shadow: var(--pool-dim-marble-light-shadow);
+}

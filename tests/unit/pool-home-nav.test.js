@@ -16,6 +16,7 @@ import {
 import {
   renderContributionStatusBar,
   renderNav,
+  updateChangesControl,
   isProductPath,
   resolvePoolNetworkVisualState,
   renderRouteDetail,
@@ -51,7 +52,7 @@ describe('poolday home navigation', () => {
       expect(link.getAttribute('href')).not.toContain('?');
     }
     expect(footer.previousElementSibling.classList.contains('pool-home-task')).toBe(true);
-    expect(host.querySelectorAll('.pool-primary-nav .pool-nav-link')).toHaveLength(3);
+    expect(host.querySelectorAll('.pool-primary-nav .pool-nav-link')).toHaveLength(1);
     for (const route of ['ask', 'compute', 'records', 'room-1']) {
       expect(renderRoutePanel(route) + renderRouteDetail(route)).not.toContain('pool-experiments-footer');
     }
@@ -133,8 +134,6 @@ describe('poolday home navigation', () => {
       'room-1'
     ]);
     expect(POOLDAY_NAV_ROUTES).toEqual([
-      { id: 'home', path: '/', label: 'Work' },
-      { id: 'network', path: '/network', label: 'Network' },
       { id: 'improve', path: '/improve', label: 'Changes' }
     ]);
     expect(PRODUCT_ROUTES).toEqual({
@@ -163,15 +162,15 @@ describe('poolday home navigation', () => {
   it('keeps the workspace and its network and change controls reachable', () => {
     const host = document.createElement('div'); host.innerHTML = renderNav('home');
     const links = [...host.querySelectorAll('.pool-nav-link')];
-    expect(links.map(link => link.textContent)).toEqual(['Work', 'Network', 'Changes']);
-    expect(links.map(link => new URL(link.href).pathname)).toEqual(['/', '/network', '/improve']);
+    expect(links.map(link => link.textContent)).toEqual(['Changes']);
+    expect(links.map(link => new URL(link.href).pathname)).toEqual(['/improve']);
     expect(links.every(link => link.hasAttribute('data-pool-route-link'))).toBe(true);
     expect(host.querySelector('[aria-label="Reploid home"]')).not.toBeNull();
   });
 
   it('keeps a path back from focused routes without legacy drawer chrome', () => {
     const html = renderNav('improve', { open: true });
-    expect(html).toContain('>Work</a>');
+    expect(html).toContain('aria-label="Reploid home"');
     expect(html).not.toContain('is-open');
     expect(html).not.toContain('aria-expanded');
     expect(html).not.toContain('pool-nav-description');
@@ -255,10 +254,10 @@ describe('poolday home navigation', () => {
     const html = renderNav('home', { dashboard: true, dashboardView: 'compute' });
 
     expect(html).toContain('class="pool-nav-rail pool-primary-nav pool-surface"');
-    expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(3);
-    expect(html).toContain('>Work</a>');
-    expect(html).toContain('>Network</a>');
-    expect(html).toContain('>Changes</a>');
+    expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(1);
+    expect(html).toContain('aria-label="Reploid home"');
+    expect(html).not.toContain('>Network</a>');
+    expect(html).toContain('data-pool-changes');
     expect(html).not.toContain('pool-control-drawer');
     expect(html).not.toContain('data-pool-drawer-section');
     expect(PRODUCT_ROUTES['/ask']).toBe('ask');
@@ -446,4 +445,17 @@ describe('poolday home navigation', () => {
     expect(html).not.toContain('<b>1h</b>');
     expect(html).not.toContain('<b>Last</b>');
   });
+});
+
+it('shows only changes awaiting approval and clears the review indicator after decisions', () => {
+  const root = document.createElement('div'); root.innerHTML = renderNav('home');
+  expect(root.querySelector('.pool-nav-menu')).toBeNull();
+  expect(root.querySelector('.pool-primary-network')).toBeNull();
+  updateChangesControl(root, [{ status: 'awaiting-approval' }, { status: 'awaiting-approval' }, { status: 'evaluating' }, { status: 'adopted' }]);
+  expect(root.querySelector('[data-pool-change-count]').textContent).toBe('2');
+  expect(root.querySelector('[data-pool-change-count]').hidden).toBe(false);
+  expect(root.querySelector('[data-pool-changes]').getAttribute('aria-label')).toBe('Changes: 2 awaiting review');
+  updateChangesControl(root, [{ status: 'adopted' }, { status: 'rejected' }]);
+  expect(root.querySelector('[data-pool-change-count]').hidden).toBe(true);
+  expect(root.querySelector('[data-pool-changes]').dataset.reviewNeeded).toBe('false');
 });

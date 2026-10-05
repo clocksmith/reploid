@@ -43,6 +43,7 @@ import {
   restoreLatestCompletedRun,
   renderContributionStatusBar,
   renderNav,
+  updateChangesControl,
   renderRouteDetail,
   renderRoutePanel,
   loadPoolRoomDraft,
@@ -248,8 +249,21 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   const workStorage = getCurrentReploidStorage();
   let work;
   let chatSession;
+  let disposed = false, changesRevision = 0;
+  const refreshChanges = async () => {
+    const revision = ++changesRevision;
+    try {
+      const candidates = await evolution.list();
+      if (!disposed && revision === changesRevision) updateChangesControl(mount, candidates);
+    } catch (error) {
+      if (!disposed && revision === changesRevision) {
+        mount.querySelector('[data-pool-changes]')?.setAttribute('aria-label', 'Changes: review status unavailable');
+        console.warn('[Reploid] Could not read changes awaiting review', error);
+      }
+    }
+  };
   const service = createReploidDopplerRuntimeService();
-  const evolution = createWorkEvolution({ storage: workStorage, isBusy: () => work?.getState().anyBusy === true });
+  const evolution = createWorkEvolution({ storage: workStorage, isBusy: () => work?.getState().anyBusy === true, onChange: refreshChanges });
   const swarm = createWorkSwarm({ storage: workStorage, evolution, service,
     onChange: () => chatSession?.refreshNetwork() });
   work = createWorkSession({ service, storage: workStorage, swarm, evolution,
@@ -267,6 +281,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   });
   const onPageShow = event => { if (event.persisted) autoconnect.resume(); };
   const dispose = () => {
+    disposed = true; changesRevision++;
     autoconnect.close();
     theme.dispose();
     window.removeEventListener('pagehide', onPageHide);
@@ -345,6 +360,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     `;
     else mount.querySelector('.pool-primary-nav').outerHTML = renderNav(routeId);
     theme.sync();
+    void refreshChanges();
     mount.querySelector('.pool-home').dataset.poolRouteId = routeId;
     mount.querySelectorAll('[data-pool-nav-id]').forEach((link) => {
       const active = link.dataset.poolNavId === (routeId === 'ask' ? 'home' : routeId);
@@ -391,7 +407,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     restoreLatestCompletedRun(routeId);
     if (routeId === 'examples') applyPoolDashboardView(dashboardView, { updateHistory: false });
     if (options.restoreNavigationFocus || options.type === 'popstate') {
-      mount.querySelector('.pool-nav-link[aria-current="page"]')?.focus({ preventScroll: true });
+      (mount.querySelector('.pool-nav-link[aria-current="page"]') || mount.querySelector('.pool-primary-brand'))?.focus({ preventScroll: true });
     }
   };
 
