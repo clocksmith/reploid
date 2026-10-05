@@ -1,5 +1,4 @@
 /** Conversation presentation; the host owns execution and disclosure. */
-import { renderExecutionRibbon, bindExecutionRibbon } from './execution-ribbon.js';
 import { renderSharingControls, renderConnectionControl, bindNetworkControls } from './network-controls.js';
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -10,13 +9,12 @@ export function renderConversationWorkspace() {
       <div class="chat-thread-list" data-thread-list></div>
     </aside>
     <section class="chat-conversation-area pool-surface" data-conversation-area aria-label="Current conversation">
-      <div class="chat-context-header"><header class="chat-thread-header" data-network-header>
+      <header class="chat-thread-header" data-network-header>
         <div class="chat-thread-info">
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select></span>
           </div>
         <button class="btn pool-button btn-ghost" type="button" data-toggle-inspector aria-expanded="false" aria-controls="chat-network-details">Network <span data-mesh-peers>0 peers</span></button>
       </header>
-      ${renderExecutionRibbon()}</div>
       <section class="chat-network-details" id="chat-network-details" data-contextual-inspector hidden aria-label="Network">
         <header class="chat-network-heading"><h2>Network</h2><button class="btn pool-button btn-ghost" type="button" data-close-inspector>Close</button></header>
         <ul data-insp-device-list></ul>
@@ -66,7 +64,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
-  const executionRibbon = bindExecutionRibbon(container);
   const disposeNetwork = bindNetworkControls(container, session, { getInviteUrl });
   let files = [], fileRevision = 0, reading = false, approvalKey = '', messageKey = '', listKey = '', grantsKey = '';
   const drafts = new Map();
@@ -137,7 +134,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       }).join('');
     }
     const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
-    executionRibbon.update(state);
     find('[data-composer-send]').hidden = busy || !usable;
     find('[data-model-setup]').hidden = busy || usable;
     find('[data-model-setup]').disabled = preparing;
@@ -305,7 +301,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   return () => {
     metadataController?.abort();
     if (dialog.open) dialog.close();
-    controller.abort(); fileRevision++; unsubscribe(); disposeNetwork(); executionRibbon.dispose();
+    controller.abort(); fileRevision++; unsubscribe(); disposeNetwork();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';
   };

@@ -213,8 +213,9 @@
 .chat-model-setup .chat-network-actions { justify-content: flex-end; }
 
 /* Execution path: one quiet strip; details are revealed by focus or tap. */
-.chat-context-header { display: grid; gap: var(--pool-space-sm); min-width: 0; }
 .execution-ribbon { position: relative; min-width: 0; }
+.execution-ribbon [hidden] { display: none !important; }
+.execution-ribbon, .execution-ribbon *, .execution-ribbon *::before, .execution-ribbon *::after { box-sizing: border-box; }
 .execution-ribbon-trigger {
   display: flex; align-items: end; gap: var(--pool-space-lg); width: 100%; min-width: 0; min-height: var(--pool-px-64);
   padding: var(--pool-space-xs) 0; border: 0; background: transparent;

@@ -4210,7 +4210,8 @@ body[data-pool-route-id='home'] #app {
   bottom: auto;
   left: auto;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: var(--pool-space-xl);
   align-items: center;
   height: auto;
   min-height: calc(var(--pool-px-36) * 2);
@@ -4855,6 +4856,7 @@ body[data-pool-route-id='home'] #app {
     padding: var(--pool-space-sm) var(--pool-space-md);
   }
   .pool-primary-brand { font-size: var(--pool-text-base); }
+  .pool-primary-nav > .execution-ribbon { grid-column: 1 / -1; grid-row: 2; }
   .pool-primary-network { grid-column: 2; grid-row: 1; }
   .pool-primary-nav .pool-nav-menu { grid-column: 1 / -1; grid-row: 2; width: 100%; }
   .pool-primary-nav .pool-nav-link { flex: 1; }

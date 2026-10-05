@@ -13,6 +13,7 @@ import { getCurrentReploidStorage } from '../../instance.js';
 import { bindWorkSurface } from './work.js';
 import { bindNetworkControls } from './network-controls.js';
 import { bindConversationWorkspace } from './conversation-workspace.js';
+import { bindExecutionRibbon } from './execution-ribbon.js';
 import { createOperationParticipation } from '../../pool/operation-participation.js';
 import { bindOperationSharing, refreshOperationSharing } from './operation-sharing.js';
 import { createRequesterClient } from '../../pool/requester-client.js';
@@ -246,6 +247,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   let disposeOperationSharing = () => {};
   let disposeWorkView = () => {};
   let disposeChatWorkspace = () => {};
+  let disposeExecutionRibbon = () => {};
   const workStorage = getCurrentReploidStorage();
   let work;
   let chatSession;
@@ -286,7 +288,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     theme.dispose();
     window.removeEventListener('pagehide', onPageHide);
     window.removeEventListener('pageshow', onPageShow);
-    disposeWorkView(); disposeChatWorkspace();
+    disposeWorkView(); disposeChatWorkspace(); disposeExecutionRibbon();
     void Promise.allSettled([swarm.close(), work.close(), chatSession.close()]);
     if (disposeSwarmWorkspace === dispose) disposeSwarmWorkspace = null;
   };
@@ -332,6 +334,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   window.addEventListener('keydown', window.REPLOID_POOL_NAV_ESCAPE_HANDLER);
 
   const render = (options = {}) => {
+    disposeExecutionRibbon();
     disposeWorkView();
     disposeChatWorkspace();
     disposeDocumentView();
@@ -359,6 +362,9 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
       </main>
     `;
     else mount.querySelector('.pool-primary-nav').outerHTML = renderNav(routeId);
+    const ribbon = bindExecutionRibbon(mount.querySelector('.pool-primary-nav'));
+    const unsubscribeRibbon = chatSession.subscribe(state => ribbon.update(state));
+    disposeExecutionRibbon = () => { unsubscribeRibbon(); ribbon.dispose(); };
     theme.sync();
     void refreshChanges();
     mount.querySelector('.pool-home').dataset.poolRouteId = routeId;
