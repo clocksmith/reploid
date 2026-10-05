@@ -59,9 +59,5 @@
   "receiver": {
     "maxAttempts": 128,
     "maxSteps": 4096
-  },
-  "generation": {
-    "repetitionPenalty": 1,
-    "repetitionPenaltyWindow": 0
   }
 }

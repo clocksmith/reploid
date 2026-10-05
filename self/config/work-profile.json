@@ -16,6 +16,8 @@
     "temperature": 0,
     "topK": 1,
     "topP": 1,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 64,
     "stopSequences": [],
     "useChatTemplate": true
   },

@@ -80,6 +80,7 @@ for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
 await mkdir(output, { recursive: true });
 let failure = null;
 let numerical = null;
+let referenceGeneration = null;
 const memory = [];
 try {
   const stored = await readFile(referenceSource);
@@ -88,6 +89,7 @@ try {
     throw new Error('The frozen numerical reference differs; refusing to replace or weaken it');
   }
   await writeFile(reference, bytes);
+  referenceGeneration = JSON.parse(bytes).generation;
   const model = JSON.parse(await readFile(resolve(modelDirectory, 'manifest.json')));
   const catalog = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json')))[0];
   if (createHash('sha256').update(await readFile(resolve(modelDirectory, 'manifest.json'))).digest('hex') !== catalog.identity.slice(7)) {
@@ -192,7 +194,11 @@ try {
   await Promise.all(logs.map(log => new Promise(done => log.end(done))));
   const packageIdentity = JSON.parse(await readFile(resolve(root, 'self/config/doppler-package.json')));
   const browserIdentity = JSON.parse(await readFile(resolve(root, 'self/config/browser-bundle-manifest.json'))).bundleHash;
+  const profile = JSON.parse(await readFile(resolve(root, 'self/config/work-profile.json')));
+  const policy = JSON.parse(await readFile(resolve(root, 'self/config/partition-policy.json')));
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure,
     numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource,
+    generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
+    maxGpuBufferBytes: policy.maxGpuBufferBytes, referenceGeneration,
     referenceSha256: '9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd' }, null, 2));
 }
