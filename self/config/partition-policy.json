@@ -56,7 +56,7 @@
     "maxRequestsPerChannel": 65536,
     "maxBufferedBytes": 1048576,
     "maxTransferBytes": 1073741824,
-    "timeoutMs": 300000
+    "timeoutMs": 900000
   },
   "inputLimits": {
     "maxInputCharacters": 48000,
