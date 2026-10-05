@@ -27,6 +27,12 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
 const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
 
 describe('local Doppler model contract', () => {
+  it('allows the streamed input transaction to remain open for the full conversation attempt', () => {
+    const conversation = JSON.parse(readFileSync('packages/reploid/src/chat/policy.json', 'utf8'));
+    const partition = JSON.parse(readFileSync('self/config/partition-policy.json', 'utf8'));
+    expect(partition.inputChannel.timeoutMs).toBeGreaterThanOrEqual(conversation.attemptTimeoutMs);
+    expect(partition.grantMs).toBeGreaterThanOrEqual(conversation.attemptTimeoutMs);
+  });
   it('can advertise every retained piece of a selected model within the inventory and transport budgets', () => {
     const policy = JSON.parse(readFileSync('self/config/chat-files.json', 'utf8'));
     const application = JSON.parse(readFileSync('self/config/reploid-library.json', 'utf8'));
