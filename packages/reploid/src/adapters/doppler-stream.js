@@ -49,8 +49,8 @@ export async function createV1Verifier(request) {
   };
 }
 
-export function assertSessionCompletion(event, session, runtime) {
-  const { receipt, output } = event;
+export function assertSessionIdentity(event, session, runtime) {
+  const { receipt } = event;
   requireValue(receipt.modelId === session.modelId && receipt.capsule?.capsuleId === session.capsuleId
     && receipt.capsule?.semanticRoot === session.semanticRoot
     && receipt.targetPlanDigest === session.selectedTargetPlanDigest
@@ -58,6 +58,11 @@ export function assertSessionCompletion(event, session, runtime) {
   requireValue(canonical(receipt.capsule) === canonical(session.capsuleIdentity)
     && canonical(receipt.artifactReceipts) === canonical(session.verification.artifactReceipts),
   'completion artifact identity mismatch');
+}
+
+export function assertSessionCompletion(event, session, runtime) {
+  assertSessionIdentity(event, session, runtime);
+  const { output } = event;
   requireValue(typeof output.text === 'string' && Array.isArray(output.tokenIds)
     && output.tokenIds.every(id => Number.isSafeInteger(id) && id >= 0)
     && output.completion?.schema === runtime.GENERATION_CONTRACT.completionSchema

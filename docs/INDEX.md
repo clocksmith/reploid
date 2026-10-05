@@ -2,6 +2,8 @@
 
 Guide to all documentation in the REPLOID project.
 
+Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md).
+
 ---
 
 ## Getting Started

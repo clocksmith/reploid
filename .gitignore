@@ -1,6 +1,13 @@
 # Dependencies
 node_modules/
 
+# Raw physical decision observations are retained locally and hash-inventoried.
+/artifacts/doppler-choice/*.json
+!/artifacts/doppler-choice/summary.json
+!/artifacts/doppler-choice/failed-observations.json
+/artifacts/library-acceptance/2026-10-05T02-12-38-345Z/*
+!/artifacts/library-acceptance/2026-10-05T02-12-38-345Z/report.json
+
 # Build outputs
 dist/
 !sdk/change-passport/dist/
