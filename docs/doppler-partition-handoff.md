@@ -53,6 +53,18 @@ on unfamiliar work and distinguish successful adoption from causal recursion.
 Standalone Doppler product work does not depend on resolving the partition
 replacement gate. The package diagnosis below gates that replacement specifically.
 
+### Implemented typed-decision connection
+
+The [installed decision acceptance](../artifacts/doppler-choice/README.md) now
+records real signed Capsule execution through the public libraries in Node and
+browser WebGPU, followed by actual WebRTC delivery to a weightless requester.
+All twelve reviewed relevance decisions pass against an independent CPU reference.
+Cancellation, resident reuse, receipt verification and cleanup pass in their
+identified fixtures. These are whole-request decisions on one physical machine,
+with uncalibrated scores and local test release metadata. The injected public
+operation does not change the app's split.13 pin or close the numerical,
+selective-acquisition, public-release or cross-device partition gates below.
+
 ### Doppler: trace the package difference before upgrading Reploid
 
 Start at [the recurrent-state controls receipt](https://github.com/clocksmith/doppler/blob/f0bd469b/tests/fixtures/partition-recurrent-state-controls-evidence.json).

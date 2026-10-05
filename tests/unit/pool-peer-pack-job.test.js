@@ -12,6 +12,7 @@ import { createPackPeerProvider } from '../../self/pool/peer-pack-provider.js';
 import { createPackPeerRequester } from '../../self/pool/peer-pack-requester.js';
 import { createPackPeerJob, createPackProviderAdvert, verifyPackPeerJob, signPackPeerMessage, verifyPackPeerMessage, PACK_CANCEL_SCHEMA } from '../../self/pool/peer-pack-job.js';
 import { PEER_MESSAGE_TYPES } from '../../self/pool/peer-protocol.js';
+import { createDopplerChoiceScoringAdapter } from '../../packages/reploid/src/adapters/doppler.js';
 import { verifyPackPeerEpisode } from '../../self/pool/peer-pack-episode.js';
 import { runPeerOperationJob, resumePeerOperationJob } from '../../self/pool/peer-room.js';
 
@@ -87,6 +88,35 @@ async function setup(name, registry, tweaks = {}) {
 }
 
 describe('signed remote Pack jobs with synthetic model outputs', () => {
+  it('transports a typed choice through existing signed jobs without changing grants or the sampler', async () => {
+    const runtime = {
+      CHOICE_SCORING_CONTRACT: { schema: 'doppler.choice-scoring-contract/v1' },
+      snapshotChoiceScoringRequest: vi.fn(input => {
+        if (!input.prompt || input.choices.length !== 2 || input.maxSeqLen !== 16) throw new Error('Doppler request rejected');
+        return input;
+      }),
+      validateChoiceScoringResult: vi.fn((input, output) => {
+        if (output.selectedId !== 'accept' || output.choices[0].label !== input.choices[0].label) throw new Error('Doppler result rejected');
+        return output;
+      })
+    };
+    const adapter = createDopplerChoiceScoringAdapter(runtime);
+    const registry = createPackOperationRegistry({ definitions: { ...poolConfig.operations, scoreChoices: adapter.definition },
+      implementations: { ...PACK_OPERATION_IMPLEMENTATIONS, 'scoreChoices.v1': adapter.implementation } });
+    const f = await setup('scoreChoices', registry, { schema: 'doppler.capsule/v2' });
+    try {
+      const partials = [];
+      const result = await f.requester.run({ ...f.args, onPartial: event => partials.push(event) });
+      expect(result.execution.output).toEqual(f.output);
+      expect(result.assessment.accepted).toBe(true);
+      expect(partials).toEqual([]);
+      expect(runtime.snapshotChoiceScoringRequest).toHaveBeenCalled();
+      expect(runtime.validateChoiceScoringResult).toHaveBeenCalled();
+      expect(adapter.definition.inputClasses.remote).toEqual(['public_text']);
+      await expect(f.requester.run({ ...f.args, consent: { ...f.args.consent, publicInput: false } })).rejects.toThrow();
+    } finally { await f.close(); }
+    expect(() => createDopplerChoiceScoringAdapter({})).toThrow('no choice-scoring contract');
+  });
   it('rejects adapter revocation during execution and before durable replay', async () => {
     const f = await setup('generate', undefined, { adapted: true });
     try {

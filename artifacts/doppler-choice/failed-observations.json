@@ -1,0 +1,21 @@
+[
+  {
+    "path": "artifacts/doppler-choice/installed-node.json",
+    "sha256": "11de00cbba1bf1edb183e48460a74ec6256c0426c08a870a71fb5a9b283f59d6",
+    "passed": false,
+    "failure": "Error: Pipeline load phase \"loadWeights\" failed: Shader dequant_f16_out_vec4.wgsl is outside the verified Capsule source closure.\n    at createPipelineLoadPhaseError (file:///home/x/deco/doppler/dist/decision-acceptance/qualified-consumer/node_modules/doppler-gpu/src/inference/pipelines/text/pipeline-load-timing.js:9:19)\n    at withPipelineLoadPhase (file:///home/x/deco/doppler/dist/decision-acceptance/qualified-consumer/node_modules/doppler-gpu/src/inference/pipelines/text/pipeline-load-timing.js:32:11)\n    at async timedPipelineLoadPhase (file:///home/x/deco/doppler/dist/decision-acceptance/qualified-consumer/node_modules/doppler-gpu/src/inference/pipelines/text/pipeline-load-timing.js:73:12)\n    at async InferencePipeline.loadModel (file:///home/x/deco/doppler/dist/decision-acceptance/qualified-consumer/node_modules/doppler-gpu/src/inference/pipelines/text/lifecycle.js:397:5)\n    at async file:///home/x/deco/doppler/dist/decision-acceptance/qualified-consumer/node_modules/doppler-gpu/src/inference/pipelines/factory.js:22:7\n    at async runWithShaderSourceScope (file:///home/x/deco/doppler/dist/decision-acceptance/qualified-consumer/node_modules/doppler-gpu/src/gpu/kernels/shader-source-scope.js:70:16)\n    at async createInitializedPipeline (file:///home/x/deco/doppler/dist/decision-acceptance/qualified-consumer/node_modules/doppler-gpu/src/inference/pipelines/factory.js:14:3)\n    at async loadProgram (file:///home/x/deco/doppler/dist/decision-acceptance/qualified-consumer/node_modules/doppler-gpu/src/client/model-host/index.js:313:18)\n    at async programFactory (file:///home/x/deco/doppler/dist/decision-acceptance/qualified-consumer/node_modules/doppler-gpu/src/client/model-host/index.js:433:45)\n    at async Object.openCapsule (file:///home/x/deco/doppler/dist/decision-acceptance/qualified-consumer/node_modules/doppler-gpu/src/client/runtime/composition-root.js:155:19)",
+    "cleanupErrors": null,
+    "casesCompleted": 0
+  },
+  {
+    "path": "artifacts/doppler-choice/peer-browser.json",
+    "sha256": "b27bc366599e94faa19d0fe4adef829b03b20c7d4b1bbd7ed948fcc4881737ba",
+    "passed": false,
+    "failure": null,
+    "cleanupErrors": [
+      "page.evaluate: TypeError: service.dispose is not a function\n    at Module.close (http://127.0.0.1:35749/tests/fixtures/doppler-choice-peer-browser.js:96:143)\n    at async <anonymous>:316:30",
+      "page.evaluate: TypeError: service.dispose is not a function\n    at Module.close (http://127.0.0.1:35749/tests/fixtures/doppler-choice-peer-browser.js:96:143)\n    at async <anonymous>:316:30"
+    ],
+    "casesCompleted": 12
+  }
+]

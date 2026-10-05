@@ -35,3 +35,45 @@ export function openDopplerProvider(options: Pick<DopplerAdapterOptions, 'toGene
   config: ResolvedConfig; capsule: Parameters<import('doppler-gpu').DopplerRuntime['openCapsule']>[0];
   runtimePorts: RuntimePorts; sessionOptions?: Parameters<import('doppler-gpu').DopplerRuntime['openCapsule']>[1];
 }): Promise<DopplerProvider>;
+
+export type DopplerOperationRequest = Omit<OperationRequest, 'operation'> & {
+  operation: { name: OperationRequest['operation']['name'] | 'scoreChoices'; version: 1 };
+};
+export interface DopplerOperationProvider extends Closable {
+  readonly contract: Readonly<Record<string, unknown>>;
+  /** Completion evidence is verified before output is returned. */
+  execute(request: DopplerOperationRequest, control?: {
+    signal?: AbortSignal;
+    onPartial?: (event: OperationEvent) => void | Promise<void>;
+    adapterArtifactStore?: NonNullable<Parameters<DopplerRuntimeSession['executeOperation']>[1]>['adapterArtifactStore'];
+  }): Promise<{ output: unknown; evidence: OperationEvent; model: string; provider: 'doppler' }>;
+}
+export function createDopplerOperationProvider(options: DopplerAdapterBase & {
+  runtime?: DopplerAdapterBase['runtime'] & {
+    validateChoiceScoringResult?: (request: Record<string, unknown>, result: unknown) => unknown;
+  };
+}): DopplerOperationProvider;
+
+export interface ChoiceScoringRequest {
+  prompt: string; choices: readonly { id: string; label: string }[]; maxSeqLen: number;
+}
+export interface ChoiceScoringResult {
+  schema: 'doppler.choice-scores/v1'; interpretation: 'next-token-logits'; calibration: null;
+  choices: { id: string; label: string; tokenId: number; logit: number }[];
+  selectedId: string; promptTokenCount: number;
+}
+/** Extension for the existing host-supplied mesh operation registry. No grants are added. */
+export function createDopplerChoiceScoringAdapter(runtime: {
+  CHOICE_SCORING_CONTRACT: { schema: string };
+  snapshotChoiceScoringRequest: (request: unknown) => Readonly<ChoiceScoringRequest>;
+  validateChoiceScoringResult: (request: ChoiceScoringRequest, output: unknown) => ChoiceScoringResult;
+}): {
+  definition: Readonly<Record<string, unknown>>;
+  implementation: {
+    contractVersion: number;
+    validateRequest(request: { input: Omit<ChoiceScoringRequest, 'maxSeqLen'>; options: Pick<ChoiceScoringRequest, 'maxSeqLen'> }): void;
+    validateOutput(output: unknown, request: { input: Omit<ChoiceScoringRequest, 'maxSeqLen'>; options: Pick<ChoiceScoringRequest, 'maxSeqLen'> }): void;
+    compare(output: ChoiceScoringResult, reference: ChoiceScoringResult,
+      policy: { absoluteTolerance: number; relativeTolerance: number }): boolean;
+  };
+};

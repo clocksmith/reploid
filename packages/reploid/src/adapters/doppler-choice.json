@@ -1,0 +1,34 @@
+{
+  "schema": "reploid.pool.operation-definition/v1",
+  "version": 1,
+  "adapterId": "scoreChoices.v1",
+  "dopplerOperation": { "name": "scoreChoices", "version": 1 },
+  "workload": "decision.choice.v1",
+  "inputContract": {
+    "version": 1,
+    "allowedFields": ["prompt", "choices"],
+    "requiredFields": ["prompt", "choices"],
+    "fieldTypes": {}
+  },
+  "optionsContract": {
+    "version": 1,
+    "allowedFields": ["maxSeqLen"],
+    "requiredFields": ["maxSeqLen"],
+    "fieldTypes": { "maxSeqLen": "positive-integer" }
+  },
+  "outputContract": { "version": 1 },
+  "streaming": { "partial": false },
+  "maximumLimits": {
+    "maxInputBytes": 4194304,
+    "maxOutputBytes": 16777216,
+    "maxStreamBytes": 67108864,
+    "maxEvents": 4096,
+    "maxJobMs": 600000
+  },
+  "comparisonPolicyIds": ["numerical-tolerance"],
+  "inputClasses": {
+    "local": ["public_text", "private_text"],
+    "remote": ["public_text"],
+    "defaultRemote": "public_text"
+  }
+}

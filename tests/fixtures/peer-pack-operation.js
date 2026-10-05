@@ -38,12 +38,18 @@ export async function operationFixture(name = 'encodeSequence', registry = creat
     generate: { text: 'answer', tokenIds: [1, 2] },
     embed: { embeddings: [{ embedding: [0.5, 1] }] },
     rerank: { evidence: { schema: 'doppler_rerank_evidence/v1', scores: [{ index: 0, score: 1 }], ranking: [{ index: 0, rank: 1, score: 1 }] } },
-    encodeSequence: { tokens: [1, 2], tokenMask: [1, 1], embeddingDim: 2, pooledEmbedding: [0.5, 1], tokenEmbeddings: null, logits: null }
+    encodeSequence: { tokens: [1, 2], tokenMask: [1, 1], embeddingDim: 2, pooledEmbedding: [0.5, 1], tokenEmbeddings: null, logits: null },
+    scoreChoices: { schema: 'doppler.choice-scores/v1', interpretation: 'next-token-logits', calibration: null,
+      choices: [{ id: 'accept', label: 'yes', tokenId: 10, logit: 3 }, { id: 'reject', label: 'no', tokenId: 11, logit: 1 }],
+      selectedId: 'accept', promptTokenCount: 5 }
   }[name] || { value: 'fifth' };
   const input = { generate: { prompt: 'question' }, embed: { texts: ['document'], application: {} },
-    rerank: { query: 'q', documents: ['d'], application: {} }, encodeSequence: { sequence: 'AC' } }[name] || { arbitrary: true };
+    rerank: { query: 'q', documents: ['d'], application: {} }, encodeSequence: { sequence: 'AC' },
+    scoreChoices: { prompt: 'Choose:', choices: [{ id: 'accept', label: 'yes' }, { id: 'reject', label: 'no' }] }
+  }[name] || { arbitrary: true };
   const options = { generate: { maxTokens: 2, maxSeqLen: 16, temperature: 0, topP: 1, topK: 1, repetitionPenalty: 1,
-    repetitionPenaltyWindow: 8, useChatTemplate: false }, encodeSequence: { includeLogits: false, includeTokenEmbeddings: false } }[name] || {};
+    repetitionPenaltyWindow: 8, useChatTemplate: false }, encodeSequence: { includeLogits: false, includeTokenEmbeddings: false },
+    scoreChoices: { maxSeqLen: 16 } }[name] || {};
   const policy = { schema: 'poolday.operation-comparison/v1', operation: { name, version: registry[name].version },
     referenceDigest: await hashDopplerEvidence(output), ...(name === 'generate' ? { rule: 'exact-text' }
       : { rule: 'numerical-tolerance', absoluteTolerance: 0.001, relativeTolerance: 0 }) };
@@ -73,7 +79,7 @@ export async function operationFixture(name = 'encodeSequence', registry = creat
       const receipt = { ...payload, receiptDigest: await hashDopplerEvidence(payload) };
       let previousEventDigest = null;
       const events = [];
-      for (const status of ['partial', 'completed']) {
+      for (const status of (registry[name].definition.streaming.partial ? ['partial', 'completed'] : ['completed'])) {
         const body = { schema: contract.eventSchema, operation: request.operation, requestHash, assignmentHash,
           eventIndex: events.length, previousEventDigest, status, output, ...(status === 'completed' ? { receipt } : { delta: {} }) };
         const eventDigest = await hashDopplerEvidence(body);
