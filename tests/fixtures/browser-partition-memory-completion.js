@@ -124,6 +124,7 @@ try {
         if (b.done) { row.completed = true; break; }
       }
       assert(row.completed, 'Runtime must report correct completion at the configured token limit');
+      assert.equal(row.stopReason, 'eos-token', 'Answer reached the output limit instead of finishing');
     } catch (error) {
       row.error = error.message;
       if (testCase.cancel && error.message.includes('diagnostic prefill cancellation')) row.cancelled = true;
