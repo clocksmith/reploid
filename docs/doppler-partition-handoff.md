@@ -10,20 +10,50 @@ handoffs only; it does not rerun physical inference, browser checks or deploymen
 
 ### Product goal and boundaries
 
-Deliver dependable distributed generation: requesters hold no model weights,
-executors selectively acquire verified pieces, and multiple physical devices
-jointly produce complete answers. Isolate conversation state, keep cancellation
-independent, make recovery explicit, and preserve the current resource budgets.
+Deliver useful, dependable intelligence: generation, retrieval, and typed
+decision/scoring operations. Doppler makes model capabilities usable software
+components. Reploid combines models, storage, computation, tools and agents across
+participants, preserves work, and independently evaluates improvements. Distributed
+generation remains a concrete milestone: requesters hold no model weights,
+executors selectively acquire verified pieces, and physical devices jointly
+produce complete answers. Isolate conversation state, keep cancellation independent,
+make recovery explicit, and preserve the current resource budgets.
 
 Doppler owns computation, model mathematics, partition/state semantics, sampling
 and stopping. Reploid owns discovery, acquisition coordination, placement,
 permissions and conversations through its existing mesh/Poolday interfaces.
-Artifact verification and model dependencies remain Doppler-defined. Scoring,
-additional models, scheduler experiments and architecture expansion are deferred.
+Artifact verification and model dependencies remain Doppler-defined. The user has
+explicitly brought decision models and scoring into scope alongside generation
+and other inference. Task-quality screening and qualification precede adding a
+model or operation. Speculative catalog expansion, scheduler experiments and
+architecture expansion remain deferred.
 Doe's generation experiment stays closed. Dependable delivery does not require
 Doppler to adopt Doe.
 
-### Doppler: trace the package difference first
+### Shared end-to-end delivery
+
+Select a useful task and frozen outcome criteria. Compare suitable generation and
+decision/classification/scoring implementations against competent alternatives;
+choose by task quality, acquisition, memory, latency and integration cost. Extend
+Doppler's existing public execution/Capsule contracts for the selected operation,
+with defined output and score interpretation, identity, cancellation and cleanup.
+Uncalibrated scores do not become correctness probabilities.
+
+Compose these capabilities in Reploid's existing conversation/agent lifecycle:
+understand the objective, retrieve relevant context, judge eligible choices,
+generate or execute the selected action, inspect the outcome and preserve results.
+Permissions and resource eligibility stay in code. Run locally or on authorized
+participants when contribution improves capability, availability or total cost.
+Small decisions need not incur peer coordination. Model math remains Doppler-owned.
+
+Evaluate completed tasks against strong local and comparable centralized controls.
+Use retained observations to propose improvements to prompts, tools and policies;
+independently evaluate, adopt under grants and retain rollback. Test improvement
+on unfamiliar work and distinguish successful adoption from causal recursion.
+Standalone Doppler product work does not depend on resolving the partition
+replacement gate. The package diagnosis below gates that replacement specifically.
+
+### Doppler: trace the package difference before upgrading Reploid
 
 Start at [the recurrent-state controls receipt](https://github.com/clocksmith/doppler/blob/f0bd469b/tests/fixtures/partition-recurrent-state-controls-evidence.json).
 Original `0.6.3-dev.split.13` matches all 55 frozen-reference steps exactly when
