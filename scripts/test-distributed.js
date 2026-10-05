@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { createServer } from 'node:net';
 import { createHash } from 'node:crypto';
 import { gunzipSync } from 'node:zlib';
-import { readFile, mkdir, writeFile, access, readdir } from 'node:fs/promises';
+import { readFile, mkdir, writeFile, access } from 'node:fs/promises';
 import { createWriteStream } from 'node:fs';
 import { resolve } from 'node:path';
 import { once } from 'node:events';
@@ -126,13 +126,16 @@ try {
     '-R', `${modelPort}:127.0.0.1:${modelPort}`,
     peer, 'echo REPLoid_TRANSPORT_READY; cat >/dev/null']);
   await waitForLine(tunnel, line => line === 'REPLoid_TRANSPORT_READY');
-  for (const mode of ['repetition', 'cancellation']) {
-    phase = `long-prompt ${mode}`;
-    console.log(`[distributed] ${phase}: unchanged 1,588-token input and 1,420,000,000-byte budget`);
-    const capture = resolve(output, `memory-${mode}.json`);
+  for (const workload of [{ mode: 'reference', direction: 'mac-linux' },
+    { mode: 'reference', direction: 'linux-mac', reverse: true }, { mode: 'repetition' }, { mode: 'cancellation' }]) {
+    const { mode } = workload;
+    phase = mode === 'reference' ? `frozen reference ${workload.direction}` : `long-prompt ${mode}`;
+    console.log(`[distributed] ${phase}: 1,420,000,000-byte budget; ${mode === 'reference' ? 'unchanged reference generation options' : 'unchanged 1,588-token input'}`);
+    const capture = resolve(output, mode === 'reference' ? `reference-${workload.direction}.json` : `memory-${mode}.json`);
     const check = start(process.execPath, ['tests/fixtures/browser-partition-memory-completion.js'], { env: {
       ...process.env, REPLOID_DIAGNOSTIC_REQUESTS: resolve(root, 'tests/fixtures/distributed-memory-requests.json'),
       REPLOID_CAPTURE_OUT: capture, REPLOID_MEMORY_PHASE: mode,
+      REPLOID_REFERENCE_FILE: reference, REPLOID_REFERENCE_REVERSE: workload.reverse ? '1' : '0',
       REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
       REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_MODEL_BASE_URL: `http://127.0.0.1:${modelPort}/`
     } });
@@ -141,15 +144,27 @@ try {
     const receipt = JSON.parse(await readFile(capture));
     const cases = receipt.runs.map(run => ({ inputTokens: run.inputTokens,
       completed: run.completed === true, cancelled: run.cancelled === true, stopReason: run.stopReason }));
-    memory.push({ phase: mode, ok: code === 0, capture, cases,
-      answersComplete: cases.filter(run => !run.cancelled).every(run => run.stopReason === 'eos-token') });
+    if (mode === 'reference') {
+      const comparisons = receipt.runs.flatMap(run => run.numerical || []);
+      numerical ||= { policy: numericalPolicy, steps: 0, failed: 0, maxDifference: 0, tolerance: 0.001, directions: [] };
+      const direction = { direction: workload.direction, capture, partitionHosts: receipt.partitionHosts,
+        steps: comparisons.length, failed: comparisons.filter(step => !step.matches).length,
+        maxDifference: Math.max(...comparisons.map(step => step.maxDifference), 0), tolerance: 0.001 };
+      numerical.directions.push(direction); numerical.steps += direction.steps; numerical.failed += direction.failed;
+      numerical.maxDifference = Math.max(numerical.maxDifference, direction.maxDifference);
+      console.log(`[distributed] numerical (${numericalPolicy}, ${workload.direction}): ${direction.failed}/${direction.steps} exceed 0.001; maximum ${direction.maxDifference}`);
+    } else {
+      memory.push({ phase: mode, ok: code === 0, capture, cases,
+        answersComplete: cases.filter(run => !run.cancelled).every(run => run.stopReason === 'eos-token') });
+    }
     if (code !== 0) throw new Error(`Retained ${mode} workload failed (${code}); inspect ${capture}`);
   }
+  if (numericalPolicy === 'required' && numerical.failed) throw new Error('Frozen numerical tolerance exceeded');
   phase = 'conversation acceptance';
   console.log(`[distributed] ${phase}; evidence: ${output}`);
   const test = start(process.execPath, ['node_modules/@playwright/test/cli.js', 'test',
     'tests/e2e/chat-cooperative-real.spec.js', '--project=chromium', `--output=${resolve(output, 'conversation')}`], { env: {
-      ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, DOPPLER_PARTITION_REFERENCE_OUT: reference,
+      ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, DOPPLER_PARTITION_REFERENCE_OUT: '',
       PLAYWRIGHT_JSON_OUTPUT_FILE: resolve(output, 'playwright.json'),
       REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
       REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_E2E_SKIP_LOCAL_SERVER: '1',
@@ -159,21 +174,6 @@ try {
     } });
   test.stdout.pipe(process.stdout);
   const [exitCode] = await once(test, 'exit');
-  for (const entry of await readdir(resolve(output, 'conversation'), { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
-    try {
-      const comparisons = JSON.parse(await readFile(resolve(output, 'conversation', entry.name, 'numerical-comparison.json')));
-      numerical = { policy: numericalPolicy, steps: comparisons.length, failed: comparisons.filter(step => !step.matches).length,
-        maxDifference: Math.max(...comparisons.map(step => step.maxDifference)), tolerance: 0.001 };
-      try {
-        const receipt = JSON.parse(await readFile(resolve(output, 'conversation', entry.name, 'cooperative-completed.json')));
-        numerical.partitionHosts = receipt.observations.map(device => ({
-          index: device.loads[0].descriptor.index, host: device.physicalHost
-        })).sort((a, b) => a.index - b.index);
-      } catch (error) { if (error.code !== 'ENOENT') throw error; }
-      console.log(`[distributed] numerical (${numericalPolicy}): ${numerical.failed}/${numerical.steps} exceed ${numerical.tolerance}; maximum ${numerical.maxDifference}`);
-    } catch (error) { if (error.code !== 'ENOENT') throw error; }
-  }
   if (exitCode !== 0) {
     const report = JSON.parse(await readFile(resolve(output, 'playwright.json')));
     const specs = suite => [...(suite.specs || []), ...(suite.suites || []).flatMap(specs)];
@@ -199,6 +199,6 @@ try {
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure,
     numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
-    maxGpuBufferBytes: policy.maxGpuBufferBytes, referenceGeneration,
+    maxGpuBufferBytes: policy.maxGpuBufferBytes, bufferPool: policy.bufferPool, referenceGeneration,
     referenceSha256: '9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd' }, null, 2));
 }

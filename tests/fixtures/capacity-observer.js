@@ -31,7 +31,7 @@ export async function measureStandaloneDenial(page, model) {
     const started = performance.now();
     try {
       pipeline = await createPipeline(manifest, { runtimeConfig: {
-        shared: { debug: { profiler: { enabled: policy.profileGpu } } },
+        shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: policy.maxSeqLen } } } },
         storage: createHttpArtifactStorageContext(selected.source.baseUrl, manifest, { verifyHashes: true }) });
     } catch (cause) { error = cause.message; }

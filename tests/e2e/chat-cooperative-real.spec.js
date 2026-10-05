@@ -121,7 +121,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     console.log('Real contributor ready from peer files with its origin unavailable');
     await expect(requester.locator('[data-active-model-select]')).toHaveValue(new RegExp(model.id));
     await expect(requester.locator('[data-composer-send]')).toBeEnabled();
-    await requester.locator('[data-composer-input]').fill('Reply with only the word Hello.');
+    await requester.locator('[data-composer-input]').fill(reference ? 'Reply with only the word Hello.' : 'Greet me briefly.');
     await requester.locator('[data-composer-send]').click();
     await approve(requester);
     const executingThread = async () => {
@@ -135,7 +135,10 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await expect.poll(async () => (await executingThread()).messages.at(-1).content, { timeout: 120000 }).not.toBe('');
     await expect.poll(async () => (await executingThread()).attempts.at(-1).status, { timeout: 180000 }).toBe('completed');
     let completed = await history(requester);
-    expect(completed.threads[0].messages.at(-1).content.trim()).toBe('Hello');
+    const greeting = completed.threads[0].messages.at(-1).content.trim();
+    if (reference) expect(greeting).toBe('Hello');
+    else { expect(greeting).toMatch(/^(Hello|Hi|Hey)\b/i); expect(greeting.length).toBeLessThan(200); }
+    expect(completed.threads[0].attempts[0].execution.stopReason).toBe('eos-token');
     expect(completed.threads[0].attempts[0].execution.activationBytes).toBeGreaterThan(0);
     expect(completed.threads[0].attempts[0].execution).toMatchObject({ placement: 'two-device-layer-partition', modelIdentity: model.identity });
     await requester.screenshot({ path: info.outputPath('answer.png'), fullPage: true });

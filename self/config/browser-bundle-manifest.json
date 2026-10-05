@@ -1295,8 +1295,8 @@
     },
     {
       "path": "config/partition-policy.json",
-      "byteLength": 1584,
-      "sha256": "sha256:fde60a21aebbc9092ff428da385a2cd8f8acf0e69aaa74c5d245b619fb73fe16"
+      "byteLength": 1776,
+      "sha256": "sha256:3cf138a4bef67e42360a68e117e48bb8a92d2b173d648afd172b45db6d9059b4"
     },
     {
       "path": "config/reploid-environments.js",
@@ -1720,8 +1720,8 @@
     },
     {
       "path": "host/work-partitions.js",
-      "byteLength": 2344,
-      "sha256": "sha256:068bc90e923b9ca6806f839d4932898f33c44010299dcff3907b83b8359c696d"
+      "byteLength": 2375,
+      "sha256": "sha256:8701c38980a12e6294f7c6232dbd24caa350fed926268ec689f03c0e62cc054d"
     },
     {
       "path": "host/work-peer-jobs.js",
@@ -9349,5 +9349,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:4e7019ef6bea5ac444fcd751e6e7976685aab75529f0e0cb8417f78d9c495ec5"
+  "bundleHash": "sha256:119710c050ccd63399711132f855ac65bf44c516c77e21de12f473d0d1920ef3"
 }
