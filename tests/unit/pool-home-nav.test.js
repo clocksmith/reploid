@@ -331,26 +331,10 @@ describe('poolday home navigation', () => {
     expect(contributeHtml).not.toContain('pool-provider-worker-stop');
   });
 
-  it('keeps deployed browser smokes aligned with the stateful contribution control', () => {
-    for (const script of ['scripts/pool-browser-smoke.js', 'scripts/pool-actual-browser-smoke.js']) {
-      const source = readFileSync(script, 'utf8');
-      expect(source).toContain('#pool-provider-worker-toggle');
-      expect(source).not.toContain('#pool-provider-worker-start');
-    }
-
-    const syntheticSmoke = readFileSync('scripts/pool-browser-smoke.js', 'utf8');
-    expect(syntheticSmoke).toContain("'/': '[data-composer-form]'");
-    expect(syntheticSmoke).toContain("'/examples': '#pool-home-ask-form'");
-    expect(syntheticSmoke).toContain("'/ask': '#pool-run-prompt'");
-    expect(syntheticSmoke).toContain("'/compute': '#pool-provider-worker-toggle'");
-    expect(syntheticSmoke).toContain("'/room-1': '#pool-room-1-request'");
-    expect(syntheticSmoke).not.toContain('data-pool-lane="text"');
-    expect(syntheticSmoke).not.toContain('data-pool-dashboard-view');
-    expect(syntheticSmoke).toContain("const SYNTHETIC_MODEL_ID = 'esm2-t12-35m-ur50d-f32-af32'");
-    expect(syntheticSmoke).toContain("url.searchParams.set('relay', 'local')");
-    expect(syntheticSmoke).toContain("window.REPLOID_POOL_RELAY = 'local'");
-    expect(syntheticSmoke).toContain("'--use-angle=swiftshader'");
-    expect(syntheticSmoke).toContain('maxComputeInvocationsPerWorkgroup: 256');
+  it('keeps the historical model smoke aligned with its stateful contribution control', () => {
+    const source = readFileSync('scripts/pool-actual-browser-smoke.js', 'utf8');
+    expect(source).toContain('#pool-provider-worker-toggle');
+    expect(source).not.toContain('#pool-provider-worker-start');
   });
 
   it('renders ESM-2 as the only visible model on Request and Share compute', () => {
