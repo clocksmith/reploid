@@ -328,10 +328,8 @@
   --pool-motion-duration-optical-active: 2400ms;
 }
 
-/* Solid optical knobs, lit from the same upper-left source as the surfaces. */
+/* Neutral convex knobs share the surfaces' lighting and depth. */
 .pool-home {
-  --pool-gradient-marble-dark: radial-gradient(circle at 30% 24%, #ffffff 0%, #dadfe3 9%, #777f87 29%, #394149 58%, #161c23 82%, #869099 100%);
-  --pool-gradient-marble-light: radial-gradient(circle at 30% 24%, #ffffff 0%, #ffffff 10%, #edf0f2 28%, #a6afb8 65%, #707b87 85%, #e8edf1 100%);
-  --pool-dim-marble-dark-shadow: inset 0 1px 2px rgb(255 255 255 / 80%), inset -2px -3px 5px rgb(0 0 0 / 35%), 2px 3px 5px rgb(0 0 0 / 45%);
-  --pool-dim-marble-light-shadow: inset 0 1px 2px rgb(255 255 255 / 95%), inset -2px -3px 5px rgb(0 0 0 / 15%), 2px 3px 5px rgb(0 0 0 / 25%);
+  --pool-gradient-marble-dark: radial-gradient(circle at 30% 24%, #626262, #343434 45%, #242424 85%);
+  --pool-gradient-marble-light: radial-gradient(circle at 30% 24%, #ffffff, #eeeeee 45%, #d4d4d4 85%);
 }

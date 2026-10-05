@@ -48,12 +48,13 @@ export function renderExecutionRibbon() {
 }
 
 function routeMarkup(view) {
-  const requester = `<span class="execution-ribbon-node">You<small>Request / output</small></span>`;
-  if (!view.executors.length) return `${requester}<span class="execution-ribbon-wire is-unassigned" aria-hidden="true"></span><span class="execution-ribbon-node">Unassigned</span>`;
-  const nodes = view.executors.map(node => `<span class="execution-ribbon-node">${escape(node.label)}</span>`).join('<span class="execution-ribbon-wire" aria-hidden="true"></span>');
+  const nodeMarkup = (label, caption = '', pending = false) => `<span class="execution-ribbon-node${pending ? ' is-unassigned' : ''}"><span class="execution-ribbon-participant">${escape(label)}</span><small>${escape(caption)}</small></span>`;
+  const requester = nodeMarkup('You', 'Request / output');
+  if (!view.executors.length) return `${requester}<span class="execution-ribbon-wire is-unassigned" aria-hidden="true"></span>${nodeMarkup('Unassigned', '', true)}`;
+  const nodes = view.executors.map(node => nodeMarkup(node.label, node.id === view.requester ? 'Request / output' : '')).join('<span class="execution-ribbon-wire" aria-hidden="true"></span>');
   const group = `<span class="execution-ribbon-executors"><small class="execution-ribbon-model">${escape(view.model)}</small><span class="execution-ribbon-machines">${nodes}</span></span>`;
   // In a split, output returns B → A → requester through the same participants.
-  return view.requesterExecutes ? `${group}<span class="execution-ribbon-local">Request / output here</span>`
+  return view.requesterExecutes ? group
     : `${requester}<span class="execution-ribbon-wire" aria-hidden="true"></span>${group}`;
 }
 
