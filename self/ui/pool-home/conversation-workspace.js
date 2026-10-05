@@ -49,7 +49,7 @@ export function renderConversationWorkspace() {
         <h2 id="model-setup-title">Run on this device</h2>
         <label>Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
         <p data-download-size role="status">Checking download size…</p>
-        <p>Stored on this device. Sharing stays off.</p>
+        <p>Stored on this device.</p>
         <div class="chat-network-actions"><button class="pool-button" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download model</button></div>
       </dialog>
     </section>

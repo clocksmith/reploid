@@ -98,9 +98,10 @@ it('prepares once, queues requests behind preparation, and closes the prepared s
 });
 it('closing during preparation settles cleanup and never publishes the resident', async () => {
   const gate = deferred(), close = vi.fn();
-  const scheduler = createChatScheduler({ open: async () => { await gate.promise; return { run() {}, reset() {}, setAdapters() {}, close }; }, observe() {} });
+  const open = vi.fn(async () => { await gate.promise; return { run() {}, reset() {}, setAdapters() {}, close }; });
+  const scheduler = createChatScheduler({ open, observe() {} });
   const preparing = scheduler.prepare(model);
-  await Promise.resolve();
+  await vi.waitFor(() => expect(open).toHaveBeenCalledTimes(1));
   const rejected = expect(preparing).rejects.toThrow('Scheduler closed');
   const closing = scheduler.close(); gate.resolve();
   await rejected; await closing;

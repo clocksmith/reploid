@@ -329,3 +329,31 @@ it('does not let a borrowed contribution port mutate retained model descriptions
   expect(session.getState().models[0].availableAdapters[0].name).toBe('Original');
   await session.close();
 });
+
+it('reports the verified download size without opening an execution session', async () => {
+  const originalFetch = globalThis.fetch;
+  const bytes = new TextEncoder().encode(JSON.stringify({ modelId: CANONICAL_CHAT_MODELS[0].id, shards: [{ size: 200 }, { size: 300 }] }));
+  const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
+  const model = structuredClone(CANONICAL_CHAT_MODELS[0]);
+  model.identity = 'sha256:' + hash;
+  model.source.files = [{ role: 'model-manifest', path: 'manifest.json', sizeBytes: bytes.length },
+    { role: 'tokenizer', path: 'tokenizer.json', sizeBytes: 100 },
+    { role: 'model-piece-index', path: 'pieces.json', sizeBytes: 50 }];
+  const service = createChatTestService(), session = createChatSession({ storage: null, service, models: [model] });
+  const fetcher = vi.fn(async () => new Response(bytes));
+  globalThis.fetch = fetcher;
+  try {
+    expect((await session.getModelDownload(model.id)).sizeBytes).toBe(600 + bytes.length);
+    expect(fetcher).toHaveBeenCalledTimes(1);
+    expect(String(fetcher.mock.calls[0][0])).toBe(new URL('manifest.json', model.source.baseUrl).href);
+    expect(service.calls).toHaveLength(0);
+    const corrupt = bytes.slice(); corrupt[0] = 32;
+    fetcher.mockImplementation(async () => new Response(corrupt));
+    await expect(session.getModelDownload(model.id)).rejects.toThrow('identity mismatch');
+    fetcher.mockImplementation(async () => new Response(bytes.slice(1)));
+    await expect(session.getModelDownload(model.id)).rejects.toThrow('size mismatch');
+    fetcher.mockImplementation(async () => new Response('', { status: 503 }));
+    await expect(session.getModelDownload(model.id)).rejects.toThrow('Could not check');
+    expect(service.calls).toHaveLength(0);
+  } finally { globalThis.fetch = originalFetch; await session.close(); }
+});
