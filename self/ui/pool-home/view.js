@@ -1,6 +1,7 @@
 /**
  * @fileoverview Rendering and UI state helpers for the Poolday product home.
  */
+import { renderSettings } from './theme.js';
 import { renderOperationSharing } from './operation-sharing.js';
 import { renderWorkSurface, renderNetworkSurface, renderImproveSurface } from './work.js';
 import { renderConversationWorkspace } from './conversation-workspace.js';
@@ -1539,7 +1540,7 @@ export const getPoolDashboardView = () => {
   }
 };
 
-const renderPowerTower = () => '<span class="pool-power-tower" aria-hidden="true"><span>7</span><sup>7</sup></span>';
+const renderPowerTower = (inverse = false) => `<span class="pool-power-tower" aria-hidden="true">${inverse ? '<span>7</span><sup>7</sup>' : '<sup>7</sup><span>7</span>'}</span>`;
 
 export const renderNav = (activeRoute) => {
   const renderItem = ({ id, path, label }) => {
@@ -1556,6 +1557,7 @@ export const renderNav = (activeRoute) => {
       <div class="pool-nav-menu pool-segmented" id="pool-nav-menu">
         ${POOLDAY_NAV_ROUTES.map(renderItem).join('')}
       </div>
+      <div class="pool-primary-actions">
       <details class="pool-primary-network" data-pool-network-state="simulation">
         <summary aria-label="Network availability">
           <span class="pool-primary-network-dot" aria-hidden="true"></span>
@@ -1570,6 +1572,8 @@ export const renderNav = (activeRoute) => {
           <a href="${escapeHtml(getPeerInviteUrl())}" data-pool-invite-link>Invite</a>
         </div>
       </details>
+      ${renderSettings(renderPowerTower(true))}
+      </div>
     </nav>
   `;
 };

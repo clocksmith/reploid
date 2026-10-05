@@ -82,3 +82,28 @@ describe('conversation device scheduler', () => {
     await scheduler.close();
   });
 });
+
+it('prepares once, queues requests behind preparation, and closes the prepared session', async () => {
+  const gate = deferred(), close = vi.fn(), run = vi.fn(async () => 'answer');
+  const open = vi.fn(async () => { await gate.promise; return { run, reset() {}, setAdapters() {}, close }; });
+  const scheduler = createChatScheduler({ open, observe() {} });
+  const preparing = scheduler.prepare(model);
+  expect(scheduler.prepare(model)).toBe(preparing);
+  const pending = scheduler.schedule(request('alice', 'prepared'), { signal: new AbortController().signal });
+  expect(run).not.toHaveBeenCalled();
+  gate.resolve(); await preparing;
+  expect(await pending).toBe('answer');
+  expect(open).toHaveBeenCalledTimes(1);
+  await scheduler.close(); expect(close).toHaveBeenCalledTimes(1);
+});
+it('closing during preparation settles cleanup and never publishes the resident', async () => {
+  const gate = deferred(), close = vi.fn();
+  const scheduler = createChatScheduler({ open: async () => { await gate.promise; return { run() {}, reset() {}, setAdapters() {}, close }; }, observe() {} });
+  const preparing = scheduler.prepare(model);
+  await Promise.resolve();
+  const rejected = expect(preparing).rejects.toThrow('Scheduler closed');
+  const closing = scheduler.close(); gate.resolve();
+  await rejected; await closing;
+  expect(close).toHaveBeenCalledTimes(1);
+  expect(scheduler.getState().residentIdentity).toBe(null);
+});

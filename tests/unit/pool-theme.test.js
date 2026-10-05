@@ -15,7 +15,7 @@ describe('Reploid appearance selector', () => {
     expect(getPreferredTheme({ getItem: () => null }, () => ({ matches: true }))).toBe('light');
   });
 
-  it('applies and persists the bottom-center selector choice', () => {
+  it('applies and persists an explicit appearance choice', () => {
     const root = document.createElement('div');
     root.innerHTML = `<main class="pool-home">${renderThemeSelector()}</main>`;
     document.body.append(root);
@@ -26,14 +26,38 @@ describe('Reploid appearance selector', () => {
     });
 
     expect(root.querySelector('.pool-home').dataset.poolTheme).toBe('dark');
-    root.querySelector('[data-pool-theme-choice="light"]').click();
+    const select = root.querySelector('[data-pool-theme-choice]');
+    select.value = 'light';
+    select.dispatchEvent(new Event('change', { bubbles: true }));
     expect(root.querySelector('.pool-home').dataset.poolTheme).toBe('light');
     expect(document.documentElement.style.colorScheme).toBe('light');
     expect(writes).toEqual([[THEME_STORAGE_KEY, 'light']]);
-    expect(root.querySelector('[data-pool-theme-choice="light"]').getAttribute('aria-pressed')).toBe('true');
+    expect(select.value).toBe('light');
 
     binding.dispose();
     root.remove();
     applyTheme(document.body, 'dark');
   });
+});
+
+it('follows system changes until overridden and resumes following when System is selected', () => {
+  const root = document.createElement('div');
+  root.innerHTML = `<main class="pool-home">${renderThemeSelector()}</main>`;
+  const media = new EventTarget();
+  media.matches = true;
+  const binding = bindThemeSelector(root, { storage: { getItem: () => null, setItem() {} }, media: () => media });
+  const select = root.querySelector('[data-pool-theme-choice]');
+  const surface = root.querySelector('.pool-home');
+  expect(select.value).toBe('system');
+  expect(surface.dataset.poolTheme).toBe('light');
+  media.matches = false; media.dispatchEvent(new Event('change'));
+  expect(surface.dataset.poolTheme).toBe('dark');
+  select.value = 'light'; select.dispatchEvent(new Event('change', { bubbles: true }));
+  media.dispatchEvent(new Event('change'));
+  expect(surface.dataset.poolTheme).toBe('light');
+  select.value = 'system'; select.dispatchEvent(new Event('change', { bubbles: true }));
+  expect(surface.dataset.poolTheme).toBe('dark');
+  binding.dispose();
+  media.matches = true; media.dispatchEvent(new Event('change'));
+  expect(surface.dataset.poolTheme).toBe('dark');
 });

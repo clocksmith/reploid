@@ -61,7 +61,7 @@ export function createChatSession({
   let discovering = false;
 
   const execution = createChatExecution({ service, swarm, partitions, scheduler, models,
-    getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile });
+    getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => notifyAll() });
 
   const workspace = createChatWorkspace({
     meshId,
@@ -79,6 +79,10 @@ export function createChatSession({
   const getCatalogModels = () => copy(projectChatCatalog({
     models: [...models, ...peerModels], peers: swarm?.getState?.().consumer?.peers || [],
     partitionModels: partitions?.getModels() || []
+  }).map(model => {
+    const local = execution.getLocalState();
+    return local?.ready && local.modelIdentity === model.identity && !(model.adapters?.length)
+      ? { ...model, availability: 'ready', localReady: true } : model;
   }));
 
   const notifyAll = () => {
@@ -103,6 +107,7 @@ export function createChatSession({
       defaultModel: preferred(catalog.filter(model => model.availability === 'ready'))
         || preferred(catalog.filter(model => model.availability === 'busy')) || preferred(catalog) || null,
       discovering,
+      localModel: execution.getLocalState(),
       network: copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null }),
       scheduler: execution.getState(),
       placements: projectChatPlacements(wsState.threads)
@@ -125,6 +130,30 @@ export function createChatSession({
       return () => listeners.delete(listener);
     },
     refreshNetwork: notifyAll,
+    async prepareLocalModel(modelId) {
+      assertOpen();
+      const model = models.find(item => item.id === modelId);
+      assert(model, 'Choose a catalog model');
+      try { await execution.prepareLocal(model); } finally { notifyAll(); }
+    },
+    async getModelDownload(modelId, { signal } = {}) {
+      assertOpen();
+      const model = models.find(item => item.id === modelId);
+      assert(model?.source, 'Choose a catalog model');
+      const file = model.source.files.find(item => item.role === 'model-manifest');
+      const response = await fetch(new URL(file.path, model.source.baseUrl), { signal });
+      assert(response.ok, 'Could not check the model download');
+      const bytes = await response.arrayBuffer();
+      assert(bytes.byteLength === file.sizeBytes, 'Model manifest size mismatch');
+      const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))].map(b => b.toString(16).padStart(2, '0')).join('');
+      assert('sha256:' + hash === model.identity, 'Model manifest identity mismatch');
+      const manifest = JSON.parse(new TextDecoder().decode(bytes));
+      assert(manifest.modelId === model.id && Array.isArray(manifest.shards), 'Model manifest is incomplete');
+      const sizeBytes = manifest.shards.reduce((total, shard) => total + shard.size, 0)
+        + model.source.files.filter(item => item.role !== 'model-piece-index').reduce((total, item) => total + item.sizeBytes, 0);
+      assert(Number.isSafeInteger(sizeBytes) && sizeBytes > 0, 'Model download size is unavailable');
+      return { id: model.id, name: model.name, sizeBytes };
+    },
     getDraft: drafts.get,
     saveDraft: drafts.save,
     getDocumentSources: comparisonSources,

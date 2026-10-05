@@ -63,7 +63,7 @@ import {
   bindRunControls
 } from './controls.js';
 import { bindPoolPrism } from './prism.js';
-import { bindThemeSelector, renderThemeSelector } from './theme.js';
+import { bindThemeSelector } from './theme.js';
 import { bindResearchRoomActions, bindResearchWorkspace, hydrateAndBindResearchWorkspace } from './research-view.js';
 import { resetResearchStore } from './research-store.js';
 
@@ -340,7 +340,6 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
         })}
         ${renderContributionStatusBar()}
         <div class="pool-route-content"></div>
-        ${renderThemeSelector()}
       </main>
     `;
     else mount.querySelector('.pool-primary-nav').outerHTML = renderNav(routeId);

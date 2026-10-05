@@ -6,13 +6,15 @@ import { createWorkNetworkProvider } from '../providers/work-network-provider.js
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
-export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile }) {
+export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, onChange = () => {} }) {
+  let local = null;
   const resolveAdapter = createWorkAdapterResolver({ models });
 
   const sessionScheduler = scheduler || createChatScheduler({
     open: async reqModel => {
       const resident = createWorkResidentProvider({ service, model: reqModel,
-        resolveAdapter, generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters });
+        resolveAdapter, generation: profile.generation, maxOutcomeCharacters: profile.maxOutcomeCharacters,
+        onChange(state) { local = state; onChange(); } });
       await resident.prepare();
       return {
         run: (req, { signal: runSignal, onDelta }) => resident.generate(req.messages, onDelta,
@@ -45,7 +47,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       return partitions.generate(request, controls);
     }
 
-    if (request.permissions?.sharingScope === 'local') {
+    if (request.permissions?.sharingScope === 'local' || (local?.ready && local.modelIdentity === model.identity)) {
       const maxOutputTokens = Math.min(
         request.maxOutputTokens || profile.generation?.maxTokens || 1024,
         4096
@@ -109,6 +111,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
   let closing = null;
   return Object.freeze({
     execute,
+    prepareLocal: model => sessionScheduler.prepare(model),
+    getLocalState: () => local ? structuredClone(local) : null,
     getState: () => structuredClone(sessionScheduler.getState()),
     close() {
       // Injected schedulers are borrowed and may serve other conversation owners.

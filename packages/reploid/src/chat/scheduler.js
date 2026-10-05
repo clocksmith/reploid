@@ -10,6 +10,8 @@ export function createChatScheduler({ open, observe, policy = defaults, now = Da
   }
   const limits = structuredClone(policy), queues = new Map(), rotation = [], budgets = new Map(), identities = new Set();
   let active = null, resident = null, residentIdentity = null, closed = false, draining = null;
+  let preparing = null, preparingIdentity = null;
+  const lifetime = new AbortController();
   const retire = async () => {
     const previous = resident; resident = null; residentIdentity = null;
     await previous?.close();
@@ -29,6 +31,7 @@ export function createChatScheduler({ open, observe, policy = defaults, now = Da
   const pump = () => {
     if (draining || closed || !rotation.length) return;
     draining = (async () => {
+      await preparing?.catch(() => {});
       while (!closed && rotation.length) {
         const owner = rotation.shift(), queue = queues.get(owner), entry = queue.shift();
         if (queue.length) rotation.push(owner); else queues.delete(owner);
@@ -77,6 +80,29 @@ export function createChatScheduler({ open, observe, policy = defaults, now = Da
     })().finally(() => { draining = null; pump(); });
   };
   return Object.freeze({
+    prepare(model) {
+      assert(!closed, 'Scheduler is closed');
+      assert(model?.identity && model?.id, 'Identified model required');
+      if (residentIdentity === model.identity) return Promise.resolve();
+      if (preparing) {
+        assert(preparingIdentity === model.identity, 'Another model is being prepared');
+        return preparing;
+      }
+      assert(!active && !queued(), 'Wait for current conversations before changing the local model');
+      preparingIdentity = model.identity;
+      preparing = (async () => {
+        await retire();
+        lifetime.signal.throwIfAborted();
+        const opened = await open(structuredClone(model), { signal: lifetime.signal });
+        try {
+          lifetime.signal.throwIfAborted();
+          assert(typeof opened?.run === 'function' && typeof opened?.reset === 'function'
+            && typeof opened?.setAdapters === 'function' && typeof opened?.close === 'function', 'Resident execution contract is incomplete');
+          resident = opened; residentIdentity = model.identity;
+        } catch (error) { await opened?.close(); throw error; }
+      })().finally(() => { preparing = null; preparingIdentity = null; });
+      return preparing;
+    },
     getState: () => ({ queued: queued(), activeAttemptId: active?.request.attemptId || null, residentIdentity, closed }),
     schedule(request, { signal, onDelta = () => {}, onState = () => {} }) {
       assert(!closed, 'Contribution is closed'); signal.throwIfAborted();
@@ -113,11 +139,11 @@ export function createChatScheduler({ open, observe, policy = defaults, now = Da
       });
     },
     async close() {
-      closed = true;
+      closed = true; lifetime.abort(new Error('Scheduler closed'));
       const rejected = [...queues.values()].flat().map(entry => rejectQueued(entry, new Error('Contribution stopped before execution')));
       queues.clear(); rotation.length = 0;
       // The active operation is borrowed: stopping contribution waits, never releases it early.
-      await Promise.all(rejected); await draining; await retire();
+      await Promise.all(rejected); await draining; await preparing?.catch(() => {}); await retire();
     }
   });
 }

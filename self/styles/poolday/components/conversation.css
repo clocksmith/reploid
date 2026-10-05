@@ -175,3 +175,16 @@
   .network-card, .changes-workspace .change-card { padding: var(--pool-space-md); }
   .network-peer-row { align-items: start; flex-direction: column; gap: var(--pool-space-sm); }
 }
+
+.pool-home .chat-model-setup {
+  width: min(var(--pool-px-r24), calc(100vw - var(--pool-space-page-gutter) * 2));
+  max-height: calc(100dvh - var(--pool-space-page-gap) * 2);
+  padding: var(--pool-space-lg); color: var(--pool-surface-ink); overflow-y: auto;
+}
+.chat-model-setup[open] { display: grid; gap: var(--pool-space-md); }
+.chat-model-setup h2, .chat-model-setup p { margin: 0; }
+.chat-model-setup h2 { font-size: var(--pool-text-lg); }
+.chat-model-setup p, .chat-model-setup label { font-size: var(--pool-text-sm); }
+.chat-model-setup label { display: grid; gap: var(--pool-space-sm); }
+.chat-model-setup select { width: 100%; padding: var(--pool-space-sm); }
+.chat-model-setup .chat-network-actions { justify-content: flex-end; }

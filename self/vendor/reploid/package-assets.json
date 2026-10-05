@@ -306,8 +306,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 5202,
-      "sha256": "5582acd07b54420b00c49e5be7dcae0c94e66c4c9b18d593a1c8195b3e13db15"
+      "bytes": 5246,
+      "sha256": "bf208d6b5bb43b526296a8a943c335cbc9b01dec985f065968e493c741dd192c"
     },
     {
       "path": "chat/index.js",
@@ -321,8 +321,8 @@
     },
     {
       "path": "chat/scheduler.js",
-      "bytes": 8111,
-      "sha256": "da3059f28471bfa99cff4d7ce1581ef4935fb058decc583738d4e8297595b4f5"
+      "bytes": 9539,
+      "sha256": "413f233f4df3be5975434b3c45fa4aa4507e387650dfd349006d51a40bbf105e"
     },
     {
       "path": "chat/thread-grants.js",
