@@ -50,7 +50,7 @@ Guide to all documentation in the REPLOID project.
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
 ### Reference
-- **[Doppler resident partition handoff](./doppler-partition-handoff.md)** - Reploid session API, ownership and executable integration/accuracy checks
+- **[Reploid–Doppler development docket and partition handoff](./doppler-partition-handoff.md)** - Current numerical and UI tasks, operating constraints, session API, ownership and scoped acceptance
 - **[Architecture stabilization](./architecture-stabilization.md)** - Integration baseline, execution ownership, persistence and verification boundaries
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission
@@ -149,7 +149,7 @@ Read and maintain documentation by authority rather than by file count:
 8. Generated module inventory records paths, ownership, dependencies, and hashes.
 
 Former blueprint paths and consolidation provenance remain in the
-[deduplication map](../self/blueprints/deduplication-map.json). Source enumeration
+[deduplication audit](../self/blueprints/deduplication-audit.md). Source enumeration
 does not create Markdown blueprints unless a module introduces an architectural decision.
 
 ### For New Users
