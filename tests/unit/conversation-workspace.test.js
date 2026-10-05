@@ -125,7 +125,8 @@ describe('Conversation workspace', () => {
       } };
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, scheduler });
-    dispose = bindConversationWorkspace(root, session);
+    dispose = bindConversationWorkspace(root, { ...session,
+      getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
     const thread = session.createThread({ sharingScope: 'local' });
     const completion = session.send(thread, 'Hello');
     try {
@@ -152,7 +153,8 @@ describe('Conversation workspace', () => {
       } };
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, scheduler });
-    dispose = bindConversationWorkspace(root, session);
+    dispose = bindConversationWorkspace(root, { ...session,
+      getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
     const thread = session.createThread({ sharingScope: 'local' });
     await session.send(thread, 'Keep this question');
     expect(find('[data-message-stream]').textContent).toContain('Partial answer');
@@ -169,7 +171,8 @@ describe('Conversation workspace', () => {
     let peers = [];
     dispose(); await session.close();
     session = createChatSession({ storage: null, service, swarm: { getState: () => ({ discoveryScope: 'public', consumer: { peers } }) } });
-    dispose = bindConversationWorkspace(root, session);
+    dispose = bindConversationWorkspace(root, { ...session,
+      getModelDownload: async id => ({ id, sizeBytes: 123000000 }) });
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-model-control]').dataset.activity).toBe('idle');
     peers = [{ peerId: 'ready-peer', model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }];

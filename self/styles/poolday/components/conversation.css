@@ -177,6 +177,7 @@
 }
 
 .pool-home .chat-model-setup {
+  margin: auto;
   width: min(var(--pool-px-r24), calc(100vw - var(--pool-space-page-gutter) * 2));
   max-height: calc(100dvh - var(--pool-space-page-gap) * 2);
   padding: var(--pool-space-lg); color: var(--pool-surface-ink); overflow-y: auto;

@@ -268,6 +268,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   const onPageShow = event => { if (event.persisted) autoconnect.resume(); };
   const dispose = () => {
     autoconnect.close();
+    theme.dispose();
     window.removeEventListener('pagehide', onPageHide);
     window.removeEventListener('pageshow', onPageShow);
     disposeWorkView(); disposeChatWorkspace();
