@@ -1,0 +1,143 @@
+{
+  "schema": "reploid.choice-macos-acceptance/v1",
+  "scope": "Installed 0.6.4 archive on one physical Apple Metal browser. Whole-model relevance scoring, not peer acquisition, distributed partitions, held-out usefulness, or deployment qualification.",
+  "archiveSha256": "9d87c021969d20695a0b8ee6c2c0b9e1cbbd5ae39d98a2bd3e39c816072b355d",
+  "referenceSha256": "ae74e26c02c1042ba829b7a3863e0d17b63ffbea744b765179d0987dc0a22879",
+  "contractSha256": "1b8db7add7113b470206d056a84e585adad6ab7e59a23741fefb8b0c4059f182",
+  "manifestSha256": "9714458853bf59a48e891e37155439f1a40abfc517714d6bf41a8874735bf562",
+  "modelId": "qwen-3-reranker-0-6b-q4k-ehf16-af32",
+  "browserVersion": "154.0.8037.95",
+  "browserLaunch": {
+    "channel": "chrome",
+    "headless": true,
+    "args": [
+      "--enable-unsafe-webgpu",
+      "--use-angle=metal"
+    ]
+  },
+  "deviceInfo": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "device": "unknown",
+    "description": ""
+  },
+  "passed": true,
+  "correctChoices": 12,
+  "caseCount": 12,
+  "scoringTolerance": 0.05,
+  "generationToleranceUnchanged": 0.001,
+  "maximumAbsoluteLogitError": 0.010886430740356445,
+  "cases": [
+    {
+      "id": "capital",
+      "expectedId": "relevant",
+      "maximumAbsoluteLogitError": 0.0032711029052734375,
+      "passed": true
+    },
+    {
+      "id": "capital-other",
+      "expectedId": "irrelevant",
+      "maximumAbsoluteLogitError": 0.005646705627441406,
+      "passed": true
+    },
+    {
+      "id": "plant",
+      "expectedId": "relevant",
+      "maximumAbsoluteLogitError": 0.0037841796875,
+      "passed": true
+    },
+    {
+      "id": "plant-other",
+      "expectedId": "irrelevant",
+      "maximumAbsoluteLogitError": 0.010859966278076172,
+      "passed": true
+    },
+    {
+      "id": "reset",
+      "expectedId": "relevant",
+      "maximumAbsoluteLogitError": 0.000728607177734375,
+      "passed": true
+    },
+    {
+      "id": "reset-other",
+      "expectedId": "irrelevant",
+      "maximumAbsoluteLogitError": 0.010886430740356445,
+      "passed": true
+    },
+    {
+      "id": "invoice",
+      "expectedId": "relevant",
+      "maximumAbsoluteLogitError": 0.0038051605224609375,
+      "passed": true
+    },
+    {
+      "id": "invoice-other",
+      "expectedId": "irrelevant",
+      "maximumAbsoluteLogitError": 0.009911775588989258,
+      "passed": true
+    },
+    {
+      "id": "refund",
+      "expectedId": "relevant",
+      "maximumAbsoluteLogitError": 0.00296783447265625,
+      "passed": true
+    },
+    {
+      "id": "refund-other",
+      "expectedId": "irrelevant",
+      "maximumAbsoluteLogitError": 0.006115436553955078,
+      "passed": true
+    },
+    {
+      "id": "python",
+      "expectedId": "relevant",
+      "maximumAbsoluteLogitError": 0.0026569366455078125,
+      "passed": true
+    },
+    {
+      "id": "python-other",
+      "expectedId": "irrelevant",
+      "maximumAbsoluteLogitError": 0.007881879806518555,
+      "passed": true
+    }
+  ],
+  "checks": [
+    {
+      "id": "cancel-after-submission-settled",
+      "passed": true
+    },
+    {
+      "id": "resident-reuse-after-cancellation",
+      "passed": true
+    },
+    {
+      "id": "weights-unloaded-and-devices-destroyed",
+      "passed": true
+    }
+  ],
+  "reproducedHarnessFailure": {
+    "passed": false,
+    "failure": "Error: Physical GPU required\n    at requireValue (http://127.0.0.1:50925/tests/fixtures/doppler-choice-browser.js:7:59)\n    at Module.qualify (http://127.0.0.1:50925/tests/fixtures/doppler-choice-browser.js:31:5)\n    at async <anonymous>:316:30",
+    "cause": "Decision browser fixtures forced Vulkan on macOS. Host-specific launch options now select Metal on macOS and preserve Vulkan on Linux."
+  },
+  "rawEvidence": [
+    {
+      "path": "artifacts/doppler-choice/macos-vulkan-launch-failure.json",
+      "sha256": "f8cadc92c893a7dd751ad8e5a6bb624f6b8918616d8f5fa25f441eea9230d2de"
+    },
+    {
+      "path": "artifacts/doppler-choice/macos-metal-physical.json",
+      "sha256": "417faf97b7af7949d181a62ab1cf0bf7d2649695eab0f721df6892e17b521fcb"
+    },
+    {
+      "path": "artifacts/doppler-choice/macos-metal-physical.json.qualification.json",
+      "sha256": "0ffe9e743fa4ff6eb16dc4300ebe868d233169092ccac5abf9614de1554d0488"
+    }
+  ],
+  "productionPinChanged": false,
+  "limitations": [
+    "Twelve previously reviewed relevance cases, not unfamiliar tasks.",
+    "Scores remain uncalibrated logits.",
+    "This run does not install a production replacement or qualify chat numerics."
+  ]
+}

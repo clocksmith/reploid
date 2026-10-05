@@ -16,6 +16,18 @@ const placement = process.env.DOPPLER_DISPATCH_PLACEMENT
 assert(['linux-mac', 'mac-linux', 'mac-mac', 'linux-linux'].includes(placement), 'Explicit diagnostic placement required');
 const promptCount = Number(process.env.DOPPLER_DISPATCH_PROMPT_COUNT ?? reference.prompts.length);
 assert(Number.isInteger(promptCount) && promptCount > 0 && promptCount <= reference.prompts.length);
+const interventionPath = process.env.DOPPLER_CAPTURE_PIPELINE_INTERVENTION;
+const intervention = interventionPath ? JSON.parse(await readFile(interventionPath, 'utf8')) : null;
+let interventionShader = null;
+if (intervention) {
+  assert.equal(process.env.DOPPLER_TEST_ONLY_ARITHMETIC, '1', 'Pipeline substitutions are test-only');
+  assert.equal(observationMode, 'dispatch', 'Entry-point isolation uses operand observation, not contract acceptance');
+  assert(['main', 'main_subgroup'].includes(intervention.fromEntryPoint));
+  assert(['main', 'main_subgroup'].includes(intervention.toEntryPoint));
+  interventionShader = await readFile('node_modules/doppler-gpu/src/gpu/kernels/rmsnorm.wgsl', 'utf8');
+  assert.equal(createHash('sha256').update(interventionShader).digest('hex'), intervention.shaderSha256,
+    'Entry-point intervention must identify the exact installed shader');
+}
 const sourceRoot = process.env.DOPPLER_DISPATCH_SOURCE_ROOT;
 const sourcePaths = ['config/kernel-path-loader.js', 'gpu/kernels/rmsnorm.js',
   'inference/pipelines/text/linear-attention.js', 'inference/pipelines/text/attention/interpreter.js',
@@ -29,6 +41,7 @@ if (process.env.DOPPLER_DISPATCH_RMSNORM_SOURCE) {
   const body = await readFile(process.env.DOPPLER_DISPATCH_RMSNORM_SOURCE, 'utf8');
   sources.push({ path: 'gpu/kernels/rmsnorm.wgsl', body, sha256: createHash('sha256').update(body).digest('hex') });
 }
+assert(!intervention || sources.length === 0, 'Entry-point isolation cannot also substitute source files');
 assert(output && process.env.REPLOID_EXECUTOR_WS, 'Output and physical executor endpoint are required');
 const mac = await chromium.launch({ headless: true, args: ['--enable-unsafe-webgpu', '--use-angle=metal'] });
 const linux = await chromium.connect(process.env.REPLOID_EXECUTOR_WS);
@@ -46,7 +59,7 @@ try {
       else await route.continue();
     });
 
-    await context.addInitScript(() => {
+    await context.addInitScript(({ intervention, interventionShader }) => {
       const modules = new WeakMap();
       globalThis.pipelineObservations = [];
       globalThis.bindingObservations = [];
@@ -80,13 +93,19 @@ try {
         const original = GPUDevice.prototype[method];
         GPUDevice.prototype[method] = function (descriptor) {
           const code = modules.get(descriptor.compute.module);
+          const requestedEntryPoint = descriptor.compute.entryPoint;
+          const substituted = intervention !== null && code === interventionShader
+            && requestedEntryPoint === intervention.fromEntryPoint;
+          if (substituted) descriptor = { ...descriptor, compute: { ...descriptor.compute,
+            entryPoint: intervention.toEntryPoint } };
           if (descriptor.label?.includes('rmsnorm')) pipelineObservations.push({label:descriptor.label,
+            requestedEntryPoint, substituted,
             entryPoint:descriptor.compute.entryPoint, constants:descriptor.compute.constants,
             shaderSource: code, candidate:!!(code?.includes('refined_root') || code?.includes('reciprocal_residual'))});
           return original.call(this, descriptor);
         };
       }
-    });
+    }, { intervention, interventionShader });
     const page = await context.newPage(); pages.push(page);
     await page.goto('http://localhost:8000/config/chat-files.json');
     const metadata = [], observationErrors = [];
@@ -223,11 +242,14 @@ try {
     pipeline.shaderSha256 = createHash('sha256').update(pipeline.shaderSource).digest('hex');
     delete pipeline.shaderSource;
   }
+  if (intervention) assert(pipelineObservations.every(pipelines => pipelines.some(pipeline => pipeline.substituted)),
+    'The identified intervention must execute on both participants');
   const bindingObservations = await Promise.all(pages.map(page => page.evaluate(() => globalThis.bindingObservations)));
   const inputObservations = await Promise.all(pages.map(page => page.evaluate(() => globalThis.normalizationInputObservations)));
-  await writeFile(output, JSON.stringify({ pipelineObservations, surface: 'browser', placement, observationMode,
+  await writeFile(output, JSON.stringify({ pipelineObservations, intervention, surface: 'browser', placement, observationMode,
     sourceOverrides: sources.map(({ path, sha256 }) => ({ path, sha256 })),
-    scope: sources.length ? 'Test-only source substitution over pinned package; not installed-package or P2P qualification'
+    scope: intervention ? 'Test-only pipeline entry-point intervention; not installed-package acceptance or P2P qualification'
+      : sources.length ? 'Test-only source substitution over pinned package; not installed-package or P2P qualification'
       : 'Canonical package dispatch diagnosis with read-only operand copies; not P2P or numerical qualification',
     modelIdentity: reference.modelIdentity, planId: reference.planId, generation: reference.generation,
     bindingObservations, inputObservations, promptCount, descriptors, runs, observations, dispatchPipelines }));

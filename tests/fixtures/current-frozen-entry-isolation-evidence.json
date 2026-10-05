@@ -1,0 +1,1661 @@
+{
+  "schema": "reploid.current-frozen-entry-isolation/v1",
+  "scope": "Serial browser partitions on physical Mac and Linux. Local verified model files; Node carries activations. This is not P2P acquisition, public deployment, or release qualification.",
+  "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "modelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+  "generation": {
+    "maxTokens": 1024,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "precisionChanged": false,
+  "tolerance": 0.001,
+  "referenceChanged": false,
+  "productionPinChanged": false,
+  "candidateArchiveSha256": "9d87c021969d20695a0b8ee6c2c0b9e1cbbd5ae39d98a2bd3e39c816072b355d",
+  "baselineArchiveSha256": "162be004c1d07bbf15e2b2f8cd57f906b459f6ac7b24a1c514a47d9e806fabdb",
+  "runs": [
+    {
+      "placement": "mac-linux",
+      "mode": "baseline",
+      "captureSha256": "8a41c6e79e3716630b2b5477f10600ab53a9dda5ecc140589040288e6c56ab14",
+      "retainedPath": "artifacts/open-mesh/local-normalization/current55/current55-baseline-mac-linux.json.gz",
+      "retainedSha256": "3c71a6ee7993f6280541dafaf018312878065ee88036146ffbd72e2674ccdbec",
+      "intervention": null,
+      "descriptors": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "packageVersion": "0.6.3-dev.split.13",
+          "maxGpuBufferBytes": 1420000000
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "packageVersion": "0.6.3-dev.split.13",
+          "maxGpuBufferBytes": 1420000000
+        }
+      ],
+      "pipelineObservations": [
+        [
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": false,
+            "entryPoint": "main_subgroup",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": false,
+            "entryPoint": "main_subgroup",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ],
+        [
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": false,
+            "entryPoint": "main_subgroup",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": false,
+            "entryPoint": "main_subgroup",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ]
+      ],
+      "frozenComparison": {
+        "scope": "Frozen-reference comparison",
+        "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+        "captureSha256": "8a41c6e79e3716630b2b5477f10600ab53a9dda5ecc140589040288e6c56ab14",
+        "tolerance": 0.001,
+        "observedSteps": 55,
+        "failedSteps": 1,
+        "maxDifference": 0.0015010833740234375,
+        "tokensMatch": true,
+        "stoppingMatches": true
+      }
+    },
+    {
+      "placement": "mac-linux",
+      "mode": "candidate",
+      "captureSha256": "647ba7a33fbfb6c543014994b114b0bc1819d4a692f8e83bd6240e25d5741eeb",
+      "retainedPath": "artifacts/open-mesh/local-normalization/current55/current55-candidate-mac-linux.json.gz",
+      "retainedSha256": "7e40b3d2f4035768c6ca5bb1c4392af8c9747beb2cd57e32b208d3d8f8cd440b",
+      "intervention": null,
+      "descriptors": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "packageVersion": "0.6.4",
+          "maxGpuBufferBytes": 1420000000
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "packageVersion": "0.6.4",
+          "maxGpuBufferBytes": 1420000000
+        }
+      ],
+      "pipelineObservations": [
+        [
+          {
+            "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ],
+        [
+          {
+            "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ]
+      ],
+      "frozenComparison": {
+        "scope": "Frozen-reference comparison",
+        "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+        "captureSha256": "647ba7a33fbfb6c543014994b114b0bc1819d4a692f8e83bd6240e25d5741eeb",
+        "tolerance": 0.001,
+        "observedSteps": 55,
+        "failedSteps": 19,
+        "maxDifference": 0.0017175674438476562,
+        "tokensMatch": true,
+        "stoppingMatches": true
+      }
+    },
+    {
+      "placement": "mac-linux",
+      "mode": "baseline-main",
+      "captureSha256": "4ce926a0d61ae723818296d4d36c00b26e4042e0935068900c3efe4cbc15c770",
+      "retainedPath": "artifacts/open-mesh/local-normalization/current55/current55-baseline-main-mac-linux.json.gz",
+      "retainedSha256": "ca46172c3b1515a2e6c36184059567b8d671b36fd6775a3b54495bdb0a55c2d2",
+      "intervention": {
+        "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+        "fromEntryPoint": "main_subgroup",
+        "toEntryPoint": "main"
+      },
+      "descriptors": [
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "packageVersion": "0.6.3-dev.split.13",
+          "maxGpuBufferBytes": 1420000000
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "packageVersion": "0.6.3-dev.split.13",
+          "maxGpuBufferBytes": 1420000000
+        }
+      ],
+      "pipelineObservations": [
+        [
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": true,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": true,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ],
+        [
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": true,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": true,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ]
+      ],
+      "frozenComparison": {
+        "scope": "Frozen-reference comparison",
+        "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+        "captureSha256": "4ce926a0d61ae723818296d4d36c00b26e4042e0935068900c3efe4cbc15c770",
+        "tolerance": 0.001,
+        "observedSteps": 55,
+        "failedSteps": 19,
+        "maxDifference": 0.0017175674438476562,
+        "tokensMatch": true,
+        "stoppingMatches": true
+      }
+    },
+    {
+      "placement": "linux-mac",
+      "mode": "baseline",
+      "captureSha256": "be189774a29990dca82212b2eccdb468945d24c38f40439cad3f4498d039acf0",
+      "retainedPath": "artifacts/open-mesh/local-normalization/current55/current55-baseline-linux-mac.json.gz",
+      "retainedSha256": "41a2262e615161803cc14d583aa9ceffe62bfe3084b5b0f27cfedd0299e78c70",
+      "intervention": null,
+      "descriptors": [
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "packageVersion": "0.6.3-dev.split.13",
+          "maxGpuBufferBytes": 1420000000
+        },
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "packageVersion": "0.6.3-dev.split.13",
+          "maxGpuBufferBytes": 1420000000
+        }
+      ],
+      "pipelineObservations": [
+        [
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": false,
+            "entryPoint": "main_subgroup",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": false,
+            "entryPoint": "main_subgroup",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ],
+        [
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": false,
+            "entryPoint": "main_subgroup",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": false,
+            "entryPoint": "main_subgroup",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ]
+      ],
+      "frozenComparison": {
+        "scope": "Frozen-reference comparison",
+        "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+        "captureSha256": "be189774a29990dca82212b2eccdb468945d24c38f40439cad3f4498d039acf0",
+        "tolerance": 0.001,
+        "observedSteps": 55,
+        "failedSteps": 25,
+        "maxDifference": 0.0036873817443847656,
+        "tokensMatch": true,
+        "stoppingMatches": true
+      }
+    },
+    {
+      "placement": "linux-mac",
+      "mode": "candidate",
+      "captureSha256": "908980fe287d2ade285182d299d6f13630c853af0d04792ff28f54769589b3d8",
+      "retainedPath": "artifacts/open-mesh/local-normalization/current55/current55-candidate-linux-mac.json.gz",
+      "retainedSha256": "f32a029c9f5e123333625ad22abd217e6b12386b622ace816a9ae6b9d494d2f8",
+      "intervention": null,
+      "descriptors": [
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "packageVersion": "0.6.4",
+          "maxGpuBufferBytes": 1420000000
+        },
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "packageVersion": "0.6.4",
+          "maxGpuBufferBytes": 1420000000
+        }
+      ],
+      "pipelineObservations": [
+        [
+          {
+            "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ],
+        [
+          {
+            "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_default_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ]
+      ],
+      "frozenComparison": {
+        "scope": "Frozen-reference comparison",
+        "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+        "captureSha256": "908980fe287d2ade285182d299d6f13630c853af0d04792ff28f54769589b3d8",
+        "tolerance": 0.001,
+        "observedSteps": 55,
+        "failedSteps": 20,
+        "maxDifference": 0.0018854141235351562,
+        "tokensMatch": true,
+        "stoppingMatches": true
+      }
+    },
+    {
+      "placement": "linux-mac",
+      "mode": "baseline-main",
+      "captureSha256": "c7cbdf99a56c6f835499df0b940555d128219a6e9b385b7d7990ac25f220a636",
+      "retainedPath": "artifacts/open-mesh/local-normalization/current55/current55-baseline-main-linux-mac.json.gz",
+      "retainedSha256": "9b71b7361fa8de6175a6285a0914633165e288935a0c4396a9f5791344532838",
+      "intervention": {
+        "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683",
+        "fromEntryPoint": "main_subgroup",
+        "toEntryPoint": "main"
+      },
+      "descriptors": [
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "packageVersion": "0.6.3-dev.split.13",
+          "maxGpuBufferBytes": 1420000000
+        },
+        {
+          "platform": "mac",
+          "browser": "145.0.7632.6",
+          "packageVersion": "0.6.3-dev.split.13",
+          "maxGpuBufferBytes": 1420000000
+        }
+      ],
+      "pipelineObservations": [
+        [
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": true,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": true,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ],
+        [
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=0|PRE_RESIDUAL=0|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": true,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 0,
+              "OUTPUT_PRENORM": 0
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_subgroup_pipeline_OUTPUT_PRENORM=1|PRE_RESIDUAL=1|RMS_NORM_OFFSET=1|WEIGHT_IS_F16=1",
+            "requestedEntryPoint": "main_subgroup",
+            "substituted": true,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "WEIGHT_IS_F16": 1,
+              "PRE_RESIDUAL": 1,
+              "OUTPUT_PRENORM": 1
+            },
+            "candidate": false,
+            "shaderSha256": "57c810ce293ec2ae292ab2e3deebf5c2d4d7bb6183ac2d5e09e747f2244e2683"
+          },
+          {
+            "label": "rmsnorm_qk_default_pipeline_K_WEIGHT_IS_F16=1|Q_WEIGHT_IS_F16=1|RMS_NORM_OFFSET=1",
+            "requestedEntryPoint": "main",
+            "substituted": false,
+            "entryPoint": "main",
+            "constants": {
+              "RMS_NORM_OFFSET": 1,
+              "Q_WEIGHT_IS_F16": 1,
+              "K_WEIGHT_IS_F16": 1
+            },
+            "candidate": false,
+            "shaderSha256": "954bd142119d85832fb4938eef3b22939010d94e445ae0c308f7e9c9efca7fe3"
+          }
+        ]
+      ],
+      "frozenComparison": {
+        "scope": "Frozen-reference comparison",
+        "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+        "captureSha256": "c7cbdf99a56c6f835499df0b940555d128219a6e9b385b7d7990ac25f220a636",
+        "tolerance": 0.001,
+        "observedSteps": 55,
+        "failedSteps": 20,
+        "maxDifference": 0.0018854141235351562,
+        "tokensMatch": true,
+        "stoppingMatches": true
+      }
+    }
+  ],
+  "entryIsolation": [
+    {
+      "scope": "Same-implementation diagnostic comparison; does not replace acceptance reference",
+      "referenceSha256": "647ba7a33fbfb6c543014994b114b0bc1819d4a692f8e83bd6240e25d5741eeb",
+      "captureSha256": "4ce926a0d61ae723818296d4d36c00b26e4042e0935068900c3efe4cbc15c770",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 0,
+      "maxDifference": 0,
+      "tokensMatch": true,
+      "stoppingMatches": true,
+      "comparison": [
+        {
+          "prompt": 0,
+          "step": 0,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 0,
+          "step": 1,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 0,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 1,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 0,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 1,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 2,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 3,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 4,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 5,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 6,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 7,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 8,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 9,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 10,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 11,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 12,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 13,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 14,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 15,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 16,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 17,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 18,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 19,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 20,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 21,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 22,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 23,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 24,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 25,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 26,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 27,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 28,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 29,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 30,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 31,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 32,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 33,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 34,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 35,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 36,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 37,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 38,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 39,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 40,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 41,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 42,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 43,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 44,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 45,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 46,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 47,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 48,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 49,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 50,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        }
+      ]
+    },
+    {
+      "scope": "Same-implementation diagnostic comparison; does not replace acceptance reference",
+      "referenceSha256": "908980fe287d2ade285182d299d6f13630c853af0d04792ff28f54769589b3d8",
+      "captureSha256": "c7cbdf99a56c6f835499df0b940555d128219a6e9b385b7d7990ac25f220a636",
+      "tolerance": 0.001,
+      "observedSteps": 55,
+      "failedSteps": 0,
+      "maxDifference": 0,
+      "tokensMatch": true,
+      "stoppingMatches": true,
+      "comparison": [
+        {
+          "prompt": 0,
+          "step": 0,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 0,
+          "step": 1,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 0,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 1,
+          "step": 1,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 0,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 1,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 2,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 3,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 4,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 5,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 6,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 7,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 8,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 9,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 10,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 11,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 12,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 13,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 14,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 15,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 16,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 17,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 18,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 19,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 20,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 21,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 22,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 23,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 24,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 25,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 26,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 27,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 28,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 29,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 30,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 31,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 32,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 33,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 34,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 35,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 36,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 37,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 38,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 39,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 40,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 41,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 42,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 43,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 44,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 45,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 46,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 47,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 48,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 49,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        },
+        {
+          "prompt": 2,
+          "step": 50,
+          "maxDifference": 0,
+          "matches": true,
+          "tokenMatches": true,
+          "stoppingMatches": true
+        }
+      ]
+    }
+  ],
+  "finding": "Replacing only split.13 RMSNorm main_subgroup with the manifest-declared main exactly reproduces candidate logits, tokens and stopping at all 55 steps in both physical partition directions. This extends the prior first-prompt isolation to the current frozen reference. It does not establish mathematical superiority or pass the numerical gate.",
+  "acceptedReplacement": false,
+  "remaining": "Candidate fails 19/55 Mac-to-Linux and 20/55 Linux-to-Mac at unchanged 0.001. Manifest enforcement stays intact; do not restore silent substitution or replace the reference."
+}

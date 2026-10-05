@@ -6,6 +6,7 @@ import { createReadStream } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { resolve, sep, dirname } from 'node:path';
 import { chromium } from 'playwright';
+import { physicalWebGpuBrowserOptions } from './physical-webgpu-browser.js';
 import { computeCanonicalSha256 } from '../../../doppler/src/formats/canonical-hash.js';
 import { hashStableJson } from '../../../doppler/src/tooling/program-bundle/materialize.js';
 import { assertChoiceScoringReferenceTranscript } from '../../../doppler/src/config/choice-scoring-reference.js';
@@ -48,8 +49,8 @@ let browser;
 try {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
-  browser = await chromium.launch({ channel: process.env.REPLOID_E2E_CHROMIUM_CHANNEL || 'chrome', headless: true,
-    args: ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-angle=vulkan', '--disable-gpu-sandbox'] });
+  report.browserLaunch = physicalWebGpuBrowserOptions(process.platform, process.env.REPLOID_E2E_CHROMIUM_CHANNEL || 'chrome');
+  browser = await chromium.launch(report.browserLaunch);
   report.browserVersion = browser.version();
   const page = await browser.newPage();
   page.on('console', message => report.logs.push({ type: message.type(), message: message.text() }));
