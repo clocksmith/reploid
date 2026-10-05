@@ -41089,19 +41089,24 @@
       "sha256": "sha256:ae5adc1bd33343a2c2c9ff8779d42d3a1308f26274d56cd5d631caecd5ed5fd4"
     },
     {
+      "path": "vendor/reploid/adapters/doppler-choice.json",
+      "byteLength": 960,
+      "sha256": "sha256:968d1d6ad6c4f66e6a952779f961395307be080d10b9222a5e91ebbf61ab1207"
+    },
+    {
       "path": "vendor/reploid/adapters/doppler-stream.js",
-      "byteLength": 4049,
-      "sha256": "sha256:62f2a7427caba418c519b8bea9bf5a1dac466c1f626c9bb3128bdc832a7ddf85"
+      "byteLength": 4187,
+      "sha256": "sha256:e286dfe4492774afb05350e799ac695293504bfb2e2154495a4736410fd328a7"
     },
     {
       "path": "vendor/reploid/adapters/doppler.d.ts",
-      "byteLength": 2553,
-      "sha256": "sha256:87f57ecd78aa0da71f2a54cc8975f3864dfc07e28fd43c9d239490b258a8fa0c"
+      "byteLength": 4879,
+      "sha256": "sha256:8d704bfe9dd82e8aceb7b637eae7a4e6f61ecc18fb4c5497bb28b3d52c6d6de1"
     },
     {
       "path": "vendor/reploid/adapters/doppler.js",
-      "byteLength": 6346,
-      "sha256": "sha256:c501651b645e3f47248449413be0a3b75a4644daaa7424ca139829fe099963ef"
+      "byteLength": 12755,
+      "sha256": "sha256:0dc4a6abedc25190126338de174de96fef92c59e3e81b1247010c2cf22f1db86"
     },
     {
       "path": "vendor/reploid/agent/belief-planner.js",
@@ -41770,8 +41775,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 27524,
-      "sha256": "sha256:2a5e9ffec7f78d0bd6c947fb0c00ff090ceb4be29d0fcac5b57f354f87961aa7"
+      "byteLength": 27687,
+      "sha256": "sha256:73193d87c8c49139ce0791ab6697b446d5c63dc3ef9539d5f021832f714c6df7"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -41879,5 +41884,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:55403143f597de48f78d1846d016f24f00347b7b8455ad05af7fb84ba2edba5b"
+  "bundleHash": "sha256:a0ae797ead071a64642bf5881ee7c664b2f0397e45a991ae83db40b619ab16e3"
 }
