@@ -5,6 +5,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     if (!Number.isSafeInteger(policy[name]) || policy[name] <= 0) throw new Error('Invalid custody policy: ' + name);
   }
   const { createSupplier, createStore, createChannel, readArtifact, verifyArtifact, hash, hashBytes, checkpoints } = ports;
+  const now = ports.now || Date.now;
   const peers = new Map(), pending = new Map(), suppliers = new Map(), channels = new Map(), channelWaiters = new Map();
   const lifetime = new AbortController();
   const operations = new Set();
@@ -119,6 +120,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     const operation = (async () => {
       live();
       if (typeof message?.id !== 'string' || message.id.length > 128 || !valid(message.artifact)) throw new Error('Invalid file request');
+      if (message.maxExpiresAt !== undefined && !Number.isSafeInteger(message.maxExpiresAt)) throw new Error('Invalid file expiry limit');
       if (!supply || preparing + suppliers.size >= policy.maxTransfers) throw new Error('File contribution unavailable');
       const descriptor = offered.find(item => key(item) === key(message.artifact));
       if (!descriptor || message.requester?.peerId !== peer || !message.requester.publicKey) throw new Error('Unapproved artifact request');
@@ -144,8 +146,12 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         const artifactSet = { schema: 'reploid.pool.artifact-set/v1', identity: await hash(artifacts), artifacts };
         const index = { schema: 'reploid.pool.pack-custody-index/v2', artifactSetIdentity: artifactSet.identity,
           artifacts: [{ artifactId: artifact.artifactId, hash: artifact.hash, sizeBytes: artifact.sizeBytes, chunks }] };
+        // Both participants bound lifetime. Echoing the requester's absolute
+        // ceiling avoids comparing two independently minted full-duration grants.
+        const supplierExpiresAt = now() + policy.grantMs;
         const authorization = { schema: 'reploid.pool.pack-custody-authorization/v2', artifactSet,
-          transferId: crypto.randomUUID(), attempt: 1, expiresAt: Date.now() + policy.grantMs,
+          transferId: crypto.randomUUID(), attempt: 1,
+          expiresAt: Math.min(supplierExpiresAt, message.maxExpiresAt ?? supplierExpiresAt),
           requester: structuredClone(message.requester), suppliers: [{ peerId: identity.peerId, publicKey: identity.publicKey }],
           indexDigest: await hash(index), limits: { maxArtifactBytes: policy.maxArtifactBytes,
             maxChunkBytes: policy.channel.maxChunkBytes, maxTransferBytes: selected.sizeBytes,
@@ -154,9 +160,9 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         const supplier = await createSupplier({ authorization, index, peerId: identity.peerId, privateKey: identity.privateKey,
           inventory: { expiresAt: authorization.expiresAt, maxBytes: selected.sizeBytes,
             artifacts: [{ artifactId: artifact.artifactId, chunkIndexes: chunks.map(chunk => chunk.index) }] },
-          readChunk: async (_, chunk) => bytes.slice(chunk.offset, chunk.offset + chunk.sizeBytes) });
+          readChunk: async (_, chunk) => bytes.slice(chunk.offset, chunk.offset + chunk.sizeBytes), now });
         if (closed || !supply || epoch !== supplyEpoch) { supplier.close(); throw new Error('File contribution stopped'); }
-        const timer = setTimeout(() => { supplier.close(); suppliers.delete(authorization.transferId); }, policy.grantMs);
+        const timer = setTimeout(() => { supplier.close(); suppliers.delete(authorization.transferId); }, Math.max(0, authorization.expiresAt - now()));
         suppliers.set(authorization.transferId, { supplier, peer, timer });
         transport.sendToPeer(peer, 'reploid:custody-response', { id: message.id, authorization, index, inventory: supplier.inventory });
       } finally { preparing--; notify(); }
@@ -174,7 +180,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     return { path: `piece-${range.identity.slice(7)}.bin`, role: artifact.role,
       sizeBytes: range.size, hash: range.identity.slice(7), hashAlgorithm: 'sha256' };
   };
-  const request = (peer, artifact, signal, range) => new Promise((resolve, reject) => {
+  const request = (peer, artifact, signal, range, maxExpiresAt) => new Promise((resolve, reject) => {
     signal.throwIfAborted();
     if (pending.size >= policy.maxTransfers) { reject(new Error('File acquisition limit reached')); return; }
     const id = crypto.randomUUID();
@@ -186,25 +192,26 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     const abort = () => finish(signal.reason);
     const timer = setTimeout(() => finish(new Error('File offer timed out')), policy.channel.timeoutMs);
     pending.set(id, { peer, finish }); signal.addEventListener('abort', abort, { once: true });
-    if (!transport.sendToPeer(peer, 'reploid:custody-request', { id, artifact, range,
+    if (!transport.sendToPeer(peer, 'reploid:custody-request', { id, artifact, range, maxExpiresAt,
       requester: { peerId: identity.peerId, publicKey: identity.publicKey } })) finish(new Error('File peer disconnected'));
   });
   const acquireFrom = async (peer, source, combined, range) => {
       const artifact = rangeDescriptor(source, range);
       const bus = await channelFor(peer, combined);
-      const result = await request(peer, source, combined, range); combined.throwIfAborted();
+      const maxExpiresAt = now() + policy.grantMs;
+      const result = await request(peer, source, combined, range, maxExpiresAt); combined.throwIfAborted();
       const grant = result.authorization, declared = grant?.artifactSet?.artifacts?.[0];
       if (grant?.artifactSet?.artifacts?.length !== 1 || declared?.path !== artifact.path || declared?.sizeBytes !== artifact.sizeBytes
         || grant.requester?.peerId !== identity.peerId || grant.requester?.publicKey !== identity.publicKey
         || grant.suppliers?.length !== 1 || grant.suppliers[0].peerId !== peer
         || grant.limits.maxArtifactBytes > policy.maxArtifactBytes || grant.limits.maxChunkBytes > policy.channel.maxChunkBytes
         || grant.limits.maxTransferBytes > artifact.sizeBytes || grant.limits.requestTimeoutMs > policy.channel.timeoutMs
-        || grant.expiresAt > Date.now() + policy.grantMs) throw new Error('File grant exceeds requested acquisition');
+        || grant.expiresAt > maxExpiresAt) throw new Error('File grant exceeds requested acquisition');
       let store;
       try {
         store = await createStore({ authorization: grant, index: result.index, inventories: [result.inventory],
           requesterPrivateKey: identity.privateKey, requestChunk: (_, message, controls) => bus.requestChunk(message, controls),
-          checkpoints, signal: combined,
+          checkpoints, signal: combined, now,
           maxConcurrentChunks: Math.min(grant.limits.maxConcurrentChunks ?? 1, policy.channel.maxPendingRequests) });
         const bytes = await store.readArtifact(declared);
         await verifyArtifact(artifact, bytes); combined.throwIfAborted();
