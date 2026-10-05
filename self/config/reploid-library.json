@@ -19,6 +19,7 @@
       },
       "webrtc": {
         "protocol": "swarm/v1",
+        "maxMessageBytes": 262144,
         "rtcConfig": {
           "iceServers": [
             {

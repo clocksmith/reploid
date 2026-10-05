@@ -4,7 +4,7 @@
   "connectTimeoutMs": 30000,
   "grantMs": 900000,
   "grantClockSkewMs": 250,
-  "maxSeqLen": 8192,
+  "maxSeqLen": 6144,
   "maxGpuBufferBytes": 1420000000,
   "bufferPool": {
     "budget": {
@@ -18,8 +18,8 @@
   "prefillChunkLayers": 1,
   "limits": {
     "maxTokens": 4096,
-    "maxPromptTokens": 4096,
-    "maxActivationBytes": 8388608,
+    "maxPromptTokens": 2048,
+    "maxActivationBytes": 16777216,
     "maxOutputCharacters": 16000,
     "maxAttempts": 128,
     "maxConcurrentAttempts": 2
@@ -27,8 +27,8 @@
   "executionChannel": {
     "maxFrameBytes": 16384,
     "maxControlBytes": 131072,
-    "maxPayloadBytes": 8388608,
-    "maxPendingBytes": 16777216,
+    "maxPayloadBytes": 16777216,
+    "maxPendingBytes": 33554432,
     "maxPendingRequests": 8,
     "maxRequestsPerChannel": 65536,
     "maxBufferedBytes": 1048576,
@@ -49,8 +49,8 @@
   "inputChannel": {
     "maxFrameBytes": 16384,
     "maxControlBytes": 131072,
-    "maxPayloadBytes": 8388608,
-    "maxPendingBytes": 16777216,
+    "maxPayloadBytes": 16777216,
+    "maxPendingBytes": 33554432,
     "maxPendingRequests": 8,
     "maxRequestsPerChannel": 65536,
     "maxBufferedBytes": 1048576,

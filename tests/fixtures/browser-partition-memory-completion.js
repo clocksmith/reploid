@@ -19,8 +19,12 @@ const generation = reference?.generation || { ...requests[0].model.generation, .
   maxSeqLen: policy.maxSeqLen };
 assert(generation.maxTokens <= policy.limits.maxTokens);
 assert(generation.maxSeqLen <= policy.maxSeqLen);
-assert(['reference', 'repetition', 'cancellation', 'cancel-only'].includes(phase));
-const cases = reference ? reference.prompts.map((messages, index) => ({
+assert(['reference', 'repetition', 'cancellation', 'cancel-only', 'capacity'].includes(phase));
+const capacityModel = phase === 'capacity' ? JSON.parse(await readFile(new URL('../../self/config/chat-models.json', import.meta.url)))
+  .find(model => model.id === process.env.REPLOID_TEST_MODEL) : null;
+if (phase === 'capacity') assert(capacityModel, 'Capacity diagnostic requires a catalog model');
+const cases = capacityModel ? [{ request: { ...requests[0], model: { ...capacityModel, generation } }, tokens: 494 }]
+  : reference ? reference.prompts.map((messages, index) => ({
   request: { ...requests[0], messages }, expected: reference.expected[index] })) : phase === 'repetition'
   ? [{ request: requests[0], tokens: 494 }, { request: requests[1], tokens: 1588 }, { request: requests[1], tokens: 1588 }]
   : [{ request: requests[1], tokens: 1588, cancel: true }, { request: requests[1], tokens: 1588 }];
@@ -57,11 +61,15 @@ try {
       if (identity !== model.identity) throw Error('Model identity changed');
       const manifest = JSON.parse(new TextDecoder().decode(bytes));
       const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
+        splitLayer: model.partitionSplitLayer,
         activationDtype: manifest.inference.session.compute.defaults.activationDtype });
       const planId = runtime.hashLayerPartitionPlan(plan);
       await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
+      globalThis.gpuValidationErrors = [];
+      getDevice().addEventListener('uncapturederror', event => gpuValidationErrors.push(event.error.message));
       globalThis.memorySnapshot = () => ({ device: runtime.inspectDeviceMemory(),
-        pool: getBufferPool().getStats(), activeLabels: getBufferPool().getLabelStats() });
+        pool: getBufferPool().getStats(), activeLabels: getBufferPool().getLabelStats(),
+        gpuValidationErrors: [...gpuValidationErrors] });
       globalThis.settleMemory = async () => { await getDevice().queue.onSubmittedWorkDone(); return memorySnapshot(); };
       globalThis.rejectOversizedAllocation = async () => {
         const before = await settleMemory();
@@ -97,7 +105,8 @@ try {
       };
       return { descriptor: resident.getDescriptor(), packageVersion: config.DOPPLER_PACKAGE_VERSION,
         beforePreparation, afterPreparation: await settleMemory(), planId };
-    }, { model: { ...requests[0].model, generation }, index, modelSource: process.env.REPLOID_MODEL_BASE_URL || 'http://127.0.0.1:9230/' });
+    }, { model: { ...(capacityModel || requests[0].model), generation }, index,
+      modelSource: process.env.REPLOID_MODEL_BASE_URL || 'http://127.0.0.1:9230/' });
     descriptors.push({ ...prepared, platform: slot ? 'linux' : 'mac', browser: browser.version() });
     console.log(JSON.stringify({ prepared: index, bytes: prepared.afterPreparation.device.liveBytes }));
   }
@@ -156,6 +165,8 @@ try {
       }
       assert(row.completed, 'Runtime must report correct completion at the configured token limit');
       assert.equal(row.stopReason, 'eos-token', 'Answer reached the output limit instead of finishing');
+      for (const page of pages) assert.deepEqual(await page.evaluate(() => gpuValidationErrors), [],
+        'A complete answer cannot come from rejected WebGPU submissions');
       if (reference) {
         assert.equal(row.steps, testCase.expected.steps.length);
         assert.equal(row.text, testCase.expected.text);
@@ -181,6 +192,9 @@ try {
       for (const page of pages) row.allocationRejections.push(await page.evaluate(() => rejectOversizedAllocation()));
     }
   }
+} catch (error) {
+  evidence.failure = { message: error.message };
+  throw error;
 } finally {
   evidence.afterResidentClose = [];
   for (const page of pages) evidence.afterResidentClose.push(await page.evaluate(async () => {

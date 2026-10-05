@@ -13,6 +13,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   const source = await files.preparePartitionSource(selected, { signal, onProgress });
   const manifest = source.manifest;
   const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
+    splitLayer: selected.partitionSplitLayer,
     activationDtype: manifest.inference.session.compute.defaults.activationDtype });
   const planId = runtime.hashLayerPartitionPlan(plan);
   const model = { ...selected, generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen } };

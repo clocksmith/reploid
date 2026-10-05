@@ -8,12 +8,21 @@ vi.mock('../../self/vendor/reploid/transport/index.js', () => ({
   createSwarmTransport: ports.createTransport, createToolOfferChannel: vi.fn(),
   TOOL_OFFER_MESSAGE: 'offer', TOOL_OFFER_ACK: 'ack'
 }));
+vi.mock('../../self/config/doppler-local-models.js', async importOriginal => {
+  const actual = await importOriginal();
+  const base = actual.LOCAL_DOPPLER_MODELS.find(model => model.id === 'qwen-3-5-2b-q4k-ehaf16');
+  // Exercise the explicit whole-request compatibility contract independently
+  // of the production catalog's verified partition acquisition descriptors.
+  const wholeRequest = { ...base, id: 'whole-model-lifecycle-fixture', source: { ...base.source,
+    files: base.source.files.filter(file => file.role !== 'model-piece-index') } };
+  return { ...actual, LOCAL_DOPPLER_MODELS: [...actual.LOCAL_DOPPLER_MODELS, wholeRequest] };
+});
 import { createWorkSwarm } from '../../self/host/work-swarm.js';
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 let values;
-const fixture = (service = {}) => createWorkSwarm({ service,
-  createPartitions: () => ({ getModels: () => [], stop: async () => {}, close: async () => {} }), storage: {
+const fixture = (service = {}, partitions = {}) => createWorkSwarm({ service,
+  createPartitions: () => ({ getModels: () => [], stop: async () => {}, close: async () => {}, ...partitions }), storage: {
   getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value)
 }, createModelFiles: () => ({ attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}),
   prepareSource: async model => model.id }), networkOptions: () => ({ autoConnect: true, discoveryScope: 'public',
@@ -66,6 +75,20 @@ it('coalesces attempts and disconnect retires an already opening transport', asy
 
 afterEach(() => vi.unstubAllGlobals());
 
+it.each(['qwen-3-5-0-8b-q4k-ehaf16', 'qwen-3-5-2b-q4k-ehaf16'])(
+  'contributes %s through the verified partition interface', async modelId => {
+    vi.stubGlobal('navigator', { gpu: {} });
+    ports.ensure.mockResolvedValue({ peerId: 'fixture', contribution: {} });
+    ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(),
+      onMessage: vi.fn(), broadcast: vi.fn() });
+    const service = { open: vi.fn(), close: vi.fn() }, contribute = vi.fn();
+    const swarm = fixture(service, { contribute });
+    await swarm.share(modelId, true);
+    expect(contribute).toHaveBeenCalledExactlyOnceWith(modelId, true);
+    expect(service.open).not.toHaveBeenCalled();
+    await swarm.close();
+  });
+
 it('reserves contribution startup before connecting and stop prevents a late model load', async () => {
   vi.stubGlobal('navigator', { gpu: {} });
   const identity = deferred(); ports.ensure.mockReturnValue(identity.promise);
@@ -98,7 +121,7 @@ async function supplierFixture() {
   ports.ensure.mockResolvedValue(identity);
   vi.stubGlobal('navigator', { gpu: {} });
   const handlers = new Map(), ads = [], sent = [], load = deferred(), settlement = deferred();
-  const session = { loaded: true, modelId: 'qwen-3-5-2b-q4k-ehaf16', manifestHash: '502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc',
+  const session = { loaded: true, modelId: 'whole-model-lifecycle-fixture', manifestHash: '502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc',
     resetGenerationState: vi.fn(), async *stream(messages) {
       yield { type: 'text-delta', text: messages.at(-1).content };
       if (messages.at(-1).content === 'hold') await settlement.promise;

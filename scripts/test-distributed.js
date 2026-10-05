@@ -12,10 +12,15 @@ import { once } from 'node:events';
 import { physicalWebGpuBrowserOptions } from '../tests/fixtures/physical-webgpu-browser.js';
 
 const root = resolve(import.meta.dirname, '..');
+const modelArgument = process.argv.indexOf('--model');
+const modelId = modelArgument < 0 ? 'qwen-3-5-0-8b-q4k-ehaf16' : process.argv[modelArgument + 1];
+if (!modelId || modelId.startsWith('--')) throw new Error('--model requires a catalog model ID');
+const capacityDiagnostic = process.argv.includes('--capacity');
+const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic;
 const peer = process.env.REPLOID_TEST_PEER || 'x@128.tail995236.ts.net';
 const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || '/home/x/deco/reploid';
 const modelDirectory = process.env.DOPPLER_CHAT_MODEL_DIR
-  || resolve(root, '../doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16');
+  || resolve(root, `../doppler/models/local/${modelId}`);
 const referenceSource = process.env.DOPPLER_PARTITION_REFERENCE_OUT
   || resolve(root, 'tests/fixtures/distributed-reference.json.gz');
 const output = resolve(process.env.REPLOID_DISTRIBUTED_OUTPUT_ROOT || resolve(root, 'artifacts/distributed'),
@@ -73,7 +78,9 @@ async function stopChildren() {
     clearTimeout(timer); clearTimeout(force);
   }
 }
+let interruptedBy = null;
 for (const signal of ['SIGINT', 'SIGTERM']) process.on(signal, () => {
+  interruptedBy = signal;
   for (const child of children) child.kill('SIGTERM');
 });
 
@@ -91,7 +98,9 @@ try {
   await writeFile(reference, bytes);
   referenceGeneration = JSON.parse(bytes).generation;
   const model = JSON.parse(await readFile(resolve(modelDirectory, 'manifest.json')));
-  const catalog = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json')))[0];
+  const catalog = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json'))).find(model => model.id === modelId);
+  if (!catalog) throw new Error('Selected model is not in the application catalog');
+  if (numericalPolicy === 'required' && !frozenWorkloads) throw new Error('This workload has no applicable frozen numerical comparison');
   if (createHash('sha256').update(await readFile(resolve(modelDirectory, 'manifest.json'))).digest('hex') !== catalog.identity.slice(7)) {
     throw new Error('Local model differs from the selected catalog model');
   }
@@ -126,15 +135,18 @@ try {
     '-R', `${modelPort}:127.0.0.1:${modelPort}`,
     peer, 'echo REPLoid_TRANSPORT_READY; cat >/dev/null']);
   await waitForLine(tunnel, line => line === 'REPLoid_TRANSPORT_READY');
-  for (const workload of [{ mode: 'reference', direction: 'mac-linux' },
-    { mode: 'reference', direction: 'linux-mac', reverse: true }, { mode: 'repetition' }, { mode: 'cancellation' }]) {
+  const workloads = capacityDiagnostic ? [{ mode: 'capacity' }] : frozenWorkloads
+    ? [{ mode: 'reference', direction: 'mac-linux' }, { mode: 'reference', direction: 'linux-mac', reverse: true },
+      { mode: 'repetition' }, { mode: 'cancellation' }] : [];
+  for (const workload of workloads) {
     const { mode } = workload;
     phase = mode === 'reference' ? `frozen reference ${workload.direction}` : `long-prompt ${mode}`;
-    console.log(`[distributed] ${phase}: 1,420,000,000-byte budget; ${mode === 'reference' ? 'unchanged reference generation options' : 'unchanged 1,588-token input'}`);
+    console.log(`[distributed] ${phase}: 1,420,000,000-byte budget; ${mode === 'reference' ? 'unchanged reference generation options' : mode === 'capacity' ? `${modelId}, 494-token comparison` : 'unchanged 1,588-token input'}`);
     const capture = resolve(output, mode === 'reference' ? `reference-${workload.direction}.json` : `memory-${mode}.json`);
     const check = start(process.execPath, ['tests/fixtures/browser-partition-memory-completion.js'], { env: {
       ...process.env, REPLOID_DIAGNOSTIC_REQUESTS: resolve(root, 'tests/fixtures/distributed-memory-requests.json'),
       REPLOID_CAPTURE_OUT: capture, REPLOID_MEMORY_PHASE: mode,
+      REPLOID_TEST_MODEL: modelId,
       REPLOID_REFERENCE_FILE: reference, REPLOID_REFERENCE_REVERSE: workload.reverse ? '1' : '0',
       REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
       REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_MODEL_BASE_URL: `http://127.0.0.1:${modelPort}/`
@@ -155,38 +167,42 @@ try {
       console.log(`[distributed] numerical (${numericalPolicy}, ${workload.direction}): ${direction.failed}/${direction.steps} exceed 0.001; maximum ${direction.maxDifference}`);
     } else {
       memory.push({ phase: mode, ok: code === 0, capture, cases,
-        answersComplete: cases.filter(run => !run.cancelled).every(run => run.stopReason === 'eos-token') });
+        answersComplete: cases.length > 0 && cases.filter(run => !run.cancelled)
+          .every(run => run.completed && run.stopReason === 'eos-token') });
     }
-    if (code !== 0) throw new Error(`Retained ${mode} workload failed (${code}); inspect ${capture}`);
+    if (code !== 0) throw new Error(`${receipt.failure?.message || `Retained ${mode} workload failed (${code})`}; inspect ${capture}`);
   }
-  if (numericalPolicy === 'required' && numerical.failed) throw new Error('Frozen numerical tolerance exceeded');
-  phase = 'conversation acceptance';
-  console.log(`[distributed] ${phase}; evidence: ${output}`);
-  const test = start(process.execPath, ['node_modules/@playwright/test/cli.js', 'test',
-    'tests/e2e/chat-cooperative-real.spec.js', '--project=chromium', `--output=${resolve(output, 'conversation')}`], { env: {
-      ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, DOPPLER_PARTITION_REFERENCE_OUT: '',
-      PLAYWRIGHT_JSON_OUTPUT_FILE: resolve(output, 'playwright.json'),
-      REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
-      REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_E2E_SKIP_LOCAL_SERVER: '1',
-      REPLOID_E2E_CHROMIUM_CHANNEL: 'chrome', REPLOID_E2E_CUSTODY_TRACE: '1', REPLOID_E2E_REPLICA: '1',
-      REPLOID_E2E_DOCUMENTS: '1',
-      REPLOID_TRACK_NUMERICAL_DRIFT: numericalPolicy === 'tracked' ? '1' : '0'
-    } });
-  test.stdout.pipe(process.stdout);
-  const [exitCode] = await once(test, 'exit');
-  if (exitCode !== 0) {
-    const report = JSON.parse(await readFile(resolve(output, 'playwright.json')));
-    const specs = suite => [...(suite.specs || []), ...(suite.suites || []).flatMap(specs)];
-    const errors = report.suites.flatMap(specs)
-      .flatMap(spec => spec.tests).flatMap(test => test.results).flatMap(result => result.errors || []);
-    const message = errors[0]?.message?.split('\n')[0] || `Conversation acceptance failed (${exitCode})`;
-    throw new Error(`${message}; inspect ${output}`);
-  }
-  if (memory.some(check => !check.answersComplete)) {
-    throw new Error('Long-prompt generation reached the token limit; complete answers are still required');
+  if (numericalPolicy === 'required' && numerical?.failed) throw new Error('Frozen numerical tolerance exceeded');
+  if (!capacityDiagnostic) {
+    phase = 'conversation acceptance';
+    console.log(`[distributed] ${phase}; evidence: ${output}`);
+    const test = start(process.execPath, ['node_modules/@playwright/test/cli.js', 'test',
+      'tests/e2e/chat-cooperative-real.spec.js', '--project=chromium', `--output=${resolve(output, 'conversation')}`], { env: {
+        ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, DOPPLER_PARTITION_REFERENCE_OUT: '',
+        REPLOID_TEST_MODEL: modelId, REPLOID_E2E_CAPACITY: frozenWorkloads ? '0' : '1',
+        PLAYWRIGHT_JSON_OUTPUT_FILE: resolve(output, 'playwright.json'),
+        REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
+        REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_E2E_SKIP_LOCAL_SERVER: '1',
+        REPLOID_E2E_CHROMIUM_CHANNEL: 'chrome', REPLOID_E2E_CUSTODY_TRACE: '1', REPLOID_E2E_REPLICA: '1',
+        REPLOID_E2E_DOCUMENTS: '1',
+        REPLOID_TRACK_NUMERICAL_DRIFT: numericalPolicy === 'tracked' ? '1' : '0'
+      } });
+    test.stdout.pipe(process.stdout);
+    const [exitCode] = await once(test, 'exit');
+    if (exitCode !== 0) {
+      const report = JSON.parse(await readFile(resolve(output, 'playwright.json')));
+      const specs = suite => [...(suite.specs || []), ...(suite.suites || []).flatMap(specs)];
+      const errors = report.suites.flatMap(specs)
+        .flatMap(spec => spec.tests).flatMap(test => test.results).flatMap(result => result.errors || []);
+      const message = errors[0]?.message?.split('\n')[0] || `Conversation acceptance failed (${exitCode})`;
+      throw new Error(`${message}; inspect ${output}`);
+    }
+    if (memory.some(check => !check.answersComplete)) {
+      throw new Error('Long-prompt generation reached the token limit; complete answers are still required');
+    }
   }
 } catch (error) {
-  failure = { phase, message: error.message };
+  failure = { phase, message: interruptedBy ? `Verification interrupted by ${interruptedBy}` : error.message };
   console.error(`[distributed] ${phase}: ${error.message}`);
   process.exitCode = 1;
 } finally {
@@ -196,7 +212,9 @@ try {
   const browserIdentity = JSON.parse(await readFile(resolve(root, 'self/config/browser-bundle-manifest.json'))).bundleHash;
   const profile = JSON.parse(await readFile(resolve(root, 'self/config/work-profile.json')));
   const policy = JSON.parse(await readFile(resolve(root, 'self/config/partition-policy.json')));
-  await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure,
+  await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId,
+    scope: capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof' : 'Physical cooperative conversation',
+    frozenReferenceApplicable: frozenWorkloads,
     numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
     maxGpuBufferBytes: policy.maxGpuBufferBytes, bufferPool: policy.bufferPool, referenceGeneration,

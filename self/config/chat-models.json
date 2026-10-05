@@ -49,12 +49,14 @@
   {
     "id": "qwen-3-5-2b-q4k-ehaf16",
     "name": "Qwen 3.5 2B",
+    "partitionSplitLayer": 5,
     "identity": "sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc",
     "source": {
       "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
       "files": [
         { "path": "manifest.json", "role": "model-manifest", "sizeBytes": 183615, "hashAlgorithm": "sha256", "hash": "502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc" },
-        { "path": "tokenizer.json", "role": "tokenizer", "sizeBytes": 9088480, "hashAlgorithm": "sha256", "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4" }
+        { "path": "tokenizer.json", "role": "tokenizer", "sizeBytes": 9088480, "hashAlgorithm": "sha256", "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4" },
+        { "path": "qwen-2b-pieces.json", "role": "model-piece-index", "sizeBytes": 162108, "hashAlgorithm": "sha256", "hash": "4ebdd23bc26c5ba55a2e402e666e6b2ad8d11abd88da61601c4a9c363425657d", "url": "/config/model-pieces/qwen-2b-pieces.json" }
       ]
     },
     "provider": "doppler",
