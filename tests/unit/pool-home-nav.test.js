@@ -25,6 +25,16 @@ import {
 } from '../../self/ui/pool-home/view.js';
 
 describe('poolday home navigation', () => {
+  it('owns the execution ribbon in the app bar, outside the conversation', () => {
+    const host = document.createElement('div');
+    host.innerHTML = renderNav('home') + renderRoutePanel('home');
+    expect(host.querySelectorAll('[data-execution-ribbon]')).toHaveLength(1);
+    const ribbon = host.querySelector('[data-execution-ribbon]');
+    expect(ribbon.parentElement.classList.contains('pool-primary-nav')).toBe(true);
+    expect(ribbon.previousElementSibling.classList.contains('pool-primary-brand')).toBe(true);
+    expect(ribbon.nextElementSibling.classList.contains('pool-primary-actions')).toBe(true);
+    expect(host.querySelector('[data-chat-workspace] [data-execution-ribbon]')).toBeNull();
+  });
   it('recognizes room-scoped local routes without intercepting external links', () => {
     for (const route of ['/records?room=example', '/?room=example&relay=server', '/compute/#limits']) {
       expect(isProductPath(route)).toBe(true);
@@ -172,7 +182,7 @@ describe('poolday home navigation', () => {
     const html = renderNav('improve', { open: true });
     expect(html).toContain('aria-label="Reploid home"');
     expect(html).not.toContain('is-open');
-    expect(html).not.toContain('aria-expanded');
+    expect(html).not.toContain('data-pool-nav-toggle');
     expect(html).not.toContain('pool-nav-description');
   });
 

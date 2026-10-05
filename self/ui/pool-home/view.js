@@ -2,6 +2,7 @@
  * @fileoverview Rendering and UI state helpers for the Poolday product home.
  */
 import { renderSettings } from './theme.js';
+import { renderExecutionRibbon } from './execution-ribbon.js';
 import { renderOperationSharing } from './operation-sharing.js';
 import { renderWorkSurface, renderNetworkSurface, renderImproveSurface } from './work.js';
 import { renderConversationWorkspace } from './conversation-workspace.js';
@@ -1549,6 +1550,7 @@ export const renderNav = (activeRoute) => {
   return `
     <nav class="pool-nav-rail pool-primary-nav pool-surface" aria-label="${escapeHtml(POOLDAY_NAME)}">
       <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
+      ${renderExecutionRibbon()}
       <div class="pool-primary-actions">
         ${renderSettings(renderPowerTower(true), `<a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count" data-pool-change-count aria-hidden="true" hidden></span></a>`)}
       </div>
