@@ -85,7 +85,13 @@
   resize: vertical;
   font: inherit;
 }
-.chat-composer-toolbar { justify-content: flex-end; }
+.chat-composer-toolbar { justify-content: flex-end; flex-wrap: wrap; }
+.chat-composer-submit { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: var(--pool-space-sm); min-width: 0; }
+.chat-composer-submit .chat-setup-hint {
+  margin: 0; max-width: var(--pool-px-r15);
+  font-size: var(--pool-text-sm); font-weight: var(--pool-type-weight-regular);
+  line-height: var(--pool-type-leading-snug); color: var(--pool-surface-muted);
+}
 .pool-home .chat-composer-area textarea::placeholder { color: var(--pool-surface-muted); opacity: 1; }
 .reploid-chat-workspace select:disabled { opacity: 1; }
 .chat-composer-toolbar .chat-file-label { margin-right: auto; position: relative; overflow: hidden; cursor: pointer; }

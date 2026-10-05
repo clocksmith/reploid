@@ -8,15 +8,14 @@
 .pool-home .pool-glass-focus:focus,
 .pool-home .pool-glass-selected:is([aria-current='page'], [aria-pressed='true']) {
   border: var(--pool-border-hairline) solid transparent;
-  background: var(--pool-surface-optical-fill) padding-box, var(--pool-surface-optical-edge) border-box;
-  backdrop-filter: blur(var(--pool-px-optical-blur));
+  background: linear-gradient(var(--pool-surface-inset), var(--pool-surface-inset)) padding-box, var(--pool-surface-optical-edge) border-box;
 }
 .pool-home .pool-primary-nav .pool-segment[aria-current='page'] {
   box-shadow: var(--pool-surface-shadow-raised);
 }
 .pool-home .pool-glass:focus,
 .pool-home .pool-glass-focus:focus {
-  background: var(--pool-surface-optical-fill) padding-box, var(--pool-surface-optical-focus) border-box;
+  background: linear-gradient(var(--pool-surface-inset), var(--pool-surface-inset)) padding-box, var(--pool-surface-optical-focus) border-box;
 }
 .pool-home .pool-primary-nav .pool-segment[aria-current='page']::after {
   content: '';

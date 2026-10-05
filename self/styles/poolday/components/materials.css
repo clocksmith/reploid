@@ -13,7 +13,7 @@
 .pool-home :is(.pool-button, :where(.pool-work-shell .btn)) {
   min-height: var(--pool-px-44);
   padding: var(--pool-space-sm) var(--pool-space-md);
-  border: var(--pool-border-hairline) solid var(--pool-surface-control-line);
+  border: var(--pool-border-hairline) solid var(--pool-surface-line);
   border-radius: var(--pool-radius-control);
   background: var(--pool-surface-raised);
   color: var(--pool-surface-ink);
@@ -33,7 +33,7 @@
 .pool-home :is(.pool-input, :where(.pool-work-shell select, .pool-work-shell input[type='file'], .pool-work-composer textarea)) {
   background: var(--pool-surface-inset);
   color: var(--pool-surface-ink);
-  border: var(--pool-border-hairline) solid var(--pool-surface-control-line);
+  border: var(--pool-border-hairline) solid var(--pool-surface-line);
   border-radius: var(--pool-radius-control);
   box-shadow: var(--pool-surface-shadow-inset);
   font: inherit;
