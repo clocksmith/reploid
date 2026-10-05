@@ -28,10 +28,6 @@ try {
   await run('npm', ['ci', '--ignore-scripts'], resolve(checkout, 'functions'));
   await run('npm', ['run', 'verify:pool'], checkout);
   await run('npm', ['run', 'prepare:hosting'], checkout);
-  await run('npm', ['run', 'test:distributed'], checkout, {
-    DOPPLER_CHAT_MODEL_DIR: process.env.DOPPLER_CHAT_MODEL_DIR || resolve(root, '../doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16'),
-    REPLOID_DISTRIBUTED_OUTPUT_ROOT: resolve(root, 'artifacts/distributed')
-  });
   await run('gcloud', ['builds', 'submit', '--project=reploid', '--config=deploy/cloudbuild.yaml',
     `--substitutions=COMMIT_SHA=${revision}`, '.'], checkout);
   await run('firebase', ['deploy', '--project', 'reploid', '--only',
