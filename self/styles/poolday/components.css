@@ -5486,7 +5486,7 @@ body[data-pool-route-id='home'] #app {
 .pool-change-count { display: inline-grid; place-items: center; min-width: var(--pool-px-24); min-height: var(--pool-px-24); border-radius: var(--pool-radius-control); background: var(--pool-surface-inset); box-shadow: var(--pool-surface-shadow-inset); font-size: var(--pool-text-sm); }
 .pool-change-count[hidden] { display: none; }
 .pool-settings { position: relative; }
-.pool-settings > summary { display: grid; place-items: center; min-width: var(--pool-px-48); list-style: none; }
+.pool-settings > summary { position: relative; display: grid; place-items: center; min-width: var(--pool-px-48); list-style: none; }
 .pool-settings > summary::-webkit-details-marker { display: none; }
 .pool-settings-panel {
   position: absolute; z-index: var(--pool-z-dropdown); right: 0;
@@ -5551,6 +5551,7 @@ body[data-pool-route-id='home'] #app {
   .pool-work-launch-row [data-work-start] { width: 100%; }
 }
 
-@media (max-width: 480px) {
-  .pool-primary-brand .pool-primary-wordmark { display: none; }
-}
+
+.pool-settings-notice { position: absolute; right: var(--pool-space-sm); bottom: var(--pool-space-sm); width: var(--pool-px-6); height: var(--pool-px-6); border-radius: 50%; background: var(--pool-surface-ink); }
+.pool-settings-notice[hidden] { display: none; }
+.pool-settings-panel [data-pool-changes] { justify-content: space-between; }

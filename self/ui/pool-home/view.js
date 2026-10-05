@@ -1550,8 +1550,7 @@ export const renderNav = (activeRoute) => {
     <nav class="pool-nav-rail pool-primary-nav pool-surface" aria-label="${escapeHtml(POOLDAY_NAME)}">
       <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
       <div class="pool-primary-actions">
-        <a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count" data-pool-change-count aria-hidden="true" hidden></span></a>
-        ${renderSettings(renderPowerTower(true))}
+        ${renderSettings(renderPowerTower(true), `<a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count" data-pool-change-count aria-hidden="true" hidden></span></a>`)}
       </div>
     </nav>
   `;
@@ -1564,6 +1563,11 @@ export function updateChangesControl(root, candidates) {
   const badge = control.querySelector('[data-pool-change-count]');
   badge.textContent = String(count); badge.hidden = count === 0;
   control.dataset.reviewNeeded = String(count > 0);
+  const settings = root.querySelector('[data-pool-settings]');
+  if (settings) {
+    settings.querySelector('[data-pool-settings-review]').hidden = count === 0;
+    settings.querySelector('summary').setAttribute('aria-label', count ? `Settings: ${count} changes awaiting review` : 'Settings');
+  }
   control.setAttribute('aria-label', count ? `Changes: ${count} awaiting review` : 'Changes');
 }
 
