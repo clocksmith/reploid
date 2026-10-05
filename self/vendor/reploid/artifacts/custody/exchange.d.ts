@@ -16,6 +16,8 @@ export interface CustodyExchangePolicy {
 type Supplier = Awaited<ReturnType<typeof createPeerPackSupplier>>;
 type Store = Awaited<ReturnType<typeof createPeerPackArtifactStore>>;
 export interface CustodyExchangePorts {
+  /** Host wall clock; defaults to Date.now. */
+  now?(): number;
   createSupplier: typeof createPeerPackSupplier;
   createStore: typeof createPeerPackArtifactStore;
   createChannel(options: { channel: RTCDataChannel; limits: CustodyChannelLimits; serve: Supplier['serve'] }): {

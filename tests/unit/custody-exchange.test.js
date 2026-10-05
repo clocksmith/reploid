@@ -14,8 +14,8 @@ function channelPair() {
   });
   return channels;
 }
-async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, commitArtifact, onChange = () => {} } = {}) {
-  const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [];
+async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {} } = {}) {
+  const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [], requests = [];
   const file = { path: 'shard.bin', role: 'model-weights', sizeBytes: 5, hash: (await sha256Hex(bytes)).slice(7), hashAlgorithm: 'sha256' };
   const policy = { maxTransfers: 2, maxPeers, maxAcquisitionAttempts: 4, maxSupplyBytes: 100, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
     channel: { maxFrameBytes: 128, maxControlBytes: 4096, maxChunkBytes: 2,
@@ -26,13 +26,18 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, c
     const checkpoints = new Map();
     const transport = { getConnectedPeers: () => stores.map((_, index) => ({ id: String(index) })).filter(peer => peer.id !== String(i)),
       onMessage: (type, handler) => stores[i].set(type, handler),
-      sendToPeer: (peer, type, payload) => { queueMicrotask(() => stores[Number(peer)].get(type)?.(String(i), structuredClone(payload))); return true; },
+      sendToPeer: (peer, type, payload) => {
+        if (type === 'reploid:custody-request' && payload.maxExpiresAt !== undefined) requests.push(structuredClone(payload));
+        queueMicrotask(() => stores[Number(peer)].get(type)?.(String(i), structuredClone(payload))); return true;
+      },
       broadcast(type, payload) { for (const peer of this.getConnectedPeers()) this.sendToPeer(peer.id, type, payload); },
       onDataChannel: (_, callback) => { callbacks[i] = callback; return () => {}; },
       openDataChannel(peer) { const [left, right] = channelPair(); callbacks[Number(peer)](String(i), right); return left; }
     };
-    owners.push(createCustodyExchange({ transport, identity: { peerId: String(i), privateKey: pair.privateKey, publicKey: await exportPublicKey(pair.publicKey) }, policy,
-      ports: { createSupplier: createPeerPackSupplier, createStore: createPeerPackArtifactStore,
+    owners.push(createCustodyExchange({ transport, identity: { peerId: String(i), privateKey: pair.privateKey, publicKey: await exportPublicKey(pair.publicKey) },
+      policy: { ...policy, grantMs: grantMs[i] ?? policy.grantMs },
+      ports: { now: () => Date.now() + (clockOffsets[i] || 0),
+        createSupplier: options => { supplierGrant(options.authorization, i); return createPeerPackSupplier(options); }, createStore: createPeerPackArtifactStore,
         createChannel: createPeerPackDataChannel, readArtifact: (file, controls) => reads(file, controls, i),
         async verifyArtifact(descriptor, data) { if (await sha256Hex(data) !== 'sha256:' + descriptor.hash) throw new Error('integrity'); },
         commitArtifact,
@@ -44,8 +49,39 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, c
         hash: hashDopplerEvidence, hashBytes: sha256Hex, observe: receipt => receipts.push(receipt),
         onChange: () => onChange(i) } }));
   }
-  return { owners, file, bytes, reads, receipts, stores, close: () => owners.forEach(owner => owner.close()) };
+  return { owners, file, bytes, reads, receipts, stores, requests, close: () => owners.forEach(owner => owner.close()) };
 }
+
+it.each([[0, 250], [250, 0]])('acquires signed files in both directions with peer clock offsets %d/%d', async (firstOffset, secondOffset) => {
+  const f = await fixture({ clockOffsets: [firstOffset, secondOffset] }), [a, b] = f.owners;
+  try {
+    a.offer([f.file]); b.offer([f.file]);
+    await vi.waitFor(() => { expect(a.has(f.file)).toBe(true); expect(b.has(f.file)).toBe(true); });
+    expect(await a.acquire(f.file, { signal: new AbortController().signal })).toEqual(f.bytes);
+    expect(await b.acquire(f.file, { signal: new AbortController().signal })).toEqual(f.bytes);
+  } finally { f.close(); }
+});
+
+it('clips a supplier grant to the requester allowance while preserving signed verification', async () => {
+  let expiry;
+  const f = await fixture({ grantMs: [2000, 5000], supplierGrant: grant => { expiry = grant.expiresAt; } });
+  const [a, b] = f.owners;
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    expect(await a.acquire(f.file, { signal: new AbortController().signal })).toEqual(f.bytes);
+    expect(expiry).toBe(f.requests[0].maxExpiresAt);
+    expect(f.receipts).toHaveLength(1);
+  } finally { f.close(); }
+});
+
+it('rejects a correctly signed supplier grant that expands the requested expiry', async () => {
+  const f = await fixture({ supplierGrant: grant => { grant.expiresAt += 1000; } }), [a, b] = f.owners;
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    await expect(a.acquire(f.file, { signal: new AbortController().signal })).rejects.toThrow('File grant exceeds requested acquisition');
+    expect(f.receipts).toEqual([]);
+  } finally { f.close(); }
+});
 it('acquires only an authenticated range of an approved file and rejects invalid ranges', async () => {
   const f = await fixture(); const [a, b] = f.owners;
   try {
