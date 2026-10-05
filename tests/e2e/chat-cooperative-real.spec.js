@@ -289,7 +289,6 @@ test('one model executes cooperatively on discovered physical peers from selecti
         originalPlacement: { participantA: originalPlacement.participantA, participantB: originalPlacement.participantB },
         replacementAttempt: replacement, originalSeedStoppedBeforeAcquisition: true };
       completed = await history(requester);
-      await page.locator('[data-toggle-contribution]').click();
     }
     let usefulCode = null;
     if (process.env.REPLOID_E2E_CAPACITY === '1') {
