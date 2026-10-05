@@ -1,5 +1,158 @@
 # Doppler resident partition handoff
 
+## Current development docket
+
+This records the user's selected Reploid/Doppler work and takeover constraints.
+It does not replace either repository's goals, component ownership, or acceptance
+receipts. The numerical source checkpoint is Doppler `f0bd469b`; the reported UI
+deployment is Reploid `787aeb78`. This update records source inspection and user
+handoffs only; it does not rerun physical inference, browser checks or deployment.
+
+### Product goal and boundaries
+
+Deliver dependable distributed generation: requesters hold no model weights,
+executors selectively acquire verified pieces, and multiple physical devices
+jointly produce complete answers. Isolate conversation state, keep cancellation
+independent, make recovery explicit, and preserve the current resource budgets.
+
+Doppler owns computation, model mathematics, partition/state semantics, sampling
+and stopping. Reploid owns discovery, acquisition coordination, placement,
+permissions and conversations through its existing mesh/Poolday interfaces.
+Artifact verification and model dependencies remain Doppler-defined. Scoring,
+additional models, scheduler experiments and architecture expansion are deferred.
+Doe's generation experiment stays closed. Dependable delivery does not require
+Doppler to adopt Doe.
+
+### Doppler: trace the package difference first
+
+Start at [the recurrent-state controls receipt](https://github.com/clocksmith/doppler/blob/f0bd469b/tests/fixtures/partition-recurrent-state-controls-evidence.json).
+Original `0.6.3-dev.split.13` matches all 55 frozen-reference steps exactly when
+both partitions execute on the Mac. The unchanged installed `0.6.4` candidate
+fails 16/55 in that same placement, with maximum difference about `0.001768`.
+This does not identify the implementation responsible or prove the reference
+wrong. Cross-platform arithmetic alone cannot explain this package-dependent
+failure. Locate the earliest differing operation before another substitution.
+
+Compare exact archive/source/shader identities and matched execution settings.
+Keep upstream projection and normalization unchanged during isolation. Preserve
+the frozen reference and require both unchanged physical model directions within
+`0.001`; matching tokens and stopping does not satisfy the numerical gate.
+
+The controls include single-step reference-state resets and continuous GPU-state
+replay on both platforms. Resetting state reduces accumulated state error while
+output error stays similar. Continuous replay matches uninterrupted execution.
+Independent calculations use pinned Float64 model equations; production precision
+is unchanged. Captured recurrent controls cover nineteen layer-zero prefill tokens,
+not arbitrary continuations.
+
+### Narrow causal experiments and rejected candidates
+
+Keep the existing conditional reference owner. Separate inherited operand error
+from local arithmetic error. Decay already has an individual intervention; beta
+and output gating still need independent selection if the package investigation
+justifies them. Composite normalization/gate interventions identify combined
+effects only. Compute a normalization replacement from the device's captured raw
+output; an inverse-square-root-only intervention must use its captured denominator
+without changing the preceding reduction. Require a nonperturbing observation and
+an identity-substitution control preserving output and recurrent state. Prioritize
+demonstrated downstream improvement, not error magnitudes on different scales.
+
+Readout compensation improved aggregate independent output error on both GPUs
+without changing state, but failed 20/55 forward and 17/55 reverse model comparisons;
+maximum differences were about `0.002387` and `0.001814`. Memory-projection
+compensation reduced state RMS error but failed 23/55 forward and 15/55 reverse;
+maxima were about `0.003901` and `0.002094`. Reference-rounded decay slightly
+worsened output accuracy. These remain separate rejected experiments. Do not
+combine them or promote them as repairs. The earlier compensated-dot rejection
+also stands for that candidate.
+
+### Reproduction and archive custody
+
+Use [recurrent-state-controls.js](https://github.com/clocksmith/doppler/blob/f0bd469b/tests/integration/recurrent-state-controls.js)
+and [installed-reploid-acceptance.js](https://github.com/clocksmith/doppler/blob/f0bd469b/tests/fixtures/installed-reploid-acceptance.js).
+Test substitutions require `DOPPLER_TEST_ONLY_ARITHMETIC=1` and exact shader hashes;
+they are diagnostics, not installed-package acceptance. Supply the current
+authorized Playwright endpoint through `REPLOID_EXECUTOR_WS`. Do not assume the
+Mac's loopback tunnel exists on Linux or manufacture another endpoint.
+
+The unpublished archive is `dist/0.6.4-candidate/doppler-gpu-0.6.4.tgz` in Doppler.
+Raw captures and controls are ignored artifacts under
+`dist/0.6.4-candidate/recurrent-state-controls/`. Obtain them from the Mac and
+verify inventory hashes before replay. Git summaries are not the operand captures.
+Retain failed observations and distinguish diagnostic tensor forwarding from
+actual WebRTC acquisition.
+
+### Numerical promotion, memory and Reploid acceptance
+
+Test one causally identified correction at an actual failing model boundary,
+then rerun both unchanged full-model directions before broader kernel changes.
+Require independent-reference improvement and the complete numerical gate.
+Reploid remains pinned to split.13 until an exact replacement archive qualifies.
+
+Earlier memory acceptance passed repeated 1,588-token prompts within
+1,420,000,000 allocated bytes, including lifecycle checks. Rerun it only after
+numerical promotion, against the exact replacement archive. These are owned
+allocation budgets, not physical GPU-residency measurements. Preserve cancellation
+settlement, resident reuse, rejection cleanup, and explicit device-loss outcomes.
+
+Then repeat ordinary onboarding, selective acquisition, full streaming and
+stopping, concurrent isolated conversations, cancellation, contributor loss,
+explicit fresh-attempt retry and recovery with weightless requesters. Do not imply
+stateful continuation merely because a replacement owns the weights. Preserve
+the unexplained missing-piece acquisition failure: atomic inventory replacement
+did not establish its physical cause. Retain acquisition, storage, memory,
+communication and complete-delivery costs separately. Cross-device execution
+and genuinely capacity-enabling placement remain different milestones.
+
+### Reploid UI handoff and current operating constraints
+
+The user reports deployment at `https://replo.id` from `787aeb78`, with HTTP 200
+and all 8,374 manifest-listed files matching the local build. Focused code tests
+passed. These are supplied deployment-integrity/behavior results, not renewed
+visual approval or comprehensive runtime qualification.
+
+The reported Mac checkout is `/Users/xyz/deco/reploid`, branch `main`, with an
+existing server at `http://localhost:8000/`. The current agent's Linux checkout
+is `/home/x/deco/reploid`; do not treat the Mac path as a local directory.
+Leave the existing server and unrelated processes alone. Continue UI work through
+source inspection: the user stopped browser checks and prohibited screenshots.
+
+Refine concrete user feedback before expanding scope: restrained consistent
+neumorphism, clear alignment, compact controls, and the execution ribbon centered
+in the top app bar between logo and settings. Its earlier conversation placement
+is corrected and covered by a regression test. Header lifecycle ownership is in
+[`index.js`](../self/ui/pool-home/index.js), markup in
+[`view.js`](../self/ui/pool-home/view.js), and projection/interaction in
+[`execution-ribbon.js`](../self/ui/pool-home/execution-ribbon.js).
+
+The ribbon follows the selected thread's latest attempt and assigned executors;
+discovered peers are not execution participants. Put model labels above executors.
+Details expose participants, layers, available measurements and a collapsed
+timeline. Missing measurements stay explicit. Output animation follows observed
+response updates and respects reduced motion.
+
+Appearance settings are System, Light and Dark in the top-right popover; choosing
+one dismisses it. Changes also lives there. The logo returns to Work; Network
+remains contextual. Keep dark depth `0.64` and light depth `0.6`, neutral switch
+gradients and shared depth shadows. Composer spacing and Network field alignment
+are already corrected. Preserve drafts, disclosure permissions, automatic discovery,
+optional model downloads, selected-thread isolation and the Doppler pin. UI
+deployment does not resolve numerical qualification or physical acquisition.
+
+Numerical handoff: component `doppler.tests`; intent preserved; acceptance evidence
+is physical controls, focused reference/normalization regressions and
+architecture/style checks. No production arithmetic changed.
+
+This docket update: component Reploid documentation; intent preserved; boundary
+effects none beyond documented task ordering. Physical and browser tasks above
+are pending work, not execution performed by this documentation change.
+
+## Earlier interface and qualification checkpoint
+
+The following preserves the earlier session contract and linked checkpoint
+evidence. Its observations remain bounded to those specific receipts; the current
+docket above controls task order and records subsequent numerical/UI handoffs.
+
 Reploid consumes an explicit resident-partition API. The original Reploid
 increment did not change Doppler. Subsequent numerical work is tracked in
 [Doppler's resident partition execution record](https://github.com/clocksmith/doppler/blob/main/docs/distribution/resident-partition-execution.md)
@@ -233,4 +386,4 @@ retained logs are in the linked Doppler diagnostic.
 Boundary effects at that checkpoint: documentation only. The pinned archive is
 updated in the current integration work; the browser arithmetic fixture remains.
 
-*Last updated: September 2026*
+*Interface checkpoint: September 2026. Current docket: October 2026.*
