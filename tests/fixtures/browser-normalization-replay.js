@@ -21,7 +21,8 @@ const decode = (role, dtype, Type) => {
 const source = await readFile(resolve(root, 'src/gpu/kernels/rmsnorm.wgsl'), 'utf8');
 const diagnostic = await readFile(resolve(root, 'tests/kernels/rmsnorm-platform-diagnostic.js'), 'utf8');
 const request = { source, input: decode('input-last-row', 'f32', Float32Array),
-  weights: decode('weight', 'f16', Uint16Array), epsilon: 1e-6, weightOffset: true, weightDtype: 'f16' };
+  weights: decode('weight', 'f16', Uint16Array), epsilon: 1e-6, weightOffset: true, weightDtype: 'f16',
+  experiment: process.env.DOPPLER_RMS_EXPERIMENT ?? null };
 const results = [];
 for (const platform of ['mac', 'linux']) {
   const browser = platform === 'mac' ? await chromium.launch({ headless: true,
@@ -33,7 +34,7 @@ for (const platform of ['mac', 'linux']) {
       contentType: 'text/javascript', body: diagnostic }));
     const page = await context.newPage();
     await page.goto('http://localhost:8000/config/chat-files.json');
-    for (const entryPoint of ['main', 'main_subgroup']) {
+    for (const entryPoint of request.experiment ? ['main'] : ['main', 'main_subgroup']) {
       const result = await page.evaluate(async request => {
         const { diagnoseRMSNorm } = await import('/normalization-replay-diagnostic.js');
         return diagnoseRMSNorm(request);

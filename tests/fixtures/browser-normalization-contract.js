@@ -11,6 +11,10 @@ const reference = JSON.parse(await readFile(process.env.DOPPLER_PARTITION_REFERE
 const output = process.env.REPLOID_CAPTURE_OUT;
 const observationMode = process.env.DOPPLER_DISPATCH_OBSERVATION ?? 'dispatch';
 assert(['dispatch', 'layers', 'calls'].includes(observationMode));
+const observedSteps = process.env.DOPPLER_OBSERVED_STEPS
+  ? JSON.parse(process.env.DOPPLER_OBSERVED_STEPS) : [0, 1, 25, 50];
+assert(Array.isArray(observedSteps) && observedSteps.length > 0
+  && observedSteps.every(step => Number.isSafeInteger(step) && step >= 0), 'Explicit nonnegative observation steps required');
 const placement = process.env.DOPPLER_DISPATCH_PLACEMENT
   ?? (process.env.REPLOID_DIAGNOSTIC_A === 'mac' ? 'mac-linux' : 'linux-mac');
 assert(['linux-mac', 'mac-linux', 'mac-mac', 'linux-linux'].includes(placement), 'Explicit diagnostic placement required');
@@ -165,7 +169,7 @@ try {
     });
     observers.push(cdp ? {read:async()=>({records:metadata,errors:observationErrors}),close:()=>cdp.detach()}
       : observationMode === 'calls' ? await observeNormalizationDispatch(page, sources)
-        : await observeBrowserNumerics(page, 'node_modules/doppler-gpu'));
+        : await observeBrowserNumerics(page, 'node_modules/doppler-gpu', { steps: observedSteps }));
     const opened = await page.evaluate(async ({ reference, index }) => {
       const config = await import('/config/doppler-local-models.js');
       const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
@@ -246,7 +250,7 @@ try {
     'The identified intervention must execute on both participants');
   const bindingObservations = await Promise.all(pages.map(page => page.evaluate(() => globalThis.bindingObservations)));
   const inputObservations = await Promise.all(pages.map(page => page.evaluate(() => globalThis.normalizationInputObservations)));
-  await writeFile(output, JSON.stringify({ pipelineObservations, intervention, surface: 'browser', placement, observationMode,
+  await writeFile(output, JSON.stringify({ pipelineObservations, intervention, surface: 'browser', placement, observationMode, observedSteps,
     sourceOverrides: sources.map(({ path, sha256 }) => ({ path, sha256 })),
     scope: intervention ? 'Test-only pipeline entry-point intervention; not installed-package acceptance or P2P qualification'
       : sources.length ? 'Test-only source substitution over pinned package; not installed-package or P2P qualification'
