@@ -27,6 +27,7 @@ Outputs:
 - Tests must not pass by weakening the intended assertion or silently skipping the failing boundary.
 - Mocks, forecasts, local runs, browser runs, and production observations remain distinguishable.
 - A passing test proves only its declared conditions.
+- Frozen numerical comparisons retain the reference's generation options. Application generation profiles use the same installed package; changed sampling settings cannot be reported as arithmetic drift.
 
 ## Acceptance
 - The CATSCAN validator detects malformed authority graphs and validates the real repository graph.

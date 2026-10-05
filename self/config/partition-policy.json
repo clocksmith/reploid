@@ -6,6 +6,14 @@
   "grantClockSkewMs": 250,
   "maxSeqLen": 8192,
   "maxGpuBufferBytes": 1420000000,
+  "bufferPool": {
+    "budget": {
+      "maxTotalBytes": 900000000,
+      "highWatermarkRatio": 0.9,
+      "emergencyTrimTargetRatio": 0.75,
+      "hardFailOnBudgetExceeded": false
+    }
+  },
   "profileGpu": false,
   "prefillChunkLayers": 1,
   "limits": {

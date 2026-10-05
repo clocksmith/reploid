@@ -17,7 +17,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   const planId = runtime.hashLayerPartitionPlan(plan);
   const model = { ...selected, generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen } };
   const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
-    runtimeConfig: { shared: { debug: { profiler: { enabled: policy.profileGpu } } },
+    runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
       inference: { session: { kvcache: { maxSeqLen: policy.maxSeqLen },
         prefillChunkLayers: policy.prefillChunkLayers } } },
     createStorage: async () => source.storage });
