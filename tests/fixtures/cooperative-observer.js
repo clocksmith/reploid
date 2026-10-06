@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 
 /** Passive debugger observations: never replace tensors, assign roles, or open a runtime. */
-export async function observeCooperativePage(cdp, evidence, { captureCustody = false, captureLogits = true, maxLogitSteps = 4, acceptStep = async () => true } = {}) {
+export async function observeCooperativePage(cdp, evidence, { captureCustody = false, captureLogits = true, captureTokens = false, maxLogitSteps = 4, acceptStep = async () => true, onInput = null } = {}) {
   const host = (await readFile('self/host/work-partitions.js', 'utf8')).split('\n');
   const peer = (await readFile('self/vendor/reploid/mesh/partitions/partition-peer.js', 'utf8')).split('\n');
   const scriptUrls = new Map();
@@ -10,22 +10,33 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
   await cdp.send('Debugger.setPauseOnExceptions', { state: 'all' });
   const opened = await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/host/work-partitions\\.js$',
     lineNumber: host.findIndex(line => line.includes('return { runtime, model, plan')) });
-  const step = captureLogits && await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/mesh/partitions/partition-peer\\.js$',
+  let step = captureLogits && await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/mesh/partitions/partition-peer\\.js$',
     lineNumber: peer.findIndex(line => line.includes('const { logits: _logits')), condition: `result.step < ${maxLogitSteps}` });
   const custody = new Map();
+  const automatic = (await readFile('self/vendor/reploid/mesh/partitions/automatic-partitions.js', 'utf8')).split('\n');
+  const identityBoundary = automatic.findIndex(line => line.includes('const config = structuredClone(policy)'));
+  if (identityBoundary < 0) throw Error('Partition identity observation boundary missing');
+  const identityProbe = await cdp.send('Debugger.setBreakpointByUrl', {
+    urlRegex: '/mesh/partitions/automatic-partitions\\.js$', lineNumber: identityBoundary });
+  custody.set(identityProbe.breakpointId, { kind: 'participant-identity', target: 'lifecycle', expression: '({participantId:identity.peerId})' });
   let fileProbesInstalled = false;
   const installFileProbes = async () => {
+    if (fileProbesInstalled) return;
     const sources = [
       { file: 'self/host/work-model-files.js', urlRegex: '/host/work-model-files\\.js$', probes: [
-        { kind: 'cache-read', marker: 'const handle = await (await root()).getFileHandle(fileKey(file));', expression: '({file, key:fileKey(file), directory:directory?.name})' },
+        { kind: 'cache-read', marker: 'const handle = await (await root()).getFileHandle(fileKey(file));', expression: '({file, key:fileKey(file), directory:directory?.name, activePieces, operations:operations.size, retainedPieces:retainedPieces.size, pinned:pinned.size, sharing:exchange?.getState().sharing})' },
+        { kind: 'cache-handle', marker: 'const blob = await handle.getFile();', condition: 'file.role !== "model-weights"', expression: '({file,key:fileKey(file),name:handle.name})' },
+        { kind: 'cache-blob', marker: "assert(blob.size === file.sizeBytes, 'Cached model file size mismatch');", condition: 'file.role !== "model-weights"', expression: '({file,key:fileKey(file),name:blob.name,size:blob.size,lastModified:blob.lastModified})' },
         { kind: 'cache-miss', marker: "} catch (cause) { if (cause.name === 'NotFoundError') return null; throw cause; }", expression: '({file, error:{name:cause.name,message:cause.message,stack:cause.stack}})' },
-        { kind: 'cache-enumerate', marker: 'const stored = await handle.getFile(); used += stored.size;', expression: '({file,key,name,used})' }
+        { kind: 'cache-enumerate', marker: 'const stored = await handle.getFile(); used += stored.size;', condition: 'file.role !== "model-weights"', expression: '({file,key,name,used})' }
       ] },
       { file: 'self/infrastructure/pack-transfer-storage.js', urlRegex: '/infrastructure/pack-transfer-storage\\.js$', probes: [
-        { kind: 'staging-read', marker: "const readIndex = async () => JSON.parse", expression: '({directory:directory.name,closed})' }
+        { kind: 'staging-read', marker: 'const readIndex = async () =>', expression: '({directory:directory.name,closed})' }
       ] },
       { file: 'self/vendor/reploid/mesh/partitions/automatic-partitions.js', urlRegex: '/mesh/partitions/automatic-partitions\\.js$', probes: [
-        { kind: 'load-failed', marker: "catch (cause) { phase = 'failed'; error = cause.message; notify(); throw cause; }", expression: '({placement,model:selectedOffer.id,error:{name:cause.name,message:cause.message,stack:cause.stack}})' }
+        { kind: 'load-failed', marker: "catch (cause) { phase = 'failed'; error = cause.message; notify(); throw cause; }", expression: '({placement,model:selectedOffer.id,error:{name:cause.name,message:cause.message,stack:cause.stack}})' },
+        { kind: 'retire', marker: 'const owners = [chat, execution, program?.resident];', target: 'lifecycle', expression: '({phase,placement,preparing:!!preparing,admissions:admissions.size,resident:program?.resident.getState(),approved:!!offer,aborted:contributionController?.signal.aborted})' },
+        { kind: 'advertise-ready', marker: "phase = 'ready'; progress = null; notify();", target: 'lifecycle', expression: '({phase,placement,resident:program?.resident.getState(),approved:!!offer,aborted:contributionController?.signal.aborted})' }
       ] }
     ];
     for (const source of sources) {
@@ -33,13 +44,21 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
       for (const probe of source.probes) {
         const lineNumber = lines.findIndex(line => line.includes(probe.marker));
         if (lineNumber < 0) throw Error('File observation boundary missing: ' + probe.kind);
-        const breakpoint = await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: source.urlRegex, lineNumber });
-        custody.set(breakpoint.breakpointId, { ...probe, target: 'files' });
+        const breakpoint = await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: source.urlRegex, lineNumber, condition: probe.condition || '' });
+        custody.set(breakpoint.breakpointId, { ...probe, target: probe.target || 'files' });
       }
     }
     fileProbesInstalled = true;
   };
   if (captureCustody) {
+    const chat = (await readFile('self/vendor/reploid/mesh/partitions/partition-chat.js', 'utf8')).split('\n');
+    const inputBoundary = chat.findIndex(line => line.includes('grant = await authority.issue(identity, policy'));
+    if (inputBoundary < 0) throw Error('Partition input observation boundary missing');
+    const inputProbe = await cdp.send('Debugger.setBreakpointByUrl', {
+      urlRegex: '/mesh/partitions/partition-chat\\.js$', lineNumber: inputBoundary,
+      condition: 'request.messages.at(-1).content.includes("chooseQuote")' });
+    custody.set(inputProbe.breakpointId, { kind: 'input-tokenized', target: 'inputs',
+      expression: '({identity,messages:request.messages,modelIdentity:input.modelIdentity,tokenIds:Array.from(input.tokenIds),generation:input.generation})' });
     const source = (await readFile('self/vendor/reploid/artifacts/custody/exchange.js', 'utf8')).split('\n');
     const probes = [
       { kind: 'offer-received', marker: 'const first = !peers.has(peer);',
@@ -70,6 +89,8 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
         const target = probe.target || 'custody';
         evidence[target] ||= [];
         evidence[target].push({ kind: probe.kind, observedAt: Date.now(), ...result.result.value });
+        if (probe.kind === 'participant-identity') evidence.participantId = result.result.value.participantId;
+        if (probe.kind === 'input-tokenized') await onInput?.(result.result.value);
         if (evidence[target].length > (target === 'files' ? 64 : 512)) evidence[target].shift();
         return;
       }
@@ -106,7 +127,8 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
       }
       const expression = load
         ? '({descriptor:resident.getState().descriptor,acquisition:source.getReceipt(),preparation,memory:runtime.inspectDeviceMemory()})'
-        : '({identity:result.identity,step:result.step,tokenId:result.tokenId,done:result.done,stopReason:result.stopReason,logits:Array.from(result.logits)})';
+        : captureLogits ? '({identity:result.identity,step:result.step,tokenId:result.tokenId,done:result.done,stopReason:result.stopReason,logits:Array.from(result.logits)})'
+          : '({identity:result.identity,step:result.step,tokenId:result.tokenId,done:result.done,stopReason:result.stopReason})';
       const result = await cdp.send('Debugger.evaluateOnCallFrame', { callFrameId: event.callFrames[0].callFrameId,
         expression, returnByValue: true });
       if (result.exceptionDetails) throw Error(result.exceptionDetails.text);
@@ -119,6 +141,15 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
     } catch (error) { evidence.errors.push(error.message); }
     finally { await cdp.send('Debugger.resume').catch(() => {}); }
   });
+  return { armFileProbes: installFileProbes,
+    async captureAttempt(attemptId) {
+      if (!captureTokens || captureLogits) return;
+      if (step) await cdp.send('Debugger.removeBreakpoint', { breakpointId: step.breakpointId });
+      step = await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/mesh/partitions/partition-peer\\.js$',
+        lineNumber: peer.findIndex(line => line.includes('const { logits: _logits')),
+        condition: `result.step < ${maxLogitSteps} && result.identity.attemptId === ${JSON.stringify(attemptId)}` });
+    }
+  };
 }
 
 export function compareObservedLogits(observations, history, reference, tolerance) {

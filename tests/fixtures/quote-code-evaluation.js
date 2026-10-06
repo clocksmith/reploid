@@ -7,10 +7,10 @@ export async function evaluateQuoteCode(page, code, input) {
   try {
     const result = await page.evaluate(async ({ code, input }) => {
       const { runIsolatedCode } = await import('/infrastructure/code-sandbox.js');
-      return runIsolatedCode(`input => { ${code}\ntry { return { value: chooseQuote(input.quotes, input.budget, input.deadline), quotes: input.quotes, exception: null }; } catch(error) { return { quotes: input.quotes, exception: { name: error.name, message: error.message } }; } }`,
+      return runIsolatedCode(`input => { ${code}\ntry { const value = chooseQuote(input.quotes, input.budget, input.deadline); return { value, resultType: typeof value, valueIsNull: value === null, quotes: input.quotes, exception: null }; } catch(error) { return { quotes: input.quotes, exception: { name: error?.name || 'ThrownValue', message: error?.message || String(error) } }; } }`,
         input, { timeoutMs: 1000, maxResultBytes: 65536 });
     }, { code, input });
-    return { ...result, resultType: typeof result.value,
+    return { ...result, resultType: result.resultType ?? typeof result.value,
       mutationPreserved: JSON.stringify(result.quotes) === JSON.stringify(input.quotes) };
   } catch (error) {
     return { exception: { name: error.name, message: error.message }, resultType: 'unavailable', mutationPreserved: null };

@@ -16,8 +16,11 @@ const modelArgument = process.argv.indexOf('--model');
 const modelId = modelArgument < 0 ? 'qwen-3-5-0-8b-q4k-ehaf16' : process.argv[modelArgument + 1];
 if (!modelId || modelId.startsWith('--')) throw new Error('--model requires a catalog model ID');
 const capacityDiagnostic = process.argv.includes('--capacity');
-const documentWorkload = process.env.REPLOID_E2E_DOCUMENTS !== '0';
-const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic;
+const recoveryDiagnostic = process.argv.includes('--recovery');
+const reverseHosts = process.argv.includes('--reverse');
+const documentWorkload = recoveryDiagnostic ? process.env.REPLOID_E2E_DOCUMENTS === '1'
+  : process.env.REPLOID_E2E_DOCUMENTS !== '0';
+const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic && !recoveryDiagnostic;
 const peer = process.env.REPLOID_TEST_PEER || 'x@128.tail995236.ts.net';
 const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || '/home/x/deco/reploid';
 const modelDirectory = process.env.DOPPLER_CHAT_MODEL_DIR
@@ -96,7 +99,7 @@ try {
   if (createHash('sha256').update(bytes).digest('hex') !== '9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd') {
     throw new Error('The frozen numerical reference differs; refusing to replace or weaken it');
   }
-  await writeFile(reference, bytes);
+  if (frozenWorkloads || capacityDiagnostic) await writeFile(reference, bytes);
   referenceGeneration = JSON.parse(bytes).generation;
   const model = JSON.parse(await readFile(resolve(modelDirectory, 'manifest.json')));
   const catalog = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json'))).find(model => model.id === modelId);
@@ -175,12 +178,14 @@ try {
   }
   if (numericalPolicy === 'required' && numerical?.failed) throw new Error('Frozen numerical tolerance exceeded');
   if (!capacityDiagnostic) {
-    phase = 'conversation acceptance';
+    phase = recoveryDiagnostic ? 'contributor restart diagnostic' : 'conversation acceptance';
     console.log(`[distributed] ${phase}; evidence: ${output}`);
     const test = start(process.execPath, ['node_modules/@playwright/test/cli.js', 'test',
       'tests/e2e/chat-cooperative-real.spec.js', '--project=chromium', `--output=${resolve(output, 'conversation')}`], { env: {
         ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, DOPPLER_PARTITION_REFERENCE_OUT: '',
-        REPLOID_TEST_MODEL: modelId, REPLOID_E2E_CAPACITY: frozenWorkloads ? '0' : '1',
+        REPLOID_TEST_MODEL: modelId, REPLOID_E2E_CAPACITY: frozenWorkloads || recoveryDiagnostic ? '0' : '1',
+        REPLOID_E2E_RECOVERY: recoveryDiagnostic ? '1' : '0',
+        REPLOID_E2E_REVERSE_HOSTS: reverseHosts ? '1' : '0',
         PLAYWRIGHT_JSON_OUTPUT_FILE: resolve(output, 'playwright.json'),
         REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
         REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_E2E_SKIP_LOCAL_SERVER: '1',
@@ -214,9 +219,10 @@ try {
   const profile = JSON.parse(await readFile(resolve(root, 'self/config/work-profile.json')));
   const policy = JSON.parse(await readFile(resolve(root, 'self/config/partition-policy.json')));
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId,
-    scope: capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
+    scope: recoveryDiagnostic ? 'Physical contributor restart diagnostic; other acceptance categories not exercised'
+      : capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
-    documentWorkload,
+    documentWorkload, reverseHosts,
     frozenReferenceApplicable: frozenWorkloads,
     numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },

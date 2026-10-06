@@ -25,6 +25,7 @@ export async function openPeerPackFileCheckpoints({ name = 'reploid-chat-checkpo
     // Resolve its namespace under the shared lock instead of retaining a
     // handle to a removed directory across requests.
     directory = await (await storage.getDirectory()).getDirectoryHandle(name, { create: true });
+    assert(!closed, 'store closed'); signal?.throwIfAborted();
     return action();
   });
   const entries = async () => {
