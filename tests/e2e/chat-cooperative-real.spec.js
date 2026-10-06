@@ -1,11 +1,13 @@
 import { QUOTE_CASES, extractQuoteCode, evaluateQuoteCode } from '../fixtures/quote-code-evaluation.js';
 import { comparisonInput, COMPARISON_CHECK } from '../../self/host/document-comparison.js';
 import { test, expect, chromium } from '@playwright/test';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { createLayerPartitionPlan } from 'doppler-gpu/partitions';
 import { observeCooperativePage, compareObservedLogits } from '../fixtures/cooperative-observer.js';
 import { inspectExecutorMemory, measureStandaloneDenial, measureStandaloneGeneration, routeDiagnosticModel, inspectConnections } from '../fixtures/capacity-observer.js';
+import { physicalWebGpuBrowserOptions } from '../fixtures/physical-webgpu-browser.js';
 
 // Exact catalog bytes may be supplied by a local seed. The requester/executor
 // still use the normal page, real WebRTC, signed custody and installed WebGPU.
@@ -20,8 +22,25 @@ test('one model executes cooperatively on discovered physical peers from selecti
     ? await chromium.connect(process.env.REPLOID_EXECUTOR_WS) : null;
   const contributionHosts = process.env.REPLOID_E2E_REVERSE_HOSTS === '1'
     ? [browser, remote || browser] : [remote || browser, browser];
-  const hosts = [browser, contributionHosts[0], browser, contributionHosts[1]];
-  const contexts = await Promise.all(hosts.map(host => host.newContext()));
+  // Chrome 154 on macOS loses private OPFS directory entries after an idle
+  // database close. Exercise ordinary application profiles on that host.
+  // Put the file seed on Linux when available so macOS stores assigned pieces.
+  const hosts = [browser, contributionHosts[0], remote || browser, contributionHosts[1]];
+  const profiles = [];
+  const openApplicationContext = async host => {
+    if (process.platform !== 'darwin' || host !== browser) return host.newContext();
+    const profile = await mkdtemp(path.join(tmpdir(), 'reploid-cooperative-profile-'));
+    profiles.push(profile);
+    return chromium.launchPersistentContext(profile, physicalWebGpuBrowserOptions('darwin'));
+  };
+  const opening = await Promise.allSettled(hosts.map(openApplicationContext));
+  const contexts = opening.filter(result => result.status === 'fulfilled').map(result => result.value);
+  const failedOpening = opening.find(result => result.status === 'rejected');
+  if (failedOpening) {
+    await Promise.all(contexts.map(context => context.close()));
+    await Promise.all(profiles.map(profile => rm(profile, { recursive: true, force: true })));
+    await remote?.close(); throw failedOpening.reason;
+  }
   if (process.env.REPLOID_E2E_RTC_CONFIG_FILE) {
     const rtc = JSON.parse(await readFile(process.env.REPLOID_E2E_RTC_CONFIG_FILE, 'utf8'));
     for (const context of contexts) await context.addInitScript(config => { globalThis.REPLOID_POOL_RTC_CONFIG = config; }, rtc);
@@ -31,7 +50,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
   const reference = process.env.DOPPLER_PARTITION_REFERENCE_OUT
     ? JSON.parse(await readFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, 'utf8')) : null;
   const captureCustody = process.env.REPLOID_E2E_CUSTODY_TRACE === '1';
-  const seedObservation = { loads: [], steps: [], errors: [] };
+  const seedObservation = { physicalHost: hosts[2] === remote ? 'linux-128' : 'mac', loads: [], steps: [], errors: [] };
   const tokenObservers = [];
   const onInput = input => Promise.all(tokenObservers.map(observer => observer.captureAttempt(input.identity.attemptId)));
   const replicaEnabled = process.env.REPLOID_E2E_REPLICA === '1';
@@ -413,7 +432,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       }
       await seed.locator('[data-toggle-file-contribution]').click();
       await expect(seed.locator('[data-file-contribution-label]')).toHaveText('Not sharing');
-      const context = await bHost.newContext(); contexts.push(context);
+      const context = await openApplicationContext(bHost); contexts.push(context);
       if (process.env.REPLOID_E2E_RTC_CONFIG_FILE) {
         const rtc = JSON.parse(await readFile(process.env.REPLOID_E2E_RTC_CONFIG_FILE, 'utf8'));
         await context.addInitScript(config => { globalThis.REPLOID_POOL_RTC_CONFIG = config; }, rtc);
@@ -606,7 +625,9 @@ test('one model executes cooperatively on discovered physical peers from selecti
     }
     const stateAtExit = JSON.stringify({
       executorQuotaMiB, seedObservation,
-      physicalDevices: remote ? 2 : 1, browserContexts: contexts.length, adapterInfo, browser: browser.version(), modelIdentity: model.identity,
+      physicalDevices: remote ? 2 : 1, browserContexts: contexts.length,
+      applicationProfiles: { mac: process.platform === 'darwin' ? 'ordinary' : 'private', linux: 'private' },
+      adapterInfo, browser: browser.version(), modelIdentity: model.identity,
       states, replicaObservation, observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2);
     await writeFile(info.outputPath('state-at-exit.json'), stateAtExit);
@@ -615,6 +636,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await runCapacityControls();
     await writeFile(info.outputPath('capacity-controls.json'), JSON.stringify(standaloneDenials, null, 2));
     await Promise.all(contexts.map(context => context.close()));
+    await Promise.all(profiles.map(profile => rm(profile, { recursive: true, force: true })));
     await remote?.close();
   }
 });

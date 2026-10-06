@@ -7,7 +7,9 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
   const scriptUrls = new Map();
   cdp.on('Debugger.scriptParsed', event => scriptUrls.set(event.scriptId, event.url));
   await cdp.send('Debugger.enable');
-  await cdp.send('Debugger.setPauseOnExceptions', { state: 'all' });
+  // Initial loading legitimately misses thousands of checkpoint chunks.
+  // Trace exceptions after readiness, at the recovery boundary under study.
+  await cdp.send('Debugger.setPauseOnExceptions', { state: captureCustody ? 'none' : 'all' });
   const opened = await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/host/work-partitions\\.js$',
     lineNumber: host.findIndex(line => line.includes('return { runtime, model, plan')) });
   let step = captureLogits && await cdp.send('Debugger.setBreakpointByUrl', { urlRegex: '/mesh/partitions/partition-peer\\.js$',
@@ -31,7 +33,7 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
         { kind: 'cache-enumerate', marker: 'const stored = await handle.getFile(); used += stored.size;', condition: 'file.role !== "model-weights"', expression: '({file,key,name,used})' }
       ] },
       { file: 'self/infrastructure/pack-transfer-storage.js', urlRegex: '/infrastructure/pack-transfer-storage\\.js$', probes: [
-        { kind: 'staging-read', marker: 'const readIndex = async () =>', expression: '({directory:directory.name,closed})' }
+        { kind: 'staging-read', marker: "try { return JSON.parse(await (await (await directory.getFileHandle('index.json')).getFile()).text()); }", expression: '({directory:directory.name,closed})' }
       ] },
       { file: 'self/vendor/reploid/mesh/partitions/automatic-partitions.js', urlRegex: '/mesh/partitions/automatic-partitions\\.js$', probes: [
         { kind: 'load-failed', marker: "catch (cause) { phase = 'failed'; error = cause.message; notify(); throw cause; }", expression: '({placement,model:selectedOffer.id,error:{name:cause.name,message:cause.message,stack:cause.stack}})' },
@@ -49,6 +51,7 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
       }
     }
     fileProbesInstalled = true;
+    await cdp.send('Debugger.setPauseOnExceptions', { state: 'all' });
   };
   if (captureCustody) {
     const chat = (await readFile('self/vendor/reploid/mesh/partitions/partition-chat.js', 'utf8')).split('\n');
