@@ -6,9 +6,9 @@ ENV PORT=8080
 ENV POOL_BACKEND_ONLY=true
 
 COPY package.json package-lock.json ./
-COPY deploy/artifacts/doppler-gpu-0.6.10.tgz /tmp/doppler-gpu-0.6.10.tgz
-RUN node --input-type=module -e "import fs from 'node:fs'; import crypto from 'node:crypto'; const pin=JSON.parse(fs.readFileSync('package-lock.json')).packages['node_modules/doppler-gpu']; if ('sha512-'+crypto.createHash('sha512').update(fs.readFileSync('/tmp/doppler-gpu-0.6.10.tgz')).digest('base64')!==pin.integrity) throw Error('Doppler archive integrity mismatch');" \
-    && npm cache add /tmp/doppler-gpu-0.6.10.tgz --ignore-scripts \
+COPY deploy/artifacts/doppler-gpu-0.6.11.tgz /tmp/doppler-gpu-0.6.11.tgz
+RUN node --input-type=module -e "import fs from 'node:fs'; import crypto from 'node:crypto'; const pin=JSON.parse(fs.readFileSync('package-lock.json')).packages['node_modules/doppler-gpu']; if ('sha512-'+crypto.createHash('sha512').update(fs.readFileSync('/tmp/doppler-gpu-0.6.11.tgz')).digest('base64')!==pin.integrity) throw Error('Doppler archive integrity mismatch');" \
+    && npm cache add /tmp/doppler-gpu-0.6.11.tgz --ignore-scripts \
     && npm ci --prefer-offline --omit=dev --include=optional --ignore-scripts
 
 COPY Dockerfile ./Dockerfile
