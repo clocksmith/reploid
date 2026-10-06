@@ -43,6 +43,43 @@ export async function measureStandaloneDenial(page, model) {
   }, model);
 }
 
+/** Unsplit inference comparison uses sufficient memory in a separate context.
+ * It is not a measurement of the constrained cooperative application's budget. */
+export async function measureStandaloneGeneration(page, model, input) {
+  return page.evaluate(async ({ selected, input }) => {
+    const config = await import('/config/doppler-local-models.js');
+    const policy = await (await fetch('/config/partition-policy.json')).json();
+    const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
+    globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
+    const runtime = await import(config.DOPPLER_PARTITIONS_MODULE_URL);
+    const { load } = await import(config.DOPPLER_MODULE_URL);
+    const { createHttpArtifactStorageContext } = await import(new URL('./storage/artifact-storage-context.js', base).href);
+    const bytes = await (await fetch(selected.source.baseUrl + 'manifest.json')).arrayBuffer();
+    const identity = 'sha256:' + Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
+    if (identity !== selected.identity || input.modelIdentity !== identity) throw Error('Unsplit comparison model identity mismatch');
+    const manifestText = new TextDecoder().decode(bytes), manifest = JSON.parse(manifestText);
+    const maxGpuBufferBytes = 6000000000;
+    await runtime.configureDeviceMemoryBudget({ maxBytes: maxGpuBufferBytes });
+    let handle = null;
+    const started = performance.now();
+    try {
+      handle = await load({ manifest, manifestText, manifestHash: identity.slice(7), baseUrl: selected.source.baseUrl,
+        storage: createHttpArtifactStorageContext(selected.source.baseUrl, manifest, { verifyHashes: true }) },
+      { runtimeConfig: { shared: { bufferPool: policy.bufferPool },
+        inference: { session: { kvcache: { maxSeqLen: input.generation.maxSeqLen },
+          prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } } });
+      const tokenized = handle.advanced.tokenizePrompt(input.messages, input.generation);
+      if (JSON.stringify(tokenized) !== JSON.stringify(input.tokenIds)) throw Error('Unsplit comparison prompt tokenization differs');
+      // Context length is set when opening. Explicit IDs avoid a second template.
+      const { maxSeqLen: _contextLength, ...generation } = input.generation;
+      const evidence = await handle.generateWithEvidence('', { ...generation, inputIds: input.tokenIds });
+      return { scope: 'Unsplit diagnostic with sufficient memory; excluded from capacity proof',
+        modelIdentity: identity, maxGpuBufferBytes, input, evidence, memory: runtime.inspectDeviceMemory(),
+        elapsedMs: performance.now() - started };
+    } finally { await handle?.unload(); }
+  }, { selected: model, input });
+}
+
 export async function routeDiagnosticModel(context, model, directory) {
   await context.route(model.source.baseUrl + '*', async route => {
     const filename = new URL(route.request().url()).pathname.split('/').at(-1);

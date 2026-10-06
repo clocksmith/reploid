@@ -212,6 +212,7 @@ test('quote extractor and isolated evaluator preserve correct results, exception
       });
       expect(actual.exception).toBeNull(); expect(actual.value).toEqual(sample.expected);
       expect(actual.mutationPreserved).toBe(true);
+      expect(actual.valueIsNull).toBe(sample.expected === null);
     }
   }
   const input = { quotes:[{id:'original'}], budget:0, deadline:'2026-06-01' };
@@ -219,5 +220,8 @@ test('quote extractor and isolated evaluator preserve correct results, exception
   expect(mutation.mutationPreserved).toBe(false);
   const exception = await evaluateQuoteCode(page, 'function chooseQuote(quotes) { quotes[0].id = "changed"; throw new Error("candidate failed"); }', input);
   expect(exception.exception.message).toBe('candidate failed'); expect(exception.mutationPreserved).toBe(false);
+  const nonfinite = await evaluateQuoteCode(page, 'function chooseQuote() { return NaN; }', input);
+  expect(nonfinite.value).toBeNull(); // JSON transport normalizes NaN; it is not a null return.
+  expect(nonfinite.resultType).toBe('number'); expect(nonfinite.valueIsNull).toBe(false);
   expect(input.quotes[0].id).toBe('original');
 });
