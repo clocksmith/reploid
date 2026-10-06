@@ -95,7 +95,7 @@ test('candidate isolation blocks network and storage and terminates looping work
 });
 
 test('new integration modules pass the Verification Worker',async({page})=>{
-  const paths=['self/host/work-session.js','self/host/work-helpers.js','self/host/work-swarm.js','self/host/work-evolution.js',
+  const paths=['self/host/work-model-files.js','self/host/work-session.js','self/host/work-helpers.js','self/host/work-swarm.js','self/host/work-evolution.js',
     'self/infrastructure/code-sandbox.js','self/ui/pool-home/work-capabilities.js','self/ui/pool-home/work.js','self/ui/pool-home/index.js',
     'self/ui/pool-home/view.js','self/host/work-view.js','packages/reploid/src/improvement/code-evolution.js',
     'self/providers/work-network-provider.js','self/ui/pool-home/work-goal-composer.js',
@@ -224,4 +224,33 @@ test('quote extractor and isolated evaluator preserve correct results, exception
   expect(nonfinite.value).toBeNull(); // JSON transport normalizes NaN; it is not a null return.
   expect(nonfinite.resultType).toBe('number'); expect(nonfinite.valueIsNull).toBe(false);
   expect(input.quotes[0].id).toBe('original');
+});
+
+test('model file cache recovers when its directory disappears', async ({ page }) => {
+  await page.goto('/');
+  const result = await page.evaluate(async () => {
+    const { createWorkModelFiles } = await import('/host/work-model-files.js');
+    const contents = { first: new Uint8Array([1, 2, 3]), second: new Uint8Array([4, 5, 6]) };
+    const artifacts = {};
+    for (const [name, bytes] of Object.entries(contents)) {
+      const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
+      artifacts[name] = { path: name + '.bin', url: 'https://fixture.invalid/' + name,
+        role: 'model-adapter', sizeBytes: bytes.length, hash: 'sha256:' + hash };
+    }
+    let reads = 0;
+    const files = createWorkModelFiles({ getTransport: () => null, fetchImpl: async url => {
+      reads++; return new Response(contents[new URL(url).pathname.slice(1)]);
+    } });
+    const controls = { signal: new AbortController().signal };
+    try {
+      await files.acquireAdapter(artifacts.first, controls);
+      await files.acquireAdapter(artifacts.second, controls);
+      await (await navigator.storage.getDirectory()).removeEntry('reploid-chat-artifacts-v1', { recursive: true });
+      const acquired = await files.acquireAdapter(artifacts.first, controls);
+      const folder = await (await navigator.storage.getDirectory()).getDirectoryHandle('reploid-chat-artifacts-v1');
+      const saved = await (await folder.getFileHandle(artifacts.first.hash.replace(':', '-'))).getFile();
+      return { acquired: Array.from(acquired), saved: Array.from(new Uint8Array(await saved.arrayBuffer())), reads };
+    } finally { await files.close(); }
+  });
+  expect(result).toEqual({ acquired: [1, 2, 3], saved: [1, 2, 3], reads: 3 });
 });
