@@ -84,6 +84,12 @@ export async function routeDiagnosticModel(context, model, directory) {
   await context.route(model.source.baseUrl + '*', async route => {
     const filename = new URL(route.request().url()).pathname.split('/').at(-1);
     if (!/^[\w.-]+$/.test(filename)) throw Error('Invalid diagnostic fixture path');
+    if (process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL) {
+      await route.fulfill({ status: 307, headers: {
+        location: new URL(filename, process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL).href,
+        'access-control-allow-origin': '*' } });
+      return;
+    }
     const file = await open(path.join(directory, filename), 'r');
     try {
       const size = (await file.stat()).size, range = route.request().headers().range;

@@ -79,6 +79,14 @@ test('one model executes cooperatively on discovered physical peers from selecti
     const filename = new URL(route.request().url()).pathname.split('/').at(-1);
     if (!/^[\w.-]+$/.test(filename)) throw new Error('Invalid fixture path');
     seedFiles.push(filename);
+    if (process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL) {
+      // Use the already streamed, tunneled fixture; never copy whole shards
+      // through the remote browser's debugger protocol.
+      await route.fulfill({ status: 307, headers: {
+        location: new URL(filename, process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL).href,
+        'access-control-allow-origin': '*' } });
+      return;
+    }
     await route.fulfill({ body: await readFile(path.join(directory, filename)),
       contentType: filename.endsWith('.json') ? 'application/json' : 'application/octet-stream' });
   });
@@ -586,6 +594,10 @@ test('one model executes cooperatively on discovered physical peers from selecti
     if (numerical && process.env.REPLOID_TRACK_NUMERICAL_DRIFT !== '1') {
       expect(numerical.filter(step => !step.matches), 'Distributed numerical tolerance failures').toEqual([]);
     }
+  } catch (error) {
+    await writeFile(info.outputPath('failure.json'), JSON.stringify({ name: error.name, message: error.message, stack: error.stack }, null, 2));
+    console.log('Conversation failure recorded:', error.message.split('\n')[0]);
+    throw error;
   } finally {
     // Retain the actual failed boundary as well as successful run evidence.
     const states = await Promise.all(allPages.map(async page => {
@@ -609,6 +621,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
         history: JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')),
         error: document.querySelector('[data-network-message]')?.textContent,
         contribution: document.querySelector('[data-contrib-label]')?.textContent,
+        fileContribution: document.querySelector('[data-file-contribution-label]')?.textContent,
         progress: document.querySelector('[data-contribution-progress]')?.textContent,
         storage: await navigator.storage.estimate(), cache
       }; }, model); } catch (error) { return { diagnosticsError: error.message }; }
