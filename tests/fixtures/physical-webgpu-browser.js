@@ -7,3 +7,9 @@ export function physicalWebGpuBrowserOptions(platform, channel = 'chrome') {
   if (!Object.hasOwn(backends, platform)) throw new Error(`Unsupported physical test host: ${platform}`);
   return { channel, headless: true, args: ['--enable-unsafe-webgpu', ...backends[platform]] };
 }
+
+/** Ordinary remote profiles expose CDP; older external launch servers remain supported. */
+export function connectPhysicalBrowser(chromium, endpoint) {
+  return process.env.REPLOID_EXECUTOR_CDP === '1'
+    ? chromium.connectOverCDP(endpoint) : chromium.connect(endpoint);
+}

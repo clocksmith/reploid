@@ -93,6 +93,12 @@ let failure = null;
 let numerical = null;
 let referenceGeneration = null;
 const memory = [];
+// Freeze identities before starting any browser, rather than relabeling a run
+// with files that a developer may change while diagnosing its failure.
+const [packageIdentity, bundle, profile, policy] = await Promise.all([
+  'doppler-package.json', 'browser-bundle-manifest.json', 'work-profile.json', 'partition-policy.json'
+].map(async file => JSON.parse(await readFile(resolve(root, 'self/config', file)))));
+const browserIdentity = bundle.bundleHash;
 try {
   const stored = await readFile(referenceSource);
   const bytes = stored[0] === 0x1f && stored[1] === 0x8b ? gunzipSync(stored) : stored;
@@ -124,19 +130,40 @@ try {
   await waitForLine(modelServer, line => line.includes(`loopback port ${modelPort}`));
   phase = 'physical peer browser';
   const code = `import { chromium } from 'playwright';
-    const browser = await chromium.launchServer(${JSON.stringify(physicalWebGpuBrowserOptions('linux'))});
-    console.log(JSON.stringify({ ws: browser.wsEndpoint() }));
-    process.stdin.resume(); process.stdin.on('end', async () => { await browser.close(); process.exit(); });`;
+    import { mkdtemp, readFile, rm } from 'node:fs/promises';
+    import { tmpdir } from 'node:os'; import { join } from 'node:path';
+    const contexts = [], profiles = [], endpoints = [];
+    const close = async () => {
+      await Promise.allSettled(contexts.map(context => context.close()));
+      await Promise.all(profiles.map(profile => rm(profile, { recursive: true, force: true })));
+    };
+    try {
+      for (let index = 0; index < 3; index++) {
+        const profile = await mkdtemp(join(tmpdir(), 'reploid-physical-profile-')); profiles.push(profile);
+        const context = await chromium.launchPersistentContext(profile, ${JSON.stringify({ ...physicalWebGpuBrowserOptions('linux'), args: [...physicalWebGpuBrowserOptions('linux').args, '--remote-debugging-port=0'] })});
+        contexts.push(context);
+        const [port, path] = (await readFile(join(profile, 'DevToolsActivePort'), 'utf8')).trim().split(String.fromCharCode(10));
+        endpoints.push('ws://127.0.0.1:' + port + path);
+      }
+      console.log(JSON.stringify({ ws: endpoints[0], seed: endpoints[1], replacement: endpoints[2] }));
+      let closing = false;
+      const stop = async () => { if (closing) return; closing = true; await close(); process.exit(); };
+      process.stdin.resume(); process.stdin.on('end', stop); process.on('SIGTERM', stop); process.on('SIGINT', stop);
+    } catch (error) { await close(); throw error; }`;
   const remote = start('ssh', ['-o', 'BatchMode=yes', peer,
     `cd ${quote(peerRoot)} && node --input-type=module -e ${quote(code)}`]);
-  const ws = await waitForLine(remote, line => {
-    try { return JSON.parse(line).ws; } catch { return null; }
+  const endpoints = await waitForLine(remote, line => {
+    try { const value = JSON.parse(line); return value.ws ? value : null; } catch { return null; }
   });
-  const remoteUrl = new URL(ws);
+  const remoteUrl = new URL(endpoints.ws);
+  const seedUrl = new URL(endpoints.seed), replacementUrl = new URL(endpoints.replacement);
+  const seedSocketPort = await freePort(), replacementSocketPort = await freePort();
   phase = 'loopback transport';
   const tunnel = start('ssh', ['-o', 'BatchMode=yes', '-o', 'ExitOnForwardFailure=yes',
-    '-L', `${socketPort}:127.0.0.1:${remoteUrl.port}`, '-R', `${port}:127.0.0.1:${port}`,
-    '-R', `${modelPort}:127.0.0.1:${modelPort}`,
+    '-L', `${socketPort}:127.0.0.1:${remoteUrl.port}`,
+    '-L', `${seedSocketPort}:127.0.0.1:${seedUrl.port}`,
+    '-L', `${replacementSocketPort}:127.0.0.1:${replacementUrl.port}`,
+    '-R', `${port}:127.0.0.1:${port}`, '-R', `${modelPort}:127.0.0.1:${modelPort}`,
     peer, 'echo REPLoid_TRANSPORT_READY; cat >/dev/null']);
   await waitForLine(tunnel, line => line === 'REPLoid_TRANSPORT_READY');
   const workloads = capacityDiagnostic ? [{ mode: 'capacity' }] : frozenWorkloads
@@ -152,7 +179,7 @@ try {
       REPLOID_CAPTURE_OUT: capture, REPLOID_MEMORY_PHASE: mode,
       REPLOID_TEST_MODEL: modelId,
       REPLOID_REFERENCE_FILE: reference, REPLOID_REFERENCE_REVERSE: workload.reverse ? '1' : '0',
-      REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
+      REPLOID_EXECUTOR_CDP: '1', REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
       REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_MODEL_BASE_URL: `http://127.0.0.1:${modelPort}/`
     } });
     check.stdout.pipe(process.stdout);
@@ -187,8 +214,10 @@ try {
         REPLOID_E2E_RECOVERY: recoveryDiagnostic ? '1' : '0',
         REPLOID_E2E_REVERSE_HOSTS: reverseHosts ? '1' : '0',
         PLAYWRIGHT_JSON_OUTPUT_FILE: resolve(output, 'playwright.json'),
-        REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
+        REPLOID_EXECUTOR_CDP: '1', REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
         REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_E2E_SKIP_LOCAL_SERVER: '1',
+        REPLOID_SEED_WS: `ws://127.0.0.1:${seedSocketPort}${seedUrl.pathname}`,
+        REPLOID_REPLACEMENT_WS: `ws://127.0.0.1:${replacementSocketPort}${replacementUrl.pathname}`,
         REPLOID_DIAGNOSTIC_MODEL_BASE_URL: `http://localhost:${modelPort}/`,
         REPLOID_E2E_CHROMIUM_CHANNEL: 'chrome', REPLOID_E2E_CUSTODY_TRACE: '1', REPLOID_E2E_REPLICA: '1',
         REPLOID_E2E_DOCUMENTS: documentWorkload ? '1' : '0',
@@ -215,10 +244,7 @@ try {
 } finally {
   await stopChildren();
   await Promise.all(logs.map(log => new Promise(done => log.end(done))));
-  const packageIdentity = JSON.parse(await readFile(resolve(root, 'self/config/doppler-package.json')));
-  const browserIdentity = JSON.parse(await readFile(resolve(root, 'self/config/browser-bundle-manifest.json'))).bundleHash;
-  const profile = JSON.parse(await readFile(resolve(root, 'self/config/work-profile.json')));
-  const policy = JSON.parse(await readFile(resolve(root, 'self/config/partition-policy.json')));
+
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId,
     scope: recoveryDiagnostic ? 'Physical contributor restart diagnostic; other acceptance categories not exercised'
       : capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
