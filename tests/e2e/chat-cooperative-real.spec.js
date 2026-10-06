@@ -176,8 +176,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
     }
     await expect(requester.locator('[data-composer-send]')).toBeDisabled();
     await expect(requester.locator('[data-mesh-invite]')).toBeHidden();
-    if (process.env.REPLOID_E2E_REVERSE_HOSTS === '1') {
-      // Exercise the opposite physical placement with normally generated signed
+    if (remote) {
+      // Exercise the requested physical placement with normally generated signed
       // identities. Reconnect before contribution until the first host sorts as
       // input owner; discovery/placement still run entirely in the application.
       await expect.poll(() => observations.every(device => !!device.participantId), { timeout: 30000 }).toBe(true);
@@ -226,7 +226,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
         return state.phase;
       }, { timeout: 1800000 }).toBe('Ready');
     }));
-    if (process.env.REPLOID_E2E_REVERSE_HOSTS === '1') expect(observations[0].loads[0].descriptor.index).toBe(0);
+    if (remote) expect(observations[0].loads[0].descriptor.index).toBe(0);
     await seedObserver?.armFileProbes();
     console.log('Real contributor ready from peer files with its origin unavailable');
     await expect(requester.locator('[data-active-model-select]')).toHaveValue(new RegExp(model.id), { timeout: 60000 });
@@ -379,7 +379,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     }
     let usefulCode = null;
     if (process.env.REPLOID_E2E_CAPACITY === '1') {
-      const prompt = 'Write a JavaScript function chooseQuote(quotes, budgetCents, deadline). Each quote has id, subtotalCents, taxPercent, taxIncluded, and completionDate (YYYY-MM-DD). Calculate the total in integer cents: included tax is already in the subtotal; otherwise add the stated percentage and round to the nearest cent. Only quotes within budget and completed on or before deadline are eligible. Return {id, totalCents} for the cheapest eligible quote, breaking ties by id alphabetically; return null if none qualify. Do not mutate the input. Return only the function code.';
+      const prompt = 'Write only JavaScript function chooseQuote(quotes, budgetCents, deadline). Each quote has id, subtotalCents, taxPercent, taxIncluded, completionDate (YYYY-MM-DD). Return exactly an object with properties id and totalCents, or null. Use a for-of loop, initialize best to null. For each quote compute const totalCents = quote.taxIncluded ? quote.subtotalCents : Math.round(quote.subtotalCents * (1 + quote.taxPercent / 100)). Skip it if totalCents > budgetCents or quote.completionDate > deadline. Compare totalCents with best.totalCents. Equal totals must compare quote.id with best.id alphabetically. When updating best, assign {id: quote.id, totalCents: totalCents}. At the end return best directly. Keep those exact property names when comparing and returning. Do not return an array or the original quote. Do not mutate quotes. Return only complete function code.';
       const id = await sendNew(prompt); await waitCompleted(id, 600000);
       const thread = (await history(requester)).threads.find(thread => thread.id === id);
       const answer = thread.messages.at(-1).content;
