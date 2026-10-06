@@ -191,7 +191,14 @@ test('one model executes cooperatively on discovered physical peers from selecti
     }
     await openContribution(seed);
     await seed.locator('[data-toggle-file-contribution]').click();
-    await expect(seed.locator('[data-file-contribution-label]')).toHaveText('Sharing', { timeout: 180000 });
+    await expect.poll(async () => {
+      const state = await seed.evaluate(() => ({
+        phase: document.querySelector('[data-file-contribution-label]').textContent,
+        error: document.querySelector('[data-network-message]').textContent
+      }));
+      if (state.error || state.phase === 'Failed') throw Error('Seed preparation failed: ' + state.error);
+      return state.phase;
+    }, { timeout: 1800000 }).toBe('Sharing');
     console.log('Exact catalog files cached by the consenting seed', seedFiles.length);
     for (const executor of [contributor, second]) {
     await openContribution(executor);
