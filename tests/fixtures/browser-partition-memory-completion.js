@@ -107,7 +107,8 @@ try {
       return { descriptor: resident.getDescriptor(), packageVersion: config.DOPPLER_PACKAGE_VERSION,
         beforePreparation, afterPreparation: await settleMemory(), planId };
     }, { model: { ...(capacityModel || requests[0].model), generation }, index,
-      modelSource: process.env.REPLOID_MODEL_BASE_URL || 'http://127.0.0.1:9230/' });
+      modelSource: (browser === remote ? process.env.REPLOID_PEER_MODEL_BASE_URL : null)
+        || process.env.REPLOID_MODEL_BASE_URL || 'http://127.0.0.1:9230/' });
     descriptors.push({ ...prepared, platform: slot ? 'linux' : 'mac', browser: browser.version() });
     console.log(JSON.stringify({ prepared: index, bytes: prepared.afterPreparation.device.liveBytes }));
   }

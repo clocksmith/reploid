@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 const root = process.env.DOPPLER_CHAT_MODEL_DIR;
 if (!root) throw Error('DOPPLER_CHAT_MODEL_DIR is required');
 const port = Number(process.env.REPLOID_MODEL_PORT || 9230);
-const server = createServer(async (request, response) => {
+export const server = createServer(async (request, response) => {
   // The catalog-origin redirect has an opaque Origin. These loopback-only,
   // read-only diagnostic files need no cookies or other caller credentials.
   response.setHeader('Access-Control-Allow-Origin', '*');
@@ -37,5 +37,5 @@ const server = createServer(async (request, response) => {
   } catch (error) { if (!response.headersSent) response.writeHead(404); response.end(); }
   finally { await file?.close(); }
 });
-server.listen(port, '127.0.0.1', () => console.log(`Diagnostic model server on loopback port ${port}`));
+server.listen(port, '127.0.0.1', () => console.log(`Diagnostic model server on loopback port ${server.address().port}`));
 process.on('SIGTERM', () => server.close());

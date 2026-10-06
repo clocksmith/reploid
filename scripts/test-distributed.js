@@ -92,6 +92,7 @@ await mkdir(output, { recursive: true });
 let failure = null;
 let numerical = null;
 let referenceGeneration = null;
+let modelFixtureHost = null;
 const memory = [];
 // Freeze identities before starting any browser, rather than relabeling a run
 // with files that a developer may change while diagnosing its failure.
@@ -123,21 +124,30 @@ try {
     ...process.env, PORT: String(port), POOL_ALLOW_UNAUTHENTICATED_LOCAL: 'true', REPLOID_SKIP_CLOUD_ACCESS_BUILD: 'true'
   } });
   await waitForLine(server, line => line.includes(`HTTP API: http://localhost:${port}`));
-  const modelServer = start(process.execPath, ['tests/fixtures/numerical-model-server.js'], { env: {
-    ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, REPLOID_MODEL_PORT: String(modelPort),
-    REPLOID_E2E_BASE_URL: `http://localhost:${port}`
-  } });
-  await waitForLine(modelServer, line => line.includes(`loopback port ${modelPort}`));
   phase = 'physical peer browser';
   const code = `import { chromium } from 'playwright';
-    import { mkdtemp, readFile, rm } from 'node:fs/promises';
-    import { tmpdir } from 'node:os'; import { join } from 'node:path';
+    import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
+    import { createHash } from 'node:crypto'; import { once } from 'node:events';
+    import { tmpdir } from 'node:os'; import { join, resolve } from 'node:path';
     const contexts = [], profiles = [], endpoints = [];
+    let fixture = null;
     const close = async () => {
+      fixture?.server.closeAllConnections(); fixture?.server.close();
       await Promise.allSettled(contexts.map(context => context.close()));
       await Promise.all(profiles.map(profile => rm(profile, { recursive: true, force: true })));
     };
     try {
+      // The exact fixture normally already exists beside the peer's package.
+      // Read it on that host instead of uploading the whole model before P2P.
+      const directory = ${JSON.stringify(process.env.REPLOID_TEST_PEER_MODEL_DIR || resolve(peerRoot, '../doppler/models/local', modelId))};
+      try {
+        const bytes = await readFile(join(directory, 'manifest.json'));
+        if (createHash('sha256').update(bytes).digest('hex') !== ${JSON.stringify(catalog.identity.slice(7))}) throw Error('Peer fixture model identity mismatch');
+        for (const shard of JSON.parse(bytes).shards) await access(join(directory, shard.filename || shard.file));
+        process.env.DOPPLER_CHAT_MODEL_DIR = directory; process.env.REPLOID_MODEL_PORT = '0';
+        fixture = await import('./tests/fixtures/numerical-model-server.js');
+        if (!fixture.server.listening) await once(fixture.server, 'listening');
+      } catch (error) { if (error.code !== 'ENOENT') throw error; }
       for (let index = 0; index < 3; index++) {
         const profile = await mkdtemp(join(tmpdir(), 'reploid-physical-profile-')); profiles.push(profile);
         const context = await chromium.launchPersistentContext(profile, ${JSON.stringify({ ...physicalWebGpuBrowserOptions('linux'), args: [...physicalWebGpuBrowserOptions('linux').args, '--remote-debugging-port=0'] })});
@@ -145,7 +155,7 @@ try {
         const [port, path] = (await readFile(join(profile, 'DevToolsActivePort'), 'utf8')).trim().split(String.fromCharCode(10));
         endpoints.push('ws://127.0.0.1:' + port + path);
       }
-      console.log(JSON.stringify({ ws: endpoints[0], seed: endpoints[1], replacement: endpoints[2] }));
+      console.log(JSON.stringify({ ws: endpoints[0], seed: endpoints[1], replacement: endpoints[2], fixturePort: fixture?.server.address().port || null }));
       let closing = false;
       const stop = async () => { if (closing) return; closing = true; await close(); process.exit(); };
       process.stdin.resume(); process.stdin.on('end', stop); process.on('SIGTERM', stop); process.on('SIGINT', stop);
@@ -158,12 +168,22 @@ try {
   const remoteUrl = new URL(endpoints.ws);
   const seedUrl = new URL(endpoints.seed), replacementUrl = new URL(endpoints.replacement);
   const seedSocketPort = await freePort(), replacementSocketPort = await freePort();
+  modelFixtureHost = endpoints.fixturePort ? 'peer' : 'local';
+  if (!endpoints.fixturePort) {
+    phase = 'local model fixture';
+    const modelServer = start(process.execPath, ['tests/fixtures/numerical-model-server.js'], { env: {
+      ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, REPLOID_MODEL_PORT: String(modelPort)
+    } });
+    await waitForLine(modelServer, line => line.includes(`loopback port ${modelPort}`));
+  }
   phase = 'loopback transport';
   const tunnel = start('ssh', ['-o', 'BatchMode=yes', '-o', 'ExitOnForwardFailure=yes',
     '-L', `${socketPort}:127.0.0.1:${remoteUrl.port}`,
     '-L', `${seedSocketPort}:127.0.0.1:${seedUrl.port}`,
     '-L', `${replacementSocketPort}:127.0.0.1:${replacementUrl.port}`,
-    '-R', `${port}:127.0.0.1:${port}`, '-R', `${modelPort}:127.0.0.1:${modelPort}`,
+    '-R', `${port}:127.0.0.1:${port}`,
+    ...(endpoints.fixturePort ? ['-L', `${modelPort}:127.0.0.1:${endpoints.fixturePort}`]
+      : ['-R', `${modelPort}:127.0.0.1:${modelPort}`]),
     peer, 'echo REPLoid_TRANSPORT_READY; cat >/dev/null']);
   await waitForLine(tunnel, line => line === 'REPLoid_TRANSPORT_READY');
   const workloads = capacityDiagnostic ? [{ mode: 'capacity' }] : frozenWorkloads
@@ -180,7 +200,8 @@ try {
       REPLOID_TEST_MODEL: modelId,
       REPLOID_REFERENCE_FILE: reference, REPLOID_REFERENCE_REVERSE: workload.reverse ? '1' : '0',
       REPLOID_EXECUTOR_CDP: '1', REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
-      REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_MODEL_BASE_URL: `http://127.0.0.1:${modelPort}/`
+      REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_MODEL_BASE_URL: `http://127.0.0.1:${modelPort}/`,
+      REPLOID_PEER_MODEL_BASE_URL: `http://127.0.0.1:${endpoints.fixturePort || modelPort}/`
     } });
     check.stdout.pipe(process.stdout);
     const [code] = await once(check, 'exit');
@@ -219,6 +240,7 @@ try {
         REPLOID_SEED_WS: `ws://127.0.0.1:${seedSocketPort}${seedUrl.pathname}`,
         REPLOID_REPLACEMENT_WS: `ws://127.0.0.1:${replacementSocketPort}${replacementUrl.pathname}`,
         REPLOID_DIAGNOSTIC_MODEL_BASE_URL: `http://localhost:${modelPort}/`,
+        REPLOID_DIAGNOSTIC_PEER_MODEL_BASE_URL: `http://localhost:${endpoints.fixturePort || modelPort}/`,
         REPLOID_E2E_CHROMIUM_CHANNEL: 'chrome', REPLOID_E2E_CUSTODY_TRACE: '1', REPLOID_E2E_REPLICA: '1',
         REPLOID_E2E_DOCUMENTS: documentWorkload ? '1' : '0',
         REPLOID_TRACK_NUMERICAL_DRIFT: numericalPolicy === 'tracked' ? '1' : '0'
@@ -239,13 +261,13 @@ try {
   }
 } catch (error) {
   failure = { phase, message: interruptedBy ? `Verification interrupted by ${interruptedBy}` : error.message };
-  console.error(`[distributed] ${phase}: ${error.message}`);
+  console.error(`[distributed] ${phase}: ${failure.message}`);
   process.exitCode = 1;
 } finally {
   await stopChildren();
   await Promise.all(logs.map(log => new Promise(done => log.end(done))));
 
-  await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId,
+  await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId, modelFixtureHost,
     scope: recoveryDiagnostic ? 'Physical contributor restart diagnostic; other acceptance categories not exercised'
       : capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',

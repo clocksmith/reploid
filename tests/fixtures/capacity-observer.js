@@ -80,13 +80,13 @@ export async function measureStandaloneGeneration(page, model, input) {
   }, { selected: model, input });
 }
 
-export async function routeDiagnosticModel(context, model, directory) {
+export async function routeDiagnosticModel(context, model, directory, baseUrl = process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL) {
   await context.route(model.source.baseUrl + '*', async route => {
     const filename = new URL(route.request().url()).pathname.split('/').at(-1);
     if (!/^[\w.-]+$/.test(filename)) throw Error('Invalid diagnostic fixture path');
-    if (process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL) {
+    if (baseUrl) {
       await route.fulfill({ status: 307, headers: {
-        location: new URL(filename, process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL).href,
+        location: new URL(filename, baseUrl).href,
         'access-control-allow-origin': '*' } });
       return;
     }
