@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
-import { physicalWebGpuBrowserOptions } from './physical-webgpu-browser.js';
+import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from './physical-webgpu-browser.js';
 const raw = await readFile(process.env.REPLOID_DIAGNOSTIC_REQUESTS);
 assert.equal(createHash('sha256').update(raw).digest('hex'), '794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e');
 const requests = JSON.parse(raw), output = process.env.REPLOID_CAPTURE_OUT;
@@ -31,7 +31,7 @@ const cases = capacityModel ? [{ request: { ...requests[0], model: { ...capacity
 if (phase === 'cancel-only') cases.splice(1);
 assert(output && process.env.REPLOID_EXECUTOR_WS);
 const local = await chromium.launch(physicalWebGpuBrowserOptions(process.platform));
-const remote = await chromium.connect(process.env.REPLOID_EXECUTOR_WS);
+const remote = await connectPhysicalBrowser(chromium, process.env.REPLOID_EXECUTOR_WS);
 const contexts = [], pages = [], runs = [], descriptors = [];
 const reverse = process.env.REPLOID_REFERENCE_REVERSE === '1';
 const evidence = { scope: reference

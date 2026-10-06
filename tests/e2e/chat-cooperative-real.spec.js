@@ -7,7 +7,7 @@ import path from 'node:path';
 import { createLayerPartitionPlan } from 'doppler-gpu/partitions';
 import { observeCooperativePage, compareObservedLogits } from '../fixtures/cooperative-observer.js';
 import { inspectExecutorMemory, measureStandaloneDenial, measureStandaloneGeneration, routeDiagnosticModel, inspectConnections } from '../fixtures/capacity-observer.js';
-import { physicalWebGpuBrowserOptions } from '../fixtures/physical-webgpu-browser.js';
+import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from '../fixtures/physical-webgpu-browser.js';
 
 // Exact catalog bytes may be supplied by a local seed. The requester/executor
 // still use the normal page, real WebRTC, signed custody and installed WebGPU.
@@ -19,15 +19,21 @@ test('one model executes cooperatively on discovered physical peers from selecti
   const model = models.find(model => model.id === (process.env.REPLOID_TEST_MODEL || models[0].id));
   expect(model, 'Selected model must belong to the application catalog').toBeTruthy();
   const remote = process.env.REPLOID_EXECUTOR_WS
-    ? await chromium.connect(process.env.REPLOID_EXECUTOR_WS) : null;
+    ? await connectPhysicalBrowser(chromium, process.env.REPLOID_EXECUTOR_WS) : null;
+  const remoteSeed = process.env.REPLOID_SEED_WS
+    ? await connectPhysicalBrowser(chromium, process.env.REPLOID_SEED_WS) : remote;
+  const remoteReplacement = process.env.REPLOID_REPLACEMENT_WS
+    ? await connectPhysicalBrowser(chromium, process.env.REPLOID_REPLACEMENT_WS) : remote;
+  const remoteHosts = new Set([remote, remoteSeed, remoteReplacement].filter(Boolean));
+  const isRemote = host => remoteHosts.has(host);
   const contributionHosts = process.env.REPLOID_E2E_REVERSE_HOSTS === '1'
     ? [browser, remote || browser] : [remote || browser, browser];
-  // Chrome 154 on macOS loses private OPFS directory entries after an idle
-  // database close. Exercise ordinary application profiles on that host.
+  // Exercise ordinary application profiles on both physical hosts.
   // Put the file seed on Linux when available so macOS stores assigned pieces.
-  const hosts = [browser, contributionHosts[0], remote || browser, contributionHosts[1]];
+  const hosts = [browser, contributionHosts[0], remoteSeed || browser, contributionHosts[1]];
   const profiles = [];
   const openApplicationContext = async host => {
+    if (isRemote(host) && process.env.REPLOID_EXECUTOR_CDP === '1') return host.contexts()[0];
     if (process.platform !== 'darwin' || host !== browser) return host.newContext();
     const profile = await mkdtemp(path.join(tmpdir(), 'reploid-cooperative-profile-'));
     profiles.push(profile);
@@ -39,18 +45,18 @@ test('one model executes cooperatively on discovered physical peers from selecti
   if (failedOpening) {
     await Promise.all(contexts.map(context => context.close()));
     await Promise.all(profiles.map(profile => rm(profile, { recursive: true, force: true })));
-    await remote?.close(); throw failedOpening.reason;
+    await Promise.all([...remoteHosts].map(host => host.close())); throw failedOpening.reason;
   }
   if (process.env.REPLOID_E2E_RTC_CONFIG_FILE) {
     const rtc = JSON.parse(await readFile(process.env.REPLOID_E2E_RTC_CONFIG_FILE, 'utf8'));
     for (const context of contexts) await context.addInitScript(config => { globalThis.REPLOID_POOL_RTC_CONFIG = config; }, rtc);
   }
   const [requester, contributor, seed, second] = await Promise.all(contexts.map(context => context.newPage()));
-  const observations = [1, 3].map(index => ({ physicalHost: hosts[index] === remote ? 'linux-128' : 'mac', loads: [], steps: [], errors: [] }));
+  const observations = [1, 3].map(index => ({ physicalHost: isRemote(hosts[index]) ? 'linux-128' : 'mac', loads: [], steps: [], errors: [] }));
   const reference = process.env.DOPPLER_PARTITION_REFERENCE_OUT
     ? JSON.parse(await readFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, 'utf8')) : null;
   const captureCustody = process.env.REPLOID_E2E_CUSTODY_TRACE === '1';
-  const seedObservation = { physicalHost: hosts[2] === remote ? 'linux-128' : 'mac', loads: [], steps: [], errors: [] };
+  const seedObservation = { physicalHost: isRemote(hosts[2]) ? 'linux-128' : 'mac', loads: [], steps: [], errors: [] };
   const tokenObservers = [];
   const onInput = input => Promise.all(tokenObservers.map(observer => observer.captureAttempt(input.identity.attemptId)));
   const replicaEnabled = process.env.REPLOID_E2E_REPLICA === '1';
@@ -500,7 +506,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       const originalPlacement = recovered.attempts.at(-1).execution;
       const bIndex = observations.findIndex(device => device.loads[0].descriptor.index === 1);
       const bPage = [contributor, second][bIndex];
-      const bHost = contributionHosts[bIndex];
+      const bHost = isRemote(contributionHosts[bIndex]) ? remoteReplacement : contributionHosts[bIndex];
       // Each executor separately authorizes redistribution of retained pieces.
       for (const executor of [contributor, second]) {
         await executor.locator('[data-toggle-file-contribution]').click();
@@ -647,7 +653,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     const stateAtExit = JSON.stringify({
       executorQuotaMiB, seedObservation,
       physicalDevices: remote ? 2 : 1, browserContexts: contexts.length,
-      applicationProfiles: { mac: process.platform === 'darwin' ? 'ordinary' : 'private', linux: 'private' },
+      applicationProfiles: { mac: process.platform === 'darwin' ? 'ordinary' : 'private', linux: process.env.REPLOID_EXECUTOR_CDP === '1' ? 'ordinary' : 'private' },
       adapterInfo, browser: browser.version(), modelIdentity: model.identity,
       states, replicaObservation, observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2);
