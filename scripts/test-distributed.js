@@ -119,24 +119,38 @@ try {
   const port = await freePort();
   const socketPort = await freePort();
   const modelPort = await freePort();
-  phase = 'local application';
-  const server = start(process.execPath, ['server/proxy.js'], { env: {
-    ...process.env, PORT: String(port), POOL_ALLOW_UNAUTHENTICATED_LOCAL: 'true', REPLOID_SKIP_CLOUD_ACCESS_BUILD: 'true'
-  } });
-  await waitForLine(server, line => line.includes(`HTTP API: http://localhost:${port}`));
-  phase = 'physical peer browser';
+  phase = 'physical peer application and browser';
   const code = `import { chromium } from 'playwright';
     import { access, mkdtemp, readFile, rm } from 'node:fs/promises';
     import { createHash } from 'node:crypto'; import { once } from 'node:events';
+    import { spawn } from 'node:child_process';
     import { tmpdir } from 'node:os'; import { join, resolve } from 'node:path';
     const contexts = [], profiles = [], endpoints = [];
-    let fixture = null;
+    let fixture = null, application = null;
     const close = async () => {
       fixture?.server.closeAllConnections(); fixture?.server.close();
       await Promise.allSettled(contexts.map(context => context.close()));
       await Promise.all(profiles.map(profile => rm(profile, { recursive: true, force: true })));
+      if (application && application.exitCode === null && application.signalCode === null) {
+        const exited = once(application, 'exit'); application.kill('SIGTERM');
+        const force = setTimeout(() => application.kill('SIGKILL'), 5000);
+        await exited; clearTimeout(force);
+      }
     };
     try {
+      const bundle = JSON.parse(await readFile('self/config/browser-bundle-manifest.json'));
+      if (bundle.bundleHash !== ${JSON.stringify(browserIdentity)}) throw Error('Physical peer browser package identity mismatch');
+      const check = spawn(process.execPath, ['scripts/build-browser-bundle-manifest.js', '--check'], { stdio: 'inherit' });
+      if ((await once(check, 'exit'))[0] !== 0) throw Error('Physical peer browser delivery differs from its standard package');
+      application = spawn(process.execPath, ['server/proxy.js'], { env: { ...process.env,
+        PORT: ${JSON.stringify(String(port))}, POOL_ALLOW_UNAUTHENTICATED_LOCAL: 'true', REPLOID_SKIP_CLOUD_ACCESS_BUILD: 'true'
+      }, stdio: ['ignore', 'pipe', 'pipe'] });
+      application.stdout.pipe(process.stdout); application.stderr.pipe(process.stderr);
+      await new Promise((done, reject) => {
+        let output = ''; const timer = setTimeout(() => reject(Error('Physical application startup timed out')), 20000);
+        application.once('error', reject); application.once('exit', code => { clearTimeout(timer); reject(Error('Physical application exited: ' + code)); });
+        application.stdout.on('data', bytes => { output += bytes; if (output.includes(${JSON.stringify(`HTTP API: http://localhost:${port}`)})) { clearTimeout(timer); done(); } });
+      });
       // The exact fixture normally already exists beside the peer's package.
       // Read it on that host instead of uploading the whole model before P2P.
       const directory = ${JSON.stringify(process.env.REPLOID_TEST_PEER_MODEL_DIR || resolve(peerRoot, '../doppler/models/local', modelId))};
@@ -181,7 +195,7 @@ try {
     '-L', `${socketPort}:127.0.0.1:${remoteUrl.port}`,
     '-L', `${seedSocketPort}:127.0.0.1:${seedUrl.port}`,
     '-L', `${replacementSocketPort}:127.0.0.1:${replacementUrl.port}`,
-    '-R', `${port}:127.0.0.1:${port}`,
+    '-L', `${port}:127.0.0.1:${port}`,
     ...(endpoints.fixturePort ? ['-L', `${modelPort}:127.0.0.1:${endpoints.fixturePort}`]
       : ['-R', `${modelPort}:127.0.0.1:${modelPort}`]),
     peer, 'echo REPLoid_TRANSPORT_READY; cat >/dev/null']);
