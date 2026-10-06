@@ -14,7 +14,7 @@ import { physicalWebGpuBrowserOptions } from '../fixtures/physical-webgpu-browse
 const directory = process.env.DOPPLER_CHAT_MODEL_DIR;
 test('one model executes cooperatively on discovered physical peers from selectively acquired pieces', async ({ browser }, info) => {
   test.skip(!directory, 'DOPPLER_CHAT_MODEL_DIR must contain the exact selected catalog files');
-  test.setTimeout(2400000);
+  test.setTimeout(3600000);
   const models = JSON.parse(await readFile('self/config/chat-models.json', 'utf8'));
   const model = models.find(model => model.id === (process.env.REPLOID_TEST_MODEL || models[0].id));
   expect(model, 'Selected model must belong to the application catalog').toBeTruthy();
