@@ -59,7 +59,12 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
     assert(await (await tools()).computeHash(bytes, file.hashAlgorithm) === file.hash, 'Model file integrity mismatch');
   };
   const root = async () => {
-    directory ||= await (await navigator.storage.getDirectory()).getDirectoryHandle('reploid-chat-artifacts-v1', { create: true });
+    // A cache may disappear while its old handle remains alive. Resolve the
+    // current namespace before each operation, including reacquisition writes.
+    const namespace = await navigator.storage.getDirectory();
+    lifetime.signal.throwIfAborted();
+    directory = await namespace.getDirectoryHandle('reploid-chat-artifacts-v1', { create: true });
+    lifetime.signal.throwIfAborted();
     return directory;
   };
   const fileKey = file => file.hashAlgorithm + '-' + file.hash;
