@@ -371,6 +371,67 @@ test('one model executes cooperatively on discovered physical peers from selecti
       expect(requesterWeights).toEqual([]); expect(contributorOrigins).toEqual([]);
       return;
     }
+    let usefulCode = null;
+    if (process.env.REPLOID_E2E_CAPACITY === '1') {
+      const prompt = 'Write a JavaScript function chooseQuote(quotes, budgetCents, deadline). Each quote has id, subtotalCents, taxPercent, taxIncluded, and completionDate (YYYY-MM-DD). Calculate the total in integer cents: included tax is already in the subtotal; otherwise add the stated percentage and round to the nearest cent. Only quotes within budget and completed on or before deadline are eligible. Return {id, totalCents} for the cheapest eligible quote, breaking ties by id alphabetically; return null if none qualify. Do not mutate the input. Return only the function code.';
+      const id = await sendNew(prompt); await waitCompleted(id, 600000);
+      const thread = (await history(requester)).threads.find(thread => thread.id === id);
+      const answer = thread.messages.at(-1).content;
+      const code = extractQuoteCode(answer);
+      const cases = QUOTE_CASES;
+      usefulCode = { prompt, answer, thread, cases, results: [] };
+      await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
+      const attemptId = thread.attempts.at(-1).id;
+      const tokenized = observations.flatMap(device => device.inputs || []).find(input => input.identity.attemptId === attemptId);
+      const distributedSteps = [...observations, replicaObservation].filter(Boolean)
+        .flatMap(device => device.steps).filter(step => step.identity.attemptId === attemptId).sort((a,b) => a.step - b.step);
+      usefulCode.tokenized = tokenized;
+      usefulCode.generatedTokenIds = distributedSteps.map(step => step.tokenId);
+      await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
+      for (const [caseIndex, sample] of cases.entries()) {
+        const actual = await evaluateQuoteCode(requester, code, {
+          quotes: sample.quotes, budget: sample.budget, deadline: sample.deadline
+        });
+        usefulCode.results.push({ caseIndex, ...actual });
+        // Retain each result and mutation/exception observation before asserting.
+        await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
+        expect.soft(actual.exception, `Quote case ${caseIndex} execution`).toBeNull();
+        expect.soft(actual.mutationPreserved, `Quote case ${caseIndex} must preserve input`).toBe(true);
+        if (!actual.exception) {
+          expect.soft(actual.value, `Quote case ${caseIndex} result`).toEqual(sample.expected);
+          expect.soft(actual.valueIsNull, `Quote case ${caseIndex} null result`).toBe(sample.expected === null);
+        }
+      }
+      // Preserve all code results even if the independent inference diagnostic fails.
+      let diagnostic = null;
+      try {
+        diagnostic = await browser.newContext();
+        expect(tokenized, 'Compare the actual distributed prompt tokens').toBeTruthy();
+        await routeDiagnosticModel(diagnostic, model, directory);
+        const page = await diagnostic.newPage(); await page.goto(info.project.use.baseURL);
+        const unsplit = await measureStandaloneGeneration(page, model, tokenized);
+        const comparison = { ...unsplit, distributedAnswer: answer,
+          distributedGeneratedTokenIds: usefulCode.generatedTokenIds,
+          sameAnswer: unsplit.evidence.outputText === answer,
+          sameGeneratedTokens: JSON.stringify(unsplit.evidence.tokenIds) === JSON.stringify(usefulCode.generatedTokenIds) };
+        await writeFile(info.outputPath('useful-code-unsplit.json'), JSON.stringify(comparison, null, 2));
+        usefulCode.unsplit = { sameAnswer: comparison.sameAnswer, sameGeneratedTokens: comparison.sameGeneratedTokens };
+        console.log('Code inference comparison', JSON.stringify(usefulCode.unsplit));
+      } catch (error) {
+        await writeFile(info.outputPath('useful-code-unsplit.json'), JSON.stringify({ exception: { name: error.name, message: error.message } }, null, 2));
+        expect.soft(error, 'Unsplit comparison must complete').toBeNull();
+      } finally {
+        try { await diagnostic?.close(); }
+        catch (error) {
+          usefulCode.unsplitCleanupException = { name: error.name, message: error.message };
+          await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
+          expect.soft(error, 'Unsplit comparison must release its context').toBeNull();
+        }
+      }
+      expect(thread.attempts.at(-1).execution.stopReason).toBe('eos-token');
+      await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
+      completed = await history(requester);
+    }
     const secondId = await sendNew('What is two plus two? Answer briefly.');
     await waitCompleted(secondId);
     expect((await history(requester)).threads.find(thread => thread.id === secondId).messages.at(-1).content.trim()).toBe('4');
@@ -490,66 +551,6 @@ test('one model executes cooperatively on discovered physical peers from selecti
       completed = await history(requester);
     }
     await runCapacityControls();
-    let usefulCode = null;
-    if (process.env.REPLOID_E2E_CAPACITY === '1') {
-      const prompt = 'Write a JavaScript function chooseQuote(quotes, budgetCents, deadline). Each quote has id, subtotalCents, taxPercent, taxIncluded, and completionDate (YYYY-MM-DD). Calculate the total in integer cents: included tax is already in the subtotal; otherwise add the stated percentage and round to the nearest cent. Only quotes within budget and completed on or before deadline are eligible. Return {id, totalCents} for the cheapest eligible quote, breaking ties by id alphabetically; return null if none qualify. Do not mutate the input. Return only the function code.';
-      const id = await sendNew(prompt); await waitCompleted(id, 600000);
-      const thread = (await history(requester)).threads.find(thread => thread.id === id);
-      const answer = thread.messages.at(-1).content;
-      const code = extractQuoteCode(answer);
-      const cases = QUOTE_CASES;
-      usefulCode = { prompt, answer, thread, cases, results: [] };
-      await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
-      const attemptId = thread.attempts.at(-1).id;
-      const tokenized = observations.flatMap(device => device.inputs || []).find(input => input.identity.attemptId === attemptId);
-      const distributedSteps = [...observations, replicaObservation].filter(Boolean)
-        .flatMap(device => device.steps).filter(step => step.identity.attemptId === attemptId).sort((a,b) => a.step - b.step);
-      usefulCode.tokenized = tokenized;
-      usefulCode.generatedTokenIds = distributedSteps.map(step => step.tokenId);
-      await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
-      for (const [caseIndex, sample] of cases.entries()) {
-        const actual = await evaluateQuoteCode(requester, code, {
-          quotes: sample.quotes, budget: sample.budget, deadline: sample.deadline
-        });
-        usefulCode.results.push({ caseIndex, ...actual });
-        // Retain each result and mutation/exception observation before asserting.
-        await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
-        expect.soft(actual.exception, `Quote case ${caseIndex} execution`).toBeNull();
-        expect.soft(actual.mutationPreserved, `Quote case ${caseIndex} must preserve input`).toBe(true);
-        if (!actual.exception) {
-          expect.soft(actual.value, `Quote case ${caseIndex} result`).toEqual(sample.expected);
-          expect.soft(actual.valueIsNull, `Quote case ${caseIndex} null result`).toBe(sample.expected === null);
-        }
-      }
-      // Preserve all code results even if the independent inference diagnostic fails.
-      let diagnostic = null;
-      try {
-        diagnostic = await browser.newContext();
-        expect(tokenized, 'Compare the actual distributed prompt tokens').toBeTruthy();
-        await routeDiagnosticModel(diagnostic, model, directory);
-        const page = await diagnostic.newPage(); await page.goto(info.project.use.baseURL);
-        const unsplit = await measureStandaloneGeneration(page, model, tokenized);
-        const comparison = { ...unsplit, distributedAnswer: answer,
-          distributedGeneratedTokenIds: usefulCode.generatedTokenIds,
-          sameAnswer: unsplit.evidence.outputText === answer,
-          sameGeneratedTokens: JSON.stringify(unsplit.evidence.tokenIds) === JSON.stringify(usefulCode.generatedTokenIds) };
-        await writeFile(info.outputPath('useful-code-unsplit.json'), JSON.stringify(comparison, null, 2));
-        usefulCode.unsplit = { sameAnswer: comparison.sameAnswer, sameGeneratedTokens: comparison.sameGeneratedTokens };
-      } catch (error) {
-        await writeFile(info.outputPath('useful-code-unsplit.json'), JSON.stringify({ exception: { name: error.name, message: error.message } }, null, 2));
-        expect.soft(error, 'Unsplit comparison must complete').toBeNull();
-      } finally {
-        try { await diagnostic?.close(); }
-        catch (error) {
-          usefulCode.unsplitCleanupException = { name: error.name, message: error.message };
-          await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
-          expect.soft(error, 'Unsplit comparison must release its context').toBeNull();
-        }
-      }
-      expect(thread.attempts.at(-1).execution.stopReason).toBe('eos-token');
-      await writeFile(info.outputPath('useful-code.json'), JSON.stringify(usefulCode, null, 2));
-      completed = await history(requester);
-    }
     const allocations = observations.map(device => device.loads[0]);
     const manifest = JSON.parse(await readFile(path.join(directory, 'manifest.json'), 'utf8'));
     const plan = createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
