@@ -189,6 +189,7 @@ try {
         PLAYWRIGHT_JSON_OUTPUT_FILE: resolve(output, 'playwright.json'),
         REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
         REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_E2E_SKIP_LOCAL_SERVER: '1',
+        REPLOID_DIAGNOSTIC_MODEL_BASE_URL: `http://localhost:${modelPort}/`,
         REPLOID_E2E_CHROMIUM_CHANNEL: 'chrome', REPLOID_E2E_CUSTODY_TRACE: '1', REPLOID_E2E_REPLICA: '1',
         REPLOID_E2E_DOCUMENTS: documentWorkload ? '1' : '0',
         REPLOID_TRACK_NUMERICAL_DRIFT: numericalPolicy === 'tracked' ? '1' : '0'
