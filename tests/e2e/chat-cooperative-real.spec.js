@@ -26,6 +26,9 @@ test('one model executes cooperatively on discovered physical peers from selecti
     ? await connectPhysicalBrowser(chromium, process.env.REPLOID_REPLACEMENT_WS) : remote;
   const remoteHosts = new Set([remote, remoteSeed, remoteReplacement].filter(Boolean));
   const isRemote = host => remoteHosts.has(host);
+  const fixtureBaseUrl = host => isRemote(host)
+    ? process.env.REPLOID_DIAGNOSTIC_PEER_MODEL_BASE_URL || process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL
+    : process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL;
   const contributionHosts = process.env.REPLOID_E2E_REVERSE_HOSTS === '1'
     ? [browser, remote || browser] : [remote || browser, browser];
   // Exercise ordinary application profiles on both physical hosts.
@@ -85,11 +88,11 @@ test('one model executes cooperatively on discovered physical peers from selecti
     const filename = new URL(route.request().url()).pathname.split('/').at(-1);
     if (!/^[\w.-]+$/.test(filename)) throw new Error('Invalid fixture path');
     seedFiles.push(filename);
-    if (process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL) {
+    if (fixtureBaseUrl(hosts[2])) {
       // Use the already streamed, tunneled fixture; never copy whole shards
       // through the remote browser's debugger protocol.
       await route.fulfill({ status: 307, headers: {
-        location: new URL(filename, process.env.REPLOID_DIAGNOSTIC_MODEL_BASE_URL).href,
+        location: new URL(filename, fixtureBaseUrl(hosts[2])).href,
         'access-control-allow-origin': '*' } });
       return;
     }
@@ -119,7 +122,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
         let diagnostic = null;
         try {
           diagnostic = await host.newContext();
-          await routeDiagnosticModel(diagnostic, model, directory);
+          await routeDiagnosticModel(diagnostic, model, directory, fixtureBaseUrl(host));
           const page = await diagnostic.newPage(); await page.goto(info.project.use.baseURL);
           const denial = await measureStandaloneDenial(page, model);
           standaloneDenials.push(denial);
