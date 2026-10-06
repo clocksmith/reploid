@@ -108,6 +108,39 @@ const prepareCheckpointTransfer = async (page, phase) => page.evaluate(async (ph
     return { output, error, receipt, stats, firstHash: fixture.index.artifacts[0].chunks[0].hash };
   }, phase);
 
+test('file checkpoints reacquire verified bytes after the browser removes checkpoint metadata or its directory', async ({ page }) => {
+  await page.goto(origin);
+  const result = await page.evaluate(async () => {
+    const { openPeerPackFileCheckpoints } = await import('/self/infrastructure/pack-transfer-storage.js');
+    const { sha256Hex } = await import('/self/pool/inference-receipt.js');
+    const bytes = Uint8Array.from([31, 32, 33]);
+    const chunk = { hash: await sha256Hex(bytes), sizeBytes: bytes.length };
+    const name = 'file-checkpoint-eviction-contract';
+    const store = await openPeerPackFileCheckpoints({ name, maxBytes: 16 });
+    try {
+      await store.putChunk(chunk, bytes);
+      const root = await navigator.storage.getDirectory();
+      await (await root.getDirectoryHandle(name)).removeEntry('index.json');
+      await store.deleteChunk(chunk);
+      const missingMetadata = await store.getChunk(chunk);
+      await store.putChunk(chunk, bytes);
+      const retained = Array.from(await store.getChunk(chunk));
+      await root.removeEntry(name, { recursive: true });
+      const missingDirectory = await store.getChunk(chunk);
+      await store.putChunk(chunk, bytes);
+      const reacquired = Array.from(await store.getChunk(chunk));
+      const stats = await store.getStats();
+      const second = await openPeerPackFileCheckpoints({ name, maxBytes: 16 });
+      try { return { missingMetadata, missingDirectory, retained, reacquired,
+        secondReader: Array.from(await second.getChunk(chunk)), stats }; }
+      finally { second.close(); }
+    } finally { store.close(); }
+  });
+  expect(result).toMatchObject({ missingMetadata: null, missingDirectory: null,
+    retained: [31, 32, 33], reacquired: [31, 32, 33], secondReader: [31, 32, 33],
+    stats: { storedBytes: 3, chunks: 1, maxBytes: 16 } });
+});
+
 test('durable checkpoints survive reload, change suppliers, reject corruption, and enforce disk limits', async ({ page }, testInfo) => {
   await page.goto(origin);
   const interrupted = await prepareCheckpointTransfer(page, 'interrupt');

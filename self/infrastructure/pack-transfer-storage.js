@@ -16,11 +16,15 @@ const validChunk = (chunk) => {
 export async function openPeerPackFileCheckpoints({ name = 'reploid-chat-checkpoints-v1', maxBytes,
   storage = globalThis.navigator.storage, locks = globalThis.navigator.locks } = {}) {
   assert(Number.isSafeInteger(maxBytes) && maxBytes > 0, 'explicit disk byte limit required');
-  const directory = await (await storage.getDirectory()).getDirectoryHandle(name, { create: true });
+  let directory;
   let closed = false;
   const key = chunk => { validChunk(chunk); return chunk.hash.slice(7); };
   const run = (signal, action) => locks.request(name, { ...(signal ? { signal } : {}) }, async () => {
     assert(!closed, 'store closed'); signal?.throwIfAborted();
+    // Browser-managed storage may disappear while a contribution is idle.
+    // Resolve its namespace under the shared lock instead of retaining a
+    // handle to a removed directory across requests.
+    directory = await (await storage.getDirectory()).getDirectoryHandle(name, { create: true });
     return action();
   });
   const entries = async () => {
@@ -38,7 +42,15 @@ export async function openPeerPackFileCheckpoints({ name = 'reploid-chat-checkpo
   // Reconcile an interrupted previous writer once. All later operations read
   // the shared index under the same lock, including operations from other tabs.
   await run(null, async () => writeIndex(await entries()));
-  const readIndex = async () => JSON.parse(await (await (await directory.getFileHandle('index.json')).getFile()).text());
+  const readIndex = async () => {
+    try { return JSON.parse(await (await (await directory.getFileHandle('index.json')).getFile()).text()); }
+    catch (error) {
+      if (error.name !== 'NotFoundError') throw error;
+      // Missing metadata is a cache miss, not a failed peer acquisition.
+      // Rebuild from actual files; the custody runtime still verifies bytes.
+      const files = await entries(); await writeIndex(files); return files;
+    }
+  };
   const remove = async name => {
     try { await directory.removeEntry(name); } catch (error) { if (error.name !== 'NotFoundError') throw error; }
   };
