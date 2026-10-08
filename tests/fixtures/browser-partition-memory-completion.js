@@ -288,14 +288,16 @@ try {
               // Ordinary generation owns the diagnostics lifecycle for both
               // prefill and decode; the advanced decode method only returns logits.
               const sampledTokenIds = [];
+              probe = { sampledTokenIds, observation: 'Public generation with command batching disabled for tensor readback' };
               let observedLogits;
               for await (const _chunk of handle.generate(first.messages, {
-                ...observationOptions,
+                ...observationOptions, disableCommandBatching: true,
                 onLogits: (values, metadata) => {
                   if (sampledTokenIds.length === first.parameters.step) observedLogits = encode(values);
                   sampledTokenIds.push(metadata.tokenId);
                 },
               })) {}
+              probe.stats = handle.advanced.getStats();
               if (!observedLogits) throw Error('Generation did not observe the divergent step');
               if (JSON.stringify(sampledTokenIds.slice(0, first.priorTokenIds.length)) !== JSON.stringify(first.priorTokenIds)) {
                 throw Error('Observed generation prefix differs from the distributed prefix');
@@ -305,13 +307,13 @@ try {
               // marks a forward pass; retain the requested pass, not its prefill.
               const starts = timeline.flatMap((record, index) => record.opId === 'embed.out' ? [index] : []);
               if (starts.length <= first.parameters.step) throw Error('Generation trace is missing the divergent forward pass');
-              probe = { logits: observedLogits, sampledTokenIds,
-                timeline: timeline.slice(starts[first.parameters.step], starts[first.parameters.step + 1]) };
+              probe.logits = observedLogits;
+              probe.timeline = timeline.slice(starts[first.parameters.step], starts[first.parameters.step + 1]);
               if (!probe.timeline?.some(record => record.opId === 'layer.11.layer.out' && record.capture?.data)) {
                 throw Error('Boundary capture did not retain layer 11 output');
               }
             } catch (error) {
-              probe = { failure: { name: error.name, message: error.message } };
+              probe = { ...probe, failure: { name: error.name, message: error.message } };
             }
             return { packageVersion: config.DOPPLER_PACKAGE_VERSION, modelIdentity: model.identity,
               tokenIds, generation, maxGpuBufferBytes, logits, stats, probe,
