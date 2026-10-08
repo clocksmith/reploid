@@ -23,6 +23,9 @@ const documentWorkload = recoveryDiagnostic ? process.env.REPLOID_E2E_DOCUMENTS 
 const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic && !recoveryDiagnostic;
 const peer = process.env.REPLOID_TEST_PEER || 'x@128.tail995236.ts.net';
 const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || '/home/x/deco/reploid';
+// Exercise the hosted conversation's normal authentication and renewable RTC
+// credentials. Installed-package diagnostics retain their isolated local server.
+const conversationBaseUrl = process.env.REPLOID_E2E_BASE_URL || 'https://replo.id';
 const modelDirectory = process.env.DOPPLER_CHAT_MODEL_DIR
   || resolve(root, `../doppler/models/local/${modelId}`);
 const referenceSource = process.env.DOPPLER_PARTITION_REFERENCE_OUT
@@ -93,6 +96,7 @@ let failure = null;
 let numerical = null;
 let referenceGeneration = null;
 let modelFixtureHost = null;
+let conversationDeployment = null;
 const memory = [];
 // Freeze identities before starting any browser, rather than relabeling a run
 // with files that a developer may change while diagnosing its failure.
@@ -240,6 +244,25 @@ try {
   }
   if (numericalPolicy === 'required' && numerical?.failed) throw new Error('Frozen numerical tolerance exceeded');
   if (!capacityDiagnostic) {
+    phase = 'conversation deployment identity';
+    const applicationUrl = new URL(conversationBaseUrl);
+    if (!['localhost', '127.0.0.1', '[::1]'].includes(applicationUrl.hostname)) {
+      const [deployedPackage, deployedBundle, deployedRelease] = await Promise.all([
+        '/config/doppler-package.json', '/config/browser-bundle-manifest.json', '/pool/deployment/check'
+      ].map(async pathname => {
+        const response = await fetch(new URL(pathname, applicationUrl), { signal: AbortSignal.timeout(30000) });
+        if (!response.ok) throw new Error(`Conversation identity check failed (${response.status}, ${pathname})`);
+        return response.json();
+      }));
+      if (deployedBundle.bundleHash !== browserIdentity
+        || deployedPackage.name !== packageIdentity.name
+        || deployedPackage.version !== packageIdentity.version
+        || deployedPackage.integrity !== packageIdentity.integrity) {
+        throw new Error('Hosted conversation differs from the tested ordinary package; deploy the current build first');
+      }
+      conversationDeployment = { sourceRevision: deployedRelease.release?.sourceRevision,
+        platformRevision: deployedRelease.release?.platformRevision, browserIdentity, packageVersion: deployedPackage.version };
+    }
     phase = recoveryDiagnostic ? 'contributor restart diagnostic' : 'conversation acceptance';
     console.log(`[distributed] ${phase}; evidence: ${output}`);
     const test = start(process.execPath, ['node_modules/@playwright/test/cli.js', 'test',
@@ -250,7 +273,7 @@ try {
         REPLOID_E2E_REVERSE_HOSTS: reverseHosts ? '1' : '0',
         PLAYWRIGHT_JSON_OUTPUT_FILE: resolve(output, 'playwright.json'),
         REPLOID_EXECUTOR_CDP: '1', REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
-        REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_E2E_SKIP_LOCAL_SERVER: '1',
+        REPLOID_E2E_BASE_URL: conversationBaseUrl, REPLOID_E2E_SKIP_LOCAL_SERVER: '1',
         REPLOID_SEED_WS: `ws://127.0.0.1:${seedSocketPort}${seedUrl.pathname}`,
         REPLOID_REPLACEMENT_WS: `ws://127.0.0.1:${replacementSocketPort}${replacementUrl.pathname}`,
         REPLOID_DIAGNOSTIC_MODEL_BASE_URL: `http://localhost:${modelPort}/`,
@@ -282,6 +305,7 @@ try {
   await Promise.all(logs.map(log => new Promise(done => log.end(done))));
 
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId, modelFixtureHost,
+    conversationBaseUrl, conversationDeployment,
     scope: recoveryDiagnostic ? 'Physical contributor restart diagnostic; other acceptance categories not exercised'
       : capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
