@@ -1286,7 +1286,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 511894,
-      "sha256": "sha256:aa99790471ee843b26129f26da867e1c8533fbbd655cf652ea85f4bdb61e482c"
+      "sha256": "sha256:222971445f864fd95dc2ec7f1e4b13668b6f4fceccc819dc791ebbfc7f47082d"
     },
     {
       "path": "config/module-registry.json",
@@ -9359,5 +9359,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:b475e30c06d84bd74faac5f107aeadc9c1f4ccae35aadea59c74882e871db82d"
+  "bundleHash": "sha256:f24943386b5415775e3b33215c4704bc638f25b6817ce9c9add0e33f5b73dd96"
 }
