@@ -100,8 +100,11 @@ test('one model executes cooperatively on discovered physical peers from selecti
       contentType: filename.endsWith('.json') ? 'application/json' : 'application/octet-stream' });
   });
   const openContribution = async page => {
-    await page.locator('[data-toggle-inspector]').click();
-    await page.locator('[data-contribution-model]').selectOption(model.id);
+    const toggle = page.locator('[data-toggle-inspector]');
+    if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click({ timeout: 30000 });
+    const selection = page.locator('[data-contribution-model]');
+    await expect(selection).toBeVisible({ timeout: 30000 });
+    await selection.selectOption(model.id, { timeout: 30000 });
   };
   const approve = async page => {
     await expect.poll(async () => {
