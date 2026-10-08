@@ -2,17 +2,19 @@
   "modelType": "transformer",
   "output": {
     "baseDir": "models/local",
-    "modelBaseId": "qwen3.8-27b-text-f16-af32",
+    "modelBaseId": "qwen3.8-27b-text-q4k-ehaf16",
     "textOnly": true,
     "fast": false
   },
   "quantization": {
-    "weights": "f16",
+    "weights": "q4k",
     "embeddings": "f16",
     "lmHead": "f16",
     "vision": "f16",
     "projector": "f16",
-    "modulesToNotConvert": [],
+    "modulesToNotConvert": [
+      "model.language_model.layers.*.linear_attn"
+    ],
     "computePrecision": "f32",
     "q4kLayout": "row"
   },
@@ -369,17 +371,12 @@
       "gated_delta_recurrent": {
         "kernel": "gated_delta_recurrent.wgsl",
         "entry": "main",
-        "digest": "sha256:0546ffb3e98113e0ed90caa956f540264e2dfd4b27e21167cf5dc057369fbc56"
+        "digest": "sha256:d41f52c4995d946e2d25f9cc8ebcbc2beb947945b9def59f653e4ccc116a112d"
       },
       "gated_delta_fused_decode": {
         "kernel": "gated_delta_fused_decode.wgsl",
         "entry": "main",
-        "digest": "sha256:9d1978c3e0656930a4277e97c2b8e9870b2229f06633d49357bd20cc7baffc58"
-      },
-      "gemv": {
-        "kernel": "matmul_gemv_subgroup.wgsl",
-        "entry": "main_vec4",
-        "digest": "sha256:2ea9aea659367210fbf61d922c0d4ee17cdac68ffb506b3bc5516e498071e011"
+        "digest": "sha256:9d1985cf94f749d1d4d51d4e6687fc9746964146ba2812c4223e679a71109fb2"
       }
     },
     "preLayer": [
@@ -396,17 +393,17 @@
       ],
       [
         "q_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.self_attn.q_proj"
       ],
       [
         "k_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.self_attn.k_proj"
       ],
       [
         "v_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.self_attn.v_proj"
       ],
       [
@@ -423,7 +420,7 @@
       ],
       [
         "o_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.self_attn.o_proj"
       ],
       [
@@ -436,12 +433,12 @@
       ],
       [
         "gate_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.mlp.gate_proj"
       ],
       [
         "up_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.mlp.up_proj"
       ],
       [
@@ -450,7 +447,7 @@
       ],
       [
         "down_proj",
-        "gemv",
+        "q4_decode_gemv",
         "layer.{L}.mlp.down_proj"
       ],
       [
@@ -465,17 +462,17 @@
       ],
       [
         "q_proj",
-        "tiled",
+        "q4_widetile",
         "layer.{L}.self_attn.q_proj"
       ],
       [
         "k_proj",
-        "tiled",
+        "q4_widetile",
         "layer.{L}.self_attn.k_proj"
       ],
       [
         "v_proj",
-        "tiled",
+        "q4_widetile",
         "layer.{L}.self_attn.v_proj"
       ],
       [
@@ -492,7 +489,7 @@
       ],
       [
         "o_proj",
-        "tiled",
+        "q4_widetile",
         "layer.{L}.self_attn.o_proj"
       ],
       [
@@ -505,12 +502,12 @@
       ],
       [
         "gate_proj",
-        "tiled",
+        "q4_widetile",
         "layer.{L}.mlp.gate_proj"
       ],
       [
         "up_proj",
-        "tiled",
+        "q4_widetile",
         "layer.{L}.mlp.up_proj"
       ],
       [
@@ -519,7 +516,7 @@
       ],
       [
         "down_proj",
-        "tiled",
+        "q4_widetile",
         "layer.{L}.mlp.down_proj"
       ],
       [
