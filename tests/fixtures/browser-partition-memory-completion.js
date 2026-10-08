@@ -43,6 +43,7 @@ assert(output && process.env.REPLOID_EXECUTOR_WS);
 const local = await chromium.launch(physicalWebGpuBrowserOptions(process.platform));
 const remote = await connectPhysicalBrowser(chromium, process.env.REPLOID_EXECUTOR_WS);
 const contexts = [], pages = [], runs = [], descriptors = [];
+const distributedControls = [];
 const reverse = process.env.REPLOID_REFERENCE_REVERSE === '1';
 const evidence = { scope: reference
   ? 'Installed package, frozen generation options, exact model bytes and logits on two physical GPUs; not P2P acquisition proof'
@@ -135,6 +136,7 @@ try {
       const tokenized = await pageA.evaluate(({ identity, messages }) => resident.tokenize({ identity, messages,
         signal: new AbortController().signal }), { identity, messages: request.messages });
       let ids = tokenized.tokenIds, position = 0, aContinuation = null, bContinuation = null;
+      if (reference) distributedControls[attempt] = { messages: request.messages, tokenIds: ids, steps: [] };
       row.inputTokens = ids.length;
       if (!reference) assert.equal(ids.length, testCase.tokens);
       for (let step = 0; step < generation.maxTokens; step++) {
@@ -155,6 +157,7 @@ try {
             ...(captureLogits ? { logits: encodeBytes(value.logits) } : {}) };
         }, { parameters, ids, activation: a.activation, continuation: bContinuation, captureLogits: !!reference });
         if (reference) {
+          distributedControls[attempt].steps.push({ logits: b.logits, tokenId: b.tokenId });
           const expected = testCase.expected.steps[step];
           assert(expected, 'Reference generation has an unexpected extra step');
           const decode = text => { const bytes = Buffer.from(text, 'base64');
@@ -228,17 +231,31 @@ try {
     evidence.unsplitFirstDivergence = { scope: 'Same installed package, model, prompt tokens and generation; independent 6 GB diagnostics, excluded from constrained capacity proof', runs: [] };
     for (const [slot, browser] of [local, remote].entries()) {
       const context = await browser.newContext();
-      const diagnostic = { host: slot ? 'linux' : 'mac' };
+      const diagnostic = { host: slot ? 'linux' : 'mac', unsplitStepParity: [] };
       evidence.unsplitFirstDivergence.runs.push(diagnostic);
       try {
         const page = await context.newPage();
+        await page.exposeFunction('compareUnsplitStep', (attempt, step, encoded) => {
+          const values = text => { const b = Buffer.from(text, 'base64');
+            return new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength)); };
+          const actual = values(encoded), expected = values(distributedControls[attempt].steps[step].logits);
+          assert.equal(actual.length, expected.length);
+          let maxDifference = 0, maxDifferenceIndex = null;
+          for (let index = 0; index < actual.length; index++) {
+            assert(Number.isFinite(actual[index]) && Number.isFinite(expected[index]));
+            const difference = Math.abs(actual[index] - expected[index]);
+            if (difference > maxDifference) { maxDifference = difference; maxDifferenceIndex = index; }
+          }
+          diagnostic.unsplitStepParity.push({ attempt, step, maxDifference, maxDifferenceIndex,
+            tolerance: 0.001, matches: maxDifference <= 0.001 });
+        });
         page.on('console', message => {
           if (message.text().startsWith('numerical-diagnostic:')) console.log(message.text());
         });
         console.log(JSON.stringify({ unsplit: diagnostic.host, phase: 'loading' }));
         await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL).href);
         const source = slot ? process.env.REPLOID_PEER_MODEL_BASE_URL : process.env.REPLOID_MODEL_BASE_URL;
-        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy }) => {
+        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy, controls }) => {
           const config = await import('/config/doppler-local-models.js');
           const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
           globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
@@ -318,11 +335,28 @@ try {
             } catch (error) {
               probe = { ...probe, failure: { name: error.name, message: error.message } };
             }
+            // Compare every retained distributed step against fresh unsplit
+            // state on the same installed package. Feed identical token prefixes;
+            // this is numerical parity, not free-running answer-quality proof.
+            for (const [attempt, control] of controls.entries()) {
+              await handle.resetGenerationState();
+              const ids = handle.advanced.tokenizePrompt(control.messages, generation);
+              if (JSON.stringify(ids) !== JSON.stringify(control.tokenIds)) throw Error('Unsplit control tokenization differs');
+              let value = await handle.advanced.prefillWithLogits(control.messages, { ...executionOptions, inputIds: ids });
+              value.cache?.destroy();
+              await globalThis.compareUnsplitStep(attempt, 0, encode(value.logits));
+              for (let step = 1; step < control.tokenIdsByStep.length; step++) {
+                value = await handle.advanced.decodeStepLogits([control.tokenIdsByStep[step - 1]], executionOptions);
+                await globalThis.compareUnsplitStep(attempt, step, encode(value.logits));
+              }
+            }
             return { packageVersion: config.DOPPLER_PACKAGE_VERSION, modelIdentity: model.identity,
               tokenIds, generation, maxGpuBufferBytes, logits, stats, probe,
               resolvedRuntimeSession: handle.advanced.getResolvedRuntimeSession(), memory: runtime.inspectDeviceMemory() };
           } finally { await handle?.unload(); }
-        }, { model: requests[0].model, source, first, generation, policy }));
+        }, { model: requests[0].model, source, first, generation, policy,
+          controls: distributedControls.map(({ messages, tokenIds, steps }) => ({ messages, tokenIds,
+            tokenIdsByStep: steps.map(step => step.tokenId) })) }));
         const decode = text => { const bytes = Buffer.from(text, 'base64');
           return new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)); };
         const actual = decode(diagnostic.logits);
