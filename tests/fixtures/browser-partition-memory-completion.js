@@ -301,7 +301,8 @@ try {
               return btoa(encoded);
             };
             const firstLogits = Float32Array.from(result.logits);
-            const logits = encode(firstLogits), stats = handle.advanced.getStats();
+            const logits = encode(firstLogits);
+            const { operatorDiagnostics: _initialDiagnostics, ...stats } = handle.advanced.getStats();
             let probe = null;
             let captureReplay = null;
             const checkCaptureReplay = (attempt, step, values) => {
@@ -343,12 +344,13 @@ try {
                   sampledTokenIds.push(metadata.tokenId);
                 },
               })) {}
-              probe.stats = handle.advanced.getStats();
+              const { operatorDiagnostics, ...observedStats } = handle.advanced.getStats();
+              probe.stats = observedStats;
               if (!observedLogits) throw Error('Generation did not observe the divergent step');
               if (JSON.stringify(sampledTokenIds.slice(0, first.priorTokenIds.length)) !== JSON.stringify(first.priorTokenIds)) {
                 throw Error('Observed generation prefix differs from the distributed prefix');
               }
-              const timeline = handle.advanced.getStats().operatorDiagnostics?.timeline || [];
+              const timeline = operatorDiagnostics?.timeline || [];
               // Capture records currently omit phase/position. Each embedding
               // marks a forward pass; retain the requested pass, not its prefill.
               const starts = timeline.flatMap((record, index) => record.opId === 'embed.out' ? [index] : []);
