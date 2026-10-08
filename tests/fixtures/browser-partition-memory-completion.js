@@ -274,7 +274,7 @@ try {
             // Replay the same prefix and observe only the first divergent step:
             // diagnostics can change fusion, so quantify their effect separately.
             // Retain unobserved logits and quantify that effect before interpreting tensors.
-            {
+            try {
               console.log('numerical-diagnostic:' + JSON.stringify({ phase: 'boundary-capture', step: first.parameters.step }));
               const targetOpIds = ['embed.out', 'final_norm.pre', 'final_norm.out',
                 ...['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj',
@@ -285,18 +285,33 @@ try {
               await handle.resetGenerationState();
               const observationOptions = { ...executionOptions, diagnostics: { enabled: true,
                 captureConfig: { enabled: true, defaultLevel: 'none', targetOpIds, targetLevel: 'full' } } };
-              let observed = await handle.advanced.prefillWithLogits(first.messages, {
-                ...(first.priorTokenIds.length ? executionOptions : observationOptions), inputIds: tokenIds });
-              observed.cache?.destroy();
-              for (const [index, tokenId] of first.priorTokenIds.entries()) {
-                observed = await handle.advanced.decodeStepLogits([tokenId],
-                  index === first.priorTokenIds.length - 1 ? observationOptions : executionOptions);
+              // Ordinary generation owns the diagnostics lifecycle for both
+              // prefill and decode; the advanced decode method only returns logits.
+              const sampledTokenIds = [];
+              let observedLogits;
+              for await (const _chunk of handle.generate(first.messages, {
+                ...observationOptions,
+                onLogits: (values, metadata) => {
+                  if (sampledTokenIds.length === first.parameters.step) observedLogits = encode(values);
+                  sampledTokenIds.push(metadata.tokenId);
+                },
+              })) {}
+              if (!observedLogits) throw Error('Generation did not observe the divergent step');
+              if (JSON.stringify(sampledTokenIds.slice(0, first.priorTokenIds.length)) !== JSON.stringify(first.priorTokenIds)) {
+                throw Error('Observed generation prefix differs from the distributed prefix');
               }
-              probe = { logits: encode(observed.logits),
-                timeline: handle.advanced.getStats().operatorDiagnostics?.timeline };
+              const timeline = handle.advanced.getStats().operatorDiagnostics?.timeline || [];
+              // Capture records currently omit phase/position. Each embedding
+              // marks a forward pass; retain the requested pass, not its prefill.
+              const starts = timeline.flatMap((record, index) => record.opId === 'embed.out' ? [index] : []);
+              if (starts.length <= first.parameters.step) throw Error('Generation trace is missing the divergent forward pass');
+              probe = { logits: observedLogits, sampledTokenIds,
+                timeline: timeline.slice(starts[first.parameters.step], starts[first.parameters.step + 1]) };
               if (!probe.timeline?.some(record => record.opId === 'layer.11.layer.out' && record.capture?.data)) {
                 throw Error('Boundary capture did not retain layer 11 output');
               }
+            } catch (error) {
+              probe = { failure: { name: error.name, message: error.message } };
             }
             return { packageVersion: config.DOPPLER_PACKAGE_VERSION, modelIdentity: model.identity,
               tokenIds, generation, maxGpuBufferBytes, logits, stats, probe,
@@ -308,7 +323,7 @@ try {
         const actual = decode(diagnostic.logits);
         diagnostic.comparisons = {};
         const references = [['distributed', first.group1.logits], ['frozen', first.frozen.logits]];
-        if (diagnostic.probe) references.push(['observed', diagnostic.probe.logits]);
+        if (diagnostic.probe?.logits) references.push(['observed', diagnostic.probe.logits]);
         for (const [name, encoded] of references) {
           const expected = decode(encoded); assert.equal(actual.length, expected.length);
           let maxDifference = 0, maxDifferenceIndex = null;
@@ -319,7 +334,7 @@ try {
           }
           diagnostic.comparisons[name] = { maxDifference, maxDifferenceIndex, tolerance: 0.001, matches: maxDifference <= 0.001 };
         }
-        if (diagnostic.probe) {
+        if (diagnostic.probe?.timeline) {
           const boundary = diagnostic.probe.timeline.find(record => record.opId === 'layer.11.layer.out');
           const transferred = decode(first.group0.activation.data);
           assert.equal(boundary.capture.data.length, transferred.length);
@@ -337,7 +352,7 @@ try {
       finally { await context.close(); await writeFile(output, JSON.stringify(evidence)); }
     }
     const [mac, linux] = evidence.unsplitFirstDivergence.runs;
-    if (mac.probe && linux.probe) {
+    if (mac.probe?.timeline && linux.probe?.timeline) {
       evidence.unsplitFirstDivergence.operatorComparison = mac.probe.timeline
         .filter(record => record.capture?.data).map(record => {
           const counterpart = linux.probe.timeline.find(item => item.opId === record.opId && item.capture?.data);
