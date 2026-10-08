@@ -122,6 +122,7 @@ try {
     descriptors.push({ ...prepared, platform: slot ? 'linux' : 'mac', browser: browser.version() });
     console.log(JSON.stringify({ prepared: index, bytes: prepared.afterPreparation.device.liveBytes }));
   }
+  if (reference) assert.equal(descriptors[0].planId, reference.planId, 'Frozen partition traversal must remain unchanged');
   const pageA = pages[reverse ? 1 : 0], pageB = pages[reverse ? 0 : 1];
   for (const [attempt, testCase] of cases.entries()) {
     const { request } = testCase;
@@ -270,18 +271,27 @@ try {
             };
             const logits = encode(result.logits), stats = handle.advanced.getStats();
             let probe = null;
-            // Observe the same fresh prefill separately: diagnostics can change fusion.
+            // Replay the same prefix and observe only the first divergent step:
+            // diagnostics can change fusion, so quantify their effect separately.
             // Retain unobserved logits and quantify that effect before interpreting tensors.
-            if (first.priorTokenIds.length === 0) {
-              console.log('numerical-diagnostic:' + JSON.stringify({ phase: 'boundary-capture' }));
+            {
+              console.log('numerical-diagnostic:' + JSON.stringify({ phase: 'boundary-capture', step: first.parameters.step }));
               const targetOpIds = ['embed.out', 'final_norm.pre', 'final_norm.out',
+                ...['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj',
+                  'linear_core_out', 'out', 'post_attn'].map(op => 'layer.0.attn.' + op),
+                ...['in', 'gate', 'up', 'act', 'out'].map(op => 'layer.0.ffn.' + op),
                 ...Array.from({ length: manifest.architecture.numLayers }, (_, layer) =>
                   [`layer.${layer}.attn.post_input_norm`, `layer.${layer}.layer.out`]).flat()];
               await handle.resetGenerationState();
-              const observed = await handle.advanced.prefillWithLogits(first.messages, {
-                ...executionOptions, inputIds: tokenIds, diagnostics: { enabled: true,
-                  captureConfig: { enabled: true, defaultLevel: 'none', targetOpIds, targetLevel: 'full' } } });
+              const observationOptions = { ...executionOptions, diagnostics: { enabled: true,
+                captureConfig: { enabled: true, defaultLevel: 'none', targetOpIds, targetLevel: 'full' } } };
+              let observed = await handle.advanced.prefillWithLogits(first.messages, {
+                ...(first.priorTokenIds.length ? executionOptions : observationOptions), inputIds: tokenIds });
               observed.cache?.destroy();
+              for (const [index, tokenId] of first.priorTokenIds.entries()) {
+                observed = await handle.advanced.decodeStepLogits([tokenId],
+                  index === first.priorTokenIds.length - 1 ? observationOptions : executionOptions);
+              }
               probe = { logits: encode(observed.logits),
                 timeline: handle.advanced.getStats().operatorDiagnostics?.timeline };
               if (!probe.timeline?.some(record => record.opId === 'layer.11.layer.out' && record.capture?.data)) {
