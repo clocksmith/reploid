@@ -246,6 +246,7 @@ try {
             if (JSON.stringify(tokenIds) !== JSON.stringify(first.prefillTokenIds)) throw Error('Unsplit diagnostic tokenization differs');
             const { maxSeqLen: _contextLength, ...executionOptions } = generation;
             let result = await handle.advanced.prefillWithLogits(first.messages, { ...executionOptions, inputIds: tokenIds });
+            result.cache?.destroy();
             for (const tokenId of first.priorTokenIds) result = await handle.advanced.decodeStepLogits([tokenId], executionOptions);
             const bytes = new Uint8Array(result.logits.buffer, result.logits.byteOffset, result.logits.byteLength);
             let encoded = ''; for (let offset = 0; offset < bytes.length; offset += 8192) encoded += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
