@@ -2,7 +2,7 @@
   {
     "id": "qwen-3-5-0-8b-q4k-ehaf16",
     "name": "Qwen 3.5 0.8B",
-    "identity": "sha256:105f70b19e3e700af65f0f11529b0f92b65a3c881d01a99b73d2dc73d78edce0",
+    "identity": "sha256:d963e4541fff207392e359660627030599c86d0e4c2d4bfe284ef36e45b59c9d",
     "source": {
       "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
       "files": [
@@ -11,8 +11,8 @@
           "role": "model-manifest",
           "sizeBytes": 214203,
           "hashAlgorithm": "sha256",
-          "hash": "105f70b19e3e700af65f0f11529b0f92b65a3c881d01a99b73d2dc73d78edce0",
-          "url": "https://storage.googleapis.com/reploid-model-artifacts/manifests/sha256/105f70b19e3e700af65f0f11529b0f92b65a3c881d01a99b73d2dc73d78edce0.json"
+          "hash": "d963e4541fff207392e359660627030599c86d0e4c2d4bfe284ef36e45b59c9d",
+          "url": "https://storage.googleapis.com/reploid-model-artifacts/manifests/sha256/d963e4541fff207392e359660627030599c86d0e4c2d4bfe284ef36e45b59c9d.json"
         },
         {
           "path": "tokenizer.json",
@@ -26,7 +26,7 @@
           "role": "model-piece-index",
           "sizeBytes": 34259,
           "hashAlgorithm": "sha256",
-          "hash": "54f713e44cc861c12962c732b992998933580594412bbf065460167417eab1f2",
+          "hash": "3e08a5f99018b9d1c27f2f8376e30b322ee9001da8b7b4d0d957be48a21d71e0",
           "url": "/config/model-pieces/qwen-0-8b-pieces.json"
         }
       ]
@@ -85,7 +85,7 @@
     "id": "qwen-3-5-2b-q4k-ehaf16",
     "name": "Qwen 3.5 2B",
     "partitionSplitLayer": 4,
-    "identity": "sha256:d0687c422ac21413cb0e708abdf5e7c392244e97667af85acb5b12d74c9fdeae",
+    "identity": "sha256:adaf585604eb8c75303f4f21cd7c30d8ea1e56b5fb4399e49a0f52d4cdcfcaa4",
     "source": {
       "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
       "files": [
@@ -94,8 +94,8 @@
           "role": "model-manifest",
           "sizeBytes": 183802,
           "hashAlgorithm": "sha256",
-          "hash": "d0687c422ac21413cb0e708abdf5e7c392244e97667af85acb5b12d74c9fdeae",
-          "url": "https://storage.googleapis.com/reploid-model-artifacts/manifests/sha256/d0687c422ac21413cb0e708abdf5e7c392244e97667af85acb5b12d74c9fdeae.json"
+          "hash": "adaf585604eb8c75303f4f21cd7c30d8ea1e56b5fb4399e49a0f52d4cdcfcaa4",
+          "url": "https://storage.googleapis.com/reploid-model-artifacts/manifests/sha256/adaf585604eb8c75303f4f21cd7c30d8ea1e56b5fb4399e49a0f52d4cdcfcaa4.json"
         },
         {
           "path": "tokenizer.json",
@@ -107,9 +107,9 @@
         {
           "path": "qwen-2b-pieces.json",
           "role": "model-piece-index",
-          "sizeBytes": 162108,
+          "sizeBytes": 111109,
           "hashAlgorithm": "sha256",
-          "hash": "a6922895fa9cf6e8fd6e8f1df0c5655c9b019a52a2aea07b57ec18f715a5766d",
+          "hash": "8163dd7d09f6348253b8b4cf97be5c276a3b24dec741f9b9475503da42a44196",
           "url": "/config/model-pieces/qwen-2b-pieces.json"
         }
       ]
