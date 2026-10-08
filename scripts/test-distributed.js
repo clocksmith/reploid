@@ -10,6 +10,7 @@ import { createWriteStream } from 'node:fs';
 import { resolve } from 'node:path';
 import { once } from 'node:events';
 import { physicalWebGpuBrowserOptions } from '../tests/fixtures/physical-webgpu-browser.js';
+import { bindReferenceModel } from '../tests/fixtures/distributed-reference-model.js';
 
 const root = resolve(import.meta.dirname, '..');
 const modelArgument = process.argv.indexOf('--model');
@@ -96,6 +97,7 @@ await mkdir(output, { recursive: true });
 let failure = null;
 let numerical = null;
 let referenceGeneration = null;
+let referenceBinding = null;
 let modelFixtureHost = null;
 let conversationDeployment = null;
 const memory = [];
@@ -114,6 +116,7 @@ try {
   if (frozenWorkloads || capacityDiagnostic) await writeFile(reference, bytes);
   referenceGeneration = JSON.parse(bytes).generation;
   const model = JSON.parse(await readFile(resolve(modelDirectory, 'manifest.json')));
+  if (frozenWorkloads) referenceBinding = await bindReferenceModel(model, JSON.parse(bytes).modelIdentity);
   const catalog = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json'))).find(model => model.id === modelId);
   if (!catalog) throw new Error('Selected model is not in the application catalog');
   if (numericalPolicy === 'required' && !frozenWorkloads) throw new Error('This workload has no applicable frozen numerical comparison');
@@ -189,12 +192,15 @@ try {
   const seedUrl = new URL(endpoints.seed), replacementUrl = new URL(endpoints.replacement);
   const seedSocketPort = await freePort(), replacementSocketPort = await freePort();
   modelFixtureHost = endpoints.fixturePort ? 'peer' : 'local';
-  if (!endpoints.fixturePort) {
+  // Numerical controls read each host's independently verified local bytes.
+  // Conversation acquisition still uses the ordinary peer file source below.
+  const localFixturePort = endpoints.fixturePort && frozenWorkloads ? await freePort() : modelPort;
+  if (!endpoints.fixturePort || frozenWorkloads) {
     phase = 'local model fixture';
     const modelServer = start(process.execPath, ['tests/fixtures/numerical-model-server.js'], { env: {
-      ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, REPLOID_MODEL_PORT: String(modelPort)
+      ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, REPLOID_MODEL_PORT: String(localFixturePort)
     } });
-    await waitForLine(modelServer, line => line.includes(`loopback port ${modelPort}`));
+    await waitForLine(modelServer, line => line.includes(`loopback port ${localFixturePort}`));
   }
   phase = 'loopback transport';
   const tunnel = start('ssh', ['-o', 'BatchMode=yes', '-o', 'ExitOnForwardFailure=yes',
@@ -224,7 +230,7 @@ try {
       REPLOID_TEST_MODEL: modelId,
       REPLOID_REFERENCE_FILE: reference, REPLOID_REFERENCE_REVERSE: workload.reverse ? '1' : '0',
       REPLOID_EXECUTOR_CDP: '1', REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
-      REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_MODEL_BASE_URL: `http://127.0.0.1:${modelPort}/`,
+      REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_MODEL_BASE_URL: `http://127.0.0.1:${localFixturePort}/`,
       REPLOID_PEER_MODEL_BASE_URL: `http://127.0.0.1:${endpoints.fixturePort || modelPort}/`
     } });
     check.stdout.pipe(process.stdout);
@@ -321,7 +327,7 @@ try {
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
     documentWorkload, reverseHosts,
     frozenReferenceApplicable: frozenWorkloads,
-    numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource,
+    numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource, referenceBinding,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
     maxGpuBufferBytes: policy.maxGpuBufferBytes, bufferPool: policy.bufferPool, referenceGeneration,
     referenceSha256: '9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd' }, null, 2));
