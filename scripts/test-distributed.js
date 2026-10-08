@@ -235,6 +235,9 @@ try {
       numerical.directions.push(direction); numerical.steps += direction.steps; numerical.failed += direction.failed;
       numerical.maxDifference = Math.max(numerical.maxDifference, direction.maxDifference);
       console.log(`[distributed] numerical (${numericalPolicy}, ${workload.direction}): ${direction.failed}/${direction.steps} exceed 0.001; maximum ${direction.maxDifference}`);
+      if (numericalPolicy === 'required' && direction.failed) {
+        throw new Error(`Frozen numerical tolerance exceeded; inspect firstDivergence in ${capture}`);
+      }
     } else {
       memory.push({ phase: mode, ok: code === 0, capture, cases,
         answersComplete: cases.length > 0 && cases.filter(run => !run.cancelled)
