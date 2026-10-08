@@ -221,6 +221,10 @@ try {
       evidence.unsplitFirstDivergence.runs.push(diagnostic);
       try {
         const page = await context.newPage();
+        page.on('console', message => {
+          if (message.text().startsWith('numerical-diagnostic:')) console.log(message.text());
+        });
+        console.log(JSON.stringify({ unsplit: diagnostic.host, phase: 'loading' }));
         await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL).href);
         const source = slot ? process.env.REPLOID_PEER_MODEL_BASE_URL : process.env.REPLOID_MODEL_BASE_URL;
         Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy }) => {
@@ -239,7 +243,8 @@ try {
           try {
             handle = await load({ manifest, manifestText, manifestHash: hash, baseUrl: source,
               storage: createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) },
-            { runtimeConfig: { shared: { bufferPool: policy.bufferPool }, inference: { session: {
+            { onProgress: progress => console.log('numerical-diagnostic:' + JSON.stringify(progress)),
+              runtimeConfig: { shared: { bufferPool: policy.bufferPool }, inference: { session: {
               kvcache: { maxSeqLen: generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
               prefillTokenChunkSize: policy.prefillTokenChunkSize } } } });
             const tokenIds = handle.advanced.tokenizePrompt(first.messages, generation);
@@ -248,10 +253,32 @@ try {
             let result = await handle.advanced.prefillWithLogits(first.messages, { ...executionOptions, inputIds: tokenIds });
             result.cache?.destroy();
             for (const tokenId of first.priorTokenIds) result = await handle.advanced.decodeStepLogits([tokenId], executionOptions);
-            const bytes = new Uint8Array(result.logits.buffer, result.logits.byteOffset, result.logits.byteLength);
-            let encoded = ''; for (let offset = 0; offset < bytes.length; offset += 8192) encoded += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
+            const encode = logits => {
+              const bytes = new Uint8Array(logits.buffer, logits.byteOffset, logits.byteLength);
+              let encoded = ''; for (let offset = 0; offset < bytes.length; offset += 8192) encoded += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
+              return btoa(encoded);
+            };
+            const logits = encode(result.logits), stats = handle.advanced.getStats();
+            let probe = null;
+            // Observe the same fresh prefill separately: diagnostics can change fusion.
+            // Retain unobserved logits and quantify that effect before interpreting tensors.
+            if (first.priorTokenIds.length === 0) {
+              console.log('numerical-diagnostic:' + JSON.stringify({ phase: 'boundary-capture' }));
+              const targetOpIds = ['embed.out', 'final_norm.pre', 'final_norm.out',
+                ...Array.from({ length: manifest.architecture.numLayers }, (_, layer) =>
+                  [`layer.${layer}.attn.post_input_norm`, `layer.${layer}.layer.out`]).flat()];
+              const observed = await handle.advanced.prefillWithLogits(first.messages, {
+                ...executionOptions, inputIds: tokenIds, diagnostics: { enabled: true,
+                  captureConfig: { enabled: true, defaultLevel: 'none', targetOpIds, targetLevel: 'full' } } });
+              observed.cache?.destroy();
+              probe = { logits: encode(observed.logits),
+                timeline: handle.advanced.getStats().operatorDiagnostics?.timeline };
+              if (!probe.timeline?.some(record => record.opId === 'layer.11.layer.out' && record.capture?.data)) {
+                throw Error('Boundary capture did not retain layer 11 output');
+              }
+            }
             return { packageVersion: config.DOPPLER_PACKAGE_VERSION, modelIdentity: model.identity,
-              tokenIds, generation, maxGpuBufferBytes, logits: btoa(encoded), stats: handle.advanced.getStats(),
+              tokenIds, generation, maxGpuBufferBytes, logits, stats, probe,
               resolvedRuntimeSession: handle.advanced.getResolvedRuntimeSession(), memory: runtime.inspectDeviceMemory() };
           } finally { await handle?.unload(); }
         }, { model: requests[0].model, source, first, generation, policy }));
@@ -259,7 +286,9 @@ try {
           return new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)); };
         const actual = decode(diagnostic.logits);
         diagnostic.comparisons = {};
-        for (const [name, encoded] of [['distributed', first.group1.logits], ['frozen', first.frozen.logits]]) {
+        const references = [['distributed', first.group1.logits], ['frozen', first.frozen.logits]];
+        if (diagnostic.probe) references.push(['observed', diagnostic.probe.logits]);
+        for (const [name, encoded] of references) {
           const expected = decode(encoded); assert.equal(actual.length, expected.length);
           let maxDifference = 0, maxDifferenceIndex = null;
           for (let index = 0; index < actual.length; index++) {
@@ -269,9 +298,43 @@ try {
           }
           diagnostic.comparisons[name] = { maxDifference, maxDifferenceIndex, tolerance: 0.001, matches: maxDifference <= 0.001 };
         }
+        if (diagnostic.probe) {
+          const boundary = diagnostic.probe.timeline.find(record => record.opId === 'layer.11.layer.out');
+          const transferred = decode(first.group0.activation.data);
+          assert.equal(boundary.capture.data.length, transferred.length);
+          let maxDifference = 0, maxDifferenceIndex = null;
+          for (let index = 0; index < transferred.length; index++) {
+            const difference = Math.abs(boundary.capture.data[index] - transferred[index]);
+            if (difference > maxDifference) { maxDifference = difference; maxDifferenceIndex = index; }
+          }
+          diagnostic.partitionBoundary = { opId: boundary.opId, shape: boundary.capture.shape,
+            dtype: boundary.capture.dtype, maxDifference, maxDifferenceIndex,
+            observedLogitsMaxDifference: diagnostic.comparisons.observed.maxDifference };
+        }
         console.log(JSON.stringify({ unsplit: diagnostic.host, comparisons: diagnostic.comparisons }));
       } catch (error) { diagnostic.failure = { name: error.name, message: error.message }; }
       finally { await context.close(); await writeFile(output, JSON.stringify(evidence)); }
+    }
+    const [mac, linux] = evidence.unsplitFirstDivergence.runs;
+    if (mac.probe && linux.probe) {
+      evidence.unsplitFirstDivergence.operatorComparison = mac.probe.timeline
+        .filter(record => record.capture?.data).map(record => {
+          const counterpart = linux.probe.timeline.find(item => item.opId === record.opId && item.capture?.data);
+          assert(counterpart, `Linux capture missing ${record.opId}`);
+          const actual = record.capture.data, expected = counterpart.capture.data;
+          assert.equal(actual.length, expected.length);
+          let maxDifference = 0, maxDifferenceIndex = null;
+          for (let index = 0; index < actual.length; index++) {
+            assert(Number.isFinite(actual[index]) && Number.isFinite(expected[index]));
+            const difference = Math.abs(actual[index] - expected[index]);
+            if (difference > maxDifference) { maxDifference = difference; maxDifferenceIndex = index; }
+          }
+          return { opId: record.opId, shape: record.capture.shape, dtype: record.capture.dtype,
+            maxDifference, maxDifferenceIndex };
+        });
+      console.log(JSON.stringify({ boundaryComparisons: evidence.unsplitFirstDivergence.runs.map(run => ({
+        host: run.host, ...run.partitionBoundary })),
+      firstOperatorDifference: evidence.unsplitFirstDivergence.operatorComparison.find(row => row.maxDifference > 0) }));
     }
   }
   await writeFile(output, JSON.stringify(evidence));
