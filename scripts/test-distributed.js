@@ -17,6 +17,7 @@ const modelId = modelArgument < 0 ? 'qwen-3-5-0-8b-q4k-ehaf16' : process.argv[mo
 if (!modelId || modelId.startsWith('--')) throw new Error('--model requires a catalog model ID');
 const capacityDiagnostic = process.argv.includes('--capacity');
 const recoveryDiagnostic = process.argv.includes('--recovery');
+const numericalDiagnostic = process.argv.includes('--numerical-only');
 const reverseHosts = process.argv.includes('--reverse');
 const documentWorkload = recoveryDiagnostic ? process.env.REPLOID_E2E_DOCUMENTS === '1'
   : process.env.REPLOID_E2E_DOCUMENTS !== '0';
@@ -116,6 +117,7 @@ try {
   const catalog = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json'))).find(model => model.id === modelId);
   if (!catalog) throw new Error('Selected model is not in the application catalog');
   if (numericalPolicy === 'required' && !frozenWorkloads) throw new Error('This workload has no applicable frozen numerical comparison');
+  if (numericalDiagnostic && !frozenWorkloads) throw new Error('--numerical-only requires the pinned frozen-reference model');
   if (createHash('sha256').update(await readFile(resolve(modelDirectory, 'manifest.json'))).digest('hex') !== catalog.identity.slice(7)) {
     throw new Error('Local model differs from the selected catalog model');
   }
@@ -204,9 +206,13 @@ try {
       : ['-R', `${modelPort}:127.0.0.1:${modelPort}`]),
     peer, 'echo REPLoid_TRANSPORT_READY; cat >/dev/null']);
   await waitForLine(tunnel, line => line === 'REPLoid_TRANSPORT_READY');
-  const workloads = capacityDiagnostic ? [{ mode: 'capacity' }] : frozenWorkloads
+  let workloads = capacityDiagnostic ? [{ mode: 'capacity' }] : frozenWorkloads
     ? [{ mode: 'reference', direction: 'mac-linux' }, { mode: 'reference', direction: 'linux-mac', reverse: true },
       { mode: 'repetition' }, { mode: 'cancellation' }] : [];
+  if (numericalDiagnostic) {
+    workloads = workloads.filter(workload => workload.mode === 'reference');
+    if (reverseHosts) workloads.reverse();
+  }
   for (const workload of workloads) {
     const { mode } = workload;
     phase = mode === 'reference' ? `frozen reference ${workload.direction}` : `long-prompt ${mode}`;
@@ -235,7 +241,7 @@ try {
       numerical.directions.push(direction); numerical.steps += direction.steps; numerical.failed += direction.failed;
       numerical.maxDifference = Math.max(numerical.maxDifference, direction.maxDifference);
       console.log(`[distributed] numerical (${numericalPolicy}, ${workload.direction}): ${direction.failed}/${direction.steps} exceed 0.001; maximum ${direction.maxDifference}`);
-      if (numericalPolicy === 'required' && direction.failed) {
+      if (numericalPolicy === 'required' && direction.failed && !numericalDiagnostic) {
         throw new Error(`Frozen numerical tolerance exceeded; inspect firstDivergence in ${capture}`);
       }
     } else {
@@ -246,7 +252,7 @@ try {
     if (code !== 0) throw new Error(`${receipt.failure?.message || `Retained ${mode} workload failed (${code})`}; inspect ${capture}`);
   }
   if (numericalPolicy === 'required' && numerical?.failed) throw new Error('Frozen numerical tolerance exceeded');
-  if (!capacityDiagnostic) {
+  if (!capacityDiagnostic && !numericalDiagnostic) {
     phase = 'conversation deployment identity';
     const applicationUrl = new URL(conversationBaseUrl);
     if (!['localhost', '127.0.0.1', '[::1]'].includes(applicationUrl.hostname)) {
@@ -309,7 +315,8 @@ try {
 
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId, modelFixtureHost,
     conversationBaseUrl, conversationDeployment,
-    scope: recoveryDiagnostic ? 'Physical contributor restart diagnostic; other acceptance categories not exercised'
+    scope: numericalDiagnostic ? 'Installed-package numerical diagnostic in both physical placements; application acceptance not exercised'
+      : recoveryDiagnostic ? 'Physical contributor restart diagnostic; other acceptance categories not exercised'
       : capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
     documentWorkload, reverseHosts,
