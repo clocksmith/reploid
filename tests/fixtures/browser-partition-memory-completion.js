@@ -158,7 +158,7 @@ try {
           }
           if (!row.firstDivergence && (maxDifference > 0.001 || b.tokenId !== expected.tokenId
             || b.stopReason !== expected.stopReason)) {
-            row.firstDivergence = { parameters, messages: request.messages, inputTokenIds: ids,
+            row.firstDivergence = { parameters, messages: request.messages, prefillTokenIds: tokenized.tokenIds, inputTokenIds: ids,
               group0: { activation: a.activation, continuation: a.continuation },
               group1: { ...b }, frozen: expected, maxDifference, maxDifferenceIndex,
               tolerance: 0.001, priorTokenIds: row.numerical.map(item => item.tokenId) };
@@ -212,6 +212,67 @@ try {
   for (const page of pages) evidence.afterResidentClose.push(await page.evaluate(async () => {
     await globalThis.resident?.close(); return globalThis.settleMemory?.();
   }).catch(error => ({ error: error.message })));
+  const first = runs.find(row => row.firstDivergence)?.firstDivergence;
+  if (first && process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1') {
+    evidence.unsplitFirstDivergence = { scope: 'Same installed package, model, prompt tokens and generation; independent 6 GB diagnostics, excluded from constrained capacity proof', runs: [] };
+    for (const [slot, browser] of [local, remote].entries()) {
+      const context = await browser.newContext();
+      const diagnostic = { host: slot ? 'linux' : 'mac' };
+      evidence.unsplitFirstDivergence.runs.push(diagnostic);
+      try {
+        const page = await context.newPage();
+        await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL).href);
+        const source = slot ? process.env.REPLOID_PEER_MODEL_BASE_URL : process.env.REPLOID_MODEL_BASE_URL;
+        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy }) => {
+          const config = await import('/config/doppler-local-models.js');
+          const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
+          globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
+          const runtime = await import(config.DOPPLER_PARTITIONS_MODULE_URL);
+          const { load } = await import(config.DOPPLER_MODULE_URL);
+          const { createHttpArtifactStorageContext } = await import(new URL('./storage/artifact-storage-context.js', base));
+          const manifestText = await (await fetch(source + 'manifest.json')).text();
+          const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(manifestText))), b => b.toString(16).padStart(2, '0')).join('');
+          if ('sha256:' + hash !== model.identity) throw Error('Unsplit diagnostic model identity mismatch');
+          const manifest = JSON.parse(manifestText), maxGpuBufferBytes = 6000000000;
+          await runtime.configureDeviceMemoryBudget({ maxBytes: maxGpuBufferBytes });
+          let handle;
+          try {
+            handle = await load({ manifest, manifestText, manifestHash: hash, baseUrl: source,
+              storage: createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) },
+            { runtimeConfig: { shared: { bufferPool: policy.bufferPool }, inference: { session: {
+              kvcache: { maxSeqLen: generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
+              prefillTokenChunkSize: policy.prefillTokenChunkSize } } } });
+            const tokenIds = handle.advanced.tokenizePrompt(first.messages, generation);
+            if (JSON.stringify(tokenIds) !== JSON.stringify(first.prefillTokenIds)) throw Error('Unsplit diagnostic tokenization differs');
+            const { maxSeqLen: _contextLength, ...executionOptions } = generation;
+            let result = await handle.advanced.prefillWithLogits(first.messages, { ...executionOptions, inputIds: tokenIds });
+            for (const tokenId of first.priorTokenIds) result = await handle.advanced.decodeStepLogits([tokenId], executionOptions);
+            const bytes = new Uint8Array(result.logits.buffer, result.logits.byteOffset, result.logits.byteLength);
+            let encoded = ''; for (let offset = 0; offset < bytes.length; offset += 8192) encoded += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
+            return { packageVersion: config.DOPPLER_PACKAGE_VERSION, modelIdentity: model.identity,
+              tokenIds, generation, maxGpuBufferBytes, logits: btoa(encoded), stats: handle.advanced.getStats(),
+              resolvedRuntimeSession: handle.advanced.getResolvedRuntimeSession(), memory: runtime.inspectDeviceMemory() };
+          } finally { await handle?.unload(); }
+        }, { model: requests[0].model, source, first, generation, policy }));
+        const decode = text => { const bytes = Buffer.from(text, 'base64');
+          return new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)); };
+        const actual = decode(diagnostic.logits);
+        diagnostic.comparisons = {};
+        for (const [name, encoded] of [['distributed', first.group1.logits], ['frozen', first.frozen.logits]]) {
+          const expected = decode(encoded); assert.equal(actual.length, expected.length);
+          let maxDifference = 0, maxDifferenceIndex = null;
+          for (let index = 0; index < actual.length; index++) {
+            assert(Number.isFinite(actual[index]));
+            const difference = Math.abs(actual[index] - expected[index]);
+            if (difference > maxDifference) { maxDifference = difference; maxDifferenceIndex = index; }
+          }
+          diagnostic.comparisons[name] = { maxDifference, maxDifferenceIndex, tolerance: 0.001, matches: maxDifference <= 0.001 };
+        }
+        console.log(JSON.stringify({ unsplit: diagnostic.host, comparisons: diagnostic.comparisons }));
+      } catch (error) { diagnostic.failure = { name: error.name, message: error.message }; }
+      finally { await context.close(); await writeFile(output, JSON.stringify(evidence)); }
+    }
+  }
   await writeFile(output, JSON.stringify(evidence));
   for (const context of contexts) await context.close();
   await local.close(); await remote.close();
