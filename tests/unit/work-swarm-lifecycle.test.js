@@ -18,6 +18,8 @@ vi.mock('../../self/config/doppler-local-models.js', async importOriginal => {
   return { ...actual, LOCAL_DOPPLER_MODELS: [...actual.LOCAL_DOPPLER_MODELS, wholeRequest] };
 });
 import { createWorkSwarm } from '../../self/host/work-swarm.js';
+import { LOCAL_DOPPLER_MODELS } from '../../self/config/doppler-local-models.js';
+const wholeModelIdentity = LOCAL_DOPPLER_MODELS.find(model => model.id === 'whole-model-lifecycle-fixture').identity;
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 let values;
@@ -121,7 +123,7 @@ async function supplierFixture() {
   ports.ensure.mockResolvedValue(identity);
   vi.stubGlobal('navigator', { gpu: {} });
   const handlers = new Map(), ads = [], sent = [], load = deferred(), settlement = deferred();
-  const session = { loaded: true, modelId: 'whole-model-lifecycle-fixture', manifestHash: '502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc',
+  const session = { loaded: true, modelId: 'whole-model-lifecycle-fixture', manifestHash: wholeModelIdentity.slice(7),
     resetGenerationState: vi.fn(), async *stream(messages) {
       yield { type: 'text-delta', text: messages.at(-1).content };
       if (messages.at(-1).content === 'hold') await settlement.promise;
@@ -145,13 +147,13 @@ it('advertises loading without slots, prepares once and reuses reset resident we
   await f.request('too-early', 'not executed');
   expect(f.sent).toEqual([]);
   f.load.resolve(f.session); await f.share;
-  expect(f.ads.at(-1)).toMatchObject({ hasInference: true, readiness: 'ready', availableSlots: 1, modelIdentity: 'sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc' });
+  expect(f.ads.at(-1)).toMatchObject({ hasInference: true, readiness: 'ready', availableSlots: 1, modelIdentity: wholeModelIdentity });
   await f.request('one', 'First'); await f.request('two', 'Second');
   expect(f.service.open).toHaveBeenCalledOnce(); expect(f.service.close).not.toHaveBeenCalled();
   expect(f.session.resetGenerationState).toHaveBeenCalledTimes(5);
   const results = f.sent.filter(row => row.name === 'reploid:generation-result');
   expect(results.map(row => row.payload.response.content)).toEqual(['First', 'Second']);
-  expect(results.every(row => row.payload.response.modelIdentity === 'sha256:502fbd6d4c9ed6a890931665995c8ebb42a30e5cda23aa2cfd8e680bee7fa5bc')).toBe(true);
+  expect(results.every(row => row.payload.response.modelIdentity === wholeModelIdentity)).toBe(true);
   await f.swarm.stop(); expect(f.service.close).toHaveBeenCalledOnce(); await f.swarm.close();
 });
 

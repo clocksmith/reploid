@@ -8,6 +8,16 @@ import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from './physical
 const raw = await readFile(process.env.REPLOID_DIAGNOSTIC_REQUESTS);
 assert.equal(createHash('sha256').update(raw).digest('hex'), '794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e');
 const requests = JSON.parse(raw), output = process.env.REPLOID_CAPTURE_OUT;
+// The fixture freezes prompts and generation. Artifact and runtime identities
+// come from the same ordinary application package under test.
+const catalog = JSON.parse(await readFile(new URL('../../self/config/chat-models.json', import.meta.url)));
+const packageIdentity = JSON.parse(await readFile(new URL('../../self/config/doppler-package.json', import.meta.url)));
+for (const request of requests) {
+  const selected = catalog.find(model => model.id === request.model.id);
+  assert(selected, 'Retained request model must remain in the application catalog');
+  request.model = { ...request.model, ...selected, generation: request.model.generation,
+    packageVersion: packageIdentity.version };
+}
 const policy = JSON.parse(await readFile(new URL('../../self/config/partition-policy.json', import.meta.url)));
 const profile = JSON.parse(await readFile(new URL('../../self/config/work-profile.json', import.meta.url)));
 const phase = process.env.REPLOID_MEMORY_PHASE ?? 'repetition';
