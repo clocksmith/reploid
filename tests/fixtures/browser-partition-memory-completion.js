@@ -267,6 +267,7 @@ try {
               const targetOpIds = ['embed.out', 'final_norm.pre', 'final_norm.out',
                 ...Array.from({ length: manifest.architecture.numLayers }, (_, layer) =>
                   [`layer.${layer}.attn.post_input_norm`, `layer.${layer}.layer.out`]).flat()];
+              await handle.resetGenerationState();
               const observed = await handle.advanced.prefillWithLogits(first.messages, {
                 ...executionOptions, inputIds: tokenIds, diagnostics: { enabled: true,
                   captureConfig: { enabled: true, defaultLevel: 'none', targetOpIds, targetLevel: 'full' } } });
