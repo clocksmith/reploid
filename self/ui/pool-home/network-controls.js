@@ -111,8 +111,10 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
     find('[data-tab-sharing-summary]').textContent = sharing.length ? sharing.join(' / ') : 'No models shared by this tab';
   };
   const unsubscribe = session.subscribe(render);
-  on('[data-mesh-connect]', 'click', () => act(() => find('[data-mesh-connect]').dataset.disconnect === 'true'
-    ? session.disconnect() : session.connect()));
+  on('[data-mesh-connect]', 'click', () => {
+    const disconnect = find('[data-mesh-connect]').dataset.disconnect === 'true';
+    return act(() => disconnect ? session.disconnect() : session.connect());
+  });
   on('[data-mesh-invite]', 'click', () => act(async () => {
     if (!getInviteUrl) throw new Error('Mesh invitation is unavailable');
     await navigator.clipboard.writeText(getInviteUrl());
