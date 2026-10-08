@@ -146,19 +146,29 @@ try {
         if (reference) {
           const expected = testCase.expected.steps[step];
           assert(expected, 'Reference generation has an unexpected extra step');
-          assert.equal(b.tokenId, expected.tokenId, 'Sampled token differs from the frozen reference');
-          assert.equal(b.stopReason, expected.stopReason, 'Stopping differs from the frozen reference');
           const decode = text => { const bytes = Buffer.from(text, 'base64');
             return new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)); };
           const actual = decode(b.logits), baseline = decode(expected.logits);
           assert.equal(actual.length, baseline.length);
-          let maxDifference = 0;
+          let maxDifference = 0, maxDifferenceIndex = null;
           for (let i = 0; i < actual.length; i++) {
             assert(Number.isFinite(actual[i]), 'Nonfinite distributed score');
-            maxDifference = Math.max(maxDifference, Math.abs(actual[i] - baseline[i]));
+            const difference = Math.abs(actual[i] - baseline[i]);
+            if (difference > maxDifference) { maxDifference = difference; maxDifferenceIndex = i; }
+          }
+          if (!row.firstDivergence && (maxDifference > 0.001 || b.tokenId !== expected.tokenId
+            || b.stopReason !== expected.stopReason)) {
+            row.firstDivergence = { parameters, messages: request.messages, inputTokenIds: ids,
+              group0: { activation: a.activation, continuation: a.continuation },
+              group1: { ...b }, frozen: expected, maxDifference, maxDifferenceIndex,
+              tolerance: 0.001, priorTokenIds: row.numerical.map(item => item.tokenId) };
+            // Preserve the actual boundary before token/stopping assertions can fail.
+            await writeFile(output, JSON.stringify(evidence));
           }
           row.numerical.push({ step, tokenId: b.tokenId, stopReason: b.stopReason,
-            maxDifference, tolerance: 0.001, matches: maxDifference <= 0.001 });
+            maxDifference, maxDifferenceIndex, tolerance: 0.001, matches: maxDifference <= 0.001 });
+          assert.equal(b.tokenId, expected.tokenId, 'Sampled token differs from the frozen reference');
+          assert.equal(b.stopReason, expected.stopReason, 'Stopping differs from the frozen reference');
         }
         row.steps++; row.text += b.delta; row.stopReason = b.stopReason;
         position += ids.length; ids = [b.tokenId]; aContinuation = a.continuation; bContinuation = b.continuation;
