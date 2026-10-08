@@ -172,7 +172,7 @@ try {
           }
           if (!row.firstDivergence && (maxDifference > 0.001 || b.tokenId !== expected.tokenId
             || b.stopReason !== expected.stopReason)) {
-            row.firstDivergence = { parameters, messages: request.messages, prefillTokenIds: tokenized.tokenIds, inputTokenIds: ids,
+            row.firstDivergence = { attempt, parameters, messages: request.messages, prefillTokenIds: tokenized.tokenIds, inputTokenIds: ids,
               group0: { activation: a.activation, continuation: a.continuation },
               group1: { ...b }, frozen: expected, maxDifference, maxDifferenceIndex,
               tolerance: 0.001, priorTokenIds: row.numerical.map(item => item.tokenId) };
@@ -232,9 +232,20 @@ try {
     for (const [slot, browser] of [local, remote].entries()) {
       const context = await browser.newContext();
       const diagnostic = { host: slot ? 'linux' : 'mac', unsplitStepParity: [] };
+      const linearCaptures = [];
+      const captureLinear = process.env.DOPPLER_ATTENTION_CACHE_CAPTURE === '1';
       evidence.unsplitFirstDivergence.runs.push(diagnostic);
       try {
+        if (captureLinear) {
+          const { observeAttentionCache } = await import('../../../doppler/tests/fixtures/attention-cache-observer.js');
+          await observeAttentionCache(context, new URL('../../node_modules/doppler-gpu', import.meta.url).pathname,
+            linearCaptures, { linearOnly: true, captureCondition: 'globalThis.numericalObservation?.capture === true' });
+        }
         const page = await context.newPage();
+        if (captureLinear) {
+          const session = await context.newCDPSession(page);
+          session.on('Debugger.paused', () => session.send('Debugger.resume'));
+        }
         await page.exposeFunction('compareUnsplitStep', (attempt, step, encoded) => {
           const values = text => { const b = Buffer.from(text, 'base64');
             return new Float32Array(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength)); };
@@ -255,7 +266,7 @@ try {
         console.log(JSON.stringify({ unsplit: diagnostic.host, phase: 'loading' }));
         await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL).href);
         const source = slot ? process.env.REPLOID_PEER_MODEL_BASE_URL : process.env.REPLOID_MODEL_BASE_URL;
-        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy, controls }) => {
+        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy, controls, captureLinear }) => {
           const config = await import('/config/doppler-local-models.js');
           const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
           globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
@@ -278,7 +289,9 @@ try {
             const tokenIds = handle.advanced.tokenizePrompt(first.messages, generation);
             if (JSON.stringify(tokenIds) !== JSON.stringify(first.prefillTokenIds)) throw Error('Unsplit diagnostic tokenization differs');
             const { maxSeqLen: _contextLength, ...executionOptions } = generation;
+            globalThis.numericalObservation = { prompt: first.attempt, step: 0, capture: captureLinear };
             let result = await handle.advanced.prefillWithLogits(first.messages, { ...executionOptions, inputIds: tokenIds });
+            globalThis.numericalObservation.capture = false;
             result.cache?.destroy();
             for (const tokenId of first.priorTokenIds) result = await handle.advanced.decodeStepLogits([tokenId], executionOptions);
             const encode = logits => {
@@ -286,8 +299,20 @@ try {
               let encoded = ''; for (let offset = 0; offset < bytes.length; offset += 8192) encoded += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
               return btoa(encoded);
             };
-            const logits = encode(result.logits), stats = handle.advanced.getStats();
+            const firstLogits = Float32Array.from(result.logits);
+            const logits = encode(firstLogits), stats = handle.advanced.getStats();
             let probe = null;
+            let captureReplay = null;
+            const checkCaptureReplay = (attempt, step, values) => {
+              if (attempt !== first.attempt || step !== first.parameters.step) return;
+              let maxDifference = 0;
+              for (let i = 0; i < firstLogits.length; i++) {
+                if (!Number.isFinite(values[i])) throw Error('Nonfinite capture replay');
+                maxDifference = Math.max(maxDifference, Math.abs(firstLogits[i] - values[i]));
+              }
+              captureReplay = { maxDifference, byteExact: maxDifference === 0,
+                scope: 'Same prefix replayed after state reset without buffer observation' };
+            };
             // Replay the same prefix and observe only the first divergent step:
             // diagnostics can change fusion, so quantify their effect separately.
             // Retain unobserved logits and quantify that effect before interpreting tensors.
@@ -344,17 +369,19 @@ try {
               if (JSON.stringify(ids) !== JSON.stringify(control.tokenIds)) throw Error('Unsplit control tokenization differs');
               let value = await handle.advanced.prefillWithLogits(control.messages, { ...executionOptions, inputIds: ids });
               value.cache?.destroy();
+              checkCaptureReplay(attempt, 0, value.logits);
               await globalThis.compareUnsplitStep(attempt, 0, encode(value.logits));
               for (let step = 1; step < control.tokenIdsByStep.length; step++) {
                 value = await handle.advanced.decodeStepLogits([control.tokenIdsByStep[step - 1]], executionOptions);
+                checkCaptureReplay(attempt, step, value.logits);
                 await globalThis.compareUnsplitStep(attempt, step, encode(value.logits));
               }
             }
             return { packageVersion: config.DOPPLER_PACKAGE_VERSION, modelIdentity: model.identity,
-              tokenIds, generation, maxGpuBufferBytes, logits, stats, probe,
+              tokenIds, generation, maxGpuBufferBytes, logits, stats, probe, captureReplay,
               resolvedRuntimeSession: handle.advanced.getResolvedRuntimeSession(), memory: runtime.inspectDeviceMemory() };
           } finally { await handle?.unload(); }
-        }, { model: requests[0].model, source, first, generation, policy,
+        }, { model: requests[0].model, source, first, generation, policy, captureLinear,
           controls: distributedControls.map(({ messages, tokenIds, steps }) => ({ messages, tokenIds,
             tokenIdsByStep: steps.map(step => step.tokenId) })) }));
         const decode = text => { const bytes = Buffer.from(text, 'base64');
@@ -395,7 +422,17 @@ try {
         }
         console.log(JSON.stringify({ unsplit: diagnostic.host, comparisons: diagnostic.comparisons }));
       } catch (error) { diagnostic.failure = { name: error.name, message: error.message }; }
-      finally { await context.close(); await writeFile(output, JSON.stringify(evidence)); }
+      finally {
+        try { await context.close(); }
+        catch (error) { diagnostic.cleanupFailure = { name: error.name, message: error.message }; }
+        if (captureLinear) {
+          diagnostic.linearCapture = { captures: linearCaptures };
+          if (!linearCaptures.some(capture => capture.records.some(record => record.boundary === 'linear-inputs'))) {
+            diagnostic.captureFailure = 'The recurrent diagnostic did not retain its actual input boundary';
+          }
+        }
+        await writeFile(output, JSON.stringify(evidence));
+      }
     }
     const [mac, linux] = evidence.unsplitFirstDivergence.runs;
     if (mac.probe?.timeline && linux.probe?.timeline) {
