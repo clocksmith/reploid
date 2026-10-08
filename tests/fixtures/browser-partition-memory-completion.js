@@ -288,7 +288,10 @@ try {
               // Ordinary generation owns the diagnostics lifecycle for both
               // prefill and decode; the advanced decode method only returns logits.
               const sampledTokenIds = [];
-              probe = { sampledTokenIds, observation: 'Public generation with command batching disabled for tensor readback' };
+              const specialTokens = handle.advanced.getSpecialTokens();
+              probe = { sampledTokenIds, samplingExcludedTokenIds: [specialTokens.pad, ...executionOptions.suppressTokenIds]
+                .filter(tokenId => Number.isInteger(tokenId)),
+                observation: 'Public generation with command batching disabled for tensor readback' };
               let observedLogits;
               for await (const _chunk of handle.generate(first.messages, {
                 ...observationOptions, disableCommandBatching: true,
@@ -329,12 +332,19 @@ try {
         for (const [name, encoded] of references) {
           const expected = decode(encoded); assert.equal(actual.length, expected.length);
           let maxDifference = 0, maxDifferenceIndex = null;
+          const samplingMasks = [];
           for (let index = 0; index < actual.length; index++) {
             assert(Number.isFinite(actual[index]));
+            if (!Number.isFinite(expected[index])) {
+              assert(name === 'observed' && expected[index] === -Infinity
+                && diagnostic.probe.samplingExcludedTokenIds.includes(index), 'Unexpected nonfinite diagnostic logit');
+              samplingMasks.push(index); continue;
+            }
             const difference = Math.abs(actual[index] - expected[index]);
             if (difference > maxDifference) { maxDifference = difference; maxDifferenceIndex = index; }
           }
-          diagnostic.comparisons[name] = { maxDifference, maxDifferenceIndex, tolerance: 0.001, matches: maxDifference <= 0.001 };
+          diagnostic.comparisons[name] = { maxDifference, maxDifferenceIndex, tolerance: 0.001, matches: maxDifference <= 0.001,
+            ...(samplingMasks.length ? { samplingMasks, scope: 'Unmasked logits; declared sampling exclusions checked separately' } : {}) };
         }
         if (diagnostic.probe?.timeline) {
           const boundary = diagnostic.probe.timeline.find(record => record.opId === 'layer.11.layer.out');
