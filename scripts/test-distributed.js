@@ -19,14 +19,27 @@ if (!modelId || modelId.startsWith('--')) throw new Error('--model requires a ca
 const capacityDiagnostic = process.argv.includes('--capacity');
 const recoveryDiagnostic = process.argv.includes('--recovery');
 const numericalDiagnostic = process.argv.includes('--numerical-only');
+const memoryDiagnostic = process.argv.includes('--memory-only');
+if ([capacityDiagnostic, recoveryDiagnostic, numericalDiagnostic, memoryDiagnostic].filter(Boolean).length > 1) {
+  throw new Error('Choose one diagnostic: --capacity, --recovery, --numerical-only, or --memory-only');
+}
+if (memoryDiagnostic && modelId !== 'qwen-3-5-0-8b-q4k-ehaf16') {
+  throw new Error('--memory-only requires the retained long-prompt model');
+}
+if (memoryDiagnostic && process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1') {
+  throw new Error('--memory-only does not exercise numerical qualification');
+}
 const reverseHosts = process.argv.includes('--reverse');
 const localConversation = process.argv.includes('--local');
 if (localConversation && process.env.REPLOID_E2E_BASE_URL) {
   throw new Error('--local owns its isolated application endpoint; omit REPLOID_E2E_BASE_URL');
 }
-const documentWorkload = recoveryDiagnostic ? process.env.REPLOID_E2E_DOCUMENTS === '1'
+const documentWorkload = memoryDiagnostic || numericalDiagnostic || capacityDiagnostic ? false
+  : recoveryDiagnostic ? process.env.REPLOID_E2E_DOCUMENTS === '1'
   : process.env.REPLOID_E2E_DOCUMENTS !== '0';
-const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic && !recoveryDiagnostic;
+const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic && !recoveryDiagnostic && !memoryDiagnostic;
+const standaloneControls = !capacityDiagnostic && !numericalDiagnostic && !memoryDiagnostic
+  && (recoveryDiagnostic ? process.env.REPLOID_E2E_CAPACITY === '1' : !frozenWorkloads);
 const peer = process.env.REPLOID_TEST_PEER || 'x@128.tail995236.ts.net';
 const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || '/home/x/deco/reploid';
 // Exercise the hosted conversation's normal authentication and renewable RTC
@@ -199,10 +212,11 @@ try {
   const seedUrl = new URL(endpoints.seed), replacementUrl = new URL(endpoints.replacement);
   const seedSocketPort = await freePort(), replacementSocketPort = await freePort();
   modelFixtureHost = endpoints.fixturePort ? 'peer' : 'local';
-  // Numerical controls read each host's independently verified local bytes.
+  // Numerical and memory controls read each host's verified local bytes.
   // Conversation acquisition still uses the ordinary peer file source below.
-  const localFixturePort = endpoints.fixturePort && frozenWorkloads ? await freePort() : modelPort;
-  if (!endpoints.fixturePort || frozenWorkloads) {
+  const independentFixtures = frozenWorkloads || memoryDiagnostic;
+  const localFixturePort = endpoints.fixturePort && independentFixtures ? await freePort() : modelPort;
+  if (!endpoints.fixturePort || independentFixtures) {
     phase = 'local model fixture';
     const modelServer = start(process.execPath, ['tests/fixtures/numerical-model-server.js'], { env: {
       ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, REPLOID_MODEL_PORT: String(localFixturePort)
@@ -219,7 +233,8 @@ try {
       : ['-R', `${modelPort}:127.0.0.1:${modelPort}`]),
     peer, 'echo REPLoid_TRANSPORT_READY; cat >/dev/null']);
   await waitForLine(tunnel, line => line === 'REPLoid_TRANSPORT_READY');
-  let workloads = capacityDiagnostic ? [{ mode: 'capacity' }] : frozenWorkloads
+  let workloads = memoryDiagnostic ? [{ mode: 'repetition', reverse: reverseHosts }, { mode: 'cancellation', reverse: reverseHosts }]
+    : capacityDiagnostic ? [{ mode: 'capacity' }] : frozenWorkloads
     ? [{ mode: 'reference', direction: 'mac-linux' }, { mode: 'reference', direction: 'linux-mac', reverse: true },
       { mode: 'repetition' }, { mode: 'cancellation' }] : [];
   if (numericalDiagnostic) {
@@ -265,7 +280,7 @@ try {
     if (code !== 0) throw new Error(`${receipt.failure?.message || `Retained ${mode} workload failed (${code})`}; inspect ${capture}`);
   }
   if (numericalPolicy === 'required' && numerical?.failed) throw new Error('Frozen numerical tolerance exceeded');
-  if (!capacityDiagnostic && !numericalDiagnostic) {
+  if (!capacityDiagnostic && !numericalDiagnostic && !memoryDiagnostic) {
     phase = 'conversation deployment identity';
     const applicationUrl = new URL(conversationBaseUrl);
     if (!['localhost', '127.0.0.1', '[::1]'].includes(applicationUrl.hostname)) {
@@ -290,7 +305,7 @@ try {
     const test = start(process.execPath, ['node_modules/@playwright/test/cli.js', 'test',
       'tests/e2e/chat-cooperative-real.spec.js', '--project=chromium', `--output=${resolve(output, 'conversation')}`], { env: {
         ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, DOPPLER_PARTITION_REFERENCE_OUT: '',
-        REPLOID_TEST_MODEL: modelId, REPLOID_E2E_CAPACITY: frozenWorkloads || recoveryDiagnostic ? '0' : '1',
+        REPLOID_TEST_MODEL: modelId, REPLOID_E2E_CAPACITY: standaloneControls ? '1' : '0',
         REPLOID_E2E_RECOVERY: recoveryDiagnostic ? '1' : '0',
         REPLOID_E2E_REVERSE_HOSTS: reverseHosts ? '1' : '0',
         PLAYWRIGHT_JSON_OUTPUT_FILE: resolve(output, 'playwright.json'),
@@ -314,9 +329,9 @@ try {
       const message = errors[0]?.message?.split('\n')[0] || `Conversation acceptance failed (${exitCode})`;
       throw new Error(`${message}; inspect ${output}`);
     }
-    if (memory.some(check => !check.answersComplete)) {
-      throw new Error('Long-prompt generation reached the token limit; complete answers are still required');
-    }
+  }
+  if (memory.some(check => !check.answersComplete)) {
+    throw new Error('Long-prompt generation reached the token limit; complete answers are still required');
   }
 } catch (error) {
   failure = { phase, message: interruptedBy ? `Verification interrupted by ${interruptedBy}` : error.message };
@@ -330,10 +345,13 @@ try {
     conversationBaseUrl, conversationDeployment,
     conversationTarget: localConversation ? 'isolated-loopback' : 'configured-host',
     scope: numericalDiagnostic ? 'Installed-package numerical diagnostic in both physical placements; application acceptance not exercised'
-      : recoveryDiagnostic ? 'Physical contributor restart diagnostic; other acceptance categories not exercised'
+      : memoryDiagnostic ? 'Installed-package long-prompt memory, reuse and cancellation diagnostic; numerical and application acceptance not exercised'
+      : recoveryDiagnostic ? standaloneControls
+        ? 'Physical contributor restart and standalone capacity diagnostics; remaining application and numerical acceptance not exercised'
+        : 'Physical contributor restart diagnostic; other acceptance categories not exercised'
       : capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
-    documentWorkload, reverseHosts,
+    documentWorkload, reverseHosts, standaloneControls,
     frozenReferenceApplicable: frozenWorkloads,
     numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource, referenceBinding,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },

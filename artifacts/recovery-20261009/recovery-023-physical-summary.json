@@ -1,0 +1,146 @@
+{
+  "component": "reploid.chat.contribution-recovery",
+  "intent": "preserved",
+  "scope": "Two physical GPUs, Qwen 3.5 0.8B, four stop/restart cases through ordinary controls; isolated shared loopback signaling, not hosted deployment qualification",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.23",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.23.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.23.tgz",
+    "integrity": "sha512-j/9kGjf6d91EC4eH8maKbaTeP3Zg3G1kYC5tFPLO+VdiwY9I3Ht6URchpLrZbhZalAv6qJ5MCsZa6QNMNVcKwQ=="
+  },
+  "browserIdentity": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
+  "maxGpuBufferBytes": 1420000000,
+  "placements": [
+    {
+      "receiptDirectory": "recovery-023-corrected",
+      "runPassed": true,
+      "reverseHosts": false,
+      "requesterWeightRequests": 0,
+      "contributorOriginWeightRequests": 0,
+      "browserErrors": [],
+      "restarts": [
+        {
+          "host": "mac",
+          "layerRange": [
+            12,
+            23
+          ],
+          "stopPhase": "Not sharing",
+          "readyPhase": "Ready",
+          "answer": "YES",
+          "stopReason": "eos-token",
+          "stoppedWeightBytes": 0,
+          "otherWeightBytesPreserved": true,
+          "otherInventoryPreserved": true,
+          "peakTrackedBufferBytes": 862828944
+        },
+        {
+          "host": "linux-128",
+          "layerRange": [
+            0,
+            11
+          ],
+          "stopPhase": "Not sharing",
+          "readyPhase": "Ready",
+          "answer": "YES",
+          "stopReason": "eos-token",
+          "stoppedWeightBytes": 0,
+          "otherWeightBytesPreserved": true,
+          "otherInventoryPreserved": true,
+          "peakTrackedBufferBytes": 866944936
+        }
+      ],
+      "sourceEvidence": {
+        "result.json": "ae508fc1b015320438b970cc3421dc98cec124d5993fae95d0a1a3b76dde07e3",
+        "contributor-restarts.json": "05ecaf3d4e4cf4950f060591e8e346c04a761cc10d5beb89e507f48959d4f535",
+        "state-at-exit.json": "3e62c1174fb4396aec5d77d85ceca725dfbdbaa775cd0c5faba8f78b38c923f7"
+      }
+    },
+    {
+      "receiptDirectory": "recovery-023-corrected-reverse",
+      "runPassed": true,
+      "reverseHosts": true,
+      "requesterWeightRequests": 0,
+      "contributorOriginWeightRequests": 0,
+      "browserErrors": [],
+      "restarts": [
+        {
+          "host": "mac",
+          "layerRange": [
+            0,
+            11
+          ],
+          "stopPhase": "Not sharing",
+          "readyPhase": "Ready",
+          "answer": "YES",
+          "stopReason": "eos-token",
+          "stoppedWeightBytes": 0,
+          "otherWeightBytesPreserved": true,
+          "otherInventoryPreserved": true,
+          "peakTrackedBufferBytes": 866944328
+        },
+        {
+          "host": "linux-128",
+          "layerRange": [
+            12,
+            23
+          ],
+          "stopPhase": "Not sharing",
+          "readyPhase": "Ready",
+          "answer": "YES",
+          "stopReason": "eos-token",
+          "stoppedWeightBytes": 0,
+          "otherWeightBytesPreserved": true,
+          "otherInventoryPreserved": true,
+          "peakTrackedBufferBytes": 866944328
+        }
+      ],
+      "sourceEvidence": {
+        "result.json": "8616b592c9beb5908ea7cc2d917abcbcf56e8dfc8221cf3c5a551910cc92033c",
+        "contributor-restarts.json": "f88b8ef31bf9cb173383d9c3df08560e10ceb47dab3da15d1a4df28ecd8ac7d9",
+        "state-at-exit.json": "6490bac8156b12569dbdda24ae7404d4067fb2df69cc8187b242c3c3edda4878"
+      }
+    }
+  ],
+  "unassisted": true,
+  "preservedConversationsAndDrafts": "Asserted by the physical acceptance script in each passing run",
+  "numericalQualification": {
+    "qualified": false,
+    "steps": 110,
+    "failed": 54,
+    "maxDifference": 0.002967357635498047,
+    "tolerance": 0.001
+  },
+  "notExercised": [
+    "loss during active generation",
+    "concurrent conversations",
+    "isolated cancellation",
+    "long-prompt memory and reuse",
+    "hosted authentication and TURN",
+    "Qwen 3.5 2B recovery"
+  ],
+  "publication": false,
+  "deployment": false,
+  "sourceChecks": {
+    "unitSuite": {
+      "command": "npm run test:unit",
+      "filesPassed": 241,
+      "testsPassed": 2505,
+      "testsSkipped": 18,
+      "log": "recovery-023-unit.log.gz"
+    },
+    "poolConfig": {
+      "command": "npm run verify:pool",
+      "passed": true,
+      "scope": "Source configuration, not deployment",
+      "log": "recovery-023-pool.log.gz"
+    },
+    "browserBundle": {
+      "command": "node scripts/build-browser-bundle-manifest.js --check",
+      "servedFiles": 1888,
+      "passed": true
+    },
+    "diagnosticGuards": "Incompatible diagnostic flags, wrong memory model, and required numerical policy rejected before processes start"
+  }
+}

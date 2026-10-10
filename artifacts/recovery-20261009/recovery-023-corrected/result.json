@@ -1,0 +1,62 @@
+{
+  "ok": true,
+  "failure": null,
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "modelFixtureHost": "peer",
+  "conversationBaseUrl": "http://localhost:53462",
+  "conversationDeployment": null,
+  "conversationTarget": "isolated-loopback",
+  "scope": "Physical contributor restart diagnostic; other acceptance categories not exercised",
+  "documentWorkload": false,
+  "reverseHosts": false,
+  "frozenReferenceApplicable": false,
+  "numericalPolicy": "tracked",
+  "numerical": null,
+  "memory": [],
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.23",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.23.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.23.tgz",
+    "integrity": "sha512-j/9kGjf6d91EC4eH8maKbaTeP3Zg3G1kYC5tFPLO+VdiwY9I3Ht6URchpLrZbhZalAv6qJ5MCsZa6QNMNVcKwQ=="
+  },
+  "browserIdentity": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
+  "peer": "x@128.tail995236.ts.net",
+  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "referenceSource": "/Users/xyz/deco/reploid/tests/fixtures/distributed-reference.json.gz",
+  "referenceBinding": null,
+  "generation": {
+    "maxTokens": 4096,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 0,
+    "stopSequences": [],
+    "useChatTemplate": true,
+    "maxSeqLen": 8192
+  },
+  "maxGpuBufferBytes": 1420000000,
+  "bufferPool": {
+    "budget": {
+      "maxTotalBytes": 900000000,
+      "highWatermarkRatio": 0.9,
+      "emergencyTrimTargetRatio": 0.75,
+      "hardFailOnBudgetExceeded": false
+    }
+  },
+  "referenceGeneration": {
+    "maxTokens": 1024,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd"
+}
