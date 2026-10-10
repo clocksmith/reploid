@@ -1,0 +1,188 @@
+{
+  "ok": false,
+  "failure": {
+    "phase": "frozen reference mac-linux",
+    "message": "Frozen numerical tolerance exceeded"
+  },
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "modelFixtureHost": "peer",
+  "conversationBaseUrl": "https://replo.id",
+  "conversationDeployment": null,
+  "conversationTarget": "configured-host",
+  "scope": "Installed-package numerical diagnostic in both physical placements; application acceptance not exercised",
+  "documentWorkload": false,
+  "reverseHosts": true,
+  "referenceHost": null,
+  "probePrompt": null,
+  "probeStep": null,
+  "standaloneControls": false,
+  "frozenReferenceApplicable": true,
+  "numericalPolicy": "required",
+  "numerical": {
+    "policy": "required",
+    "steps": 110,
+    "failed": 46,
+    "maxDifference": 0.0017986297607421875,
+    "tolerance": 0.001,
+    "directions": [
+      {
+        "direction": "linux-mac",
+        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-linux-mac.json",
+        "partitionHosts": [
+          {
+            "index": 1,
+            "host": "mac"
+          },
+          {
+            "index": 0,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 23,
+        "maxDifference": 0.0017986297607421875,
+        "tolerance": 0.001
+      },
+      {
+        "direction": "mac-linux",
+        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-mac-linux.json",
+        "partitionHosts": [
+          {
+            "index": 0,
+            "host": "mac"
+          },
+          {
+            "index": 1,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 23,
+        "maxDifference": 0.0017719268798828125,
+        "tolerance": 0.001
+      }
+    ]
+  },
+  "memory": [],
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.24",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.24.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.24.tgz",
+    "integrity": "sha512-1tvdTnTBXusLHEUcWf02Cb+nEo187BouwJhs4QLmWKkRY4URR4D3qrx3pPMGPZVV87YfWVGlhK8ioX3u4a17JQ=="
+  },
+  "browserIdentity": "sha256:631a05ebd196c3aafb0d1a7e089f3c2b75b2830b0997780e2994efea148f8edf",
+  "peer": "x@128.tail995236.ts.net",
+  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "referenceSource": "/Users/xyz/deco/reploid/tests/fixtures/distributed-reference.json.gz",
+  "referenceBinding": {
+    "frozenModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+    "weightsTokenizerAndExecutionContractUnchanged": true,
+    "changedKernelPins": [
+      {
+        "id": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+        "currentDigest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
+      },
+      {
+        "id": "q4_decode",
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_multicol",
+        "frozenDigest": "sha256:c97827b7ca42c0215756d91c7166106e189174c1a64fe473f0c017b3eb27188e",
+        "currentDigest": "sha256:53d5573ae047f553dac3c226507c6e1d80a2a2a2939acb65acd8092dd229677b"
+      },
+      {
+        "id": "rope",
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+        "currentDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
+      },
+      {
+        "id": "attn_decode",
+        "kernel": "attention_decode_online_f16kv.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+        "currentDigest": "sha256:cb47a297183367fa8f0c92493a2d843e9bef77de5a21a1558410caf2547000be"
+      },
+      {
+        "id": "silu",
+        "kernel": "silu.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
+        "currentDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24"
+      },
+      {
+        "id": "q4_widetile",
+        "kernel": "fused_matmul_q4_widetile.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+        "currentDigest": "sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc"
+      },
+      {
+        "id": "attn_head256",
+        "kernel": "attention_head256_f16kv.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+        "currentDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da"
+      },
+      {
+        "id": "lm_head_q4",
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "frozenDigest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "currentDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
+      },
+      {
+        "id": "sample",
+        "kernel": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "frozenDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
+        "currentDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef"
+      },
+      {
+        "id": "q4_decode_gemv",
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "frozenDigest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "currentDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
+      }
+    ]
+  },
+  "generation": {
+    "maxTokens": 4096,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 0,
+    "stopSequences": [],
+    "useChatTemplate": true,
+    "maxSeqLen": 8192
+  },
+  "maxGpuBufferBytes": 1420000000,
+  "bufferPool": {
+    "budget": {
+      "maxTotalBytes": 900000000,
+      "highWatermarkRatio": 0.9,
+      "emergencyTrimTargetRatio": 0.75,
+      "hardFailOnBudgetExceeded": false
+    }
+  },
+  "referenceGeneration": {
+    "maxTokens": 1024,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd"
+}
