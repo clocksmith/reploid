@@ -147,3 +147,26 @@ test('bounded inspector and reduced viewport preserve a long conversation and co
   await expect(page.locator('[data-composer-stop]')).toBeInViewport();
   await page.screenshot({ path: info.outputPath('reduced-viewport.png'), fullPage: true });
 });
+
+test('keyboard-sized visual viewport compacts the workspace without resizing the layout viewport', async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  await page.evaluate(() => window.setVisualState('executing'));
+  await page.locator('[data-composer-input]').fill('Keep this draft');
+  // Explicit viewport fixture: models keyboards that leave CSS height queries unchanged.
+  await page.evaluate(() => {
+    Object.defineProperty(visualViewport, 'height', { configurable: true, value: 460 });
+    visualViewport.dispatchEvent(new Event('resize'));
+  });
+  expect(await page.evaluate(() => innerHeight)).toBe(844);
+  const composer = await page.locator('[data-composer-area]').boundingBox();
+  expect(composer.y + composer.height).toBeLessThanOrEqual(460);
+  expect((await page.locator('[data-message-stream]').boundingBox()).height).toBeGreaterThanOrEqual(60);
+  await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft');
+  await page.screenshot({ path: info.outputPath('visual-viewport-keyboard.png'), fullPage: true });
+  await page.evaluate(() => {
+    delete visualViewport.height; visualViewport.dispatchEvent(new Event('resize'));
+  });
+  expect((await page.locator('[data-composer-area]').boundingBox()).y).toBeGreaterThan(460);
+  await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft');
+});

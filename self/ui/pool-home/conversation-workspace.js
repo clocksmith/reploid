@@ -86,7 +86,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   function onResize() {
     if (globalThis.innerWidth > 760 && drawer.open) closeThreads();
     const surface = container.closest('.pool-home');
-    if (surface && globalThis.visualViewport) surface.style.setProperty('--pool-param-workspace-height', `${globalThis.visualViewport.height}px`);
+    if (surface) {
+      const height = globalThis.visualViewport?.height || globalThis.innerHeight;
+      surface.style.setProperty('--pool-param-workspace-height', `${height}px`);
+      // Mobile keyboards may resize only visualViewport; CSS height queries stay unchanged.
+      surface.toggleAttribute('data-chat-compact', height <= 600);
+    }
   }
   globalThis.addEventListener('resize', onResize, options);
   globalThis.visualViewport?.addEventListener('resize', onResize, options);
@@ -285,7 +290,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   return () => {
     try { saveDraft(); } catch (cause) { error(cause); }
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose(); threadDialog.dispose();
-    container.closest('.pool-home')?.style.removeProperty('--pool-param-workspace-height');
+    const surface = container.closest('.pool-home');
+    surface?.style.removeProperty('--pool-param-workspace-height');
+    surface?.removeAttribute('data-chat-compact');
     controller.abort(); fileRevision++; unsubscribe(); if (!sharedInspector) inspector.dispose();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';
