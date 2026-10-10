@@ -30,6 +30,11 @@ if (memoryDiagnostic && process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1')
   throw new Error('--memory-only does not exercise numerical qualification');
 }
 const reverseHosts = process.argv.includes('--reverse');
+const referenceHostArgument = process.argv.indexOf('--reference-host');
+const referenceHost = referenceHostArgument < 0 ? null : process.argv[referenceHostArgument + 1];
+if (referenceHostArgument >= 0 && (!numericalDiagnostic || !['mac', 'linux'].includes(referenceHost) || reverseHosts)) {
+  throw new Error('--reference-host mac|linux requires --numerical-only and excludes --reverse');
+}
 const localConversation = process.argv.includes('--local');
 if (localConversation && process.env.REPLOID_E2E_BASE_URL) {
   throw new Error('--local owns its isolated application endpoint; omit REPLOID_E2E_BASE_URL');
@@ -238,7 +243,8 @@ try {
     ? [{ mode: 'reference', direction: 'mac-linux' }, { mode: 'reference', direction: 'linux-mac', reverse: true },
       { mode: 'repetition' }, { mode: 'cancellation' }] : [];
   if (numericalDiagnostic) {
-    workloads = workloads.filter(workload => workload.mode === 'reference');
+    workloads = referenceHost ? [{ mode: 'reference', direction: `${referenceHost}-${referenceHost}` }]
+      : workloads.filter(workload => workload.mode === 'reference');
     if (reverseHosts) workloads.reverse();
   }
   for (const workload of workloads) {
@@ -251,6 +257,7 @@ try {
       REPLOID_CAPTURE_OUT: capture, REPLOID_MEMORY_PHASE: mode,
       REPLOID_TEST_MODEL: modelId,
       REPLOID_REFERENCE_FILE: reference, REPLOID_REFERENCE_REVERSE: workload.reverse ? '1' : '0',
+      REPLOID_REFERENCE_HOST: referenceHost || '',
       REPLOID_EXECUTOR_CDP: '1', REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
       REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_MODEL_BASE_URL: `http://127.0.0.1:${localFixturePort}/`,
       REPLOID_PEER_MODEL_BASE_URL: `http://127.0.0.1:${endpoints.fixturePort || modelPort}/`
@@ -265,7 +272,8 @@ try {
       numerical ||= { policy: numericalPolicy, steps: 0, failed: 0, maxDifference: 0, tolerance: 0.001, directions: [] };
       const direction = { direction: workload.direction, capture, partitionHosts: receipt.partitionHosts,
         steps: comparisons.length, failed: comparisons.filter(step => !step.matches).length,
-        maxDifference: Math.max(...comparisons.map(step => step.maxDifference), 0), tolerance: 0.001 };
+        maxDifference: Math.max(...comparisons.map(step => step.maxDifference), 0), tolerance: 0.001,
+        ...(referenceHost ? { sameDevicePartitionParity: receipt.unsplitFirstDivergence?.runs[0]?.summary } : {}) };
       numerical.directions.push(direction); numerical.steps += direction.steps; numerical.failed += direction.failed;
       numerical.maxDifference = Math.max(numerical.maxDifference, direction.maxDifference);
       console.log(`[distributed] numerical (${numericalPolicy}, ${workload.direction}): ${direction.failed}/${direction.steps} exceed 0.001; maximum ${direction.maxDifference}`);
@@ -344,14 +352,16 @@ try {
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId, modelFixtureHost,
     conversationBaseUrl, conversationDeployment,
     conversationTarget: localConversation ? 'isolated-loopback' : 'configured-host',
-    scope: numericalDiagnostic ? 'Installed-package numerical diagnostic in both physical placements; application acceptance not exercised'
+    scope: numericalDiagnostic ? referenceHost
+      ? 'Same-device partition versus unsplit fixed-token diagnostic; frozen failures retained, not release qualification'
+      : 'Installed-package numerical diagnostic in both physical placements; application acceptance not exercised'
       : memoryDiagnostic ? 'Installed-package long-prompt memory, reuse and cancellation diagnostic; numerical and application acceptance not exercised'
       : recoveryDiagnostic ? standaloneControls
         ? 'Physical contributor restart and standalone capacity diagnostics; remaining application and numerical acceptance not exercised'
         : 'Physical contributor restart diagnostic; other acceptance categories not exercised'
       : capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
-    documentWorkload, reverseHosts, standaloneControls,
+    documentWorkload, reverseHosts, referenceHost, standaloneControls,
     frozenReferenceApplicable: frozenWorkloads,
     numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource, referenceBinding,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
