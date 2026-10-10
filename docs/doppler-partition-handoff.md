@@ -6,7 +6,10 @@ The checkout uses the exact standard 0.6.27 archive retained by Doppler. The
 [contract receipt](../artifacts/partition-contracts-20261010/README.md) records
 installed public declarations, signed opening and rejection, receiver identity,
 and authenticated browser conversation tests. This is an integration candidate;
-physical numerical acceptance and public deployment are separate gates.
+physical numerical acceptance and public deployment are separate gates. The real
+Mac/Linux contributor stop/reopen test now passes with retained peer pieces and
+subsequent generation. Both-direction numerical acceptance still fails 56/110
+checks at 0.001; see the same receipt for the failures and exact scope.
 
 Doppler's public `doppler-gpu/partitions` exports own resident computation types.
 Reploid generates its optional-consumer declarations from those public exports
