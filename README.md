@@ -6,26 +6,17 @@
 Reploid brings conversations, local AI, and participating devices into one browser
 workspace. Each person controls what their device shares and runs.
 
+![A requester without model weights receives an answer from two contributors executing different parts of one model; dotted links supply model pieces.](docs/diagrams/readme-architecture.svg)
+
+The diagram illustrates partitioned execution; model availability, disclosure
+permissions, and qualified peers determine which requests can run. Reploid
+coordinates work; Doppler owns model computation; Poolday connects participants.
+[Architecture and qualification boundaries](docs/open-mesh-architecture.md).
+
 **[Try Reploid](https://replo.id/)** · [Run locally](#how-to-use-reploid)
 
 Open a conversation and choose an available model. Local inference needs WebGPU
 and model files; peer execution needs another eligible, connected participant.
-
-```mermaid
-flowchart TD
-    UI[Browser workspace] --> Conversations["Conversations: attempts, cancellation, recovery"]
-    Conversations --> Placement["Placement: permissions and available capacity"]
-    Discovery["Discovery: current peer capabilities"] --> Placement
-    Placement --> Execution["Doppler: model execution"]
-    Custody["Custody: verified model pieces and replicas"] --> Execution
-    Transport["Poolday: WebRTC connections and delivery"] <--> Custody
-    Transport <--> Discovery
-    Execution --> Results[Results and conversation history]
-    Results --> UI
-```
-
-Reploid coordinates work; Doppler owns model computation; Poolday connects
-participants. [Architecture and qualification boundaries](docs/open-mesh-architecture.md).
 
 Zero is its minimal starting configuration; X extends Zero with explicit
 capabilities and supporting blueprints. Poolday supplies optional discovery,
