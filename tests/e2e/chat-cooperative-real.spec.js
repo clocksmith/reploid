@@ -275,6 +275,16 @@ test('one model executes cooperatively on discovered physical peers from selecti
       return attempt.status;
     }, { timeout }).toBe('completed');
     const returningPages = observations[0].physicalHost === 'mac' ? [contributor, second] : [second, contributor];
+    const downloadConversation = async () => {
+      const actions = requester.locator('[data-conversation-actions]');
+      if (!await actions.evaluate(element => element.open)) {
+        await actions.locator('summary').click({ timeout: 30000 });
+      }
+      await Promise.all([
+        requester.waitForEvent('download', { timeout: 30000 }),
+        requester.locator('[data-conversation-download]').click({ timeout: 30000 })
+      ]);
+    };
     const runDocuments = async () => {
       await requester.locator('[data-new-thread]').click();
       // Preserve the exact long-prompt workload through the ordinary composer.
@@ -295,8 +305,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       expect(documents.attempts.map(attempt => attempt.status)).toEqual(['completed', 'completed']);
       expect(documents.attempts.map(attempt => attempt.execution.stopReason)).toEqual(['eos-token', 'eos-token']);
       await expect(requester.locator('[data-message-stream] details')).toHaveCount(3);
-      const download = requester.waitForEvent('download');
-      await requester.locator('[data-conversation-download]').click(); await download;
+      await downloadConversation();
     };
     if (process.env.REPLOID_E2E_RECOVERY === '1') {
       // Keep the prepared pair and its caches alive across the focused restarts.
@@ -317,8 +326,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       const preservedDrafts = await requester.evaluate(() => localStorage.getItem('reploid.chat-workspace:v1:drafts'));
       expect(preservedDrafts).toContain('Preserve this unrelated recovery draft.');
       // Isolate export from the long workload: the original failure followed it.
-      const exported = requester.waitForEvent('download');
-      await requester.locator('[data-conversation-download]').click(); await exported;
+      await downloadConversation();
       for (const [pageIndex, returning] of returningPages.entries()) {
         const other = returning === second ? contributor : second;
         const observation = observations[returning === contributor ? 0 : 1];

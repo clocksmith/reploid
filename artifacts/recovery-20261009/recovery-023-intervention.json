@@ -1,0 +1,11 @@
+{
+  "recordedAt": "2026-10-10T01:38:40.465428+00:00",
+  "scope": "Manually assisted contributor restart diagnostic; corrected script requires independent rerun",
+  "run": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T01-25-37-815Z",
+  "packageVersion": "0.6.23",
+  "browserIdentity": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
+  "firstCompletedAnswer": true,
+  "firstBrokenTransition": "Acceptance script clicks export before opening its Actions disclosure",
+  "plannedIntervention": "Click ordinary Actions summary on requester using the existing Playwright Page; preserve prepared contributors",
+  "numericalGate": "Still failed; frozen reference and tolerance unchanged"
+}
