@@ -172,7 +172,7 @@
 .chat-table-scroll { overflow-x: auto; max-width: 100%; }
 .chat-message-content table { border-collapse: collapse; }
 .chat-message-content :is(th, td) { border: var(--pool-border-hairline) solid var(--pool-surface-line); padding: var(--pool-space-sm); text-align: left; }
-[data-current-model] { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+[data-current-model] { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 .pool-home > [data-shell-inspector] { display: contents; }
 .chat-attachments { max-height: 12dvh; overflow-y: auto; }
@@ -188,7 +188,7 @@
 .pool-home[data-chat-compact] .execution-ribbon-node { grid-template-rows: auto; }
 .pool-home[data-chat-compact] .pool-nav-rail.pool-primary-nav { grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--pool-space-sm); min-height: var(--pool-px-44); padding: var(--pool-space-sm); }
 .pool-home[data-chat-compact] .pool-primary-nav .pool-primary-wordmark { display: none; }
-.pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon { grid-column: 2; grid-row: 1; }
+.pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon { grid-column: 1 / -1; grid-row: 2; }
 .pool-home[data-chat-compact] .pool-primary-nav .pool-primary-actions { grid-column: 3; grid-row: 1; }
 .pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-status { display: flex; min-height: 0; max-width: 100%; }
 .pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-trigger { gap: 0; }
