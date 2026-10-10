@@ -10,6 +10,13 @@ physical numerical acceptance and public deployment are separate gates. The real
 Mac/Linux contributor stop/reopen test now passes with retained peer pieces and
 subsequent generation. Both-direction numerical acceptance still fails 56/110
 checks at 0.001; see the same receipt for the failures and exact scope.
+The installed long-prompt reuse and submitted-cancellation controls pass with
+settled cleanup under the existing GPU-buffer limit. Extended opposite-placement
+application acceptance remains failed: a counting request repeats until its
+character allocation is exhausted. Its uncancelled unsplit control reproduces
+the complete distributed prefix, so cancellation is not a necessary cause.
+The original failed peer-acquisition attempt is also retained. Do not declare
+complete application qualification or weaken these retained failure criteria.
 
 Doppler's public `doppler-gpu/partitions` exports own resident computation types.
 Reploid generates its optional-consumer declarations from those public exports
