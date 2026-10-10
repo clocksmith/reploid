@@ -324,7 +324,8 @@ try {
             try {
               console.log('numerical-diagnostic:' + JSON.stringify({ phase: 'boundary-capture', step: first.parameters.step }));
               const targetOpIds = ['embed.out', 'final_norm.pre', 'final_norm.out',
-                ...['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj',
+                ...['q_proj', 'k_proj', 'v_proj', 'q_norm', 'k_norm', 'q_rope', 'k_rope', 'core_out',
+                  'qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj',
                   'linear_core_out', 'out', 'post_attn'].map(op => `layer.${probeLayer}.attn.` + op),
                 ...['in', 'gate', 'up', 'act', 'out'].map(op => `layer.${probeLayer}.ffn.` + op),
                 ...Array.from({ length: manifest.architecture.numLayers }, (_, layer) =>

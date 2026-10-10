@@ -1,0 +1,272 @@
+{
+  "executorQuotaMiB": 320,
+  "seedObservation": {
+    "physicalHost": "mac",
+    "loads": [],
+    "steps": [],
+    "errors": []
+  },
+  "physicalDevices": 1,
+  "browserContexts": 4,
+  "applicationProfiles": {
+    "mac": "private",
+    "linux": "private"
+  },
+  "adapterInfo": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "isFallbackAdapter": false,
+    "shaderF16": true
+  },
+  "browser": "146.0.7680.177",
+  "modelIdentity": "sha256:43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0",
+  "states": [
+    {
+      "history": null,
+      "error": "",
+      "contribution": "Not sharing",
+      "fileContribution": "Not sharing",
+      "progress": "",
+      "storage": {
+        "quota": 335544320,
+        "usage": 2251,
+        "usageDetails": {
+          "fileSystem": 368,
+          "indexedDB": 1883
+        }
+      },
+      "cache": [
+        {
+          "stage": "directory",
+          "exception": {
+            "name": "NotFoundError",
+            "message": "A requested file or directory could not be found at the time an operation was processed."
+          }
+        }
+      ]
+    },
+    {
+      "history": null,
+      "error": "",
+      "contribution": "Not sharing",
+      "fileContribution": "Not sharing",
+      "progress": "",
+      "storage": {
+        "quota": 335544320,
+        "usage": 2251,
+        "usageDetails": {
+          "fileSystem": 368,
+          "indexedDB": 1883
+        }
+      },
+      "cache": [
+        {
+          "stage": "directory",
+          "exception": {
+            "name": "NotFoundError",
+            "message": "A requested file or directory could not be found at the time an operation was processed."
+          }
+        }
+      ]
+    },
+    {
+      "history": null,
+      "error": "Failed to fetch",
+      "contribution": "Not sharing",
+      "fileContribution": "Failed to fetch",
+      "progress": "",
+      "storage": {
+        "quota": 1610612736,
+        "usage": 2447,
+        "usageDetails": {
+          "fileSystem": 564,
+          "indexedDB": 1883
+        }
+      },
+      "cache": []
+    },
+    {
+      "history": null,
+      "error": "",
+      "contribution": "Not sharing",
+      "fileContribution": "Not sharing",
+      "progress": "",
+      "storage": {
+        "quota": 335544320,
+        "usage": 2251,
+        "usageDetails": {
+          "fileSystem": 368,
+          "indexedDB": 1883
+        }
+      },
+      "cache": [
+        {
+          "stage": "directory",
+          "exception": {
+            "name": "NotFoundError",
+            "message": "A requested file or directory could not be found at the time an operation was processed."
+          }
+        }
+      ]
+    }
+  ],
+  "replicaObservation": null,
+  "observations": [
+    {
+      "physicalHost": "mac",
+      "loads": [],
+      "errors": [],
+      "exceptions": [
+        {
+          "description": "Error: Draft exceeds its allowance.\n    at validate (http://localhost:18121/host/chat-drafts.js:6:158)\n    at Object.get [as getDraft] (http://localhost:18121/host/chat-drafts.js:18:20)\n    at bindConversationWorkspace (http://localhost:18121/ui/pool-home/conversation-workspace.js:70:39)\n    at render (http://localhost:18121/ui/pool-home/index.js:391:30)\n    at initPoolHome (http://localhost:18121/ui/pool-home/index.js:432:3)\n    at http://localhost:18121/:92:9",
+          "denied": null,
+          "frames": [
+            {
+              "functionName": "validate",
+              "url": "http://localhost:18121/host/chat-drafts.js",
+              "location": {
+                "scriptId": "84",
+                "lineNumber": 5,
+                "columnNumber": 151
+              }
+            },
+            {
+              "functionName": "get",
+              "url": "http://localhost:18121/host/chat-drafts.js",
+              "location": {
+                "scriptId": "84",
+                "lineNumber": 17,
+                "columnNumber": 19
+              }
+            },
+            {
+              "functionName": "bindConversationWorkspace",
+              "url": "http://localhost:18121/ui/pool-home/conversation-workspace.js",
+              "location": {
+                "scriptId": "29",
+                "lineNumber": 69,
+                "columnNumber": 38
+              }
+            },
+            {
+              "functionName": "render",
+              "url": "http://localhost:18121/ui/pool-home/index.js",
+              "location": {
+                "scriptId": "17",
+                "lineNumber": 390,
+                "columnNumber": 29
+              }
+            },
+            {
+              "functionName": "initPoolHome",
+              "url": "http://localhost:18121/ui/pool-home/index.js",
+              "location": {
+                "scriptId": "17",
+                "lineNumber": 431,
+                "columnNumber": 2
+              }
+            },
+            {
+              "functionName": "",
+              "url": "http://localhost:18121/",
+              "location": {
+                "scriptId": "7",
+                "lineNumber": 91,
+                "columnNumber": 8
+              }
+            }
+          ]
+        }
+      ],
+      "lifecycle": [
+        {
+          "kind": "participant-identity",
+          "observedAt": 1791591542296,
+          "participantId": "peer:01d7644ed727985d3ad0c2dc"
+        }
+      ],
+      "participantId": "peer:01d7644ed727985d3ad0c2dc",
+      "steps": []
+    },
+    {
+      "physicalHost": "mac",
+      "loads": [],
+      "errors": [],
+      "exceptions": [
+        {
+          "description": "Error: Draft exceeds its allowance.\n    at validate (http://localhost:18121/host/chat-drafts.js:6:158)\n    at Object.get [as getDraft] (http://localhost:18121/host/chat-drafts.js:18:20)\n    at bindConversationWorkspace (http://localhost:18121/ui/pool-home/conversation-workspace.js:70:39)\n    at render (http://localhost:18121/ui/pool-home/index.js:391:30)\n    at initPoolHome (http://localhost:18121/ui/pool-home/index.js:432:3)\n    at http://localhost:18121/:92:9",
+          "denied": null,
+          "frames": [
+            {
+              "functionName": "validate",
+              "url": "http://localhost:18121/host/chat-drafts.js",
+              "location": {
+                "scriptId": "82",
+                "lineNumber": 5,
+                "columnNumber": 151
+              }
+            },
+            {
+              "functionName": "get",
+              "url": "http://localhost:18121/host/chat-drafts.js",
+              "location": {
+                "scriptId": "82",
+                "lineNumber": 17,
+                "columnNumber": 19
+              }
+            },
+            {
+              "functionName": "bindConversationWorkspace",
+              "url": "http://localhost:18121/ui/pool-home/conversation-workspace.js",
+              "location": {
+                "scriptId": "21",
+                "lineNumber": 69,
+                "columnNumber": 38
+              }
+            },
+            {
+              "functionName": "render",
+              "url": "http://localhost:18121/ui/pool-home/index.js",
+              "location": {
+                "scriptId": "9",
+                "lineNumber": 390,
+                "columnNumber": 29
+              }
+            },
+            {
+              "functionName": "initPoolHome",
+              "url": "http://localhost:18121/ui/pool-home/index.js",
+              "location": {
+                "scriptId": "9",
+                "lineNumber": 431,
+                "columnNumber": 2
+              }
+            },
+            {
+              "functionName": "",
+              "url": "http://localhost:18121/",
+              "location": {
+                "scriptId": "7",
+                "lineNumber": 91,
+                "columnNumber": 8
+              }
+            }
+          ]
+        }
+      ],
+      "lifecycle": [
+        {
+          "kind": "participant-identity",
+          "observedAt": 1791591542300,
+          "participantId": "peer:eaee53f51084df3e188ecddf"
+        }
+      ],
+      "participantId": "peer:eaee53f51084df3e188ecddf",
+      "steps": []
+    }
+  ],
+  "requesterWeights": [],
+  "contributorOrigins": [],
+  "seedFiles": [],
+  "errors": []
+}

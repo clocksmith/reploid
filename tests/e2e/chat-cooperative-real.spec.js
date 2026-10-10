@@ -55,11 +55,12 @@ test('one model executes cooperatively on discovered physical peers from selecti
     for (const context of contexts) await context.addInitScript(config => { globalThis.REPLOID_POOL_RTC_CONFIG = config; }, rtc);
   }
   const [requester, contributor, seed, second] = await Promise.all(contexts.map(context => context.newPage()));
-  const observations = [1, 3].map(index => ({ physicalHost: isRemote(hosts[index]) ? 'linux-128' : 'mac', loads: [], steps: [], errors: [] }));
+  const localHost = process.platform === 'darwin' ? 'mac' : process.platform;
+  const observations = [1, 3].map(index => ({ physicalHost: isRemote(hosts[index]) ? 'linux-128' : localHost, loads: [], steps: [], errors: [] }));
   const reference = process.env.DOPPLER_PARTITION_REFERENCE_OUT
     ? JSON.parse(await readFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, 'utf8')) : null;
   const captureCustody = process.env.REPLOID_E2E_CUSTODY_TRACE === '1';
-  const seedObservation = { physicalHost: isRemote(hosts[2]) ? 'linux-128' : 'mac', loads: [], steps: [], errors: [] };
+  const seedObservation = { physicalHost: isRemote(hosts[2]) ? 'linux-128' : localHost, loads: [], steps: [], errors: [] };
   const tokenObservers = [];
   const onInput = input => Promise.all(tokenObservers.map(observer => observer.captureAttempt(input.identity.attemptId)));
   const replicaEnabled = process.env.REPLOID_E2E_REPLICA === '1';
@@ -659,7 +660,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
     const stateAtExit = JSON.stringify({
       executorQuotaMiB, seedObservation,
       physicalDevices: remote ? 2 : 1, browserContexts: contexts.length,
-      applicationProfiles: { mac: process.platform === 'darwin' ? 'ordinary' : 'private', linux: process.env.REPLOID_EXECUTOR_CDP === '1' ? 'ordinary' : 'private' },
+      applicationProfiles: { [localHost]: process.platform === 'darwin' ? 'ordinary' : 'private',
+        ...(remote ? { 'linux-128': process.env.REPLOID_EXECUTOR_CDP === '1' ? 'ordinary' : 'private' } : {}) },
       adapterInfo, browser: browser.version(), modelIdentity: model.identity,
       states, replicaObservation, observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2);
