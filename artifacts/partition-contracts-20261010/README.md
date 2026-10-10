@@ -28,4 +28,9 @@ The first signed-opening invocation failed because it hashed split.1 while check
 Both harnesses now follow the installed package; the successful runs above exercise
 the current candidate. Physical model acceptance remains a separate result.
 
+Callback isolation is separately exercised in `callback-tests.log` (23 runner
+cases) and `callback-browser.log` (authenticated browser conversation). Each
+attempt retains one awaited callback and bounded backpressure. GPU steps remain
+serialized; no stage-overlap or throughput improvement is claimed.
+
 *Last updated: October 2026*

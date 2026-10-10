@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /home/x/deco/reploid
+
+ ✓ tests/unit/partition-step-receiver.test.js (23 tests) 16ms
+ ✓ tests/unit/doppler-partition-contract.test.js (4 tests) 15ms
+ ✓ tests/unit/partition-api.test.js (35 tests) 894ms
+     ✓ discovers cooperative executors with replica coverage=false  302ms
+
+ Test Files  3 passed (3)
+      Tests  62 passed (62)
+   Start at  16:26:05
+   Duration  1.39s (transform 234ms, setup 0ms, import 481ms, tests 925ms, environment 412ms)
+
