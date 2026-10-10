@@ -9,9 +9,10 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 ## Getting Started
 
 1. **[/README.md](../README.md)** - Project overview, quick start, RSI concepts
-2. **[docs/QUICK-START.md](./QUICK-START.md)** - Detailed setup and first run
+2. **[docs/QUICK-START.md](./QUICK-START.md)** - Ordinary network conversations, prepared capacity, disclosure and contribution
+   - [Zero/X compatibility setup](zero-x-quick-start.md) preserves the provider wizard and Genesis/VFS workflow.
 3. **[docs/CONFIGURATION.md](./CONFIGURATION.md)** - Connection modes and boot configuration
-4. **[Work, helpers, peers, and tool improvement](./work-collaboration.md)** - Models, optional collaboration, evaluated tool changes, and operator controls
+4. **[Scoped helpers, private peers, and tool improvement](./work-collaboration.md)** - Compatibility-host tool evaluation and private candidate delivery; separate from public-mesh onboarding
 5. **[Concurrent mesh chat MVP](./chat-mvp.md)** - Required conversation, file, adapter, inference and physical-device acceptance boundaries
 6. **[P2P development sessions](./p2p-testing.md)** - Tailscale access, persistent terminals, contribution and testing with placeholder connection details
 
@@ -48,7 +49,8 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 - **[docs/change-passport/pilot-manifest.json](./change-passport/pilot-manifest.json)** - Machine-readable pilot readiness and fail-closed freeze gate
 - **[docs/change-passport/runtime-contract.md](./change-passport/runtime-contract.md)** - Hosted storage, authentication, GitHub App, endpoint, and deployment boundary
 - **[Ouroboros documentation authority](https://github.com/clocksmith/ouroboros/blob/main/docs/authority/README.md)** - Cross-project record routing; Reploid remains canonical for product and runtime behavior
-- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Optional peer infrastructure, network proof, and separately scoped scientific workflows
+- **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Network purpose, prepared execution, contribution, conversations and independently evaluated improvement
+- **[Research and legacy qualification checkpoint](poolday/product-intent-checkpoint-2026-10-09.md)** - Original scientific procedures, Pack recipes and dated qualification scopes
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
 ### Repository support files
@@ -61,7 +63,7 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 
 ### Reference
 - **[Distributed conversation diagrams](./open-mesh-architecture.md#technical-diagrams)** - Component ownership, two-partition generation, and attempt recovery, linked to implementation.
-- **[Reploid–Doppler development docket and partition handoff](./doppler-partition-handoff.md)** - Current numerical and UI tasks, operating constraints, session API, ownership and scoped acceptance
+- **[Reploid–Doppler partition handoff](./doppler-partition-handoff.md)** - Checkout/candidate/accepted/deployed identities, numerical gates and preserved historical checkpoints
 - **[Architecture stabilization](./architecture-stabilization.md)** - Integration baseline, execution ownership, persistence and verification boundaries
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission

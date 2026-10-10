@@ -32,6 +32,22 @@ Generation stays on one peer for the complete attempt, including streaming and
 working state. A retry never splices another peer's unfinished answer into it.
 Embeddings and reranking can distribute independent complete batches.
 
+## Implementation and evidence checkpoint
+
+Partition execution now exists in the [library](../../packages/reploid/src/mesh/partitions/)
+and [ordinary host composition](../../self/host/work-partitions.js). Selective
+acquisition and cooperative computation have retained physical runs. This is
+implemented execution, not complete numerical or public-application qualification.
+See the [current handoff](../doppler-partition-handoff.md#current-checkout-and-evidence)
+for checkout, investigation and served identities, and [chat acceptance](../chat-mvp.md)
+for implemented, tested, blocked and planned boundaries.
+
+Keep the same frozen model/reference and 0.001 tolerance. Finish computation and
+ordinary conversation/lifecycle acceptance before expanding the model/catalog or
+learning campaign. Browser/native participation, generation/retrieval/scoring and
+requester use without weights are durable requirements, qualified per host/model.
+Scores inform choices; they cannot override permissions or adoption authority.
+
 ## Immediate milestone: split-model chat
 
 The next product proof is one conversation answer computed by two physical
@@ -52,9 +68,10 @@ unsplit reference. Browser contexts establish integration only; physical devices
 establish cross-device execution. Capacity pooling needs its own constrained run.
 Learned placement follows the fixed-placement baseline, not the reverse.
 
-The partition runner and receiver have injected-execution tests. They do not
-establish partial weight loading, GPU generation, binary WebRTC, or chat wiring.
-Keep this distinction until the complete path passes through the ordinary UI.
+Injected runner/receiver tests prove their contracts. Retained physical runs
+separately establish identified selective loading and cooperative execution;
+complete qualification still requires the unchanged numerical and application
+gates. Neither category inherits evidence from the other.
 
 ## First collective-improvement demonstration
 
@@ -74,9 +91,10 @@ tool-repair completion nor a new UI is a prerequisite to starting the bounded
 partition implementation. The interface preserves the causal connection between
 agents, models, shared execution, contributions, weaknesses, changes and outcomes.
 
-## Existing application workload
+## Optional application workload
 
-Run a free local document/research assistant continuously: acquire models,
+A local document/research assistant is one optional application workload, not
+the definition or current delivery priority of the network: acquire models,
 embed a corpus, rerank retrieved passages, and generate referenced answers.
 It works without a room. Joining optionally adds model delivery and explicitly
 delegated public-collection jobs. Private inputs stay local by default.
@@ -98,9 +116,9 @@ Doppler's application adoption does not prove network demand. Poolday activity
 does not prove reusable intelligence. A Doe receipt does not prove Doe adoption
 or honest peer execution.
 
-## Current boundary
+## September 2026 whole-request checkpoint
 
-Poolday currently assigns complete Doppler workloads to selected declared
+At this September checkpoint, Poolday assigns complete Doppler workloads to selected declared
 provider identities, transports job payloads and receipts over WebRTC, compares
 signed results, and records requester acceptance. Reploid can retain immutable
 evidence and project policy-admissible decision memory. Adapter artifact
@@ -279,7 +297,7 @@ parallel execution loop.
 | transport/ | Connections, framing, bounded queues, backpressure, delivery and reconnection using host-supplied signaling/relay configuration; tensors remain opaque bytes. |
 | mesh/jobs/ | Whole-operation attempts, streaming, retained completion, cancellation and replay; not partition execution. |
 | mesh/ | Eligible placement, reservations, workload-conditioned beliefs, observation provenance and cost-aware selection; retain placement-beliefs.js as the owner. |
-| mesh/partitions/ (proposed) | Coordinate Doppler-defined dependencies, attempts, tensor delivery and valid recovery points; add its charter with implementation, not as evidence of an existing subsystem. |
+| [mesh/partitions/](../../packages/reploid/src/mesh/partitions/CATSCAN.md) | Coordinate Doppler-defined dependencies, attempts, tensor delivery and settlement. The implementation is present; physical qualification remains separately recorded. |
 | improvement/ | Candidate identity, protected evaluation, policy-bound adoption, rollback and lineage; separately qualify model/adapter changes. |
 
 New mesh and improvement charters should follow these existing owners. Generate

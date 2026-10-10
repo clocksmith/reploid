@@ -4,20 +4,20 @@ Parent: [Reploid](../../CATSCAN.md)
 
 ## Target
 
-Implement cooperating agents that solve useful problems and improve individual
+Implement cooperating agents solving useful problems and improving individual
 and collective methods through evaluated changes.
 
 ## Authority
 
-Owns orchestration, evolution, lifecycle and protocols. Hosts own credentials,
+Owns orchestration/evolution/lifecycle/protocols. Hosts own credentials,
 permissions, sessions, isolation and activation. Doppler defines/executes
 layer groups, experts, tensor interfaces and continuation state; Reploid selects
 eligible placements; Poolday transfers authorized data.
 
 ## Scope
 
-Package source, declarations, schemas and assets. Browser and native hosts
-compose the same contracts; each host’s support is qualified separately.
+Source, declarations, schemas and assets. Browser/native hosts
+share contracts; support is separately qualified.
 
 ## Contracts
 
@@ -45,8 +45,8 @@ moves artifacts, intermediate results and messages with bounded recovery.
 
 ## Acceptance
 
-Require unfamiliar-task transfer and separate causal-recursion evidence under
-root comparison/cost requirements.
+Require unfamiliar-task transfer, separate causal-recursion evidence and
+root comparisons/cost accounting.
 Evidence: [package acceptance](../../tests/library-package-acceptance.js),
 application/installed consumers, reports and [matrix](README.md).
 
