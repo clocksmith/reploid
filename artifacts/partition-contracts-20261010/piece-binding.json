@@ -1,0 +1,10 @@
+{
+  "scope": "Catalog piece-index manifest correction; weight, tokenizer and piece bytes unchanged",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "oldIndexSha256": "3358a1d398da150df99b1988481a2691e7ee4573c8019bfcfa8b2c5011075cd6",
+  "newIndexSha256": "18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7",
+  "verifiedFiles": 19,
+  "verifiedPieces": 277,
+  "pieceGeometryAndHashesUnchanged": true
+}

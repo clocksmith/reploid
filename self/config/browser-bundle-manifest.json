@@ -1196,7 +1196,7 @@
     {
       "path": "config/chat-models.json",
       "byteLength": 4632,
-      "sha256": "sha256:f1ac6c05fb829f46a95ff610b67a0403df5a9b38ff2e1b46118294127c780f51"
+      "sha256": "sha256:1d5e76f1a2259ef8641b325f6422c9ab48a83dd28528dae45abdddb708aa97d5"
     },
     {
       "path": "config/clockwork-gamma-receipts.js",
@@ -1301,7 +1301,7 @@
     {
       "path": "config/model-pieces/qwen-0-8b-pieces.json",
       "byteLength": 34258,
-      "sha256": "sha256:3358a1d398da150df99b1988481a2691e7ee4573c8019bfcfa8b2c5011075cd6"
+      "sha256": "sha256:18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7"
     },
     {
       "path": "config/model-pieces/qwen-2b-pieces.json",
@@ -9479,5 +9479,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:90a0409c346b55111148192e47e1669237bb451863d6a0d50b00f07bf4e16f28"
+  "bundleHash": "sha256:863d9d29782cf1d0b7207e10a954623d32f48a7c55272ccbf87e2ec5d105612d"
 }
