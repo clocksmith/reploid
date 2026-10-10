@@ -82,3 +82,21 @@ it('retains direct peers across directory departure and rejoin without replacing
   } finally { f.swarm.disconnect(); }
   expect(f.connections[0].close).toHaveBeenCalledOnce();
 });
+
+it('admits through an injected introduction adapter without a WebSocket or company credential port', async () => {
+  let listener;
+  const unsubscribe = vi.fn(), messages = [];
+  const adapter = { subscribe: callback => { listener = callback; return unsubscribe; },
+    publish: message => { messages.push(message); if (message.type === 'join') queueMicrotask(() => listener({ ...message, type: 'joined', peers: [] })); } };
+  const swarm = createWebRTCSwarm({
+    config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'independent' }, webrtc: { sessionId: 'local' } } }),
+    peerId: 'local', signalingAdapter: adapter,
+    Utils: { generateId: () => 'local', logger: { info() {}, debug() {}, warn() {}, error() {} } }, EventBus: { emit() {} },
+    WebSocket: class { constructor() { throw new Error('Company signaling blocked'); } }
+  });
+  try { expect(await swarm.init()).toBe(true); expect(messages).toContainEqual({ type: 'join', peerId: 'local', roomId: 'independent' }); }
+  finally { swarm.disconnect(); }
+  expect(unsubscribe).toHaveBeenCalledOnce();
+  await listener({ type: 'joined', peerId: 'local', roomId: 'independent', peers: ['late'] });
+  expect(swarm.getConnectedPeers()).toEqual([]);
+});

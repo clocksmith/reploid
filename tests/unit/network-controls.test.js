@@ -45,3 +45,21 @@ describe('network model projection', () => {
     expect(projectNetworkPeers(state).map(peer => peer.status)).toEqual(['Waiting for placement', 'Offered']);
   });
 });
+
+it('requires a separate click to grant introduction assistance without granting compute or files', async () => {
+  const state = { models: [], network: { introductionAssistance: false } };
+  const session = { getState: () => state, subscribe: listener => { listener(state); return () => {}; },
+    setIntroductionAssistance: vi.fn(), setSharing: vi.fn(), setFileSharing: vi.fn() };
+  const root = document.createElement('div');
+  root.innerHTML = renderConnectionControl() + renderSharingControls()
+    + '<ul data-insp-device-list></ul><span data-network-message></span>'
+    + '<button data-mesh-invite></button><span data-mesh-peers></span>';
+  const dispose = bindNetworkControls(root, session);
+  try {
+    expect(session.setIntroductionAssistance).not.toHaveBeenCalled();
+    root.querySelector('[data-toggle-introductions]').click();
+    await Promise.resolve();
+    expect(session.setIntroductionAssistance).toHaveBeenCalledWith(true);
+    expect(session.setSharing).not.toHaveBeenCalled(); expect(session.setFileSharing).not.toHaveBeenCalled();
+  } finally { dispose(); }
+});

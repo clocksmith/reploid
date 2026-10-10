@@ -197,3 +197,27 @@ it('stop during partition connection prevents a late contribution', async () => 
   expect(ports.createTransport).not.toHaveBeenCalled();
   expect(swarm.getState().sharing).toBe(false);
 });
+
+it('binds introductions to the existing identity, public namespace and separate forwarding consent', async () => {
+  const identity = { peerId: 'fixture', contribution: {} };
+  ports.ensure.mockResolvedValue(identity);
+  const transport = { init: async () => true, disconnect() {}, onMessage() {}, broadcast() {},
+    getConnectionState: () => 'connected', getTransportType: () => 'webrtc' };
+  ports.createTransport.mockReturnValue(transport);
+  const swarm = fixture();
+  try {
+    await swarm.connect();
+    const { introductions } = ports.createTransport.mock.calls[0][0];
+    expect(introductions.getIdentity()).toBe(identity);
+    const request = { roomId: 'reploid-swarm-public', action: 'forward' };
+    expect(await introductions.authorize(request)).toBe(false);
+    swarm.allowIntroductions(true);
+    expect(await introductions.authorize(request)).toBe(true);
+    expect(swarm.getState().sharing).toBe(false);
+    expect(await introductions.authorize({ ...request, roomId: 'private' })).toBe(false);
+    swarm.allowIntroductions(false);
+    expect(await introductions.authorize(request)).toBe(false);
+    await swarm.disconnect();
+    expect(await introductions.authorize({ ...request, action: 'admit' })).toBe(false);
+  } finally { await swarm.close(); }
+});

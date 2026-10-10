@@ -490,6 +490,7 @@ const SwarmTransport = {
         if (!_webrtcSwarm) throw new Error('WebRTC transport is not initialized');
         return _webrtcSwarm.openDataChannel(peerId, label);
       },
+      getIntroductions: () => _webrtcSwarm?.getIntroductions?.() || null,
       getPeerBinding: peerId => _webrtcSwarm?.getPeerBinding?.(peerId) || null,
       getTransportType,
       getStats,

@@ -101,7 +101,7 @@ for (const schema of ['doppler.pack/v2', 'doppler.capsule/v2']) test(`reviewed p
     await requester.locator('[data-document-share-task]').fill(task);
     await requester.locator('[data-document-review-share]').click();
     await expect(requester.locator('[data-document-share-preview]')).toBeVisible();
-    await expect(requester.locator('[data-document-share-text]')).toHaveText(task);
+    await expect(requester.locator('[data-document-share-preview] [data-permission-content]')).toHaveText(task);
     await expect(requester.locator('[data-document-send-share]')).toBeDisabled();
     expect((await provider.evaluate(() => window.fixture.state())).calls).toHaveLength(0);
     await requester.locator('[data-document-share-consent]').check();
@@ -194,6 +194,11 @@ test('Verification Worker accepts complete-job modules and modified execution bo
     for (const file of ['document-search.js', 'index.js', 'view.js', 'operation-sharing.js']) snapshot[`/ui/pool-home/${file}`] = await (await fetch(`/self/ui/pool-home/${file}`)).text();
     for (const file of ['peer-pack-operation.js', 'peer-pack-job-browser.js', 'peer-pack-browser.js', 'peer-pack-remote-execution.js', 'peer-pack-journal-browser.js', 'doppler-installed-peer-browser.js']) snapshot[`/tests/fixtures/${file}`] = await (await fetch(`/tests/fixtures/${file}`)).text();
     for (const file of [
+      'vendor/reploid/transport/swarm.js', 'vendor/reploid/transport/room.js',
+      'vendor/reploid/transport/introductions.js', 'vendor/reploid/transport/introduction-records.js',
+      'vendor/reploid/transport/introduction-admission.js',
+      'vendor/reploid/transport/introduction-bootstrap.js', 'host/work-swarm.js',
+      'host/chat-session.js', 'ui/pool-home/network-controls.js',
       'host/work-session.js', 'host/work-task.js', 'host/work-view.js', 'host/work-repository.js',
       'providers/work-provider.js', 'config/surface-intents.js', 'config/surface-resources.js',
       'vendor/reploid/agent/lifecycle.js', 'vendor/reploid/agent/tool-dispatch.js',

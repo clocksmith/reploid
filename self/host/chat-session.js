@@ -263,6 +263,10 @@ export function createChatSession({
       assert(swarm?.disconnect, 'Peer disconnection is unavailable');
       try { await swarm.disconnect(); } finally { notifyAll(); }
     },
+    setIntroductionAssistance(enabled) {
+      if (!swarm) throw new Error('Network unavailable');
+      swarm.allowIntroductions(enabled);
+    },
     async setSharing(enabled, selectionId, approved) {
       assertOpen();
       assert(swarm, 'Contribution is unavailable');
