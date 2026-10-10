@@ -3,8 +3,11 @@
 [![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Reploid brings conversations, local AI, and participating devices into one browser
-workspace. Each person controls what their device shares and runs.
+Reploid lets people and agents use intelligence beyond one device’s capacity.
+Participating computers share verified model pieces and execute complementary
+parts of one model; cooperating agents contribute tools and approaches. Chat is
+the first interface to this network. Each participant controls its contribution
+and disclosure. These are product goals; qualification is recorded separately.
 
 <picture>
   <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg" />
@@ -14,7 +17,7 @@ workspace. Each person controls what their device shares and runs.
 The diagram illustrates partitioned execution; model availability, disclosure
 permissions, and qualified peers determine which requests can run. Reploid
 coordinates work; Doppler owns model computation; Poolday connects participants.
-[Technical diagrams: components, generation, recovery](docs/open-mesh-architecture.md#technical-diagrams).
+[Technical diagrams: components, generation, recovery](#technical-architecture).
 
 **[Try Reploid](https://replo.id/)** · [Run locally](#how-to-use-reploid)
 
@@ -53,14 +56,27 @@ npm install
 npm start
 ```
 
-Open `http://localhost:8000`. The managed Gemini path requires `GEMINI_API_KEY`
-in `.env` before starting.
+Open `http://localhost:8000`, or use [replo.id](https://replo.id/).
 
-Start with a task and choose local Qwen 3.5 2B or the configured Gemini cloud
-model. Optional controls enable helper agents, approved peer requests, and tested
-tool improvements. The same page connects participating devices and shows
-candidate code, test comparisons, adoption, and rollback. Try **Improve a tool**
-for the registered JSON formatter. See the [workflow and its limits](docs/work-collaboration.md).
+1. Start a conversation and select an available model. Discovery runs through the
+   configured public mesh; public participation requires no invitation, room setup
+   or manual computer selection.
+2. Ask a question. Before remote execution, review the actual recipients and
+   disclosure scope. Declining keeps the conversation usable.
+3. Receive the answer in that conversation. A prepared peer path requires no
+   requester weight downloads. If no eligible path is ready, the model remains
+   unavailable; downloading weights to run on this device is a separate choice.
+4. Start other conversations independently. Stop affects its identified attempt.
+   After an interruption, keep the partial answer and explicitly retry in a new
+   attempt; do not assume GPU continuation state survives.
+5. Optionally contribute storage or compute with explicit limits. Contribution
+   preparation is separate from using capacity already prepared by other peers.
+
+See the [network quick start](docs/QUICK-START.md) and
+[current partition handoff](docs/doppler-partition-handoff.md#current-checkout-and-evidence).
+Partition execution is implemented; complete numerical and application
+qualification remains open. Evaluated tool improvement is a distinct workflow,
+with independent evaluation and operator adoption rather than automatic mutation.
 
 The product surface is:
 
@@ -73,9 +89,127 @@ The product surface is:
 Poolday is an internal name for optional peer infrastructure, not a separate
 public product. Zero's current inference default is the server proxy, with
 optional local Doppler execution; a browser agent does not imply offline inference.
-The signed executable-Pack path requires a qualified catalog entry and matching
-released Doppler API. Existing model-name loading and adapter sharing do not
-prove base-model Pack delivery.
+Cloud-provider and substrate setup belongs to the [Zero/X compatibility guide](docs/zero-x-quick-start.md).
+Private invitations and evaluated tool changes belong to the scoped
+[collaboration workflow](docs/work-collaboration.md). Existing signed `Pack`
+protocols retain their own catalog and verification rules; they are not another
+name for every current Doppler artifact.
+
+## Technical architecture
+
+These views trace source at `1c8860f4`. They describe the ordinary distributed
+conversation, not a qualification result. See the
+[architecture guide](docs/open-mesh-architecture.md#technical-diagrams) for source owners and details.
+
+### Component ownership
+
+Solid arrows show calls or data flow; dotted arrows supply observations.
+Discovery, contribution, custody and input disclosure retain separate grants.
+
+```mermaid
+flowchart TB
+    UI["Conversation UI<br/>messages, drafts, disclosure, Stop"]
+    HOST["Product session<br/>application lifetime and host ports"]
+    CHAT["Chat workspace<br/>threads, attempts, grants, persistence"]
+    EXEC["Chat execution adapter<br/>local, whole-request, or partition path"]
+    AUTO["Automatic partitions<br/>contribution and prepared execution paths"]
+    DISC["Partition discovery<br/>expiring capability snapshots"]
+    PLACE["Placement<br/>compatible participants and plan"]
+    INPUT["Partition entry and chat<br/>input admission and scoped grants"]
+    RUN["Partition runner<br/>ordered steps and cancellation"]
+    RES["Resident owner<br/>reservations and attempt settlement"]
+    FILES["Model-file host + custody<br/>offers, grants, bounded transfers"]
+    DOP["Doppler public package<br/>verified pieces, dependencies, model math"]
+    NET["Poolday transport<br/>signaling, WebRTC, bounded delivery"]
+    UI --> HOST --> CHAT --> EXEC
+    EXEC -->|partition path| AUTO
+    DISC -.->|availability| AUTO
+    AUTO --> PLACE
+    PLACE -->|selected path| INPUT
+    INPUT --> RUN --> RES --> DOP
+    AUTO -->|approved contribution| RES
+    RES -->|host preparation port| FILES
+    FILES -->|verified storage port| DOP
+    DISC --> NET
+    FILES --> NET
+    RUN -->|activation frames and step replies| NET
+    classDef app fill:#ffffff,stroke:#111827,color:#111827
+    classDef mesh fill:#f3edff,stroke:#7c3aed,color:#111827
+    classDef data fill:#edf3ff,stroke:#2563eb,color:#111827
+    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
+    class UI,HOST,CHAT,EXEC app
+    class AUTO,DISC,PLACE,INPUT,RUN,RES mesh
+    class FILES,NET data
+    class DOP compute
+```
+
+### Preparation and the generation loop
+
+This is the implemented two-partition path: A executes the first layers; B runs
+the remaining layers, sampling and stopping. The requester receives no weights.
+
+```mermaid
+sequenceDiagram
+    participant U as Requester / chat
+    participant A as Contributor A / first layers
+    participant B as Contributor B / remaining layers
+    participant S as Authorized piece suppliers
+    Note over A,S: Preparation requires explicit contribution permission
+    A->>S: Acquire assigned dependencies and declared shared pieces
+    S-->>A: Piece bytes, verified against pinned identities
+    A->>A: Doppler opens resident partition A
+    B->>S: Acquire partition B dependencies
+    S-->>B: Piece bytes, verified against pinned identities
+    B->>B: Doppler opens resident partition B
+    A-->>U: Advertise prepared path A + B
+    U->>U: Approve messages and recipient disclosure scope
+    U->>A: Bound request: thread, attempt, model, plan, participants
+    A->>A: Tokenize with Doppler, admit attempt and issue grants
+    A->>B: Open remote attempt with authorized token context
+    loop Prompt prefill, then one selected token per decode step
+        A->>A: Check grants and bounds, execute first layers
+        A->>B: Activation frame + token context + step identity
+        B->>B: Validate, execute remaining layers, sample and decode
+        B-->>A: Selected token, text delta, continuation, stop reason
+        A-->>U: Ordered text delta for this attempt
+        Note over A,B: Each executor retains its own attention/recurrent state
+    end
+    A->>B: Close this attempt and await settlement
+    A->>A: Close local attempt, retain reusable weights
+    A-->>U: Completion or explicit failure
+```
+
+### Attempt failure and recovery
+
+Retry creates a new attempt. Partial output survives failure; other conversations
+remain independent, and connection loss does not prove remote GPU completion.
+
+```mermaid
+stateDiagram-v2
+    [*] --> Queued
+    Queued --> Approval: disclosure needed
+    Approval --> Queued: approved
+    Approval --> Failed: declined or expired
+    Queued --> Loading: preparation
+    Queued --> Executing: prepared path
+    Loading --> Executing
+    Loading --> Failed: preparation error
+    Executing --> Completed: valid complete response
+    Executing --> Failed: participant loss or execution error
+    Approval --> Cancelling: Stop
+    Queued --> Cancelling: Stop
+    Loading --> Cancelling: Stop
+    Executing --> Cancelling: Stop
+    Cancelling --> Cancelled: execution promise settles
+    Failed --> [*]
+    Cancelled --> [*]
+    Completed --> [*]
+    note right of Failed
+        Keep partial answer and error.
+        Explicit Retry creates a new attempt ID.
+        Other conversations remain independent.
+    end note
+```
 
 ## Evidence and current surfaces
 
@@ -110,11 +244,14 @@ Read the claim index row before repeating a capability statement.
 
 ## Repository map
 
-- [`self/`](self/): browser boot profiles, VFS, tools, and runtime
+- [`packages/reploid/`](packages/reploid/): reusable chat, mesh, transport, custody and agent implementation
+- [`self/host/`](self/host/): browser service composition, storage and runtime ports
+- [`self/ui/`](self/ui/): presentation and actions backed by package-owned state
+- [`self/`](self/): browser boot profiles and Zero/X substrate, VFS and tools
 - [`docs/`](docs/): product intent, claims, security, architecture, and operator guides
 - [`deploy/`](deploy/): deployment and access-window tooling
 - [`doppler/`](doppler/): vendored or paired Doppler integration surface
-- [`showcase/`](showcase/): demonstrations and recorded runs
+- [`showcase/`](examples/showcase/): demonstrations and recorded runs
 - [`package.json`](package.json): package metadata and local commands
 
 ## Intent and component authority

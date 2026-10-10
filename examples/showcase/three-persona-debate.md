@@ -2,7 +2,7 @@
 
 **Date:** January 18, 2026
 **Cycles:** 31
-**Run JSON:** [reploid-export-1768758816277.json](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1768758816277.json)
+**Run JSON:** [reploid-export-1768758816277.json](https://github.com/clocksmith/reploid/blob/main/examples/showcase/runs/reploid-export-1768758816277.json)
 **Goal:** Build a three persona debate loop with a fixed turn schedule and a convergence rule for final answers.
 
 ---

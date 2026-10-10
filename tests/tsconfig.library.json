@@ -18,11 +18,11 @@
     ]
   },
   "include": [
-    "tests/types/library-contracts.ts",
-    "packages/reploid/src/agent/lifecycle.js",
-    "packages/reploid/src/agent/cancellation.js",
-    "packages/reploid/src/agent/engine.js",
-    "packages/reploid/src/agent/tool-dispatch.js",
-    "packages/reploid/src/agent/provider-recovery.js"
+    "types/library-contracts.ts",
+    "../packages/reploid/src/agent/lifecycle.js",
+    "../packages/reploid/src/agent/cancellation.js",
+    "../packages/reploid/src/agent/engine.js",
+    "../packages/reploid/src/agent/tool-dispatch.js",
+    "../packages/reploid/src/agent/provider-recovery.js"
   ]
 }

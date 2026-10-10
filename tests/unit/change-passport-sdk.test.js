@@ -5,7 +5,7 @@ import path from 'path';
 import {
   ChangePassportClient,
   ChangePassportHttpError
-} from '../../sdk/change-passport/dist/index.js';
+} from '../../packages/change-passport/dist/index.js';
 
 const response = (body, status = 200) => new Response(JSON.stringify(body), {
   status,
@@ -63,8 +63,8 @@ describe('Change Passport TypeScript SDK runtime', () => {
 
   it('ships a standalone verifier and package-local type declarations', async () => {
     const [bundle, packageManifest] = await Promise.all([
-      fs.readFile(path.join(process.cwd(), 'sdk/change-passport/dist/index.js'), 'utf8'),
-      fs.readFile(path.join(process.cwd(), 'sdk/change-passport/package.json'), 'utf8').then(JSON.parse)
+      fs.readFile(path.join(process.cwd(), 'packages/change-passport/dist/index.js'), 'utf8'),
+      fs.readFile(path.join(process.cwd(), 'packages/change-passport/package.json'), 'utf8').then(JSON.parse)
     ]);
     expect(bundle).not.toMatch(/from\s+['"]\.\.\//);
     expect(bundle).not.toContain('self/core/change-passport.js');

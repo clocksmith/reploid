@@ -1,4 +1,11 @@
-# Work, helpers, peers, and tool improvement
+# Scoped helpers, private peers, and tool improvement
+
+This guide describes the Work helper/tool-evaluation host and its private,
+whole-request compatibility protocol. It is not the ordinary public-mesh
+onboarding or the two-contributor partition flow. Use the
+[network quick start](QUICK-START.md) first. Tool evaluation, delivery and adoption
+retain their separate protected evaluators and operator grants.
+
 
 Reploid's main workspace contains a thread list and the selected thread, with
 network state in a disclosure. The operator defines each thread's objective;
@@ -12,7 +19,9 @@ inference requests on connected peers advertising the selected model, or this
 device when no matching peer is connected. Remote inference requires exact-payload
 approval for each dispatch, including the conversation context. Refusal and peer
 failure never silently retry on another participant or model. The default model
-is Qwen 3.5 2B (`qwen-3-5-2b-q4k-ehaf16`) through `doppler-gpu@0.6.1`.
+is selected by the host catalog. The checkout package pin lives in
+[`doppler-package.json`](../self/config/doppler-package.json); its version is
+not a qualification claim. Older 0.6.1 receipts retain their original identity.
 This device serializes its borrowed GPU operations across threads and contributions;
 concurrent agent threads do not promise simultaneous execution on one GPU.
 
@@ -30,13 +39,15 @@ Thread Options contain independent grants:
   replacement functions, and have the host compare them with the current version.
   Passing tests never activates a candidate by itself.
 
-## Connect another device
+## Private whole-request participation
 
 Open **Network**, then choose **Invite**. Open the invitation on the participating
 devices, then use **Connect peers**. A contributor can explicitly offer
 the local Qwen model and stop sharing at any time. Cross-device connections use
 the configured signaling service for rendezvous and WebRTC for transport.
-Without a cross-device room, discovery is limited to the same browser.
+This invitation requirement belongs to this private compatibility workflow.
+Ordinary Reploid public discovery uses the configured automatic bootstrap;
+partition execution has its own admission and disclosure path.
 
 A provider executes a whole text generation request. This workflow does not split
 one model's layers or tensors across devices. It uses the existing compatibility

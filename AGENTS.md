@@ -36,40 +36,61 @@ Material-change handoffs must state:
 - Boundary effects: `<none or named components>`
 
 ### Directory Structure
-```
+
+```text
 reploid/
-├── README.md                 ← Overview and quick start
-├── AGENTS.md                 ← Agent instructions
-├── EMOJI.md                  ← Approved Unicode symbols
-├── self/                     ← Browser code and public web root
-│   ├── core/                 ← Agent loop, VFS, LLM client
-│   ├── tools/                ← Dynamic agent tools
-│   ├── infrastructure/       ← EventBus, DI, HITL
-│   ├── ui/                   ← Proto UI components
-│   └── blueprints/           ← Architectural specs
-├── server/                   ← Proxy server (Node.js)
-├── tests/                    ← Test suites
-├── bin/                      ← CLI tools
-└── docs/                     ← Documentation
+├── packages/reploid/src/     ← Reusable implementation and public contracts
+│   ├── chat/                 ← Conversations, attempts, grants and scheduling
+│   ├── mesh/                 ← Discovery, placement, partitions and agent work
+│   ├── transport/            ← Authenticated, bounded peer delivery
+│   ├── artifacts/custody/    ← Authorized piece acquisition and retention
+│   └── agent/                ← Goal-directed agent execution
+├── self/host/                ← Browser service composition and host ports
+├── self/ui/                  ← State presentation and user actions
+├── self/core/                ← Agent/VFS substrate and compatibility forwarding
+├── self/config/              ← Browser profiles, catalog and package pins
+├── server/                   ← Optional server/proxy adapters
+├── tests/                    ← Contract, integration and physical-run harnesses
+└── docs/                     ← Intent, architecture and evidence navigation
 ```
 
 ### Before Starting
 - Read `docs/INDEX.md` for documentation overview
 - Read `docs/style-guide.md` for complete style guidelines
-- Read `EMOJI.md` for approved Unicode symbols
+- Read `docs/EMOJI.md` for approved Unicode symbols
 - Read [`docs/maverick-hunting.md`](docs/maverick-hunting.md) before diagnosing, containing, or repairing evidence-backed provider, mutation, or tool failures
 - Review `self/blueprints/` for architectural documentation
 
 ### Key Paths
-- `self/core/` - Agent loop, VFS, LLM client, tool runner
-- `self/infrastructure/` - EventBus, DI container, HITL controller
-- `self/tools/` - Agent tools (CamelCase naming)
-- `self/ui/` - Proto UI components
-- `self/config/` - Genesis levels, module registry
-- `server/` - Proxy server
-- `tests/` - Test suites
 
-### Architecture
+- `packages/reploid/src/chat/` owns threads, history, attempts and scheduling.
+- `packages/reploid/src/mesh/partitions/` owns discovery, placement, admission,
+  sequencing and settlement through injected Doppler contracts.
+- `packages/reploid/src/transport/` and `artifacts/custody/` own bounded delivery
+  and authorized retention; they do not define model mathematics.
+- `self/host/` supplies identity, catalog, policy, storage and runtime ports.
+- `self/ui/` renders the authoritative conversation/execution state and actions.
+- `self/core/`, `self/tools/`, and `self/infrastructure/` support the agent/VFS
+  substrate. Check the nearest charter before modifying compatibility forwarding.
+- `self/config/doppler-package.json` pins one standard Doppler dependency.
+
+### Product architecture
+
+```text
+Conversation UI -> Host composition -> reploid/chat -> mesh placement/admission
+                                                  -> custody + transport
+                                                  -> Doppler public execution
+```
+
+Using prepared capacity requires no requester weights. Contribution preparation
+has a separate grant and lifecycle. Browser and native hosts compose the same
+library contracts with separately qualified support. See the
+[technical diagrams](docs/open-mesh-architecture.md#technical-diagrams).
+
+### Agent/VFS substrate architecture
+
+This map describes the substrate used by Zero/X and agent hosts, not the complete
+network product or the ownership of distributed conversations.
 ```
 User Input -> AgentLoop -> LLMClient -> Tool Selection
                   |             |
@@ -101,15 +122,21 @@ npm start                   # Start server
 ```
 
 ### Debugging
-- **Agent loop hangs:** Check `core/agent-loop.js` for stuck awaits, inspect EventBus listeners
-- **Tool failures:** Check `core/tool-runner.js`, verify tool schema in `tools/`
-- **VFS issues:** Check IndexedDB in browser devtools, verify `capabilities/system/substrate-loader.js`
-- **HITL blocks:** Check `infrastructure/hitl-controller.js` approval state
-- **State corruption:** Use GenesisSnapshot rollback via `infrastructure/genesis-snapshot.js`
-- **LLM errors:** Check `core/llm-client.js`, verify API keys in `.env`
+- **Conversation attempts:** Inspect `packages/reploid/src/chat/workspace.js` and
+  its host admission/session ports; retain the originating thread and attempt ID.
+- **Discovery or readiness:** Trace `packages/reploid/src/mesh/partitions/`
+  through discovery, placement, reservation and resident execution. File custody
+  alone does not establish readiness.
+- **Acquisition or connection:** Inspect `packages/reploid/src/artifacts/custody/`
+  and `packages/reploid/src/transport/` at their authenticated host boundaries.
+- **Model computation:** Reproduce through the pinned Doppler public interface;
+  patch the numerical owner in Doppler rather than duplicating arithmetic here.
+- **Agent/VFS substrate:** Inspect `self/core/`, `self/tools/` and
+  `self/infrastructure/` under their charters. Genesis rollback, provider setup
+  and HITL belong to their scoped agent workflow.
 
 ### Guardrails
-- Enforce `EMOJI.md`; use only approved Unicode symbols, no emojis
+- Enforce `docs/EMOJI.md`; use only approved Unicode symbols, no emojis
 - All code changes must pass Verification Worker sandbox
 - Preserve Genesis Kernel immutability for recovery
 - Test in browser environment; uses IndexedDB for VFS
@@ -132,10 +159,16 @@ npm start                   # Start server
 | Level | Name | Scope | Gate |
 |-------|------|-------|------|
 | L0 | Basic Functions | CreateTool, Web APIs, new tools | Verification Worker |
-| L1 | Meta Tooling | Modify tool-writer, improve CreateTool | Arena consensus |
-| L2 | Self-Modification (Substrate) | Edit core modules, runtime patches | Arena + Genesis rollback |
-| L3 | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | Arena + Genesis rollback + iteration caps |
+| L1 | Meta Tooling | Modify tool-writer, improve CreateTool | Protected independent evaluation and operator grant |
+| L2 | Self-Modification (Substrate) | Edit core modules, runtime patches | Independent evaluation, explicit activation grant and rollback |
+| L3 | Weak RSI (Iterative) | Bounded feedback loops, self-improvement | Independent evaluation, bounded grants, causal evidence and rollback |
 | L4 | Weak AGI | Broad autonomous planning, system-building, and self-directed experimentation | N/A |
+
+The table is navigation, not authority to activate a candidate. Governed
+improvement follows [INTENT.md](INTENT.md), [CATSCAN.md](CATSCAN.md) and
+[improvement episodes](docs/rsi-improvement-episodes.md). Arena consensus may
+be a configured mechanism; it cannot replace protected independent evaluation
+or operator adoption. Model scoring never grants permission.
 
 ### Key Concepts
 - **VFS:** Virtual file system in IndexedDB

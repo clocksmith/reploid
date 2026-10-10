@@ -2,7 +2,7 @@
 
 **Date:** January 18, 2026
 **Cycles:** 36
-**Run JSON:** [reploid-export-1768773433577.json](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1768773433577.json)
+**Run JSON:** [reploid-export-1768773433577.json](https://github.com/clocksmith/reploid/blob/main/examples/showcase/runs/reploid-export-1768773433577.json)
 **Goal:** Implement a persona tuner that mutates prompt traits and scores outputs on a benchmark set.
 
 ---

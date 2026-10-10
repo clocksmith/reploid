@@ -5,13 +5,13 @@ on:
     branches:
       - agent/consolidate-blueprints
     paths:
-      - .blueprint-bootstrap-min2/**
+      - artifacts/blueprint-bootstrap/**
       - .github/workflows/apply-blueprint-consolidation.yml
   pull_request:
     branches:
       - main
     paths:
-      - .blueprint-bootstrap-min2/**
+      - artifacts/blueprint-bootstrap/**
       - .github/workflows/apply-blueprint-consolidation.yml
   workflow_dispatch:
 
@@ -33,7 +33,7 @@ jobs:
           cache: npm
       - name: Reconstruct and apply audited migration
         run: |
-          cat .blueprint-bootstrap-min2/parts/part-* | base64 -d > /tmp/blueprint-bootstrap.tar.xz
+          cat artifacts/blueprint-bootstrap/parts/part-* | base64 -d > /tmp/blueprint-bootstrap.tar.xz
           echo "703226d2f874a741538d9e445cb3c4ee8e318d844ef503cc5e2f0b04d88aa221  /tmp/blueprint-bootstrap.tar.xz" | sha256sum -c -
           mkdir -p /tmp/blueprint-bootstrap
           tar -xJf /tmp/blueprint-bootstrap.tar.xz -C /tmp/blueprint-bootstrap
@@ -43,8 +43,8 @@ jobs:
           python3 /tmp/blueprint-bootstrap/migration/normalize.py
           cp -R /tmp/blueprint-bootstrap/overlay/. .
           rm -f migration-plan.json final-blueprint-rows.json
-          rm -rf .blueprint-bootstrap-min2
-          rm -f .audit-source-link.md
+          rm -rf artifacts/blueprint-bootstrap
+          rm -f .audit-source-link.md docs/audit-source-link.md
           rm -f .github/workflows/blueprint-audit-snapshot.yml
           rm -f .github/workflows/apply-blueprint-consolidation.yml
       - name: Refresh lockfile

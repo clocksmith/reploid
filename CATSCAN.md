@@ -4,24 +4,23 @@ Parent: none
 
 ## Target
 
-Coordinate and evolve distributed intelligence that expands participants' capability
-or improves results, reliability, or total resource cost.
+Coordinate/evolve distributed intelligence expanding capability or improving
+results, reliability or total resource cost.
 
 ## Authority
 
-Owns product boundaries, precedence and proof: `packages/reploid/` implements
-behavior; applications compose APIs; UI requests actions.
+Owns boundaries, precedence and proof. `packages/reploid/` implements; applications compose; UI requests.
 
 ## Scope
 
-Repository work not narrowed by child charters.
+Work not narrowed by child charters.
 
 ## Contracts
 
 Inputs:
 
 - Mission: [GOALS.md](GOALS.md); protections: [INTENT.md](INTENT.md).
-- Supporting constraints: [governance](GOVERNANCE_DETAILS.md); qualification: [claim index](docs/status/surface-claim-index.json).
+- Constraints: [governance](docs/GOVERNANCE_DETAILS.md); qualification: [claim index](docs/status/surface-claim-index.json).
 
 Outputs:
 
@@ -30,6 +29,9 @@ Outputs:
 ## Invariants
 
 - Doppler defines/executes model computations; Reploid coordinates/evolves; Poolday connects/transfers/recovers.
+- Browser/native hosts use the same participant contracts; support is separately qualified.
+- Prepared peer paths require no requester weights; contribution preparation is separate.
+- Model judgments/scores never replace permission/evaluation/adoption authority.
 - Storage, whole requests, partitions and agent subtasks retain distinct contracts.
 - Placement preserves semantics, expert selection and disclosure grants.
 - Problem-solving and improvement retain separate authority and lifecycle boundaries.
@@ -38,8 +40,8 @@ Outputs:
 - Bayesian adaptation preserves uncertainty, provenance and observation dependencies.
 - Permissions/budgets precede ranking; granted runtime operation remains CI-independent.
 - Require artifact identities, numerical tolerances, allocation budgets and cancellation
-  settlement, without promising universal determinism or immediate GPU termination.
-- Code cannot overrule charters; claims require recorded evidence.
+  settlement; promise neither universal determinism nor immediate GPU termination.
+- Code cannot overrule charters; claims require evidence.
 
 ## Acceptance
 
@@ -49,8 +51,8 @@ Outputs:
 
 ## Non-goals
 
-Activity, extraction or adoption as capability proof; infrastructure/model output
-as biological truth; commercial outcomes as completion gates.
+Activity/extraction/adoption as capability proof; infrastructure/model output
+as biological truth; commercial completion gates.
 
 ## Freedom
 Preserve boundaries and acceptance.

@@ -11,7 +11,7 @@ import { hashJson } from './hash.js';
 
 export const COORDINATOR_RUNTIME_BUNDLE_SCHEMA = 'poolday.coordinator_runtime_bundle/v1';
 export const DEFAULT_COORDINATOR_RUNTIME_SCOPE = Object.freeze([
-  'Dockerfile',
+  'deploy/Dockerfile',
   'package.json',
   'package-lock.json',
   'server',

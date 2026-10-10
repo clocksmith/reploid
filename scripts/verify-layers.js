@@ -6,11 +6,11 @@ import { parse } from 'acorn';
 import { SURFACE_INTENTS } from '../self/config/surface-intents.js';
 
 const SOURCE_ROOTS = ['packages/reploid/src', 'self/core', 'self/pool', 'self/host', 'self/lab',
-  'self/providers', 'self/ui', 'self/config', 'self/infrastructure', 'self/capabilities', 'functions', 'server', 'self'];
+  'self/providers', 'self/ui', 'self/config', 'self/infrastructure', 'self/capabilities', 'packages/functions', 'server', 'self'];
 const forbidden = {
-  'self/pool': ['self/ui', 'server', 'functions'], 'self/core': ['self/ui', 'server', 'functions'],
-  'self/ui': ['server', 'functions'], server: ['self/core', 'self/ui'],
-  'self/providers': ['self/ui', 'server', 'functions']
+  'self/pool': ['self/ui', 'server', 'packages/functions'], 'self/core': ['self/ui', 'server', 'packages/functions'],
+  'self/ui': ['server', 'packages/functions'], server: ['self/core', 'self/ui'],
+  'self/providers': ['self/ui', 'server', 'packages/functions']
 };
 const posix = value => value.split(path.sep).join('/');
 export function classifyLayer(value) {
@@ -133,7 +133,7 @@ export function verifyRepositoryLayers(repoRoot) {
   const violations = [], graph = new Map();
   const exceptionsFile = path.join(repoRoot, 'scripts/architecture-exceptions.json');
   const exceptions = fs.existsSync(exceptionsFile) ? JSON.parse(fs.readFileSync(exceptionsFile, 'utf8')) : { loaders: [], cycles: [] };
-  for (const sourceRoot of ['packages/reploid/src', 'self', 'functions', 'server']) for (const file of filesUnder(path.join(repoRoot, sourceRoot))) {
+  for (const sourceRoot of ['packages/reploid/src', 'self', 'packages/functions', 'server']) for (const file of filesUnder(path.join(repoRoot, sourceRoot))) {
     const relative = posix(path.relative(repoRoot, file)), source = fs.readFileSync(file, 'utf8');
     violations.push(...findExecutionOwnerViolations(relative, source));
     violations.push(...findLayerViolations({ repoRoot, sourcePath: file, source }));

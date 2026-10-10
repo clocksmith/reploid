@@ -9,8 +9,8 @@ import ts from 'typescript';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '..');
-const sourcePath = path.join(repoRoot, 'sdk/change-passport/src/index.ts');
-const outputDir = path.join(repoRoot, 'sdk/change-passport/dist');
+const sourcePath = path.join(repoRoot, 'packages/change-passport/src/index.ts');
+const outputDir = path.join(repoRoot, 'packages/change-passport/dist');
 const bundlePath = path.join(outputDir, 'index.js');
 const declarationPath = path.join(outputDir, 'index.d.ts');
 const checkOnly = process.argv.includes('--check');

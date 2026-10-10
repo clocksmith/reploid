@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { DEFAULT_GEMINI_MODEL, zeroGeminiPolicy, resolveFallbackModel } from '../../functions/zero-gemini-policy.js';
+import { DEFAULT_GEMINI_MODEL, zeroGeminiPolicy, resolveFallbackModel } from '../../packages/functions/zero-gemini-policy.js';
 import { ZERO_GEMINI_MODEL } from '../../self/config/zero-inference.js';
 
 describe('Zero Gemini admission policy', () => {

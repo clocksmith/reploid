@@ -226,7 +226,7 @@ GitHub Actions: `.github/workflows/test.yml`
 
 ## Configuration
 
-### vitest.config.js
+### tests/vitest.config.js
 
 ```javascript
 import { defineConfig } from 'vitest/config';

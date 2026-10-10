@@ -1,6 +1,6 @@
 # CATSCAN: Hosted Zero Function
 
-Parent: [Reploid](../CATSCAN.md)
+Parent: [Reploid](../../CATSCAN.md)
 
 ## Target
 
@@ -30,7 +30,7 @@ Outputs:
 
 ## Acceptance
 - Function requests enforce their authentication, validation, and response contracts.
-- Evidence: [Zero Gemini function tests](../tests/unit/zero-gemini-function.test.js).
+- Evidence: [Zero Gemini function tests](../../tests/unit/zero-gemini-function.test.js).
 
 ## Non-goals
 - Acting as a general model proxy or as evidence that Zero improved itself.

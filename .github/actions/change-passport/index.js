@@ -3,7 +3,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { ChangePassportClient, ChangePassportHttpError } from '../../../sdk/change-passport/dist/index.js';
+import { ChangePassportClient, ChangePassportHttpError } from '../../../packages/change-passport/dist/index.js';
 import {
   canonicalChangePassportJson,
   hashChangePassportValue,
