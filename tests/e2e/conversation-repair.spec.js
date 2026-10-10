@@ -148,7 +148,7 @@ test('Verification Worker accepts repaired application modules', async ({ page }
     ...['conversation-list', 'conversation-workspace', 'document-search', 'execution-ribbon', 'index', 'message-list',
       'navigation', 'network-controls', 'shell-view', 'specialist-routes', 'theme', 'view', 'work', 'work-approval-panel']
       .map(name => `ui/pool-home/${name}.js`),
-    ...['product-context', 'product-session', 'work-model-files', 'work-swarm'].map(name => `host/${name}.js`)
+    ...['chat-session', 'document-comparison', 'product-context', 'product-session', 'work-model-files', 'work-swarm'].map(name => `host/${name}.js`)
   ];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readFile('self/' + path, 'utf8')])));
   await page.goto('/');

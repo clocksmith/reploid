@@ -1,0 +1,45 @@
+[
+  {
+    "file": "mac-linux-numerical.json.gz",
+    "uncompressedSha256": "fbdf555edbf2bf9e16df05044c73573111a9f11484457df48e634cfd08d20064",
+    "bytes": 57558,
+    "gzipBytes": 3732,
+    "steps": 0,
+    "failed": 0,
+    "maximumDifference": null,
+    "failure": {
+      "message": "page.evaluate: TypeError: Failed to fetch\n    at eval (eval at evaluate (:290:30), <anonymous>:12:34)\n    at async <anonymous>:316:30"
+    },
+    "versions": [
+      "0.6.22"
+    ]
+  },
+  {
+    "file": "mac-linux-isolated-numerical.json.gz",
+    "uncompressedSha256": "e151ae2c01250fd20b218b8332cf39f48fae3263fb4c2e3f7570e3dcb9ada7a6",
+    "bytes": 22633813,
+    "gzipBytes": 6824329,
+    "steps": 55,
+    "failed": 33,
+    "maximumDifference": 0.0018634796142578125,
+    "failure": null,
+    "versions": [
+      "0.6.21",
+      "0.6.21"
+    ]
+  },
+  {
+    "file": "linux-mac-isolated-numerical.json.gz",
+    "uncompressedSha256": "34ddf654388295c4392b4b0ed369f4f21048e4f25c456ce1345066b47acccb4d",
+    "bytes": 22536585,
+    "gzipBytes": 6744494,
+    "steps": 55,
+    "failed": 27,
+    "maximumDifference": 0.0018510818481445312,
+    "failure": null,
+    "versions": [
+      "0.6.21",
+      "0.6.21"
+    ]
+  }
+]

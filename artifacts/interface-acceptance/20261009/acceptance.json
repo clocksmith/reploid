@@ -1,0 +1,60 @@
+{
+  "recordedAt": "2026-10-10T01:13:08.213922+00:00",
+  "baseCommit": "7bbca4f839c3ead4aca11a096f934af45cdd5e9f",
+  "component": "Reploid conversation host and acceptance tests",
+  "intent": "preserved",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.21",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.21.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.21.tgz",
+    "integrity": "sha512-kVm3ru6HB8urNTLrl6efBI0oimounVroZwXg7PBkWrmeRxvvXEM2+/QE0O09Y3UaZ+Ax+xhbxcKWnyZZYqx3Dg=="
+  },
+  "candidateBrowserBundle": "sha256:069716af665102cfe1aec5128c5a63ce1a523e57618f6736874031f0fa60337a",
+  "publicDeployment": {
+    "performed": false,
+    "reason": "Both physical numerical directions fail unchanged 0.001 tolerance",
+    "observedLiveVersion": "0.6.11"
+  },
+  "numerical": {
+    "tolerance": 0.001,
+    "allocationBudgetBytes": 1420000000,
+    "model": "qwen-3-5-0-8b-q4k-ehaf16",
+    "evidence": "numerical-index.json",
+    "bothDirectionsPassed": false,
+    "scope": "Two physical GPUs; verified local model bytes and Node tensor forwarding, not P2P acquisition"
+  },
+  "ui": {
+    "scope": "Five scripted tasks with injected capacity/execution through the real host, permissions, storage and UI; no human participants or inference proof",
+    "phone": "390x844 emulation, reduced 390x460 viewport; not a physical phone or actual keyboard",
+    "browserChecksPassed": 15,
+    "unitTestsPassed": 58,
+    "before": "Attachment citation regression failed; four other scripted tasks passed",
+    "repair": "Ordinary attachments now supply passage identities to the existing citation renderer without starting a comparison or second pass",
+    "storageUpgrade": "storage-upgrade.json"
+  },
+  "checks": [
+    "Verification Worker on changed host modules",
+    "Layer/import/cycle checks",
+    "CATSCAN",
+    "Library TypeScript",
+    "ESLint changed files",
+    "Production preflight"
+  ],
+  "commands": {
+    "ui": "REPLOID_E2E_BASE_URL=http://localhost:18126 REPLOID_E2E_SKIP_LOCAL_SERVER=1 REPLOID_E2E_CHROMIUM_CHANNEL=chrome npx playwright test tests/e2e/conversation-acceptance.spec.js tests/e2e/conversation-interactions.spec.js tests/e2e/conversation-repair.spec.js --project=chromium --workers=1 --timeout=60000",
+    "numerical": "REPLOID_MEMORY_PHASE=reference REPLOID_DIAGNOSTIC_REQUESTS=tests/fixtures/distributed-memory-requests.json REPLOID_REFERENCE_FILE=<uncompressed-frozen-reference> REPLOID_CAPTURE_OUT=<output> REPLOID_EXECUTOR_WS=<authorized-test-browser> REPLOID_E2E_BASE_URL=<candidate-origin> REPLOID_MODEL_BASE_URL=<local-model-server> REPLOID_PEER_MODEL_BASE_URL=<remote-model-server> node tests/fixtures/browser-partition-memory-completion.js; repeat with REPLOID_REFERENCE_REVERSE=1"
+  },
+  "limits": [
+    "No deployment or deployed UI upgrade verified",
+    "No new physical P2P acquisition, full ordinary distributed journey, or human usefulness claim",
+    "Long-prompt memory reacceptance deferred because numerical gate failed",
+    "Initial non-isolated attempt was interrupted by a model-server CORS failure and used concurrently changed 0.6.22 bytes; it is excluded from qualification",
+    "Initial storage-upgrade fixture selected a different model from its injected service; corrected to explicitly select its fixture model"
+  ],
+  "boundaryEffects": "Attachment prompt serialization changes in the host; Doppler package, computation, transport and permission rules unchanged",
+  "sourceSha256": {
+    "self/host/chat-session.js": "2d39e0619f5f0e020e638318e4e0ad1b463a1a1e761907aaafeed61f4345fb50",
+    "self/host/document-comparison.js": "78982ae492c93b71cce6401784ec5c201b8b86c8d5f26b0cd34379dc909be3dd"
+  }
+}

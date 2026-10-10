@@ -1,0 +1,18 @@
+
+ RUN  v4.1.10 <reploid>/.deployment-checkouts/qualify-7bbca4f8
+
+ ✓ tests/unit/chat-workspace.test.js (8 tests) 174ms
+ ✓ tests/unit/message-list.test.js (3 tests) 26ms
+ ✓ tests/unit/chat-thread-grants.test.js (6 tests) 26ms
+ ✓ tests/unit/conversation-permission.test.js (1 test) 193ms
+ ✓ tests/unit/document-comparison.test.js (7 tests) 179ms
+ ✓ tests/unit/chat-session.test.js (22 tests) 957ms
+ ✓ tests/unit/conversation-workspace.test.js (11 tests) 2331ms
+     ✓ shows download size, preserves the draft, and enables local chat without sharing  537ms
+     ✓ starts directly, appends followups and pins the conversation model  607ms
+
+ Test Files  7 passed (7)
+      Tests  58 passed (58)
+   Start at  21:10:59
+   Duration  5.84s (transform 3.05s, setup 0ms, import 4.59s, tests 3.88s, environment 12.01s)
+

@@ -1296,7 +1296,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 515584,
-      "sha256": "sha256:e565d98029bfcaea4cc07b9d6b4fdf64e4ca5187a8f03a9153aa0860029322f7"
+      "sha256": "sha256:b4f23a401eaba78f42a8b3db52fe21f624b0ce4a83383161b2fb0ea866911387"
     },
     {
       "path": "config/module-registry.json",
@@ -1655,8 +1655,8 @@
     },
     {
       "path": "host/chat-session.js",
-      "byteLength": 12336,
-      "sha256": "sha256:196dc01781f2ccfa8b9db83e99aeecc58c84e4a03582e3a913214219d4f881b9"
+      "byteLength": 12281,
+      "sha256": "sha256:2d39e0619f5f0e020e638318e4e0ad1b463a1a1e761907aaafeed61f4345fb50"
     },
     {
       "path": "host/chat-view.js",
@@ -1665,8 +1665,8 @@
     },
     {
       "path": "host/document-comparison.js",
-      "byteLength": 3591,
-      "sha256": "sha256:b9286ec4ff46d09ec14040e9afe0e0e675c3e629b4e320e5d259e3ee5ef1eba5"
+      "byteLength": 4171,
+      "sha256": "sha256:78982ae492c93b71cce6401784ec5c201b8b86c8d5f26b0cd34379dc909be3dd"
     },
     {
       "path": "host/document-study.js",
@@ -9449,5 +9449,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:72354df869fd6587e2329b25c9122e5dc2ed84d477ead16e44ede4d0905f7bcf"
+  "bundleHash": "sha256:069716af665102cfe1aec5128c5a63ce1a523e57618f6736874031f0fa60337a"
 }
