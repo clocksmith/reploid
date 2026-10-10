@@ -26,7 +26,7 @@ export const renderNav = (activeRoute) => {
       <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home"${activeRoute === 'home' ? ' aria-current="page"' : ''} href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
       ${renderExecutionRibbon()}
       <div class="pool-primary-actions">
-        ${renderSettings(renderPowerTower(true), `<a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count" data-pool-change-count aria-hidden="true" hidden></span></a><a class="pool-button" href="/network" data-pool-route-link="/network">Network</a><a class="pool-button" href="/examples" data-pool-route-link="/examples">Examples</a>`)}
+        ${renderSettings(renderPowerTower(true), `<a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count" data-pool-change-count aria-hidden="true" hidden></span></a><button class="pool-button" type="button" data-open-network>Network</button><a class="pool-button" href="/examples" data-pool-route-link="/examples">Examples</a>`)}
       </div>
     </nav>
   `;

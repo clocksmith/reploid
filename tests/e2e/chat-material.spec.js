@@ -83,7 +83,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     // Focus has a stronger edge; compare the two unfocused glass surfaces.
     await textarea.blur();
     expect(await textarea.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
-    await modelControl.hover();
+    await page.locator('[data-current-model]').hover();
     expect(await textarea.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
     await page.locator('[data-toggle-inspector]').click();
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();

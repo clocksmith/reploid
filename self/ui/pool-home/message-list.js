@@ -1,64 +1,6 @@
 import { escapeHtml as escape } from '../components/attachments.js';
 
-function setText(node, value) {
-  const text = String(value ?? '');
-  if (!node.firstChild || node.firstChild.nodeType !== 3) node.replaceChildren(node.ownerDocument.createTextNode(text));
-  updateText(node.firstChild, text);
-}
-
-function updateText(child, text) {
-  const previous = child.data;
-  if (previous === text) return;
-  let start = 0, end = 0;
-  while (start < previous.length && start < text.length && previous[start] === text[start]) start++;
-  while (end < previous.length - start && end < text.length - start && previous.at(-1 - end) === text.at(-1 - end)) end++;
-  child.replaceData(start, previous.length - start - end, text.slice(start, text.length - end));
-}
-
-function updateProse(node, content, targets) {
-  const parts = content.split(/(\[D\d+:P\d+\])/g);
-  parts.forEach((part, index) => {
-    const reference = index % 2 ? part.slice(1, -1) : null;
-    const target = targets.get(reference);
-    const tag = reference ? target ? 'A' : 'SPAN' : null;
-    let child = node.childNodes[index];
-    if (!child || (tag ? child.nodeName !== tag : child.nodeType !== 3)) {
-      const replacement = tag ? node.ownerDocument.createElement(tag) : node.ownerDocument.createTextNode('');
-      if (child) child.replaceWith(replacement); else node.append(replacement);
-      child = replacement;
-    }
-    if (!tag) updateText(child, part);
-    else {
-      if (target) { child.setAttribute('href', '#' + target); child.dataset.sourceReference = ''; }
-      else child.title = 'No supplied passage has this reference';
-      setText(child, part);
-    }
-  });
-  while (node.childNodes.length > parts.length) node.lastChild.remove();
-}
-
-function updateContent(body, text, targets) {
-  // Keep each prose/code node alive while output grows. Generated HTML is always text.
-  const blocks = String(text || '').split(/```[^\n]*\n|```/g);
-  blocks.forEach((content, index) => {
-    let block = body.children[index];
-    if (!block) {
-      block = body.ownerDocument.createElement(index % 2 ? 'pre' : 'div');
-      block.dataset.textBlock = '';
-      const textNode = body.ownerDocument.createElement(index % 2 ? 'code' : 'span');
-      block.append(textNode);
-      if (index % 2) {
-        const copy = body.ownerDocument.createElement('button'); copy.type = 'button';
-        copy.className = 'pool-button'; copy.dataset.copyCode = ''; copy.textContent = 'Copy code'; block.append(copy);
-      }
-      body.append(block);
-    }
-    const node = block.firstElementChild;
-    if (index % 2) setText(node, content);
-    else updateProse(node, content, targets);
-  });
-  while (body.children.length > blocks.length) body.lastElementChild.remove();
-}
+import { updateMessageMarkdown } from '../components/message-markdown.js';
 
 function failureLabel(attempt) {
   if (attempt.status === 'cancelled') return 'Stopped. Your partial answer is saved.';
@@ -103,7 +45,7 @@ export function createMessageList(stream, { getSources, positions = new Map() } 
               return `<p id="${escape(anchor)}" tabindex="-1"><strong>[${escape(passage.id)}]</strong> ${escape(passage.text)}</p>`;
             }).join('') + '</details>').join('');
           if (body.dataset.source !== markup) { body.innerHTML = markup; body.dataset.source = markup; }
-        } else updateContent(body, message.content, targets);
+        } else updateMessageMarkdown(body, message.content, targets);
         const attempt = thread.attempts.find(item => item.id === message.attemptId);
         const failed = message.role === 'assistant' && attempt && ['failed', 'cancelled', 'interrupted'].includes(attempt.status);
         const retryable = failed && attempt.id === thread.attempts.at(-1)?.id && !busy;

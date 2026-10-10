@@ -1,4 +1,3 @@
-import { bindDisclosure } from '../components/disclosure.js';
 /** Selected-attempt presentation only. Discovery never establishes an execution path. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const measured = value => Number.isFinite(value) && value >= 0;
@@ -19,13 +18,12 @@ export function projectExecutionRibbon(state) {
     layers: split ? layer === null ? 'Not reported' : i === 0 ? `0–${layer - 1}` : `${layer} onward` : 'Whole model',
     contribution: split ? i === 0 ? 'Initial layers; relays output' : 'Final layers; produces output' : 'Whole-model execution',
     duration: split ? sum(execution.steps, i === 0 ? 'localStepMs' : 'remoteStepMs') : null }));
-  const connection = state.network?.consumer?.connectionState;
   const active = attempt && !terminal.has(attempt.status);
   let status = attempt?.status || 'idle';
-  if (active && !local && (state.network?.paused || ['disconnected', 'closed'].includes(connection))) status = 'disconnected';
-  else if (active && !local && connection === 'retrying') status = 'recovering';
-  else if (active && attempt.retryOf && ['queued', 'loading'].includes(status)) status = 'recovering';
-  const labels = { idle: 'No active request', queued: 'Queued', loading: 'Loading', executing: 'Executing', approval: 'Awaiting approval',
+  // Discovery reports availability, never the health of an assigned execution channel.
+  if (active && attempt.retryOf && ['queued', 'loading'].includes(status)) status = 'recovering';
+  const ready = (state.models || []).filter(model => model.availability === 'ready');
+  const labels = { idle: ready.length ? `${ready.length} model${ready.length === 1 ? '' : 's'} ready` : 'Finding capacity', queued: 'Queued', loading: 'Loading', executing: 'Executing', approval: 'Awaiting approval',
     completed: 'Complete', failed: 'Failed', cancelled: 'Stopped', cancelling: 'Stopping', interrupted: 'Interrupted', disconnected: 'Disconnected', recovering: 'Recovering' };
   const response = thread?.messages.find(message => message.id === attempt?.responseId)?.content || '';
   return { key: attempt ? `${thread.id}:${attempt.id}` : null, thread, attempt, execution, requester, local, split, executors,
@@ -37,21 +35,17 @@ export function projectExecutionRibbon(state) {
 
 export function renderExecutionRibbon() {
   return `<div class="execution-ribbon" data-execution-ribbon>
-    <button class="execution-ribbon-trigger" type="button" aria-label="Execution path and details" aria-expanded="false" aria-controls="execution-ribbon-details" data-ribbon-trigger>
+    <button class="execution-ribbon-trigger" type="button" aria-label="Inspect execution" aria-haspopup="dialog" data-ribbon-trigger>
+      <span class="execution-ribbon-route" data-ribbon-route></span>
       <span class="execution-ribbon-status" data-ribbon-status></span>
     </button>
-    <section class="execution-ribbon-details pool-surface" id="execution-ribbon-details" aria-label="Execution details" data-ribbon-details hidden>
-      <header><strong>Execution details</strong><button class="pool-button" type="button" data-ribbon-close>Close</button></header>
-      <div class="execution-ribbon-route" data-ribbon-route></div><div data-ribbon-facts></div>
-      <details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details>
-    </section>
   </div>`;
 }
 
-function routeMarkup(view) {
+export function routeMarkup(view) {
   const nodeMarkup = (label, caption = '', pending = false) => `<span class="execution-ribbon-node${pending ? ' is-unassigned' : ''}"><span class="execution-ribbon-participant">${escape(label)}</span><small>${escape(caption)}</small></span>`;
   const requester = nodeMarkup('You', 'Request / output');
-  if (!view.executors.length) return `${requester}<span class="execution-ribbon-wire is-unassigned" aria-hidden="true"></span>${nodeMarkup('Unassigned', '', true)}`;
+  if (!view.executors.length) return ''; // No invented route before admission.
   const nodes = view.executors.map(node => nodeMarkup(node.label, node.id === view.requester ? 'Request / output' : '')).join('<span class="execution-ribbon-wire" aria-hidden="true"></span>');
   const group = `<span class="execution-ribbon-executors"><small class="execution-ribbon-model">${escape(view.model)}</small><span class="execution-ribbon-machines">${nodes}</span></span>`;
   // In a split, output returns B → A → requester through the same participants.
@@ -59,7 +53,7 @@ function routeMarkup(view) {
     : `${requester}<span class="execution-ribbon-wire" aria-hidden="true"></span>${group}`;
 }
 
-function detailMarkup(view) {
+export function detailMarkup(view) {
   const { attempt, execution, executors } = view;
   return `<p>${escape(view.statusLabel)}${attempt?.error ? ': ' + escape(attempt.error) : ''}</p>
     <dl><dt>Requester / output recipient</dt><dd>${escape(view.requester)}</dd>
@@ -74,15 +68,13 @@ function detailMarkup(view) {
     ${execution?.planId ? `<p>Plan <code>${escape(execution.planId)}</code></p>` : ''}`;
 }
 
-export function bindExecutionRibbon(root, { clock = () => Date.now() } = {}) {
+export function bindExecutionRibbon(root, { onInspect = () => {} } = {}) {
   const ribbon = root.querySelector('[data-execution-ribbon]');
   const find = selector => ribbon.querySelector(selector);
-  const trigger = find('[data-ribbon-trigger]'), panel = find('[data-ribbon-details]');
+  const trigger = find('[data-ribbon-trigger]');
   const controller = new AbortController(), options = { signal: controller.signal };
-  let key = null, lastResponse = '', routeKey = '', detailKey = '', pulse = null, timer = null;
-  let firstObservedOutput = null;
-  const disclosure = bindDisclosure({ root: ribbon, trigger, panel, closeButton: find('[data-ribbon-close]') });
-  const hide = () => disclosure.setOpen(false);
+  let key = null, lastResponse = '', routeKey = '', pulse = null, timer = null;
+  trigger.addEventListener('click', () => onInspect('conversation', trigger), options);
   const stopPulse = () => { pulse?.cancel(); pulse = null; clearTimeout(timer); timer = null; ribbon.removeAttribute('data-output-observed'); };
   const drawPulse = () => {
     stopPulse(); ribbon.dataset.outputObserved = 'true';
@@ -96,25 +88,19 @@ export function bindExecutionRibbon(root, { clock = () => Date.now() } = {}) {
   return {
     update(state) {
       const view = projectExecutionRibbon(state), changed = view.key !== key;
-      if (changed) { key = view.key; lastResponse = view.response; firstObservedOutput = null; stopPulse(); hide(); }
+      if (changed) { key = view.key; lastResponse = view.response; stopPulse(); }
       const markup = routeMarkup(view);
       if (markup !== routeKey) { routeKey = markup; find('[data-ribbon-route]').innerHTML = markup; }
       find('[data-ribbon-status]').textContent = view.statusLabel;
       trigger.setAttribute('aria-label', `${view.statusLabel}. ${view.model ? view.model + ' on ' + view.executors.map(node => node.label).join(' and ') : 'No executor assigned'}. Execution details`);
       ribbon.dataset.state = view.status;
       if (!changed && view.active && view.response.length > lastResponse.length && view.response.startsWith(lastResponse)) {
-        firstObservedOutput ??= clock(); drawPulse();
+        drawPulse();
       }
       if (!view.active || ['disconnected', 'recovering'].includes(view.status)) stopPulse();
       lastResponse = view.response;
-      const detail = detailMarkup(view);
-      if (detail !== detailKey) { detailKey = detail; find('[data-ribbon-facts]').innerHTML = detail; }
-      const events = [];
-      if (measured(view.attempt?.createdAt)) events.push([view.attempt.createdAt, 'Request created']);
-      if (firstObservedOutput !== null) events.push([firstObservedOutput, 'First output observed in this view']);
-      if (measured(view.attempt?.finishedAt)) events.push([view.attempt.finishedAt, view.statusLabel]);
-      find('[data-ribbon-timeline]').innerHTML = events.length ? events.map(([time, label]) => `<li><time>${escape(new Date(time).toLocaleTimeString())}</time> ${escape(label)}</li>`).join('') : '<li>No recorded events.</li>';
+
     },
-    dispose() { stopPulse(); disclosure.dispose(); controller.abort(); }
+    dispose() { stopPulse(); controller.abort(); }
   };
 }

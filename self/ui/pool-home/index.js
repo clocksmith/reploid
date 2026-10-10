@@ -6,7 +6,7 @@ import { resolveRtcConfig } from '../../pool/p2p-transport.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
 import { getRouteId, renderNav, updateChangesControl } from './shell-view.js';
 import { renderConversationWorkspace, bindConversationWorkspace } from './conversation-workspace.js';
-import { bindNetworkControls } from './network-controls.js';
+import { renderNetworkInspector, bindNetworkInspector } from './network-inspector.js';
 import { bindExecutionRibbon } from './execution-ribbon.js';
 import { bindThemeSelector } from './theme.js';
 import { bindPoolRouteControls } from './navigation.js';
@@ -17,7 +17,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   disposeWorkspace?.();
   let disposed = false, revision = 0, changesRevision = 0;
   let detachView = () => {}, detachRibbon = () => {}, disposeSpecialists = () => {};
-  let specialists, sharingView;
+  let specialists, sharingView, inspector;
   const viewState = {}, documentViewState = {};
   const theme = bindThemeSelector(mount);
   const refreshChanges = async () => {
@@ -43,7 +43,8 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   const render = async (options = {}) => {
     const current = ++revision;
     detachView(); detachView = () => {};
-    detachRibbon(); detachRibbon = () => {};
+    detachRibbon(); detachRibbon = () => {}; inspector?.dispose();
+    mount.querySelector('[data-shell-inspector]')?.remove();
     const routeId = getRouteId();
     document.documentElement.dataset.poolRouteId = routeId;
     document.body.dataset.poolRouteId = routeId;
@@ -52,7 +53,20 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     mount.querySelector('.pool-home').dataset.poolRouteId = routeId;
     mount.querySelector('.pool-primary-nav')?.remove();
     mount.querySelector('.pool-home').insertAdjacentHTML('afterbegin', renderNav(routeId));
-    const ribbon = bindExecutionRibbon(mount.querySelector('.pool-primary-nav'));
+    const inspectorRoot = document.createElement('div'); inspectorRoot.dataset.shellInspector = '';
+    inspectorRoot.innerHTML = renderNetworkInspector(); mount.querySelector('.pool-home').append(inspectorRoot);
+    inspector = bindNetworkInspector(inspectorRoot, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(),
+      loadSpecialized: async target => {
+        const operations = await import('./operation-sharing.js'); sharingView = operations;
+        target.innerHTML = operations.renderOperationSharing();
+        return operations.bindOperationSharing(target, host.operationSharing);
+      }
+    });
+    const ribbon = bindExecutionRibbon(mount.querySelector('.pool-primary-nav'), { onInspect: (section, opener) => inspector.open(section, opener) });
+    mount.querySelector('[data-open-network]').onclick = event => {
+      const settings = event.currentTarget.closest('details'); if (settings) settings.open = false;
+      inspector.open('participants', settings?.querySelector('summary') || event.currentTarget);
+    };
     const unsubscribeRibbon = host.chat.subscribe(state => ribbon.update(state));
     detachRibbon = () => { unsubscribeRibbon(); ribbon.dispose(); };
     theme.sync(); void refreshChanges();
@@ -60,22 +74,17 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     const bindNavigation = () => bindPoolRouteControls(mount, render);
     bindNavigation();
     try {
-      if (routeId === 'home') {
-        content.innerHTML = renderConversationWorkspace();
-        detachView = bindConversationWorkspace(content, host.chat, { getInviteUrl: () => host.swarm.getInviteUrl(), viewState });
+      if (routeId === 'home' || routeId === 'network') {
+        content.innerHTML = renderConversationWorkspace({ inspector: false });
+        detachView = bindConversationWorkspace(content, host.chat, { viewState, inspector });
+        if (routeId === 'network') inspector.open();
       } else {
         content.innerHTML = '<p role="status">Loading…</p>';
-        if (['network', 'improve'].includes(routeId)) {
+        if (routeId === 'improve') {
           const workView = await import('./work.js');
-          const operations = await import('./operation-sharing.js');
           if (disposed || current !== revision) return;
-          sharingView = operations;
-          content.innerHTML = routeId === 'network' ? workView.renderNetworkSurface() : workView.renderImproveSurface();
-          const detach = routeId === 'network'
-            ? bindNetworkControls(content.querySelector('[data-network-workspace]'), host.chat, { getInviteUrl: () => host.swarm.getInviteUrl() })
-            : workView.bindWorkSurface(content, host.work, { evolution: host.evolution, swarm: host.swarm });
-          const detachSharing = routeId === 'network' ? operations.bindOperationSharing(content, host.operationSharing) : () => {};
-          detachView = () => { detach(); detachSharing(); };
+          content.innerHTML = workView.renderImproveSurface();
+          detachView = workView.bindWorkSurface(content, host.work, { evolution: host.evolution, swarm: host.swarm });
         } else {
           const module = await import('./specialist-routes.js');
           if (disposed || current !== revision) return;
@@ -103,7 +112,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
   const dispose = () => {
     if (disposed) return;
     disposed = true; revision++; changesRevision++;
-    detachView(); detachRibbon(); theme.dispose(); disposeSpecialists();
+    detachView(); detachRibbon(); inspector?.dispose(); theme.dispose(); disposeSpecialists();
     window.removeEventListener('popstate', render); window.removeEventListener('pagehide', onPageHide); window.removeEventListener('pageshow', onPageShow);
     if (window.REPLOID_POOL_CONNECT_OPERATIONS === connectOperations) delete window.REPLOID_POOL_CONNECT_OPERATIONS;
     void host.close();

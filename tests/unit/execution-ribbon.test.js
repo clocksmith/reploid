@@ -44,10 +44,12 @@ describe('Execution ribbon evidence projection', () => {
     expect(projectExecutionRibbon(snapshot({ placement: 'local-webgpu' })).executors[0].id).toBe('requester');
     expect(projectExecutionRibbon(snapshot({ placement: 'peer-whole-request', peerId: 'executor' })).executors[0].id).toBe('executor');
   });
-  it('distinguishes disconnection, reconnection, and retries without changing completed histories', () => {
-    const state = snapshot(split, 'queued');
-    state.network.consumer.connectionState = 'disconnected'; expect(projectExecutionRibbon(state).status).toBe('disconnected');
-    state.network.consumer.connectionState = 'retrying'; expect(projectExecutionRibbon(state).status).toBe('recovering');
+  it('does not mistake discovery outages for execution failure, and identifies an explicit retry', () => {
+    const state = snapshot(split, 'executing');
+    state.network.consumer.connectionState = 'disconnected'; expect(projectExecutionRibbon(state).status).toBe('executing');
+    state.network.consumer.connectionState = 'retrying'; expect(projectExecutionRibbon(state).status).toBe('executing');
+    state.network.paused = true; expect(projectExecutionRibbon(state).status).toBe('executing');
+    state.activeThread.attempts[0].status = 'queued';
     state.network.consumer.connectionState = 'connected'; state.activeThread.attempts[0].retryOf = 'old';
     expect(projectExecutionRibbon(state).status).toBe('recovering');
     state.activeThread.attempts[0].status = 'completed'; expect(projectExecutionRibbon(state).status).toBe('completed');
@@ -57,19 +59,19 @@ describe('Execution ribbon evidence projection', () => {
 describe('Execution ribbon interactions', () => {
   let root, binding;
   afterEach(() => { binding?.dispose(); root?.remove(); vi.useRealTimers(); });
-  function mount() {
+  function mount(onInspect = () => {}) {
     root = document.createElement('div'); root.innerHTML = renderExecutionRibbon(); document.body.append(root);
-    binding = bindExecutionRibbon(root, { clock: () => 150 });
+    binding = bindExecutionRibbon(root, { onInspect });
   }
-  it('keeps focus quiet and reveals details on activation, closes with Escape, and keeps the timeline under Details', () => {
-    mount(); binding.update(snapshot(split));
-    const trigger = root.querySelector('[data-ribbon-trigger]'), panel = root.querySelector('[data-ribbon-details]');
-    trigger.focus(); expect(panel.hidden).toBe(true); trigger.click(); expect(panel.hidden).toBe(false); expect(trigger.getAttribute('aria-expanded')).toBe('true');
-    expect(panel.textContent).toContain('Not reported'); expect(panel.textContent).toContain('executor-A');
-    expect(panel.querySelector('details').open).toBe(false);
-    trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); expect(panel.hidden).toBe(true);
-    trigger.click(); expect(panel.hidden).toBe(false);
-    document.body.dispatchEvent(new Event('pointerdown', { bubbles: true })); expect(panel.hidden).toBe(true);
+  it('shows the assigned route and opens the shared inspector only on activation', () => {
+    const inspect = vi.fn(); mount(inspect); binding.update(snapshot(split));
+    const trigger = root.querySelector('[data-ribbon-trigger]');
+    expect(root.querySelector('[data-ribbon-route]').textContent).toContain('Test model');
+    expect(root.querySelectorAll('.execution-ribbon-node')).toHaveLength(3);
+    trigger.focus(); expect(inspect).not.toHaveBeenCalled();
+    trigger.click(); expect(inspect).toHaveBeenCalledWith('conversation', trigger);
+    binding.update(snapshot(null, 'queued'));
+    expect(root.querySelector('[data-ribbon-route]').textContent).toBe('');
   });
   it('pulses only for new observed output, not execution state, history selection, or unrelated updates', () => {
     vi.useFakeTimers(); mount(); const state = snapshot(split);
