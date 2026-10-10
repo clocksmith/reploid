@@ -354,6 +354,63 @@ test('one model executes cooperatively on discovered physical peers from selecti
         await save(); throw error;
       }
     };
+    const runReplacement = async recovered => {
+      const originalPlacement = recovered.attempts.at(-1).execution;
+      const bIndex = observations.findIndex(device => device.loads[0].descriptor.index === 1);
+      const bPage = [contributor, second][bIndex];
+      const bHost = isRemote(contributionHosts[bIndex]) ? remoteReplacement : contributionHosts[bIndex];
+      // Each executor separately authorizes redistribution of retained pieces.
+      for (const executor of [contributor, second]) {
+        await executor.locator('[data-toggle-file-contribution]').click();
+        await expect(executor.locator('[data-file-contribution-label]')).toHaveText('Sharing', { timeout: 60000 });
+      }
+      await seed.locator('[data-toggle-file-contribution]').click();
+      await expect(seed.locator('[data-file-contribution-label]')).toHaveText('Not sharing');
+      const context = await openApplicationContext(bHost); contexts.push(context);
+      if (process.env.REPLOID_E2E_RTC_CONFIG_FILE) {
+        const rtc = JSON.parse(await readFile(process.env.REPLOID_E2E_RTC_CONFIG_FILE, 'utf8'));
+        await context.addInitScript(config => { globalThis.REPLOID_POOL_RTC_CONFIG = config; }, rtc);
+      }
+      await context.route('https://huggingface.co/**', route => route.abort('internetdisconnected'));
+      const page = await context.newPage(); allPages.push(page);
+      page.on('request', request => { if (modelRequest(request.url())) contributorOrigins.push(request.url()); });
+      page.on('pageerror', error => errors.push(error.message));
+      const observation = { physicalHost: observations[bIndex].physicalHost, loads: [], steps: [], errors: [] };
+      replicaObservation = observation;
+      const cdp = await context.newCDPSession(page);
+      tokenObservers.push(await observeCooperativePage(cdp, observation, { captureCustody, captureLogits: false, onInput,
+        captureTokens: process.env.REPLOID_E2E_CAPACITY === '1', maxLogitSteps: 4096,
+        acceptStep: async identity => (await history(requester)).threads.find(thread => thread.id === identity.threadId)
+          ?.messages[0]?.content.includes('chooseQuote') }));
+      await cdp.send('Storage.overrideQuotaForOrigin', { origin: new URL(info.project.use.baseURL).origin,
+        quotaSize: executorQuotaMiB * 1024 * 1024 });
+      await page.goto(info.project.use.baseURL); await page.locator('[data-chat-workspace]').waitFor();
+      await openContribution(page);
+      await page.locator('[data-toggle-contribution]').click();
+      await expect(page.locator('[data-contrib-label]')).toHaveText('Ready', { timeout: 1800000 });
+      expect(observation.loads[0].descriptor.index).toBe(1);
+      const pinnedId = await sendNew('Reply with only the word Hello.'); await waitCompleted(pinnedId);
+      expect((await lastAttempt(pinnedId)).execution.participantB).toBe(originalPlacement.participantB);
+      const lostId = await sendNew('Count from one to twenty, one number per line.');
+      await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === lostId)
+        .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
+      const lostAt = Date.now(); await bPage.locator('[data-toggle-contribution]').click();
+      await expect.poll(async () => (await lastAttempt(lostId)).status).toBe('failed');
+      await expect(requester.locator('[data-model-control]')).toHaveAttribute('data-activity', 'ready');
+      await expect(requester.locator('[data-composer-send]')).toBeEnabled();
+      await requester.locator('[data-retry-attempt]').click(); await approve(requester); await waitCompleted(lostId);
+      const replacement = await lastAttempt(lostId);
+      expect(replacement.execution.participantA).toBe(originalPlacement.participantA);
+      expect(replacement.execution.participantB).not.toBe(originalPlacement.participantB);
+      expect((await history(requester)).threads.find(thread => thread.id === lostId).attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
+      expect(observation.loads).toHaveLength(1);
+      const replica = { observation, memory: await inspectExecutorMemory(page), recoveryMs: Date.now() - lostAt,
+        originalPlacement: { participantA: originalPlacement.participantA, participantB: originalPlacement.participantB },
+        replacementAttempt: replacement, originalSeedStoppedBeforeAcquisition: true };
+      completed = await history(requester);
+      await writeFile(info.outputPath('contributor-replacement.json'), JSON.stringify(replica, null, 2));
+      return replica;
+    };
     if (process.env.REPLOID_E2E_RECOVERY === '1') {
       // Keep the prepared pair and its caches alive across the focused restarts.
       // This is a diagnosis of contribution recovery, not full acceptance.
@@ -396,6 +453,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
         if (longRecovery) {
           await expect.poll(async () => (await lastAttempt(restart.interruptedThreadId)).status).toBe('failed');
           restart.interruptedAttempt = await lastAttempt(restart.interruptedThreadId);
+          restart.interruptedThread = (await history(requester)).threads.find(thread => thread.id === restart.interruptedThreadId);
         }
         restart.stopped = await snapshot(returning); await save();
         await returning.locator('[data-toggle-contribution]').click();
@@ -415,6 +473,11 @@ test('one model executes cooperatively on discovered physical peers from selecti
             restart.retryAttempt = await lastAttempt(restart.interruptedThreadId); await save();
             expect(restart.retryAttempt.id).not.toBe(restart.interruptedAttempt.id);
             expect(restart.retryAttempt.execution.stopReason).toBe('eos-token');
+            const retried = (await history(requester)).threads.find(thread => thread.id === restart.interruptedThreadId);
+            expect(retried.attempts.find(attempt => attempt.id === restart.interruptedAttempt.id)).toEqual(restart.interruptedAttempt);
+            const interruptedMessage = restart.interruptedThread.messages.find(message => message.id === restart.interruptedAttempt.responseId);
+            expect(interruptedMessage.content).not.toBe('');
+            expect(retried.messages.find(message => message.id === interruptedMessage.id)).toEqual(interruptedMessage);
           }
           const id = await sendNew('Return only the word YES.'); await waitCompleted(id);
           restart.thread = (await history(requester)).threads.find(thread => thread.id === id);
@@ -439,6 +502,9 @@ test('one model executes cooperatively on discovered physical peers from selecti
           restart.exception = { name: error.name, message: error.message };
           restart.failed = await snapshot(returning); await save(); throw error;
         }
+      }
+      if (longRecovery && replicaEnabled) {
+        receipt.replacement = await runReplacement(receipt.restarts.at(-1).thread); await save();
       }
       expect(requesterWeights).toEqual([]); expect(contributorOrigins).toEqual([]);
       return;
@@ -553,62 +619,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })),
       requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2));
-    let replica = null;
-    if (replicaEnabled) {
-      const originalPlacement = recovered.attempts.at(-1).execution;
-      const bIndex = observations.findIndex(device => device.loads[0].descriptor.index === 1);
-      const bPage = [contributor, second][bIndex];
-      const bHost = isRemote(contributionHosts[bIndex]) ? remoteReplacement : contributionHosts[bIndex];
-      // Each executor separately authorizes redistribution of retained pieces.
-      for (const executor of [contributor, second]) {
-        await executor.locator('[data-toggle-file-contribution]').click();
-        await expect(executor.locator('[data-file-contribution-label]')).toHaveText('Sharing', { timeout: 60000 });
-      }
-      await seed.locator('[data-toggle-file-contribution]').click();
-      await expect(seed.locator('[data-file-contribution-label]')).toHaveText('Not sharing');
-      const context = await openApplicationContext(bHost); contexts.push(context);
-      if (process.env.REPLOID_E2E_RTC_CONFIG_FILE) {
-        const rtc = JSON.parse(await readFile(process.env.REPLOID_E2E_RTC_CONFIG_FILE, 'utf8'));
-        await context.addInitScript(config => { globalThis.REPLOID_POOL_RTC_CONFIG = config; }, rtc);
-      }
-      await context.route('https://huggingface.co/**', route => route.abort('internetdisconnected'));
-      const page = await context.newPage(); allPages.push(page);
-      page.on('request', request => { if (modelRequest(request.url())) contributorOrigins.push(request.url()); });
-      page.on('pageerror', error => errors.push(error.message));
-      const observation = { physicalHost: observations[bIndex].physicalHost, loads: [], steps: [], errors: [] };
-      replicaObservation = observation;
-      const cdp = await context.newCDPSession(page);
-      tokenObservers.push(await observeCooperativePage(cdp, observation, { captureCustody, captureLogits: false, onInput,
-        captureTokens: process.env.REPLOID_E2E_CAPACITY === '1', maxLogitSteps: 4096,
-        acceptStep: async identity => (await history(requester)).threads.find(thread => thread.id === identity.threadId)
-          ?.messages[0]?.content.includes('chooseQuote') }));
-      await cdp.send('Storage.overrideQuotaForOrigin', { origin: new URL(info.project.use.baseURL).origin,
-        quotaSize: executorQuotaMiB * 1024 * 1024 });
-      await page.goto(info.project.use.baseURL); await page.locator('[data-chat-workspace]').waitFor();
-      await openContribution(page);
-      await page.locator('[data-toggle-contribution]').click();
-      await expect(page.locator('[data-contrib-label]')).toHaveText('Ready', { timeout: 1800000 });
-      expect(observation.loads[0].descriptor.index).toBe(1);
-      const pinnedId = await sendNew('Reply with only the word Hello.'); await waitCompleted(pinnedId);
-      expect((await lastAttempt(pinnedId)).execution.participantB).toBe(originalPlacement.participantB);
-      const lostId = await sendNew('Count from one to twenty, one number per line.');
-      await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === lostId)
-        .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
-      const lostAt = Date.now(); await bPage.locator('[data-toggle-contribution]').click();
-      await expect.poll(async () => (await lastAttempt(lostId)).status).toBe('failed');
-      await expect(requester.locator('[data-model-control]')).toHaveAttribute('data-activity', 'ready');
-      await expect(requester.locator('[data-composer-send]')).toBeEnabled();
-      await requester.locator('[data-retry-attempt]').click(); await approve(requester); await waitCompleted(lostId);
-      const replacement = await lastAttempt(lostId);
-      expect(replacement.execution.participantA).toBe(originalPlacement.participantA);
-      expect(replacement.execution.participantB).not.toBe(originalPlacement.participantB);
-      expect((await history(requester)).threads.find(thread => thread.id === lostId).attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
-      expect(observation.loads).toHaveLength(1);
-      replica = { observation, memory: await inspectExecutorMemory(page), recoveryMs: Date.now() - lostAt,
-        originalPlacement: { participantA: originalPlacement.participantA, participantB: originalPlacement.participantB },
-        replacementAttempt: replacement, originalSeedStoppedBeforeAcquisition: true };
-      completed = await history(requester);
-    }
+    const replica = replicaEnabled ? await runReplacement(recovered) : null;
     await runCapacityControls();
     const allocations = observations.map(device => device.loads[0]);
     const manifest = JSON.parse(await readFile(path.join(directory, 'manifest.json'), 'utf8'));
