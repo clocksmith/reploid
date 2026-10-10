@@ -13,12 +13,14 @@ transport or scientific interpretation. Requests candidate transfer/evaluation/a
 This tree.
 
 ## Contracts
-Inputs: [runtime](../../pool/CATSCAN.md), deterministic [room state](room-projection.js).
-Outputs: [markup](view.js), [Room-1](room-view.js).
+Inputs: [conversation and execution state](../../../packages/reploid/src/chat/CATSCAN.md),
+[host composition](../../host/CATSCAN.md), [runtime](../../pool/CATSCAN.md),
+and separately scoped deterministic [room state](room-projection.js).
+Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1](room-view.js).
 
 ## Invariants
 
-- Monochrome, shallow depth; prismatic navigation/model/focus accents. Motion reflects readiness/execution; respect reduced motion. Concise controls; no banners, slogans or preset-prompt grids.
+- Monochrome, shallow depth; prismatic navigation/model/focus accents. Animate observed events only; idle readiness stays still and discovery never implies execution. Respect reduced motion. Concise controls; no banners, slogans or preset-prompt grids.
 - Preserve Reploid/Poolday identities, shared components/tokens, aligned gutters,
   accessible themes/responsive scrolling. Activities prescribe no navigation hierarchy.
 - Link tasks/helpers/jobs/results/candidates; show observed states and missing admission/evaluators.

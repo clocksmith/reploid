@@ -22,6 +22,7 @@ Compose existing custody and whole-request jobs; file possession grants no execu
 - Stream updates bind thread/attempt. Retries create new attempts, never append to old generations.
 - Restore history and mark unfinished attempts interrupted; never silently resend.
 - Permissions precede placement. Model and adapter identity remain exact.
+- Prepared peer execution does not require requester weights; contribution preparation is separate.
 - Explicit reusable disclosure grants bind verified recipient, mesh, thread, model,
   adapters and scope. Persist before use; revocation cancels affected attempts and
   prevents reuse. Grants authorize no contribution, artifact supply, evaluation or adoption.

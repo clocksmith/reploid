@@ -7,7 +7,8 @@ peer-to-peer network of agents combines participating devices' model storage,
 GPU memory, WebGPU computation, and problem-solving capabilities to solve useful
 problems and improve how individual agents and the swarm operate.
 Self-improvement is part of the goal itself. Independent operation remains
-possible; the collaborating network remains the product.
+possible; the collaborating network remains the product. Browser and native
+participants use the same library contracts, with host support qualified separately.
 
 Reploid coordinates and learns; Poolday connects participants and transfers
 authorized data; Doppler defines and executes model computations. Participants
@@ -43,11 +44,17 @@ browser library without inheriting a particular interface or credential system.
    Conversations are concurrent and independently owned: each thread retains its
    purpose, history, permissions and execution state. No global objective owns
    the workspace. Participants use models supplied by the mesh without needing
-   a complete model on every requesting device.
+   a complete model on every requesting device. Using an available prepared
+   execution path requires no requester weight downloads; contribution preparation
+   happens separately.
 5. Improve prompts, tools, planning, placement, caching, and the algorithms
    governing those decisions. Demonstrate independently evaluated improvements
    that transfer to unfamiliar subsequent tasks. Separately demonstrate causal
    recursion: B improves on A, and B's changed machinery contributes to producing C.
+
+Model capabilities include generation, retrieval and decision/scoring operations
+through Doppler. A semantic score or model judgment cannot grant permission,
+qualify execution or authorize adoption; those remain application/operator controls.
 
 ## Operating Loops
 
