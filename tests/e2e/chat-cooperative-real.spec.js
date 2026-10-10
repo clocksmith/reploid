@@ -184,7 +184,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     if (info.project.name === 'chromium') expect(adapterInfo.isFallbackAdapter).toBe(false);
     for (const page of [requester, contributor, seed, second]) {
       await page.locator('[data-chat-workspace]').waitFor();
-      await expect.poll(async () => parseInt(await page.locator('[data-mesh-peers]').textContent()), { timeout: 60000 }).toBeGreaterThanOrEqual(2);
+      await expect.poll(async () => parseInt(await page.locator('[data-toggle-inspector] [data-mesh-peers]').textContent()), { timeout: 60000 }).toBeGreaterThanOrEqual(2);
     }
     await expect(requester.locator('[data-composer-send]')).toBeDisabled();
     await expect(requester.locator('[data-mesh-invite]')).toBeHidden();

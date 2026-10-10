@@ -35,6 +35,7 @@ try {
   }
   await exec(process.execPath, ['scripts/vendor-doppler.js', archive], { cwd: root });
   await exec(process.execPath, ['scripts/sync-doppler-generation-contract.js'], { cwd: root });
+  await exec(process.execPath, ['scripts/sync-doppler-partition-contract.js'], { cwd: root });
   const configPath = resolve(root, 'self/pool/pool-config.json');
   const config = JSON.parse(await readFile(configPath));
   // This is an explicit dependency upgrade, not a qualification receipt. Every

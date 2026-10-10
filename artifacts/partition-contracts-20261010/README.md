@@ -33,4 +33,9 @@ cases) and `callback-browser.log` (authenticated browser conversation). Each
 attempt retains one awaited callback and bounded backpressure. GPU steps remain
 serialized; no stage-overlap or throughput improvement is claimed.
 
+The installed library check additionally passes without Doppler installed. Its
+optional-consumer partition declarations are generated from the installed public
+Doppler exports and checked against those exports; they are not a second authored
+contract. See [the complete installed report](../library-acceptance/2026-10-10T20-34-35-101Z/report.json), including the Verification Worker and browser consumer.
+
 *Last updated: October 2026*

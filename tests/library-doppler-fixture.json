@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "doppler-gpu": "0.6.1",
     "@webgpu/types": "0.1.72"
   },
   "reploidAcceptance": {
