@@ -86,7 +86,7 @@
     "test:design": "vitest run tests/unit/design-system-css.test.js tests/unit/poolday-css-layers.test.js tests/unit/zero-ui.test.js",
     "catscan:chain": "node scripts/verify-catscan.js --chain",
     "lint": "eslint .",
-    "verify:library-types": "tsc -p tsconfig.library.json",
+    "verify:library-types": "tsc -p tests/tsconfig.library.json",
     "verify:library-delivery": "node scripts/verify-layers.js",
     "verify:showcase-privacy": "node scripts/curate-showcase.js --check",
     "verify:retained-artifacts": "node scripts/restore-doppler-evidence.js --check"

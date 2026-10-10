@@ -51,6 +51,14 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 - **[docs/poolday/product-intent.md](./poolday/product-intent.md)** - Optional peer infrastructure, network proof, and separately scoped scientific workflows
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
+### Repository support files
+
+- [Governance details](GOVERNANCE_DETAILS.md) — supporting intent and acceptance constraints.
+- [Security audit policy](SECURITY_AUDIT.md) — cooperative self-audit scope and sanitized findings.
+- [Approved symbols](EMOJI.md) — presentation and documentation conventions.
+- [Primes example](../examples/primes.html) — standalone HTML example.
+- [Scoped repair utility](../scripts/repair_reploid.py) — historical guarded repair; inspect `--help` before use.
+
 ### Reference
 - **[Distributed conversation diagrams](./open-mesh-architecture.md#technical-diagrams)** - Component ownership, two-partition generation, and attempt recovery, linked to implementation.
 - **[Reploid–Doppler development docket and partition handoff](./doppler-partition-handoff.md)** - Current numerical and UI tasks, operating constraints, session API, ownership and scoped acceptance

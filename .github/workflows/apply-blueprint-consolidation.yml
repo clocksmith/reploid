@@ -44,7 +44,7 @@ jobs:
           cp -R /tmp/blueprint-bootstrap/overlay/. .
           rm -f migration-plan.json final-blueprint-rows.json
           rm -rf .blueprint-bootstrap-min2
-          rm -f .audit-source-link.md
+          rm -f .audit-source-link.md docs/audit-source-link.md
           rm -f .github/workflows/blueprint-audit-snapshot.yml
           rm -f .github/workflows/apply-blueprint-consolidation.yml
       - name: Refresh lockfile
