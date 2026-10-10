@@ -1,0 +1,60 @@
+{
+  "component": "Reploid cooperative lifecycle consuming standard Doppler 0.6.23",
+  "intent": "preserved",
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "scope": "One physical placement, Linux prefix and Mac suffix. Browser source drift recorded; combined acceptance failed",
+  "run": "2026-10-10T02-31-40-485Z",
+  "concurrent": {
+    "long": "completed",
+    "brief": "completed"
+  },
+  "cancellation": {
+    "bothExecutingBefore": [
+      "executing",
+      "executing"
+    ],
+    "target": "cancelled",
+    "survivor": "completed",
+    "sameSurvivorAttempt": true,
+    "survivorStop": "eos-token",
+    "reuse": "completed",
+    "reuseStop": "eos-token"
+  },
+  "contributorRestarts": [
+    {
+      "host": "mac",
+      "layerRange": [
+        4,
+        23
+      ],
+      "interruptedStatus": "failed",
+      "retry": "completed",
+      "retryStop": "eos-token",
+      "newAttemptId": true,
+      "fresh": "completed",
+      "freshStop": "eos-token",
+      "exception": null
+    },
+    {
+      "host": "linux-128",
+      "layerRange": [
+        0,
+        3
+      ],
+      "interruptedStatus": "failed",
+      "retry": "completed",
+      "retryStop": "eos-token",
+      "newAttemptId": true,
+      "fresh": "completed",
+      "freshStop": "eos-token",
+      "exception": null
+    }
+  ],
+  "requesterWeightRequests": [],
+  "contributorOriginRequests": [],
+  "capacity": "Both standalone model openings rejected within the 1,420,000,000-byte budget; one completion barrier each settled retained, active and deferred counts to zero",
+  "replacement": "Not exercised: current inspector opens Participants, leaving This device controls hidden to the older harness",
+  "qualityAcceptance": false,
+  "numericalAcceptance": "Not exercised by this model; the frozen 0.8B tolerance remains failed",
+  "boundaryEffects": "No arithmetic, precision, archive, frozen reference or deployment change; test-only navigation repair pending physical regression"
+}

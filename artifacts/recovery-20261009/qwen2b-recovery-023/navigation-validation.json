@@ -1,0 +1,14 @@
+{
+  "component": "Reploid physical integration harness",
+  "intent": "preserved",
+  "trigger": "A fresh page opens Participants in the current inspector, leaving contribution controls hidden",
+  "change": "Select the ordinary This device section before selecting a contribution model",
+  "syntaxPassed": true,
+  "browser": {
+    "command": "REPLOID_E2E_BASE_URL=http://localhost:18124 REPLOID_E2E_CHROMIUM_CHANNEL=chrome npx playwright test -c tests/playwright.config.js --project=chromium tests/e2e/network-changes-material.spec.js --grep 'network contribution and peers, light 390' --reporter=line",
+    "passed": 1,
+    "scope": "Scripted ordinary tab and contribution controls, no inference"
+  },
+  "physicalReplacementAcceptance": "pending against the integrated arithmetic candidate",
+  "boundaryEffects": "test-only navigation; browser package bytes unchanged"
+}
