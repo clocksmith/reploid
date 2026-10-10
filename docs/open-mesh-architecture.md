@@ -4,7 +4,8 @@
 
 These views trace the ordinary distributed conversation through the implementation
 at `1c8860f4`. They describe ownership and message flow, not a qualification result.
-The README contains the diagrams; their source owners and contracts remain here.
+The README contains component and recovery diagrams; the generation sequence,
+source owners and contracts remain here.
 The dated design and its original gap ledger remain below. Solid arrows in the
 component view are calls or data flow; dotted arrows supply observations.
 
@@ -32,7 +33,36 @@ This is the implemented two-partition path. Reploid on contributor A coordinates
 steps; Doppler on B owns sampling, text decoding, and stopping. A whole-request
 peer invocation is a different path through the same chat execution adapter.
 
-[View this diagram in the README.](../README.md#preparation-and-the-generation-loop)
+```mermaid
+sequenceDiagram
+    participant U as Requester / chat
+    participant A as Contributor A / first layers
+    participant B as Contributor B / remaining layers
+    participant S as Authorized piece suppliers
+    Note over A,S: Preparation requires explicit contribution permission
+    A->>S: Acquire assigned dependencies and declared shared pieces
+    S-->>A: Piece bytes, verified against pinned identities
+    A->>A: Doppler opens resident partition A
+    B->>S: Acquire partition B dependencies
+    S-->>B: Piece bytes, verified against pinned identities
+    B->>B: Doppler opens resident partition B
+    A-->>U: Advertise prepared path A + B
+    U->>U: Approve messages and recipient disclosure scope
+    U->>A: Bound request: thread, attempt, model, plan, participants
+    A->>A: Tokenize with Doppler, admit attempt and issue grants
+    A->>B: Open remote attempt with authorized token context
+    loop Prompt prefill, then one selected token per decode step
+        A->>A: Check grants and bounds, execute first layers
+        A->>B: Activation frame + token context + step identity
+        B->>B: Validate, execute remaining layers, sample and decode
+        B-->>A: Selected token, text delta, continuation, stop reason
+        A-->>U: Ordered text delta for this attempt
+        Note over A,B: Each executor retains its own attention/recurrent state
+    end
+    A->>B: Close this attempt and await settlement
+    A->>A: Close local attempt, retain reusable weights
+    A-->>U: Completion or explicit failure
+```
 
 The requester receives no weights on this path. Token context as well as
 activations can leave A; intermediate tensors are not a privacy guarantee.

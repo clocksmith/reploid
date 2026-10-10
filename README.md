@@ -17,7 +17,7 @@ and disclosure. These are product goals; qualification is recorded separately.
 The diagram illustrates partitioned execution; model availability, disclosure
 permissions, and qualified peers determine which requests can run. Reploid
 coordinates work; Doppler owns model computation; Poolday connects participants.
-[Technical diagrams: components, generation, recovery](#technical-architecture).
+[Technical diagrams: components and recovery](#technical-architecture).
 
 **[Try Reploid](https://replo.id/)** · [Run locally](#how-to-use-reploid)
 
@@ -141,42 +141,6 @@ flowchart TB
     class AUTO,DISC,PLACE,INPUT,RUN,RES mesh
     class FILES,NET data
     class DOP compute
-```
-
-### Preparation and the generation loop
-
-This is the implemented two-partition path: A executes the first layers; B runs
-the remaining layers, sampling and stopping. The requester receives no weights.
-
-```mermaid
-sequenceDiagram
-    participant U as Requester / chat
-    participant A as Contributor A / first layers
-    participant B as Contributor B / remaining layers
-    participant S as Authorized piece suppliers
-    Note over A,S: Preparation requires explicit contribution permission
-    A->>S: Acquire assigned dependencies and declared shared pieces
-    S-->>A: Piece bytes, verified against pinned identities
-    A->>A: Doppler opens resident partition A
-    B->>S: Acquire partition B dependencies
-    S-->>B: Piece bytes, verified against pinned identities
-    B->>B: Doppler opens resident partition B
-    A-->>U: Advertise prepared path A + B
-    U->>U: Approve messages and recipient disclosure scope
-    U->>A: Bound request: thread, attempt, model, plan, participants
-    A->>A: Tokenize with Doppler, admit attempt and issue grants
-    A->>B: Open remote attempt with authorized token context
-    loop Prompt prefill, then one selected token per decode step
-        A->>A: Check grants and bounds, execute first layers
-        A->>B: Activation frame + token context + step identity
-        B->>B: Validate, execute remaining layers, sample and decode
-        B-->>A: Selected token, text delta, continuation, stop reason
-        A-->>U: Ordered text delta for this attempt
-        Note over A,B: Each executor retains its own attention/recurrent state
-    end
-    A->>B: Close this attempt and await settlement
-    A->>A: Close local attempt, retain reusable weights
-    A-->>U: Completion or explicit failure
 ```
 
 ### Attempt failure and recovery
