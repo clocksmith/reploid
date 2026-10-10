@@ -103,6 +103,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
   const openContribution = async page => {
     const toggle = page.locator('[data-toggle-inspector]');
     if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click({ timeout: 30000 });
+    const deviceSection = page.locator('[data-inspector-section="device"]');
+    if (await deviceSection.count()) await deviceSection.click();
     const selection = page.locator('[data-contribution-model]');
     await expect(selection).toBeVisible({ timeout: 30000 });
     await selection.selectOption(model.id, { timeout: 30000 });

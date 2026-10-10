@@ -1,0 +1,36 @@
+{
+  "scope": "Bounded read-only task-quality review of the retained fictional document comparison; no generation rerun",
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "source": "document-comparison.json.gz",
+  "inputSource": "self/config/document-comparison-sample.json",
+  "execution": [
+    {
+      "status": "completed",
+      "stopReason": "eos-token"
+    },
+    {
+      "status": "completed",
+      "stopReason": "eos-token"
+    }
+  ],
+  "findings": [
+    {
+      "claim": "All three quotes exceed the $12,000 budget; Harbor is over by about $400",
+      "result": "incorrect",
+      "evidence": "Harbor fixed total is $11,600 including tax, leaving $400 before the stated budget; no extra scope is priced in the documents"
+    },
+    {
+      "claim": "Maple is over budget by about $1,200 and Cedar by about $1,450 due to excluded tax",
+      "result": "unsupported",
+      "evidence": "The documents supply no tax rate or priced electrical/plumbing changes. Their known subtotals are below $12,000; complete totals remain uncertain"
+    },
+    {
+      "claim": "Harbor electrical work over $800 cannot be obtained",
+      "result": "incorrect",
+      "evidence": "D2:P2 explicitly permits changes above the allowance with written approval"
+    }
+  ],
+  "qualityAcceptance": false,
+  "numericalCause": "unestablished; no identical unsplit task-quality comparison retained for this answer",
+  "boundaryEffects": "none; protected inputs and numerical reference unchanged; output not fed into a repair loop"
+}
