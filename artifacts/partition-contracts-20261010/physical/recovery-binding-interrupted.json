@@ -1,0 +1,69 @@
+{
+  "ok": false,
+  "failure": {
+    "phase": "contributor restart diagnostic",
+    "message": "Verification interrupted by SIGINT"
+  },
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "modelFixtureHost": "peer",
+  "conversationBaseUrl": "http://localhost:49260",
+  "conversationDeployment": null,
+  "conversationTarget": "isolated-loopback",
+  "scope": "Physical contributor restart diagnostic; other acceptance categories not exercised",
+  "documentWorkload": false,
+  "reverseHosts": false,
+  "referenceHost": null,
+  "probePrompt": null,
+  "probeStep": null,
+  "standaloneControls": false,
+  "frozenReferenceApplicable": false,
+  "numericalPolicy": "tracked",
+  "numerical": null,
+  "memory": [],
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "browserIdentity": "sha256:90a0409c346b55111148192e47e1669237bb451863d6a0d50b00f07bf4e16f28",
+  "peer": "x@128.tail995236.ts.net",
+  "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16",
+  "referenceSource": "/Users/xyz/deco/reploid/tests/fixtures/distributed-reference.json.gz",
+  "referenceBinding": null,
+  "generation": {
+    "maxTokens": 4096,
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 0,
+    "stopSequences": [],
+    "useChatTemplate": true,
+    "maxSeqLen": 8192
+  },
+  "maxGpuBufferBytes": 1420000000,
+  "bufferPool": {
+    "budget": {
+      "maxTotalBytes": 900000000,
+      "highWatermarkRatio": 0.9,
+      "emergencyTrimTargetRatio": 0.75,
+      "hardFailOnBudgetExceeded": false
+    }
+  },
+  "referenceGeneration": {
+    "maxTokens": 1024,
+    "maxSeqLen": 4096,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": true,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd"
+}

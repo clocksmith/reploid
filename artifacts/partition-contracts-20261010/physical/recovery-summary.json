@@ -1,0 +1,222 @@
+{
+  "physicalDevices": 2,
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "longRecovery": false,
+  "scope": "Real peer acquisition, greeting, contributor stop/reopen and subsequent generation; numerical qualification and complete application acceptance remain separate",
+  "restarts": [
+    {
+      "host": "mac",
+      "partition": 1,
+      "before": {
+        "phase": "Ready",
+        "error": "",
+        "retainedFiles": 77,
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 303850376,
+          "peakBytes": 497336720,
+          "allocations": 1730,
+          "rejected": 0,
+          "categories": {
+            "weights": 285497344,
+            "attention": 160,
+            "recurrent": 0,
+            "other": 18352872
+          }
+        }
+      },
+      "stopped": {
+        "phase": "Not sharing",
+        "error": "",
+        "retainedFiles": 77,
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 7840632,
+          "peakBytes": 497336720,
+          "allocations": 1730,
+          "rejected": 0,
+          "categories": {
+            "weights": 0,
+            "attention": 160,
+            "recurrent": 0,
+            "other": 7840472
+          }
+        }
+      },
+      "ready": {
+        "phase": "Ready",
+        "error": "",
+        "retainedFiles": 77,
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 301026440,
+          "peakBytes": 502353160,
+          "allocations": 1917,
+          "rejected": 0,
+          "categories": {
+            "weights": 285497344,
+            "attention": 160,
+            "recurrent": 0,
+            "other": 15528936
+          }
+        }
+      },
+      "retained": {
+        "phase": "Ready",
+        "error": "",
+        "retainedFiles": 163,
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 666346440,
+          "peakBytes": 862828944,
+          "allocations": 1701,
+          "rejected": 0,
+          "categories": {
+            "weights": 650989568,
+            "attention": 160,
+            "recurrent": 0,
+            "other": 15356712
+          }
+        }
+      },
+      "retainedAfter": {
+        "phase": "Ready",
+        "error": "",
+        "retainedFiles": 163,
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 666347048,
+          "peakBytes": 862828944,
+          "allocations": 1941,
+          "rejected": 0,
+          "categories": {
+            "weights": 650989568,
+            "attention": 176,
+            "recurrent": 0,
+            "other": 15357304
+          }
+        }
+      },
+      "attempts": [
+        {
+          "id": "0079023d-0287-4722-8b9a-2a66087581be",
+          "status": "completed",
+          "stopReason": "eos-token"
+        }
+      ],
+      "answer": "YES"
+    },
+    {
+      "host": "linux-128",
+      "partition": 0,
+      "before": {
+        "phase": "Ready",
+        "error": "",
+        "retainedFiles": 163,
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 666347048,
+          "peakBytes": 862828944,
+          "allocations": 1941,
+          "rejected": 0,
+          "categories": {
+            "weights": 650989568,
+            "attention": 176,
+            "recurrent": 0,
+            "other": 15357304
+          }
+        }
+      },
+      "stopped": {
+        "phase": "Not sharing",
+        "error": "",
+        "retainedFiles": 163,
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 4845080,
+          "peakBytes": 862828944,
+          "allocations": 1941,
+          "rejected": 0,
+          "categories": {
+            "weights": 0,
+            "attention": 176,
+            "recurrent": 0,
+            "other": 4844904
+          }
+        }
+      },
+      "ready": {
+        "phase": "Ready",
+        "error": "",
+        "retainedFiles": 163,
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 665618216,
+          "peakBytes": 866944936,
+          "allocations": 2128,
+          "rejected": 0,
+          "categories": {
+            "weights": 650989568,
+            "attention": 176,
+            "recurrent": 0,
+            "other": 14628472
+          }
+        }
+      },
+      "retained": {
+        "phase": "Ready",
+        "error": "",
+        "retainedFiles": 77,
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 303850952,
+          "peakBytes": 502353160,
+          "allocations": 2183,
+          "rejected": 0,
+          "categories": {
+            "weights": 285497344,
+            "attention": 176,
+            "recurrent": 0,
+            "other": 18353432
+          }
+        }
+      },
+      "retainedAfter": {
+        "phase": "Ready",
+        "error": "",
+        "retainedFiles": 77,
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 303850952,
+          "peakBytes": 502353160,
+          "allocations": 2410,
+          "rejected": 0,
+          "categories": {
+            "weights": 285497344,
+            "attention": 176,
+            "recurrent": 0,
+            "other": 18353432
+          }
+        }
+      },
+      "attempts": [
+        {
+          "id": "9c75de7a-be27-453a-8d97-4f24b455c28b",
+          "status": "completed",
+          "stopReason": "eos-token"
+        }
+      ],
+      "answer": "YES"
+    }
+  ]
+}

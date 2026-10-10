@@ -38,4 +38,28 @@ optional-consumer partition declarations are generated from the installed public
 Doppler exports and checked against those exports; they are not a second authored
 contract. See [the complete installed report](../library-acceptance/2026-10-10T20-34-35-101Z/report.json), including the Verification Worker and browser consumer.
 
+Physical evidence in `physical/` uses the same exact 0.6.27 archive:
+
+- `numerical-result.json`: both placements ran all 55 frozen prefixes; 56/110
+  historical comparisons fail 0.001, maximum 0.0018568038940429688. This is not
+  numerical qualification. Doppler's independent source-model control is retained
+  separately in its `artifacts/source-model-reference-20261010/` evidence.
+- `recovery-result.json`, `recovery-summary.json`, `contributor-restarts.json.gz`
+  and `recovery.log.gz`: actual Mac/Linux peer acquisition with executor model
+  origin blocked, greeting, both contributor stops/reopens, retained opposite
+  residents, and subsequent `YES` answers pass. Released weight allocations are
+  zero on each stopped contributor. This focused run excludes long documents,
+  concurrent conversations, interrupted generation and numerical acceptance.
+- The first recovery attempt failed on an obsolete ambiguous UI selector; its
+  result is retained. The next revealed the stale piece-index manifest binding
+  and was explicitly interrupted. `piece-binding.json` verifies all 277 original
+  SHA-256 pieces before the metadata-only repair; its before/after checks are
+  retained alongside the physical results.
+- `final-tests.log`: after all code changes, 271 test files and 2,956 tests pass;
+  29 tests retain their declared skips. Generated public contracts also pass
+  `npm run verify:doppler-generation`.
+
+The candidate has not been publicly deployed and full end-to-end numerical
+acceptance remains open.
+
 *Last updated: October 2026*
