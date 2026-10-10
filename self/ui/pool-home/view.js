@@ -1,8 +1,10 @@
+import { getPeerRoomId, getPeerRelayMode, getPeerRelayLabel, getPeerRoomBusFactory } from '../../host/product-context.js';
+export { getPeerRoomId, getPeerRelayMode, getPeerRelayLabel, getPeerRoomBusFactory };
+import { normalizeProductPath, getRouteId, isProductPath, renderNav, updateChangesControl, renderPowerTower } from './shell-view.js';
+export { getRouteId, isProductPath, renderNav, updateChangesControl };
 /**
  * @fileoverview Rendering and UI state helpers for the Poolday product home.
  */
-import { renderSettings } from './theme.js';
-import { renderExecutionRibbon } from './execution-ribbon.js';
 import { renderOperationSharing } from './operation-sharing.js';
 import { renderWorkSurface, renderNetworkSurface, renderImproveSurface } from './work.js';
 import { renderConversationWorkspace } from './conversation-workspace.js';
@@ -87,10 +89,6 @@ const POOLDAY_PROVIDER_HEALTH = {
   reputation: 'not_loaded'
 };
 
-export const getPeerRoomId = () => {
-  const params = new URLSearchParams(window.location.search || '');
-  return params.get('room') || window.REPLOID_POOL_ROOM_ID || DEFAULT_PEER_ROOM_ID;
-};
 
 export const getPoolRoomPanel = () => {
   const params = new URLSearchParams(window.location.search || '');
@@ -177,20 +175,6 @@ const ensureRecordLedgersLoaded = (roomId = getPeerRoomId()) => recordPersistenc
 const persistReceiptLedgerRows = (roomId = getPeerRoomId()) => recordPersistence.persistReceipts(roomId);
 const persistPeerLedgerEvents = (roomId = getPeerRoomId()) => recordPersistence.persistPeerEvents(roomId);
 
-export const getPeerRelayMode = () => {
-  const params = new URLSearchParams(window.location.search || '');
-  const configured = params.get('relay') || window.REPLOID_POOL_RELAY || 'server';
-  return configured === 'local' ? 'local' : 'server';
-};
-
-export const getPeerRelayLabel = () => (
-  getPeerRelayMode() === 'local' ? 'local tab' : 'server relay'
-);
-
-export const getPeerRoomBusFactory = () => createPeerRoomBusFactory({
-  sdk: getPeerRelayMode() === 'local' ? null : createPoolSdk({ authTokenProvider: null }),
-  relay: getPeerRelayMode()
-});
 
 export const getPeerDiscoveryWindowMs = () => {
   const explicit = Number(window.REPLOID_POOL_DISCOVERY_WINDOW_MS || 0);
@@ -760,12 +744,12 @@ export const refreshRecordLedgerState = (options = {}) => {
   refreshResearchRoomState(getRouteId());
 };
 
-let recordStorageSyncBound = false;
+let disposeRecordStorageSync;
 
 export const bindRecordStorageSync = () => {
-  if (recordStorageSyncBound || typeof window === 'undefined') return;
-  recordStorageSyncBound = true;
-  window.addEventListener('storage', (event) => {
+  if (typeof window === 'undefined') return () => {};
+  disposeRecordStorageSync?.();
+  const listener = (event) => {
     const keys = getPooldayRecordStorageKeys();
     if (
       event.key !== keys.receipts &&
@@ -775,7 +759,14 @@ export const bindRecordStorageSync = () => {
       return;
     }
     refreshRecordLedgerState({ reload: true });
-  });
+  };
+  window.addEventListener('storage', listener);
+  const dispose = () => {
+    window.removeEventListener('storage', listener);
+    if (disposeRecordStorageSync === dispose) disposeRecordStorageSync = null;
+  };
+  disposeRecordStorageSync = dispose;
+  return dispose;
 };
 
 const formatHealthValue = (value) => String(value ?? 'unknown').replace(/_/g, ' ');
@@ -902,15 +893,6 @@ const escapeHtml = (value) => String(value ?? '')
   .replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;');
 
-const normalizeProductPath = (path = window.location.pathname) => {
-  try {
-    const url = new URL(path || '/', window.location.origin);
-    if (url.origin !== window.location.origin || url.username || url.password) return null;
-    return url.pathname.replace(/\/+$/, '') || '/';
-  } catch { return null; }
-};
-export const getRouteId = () => PRODUCT_ROUTES[normalizeProductPath()] || 'home';
-export const isProductPath = (path) => Object.prototype.hasOwnProperty.call(PRODUCT_ROUTES, normalizeProductPath(path));
 
 const firstPresent = (...values) => values.find((value) => value !== undefined && value !== null && value !== '');
 
@@ -1540,38 +1522,6 @@ export const getPoolDashboardView = () => {
     return 'home';
   }
 };
-
-const renderPowerTower = (inverse = false) => `<span class="pool-power-tower" aria-hidden="true">${inverse ? '<span>7</span><sup>7</sup>' : '<sup>7</sup><span>7</span>'}</span>`;
-
-export const renderNav = (activeRoute) => {
-  const home = escapeHtml(roomHref('/', getPeerRoomId()));
-  const changes = POOLDAY_NAV_ROUTES.find(route => route.id === 'improve');
-  const changesPath = escapeHtml(roomHref(changes.path, getPeerRoomId()));
-  return `
-    <nav class="pool-nav-rail pool-primary-nav pool-surface" aria-label="${escapeHtml(POOLDAY_NAME)}">
-      <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home" href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
-      ${renderExecutionRibbon()}
-      <div class="pool-primary-actions">
-        ${renderSettings(renderPowerTower(true), `<a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count" data-pool-change-count aria-hidden="true" hidden></span></a>`)}
-      </div>
-    </nav>
-  `;
-};
-
-export function updateChangesControl(root, candidates) {
-  const control = root.querySelector('[data-pool-changes]');
-  if (!control) return;
-  const count = candidates.filter(item => item.status === 'awaiting-approval').length;
-  const badge = control.querySelector('[data-pool-change-count]');
-  badge.textContent = String(count); badge.hidden = count === 0;
-  control.dataset.reviewNeeded = String(count > 0);
-  const settings = root.querySelector('[data-pool-settings]');
-  if (settings) {
-    settings.querySelector('[data-pool-settings-review]').hidden = count === 0;
-    settings.querySelector('summary').setAttribute('aria-label', count ? `Settings: ${count} changes awaiting review` : 'Settings');
-  }
-  control.setAttribute('aria-label', count ? `Changes: ${count} awaiting review` : 'Changes');
-}
 
 export const renderActiveResearchRoom = (routeId = getRouteId()) => {
   const roomId = getPeerRoomId();

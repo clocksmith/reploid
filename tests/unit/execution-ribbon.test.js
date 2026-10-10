@@ -61,10 +61,10 @@ describe('Execution ribbon interactions', () => {
     root = document.createElement('div'); root.innerHTML = renderExecutionRibbon(); document.body.append(root);
     binding = bindExecutionRibbon(root, { clock: () => 150 });
   }
-  it('reveals details on keyboard focus and tap, closes with Escape, and keeps the timeline under Details', () => {
+  it('keeps focus quiet and reveals details on activation, closes with Escape, and keeps the timeline under Details', () => {
     mount(); binding.update(snapshot(split));
     const trigger = root.querySelector('[data-ribbon-trigger]'), panel = root.querySelector('[data-ribbon-details]');
-    trigger.focus(); expect(panel.hidden).toBe(false); expect(trigger.getAttribute('aria-expanded')).toBe('true');
+    trigger.focus(); expect(panel.hidden).toBe(true); trigger.click(); expect(panel.hidden).toBe(false); expect(trigger.getAttribute('aria-expanded')).toBe('true');
     expect(panel.textContent).toContain('Not reported'); expect(panel.textContent).toContain('executor-A');
     expect(panel.querySelector('details').open).toBe(false);
     trigger.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); expect(panel.hidden).toBe(true);

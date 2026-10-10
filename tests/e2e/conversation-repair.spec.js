@@ -22,8 +22,8 @@ async function installFixture(page) {
         execution: { peerId: 'peer-B' },
         approval: phase === 'approval' ? { id: 'preview-A', peerId: 'peer-B', input: 'Compare these two approaches.', expiresAt: Date.now() + 60000 } : null };
       const thread = { id: 'thread-A', model, purpose: 'Compare approaches', attempts: [attempt], messages: [
-        { role: 'user', content: 'Compare these two approaches.' },
-        { role: 'assistant', content: phase === 'completed' ? 'The first uses less memory. The second avoids repeated transfers.' : phase === 'active' ? 'Comparing memory use and transfer costs…' : '' }
+        { id: 'question-A', role: 'user', content: 'Compare these two approaches.' },
+        { id: 'reply-A', attemptId: 'attempt-A', role: 'assistant', content: phase === 'completed' ? 'The first uses less memory. The second avoids repeated transfers.' : phase === 'active' ? 'Comparing memory use and transfer costs…' : '' }
       ] };
       state = { models: [model], defaultModel: model, selectedId: phase === 'empty' ? null : thread.id,
         activeThread: phase === 'empty' ? null : thread, threads: phase === 'empty' ? [] : [thread],
@@ -40,6 +40,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto('/');
     await page.locator('[data-composer-input]').waitFor();
+    await page.locator('[data-pool-settings] summary').click();
     await page.locator(`[data-pool-theme-choice="${theme}"]`).click();
     await installFixture(page);
     for (const phase of ['empty', 'active', 'approval', 'completed']) {
@@ -51,12 +52,17 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
         return { nav: rect('.pool-primary-nav'), root: rect('[data-chat-workspace]'),
           sidebar: rect('[data-thread-sidebar]'), conversation: rect('[data-conversation-area]'),
           scroll: document.documentElement.scrollWidth, width: innerWidth,
-          depth: getComputedStyle(document.querySelector('[data-conversation-area]')).boxShadow };
+          depth: getComputedStyle(document.querySelector('[data-conversation-area]')).boxShadow,
+          headerControls: [...document.querySelectorAll('.chat-thread-header button, .chat-thread-header select')]
+            .map(node => node.getBoundingClientRect().toJSON()).filter(rect => rect.width && rect.height) };
       });
       expect(geometry.scroll).toBeLessThanOrEqual(geometry.width);
       expect(geometry.nav.left).toBe(geometry.root.left);
       expect(geometry.nav.width).toBe(geometry.root.width);
       expect(geometry.depth).not.toBe('none');
+      geometry.headerControls.forEach((a, index) => geometry.headerControls.slice(index + 1).forEach(b => {
+        expect(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top).toBe(true);
+      }));
       if (width > 760) {
         expect(geometry.sidebar.top).toBe(geometry.conversation.top);
         expect(geometry.sidebar.bottom).toBe(geometry.conversation.bottom);
@@ -137,8 +143,13 @@ test('browser host preserves files and followups across reload with injected exe
 });
 
 test('Verification Worker accepts repaired application modules', async ({ page }) => {
-  const paths = ['ui/pool-home/conversation-workspace.js', 'ui/pool-home/index.js', 'host/chat-session.js',
-    'config/doppler-local-models.js'];
+  const paths = [
+    ...['attachments', 'dialog', 'disclosure', 'model-select', 'permission-card'].map(name => `ui/components/${name}.js`),
+    ...['conversation-list', 'conversation-workspace', 'document-search', 'execution-ribbon', 'index', 'message-list',
+      'navigation', 'network-controls', 'shell-view', 'specialist-routes', 'theme', 'view', 'work', 'work-approval-panel']
+      .map(name => `ui/pool-home/${name}.js`),
+    ...['product-context', 'product-session', 'work-model-files', 'work-swarm'].map(name => `host/${name}.js`)
+  ];
   const snapshot = Object.fromEntries(await Promise.all(paths.map(async path => ['/' + path, await readFile('self/' + path, 'utf8')])));
   await page.goto('/');
   const result = await page.evaluate(snapshot => new Promise((resolve, reject) => {

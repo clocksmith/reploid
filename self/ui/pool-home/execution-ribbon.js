@@ -1,3 +1,4 @@
+import { bindDisclosure } from '../components/disclosure.js';
 /** Selected-attempt presentation only. Discovery never establishes an execution path. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const measured = value => Number.isFinite(value) && value >= 0;
@@ -37,11 +38,11 @@ export function projectExecutionRibbon(state) {
 export function renderExecutionRibbon() {
   return `<div class="execution-ribbon" data-execution-ribbon>
     <button class="execution-ribbon-trigger" type="button" aria-label="Execution path and details" aria-expanded="false" aria-controls="execution-ribbon-details" data-ribbon-trigger>
-      <span class="execution-ribbon-route" data-ribbon-route></span><span class="execution-ribbon-status" data-ribbon-status></span>
+      <span class="execution-ribbon-status" data-ribbon-status></span>
     </button>
     <section class="execution-ribbon-details pool-surface" id="execution-ribbon-details" aria-label="Execution details" data-ribbon-details hidden>
       <header><strong>Execution details</strong><button class="pool-button" type="button" data-ribbon-close>Close</button></header>
-      <div data-ribbon-facts></div>
+      <div class="execution-ribbon-route" data-ribbon-route></div><div data-ribbon-facts></div>
       <details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details>
     </section>
   </div>`;
@@ -78,16 +79,10 @@ export function bindExecutionRibbon(root, { clock = () => Date.now() } = {}) {
   const find = selector => ribbon.querySelector(selector);
   const trigger = find('[data-ribbon-trigger]'), panel = find('[data-ribbon-details]');
   const controller = new AbortController(), options = { signal: controller.signal };
-  let key = null, lastResponse = '', routeKey = '', detailKey = '', pulse = null, timer = null, suppressFocus = false;
+  let key = null, lastResponse = '', routeKey = '', detailKey = '', pulse = null, timer = null;
   let firstObservedOutput = null;
-  const show = () => { if (suppressFocus) return; panel.hidden = false; trigger.setAttribute('aria-expanded', 'true'); };
-  const hide = () => { panel.hidden = true; trigger.setAttribute('aria-expanded', 'false'); };
-  const close = () => { hide(); suppressFocus = true; trigger.focus(); suppressFocus = false; };
-  trigger.addEventListener('focus', show, options);
-  trigger.addEventListener('click', show, options);
-  find('[data-ribbon-close]').addEventListener('click', close, options);
-  ribbon.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); close(); } }, options);
-  ribbon.ownerDocument.addEventListener('pointerdown', event => { if (!ribbon.contains(event.target)) hide(); }, options);
+  const disclosure = bindDisclosure({ root: ribbon, trigger, panel, closeButton: find('[data-ribbon-close]') });
+  const hide = () => disclosure.setOpen(false);
   const stopPulse = () => { pulse?.cancel(); pulse = null; clearTimeout(timer); timer = null; ribbon.removeAttribute('data-output-observed'); };
   const drawPulse = () => {
     stopPulse(); ribbon.dataset.outputObserved = 'true';
@@ -120,6 +115,6 @@ export function bindExecutionRibbon(root, { clock = () => Date.now() } = {}) {
       if (measured(view.attempt?.finishedAt)) events.push([view.attempt.finishedAt, view.statusLabel]);
       find('[data-ribbon-timeline]').innerHTML = events.length ? events.map(([time, label]) => `<li><time>${escape(new Date(time).toLocaleTimeString())}</time> ${escape(label)}</li>`).join('') : '<li>No recorded events.</li>';
     },
-    dispose() { stopPulse(); controller.abort(); }
+    dispose() { stopPulse(); disclosure.dispose(); controller.abort(); }
   };
 }

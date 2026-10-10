@@ -1,15 +1,23 @@
+import { createConversationList } from './conversation-list.js';
+import { updateModelSelect } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
 import { renderSharingControls, renderConnectionControl, bindNetworkControls } from './network-controls.js';
-const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+import { escapeHtml as escape, renderAttachments, readTextAttachments } from '../components/attachments.js';
+import { bindDisclosure } from '../components/disclosure.js';
+import { bindDialog } from '../components/dialog.js';
+import { renderPermissionSummary, updatePermissionSummary } from '../components/permission-card.js';
+import { createMessageList } from './message-list.js';
 
 export function renderConversationWorkspace() {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
-    <aside class="chat-thread-sidebar pool-surface" data-thread-sidebar aria-label="Threads">
-      <header class="chat-sidebar-header"><h2>Threads</h2><button class="btn pool-button btn-ghost" type="button" data-new-thread>New thread</button></header>
+    <aside id="chat-threads" class="chat-thread-sidebar pool-surface" data-thread-sidebar aria-label="Threads">
+      <header class="chat-sidebar-header"><h2 id="chat-threads-title">Threads</h2><button class="pool-button chat-mobile-threads" type="button" data-close-threads>Close</button><button class="btn pool-button btn-ghost" type="button" data-new-thread>New thread</button></header>
       <div class="chat-thread-list" data-thread-list></div>
     </aside>
+    <dialog class="chat-thread-drawer pool-surface" data-thread-dialog aria-labelledby="chat-threads-title"></dialog>
     <section class="chat-conversation-area pool-surface" data-conversation-area aria-label="Current conversation">
       <header class="chat-thread-header" data-network-header>
+        <button class="pool-button chat-mobile-threads" type="button" data-open-threads>Threads</button>
         <div class="chat-thread-info">
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select></span>
           </div>
@@ -27,7 +35,7 @@ export function renderConversationWorkspace() {
       </section>
       <div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
-        <h2>Review before sending</h2><p>Other people’s computers will process what you share. Review the recipients and exact input below.</p><p data-approval-recipient></p><pre data-approval-payload></pre>
+        <h2>Review before sending</h2><p>Other people’s computers will process what you share.</p>${renderPermissionSummary()}
         <label><input type="checkbox" data-approval-consent> <span data-approval-description>Share this exact input with this peer as public data</span></label>
         <label data-approval-remember-label hidden><input type="checkbox" data-approval-remember> Also allow future messages and attached text in this thread to this recipient, using this model, until revoked</label>
         <div class="chat-network-actions"><button class="btn pool-button btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn pool-button btn-ghost" type="button" data-approval-decline>Decline</button></div>
@@ -38,14 +46,18 @@ export function renderConversationWorkspace() {
         <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="Ask a question…"></textarea></div>
         <div class="chat-composer-toolbar">
           <label class="btn pool-button btn-ghost chat-file-label pool-focus-within">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
-          <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
+          <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button">Actions</summary><div class="pool-surface">
+            <button class="pool-button chat-model-change" type="button" data-change-model hidden>Start a new conversation with another model</button>
+            <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
+            <button class="btn pool-button btn-ghost" type="button" data-model-setup>Run on this device</button>
+          </div></details>
           <div class="chat-composer-submit">
             <p class="chat-setup-hint" id="chat-model-status" data-model-status role="status" hidden></p>
             <button class="btn pool-button btn-primary" type="submit" data-composer-send>Send</button>
-            <button class="btn pool-button btn-primary" type="button" data-model-setup aria-describedby="chat-model-status" hidden>Download model</button>
+            <button class="btn pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button>
             <button class="btn pool-button btn-ghost" type="button" data-composer-stop hidden>Stop</button>
           </div>
-        </div><div class="chat-attachments" data-attachments-preview hidden></div>
+        </div><p class="chat-attachment-help">Text files: up to 8, 64 KB each, 128 KB total.</p><div class="chat-attachments" data-attachments-preview hidden></div>
       </form></footer>
       <dialog class="chat-model-setup pool-surface" data-model-dialog aria-labelledby="model-setup-title">
         <h2 id="model-setup-title">Run on this device</h2>
@@ -58,14 +70,28 @@ export function renderConversationWorkspace() {
   </section>`;
 }
 
-export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) {
+export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {} } = {}) {
   const container = root.querySelector('[data-chat-workspace]');
   if (!container || !session) return () => {};
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
   const disposeNetwork = bindNetworkControls(container, session, { getInviteUrl });
-  let files = [], fileRevision = 0, reading = false, approvalKey = '', messageKey = '', listKey = '', grantsKey = '';
+  let files = [], fileRevision = 0, reading = false, approvalKey = '', grantsKey = '';
+  viewState.positions ??= new Map(); viewState.seen ??= new Map();
+  const threads = createConversationList(find('[data-thread-list]'), viewState.seen);
+  const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions });
+  const networkPanel = bindDisclosure({ root: find('[data-conversation-area]'), trigger: find('[data-toggle-inspector]'),
+    panel: find('[data-contextual-inspector]'), closeButton: find('[data-close-inspector]') });
+  const actions = find('[data-conversation-actions]');
+  const actionsPanel = bindDisclosure({ root: actions, trigger: actions.querySelector('summary'), panel: actions.querySelector('div'), native: true });
+  const drawer = find('[data-thread-dialog]'), sidebar = find('[data-thread-sidebar]');
+  const threadDialog = bindDialog(drawer);
+  const closeThreads = () => { threadDialog.close(); container.prepend(sidebar); };
+  drawer.addEventListener('close', () => container.prepend(sidebar), options);
+  onResize();
+  function onResize() { if (globalThis.innerWidth > 760 && drawer.open) closeThreads(); }
+  globalThis.addEventListener('resize', onResize, options);
   const drafts = new Map();
   const persisted = session.getDraft?.(session.getState().selectedId);
   if (persisted) { input.value = persisted.text; files = persisted.files; }
@@ -80,14 +106,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   };
   const act = operation => Promise.resolve().then(operation).catch(error);
   const on = (selector, event, callback) => find(selector)?.addEventListener(event, callback, options);
-  const setNetworkOpen = open => {
-    find('[data-contextual-inspector]').hidden = !open;
-    find('[data-toggle-inspector]').setAttribute('aria-expanded', String(open));
-  };
-  const showFiles = () => {
-    const preview = find('[data-attachments-preview]'); preview.hidden = !files.length;
-    preview.innerHTML = files.map((file, index) => `<span>${escape(file.name)} <button type="button" class="btn pool-button btn-ghost" data-remove-file="${index}" aria-label="Remove ${escape(file.name)}">Remove</button></span>`).join('');
-  };
+  const showFiles = () => renderAttachments(find('[data-attachments-preview]'), files);
   const render = state => {
     if (controller.signal.aborted) return;
     if (selectedId !== state.selectedId) {
@@ -102,13 +121,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     }
     const current = keyFor(thread?.model) || (models.some(model => keyFor(model) === modelSelect.value) ? modelSelect.value : null)
       || keyFor(models.find(model => keyFor(model) === keyFor(state.defaultModel))) || keyFor(models[0]);
-    const catalog = JSON.stringify(models.map(model => [model.selectionId || model.id, model.name, model.availability]));
-    if (modelSelect.dataset.catalog !== catalog) {
-      modelSelect.innerHTML = models.length ? models.map(model => `<option value="${escape(model.selectionId || model.id)}">${escape(model.name)}${model.partition ? ' · split' : ''}${model.availability ? ' · ' + escape(model.availability) : ''}</option>`).join('')
-        : '<option value="">No models available</option>';
-      modelSelect.dataset.catalog = catalog;
-    }
+    updateModelSelect(modelSelect, models, { value: current, showAvailability: true });
     modelSelect.value = current || ''; modelSelect.disabled = !!thread || !models.length;
+    modelSelect.title = thread ? 'This conversation keeps its model. Choose Actions to start another.' : 'Choose a model';
+    find('[data-change-model]').hidden = !thread;
     const usable = thread?.permissions?.sharingScope === 'local'
       || models.some(model => keyFor(model) === current && ['ready', 'busy'].includes(model.availability));
     const modelStatus = find('[data-model-status]');
@@ -116,59 +132,25 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const preparing = state.localModel?.phase === 'loading';
     modelStatus.textContent = preparing ? 'Downloading model…' + (Number.isFinite(state.localModel.progress?.progress) ? ' ' + Math.round(state.localModel.progress.progress * 100) + '%' : '')
       : state.localModel?.error && !usable ? 'Download failed: ' + state.localModel.error
-      : usable ? '' : state.network?.paused ? 'Disconnected. Connect from Network to find models.'
+      : usable ? '' : state.network?.paused ? 'Disconnected. Reconnect to find available models.'
       : catalogModels.some(model => model.availability === 'loading') ? 'A contributor is loading a model…'
         : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding available models…'
-          : 'A model is needed to reply.';
+          : 'No model is available right now. Your draft stays here.';
     modelStatus.hidden = !modelStatus.textContent;
-    find('[data-model-control]').hidden = !usable;
+    find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
-    const threads = state.threads.filter(item => !item.closed);
-    const nextList = JSON.stringify([state.selectedId, threads.map(item => [item.id, item.purpose, item.messages.find(m => m.role === 'user')?.content, item.attempts.at(-1)?.status])]);
-    if (nextList !== listKey) {
-      listKey = nextList;
-      find('[data-thread-list]').innerHTML = threads.map(item => {
-        const title = item.purpose || item.messages.find(m => m.role === 'user')?.content || 'New thread';
-        const status = item.attempts.at(-1)?.status || '';
-        return `<button type="button" class="chat-thread-item" data-thread-item-id="${escape(item.id)}" aria-current="${item.id === state.selectedId ? 'true' : 'false'}"><span>${escape(title)}</span>${status && status !== 'completed' ? `<small>${escape(status)}</small>` : ''}</button>`;
-      }).join('');
-    }
+    threads.update(state.threads, state.selectedId);
     const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
-    find('[data-composer-send]').hidden = busy || !usable;
-    find('[data-model-setup]').hidden = busy || usable;
+    find('[data-composer-send]').hidden = busy;
+    find('[data-model-setup]').hidden = busy || !!thread?.model.partition || !!thread?.model.adapters?.length;
     find('[data-model-setup]').disabled = preparing;
-    find('[data-model-setup]').textContent = preparing ? 'Downloading…' : 'Download model'; find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
+    find('[data-model-setup]').textContent = preparing ? 'Downloading…' : 'Run on this device';
+    find('[data-retry-connection]').hidden = busy || usable || preparing || state.network?.connecting || ['connecting', 'retrying'].includes(networkState); find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
-    const stream = find('[data-message-stream]'), nextMessages = JSON.stringify([thread?.id, thread?.messages, usable, busy]);
-    if (nextMessages !== messageKey) {
-      const nearBottom = stream.scrollHeight - stream.scrollTop - stream.clientHeight < 80;
-      messageKey = nextMessages;
-      let passageTargets = new Map();
-      stream.innerHTML = (thread?.messages || []).map(m => {
-        const retryable = m.attemptId === attempt?.id && !busy && ['failed', 'cancelled', 'interrupted'].includes(m.status);
-        const source = m.role === 'user' && session.getDocumentSources?.(m.content);
-        let body = escape(m.content);
-        if (source) {
-          passageTargets = new Map();
-          body = escape(source.question.split('\n')[0]) + source.documents.map(document => `<details><summary>${escape(document.name)}</summary>`
-            + document.passages.map(passage => {
-              const anchor = `source-${m.id}-${passage.id.replace(':', '-')}`;
-              passageTargets.set(passage.id, anchor);
-              return `<p id="${escape(anchor)}" tabindex="-1"><strong>[${escape(passage.id)}]</strong> ${escape(passage.text)}</p>`;
-            }).join('') + '</details>').join('');
-        } else if (m.role === 'assistant') {
-          body = body.replace(/\[(D\d+:P\d+)\]/g, (label, id) => passageTargets.has(id)
-            ? `<a href="#${escape(passageTargets.get(id))}" data-source-reference>${label}</a>`
-            : `<span title="No supplied passage has this reference">${label}</span>`);
-        }
-        return `<article class="chat-message-row is-${m.role === 'user' ? 'user' : 'assistant'}"><span class="chat-message-author">${m.role === 'user' ? 'You' : 'Assistant'}</span><div class="chat-message-content">${body}</div>${retryable
-          ? `<button class="btn pool-button btn-ghost" type="button" data-retry-attempt="${escape(m.attemptId)}"${usable ? '' : ' disabled'}>Retry response</button><small>Starts a new attempt; keeps this response.</small>` : ''}</article>`;
-      }).join('');
-      if (nearBottom) stream.scrollTop = stream.scrollHeight;
-    }
-    const pending = attempt?.approval, key = pending ? thread.id + ':' + attempt.id + ':' + pending.id : '';
+    messages.update(thread, { usable, busy });
+    const pending = attempt?.approval, key = pending ? JSON.stringify([thread.id, attempt.id, pending]) : '';
     if (key !== approvalKey) {
       approvalKey = key; find('[data-approval-consent]').checked = false; find('[data-approval-remember]').checked = false;
     }
@@ -178,8 +160,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     find('[data-approval-remember-label]').hidden = !pending?.reusable;
     find('[data-chat-approval]').hidden = !pending;
     if (pending) {
-      find('[data-approval-recipient]').textContent = 'Peer ' + pending.peerId + ' · ' + (pending.modelId || thread.model.id);
-      find('[data-approval-payload]').textContent = JSON.stringify({ input: pending.input, options: pending.options, limits: pending.limits }, null, 2);
+      updatePermissionSummary(find('[data-chat-approval]'), {
+        recipient: `Recipient: Peer ${pending.peerId.slice(0, 8)} · ${thread.model.name || pending.modelId}`,
+        scope: pending.disclosure === 'partition-activations'
+          ? 'Model data derived from the input below leaves this device. Approval applies to this request.'
+          : 'The messages and attached text below leave this device. Approval applies to this request.',
+        input: pending.input,
+        technical: { recipient: pending.peerId, model: pending.modelId || thread.model.id, disclosure: pending.disclosure,
+          input: pending.input, options: pending.options, limits: pending.limits, expiresAt: pending.expiresAt, approvalId: pending.id }
+      });
     }
     find('[data-approval-send]').disabled = !pending || !find('[data-approval-consent]').checked;
     const grants = (thread?.grants || []).filter(grant => grant.revokedAt === null);
@@ -192,13 +181,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
       grantsKey = nextGrants;
       find('[data-thread-grants]').innerHTML = grants.map(grant => `<li>${escape(grant.recipientIdentity)} · ${escape(grant.modelId)} <button class="btn pool-button btn-ghost" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
     }
-    error(state.storageError || attempt?.error || '');
+    error(state.storageError || '');
 
   };
   const unsubscribe = session.subscribe(render);
   showFiles();
   let metadataController = null;
   const dialog = find('[data-model-dialog]');
+  const modelDialog = bindDialog(dialog);
   const checkDownload = async () => {
     metadataController?.abort();
     const request = metadataController = new AbortController();
@@ -218,14 +208,15 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const state = session.getState(), currentModel = state.activeThread?.model;
     const models = state.models.filter(model => !model.partition && !model.adapters?.length);
     const select = find('[data-download-model]');
-    select.innerHTML = models.map(model => `<option value="${escape(model.id)}">${escape(model.name)}</option>`).join('');
+    updateModelSelect(select, models);
     if (currentModel) select.value = currentModel.id;
     select.disabled = !!currentModel;
-    dialog.showModal();
+    actionsPanel.setOpen(false);
+    modelDialog.open(select, actions.querySelector('summary'));
     void checkDownload();
   });
   on('[data-download-model]', 'change', () => { void checkDownload(); });
-  on('[data-download-cancel]', 'click', () => dialog.close());
+  on('[data-download-cancel]', 'click', () => modelDialog.close());
   on('[data-model-dialog]', 'close', () => { metadataController?.abort(); });
   on('[data-download-confirm]', 'click', () => {
     const modelId = find('[data-download-model]').value;
@@ -233,13 +224,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     void act(() => session.prepareLocalModel(modelId));
   });
   on('[data-composer-input]', 'input', () => { try { saveDraft(); } catch (cause) { error(cause); } });
-  on('[data-new-thread]', 'click', () => { saveDraft(); session.select(null); input.focus(); });
-  on('[data-thread-list]', 'click', event => { const button = event.target.closest('[data-thread-item-id]'); if (button) { saveDraft(); session.select(button.dataset.threadItemId); } });
+  const newThread = () => { saveDraft(); actionsPanel.setOpen(false); session.select(null); if (drawer.open) closeThreads(); input.focus(); };
+  on('[data-new-thread]', 'click', newThread);
+  on('[data-change-model]', 'click', () => { newThread(); modelSelect.focus(); });
+  on('[data-open-threads]', 'click', () => { drawer.append(sidebar); threadDialog.open(sidebar.querySelector('[aria-current="true"]') || sidebar.querySelector('[data-new-thread]')); });
+  on('[data-close-threads]', 'click', closeThreads);
+  on('[data-retry-connection]', 'click', () => act(() => session.connect()));
+  on('[data-thread-list]', 'click', event => { const button = event.target.closest('[data-thread-item-id]'); if (button) { saveDraft(); session.select(button.dataset.threadItemId); if (drawer.open) closeThreads(); } });
   on('[data-composer-form]', 'submit', event => {
     event.preventDefault();
     const content = input.value.trim(), state = session.getState();
     if (!content || reading || state.runningIds.includes(state.selectedId)) return;
-    if (!find('[data-model-setup]').hidden) { find('[data-model-setup]').click(); return; }
     if (find('[data-composer-send]').disabled) return;
     act(async () => {
       const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value), attachments = files.map(file => ({ ...file }));
@@ -256,6 +251,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   });
   on('[data-composer-stop]', 'click', () => act(() => session.cancel(session.getState().selectedId)));
   on('[data-message-stream]', 'click', event => {
+    const copy = event.target.closest('[data-copy-message], [data-copy-code]');
+    if (copy) act(async () => {
+      const row = copy.closest('[data-message-id]');
+      const content = copy.hasAttribute('data-copy-code') ? copy.parentElement.querySelector('code').textContent
+        : session.getState().activeThread.messages.find(message => message.id === row.dataset.messageId).content;
+      await navigator.clipboard.writeText(content); copy.textContent = 'Copied';
+    });
     const button = event.target.closest('[data-retry-attempt]');
     if (button && !button.disabled) act(() => session.retry(session.getState().selectedId, button.dataset.retryAttempt));
   });
@@ -264,8 +266,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const revision = fileRevision; reading = true; render(session.getState());
     act(async () => {
       try {
-        if (chosen.length + files.length > 8 || chosen.some(file => file.size > 65536) || [...chosen, ...files].reduce((sum, file) => sum + (file.size ?? file.bytes), 0) > 131072) throw new Error('Attach up to 8 text files, 64 KB each and 128 KB total.');
-        const loaded = await Promise.all(chosen.map(async file => ({ name: file.name, bytes: file.size, text: await file.text() })));
+        const loaded = await readTextAttachments(chosen, files, { maxFiles: 8, maxFileBytes: 65536, maxTotalBytes: 131072,
+          extensions: ['txt', 'md', 'json', 'js', 'ts', 'html', 'css'] });
         if (controller.signal.aborted || revision !== fileRevision) return;
         files.push(...loaded); saveDraft(); showFiles();
       } finally { reading = false; if (!controller.signal.aborted) render(session.getState()); }
@@ -284,8 +286,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
     const target = document.getElementById(link.getAttribute('href').slice(1));
     if (target) { event.preventDefault(); target.closest('details').open = true; target.focus(); target.scrollIntoView({ block: 'nearest' }); }
   });
-  on('[data-toggle-inspector]', 'click', () => setNetworkOpen(find('[data-contextual-inspector]').hidden));
-  on('[data-close-inspector]', 'click', () => setNetworkOpen(false));
   const approve = accepted => act(() => {
     const thread = session.getState().activeThread, attempt = thread?.attempts.at(-1);
     if (attempt?.approval) session.approve(thread.id, attempt.id, attempt.approval.id, accepted,
@@ -300,7 +300,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl } = {}) 
   });
   return () => {
     metadataController?.abort();
-    if (dialog.open) dialog.close();
+    try { saveDraft(); } catch (cause) { error(cause); }
+    messages.dispose(); threads.dispose(); networkPanel.dispose(); actionsPanel.dispose(); modelDialog.dispose(); threadDialog.dispose();
     controller.abort(); fileRevision++; unsubscribe(); disposeNetwork();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';

@@ -1,3 +1,4 @@
+import { updatePermissionSummary } from '../components/permission-card.js';
 /**
  * Views request host actions; task execution and disclosure enforcement live in the host.
  * Refactored into decomposed sub-components within a centered reading layout.
@@ -109,7 +110,7 @@ export function bindWorkSurface(root, application, services = {}) {
   };
   const act = operation => { Promise.resolve().then(operation).catch(error); };
   let inputs = [], parentId = null, reading = false, fileRevision = 0, approvalId = null;
-  let historyIdentity = '', resultIdentity = '', lastState = null;
+  let historyIdentity = '', resultIdentity = '', approvalIdentity = '', lastState = null;
   let progressRecordId = null, progressBusy = false;
   let showSelected = true;
   const form = find('[data-work-form]');
@@ -209,14 +210,15 @@ export function bindWorkSurface(root, application, services = {}) {
     const approvalPanel = find('[data-work-approval]');
     if (approvalPanel) {
       approvalPanel.hidden = !pending;
-      if (pending && pending.id !== approvalId) {
+      const nextApproval = pending ? JSON.stringify(pending) : '';
+      if (pending && nextApproval !== approvalIdentity) {
         approvalId = pending.id;
         find('[data-work-public]').checked = false;
-        setText('[data-work-approval-identity]', pending.operation + ' / ' + pending.modelId
-          + '\nProvider: ' + pending.providerId + '\nExact model: ' + pending.modelIdentity
-          + '\nApproval expires: ' + new Date(pending.expiresAt).toLocaleTimeString());
-        setText('[data-work-approval-payload]', JSON.stringify({ input: pending.input, options: pending.options, limits: pending.limits }, null, 2));
+        updatePermissionSummary(approvalPanel, { recipient: `Recipient: Computer ${pending.providerId} · ${pending.modelId}`,
+          scope: `This exact input will be shared as public data. Approval expires ${new Date(pending.expiresAt).toLocaleString()}.`,
+          input: pending.input, technical: pending });
       }
+      approvalIdentity = nextApproval;
       if (!pending) approvalId = null;
       find('[data-work-send]').disabled = !pending || !find('[data-work-public]').checked;
     }

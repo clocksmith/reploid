@@ -16,13 +16,14 @@ describe('Conversation workspace', () => {
   });
   afterEach(async () => { dispose(); await session.close(); root.remove(); });
 
-  it('offers model setup while waiting for shared intelligence', () => {
+  it('keeps the composer and draft while network capacity is unavailable', () => {
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-active-model-select]').textContent).toBe('No models available');
-    expect(find('[data-model-status]').textContent).toBe('A model is needed to reply.');
+    expect(find('[data-model-status]').textContent).toBe('No model is available right now. Your draft stays here.');
     expect(find('[data-model-control]').hidden).toBe(true);
     expect(find('[data-model-setup]').disabled).toBe(false);
-    expect(find('[data-composer-send]').hidden).toBe(true);
+    expect(find('[data-composer-send]').hidden).toBe(false);
+    expect(find('[data-retry-connection]').hidden).toBe(false);
     expect(find('[data-contribution-model]').value).toBe(CANONICAL_CHAT_MODELS[1].id);
     expect(find('[data-contextual-inspector]').hidden).toBe(true);
     expect(find('[data-composer-input]').placeholder).toBeTruthy();
@@ -35,6 +36,7 @@ describe('Conversation workspace', () => {
     await vi.waitFor(() => expect(find('[data-download-confirm]').disabled).toBe(false));
     expect(find('[data-model-dialog]').open).toBe(true);
     expect(find('[data-download-size]').textContent).toBe('123 MB download');
+    expect(find('[data-download-model]').value).toBe(CANONICAL_CHAT_MODELS[1].id);
     expect(service.calls).toHaveLength(0);
     find('[data-download-confirm]').click();
     await vi.waitFor(() => expect(session.getState().localModel?.ready).toBe(true));
@@ -88,8 +90,8 @@ describe('Conversation workspace', () => {
     service.open = async () => { throw new Error('GPU unavailable'); };
     const thread = session.createThread({ sharingScope: 'local' });
     await session.send(thread, 'Hello');
-    expect(find('[data-chat-error]').hidden).toBe(false);
-    expect(find('[data-chat-error]').textContent).toBe('GPU unavailable');
+    expect(find('[data-message-stream]').textContent).toContain('This answer could not finish.');
+    expect(find('[data-message-stream] details').textContent).toContain('GPU unavailable');
     expect(find('[data-message-stream]').textContent).not.toContain('Executing via');
   });
 
@@ -191,5 +193,6 @@ describe('Conversation workspace', () => {
     find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
     expect(find('[data-composer-input]').value).toBe('Keep my draft');
     expect(session.getState().activeThread.attempts).toEqual([]);
+    expect(find('[data-model-dialog]').open).toBe(false);
   });
 });

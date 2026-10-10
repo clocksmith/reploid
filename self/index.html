@@ -38,7 +38,7 @@
       ]);
       const productRoute = productPaths.has(pathname);
       // Keep this synchronous boot list aligned with styles/poolday/layers.json.
-      const pooldayStylesheets = ["tokens.css", "primitives.css", "components.css", "components/materials.css", "components/conversation.css", "components/optical.css"];
+      const pooldayStylesheets = ["tokens.css", "primitives.css", "components.css", "components/materials.css", "components/conversation.css", "components/interaction.css", "components/optical.css"];
       const ensurePooldayStylesheet = () => {
         const version = encodeURIComponent(window.REPLOID_BUILD_VERSION || '');
         // Layer order is load order: tokens -> primitives -> components.

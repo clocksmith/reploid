@@ -1,3 +1,5 @@
+import { renderPermissionSummary, updatePermissionSummary } from '../components/permission-card.js';
+import { readTextAttachments } from '../components/attachments.js';
 import policy from '../../pool/document-search-policy.json' with { type: 'json' };
 
 export const renderDocumentSearch = () => `
@@ -44,8 +46,7 @@ export const renderDocumentSearch = () => `
         <textarea rows="3" maxlength="16384" data-document-share-task placeholder="Write a task using only public information"></textarea></label>
       <button type="button" class="btn btn-ghost" data-document-review-share disabled>Review task</button>
       <section data-document-share-preview hidden aria-label="Review what will be shared">
-        <p class="type-caption" data-document-share-recipient></p>
-        <pre data-document-share-text></pre>
+        ${renderPermissionSummary()}
         <label class="pool-consent-row"><input type="checkbox" data-document-share-consent>
           <span>This text is public and can be sent to this computer.</span></label>
         <button type="button" class="btn btn-primary pool-primary-action" data-document-send-share disabled>Send this task</button>
@@ -56,7 +57,10 @@ export const renderDocumentSearch = () => `
     <details class="pool-advanced" data-document-evidence hidden><summary>Job details</summary><pre></pre></details>
   </section>`;
 
+const displayedResults = new WeakMap();
 function renderMatches(root, result) {
+  if (displayedResults.has(root) && displayedResults.get(root) === result) return;
+  displayedResults.set(root, result);
   const list = root.querySelector('[data-document-results]');
   if (!list) return;
   list.replaceChildren();
@@ -120,20 +124,20 @@ export function refreshDocumentSearch(root, state) {
   preview.hidden = !sharing?.preview;
   if (sharing?.preview) {
     preview.dataset.previewId = sharing.preview.id;
-    surface.querySelector('[data-document-share-text]').textContent = sharing.preview.text;
-    surface.querySelector('[data-document-share-recipient]').textContent = `Computer ${sharing.preview.providerId} · ${sharing.preview.modelId}`;
+    updatePermissionSummary(preview, { recipient: `Recipient: Computer ${sharing.preview.providerId} · ${sharing.preview.modelId}`,
+      scope: 'Only this approved task leaves your device. Source documents stay here.', input: sharing.preview.text, technical: sharing.preview });
   }
   surface.querySelector('[data-document-send-share]').disabled = state.busy || !sharing?.preview
     || !surface.querySelector('[data-document-share-consent]').checked;
   renderMatches(surface, state.result);
 }
 
-export function bindDocumentSearch(root, workflow) {
+export function bindDocumentSearch(root, workflow, { viewState = {} } = {}) {
   const controller = new AbortController();
   let generation = 0;
   const listen = (selector, event, callback) => root.querySelector(selector)?.addEventListener(event, callback, { signal: controller.signal });
   const error = (cause) => {
-    if (!controller.signal.aborted) root.querySelector('[data-document-status]').textContent = cause.message;
+    if (!controller.signal.aborted && root.querySelector('[data-document-status]')) root.querySelector('[data-document-status]').textContent = cause.message;
   };
   listen('[data-document-configure]', 'click', async () => {
     const attempt = ++generation;
@@ -155,11 +159,8 @@ export function bindDocumentSearch(root, workflow) {
     try {
       const files = [...event.target.files];
       if (!files.length) return;
-      if (files.length > policy.maxDocuments || files.some((file) => file.size > policy.maxDocumentBytes)
-        || files.reduce((sum, file) => sum + file.size, 0) > policy.maxCorpusBytes) throw new Error('Document size limit exceeded');
-      if (files.some((file) => !/\.(txt|md)$/i.test(file.name))) throw new Error('Choose plain text or Markdown documents');
-      const documents = await Promise.all(files.map(async (file) => ({ name: file.name,
-        text: new TextDecoder('utf-8', { fatal: true }).decode(await file.arrayBuffer()) })));
+      const documents = await readTextAttachments(files, [], { maxFiles: policy.maxDocuments, maxFileBytes: policy.maxDocumentBytes,
+        maxTotalBytes: policy.maxCorpusBytes, extensions: ['txt', 'md'] });
       if (!controller.signal.aborted && attempt === generation) await workflow.setDocuments(documents);
     } catch (cause) { error(cause); }
   });
@@ -218,13 +219,33 @@ export function bindDocumentSearch(root, workflow) {
     }, { signal: controller.signal });
   }
   refreshDocumentSearch(root, workflow.getState());
+  const savedFields = ['query', 'rerank', 'answer', 'share-task'];
+  for (const name of savedFields) {
+    const field = root.querySelector(`[data-document-${name}]`);
+    if (field && name in viewState) field[field.type === 'checkbox' ? 'checked' : 'value'] = viewState[name];
+  }
+  const searchState = workflow.getState();
+  if (searchState.busy || searchState.result || viewState.showDocuments) {
+    const surface = root.querySelector('[data-document-search]');
+    if (surface) surface.hidden = false;
+    const form = root.querySelector('#pool-home-ask-form'); if (form) form.hidden = true;
+    const output = root.querySelector('[data-pool-run-output]'); if (output) output.hidden = true;
+    root.querySelectorAll('[data-pool-workflow]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.poolWorkflow === 'documents')));
+  }
   const query = root.querySelector('[data-document-query]');
-  if (query && workflow.getState().result) {
+  if (query && workflow.getState().result && !('query' in viewState)) {
     query.value = workflow.getState().result.query;
     root.querySelector('[data-document-rerank]').checked = workflow.getState().result.reranked;
     root.querySelector('[data-document-answer]').checked = Boolean(workflow.getState().result.answer);
   }
-  return () => { generation++; controller.abort(); };
+  return () => {
+    for (const name of savedFields) {
+      const field = root.querySelector(`[data-document-${name}]`);
+      if (field) viewState[name] = field[field.type === 'checkbox' ? 'checked' : 'value'];
+    }
+    viewState.showDocuments = root.querySelector('[data-document-search]')?.hidden === false;
+    generation++; controller.abort();
+  };
 }
 
 export function renderLocalDocumentHistory(root, state) {
