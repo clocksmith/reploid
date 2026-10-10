@@ -277,8 +277,7 @@ const WebRTCSwarm = {
             logger.warn('[WebRTCSwarm] Signaling failed:', error);
             _signalingWs = null;
             settle(false);
-            stopHeartbeat();
-            clearPeers();
+            discardSignalingRoutes();
             signalingWs.close();
             if (!_manualStop) scheduleReconnect(error?.retryAfterMs);
           };
@@ -342,10 +341,8 @@ const WebRTCSwarm = {
               return;
             }
             logger.warn('[WebRTCSwarm] Disconnected from signaling server');
-            stopHeartbeat();
-
-            // Clear peers so reconnect will re-dial
-            clearPeers();
+            _signalingWs = null;
+            discardSignalingRoutes();
 
             if (_manualStop) {
               setConnectionState('stopped');
@@ -440,8 +437,11 @@ const WebRTCSwarm = {
 
         case 'peer-left':
           logger.info(`[WebRTCSwarm] Peer left: ${message.peerId}`);
-          removePeer(message.peerId);
-          EventBus.emit('swarm:peer-left', { peerId: message.peerId });
+          // Directory presence does not determine direct channel liveness.
+          if (_peers.get(message.peerId)?.transport === 'signaling-relay') {
+            removePeer(message.peerId);
+            EventBus.emit('swarm:peer-left', { peerId: message.peerId });
+          }
           break;
 
         case 'offer':
@@ -693,6 +693,7 @@ const WebRTCSwarm = {
      */
     const registerRelayPeer = (remotePeerId, metadata = {}) => {
       const existingPeer = _peers.get(remotePeerId);
+      if (existingPeer?.dataChannel?.readyState === 'open') return existingPeer;
       if (existingPeer && existingPeer.transport === 'signaling-relay') {
         existingPeer.metadata = { ...existingPeer.metadata, ...metadata };
         existingPeer.lastSeen = Date.now();
@@ -736,10 +737,11 @@ const WebRTCSwarm = {
     /**
      * Remove all peers
      */
-    const clearPeers = () => {
-      for (const [peerId] of _peers) {
-        removePeer(peerId);
+    const discardSignalingRoutes = () => {
+      for (const [peerId, peer] of _peers) {
+        if (peer.transport === 'signaling-relay' || peer.dataChannel?.readyState !== 'open') removePeer(peerId);
       }
+      _pendingIceCandidates.clear();
     };
 
     /**
@@ -910,7 +912,7 @@ const WebRTCSwarm = {
       stopHeartbeat();
       _heartbeatTimer = setInterval(() => {
         // Send heartbeat to signaling
-        sendSignaling({
+        if (_signalingWs?.readyState === WebSocket.OPEN) sendSignaling({
           type: 'heartbeat',
           peerId: _peerId,
           roomId: _roomId
