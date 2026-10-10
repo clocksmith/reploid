@@ -135,6 +135,9 @@ test('one model executes cooperatively on discovered physical peers from selecti
           expect.soft(denial.memory.rejected).toBeGreaterThan(0);
           expect.soft(denial.memory.peakBytes).toBeLessThanOrEqual(denial.maxGpuBufferBytes);
           expect.soft(denial.pool.resources.retainedModel.count, 'Failed loading must release all model weights').toBe(0);
+          expect.soft(denial.pool.resources.active.count, 'Failed loading must release active buffers').toBe(0);
+          expect.soft(denial.pool.resources.deferredCleanup.count, 'Failed loading cleanup must settle').toBe(0);
+          expect.soft(denial.memory.categories.weights, 'Failed loading must destroy retired weights').toBe(0);
 
         } catch (error) {
           const failure = { hostIndex, exception: { name: error.name, message: error.message } };

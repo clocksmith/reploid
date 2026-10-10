@@ -21,6 +21,7 @@ export async function measureStandaloneDenial(page, model) {
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
     const runtime = await import(config.DOPPLER_PARTITIONS_MODULE_URL);
     const { createPipeline } = await import(new URL('./inference/pipelines/text.js', base).href);
+    const { getDevice } = await import(new URL('./gpu/device.js', base).href);
     const { getBufferPool } = await import(new URL('./memory/buffer-pool.js', base).href);
     const { createHttpArtifactStorageContext } = await import(new URL('./storage/artifact-storage-context.js', base).href);
     const bytes = await (await fetch(selected.source.baseUrl + 'manifest.json')).arrayBuffer();
@@ -37,9 +38,17 @@ export async function measureStandaloneDenial(page, model) {
         storage: createHttpArtifactStorageContext(selected.source.baseUrl, manifest, { verifyHashes: true }) });
     } catch (cause) { error = cause.message; }
     finally { await pipeline?.unload(); }
+    const immediateCleanup = { memory: runtime.inspectDeviceMemory(), pool: getBufferPool().getStats() };
+    const cleanupStarted = performance.now();
+    let cleanupBarriers = 0;
+    while (getBufferPool().getStats().resources.deferredCleanup.count > 0 && performance.now() - cleanupStarted < 10000) {
+      await getDevice().queue.onSubmittedWorkDone(); cleanupBarriers++;
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
     return { modelIdentity: identity, stage: 'opening',
       generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen }, maxSeqLen: policy.maxSeqLen, maxGpuBufferBytes: policy.maxGpuBufferBytes,
-      elapsedMs: performance.now() - started, error, memory: runtime.inspectDeviceMemory(), pool: getBufferPool().getStats() };
+      elapsedMs: performance.now() - started, error, immediateCleanup, cleanupBarriers,
+      memory: runtime.inspectDeviceMemory(), pool: getBufferPool().getStats() };
   }, model);
 }
 
