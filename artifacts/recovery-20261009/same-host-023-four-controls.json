@@ -1,0 +1,572 @@
+{
+  "scope": "Four native/partitioned controls on exact standard 0.6.23, frozen shared token IDs; not release acceptance",
+  "receipts": {
+    "mac": {
+      "path": "artifacts/distributed/2026-10-10T03-09-50-974Z/reference-mac-mac.json",
+      "sha256": "334fa1e2b947f8b3f27b0c8ef06cf28eb9af4e175d357b5ce46d71f58b4303ed",
+      "summary": {
+        "steps": 55,
+        "failed": 0,
+        "maxDifference": 0,
+        "tolerance": 0.001
+      },
+      "byteExact": true,
+      "partitionHosts": [
+        {
+          "index": 0,
+          "host": "mac"
+        },
+        {
+          "index": 1,
+          "host": "mac"
+        }
+      ],
+      "browser": [
+        "155.0.8059.39",
+        "155.0.8059.39"
+      ]
+    },
+    "linux": {
+      "path": "artifacts/distributed/2026-10-10T03-12-08-620Z/reference-linux-linux.json",
+      "sha256": "dcde4b4671c07368ef80e06ed4624493c0818f9b6044b9ea34ab51a6c789b06a",
+      "summary": {
+        "steps": 55,
+        "failed": 0,
+        "maxDifference": 0,
+        "tolerance": 0.001
+      },
+      "byteExact": true,
+      "partitionHosts": [
+        {
+          "index": 0,
+          "host": "linux"
+        },
+        {
+          "index": 1,
+          "host": "linux"
+        }
+      ],
+      "browser": [
+        "146.0.7680.177",
+        "146.0.7680.177"
+      ]
+    }
+  },
+  "comparisons": [
+    {
+      "attempt": 0,
+      "step": 0,
+      "inputTokens": 19,
+      "maxDifference": 0.0007073879241943359,
+      "maxDifferenceIndex": 87689,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 0,
+      "step": 1,
+      "inputTokens": 19,
+      "maxDifference": 0.0006079673767089844,
+      "maxDifferenceIndex": 2972,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 1,
+      "step": 0,
+      "inputTokens": 21,
+      "maxDifference": 0.0003534853458404541,
+      "maxDifferenceIndex": 36996,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 1,
+      "step": 1,
+      "inputTokens": 21,
+      "maxDifference": 0.0011115074157714844,
+      "maxDifferenceIndex": 3966,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 0,
+      "inputTokens": 184,
+      "maxDifference": 0.0006027817726135254,
+      "maxDifferenceIndex": 96741,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 1,
+      "inputTokens": 184,
+      "maxDifference": 0.00040841102600097656,
+      "maxDifferenceIndex": 11965,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 2,
+      "inputTokens": 184,
+      "maxDifference": 0.0006871223449707031,
+      "maxDifferenceIndex": 42803,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 3,
+      "inputTokens": 184,
+      "maxDifference": 0.0011315345764160156,
+      "maxDifferenceIndex": 57373,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 4,
+      "inputTokens": 184,
+      "maxDifference": 0.0008401870727539062,
+      "maxDifferenceIndex": 23934,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 5,
+      "inputTokens": 184,
+      "maxDifference": 0.0005784034729003906,
+      "maxDifferenceIndex": 8236,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 6,
+      "inputTokens": 184,
+      "maxDifference": 0.0005626678466796875,
+      "maxDifferenceIndex": 23934,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 7,
+      "inputTokens": 184,
+      "maxDifference": 0.0005655288696289062,
+      "maxDifferenceIndex": 72680,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 8,
+      "inputTokens": 184,
+      "maxDifference": 0.0008001327514648438,
+      "maxDifferenceIndex": 11400,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 9,
+      "inputTokens": 184,
+      "maxDifference": 0.0005748271942138672,
+      "maxDifferenceIndex": 183512,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 10,
+      "inputTokens": 184,
+      "maxDifference": 0.0005561113357543945,
+      "maxDifferenceIndex": 15813,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 11,
+      "inputTokens": 184,
+      "maxDifference": 0.0005564689636230469,
+      "maxDifferenceIndex": 280,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 12,
+      "inputTokens": 184,
+      "maxDifference": 0.0005053281784057617,
+      "maxDifferenceIndex": 53879,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 13,
+      "inputTokens": 184,
+      "maxDifference": 0.0007621049880981445,
+      "maxDifferenceIndex": 96822,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 14,
+      "inputTokens": 184,
+      "maxDifference": 0.0007653236389160156,
+      "maxDifferenceIndex": 3565,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 15,
+      "inputTokens": 184,
+      "maxDifference": 0.0006012916564941406,
+      "maxDifferenceIndex": 100887,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 16,
+      "inputTokens": 184,
+      "maxDifference": 0.0006041526794433594,
+      "maxDifferenceIndex": 4947,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 17,
+      "inputTokens": 184,
+      "maxDifference": 0.0011258125305175781,
+      "maxDifferenceIndex": 2617,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 18,
+      "inputTokens": 184,
+      "maxDifference": 0.0010185837745666504,
+      "maxDifferenceIndex": 6492,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 19,
+      "inputTokens": 184,
+      "maxDifference": 0.001475214958190918,
+      "maxDifferenceIndex": 428,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 20,
+      "inputTokens": 184,
+      "maxDifference": 0.000827401876449585,
+      "maxDifferenceIndex": 243068,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 21,
+      "inputTokens": 184,
+      "maxDifference": 0.0009963512420654297,
+      "maxDifferenceIndex": 232647,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 22,
+      "inputTokens": 184,
+      "maxDifference": 0.0010585784912109375,
+      "maxDifferenceIndex": 17,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 23,
+      "inputTokens": 184,
+      "maxDifference": 0.0005922317504882812,
+      "maxDifferenceIndex": 204993,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 24,
+      "inputTokens": 184,
+      "maxDifference": 0.0008344650268554688,
+      "maxDifferenceIndex": 18206,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 25,
+      "inputTokens": 184,
+      "maxDifference": 0.0006089210510253906,
+      "maxDifferenceIndex": 114789,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 26,
+      "inputTokens": 184,
+      "maxDifference": 0.000832676887512207,
+      "maxDifferenceIndex": 119,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 27,
+      "inputTokens": 184,
+      "maxDifference": 0.0014774799346923828,
+      "maxDifferenceIndex": 8792,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 28,
+      "inputTokens": 184,
+      "maxDifference": 0.0023164749145507812,
+      "maxDifferenceIndex": 116981,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 29,
+      "inputTokens": 184,
+      "maxDifference": 0.0012154579162597656,
+      "maxDifferenceIndex": 287,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 30,
+      "inputTokens": 184,
+      "maxDifference": 0.0011982917785644531,
+      "maxDifferenceIndex": 132322,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 31,
+      "inputTokens": 184,
+      "maxDifference": 0.0020732879638671875,
+      "maxDifferenceIndex": 199662,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 32,
+      "inputTokens": 184,
+      "maxDifference": 0.0005667209625244141,
+      "maxDifferenceIndex": 757,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 33,
+      "inputTokens": 184,
+      "maxDifference": 0.0006607770919799805,
+      "maxDifferenceIndex": 96169,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 34,
+      "inputTokens": 184,
+      "maxDifference": 0.0013785362243652344,
+      "maxDifferenceIndex": 29817,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 35,
+      "inputTokens": 184,
+      "maxDifference": 0.0007581710815429688,
+      "maxDifferenceIndex": 6799,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 36,
+      "inputTokens": 184,
+      "maxDifference": 0.0007958412170410156,
+      "maxDifferenceIndex": 80729,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 37,
+      "inputTokens": 184,
+      "maxDifference": 0.0007214546203613281,
+      "maxDifferenceIndex": 72507,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 38,
+      "inputTokens": 184,
+      "maxDifference": 0.000698089599609375,
+      "maxDifferenceIndex": 3631,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 39,
+      "inputTokens": 184,
+      "maxDifference": 0.0006608963012695312,
+      "maxDifferenceIndex": 17782,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 40,
+      "inputTokens": 184,
+      "maxDifference": 0.000812530517578125,
+      "maxDifferenceIndex": 19131,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 41,
+      "inputTokens": 184,
+      "maxDifference": 0.0005393028259277344,
+      "maxDifferenceIndex": 1973,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 42,
+      "inputTokens": 184,
+      "maxDifference": 0.0006504058837890625,
+      "maxDifferenceIndex": 97184,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 43,
+      "inputTokens": 184,
+      "maxDifference": 0.0005670785903930664,
+      "maxDifferenceIndex": 96691,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 44,
+      "inputTokens": 184,
+      "maxDifference": 0.0009179115295410156,
+      "maxDifferenceIndex": 140757,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 45,
+      "inputTokens": 184,
+      "maxDifference": 0.000728607177734375,
+      "maxDifferenceIndex": 12,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 46,
+      "inputTokens": 184,
+      "maxDifference": 0.0006604194641113281,
+      "maxDifferenceIndex": 79706,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 47,
+      "inputTokens": 184,
+      "maxDifference": 0.0010443031787872314,
+      "maxDifferenceIndex": 40985,
+      "matches": false,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 48,
+      "inputTokens": 184,
+      "maxDifference": 0.00098419189453125,
+      "maxDifferenceIndex": 8470,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 49,
+      "inputTokens": 184,
+      "maxDifference": 0.000812530517578125,
+      "maxDifferenceIndex": 62158,
+      "matches": true,
+      "tolerance": 0.001
+    },
+    {
+      "attempt": 2,
+      "step": 50,
+      "inputTokens": 184,
+      "maxDifference": 0.0011017322540283203,
+      "maxDifferenceIndex": 15184,
+      "matches": false,
+      "tolerance": 0.001
+    }
+  ],
+  "firstMaterialDifference": {
+    "attempt": 1,
+    "step": 1,
+    "inputTokens": 21,
+    "maxDifference": 0.0011115074157714844,
+    "maxDifferenceIndex": 3966,
+    "matches": false,
+    "tolerance": 0.001
+  },
+  "failed": 14,
+  "maxDifference": 0.0023164749145507812,
+  "next": "Capture the selected native operation boundaries; distinguish local identical-operand error from inherited/state error before a correction",
+  "package": {
+    "version": "0.6.23",
+    "archiveSha256": "14f95c3492b4db049c3083059f1340d02918f835caf4237aad5994227a006ab9",
+    "browserBundle": "sha256:746bebfde6a1a1dade7a68a4d882c7ebdea28b9efecf002bd68eb497ec74a98d",
+    "reploidSource": "f4d895af"
+  },
+  "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "retention": "Full original captures and all per-prompt compressed logits remain on the Mac; selected prompt 1 bytes and all-step summaries are committed here"
+}

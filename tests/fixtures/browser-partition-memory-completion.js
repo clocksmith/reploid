@@ -25,6 +25,12 @@ const referenceBytes = phase === 'reference' ? await readFile(process.env.REPLOI
 if (referenceBytes) assert.equal(createHash('sha256').update(referenceBytes).digest('hex'),
   '9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd');
 const reference = referenceBytes ? JSON.parse(referenceBytes) : null;
+const probePrompt = process.env.REPLOID_DIAGNOSTIC_PROMPT === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_PROMPT);
+const probeStep = process.env.REPLOID_DIAGNOSTIC_STEP === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_STEP);
+if (probePrompt !== null || probeStep !== null) {
+  assert(Number.isSafeInteger(probePrompt) && probePrompt >= 0 && Number.isSafeInteger(probeStep) && probeStep >= 0);
+  assert(reference?.expected[probePrompt]?.steps[probeStep], 'Selected frozen boundary is missing');
+}
 const generation = reference?.generation || { ...requests[0].model.generation, ...profile.generation, ...policy.generation,
   maxSeqLen: policy.maxSeqLen };
 assert(generation.maxTokens <= policy.limits.maxTokens);
@@ -35,7 +41,8 @@ const capacityModel = phase === 'capacity' ? JSON.parse(await readFile(new URL('
 if (phase === 'capacity') assert(capacityModel, 'Capacity diagnostic requires a catalog model');
 const cases = capacityModel ? [{ request: { ...requests[0], model: { ...capacityModel, generation } }, tokens: 494 }]
   : reference ? reference.prompts.map((messages, index) => ({
-  request: { ...requests[0], messages }, expected: reference.expected[index] })) : phase === 'repetition'
+  request: { ...requests[0], messages }, expected: reference.expected[index], referenceIndex: index }))
+    .filter(testCase => probePrompt === null || testCase.referenceIndex === probePrompt) : phase === 'repetition'
   ? [{ request: requests[0], tokens: 494 }, { request: requests[1], tokens: 1588 }, { request: requests[1], tokens: 1588 }]
   : [{ request: requests[1], tokens: 1588, cancel: true }, { request: requests[1], tokens: 1588 }];
 if (phase === 'cancel-only') cases.splice(1);
@@ -58,6 +65,8 @@ const evidence = { scope: reference
   : 'Installed package, exact local verified model bytes, two-browser partition memory acceptance; not P2P or numerical qualification',
   partitionHosts: hostNames.map((host, slot) => ({ index: reverse ? 1 - slot : slot, host })),
   tokenSequence: reference ? 'Frozen reference token IDs, with sampled tokens checked separately' : null,
+  observationTarget: probePrompt === null ? null : { prompt: probePrompt, step: probeStep,
+    scope: 'Selected from the retained four-control comparison; not necessarily the first frozen-reference failure' },
   requestFixtureSha256: createHash('sha256').update(raw).digest('hex'), phase, runs, descriptors };
 try {
   for (const [slot, browser] of hostBrowsers.entries()) {
@@ -179,12 +188,15 @@ try {
             const difference = Math.abs(actual[i] - baseline[i]);
             if (difference > maxDifference) { maxDifference = difference; maxDifferenceIndex = i; }
           }
-          if (!row.firstDivergence && (maxDifference > 0.001 || b.tokenId !== expected.tokenId
-            || b.stopReason !== expected.stopReason)) {
-            row.firstDivergence = { attempt, parameters, messages: request.messages, prefillTokenIds: tokenized.tokenIds, inputTokenIds: ids,
+          const selectedBoundary = probeStep !== null && step === probeStep;
+          if (selectedBoundary || (!row.firstDivergence && (maxDifference > 0.001 || b.tokenId !== expected.tokenId
+            || b.stopReason !== expected.stopReason))) {
+            const boundary = { attempt, referenceIndex: testCase.referenceIndex, parameters, messages: request.messages, prefillTokenIds: tokenized.tokenIds, inputTokenIds: ids,
               group0: { activation: a.activation, continuation: a.continuation },
               group1: { ...b }, frozen: expected, maxDifference, maxDifferenceIndex,
               tolerance: 0.001, priorTokenIds: row.numerical.map(item => item.tokenId) };
+            if (selectedBoundary) row.observationBoundary = boundary;
+            else row.firstDivergence = boundary;
             // Preserve the actual boundary before token/stopping assertions can fail.
             await writeFile(output, JSON.stringify(evidence));
           }
@@ -265,7 +277,8 @@ try {
     evidence.cleanupFailure = { message: error.message };
   }
   const completeControl = referenceHost && runs.length === cases.length && runs.every(row => row.completed);
-  const first = runs.find(row => row.firstDivergence)?.firstDivergence || (completeControl && {
+  const first = runs.find(row => row.observationBoundary)?.observationBoundary
+    || runs.find(row => row.firstDivergence)?.firstDivergence || (completeControl && {
     attempt: 0, parameters: { step: 0 }, messages: cases[0].request.messages,
     prefillTokenIds: distributedControls[0].tokenIds, priorTokenIds: [],
     group1: distributedControls[0].steps[0], frozen: cases[0].expected.steps[0] });
@@ -286,7 +299,8 @@ try {
           const { observeAttentionCache } = await import('../../../doppler/tests/fixtures/attention-cache-observer.js');
           diagnostic.captureHelperSha256 = createHash('sha256').update(observeAttentionCache.toString()).digest('hex');
           await observeAttentionCache(context, new URL('../../node_modules/doppler-gpu', import.meta.url).pathname,
-            linearCaptures, { linearOnly: true, captureCondition: 'globalThis.numericalObservation?.capture === true' });
+            linearCaptures, { ...(probePrompt === null ? { linearOnly: true } : { linearLayer: probeLayer }),
+              captureCondition: 'globalThis.numericalObservation?.capture === true' });
         }
         const page = await context.newPage();
         if (captureLinear) {
@@ -365,7 +379,8 @@ try {
                 generation, maxGpuBufferBytes, resolvedRuntimeSession: handle.advanced.getResolvedRuntimeSession(),
                 memory: runtime.inspectDeviceMemory() };
             }
-            globalThis.numericalObservation = { prompt: first.attempt, step: 0, capture: captureLinear };
+            globalThis.numericalObservation = { prompt: first.referenceIndex ?? first.attempt, step: 0,
+              capture: captureLinear && first.parameters.step === 0 };
             let result = await handle.advanced.prefillWithLogits(first.messages, { ...executionOptions, inputIds: tokenIds });
             globalThis.numericalObservation.capture = false;
             result.cache?.destroy();
@@ -404,6 +419,8 @@ try {
               // prefill and decode; the advanced decode method only returns logits.
               const sampledTokenIds = [];
               const specialTokens = handle.advanced.getSpecialTokens();
+              globalThis.numericalObservation = { prompt: first.referenceIndex ?? first.attempt, step: 0,
+                capture: captureLinear && first.parameters.step === 0 };
               probe = { sampledTokenIds, samplingExcludedTokenIds: [specialTokens.pad, ...executionOptions.suppressTokenIds]
                 .filter(tokenId => Number.isInteger(tokenId)),
                 observation: 'Public generation with command batching disabled; stop after the requested diagnostic step' };
@@ -413,6 +430,8 @@ try {
                 onLogits: (values, metadata) => {
                   if (sampledTokenIds.length === first.parameters.step) observedLogits = encode(values);
                   sampledTokenIds.push(metadata.tokenId);
+                  globalThis.numericalObservation.step = sampledTokenIds.length;
+                  globalThis.numericalObservation.capture = captureLinear && sampledTokenIds.length === first.parameters.step;
                 },
               })) {
                 if (sampledTokenIds.length > first.parameters.step) break;
@@ -446,7 +465,7 @@ try {
           } finally { await handle?.unload(); }
         }, { model: requests[0].model, source, first, generation, policy, captureLinear, probeLayer, referenceHost,
           controls: distributedControls.map(({ messages, tokenIds }, attempt) => ({ messages, tokenIds,
-            tokenIdsByStep: reference.expected[attempt].steps.map(step => step.tokenId) })) }));
+            tokenIdsByStep: cases[attempt].expected.steps.map(step => step.tokenId) })) }));
         if (referenceHost) {
           assert.equal(diagnostic.unsplitStepParity.length, distributedControls.reduce((count, control) => count + control.steps.length, 0));
           diagnostic.summary = { steps: diagnostic.unsplitStepParity.length,
