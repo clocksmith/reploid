@@ -97,51 +97,26 @@ name for every current Doppler artifact.
 
 ## Technical architecture
 
-These views trace source at `1c8860f4`. They describe the ordinary distributed
-conversation, not a qualification result. See the
+The component view follows source at `071616b0`. These diagrams describe the
+ordinary distributed conversation, not a qualification result. See the
 [architecture guide](docs/open-mesh-architecture.md#technical-diagrams) for source owners and details.
 
 ### Component ownership
 
-Solid arrows show calls or data flow; dotted arrows supply observations.
-Discovery, contribution, custody and input disclosure retain separate grants.
+The two-partition path has three cooperating flows: discover and admit a request,
+prepare only the assigned model pieces, then exchange activations and selected
+tokens until generation stops. Solid arrows carry work or data; dotted arrows
+report availability. Each executor retains its own generation state.
 
-```mermaid
-flowchart TB
-    UI["Conversation UI<br/>messages, drafts, disclosure, Stop"]
-    HOST["Product session<br/>application lifetime and host ports"]
-    CHAT["Chat workspace<br/>threads, attempts, grants, persistence"]
-    EXEC["Chat execution adapter<br/>local, whole-request, or partition path"]
-    AUTO["Automatic partitions<br/>contribution and prepared execution paths"]
-    DISC["Partition discovery<br/>expiring capability snapshots"]
-    PLACE["Placement<br/>compatible participants and plan"]
-    INPUT["Partition entry and chat<br/>input admission and scoped grants"]
-    RUN["Partition runner<br/>ordered steps and cancellation"]
-    RES["Resident owner<br/>reservations and attempt settlement"]
-    FILES["Model-file host + custody<br/>offers, grants, bounded transfers"]
-    DOP["Doppler public package<br/>verified pieces, dependencies, model math"]
-    NET["Poolday transport<br/>signaling, WebRTC, bounded delivery"]
-    UI --> HOST --> CHAT --> EXEC
-    EXEC -->|partition path| AUTO
-    DISC -.->|availability| AUTO
-    AUTO --> PLACE
-    PLACE -->|selected path| INPUT
-    INPUT --> RUN --> RES --> DOP
-    AUTO -->|approved contribution| RES
-    RES -->|host preparation port| FILES
-    FILES -->|verified storage port| DOP
-    DISC --> NET
-    FILES --> NET
-    RUN -->|activation frames and step replies| NET
-    classDef app fill:#ffffff,stroke:#111827,color:#111827
-    classDef mesh fill:#f3edff,stroke:#7c3aed,color:#111827
-    classDef data fill:#edf3ff,stroke:#2563eb,color:#111827
-    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
-    class UI,HOST,CHAT,EXEC app
-    class AUTO,DISC,PLACE,INPUT,RUN,RES mesh
-    class FILES,NET data
-    class DOP compute
-```
+![Ten Reploid components connect conversations, discovery, placement, verified piece custody, and two physical executors. Activations travel forward and selected tokens return through the generation loop.](docs/diagrams/technical-architecture.svg)
+
+[Open the diagram at full size](docs/diagrams/technical-architecture.svg).
+
+Model pieces travel to contributors, never to the requester on this path.
+[Poolday transport](packages/reploid/src/transport/) carries authorized peer
+messages and bytes. Reploid sequences the loop; Doppler owns layer computation,
+sampling, stopping, and valid continuation state. Stop closes the identified
+attempt on both executors; retained weights can serve later attempts.
 
 ### Attempt failure and recovery
 
