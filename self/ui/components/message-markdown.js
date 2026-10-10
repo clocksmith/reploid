@@ -79,6 +79,9 @@ function reconcile(parent, descriptions) {
   });
   while (parent.childNodes.length > descriptions.length) parent.lastChild.remove();
 }
+const rendered = new WeakMap();
 export function updateMessageMarkdown(body, value, targets = new Map()) {
-  reconcile(body, parse(String(value || ''), targets));
+  const key = JSON.stringify([value, [...targets]]);
+  if (rendered.get(body) === key) return;
+  reconcile(body, parse(String(value || ''), targets)); rendered.set(body, key);
 }

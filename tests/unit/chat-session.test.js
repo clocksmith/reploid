@@ -40,6 +40,25 @@ describe('Chat host with injected execution, not actual inference', () => {
     await restored.close();
   });
 
+  it('archives and renames during execution without aborting or losing drafts', async () => {
+    let release, signal;
+    const gate = new Promise(resolve => { release = resolve; });
+    const store = storage();
+    const session = createChatSession({ storage: store, service: createChatTestService(), scheduler: {
+      getState: () => ({}), close: async () => {},
+      async schedule(request, controls) { signal = controls.signal; await gate; return { content: 'Complete', model: request.model.id, modelIdentity: request.model.identity, adapterIdentities: [] }; }
+    } });
+    const id = session.createThread({ sharingScope: 'local', purpose: 'Instruction' });
+    const completion = session.send(id, 'Question');
+    session.saveDraft(id, { text: 'Next question', files: [] }); session.renameThread(id, 'New title'); session.archiveThread(id);
+    expect(signal.aborted).toBe(false); expect(session.getState().selectedId).toBeNull();
+    release(); expect((await completion).status).toBe('completed'); session.restoreThread(id);
+    expect(session.getDraft(id).text).toBe('Next question'); expect(session.getState().activeThread.title).toBe('New title');
+    expect(session.getState().activeThread.purpose).toBe('Instruction'); await session.close();
+    const restored = createChatSession({ storage: store, service: createChatTestService() });
+    expect(restored.getState().threads[0].title).toBe('New title'); await restored.close();
+  });
+
   it('shares the existing device queue and isolates thread histories', async () => {
     const service = createChatTestService(), session = createChatSession({ storage: null, service });
     const a = session.createThread({ sharingScope: 'local' }), b = session.createThread({ sharingScope: 'local' });

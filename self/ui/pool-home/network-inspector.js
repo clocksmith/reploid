@@ -16,7 +16,7 @@ export function renderNetworkInspector() {
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <h3>This conversation</h3><div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p>
-      <details><summary>Execution details</summary><div class="execution-inspector-facts" data-ribbon-facts></div></details>
+      <details><summary>Execution details</summary><div class="execution-inspector-facts" data-ribbon-facts></div><details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></details>
       <section data-thread-permissions hidden><h4>Current permissions</h4>
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
@@ -61,10 +61,14 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   }, options);
   on('[data-close-inspector]', 'click', () => dialog.close());
   const unsubscribe = session.subscribe(state => {
-    const view = projectExecutionRibbon(state), key = JSON.stringify([view.execution, view.status, view.model, view.attempt?.error, view.totalMs]);
+    const view = projectExecutionRibbon(state), key = JSON.stringify([view.execution, view.status, view.model, view.attempt?.id, view.attempt?.createdAt, view.attempt?.error, view.totalMs]);
     if (key !== executionKey) {
       executionKey = key; find('[data-inspector-route]').innerHTML = routeMarkup(view);
       find('[data-ribbon-facts]').innerHTML = detailMarkup(view);
+      const events = [];
+      if (Number.isFinite(view.attempt?.createdAt)) events.push(`Started ${new Date(view.attempt.createdAt).toLocaleTimeString()}`);
+      if (Number.isFinite(view.attempt?.finishedAt)) events.push(`${view.statusLabel} ${new Date(view.attempt.finishedAt).toLocaleTimeString()}`);
+      find('[data-ribbon-timeline]').innerHTML = events.map(event => `<li>${escape(event)}</li>`).join('') || '<li>No recorded attempt events.</li>';
     }
     find('[data-inspector-status]').textContent = view.statusLabel;
     const grants = (state.activeThread?.grants || []).filter(grant => grant.revokedAt === null);
@@ -84,6 +88,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     metadataController?.abort(); const request = metadataController = new AbortController();
     find('[data-download-confirm]').disabled = true; find('[data-download-size]').textContent = 'Checking download size…';
     try {
+      if (!find('[data-download-model]').value) throw new Error('No model is available to download.');
       const info = await session.getModelDownload(find('[data-download-model]').value, { signal: request.signal });
       if (request.signal.aborted || disposed) return;
       find('[data-download-size]').textContent = Math.ceil(info.sizeBytes / 1e6) + ' MB download'; find('[data-download-confirm]').disabled = false;
