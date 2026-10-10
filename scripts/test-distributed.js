@@ -20,6 +20,10 @@ const capacityDiagnostic = process.argv.includes('--capacity');
 const recoveryDiagnostic = process.argv.includes('--recovery');
 const numericalDiagnostic = process.argv.includes('--numerical-only');
 const reverseHosts = process.argv.includes('--reverse');
+const localConversation = process.argv.includes('--local');
+if (localConversation && process.env.REPLOID_E2E_BASE_URL) {
+  throw new Error('--local owns its isolated application endpoint; omit REPLOID_E2E_BASE_URL');
+}
 const documentWorkload = recoveryDiagnostic ? process.env.REPLOID_E2E_DOCUMENTS === '1'
   : process.env.REPLOID_E2E_DOCUMENTS !== '0';
 const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic && !recoveryDiagnostic;
@@ -27,7 +31,7 @@ const peer = process.env.REPLOID_TEST_PEER || 'x@128.tail995236.ts.net';
 const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || '/home/x/deco/reploid';
 // Exercise the hosted conversation's normal authentication and renewable RTC
 // credentials. Installed-package diagnostics retain their isolated local server.
-const conversationBaseUrl = process.env.REPLOID_E2E_BASE_URL || 'https://replo.id';
+let conversationBaseUrl = process.env.REPLOID_E2E_BASE_URL || 'https://replo.id';
 const modelDirectory = process.env.DOPPLER_CHAT_MODEL_DIR
   || resolve(root, `../doppler/models/local/${modelId}`);
 const referenceSource = process.env.DOPPLER_PARTITION_REFERENCE_OUT
@@ -126,6 +130,9 @@ try {
   }
   for (const shard of model.shards) await access(resolve(modelDirectory, shard.filename || shard.file));
   const port = await freePort();
+  // Both hosts reach this same server through the owned SSH tunnel. Separate
+  // loopback servers create separate signaling pools, even with matching bytes.
+  if (localConversation) conversationBaseUrl = `http://localhost:${port}`;
   const socketPort = await freePort();
   const modelPort = await freePort();
   phase = 'physical peer application and browser';
@@ -321,6 +328,7 @@ try {
 
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId, modelFixtureHost,
     conversationBaseUrl, conversationDeployment,
+    conversationTarget: localConversation ? 'isolated-loopback' : 'configured-host',
     scope: numericalDiagnostic ? 'Installed-package numerical diagnostic in both physical placements; application acceptance not exercised'
       : recoveryDiagnostic ? 'Physical contributor restart diagnostic; other acceptance categories not exercised'
       : capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
