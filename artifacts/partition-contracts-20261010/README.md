@@ -76,7 +76,37 @@ about all physical GPU/process memory. The memory run uses installed public
 resident APIs rather than application coordination and does not establish
 numerical qualification.
 
-The candidate has not been publicly deployed and full end-to-end numerical
-acceptance remains open.
+The opposite application placement was also exercised, but its extended acceptance
+**fails**. `application-reverse-acquisition-failure.json` and the corresponding
+compressed state retain the first attempt: the Mac lost its seed/executor peer
+connections during acquisition while the seed remained Sharing. The cause of
+that peer loss is not established; it is not relabeled as a clean run.
+
+A retry with browser warning capture completes peer acquisition, greeting and
+two concurrent conversations. It then fails the cancellation-isolation survivor's
+EOS requirement. The other conversation is cancelled, but the survivor generates
+repetitive text until Doppler rejects its 16,000-character output allocation.
+The receiver's exact error is in `application-reverse-generation-state.json.gz`;
+the ordinary client reports `Partition peer declined or failed request`.
+The raw result, log and conversation-isolation failure are retained in `physical/`.
+Document reuse and extended contributor-retry checks were not reached in this run.
+
+The independent-of-coordination control in `count-unsplit-control-summary.json`
+and its complete compressed receipt runs the same installed package, model bytes,
+prompt and generation settings without a companion conversation or cancellation.
+All 15,997 distributed output characters match its prefix exactly. The unsplit
+control continues to 4,096 tokens / 16,821 characters and stops at max-tokens,
+not EOS. This rules out cancellation as a necessary cause of this repetition;
+it does not distinguish model capability from shared runtime arithmetic.
+`count-unsplit-control.js` preserves the executed local diagnostic (workspace paths
+are explicit). It uses a separate 6 GB GPU-buffer allowance for the whole model
+and makes no application-capacity or performance claim. The application limits,
+original counting prompt, historical numerical fixture and 0.001 are unchanged.
+
+The candidate has not been publicly deployed. Full application and numerical
+acceptance remain open. The next computation diagnosis must compare this exact
+counting prefix with independent source-model computation before changing model
+policy or runtime arithmetic. Do not weaken the EOS assertion or turn a failed
+application run into a pass.
 
 *Last updated: October 2026*

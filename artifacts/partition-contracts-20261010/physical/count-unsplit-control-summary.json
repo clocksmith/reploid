@@ -1,0 +1,136 @@
+{
+  "schema": "reploid.conversation-isolation-control/v1",
+  "scope": "Unsplit prompt replay, no companion conversation or cancellation; not release acceptance",
+  "sourceStateSha256": "3fd34956b3ccc7c63b4ba7a7edee9a7ea25dcd5b938444dddee8a9ff9d845425",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "input": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Count from one to two hundred, one number per line."
+      }
+    ],
+    "generation": {
+      "maxTokens": 4096,
+      "maxSeqLen": 8192,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1.1,
+      "repetitionPenaltyWindow": 0,
+      "presencePenalty": 0,
+      "useChatTemplate": true,
+      "suppressTokenIds": [],
+      "stopSequences": []
+    }
+  },
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "comparison": {
+    "distributedCharacters": 15997,
+    "unsplitCharacters": 16821,
+    "commonPrefixCharacters": 15997,
+    "entireDistributedPrefixMatches": true,
+    "unsplitStopReason": "max-tokens",
+    "unsplitTokenCount": 4096,
+    "conclusion": "Repetitive output reproduces without a second conversation or cancellation; this does not distinguish model capability from shared runtime arithmetic."
+  },
+  "rawSha256": "676ba22fbddd4c0927c1cc4e8d44620648f121d04da70bf75fd45157197850a7",
+  "scriptSha256": "fe87ddd18ad52db81980d91034a16681e58fc9240155d677c2ec2f0980aeff2c",
+  "maxGpuBufferBytes": 6000000000,
+  "tokenIds": [
+    248045,
+    846,
+    198,
+    2427,
+    494,
+    799,
+    310,
+    1330,
+    7493,
+    11,
+    799,
+    1324,
+    791,
+    1500,
+    13,
+    248046,
+    198,
+    248045,
+    74455,
+    198,
+    248068,
+    271,
+    248069,
+    271
+  ],
+  "backendIdentity": {
+    "backend": "webgpu",
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "unknown",
+      "description": null
+    },
+    "hasF16": true,
+    "hasSubgroups": true,
+    "maxBufferSize": 4294967292,
+    "deviceEpoch": 0,
+    "kernelPathId": null,
+    "kernelPathSource": "none",
+    "executionPlanId": null,
+    "activationDtype": null
+  },
+  "generationConfig": {
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1.1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "suppressTokenIds": [],
+    "greedyThreshold": 0.01,
+    "suppressSpecialTokens": false,
+    "suppressSpecialLikeTokens": false,
+    "maxTokens": 4096,
+    "stopSequences": [],
+    "useChatTemplate": true,
+    "useSpeculative": null,
+    "seed": null
+  },
+  "generationConfigHash": "sha256:e937d4b763112e53bc3e3e108bde467a6813f7ecc2c7dde62f1f3c094b472c74",
+  "executionIdentity": {
+    "schema": "doppler.resolved-execution-identity/v1",
+    "runtime": {
+      "package": "doppler-gpu",
+      "version": "0.6.27",
+      "surface": "browser"
+    },
+    "resolvedRuntimeSessionId": "sha256:a4aef03e99bfff9be93852dfc4da6e7803112555188bd58d948975b5ac9ea9fe",
+    "activeAdapter": null,
+    "activeAdapterId": null,
+    "activeAdapterDigest": null,
+    "backendIdentity": {
+      "backend": "webgpu",
+      "adapter": {
+        "vendor": "amd",
+        "architecture": "rdna-3",
+        "device": "unknown",
+        "description": null
+      },
+      "hasF16": true,
+      "hasSubgroups": true,
+      "maxBufferSize": 4294967292,
+      "deviceEpoch": 0,
+      "kernelPathId": null,
+      "kernelPathSource": "none",
+      "executionPlanId": null,
+      "activationDtype": null
+    }
+  }
+}
