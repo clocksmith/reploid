@@ -57,3 +57,43 @@ Numerical qualification remains open: the first placement failed 27/55 frozen
 comparisons, maximum 0.0018510818481445312; reverse placement is pending.
 The preserved 0.6.20 archive failed identity validation before execution
 (npm/runtime version mismatch). No npm publication or deployment occurred.
+
+## Installed 0.6.23 contributor recovery
+
+`recovery-023-physical-summary.json` records two unassisted physical runs with
+the same standard archive and browser bundle on AMD/Vulkan and Apple/Metal.
+Both hosts stop, restart, become executable, and answer YES in both layer roles.
+The unaffected contributor keeps its weights and retained-piece inventory;
+unrelated conversations and drafts survive. Requester weight requests,
+contributor origin weight requests, and browser errors are empty. Tracked
+allocations remain within 1,420,000,000 bytes per executor. The raw receipts are
+retained in `recovery-023-corrected/` and `recovery-023-corrected-reverse/`.
+
+Two acceptance-script defects blocked earlier diagnostics: export was clicked
+inside a closed Actions disclosure, and readiness was inferred from obsolete
+model-option text. The corrected script opens Actions through its normal control,
+checks actual model readiness and send eligibility, then proves fresh execution.
+`recovery-023-intervention.json` preserves the earlier manually assisted run;
+it is not counted as acceptance.
+
+These runs use shared isolated loopback signaling, not deployed authentication
+or TURN. They cover Qwen 3.5 0.8B and idle contributor restart. They do not
+qualify active-generation interruption, concurrent conversations, cancellation,
+long prompts, or the 2B model. Numerical qualification separately remains failed:
+54/110 frozen comparisons exceed 0.001, maximum 0.002967357635498047. No npm
+publication or production deployment occurred.
+
+Run each retained category independently without weakening its assertions:
+
+```
+node scripts/test-distributed.js --recovery --local
+node scripts/test-distributed.js --recovery --local --reverse
+node scripts/test-distributed.js --memory-only
+```
+
+`--memory-only` reuses the retained long-prompt, resident-reuse, and submitted
+prefill-cancellation controls. Its receipt excludes numerical and application
+qualification. It rejects required numerical qualification and incompatible
+diagnostic flags. `REPLOID_E2E_CAPACITY=1` with `--recovery` additionally runs
+the existing independent standalone-opening denial controls on both hosts;
+a generated-code assertion cannot prevent those controls from recording results.

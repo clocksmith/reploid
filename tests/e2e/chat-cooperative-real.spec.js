@@ -356,7 +356,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
             if (state.error || state.phase === 'Failed') throw Error('Contributor restart failed: ' + state.error);
             return state.phase;
           }, { timeout: 180000 }).toBe('Ready');
-          await expect(requester.locator('[data-active-model-select] option:checked')).toContainText('ready');
+          await expect(requester.locator('[data-model-control]')).toHaveAttribute('data-activity', 'ready');
+          await expect(requester.locator('[data-composer-send]')).toBeEnabled();
           restart.ready = await snapshot(returning); await save();
           if (longRecovery) {
             await requester.locator('[data-retry-attempt]').click(); await approve(requester);
@@ -501,7 +502,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
         if (state.error || state.phase === 'Failed') throw new Error('Contributor rejoin failed: ' + state.error);
         return state.phase;
       }, { timeout: 180000 }).toBe('Ready');
-      await expect(requester.locator('[data-active-model-select] option:checked')).toContainText('ready');
+      await expect(requester.locator('[data-model-control]')).toHaveAttribute('data-activity', 'ready');
+      await expect(requester.locator('[data-composer-send]')).toBeEnabled();
       await requester.locator('[data-retry-attempt]').click(); await approve(requester); await waitCompleted(recoveryId);
       expect((await lastAttempt(recoveryId)).id).not.toBe(failedRecovery.id);
       completed = await history(requester);
@@ -559,7 +561,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
         .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
       const lostAt = Date.now(); await bPage.locator('[data-toggle-contribution]').click();
       await expect.poll(async () => (await lastAttempt(lostId)).status).toBe('failed');
-      await expect(requester.locator('[data-active-model-select] option:checked')).toContainText('ready');
+      await expect(requester.locator('[data-model-control]')).toHaveAttribute('data-activity', 'ready');
+      await expect(requester.locator('[data-composer-send]')).toBeEnabled();
       await requester.locator('[data-retry-attempt]').click(); await approve(requester); await waitCompleted(lostId);
       const replacement = await lastAttempt(lostId);
       expect(replacement.execution.participantA).toBe(originalPlacement.participantA);
