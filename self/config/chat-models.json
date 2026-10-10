@@ -2,7 +2,7 @@
   {
     "id": "qwen-3-5-0-8b-q4k-ehaf16",
     "name": "Qwen 3.5 0.8B",
-    "identity": "sha256:9d6d621650134275f017ae268c519e90c8b184b01a53d1495d0d43dfc410b206",
+    "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
     "source": {
       "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
       "files": [
@@ -11,8 +11,8 @@
           "role": "model-manifest",
           "sizeBytes": 214203,
           "hashAlgorithm": "sha256",
-          "hash": "9d6d621650134275f017ae268c519e90c8b184b01a53d1495d0d43dfc410b206",
-          "url": "/config/model-manifests/9d6d621650134275f017ae268c519e90c8b184b01a53d1495d0d43dfc410b206.json"
+          "hash": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+          "url": "/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json"
         },
         {
           "path": "tokenizer.json",
