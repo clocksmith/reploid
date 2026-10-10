@@ -2,7 +2,7 @@
   "schema": "reploid.doppler-retention/v1",
   "expandedVersions": [
     {
-      "version": "0.6.23",
+      "version": "0.6.24",
       "reason": "Current standard package-lock and browser pin"
     }
   ],
@@ -144,6 +144,11 @@
       "version": "0.6.22",
       "archive": "deploy/artifacts/doppler-gpu-0.6.22.tgz",
       "integrity": "sha512-raBH7n79yNMTvNX/UgBxu8Wkm7+eK6m2HgafQ5pdqnrO6H5QVhuTqsxAZsaePJi/86D+7AvdQSm3sO85zPg9FA=="
+    },
+    {
+      "version": "0.6.23",
+      "archive": "deploy/artifacts/doppler-gpu-0.6.23.tgz",
+      "integrity": "sha512-j/9kGjf6d91EC4eH8maKbaTeP3Zg3G1kYC5tFPLO+VdiwY9I3Ht6URchpLrZbhZalAv6qJ5MCsZa6QNMNVcKwQ=="
     }
   ]
 }
