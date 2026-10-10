@@ -3,8 +3,11 @@
 [![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Reploid brings conversations, local AI, and participating devices into one browser
-workspace. Each person controls what their device shares and runs.
+Reploid lets people and agents use intelligence beyond one device’s capacity.
+Participating computers share verified model pieces and execute complementary
+parts of one model; cooperating agents contribute tools and approaches. Chat is
+the first interface to this network. Each participant controls its contribution
+and disclosure. These are product goals; qualification is recorded separately.
 
 <picture>
   <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg" />
@@ -53,14 +56,27 @@ npm install
 npm start
 ```
 
-Open `http://localhost:8000`. The managed Gemini path requires `GEMINI_API_KEY`
-in `.env` before starting.
+Open `http://localhost:8000`, or use [replo.id](https://replo.id/).
 
-Start with a task and choose local Qwen 3.5 2B or the configured Gemini cloud
-model. Optional controls enable helper agents, approved peer requests, and tested
-tool improvements. The same page connects participating devices and shows
-candidate code, test comparisons, adoption, and rollback. Try **Improve a tool**
-for the registered JSON formatter. See the [workflow and its limits](docs/work-collaboration.md).
+1. Start a conversation and select an available model. Discovery runs through the
+   configured public mesh; public participation requires no invitation, room setup
+   or manual computer selection.
+2. Ask a question. Before remote execution, review the actual recipients and
+   disclosure scope. Declining keeps the conversation usable.
+3. Receive the answer in that conversation. A prepared peer path requires no
+   requester weight downloads. If no eligible path is ready, the model remains
+   unavailable; downloading weights to run on this device is a separate choice.
+4. Start other conversations independently. Stop affects its identified attempt.
+   After an interruption, keep the partial answer and explicitly retry in a new
+   attempt; do not assume GPU continuation state survives.
+5. Optionally contribute storage or compute with explicit limits. Contribution
+   preparation is separate from using capacity already prepared by other peers.
+
+See the [network quick start](docs/QUICK-START.md) and
+[current partition handoff](docs/doppler-partition-handoff.md#current-checkout-and-evidence).
+Partition execution is implemented; complete numerical and application
+qualification remains open. Evaluated tool improvement is a distinct workflow,
+with independent evaluation and operator adoption rather than automatic mutation.
 
 The product surface is:
 
@@ -73,9 +89,11 @@ The product surface is:
 Poolday is an internal name for optional peer infrastructure, not a separate
 public product. Zero's current inference default is the server proxy, with
 optional local Doppler execution; a browser agent does not imply offline inference.
-The signed executable-Pack path requires a qualified catalog entry and matching
-released Doppler API. Existing model-name loading and adapter sharing do not
-prove base-model Pack delivery.
+Cloud-provider and substrate setup belongs to the [Zero/X compatibility guide](docs/zero-x-quick-start.md).
+Private invitations and evaluated tool changes belong to the scoped
+[collaboration workflow](docs/work-collaboration.md). Existing signed `Pack`
+protocols retain their own catalog and verification rules; they are not another
+name for every current Doppler artifact.
 
 ## Evidence and current surfaces
 
@@ -110,7 +128,10 @@ Read the claim index row before repeating a capability statement.
 
 ## Repository map
 
-- [`self/`](self/): browser boot profiles, VFS, tools, and runtime
+- [`packages/reploid/`](packages/reploid/): reusable chat, mesh, transport, custody and agent implementation
+- [`self/host/`](self/host/): browser service composition, storage and runtime ports
+- [`self/ui/`](self/ui/): presentation and actions backed by package-owned state
+- [`self/`](self/): browser boot profiles and Zero/X substrate, VFS and tools
 - [`docs/`](docs/): product intent, claims, security, architecture, and operator guides
 - [`deploy/`](deploy/): deployment and access-window tooling
 - [`doppler/`](doppler/): vendored or paired Doppler integration surface

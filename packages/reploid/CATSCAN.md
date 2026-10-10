@@ -16,7 +16,8 @@ eligible placements; Poolday transfers authorized data.
 
 ## Scope
 
-Package source, declarations, schemas and assets.
+Package source, declarations, schemas and assets. Browser and native hosts
+compose the same contracts; each host’s support is qualified separately.
 
 ## Contracts
 

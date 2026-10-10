@@ -30,6 +30,9 @@ Outputs:
 ## Invariants
 
 - Doppler defines/executes model computations; Reploid coordinates/evolves; Poolday connects/transfers/recovers.
+- Browser/native hosts use the same participant contracts; support is separately qualified.
+- Prepared peer paths require no requester weights; contribution preparation is separate.
+- Model judgments/scores never replace permission, evaluation or adoption authority.
 - Storage, whole requests, partitions and agent subtasks retain distinct contracts.
 - Placement preserves semantics, expert selection and disclosure grants.
 - Problem-solving and improvement retain separate authority and lifecycle boundaries.
