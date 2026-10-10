@@ -1,0 +1,34 @@
+{
+  "component": "Reploid numerical diagnostic",
+  "intent": "preserved",
+  "commit": "45479272",
+  "changes": [
+    "--numerical-only --reference-host mac|linux",
+    "fixed frozen token inputs",
+    "all-step unsplit comparisons and raw logits retained",
+    "separate unconstrained native diagnostic memory"
+  ],
+  "unit": {
+    "command": "npm run test:unit",
+    "files": 241,
+    "passed": 2509,
+    "skipped": 18,
+    "logSha256": "fb5f311d5c70074b4bd186373bf8641449bec7ae165f033e581b182b3c17d91b"
+  },
+  "pool": {
+    "command": "npm run verify:pool",
+    "passed": true,
+    "logSha256": "89d228e7cda1429c3c8af8df37e39d8f493ffe3b8668352e15cac9d64772965d"
+  },
+  "syntax": [
+    "scripts/test-distributed.js",
+    "tests/fixtures/browser-partition-memory-completion.js"
+  ],
+  "invalidModeControls": [
+    "--reference-host without --numerical-only rejected before execution",
+    "invalid host rejected before execution"
+  ],
+  "numericalTolerance": 0.001,
+  "physicalAcceptance": "pending",
+  "boundaryEffects": "test-only; no Doppler arithmetic, package archive, precision, frozen reference, or deployment changed"
+}

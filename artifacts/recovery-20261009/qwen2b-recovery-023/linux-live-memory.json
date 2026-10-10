@@ -1,0 +1,19 @@
+{
+  "scope": "Read-only observation during the active ordinary application diagnostic; not final lifecycle acceptance",
+  "observedAt": "2026-10-10T02:54:33.136Z",
+  "package": "0.6.23",
+  "memory": {
+    "scope": "device-gpu-buffers",
+    "maxBytes": 1420000000,
+    "liveBytes": 1198442024,
+    "peakBytes": 1342049144,
+    "allocations": 137804,
+    "rejected": 0,
+    "categories": {
+      "weights": 1146343424,
+      "attention": 37602576,
+      "recurrent": 3538944,
+      "other": 10957080
+    }
+  }
+}
