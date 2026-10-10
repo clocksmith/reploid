@@ -228,6 +228,8 @@ try {
   }).catch(error => ({ error: error.message })));
   const first = runs.find(row => row.firstDivergence)?.firstDivergence;
   if (first && process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1') {
+    const probeLayer = Number(process.env.REPLOID_DIAGNOSTIC_LAYER ?? 0);
+    assert(Number.isSafeInteger(probeLayer) && probeLayer >= 0, 'Invalid diagnostic layer');
     evidence.unsplitFirstDivergence = { scope: 'Same installed package, model, prompt tokens and generation; independent 6 GB diagnostics, excluded from constrained capacity proof', runs: [] };
     for (const [slot, browser] of [local, remote].entries()) {
       const context = await browser.newContext();
@@ -267,7 +269,7 @@ try {
         console.log(JSON.stringify({ unsplit: diagnostic.host, phase: 'loading' }));
         await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL).href);
         const source = slot ? process.env.REPLOID_PEER_MODEL_BASE_URL : process.env.REPLOID_MODEL_BASE_URL;
-        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy, controls, captureLinear }) => {
+        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy, controls, captureLinear, probeLayer }) => {
           const config = await import('/config/doppler-local-models.js');
           const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
           globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
@@ -278,6 +280,7 @@ try {
           const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(manifestText))), b => b.toString(16).padStart(2, '0')).join('');
           if ('sha256:' + hash !== model.identity) throw Error('Unsplit diagnostic model identity mismatch');
           const manifest = JSON.parse(manifestText), maxGpuBufferBytes = 6000000000;
+          if (probeLayer >= manifest.architecture.numLayers) throw Error('Diagnostic layer exceeds model');
           await runtime.configureDeviceMemoryBudget({ maxBytes: maxGpuBufferBytes });
           let handle;
           try {
@@ -322,8 +325,8 @@ try {
               console.log('numerical-diagnostic:' + JSON.stringify({ phase: 'boundary-capture', step: first.parameters.step }));
               const targetOpIds = ['embed.out', 'final_norm.pre', 'final_norm.out',
                 ...['qkv_proj', 'linear_z_proj', 'linear_a_proj', 'linear_b_proj',
-                  'linear_core_out', 'out', 'post_attn'].map(op => 'layer.0.attn.' + op),
-                ...['in', 'gate', 'up', 'act', 'out'].map(op => 'layer.0.ffn.' + op),
+                  'linear_core_out', 'out', 'post_attn'].map(op => `layer.${probeLayer}.attn.` + op),
+                ...['in', 'gate', 'up', 'act', 'out'].map(op => `layer.${probeLayer}.ffn.` + op),
                 ...Array.from({ length: manifest.architecture.numLayers }, (_, layer) =>
                   [`layer.${layer}.attn.post_input_norm`, `layer.${layer}.layer.out`]).flat()];
               await handle.resetGenerationState();
@@ -335,7 +338,7 @@ try {
               const specialTokens = handle.advanced.getSpecialTokens();
               probe = { sampledTokenIds, samplingExcludedTokenIds: [specialTokens.pad, ...executionOptions.suppressTokenIds]
                 .filter(tokenId => Number.isInteger(tokenId)),
-                observation: 'Public generation with command batching disabled for tensor readback' };
+                observation: 'Public generation with command batching disabled; stop after the requested diagnostic step' };
               let observedLogits;
               for await (const _chunk of handle.generate(first.messages, {
                 ...observationOptions, disableCommandBatching: true,
@@ -343,7 +346,9 @@ try {
                   if (sampledTokenIds.length === first.parameters.step) observedLogits = encode(values);
                   sampledTokenIds.push(metadata.tokenId);
                 },
-              })) {}
+              })) {
+                if (sampledTokenIds.length > first.parameters.step) break;
+              }
               const { operatorDiagnostics, ...observedStats } = handle.advanced.getStats();
               probe.stats = observedStats;
               if (!observedLogits) throw Error('Generation did not observe the divergent step');
@@ -381,10 +386,10 @@ try {
               }
             }
             return { packageVersion: config.DOPPLER_PACKAGE_VERSION, modelIdentity: model.identity,
-              tokenIds, generation, maxGpuBufferBytes, logits, stats, probe, captureReplay,
+              tokenIds, generation, maxGpuBufferBytes, logits, stats, probe, probeLayer, captureReplay,
               resolvedRuntimeSession: handle.advanced.getResolvedRuntimeSession(), memory: runtime.inspectDeviceMemory() };
           } finally { await handle?.unload(); }
-        }, { model: requests[0].model, source, first, generation, policy, captureLinear,
+        }, { model: requests[0].model, source, first, generation, policy, captureLinear, probeLayer,
           controls: distributedControls.map(({ messages, tokenIds, steps }) => ({ messages, tokenIds,
             tokenIdsByStep: steps.map(step => step.tokenId) })) }));
         const decode = text => { const bytes = Buffer.from(text, 'base64');
