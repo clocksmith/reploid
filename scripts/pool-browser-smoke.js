@@ -16,7 +16,7 @@ const routes = ['/', '/work', '/network', '/improve', '/examples', '/ask', '/com
 const requiredSelectors = {
   '/': '[data-composer-form]',
   '/work': '[data-composer-form]',
-  '/network': '[data-operation-sharing]',
+  '/network': '[data-network-workspace]',
   '/improve': '[data-work-history]',
   '/examples': '#pool-home-ask-form',
   '/ask': '#pool-run-prompt',
@@ -51,6 +51,19 @@ for (const route of routes) {
     console.log(`[pool-smoke] route ${route}`);
     await gotoRoute(routePage, route);
     await routePage.waitForSelector(requiredSelectors[route], { timeout: 30000, state: 'attached' });
+    if (route === '/network') {
+      const inspector = routePage.locator('[data-network-workspace]');
+      await expect(inspector).toBeVisible();
+      await expect(inspector.locator('[data-inspector-pane="participants"]')).toBeVisible();
+      await inspector.locator('[data-inspector-section="device"]').click();
+      for (const selector of ['[data-toggle-contribution]', '[data-toggle-file-contribution]']) {
+        await expect(inspector.locator(selector)).toBeVisible();
+        await expect(inspector.locator(selector)).toHaveAttribute('aria-checked', 'false');
+      }
+      await inspector.locator('[data-close-inspector]').click();
+      await expect(inspector).toBeHidden();
+      await expect(routePage.locator('[data-composer-input]')).toBeVisible();
+    }
     for (const width of [1440, 390]) {
       await routePage.setViewportSize({ width, height: 1000 });
       const frame = await routePage.evaluate(async () => {
