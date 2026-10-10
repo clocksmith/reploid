@@ -1,6 +1,6 @@
 {
   "scope": "Installed package, exact local verified model bytes, two-browser partition memory acceptance; not P2P or numerical qualification",
-  "status": "repetition completed; cancellation run remains active; final destruction not observed in this receipt",
+  "status": "Repetition and submitted-cancellation/reuse phases completed. Final deferred destruction remains unobserved in these original receipts.",
   "packageIdentity": {
     "name": "doppler-gpu",
     "version": "0.6.23",

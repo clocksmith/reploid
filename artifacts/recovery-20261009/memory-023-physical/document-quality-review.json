@@ -1,0 +1,25 @@
+{
+  "scope": "Read-only factual review of one retained Qwen 3.5 0.8B second-pass document answer. No independent unsplit task-quality reproduction was run here.",
+  "input": "The retained second-pass input includes an incorrect preceding assistant comparison; the review instruction asks for corrections against the original passages.",
+  "rawAnswer": "memory-repetition.json.gz, runs[1].text; post-cancellation answer matches it exactly",
+  "status": "fails source-grounded quality on this bounded task",
+  "findings": [
+    {
+      "claim": "Harbor total is $11,600 + $800 = $12,400",
+      "source": "D2:P1 states fixed $11,600 including sales tax; D2:P2 includes up to $800 electrical work.",
+      "finding": "Adds an included allowance as an extra charge."
+    },
+    {
+      "claim": "Cedar plumbing inclusion and exclusion belong to D3:P1 and D3:P3",
+      "source": "Both statements appear in D3:P2; D3:P3 gives the start estimate, duration and deposit.",
+      "finding": "Citations identify the wrong passages."
+    },
+    {
+      "claim": "The Page 2 exclusion overrides the Page 1 reconnection clause",
+      "source": "D3:P2 records conflicting terms; no precedence rule is supplied.",
+      "finding": "Invents a precedence rule instead of retaining uncertainty."
+    }
+  ],
+  "boundary": "Task quality is separate from numerical parity, bounded memory, EOS completion and distributed ownership. This observation does not establish whether an unsplit model gives the same errors.",
+  "action": "Evaluate the ordinary application answer separately. Do not alter GPU arithmetic to make these claims pass."
+}
