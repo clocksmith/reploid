@@ -1,0 +1,2795 @@
+{
+  "component": "reploid.tests",
+  "intent": "preserved",
+  "ok": false,
+  "deployed": false,
+  "sourceRun": "2026-10-10T03-47-57-486Z",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.24",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.24.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.24.tgz",
+    "integrity": "sha512-1tvdTnTBXusLHEUcWf02Cb+nEo187BouwJhs4QLmWKkRY4URR4D3qrx3pPMGPZVV87YfWVGlhK8ioX3u4a17JQ=="
+  },
+  "browserIdentity": "sha256:631a05ebd196c3aafb0d1a7e089f3c2b75b2830b0997780e2994efea148f8edf",
+  "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "referenceBinding": {
+    "frozenModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+    "weightsTokenizerAndExecutionContractUnchanged": true,
+    "changedKernelPins": [
+      {
+        "id": "rmsnorm",
+        "kernel": "rmsnorm.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:284d3efb0ad0991fc57ece5f634cbc8a931fcab36f193b2b6832561d4cc79ef1",
+        "currentDigest": "sha256:4f4d144735bdff86b8567346ba7ea7b82fe68a2ac9656ba1577106158af9bc7c"
+      },
+      {
+        "id": "q4_decode",
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_multicol",
+        "frozenDigest": "sha256:c97827b7ca42c0215756d91c7166106e189174c1a64fe473f0c017b3eb27188e",
+        "currentDigest": "sha256:53d5573ae047f553dac3c226507c6e1d80a2a2a2939acb65acd8092dd229677b"
+      },
+      {
+        "id": "rope",
+        "kernel": "rope.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:b2da9d396668981dab9794c2973b668279f768994466b083d2105730555e1a5b",
+        "currentDigest": "sha256:923f9a96c941aee94119ecf04fa5b1508c77b7d927a7e6044ce6588b2d51a416"
+      },
+      {
+        "id": "attn_decode",
+        "kernel": "attention_decode_online_f16kv.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:91808be35895e921c0fa43fc47bfe8cab69c437c388ab561f595d9dc983f66e1",
+        "currentDigest": "sha256:cb47a297183367fa8f0c92493a2d843e9bef77de5a21a1558410caf2547000be"
+      },
+      {
+        "id": "silu",
+        "kernel": "silu.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:7b52d30fb741beef2dbf728e0c4ecffe5b08d9661d63c306caecb4cb3ced85e5",
+        "currentDigest": "sha256:0163fd40c31cc8ea97f8ef6ed9516ac5a9b9fc9eed609074ca7b8c69c08d2f24"
+      },
+      {
+        "id": "q4_widetile",
+        "kernel": "fused_matmul_q4_widetile.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:5631ce6f19f805c7ac85722bac17365048bc7b9e2c422f3ef9477b63cb8dad62",
+        "currentDigest": "sha256:26e00e5a829ac064b85ed9b1c2565ec8d957ee468666903f1d47e07d93dfb3bc"
+      },
+      {
+        "id": "attn_head256",
+        "kernel": "attention_head256_f16kv.wgsl",
+        "entry": "main",
+        "frozenDigest": "sha256:4ecdc079e322a770350414244cb383d72ae7ffa47ed620c64ff425c93413e97a",
+        "currentDigest": "sha256:4e1eafa0a5e407c99714d04f0e75f3834e1156bcb25579892f248d95aae197da"
+      },
+      {
+        "id": "lm_head_q4",
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "frozenDigest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "currentDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
+      },
+      {
+        "id": "sample",
+        "kernel": "sample.wgsl",
+        "entry": "sample_single_pass",
+        "frozenDigest": "sha256:7ff3dd675b4737d920e0b3889e15c4fedde8410a353bbc6d4651db76ce69eb9b",
+        "currentDigest": "sha256:9b3f6f0d599cdc0f39c485ce8bd16a6f60a144f9ca25e7e2f4387832e9a422ef"
+      },
+      {
+        "id": "q4_decode_gemv",
+        "kernel": "fused_matmul_q4.wgsl",
+        "entry": "main_gemv",
+        "frozenDigest": "sha256:c547743b9806fec47142c6a9f9ac2bd047981fd8cded46ce40dc01725e8aa71d",
+        "currentDigest": "sha256:02029c2254c8ddb4c2051c4322e6b11ddbcf555e27d233e7fe73277edfa0f3f7"
+      }
+    ]
+  },
+  "numerical": {
+    "policy": "required",
+    "steps": 110,
+    "failed": 46,
+    "maxDifference": 0.0017986297607421875,
+    "tolerance": 0.001,
+    "directions": [
+      {
+        "direction": "linux-mac",
+        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-linux-mac.json",
+        "partitionHosts": [
+          {
+            "index": 1,
+            "host": "mac"
+          },
+          {
+            "index": 0,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 23,
+        "maxDifference": 0.0017986297607421875,
+        "tolerance": 0.001
+      },
+      {
+        "direction": "mac-linux",
+        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-mac-linux.json",
+        "partitionHosts": [
+          {
+            "index": 0,
+            "host": "mac"
+          },
+          {
+            "index": 1,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 23,
+        "maxDifference": 0.0017719268798828125,
+        "tolerance": 0.001
+      }
+    ]
+  },
+  "directions": [
+    {
+      "direction": "linux-mac",
+      "rawSha256": "e857cbfb0153b37a58e60291f468550392b1cf5112d3df0777c7e64061600a74",
+      "runs": [
+        {
+          "attempt": 0,
+          "inputTokens": 19,
+          "completed": true,
+          "stopReason": "eos-token",
+          "numerical": [
+            {
+              "step": 0,
+              "tokenId": 9419,
+              "stopReason": null,
+              "maxDifference": 0.0012273788452148438,
+              "maxDifferenceIndex": 28251,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 1,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.0017986297607421875,
+              "maxDifferenceIndex": 220,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ]
+        },
+        {
+          "attempt": 1,
+          "inputTokens": 21,
+          "completed": true,
+          "stopReason": "eos-token",
+          "numerical": [
+            {
+              "step": 0,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.0005991458892822266,
+              "maxDifferenceIndex": 73850,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 1,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.0011429786682128906,
+              "maxDifferenceIndex": 12948,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ]
+        },
+        {
+          "attempt": 2,
+          "inputTokens": 184,
+          "completed": true,
+          "stopReason": "eos-token",
+          "numerical": [
+            {
+              "step": 0,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0006402730941772461,
+              "maxDifferenceIndex": 427,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 1,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0009284019470214844,
+              "maxDifferenceIndex": 55521,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 2,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0010745525360107422,
+              "maxDifferenceIndex": 171827,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 3,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0010974407196044922,
+              "maxDifferenceIndex": 18684,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 4,
+              "tokenId": 18,
+              "stopReason": null,
+              "maxDifference": 0.0008568763732910156,
+              "maxDifferenceIndex": 121038,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 5,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.001202702522277832,
+              "maxDifferenceIndex": 82575,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 6,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.0011677742004394531,
+              "maxDifferenceIndex": 92980,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 7,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0015332698822021484,
+              "maxDifferenceIndex": 2632,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 8,
+              "tokenId": 20,
+              "stopReason": null,
+              "maxDifference": 0.0011048316955566406,
+              "maxDifferenceIndex": 26631,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 9,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.00128936767578125,
+              "maxDifferenceIndex": 220,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 10,
+              "tokenId": 21,
+              "stopReason": null,
+              "maxDifference": 0.0008454322814941406,
+              "maxDifferenceIndex": 109435,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 11,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008563995361328125,
+              "maxDifferenceIndex": 106947,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 12,
+              "tokenId": 22,
+              "stopReason": null,
+              "maxDifference": 0.0008283853530883789,
+              "maxDifferenceIndex": 38855,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 13,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007529258728027344,
+              "maxDifferenceIndex": 134101,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 14,
+              "tokenId": 23,
+              "stopReason": null,
+              "maxDifference": 0.0007114410400390625,
+              "maxDifferenceIndex": 143173,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 15,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0012814998626708984,
+              "maxDifferenceIndex": 100946,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 16,
+              "tokenId": 24,
+              "stopReason": null,
+              "maxDifference": 0.0013373494148254395,
+              "maxDifferenceIndex": 100946,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 17,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0010223388671875,
+              "maxDifferenceIndex": 25620,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 18,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.001010894775390625,
+              "maxDifferenceIndex": 64934,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 19,
+              "tokenId": 15,
+              "stopReason": null,
+              "maxDifference": 0.0014324188232421875,
+              "maxDifferenceIndex": 16,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 20,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.000855565071105957,
+              "maxDifferenceIndex": 76538,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 21,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0011734962463378906,
+              "maxDifferenceIndex": 75599,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 22,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0007805824279785156,
+              "maxDifferenceIndex": 163218,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 23,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007452964782714844,
+              "maxDifferenceIndex": 50779,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 24,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008962154388427734,
+              "maxDifferenceIndex": 232634,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 25,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0006742477416992188,
+              "maxDifferenceIndex": 21,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 26,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0006861686706542969,
+              "maxDifferenceIndex": 286,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 27,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008440017700195312,
+              "maxDifferenceIndex": 125638,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 28,
+              "tokenId": 18,
+              "stopReason": null,
+              "maxDifference": 0.000997304916381836,
+              "maxDifferenceIndex": 161910,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 29,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0006730556488037109,
+              "maxDifferenceIndex": 3196,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 30,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0009567737579345703,
+              "maxDifferenceIndex": 24874,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 31,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.0015870332717895508,
+              "maxDifferenceIndex": 521,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 32,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.001316070556640625,
+              "maxDifferenceIndex": 12948,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 33,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0013483762741088867,
+              "maxDifferenceIndex": 98523,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 34,
+              "tokenId": 20,
+              "stopReason": null,
+              "maxDifference": 0.0012714862823486328,
+              "maxDifferenceIndex": 199662,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 35,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007569789886474609,
+              "maxDifferenceIndex": 301,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 36,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0007951259613037109,
+              "maxDifferenceIndex": 71710,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 37,
+              "tokenId": 21,
+              "stopReason": null,
+              "maxDifference": 0.0009708404541015625,
+              "maxDifferenceIndex": 20,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 38,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008306503295898438,
+              "maxDifferenceIndex": 38935,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 39,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0007634162902832031,
+              "maxDifferenceIndex": 55952,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 40,
+              "tokenId": 22,
+              "stopReason": null,
+              "maxDifference": 0.0009465217590332031,
+              "maxDifferenceIndex": 98185,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 41,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0009286999702453613,
+              "maxDifferenceIndex": 148802,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 42,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0009888410568237305,
+              "maxDifferenceIndex": 12444,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 43,
+              "tokenId": 23,
+              "stopReason": null,
+              "maxDifference": 0.0011017918586730957,
+              "maxDifferenceIndex": 5589,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 44,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0010025501251220703,
+              "maxDifferenceIndex": 31510,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 45,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008029937744140625,
+              "maxDifferenceIndex": 89719,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 46,
+              "tokenId": 24,
+              "stopReason": null,
+              "maxDifference": 0.0007566213607788086,
+              "maxDifferenceIndex": 82959,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 47,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008287429809570312,
+              "maxDifferenceIndex": 89836,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 48,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0007371902465820312,
+              "maxDifferenceIndex": 116231,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 49,
+              "tokenId": 15,
+              "stopReason": null,
+              "maxDifference": 0.0005106925964355469,
+              "maxDifferenceIndex": 30928,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 50,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.0011608600616455078,
+              "maxDifferenceIndex": 116700,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ]
+        }
+      ],
+      "unsplit": [
+        {
+          "host": "mac",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 0.0007069110870361328,
+              "maxDifferenceIndex": 87689,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.0013737678527832031,
+              "maxDifferenceIndex": 22856,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        },
+        {
+          "host": "linux",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 0.00011849403381347656,
+              "maxDifferenceIndex": 414,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.0012409687042236328,
+              "maxDifferenceIndex": 28251,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        }
+      ],
+      "firstOperatorDifference": {
+        "opId": "layer.3.layer.out",
+        "shape": [
+          19,
+          1024
+        ],
+        "dtype": "f32",
+        "maxDifference": 1.1920928955078125e-07,
+        "maxDifferenceIndex": 0
+      },
+      "residentSettlement": [
+        {
+          "barriers": 1,
+          "snapshot": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 37964920,
+              "peakBytes": 391430544,
+              "allocations": 8882,
+              "rejected": 0,
+              "categories": {
+                "weights": 0,
+                "attention": 880,
+                "recurrent": 0,
+                "other": 37964040
+              },
+              "labels": [
+                {
+                  "label": "staging_read_65536",
+                  "category": "other",
+                  "bytes": 65536,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_256",
+                  "category": "other",
+                  "bytes": 256,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_512",
+                  "category": "other",
+                  "bytes": 512,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_uniforms_cached",
+                  "category": "other",
+                  "bytes": 128,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_524288",
+                  "category": "other",
+                  "bytes": 524288,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_uniforms_cached",
+                  "category": "other",
+                  "bytes": 992,
+                  "count": 31
+                },
+                {
+                  "label": "matmul_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "L12.linear_attention_core_out_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "L12.linear_conv_out_524288",
+                  "category": "other",
+                  "bytes": 524288,
+                  "count": 1
+                },
+                {
+                  "label": "linear_attention_params_cached",
+                  "category": "other",
+                  "bytes": 256,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_327680",
+                  "category": "other",
+                  "bytes": 655360,
+                  "count": 2
+                },
+                {
+                  "label": "silu_output_327680",
+                  "category": "other",
+                  "bytes": 655360,
+                  "count": 2
+                },
+                {
+                  "label": "silu_uniforms_cached",
+                  "category": "other",
+                  "bytes": 112,
+                  "count": 7
+                },
+                {
+                  "label": "residual_uniforms_cached",
+                  "category": "other",
+                  "bytes": 64,
+                  "count": 4
+                },
+                {
+                  "label": "split_qg_uniforms_cached",
+                  "category": "other",
+                  "bytes": 64,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_65536",
+                  "category": "other",
+                  "bytes": 131072,
+                  "count": 2
+                },
+                {
+                  "label": "rmsnorm_qk_q_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_k_output_65536",
+                  "category": "other",
+                  "bytes": 65536,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_uniforms_cached",
+                  "category": "other",
+                  "bytes": 128,
+                  "count": 4
+                },
+                {
+                  "label": "rope_qk_uniforms_cached",
+                  "category": "other",
+                  "bytes": 1760,
+                  "count": 55
+                },
+                {
+                  "label": "kv_cache_write_uniforms_cached",
+                  "category": "attention",
+                  "bytes": 880,
+                  "count": 55
+                },
+                {
+                  "label": "attention_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "attention_uniforms_cached",
+                  "category": "other",
+                  "bytes": 4400,
+                  "count": 55
+                },
+                {
+                  "label": "attention_kv_len_fallback",
+                  "category": "other",
+                  "bytes": 4,
+                  "count": 1
+                },
+                {
+                  "label": "attention_page_table_fallback",
+                  "category": "other",
+                  "bytes": 4,
+                  "count": 1
+                },
+                {
+                  "label": "silu_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_1048576",
+                  "category": "other",
+                  "bytes": 1048576,
+                  "count": 1
+                },
+                {
+                  "label": "fused_ffn_output_16384",
+                  "category": "other",
+                  "bytes": 32768,
+                  "count": 2
+                },
+                {
+                  "label": "fused_ffn_uniforms_cached",
+                  "category": "other",
+                  "bytes": 32,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_output_4096",
+                  "category": "other",
+                  "bytes": 32768,
+                  "count": 8
+                },
+                {
+                  "label": "matmul_output_393216",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 2
+                },
+                {
+                  "label": "matmul_output_4521984",
+                  "category": "other",
+                  "bytes": 4521984,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "L12.linear_attention_core_out_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "L12.linear_conv_out_4521984",
+                  "category": "other",
+                  "bytes": 4521984,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_2686976",
+                  "category": "other",
+                  "bytes": 5373952,
+                  "count": 2
+                },
+                {
+                  "label": "silu_output_2686976",
+                  "category": "other",
+                  "bytes": 2686976,
+                  "count": 1
+                },
+                {
+                  "label": "residual_output_786432",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_3014656",
+                  "category": "other",
+                  "bytes": 3014656,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_q_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_k_output_393216",
+                  "category": "other",
+                  "bytes": 393216,
+                  "count": 1
+                },
+                {
+                  "label": "attention_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "silu_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_786432",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 1
+                },
+                {
+                  "label": "fused_prenorm_sum_786432",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_output_786432",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_prenorm_placeholder_256",
+                  "category": "other",
+                  "bytes": 768,
+                  "count": 3
+                },
+                {
+                  "label": "matmul_output_1048576",
+                  "category": "other",
+                  "bytes": 1048576,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_256",
+                  "category": "other",
+                  "bytes": 1024,
+                  "count": 4
+                },
+                {
+                  "label": "L14.linear_attention_core_out_8192",
+                  "category": "other",
+                  "bytes": 40960,
+                  "count": 5
+                },
+                {
+                  "label": "L14.linear_conv_out_32768",
+                  "category": "other",
+                  "bytes": 163840,
+                  "count": 5
+                }
+              ]
+            },
+            "pool": {
+              "allocations": 8386,
+              "reuses": 2346,
+              "totalBytesAllocated": 518189056,
+              "peakBytesAllocated": 342689792,
+              "currentBytesAllocated": 37956096,
+              "totalBytesRequested": 501881344,
+              "peakBytesRequested": 326424832,
+              "currentBytesRequested": 0,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 0,
+                  "count": 0
+                },
+                "active": {
+                  "bytes": 0,
+                  "count": 0
+                },
+                "reusable": {
+                  "bytes": 37956096,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeBuffers": 0,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 900000000,
+              "budgetUtilization": 0.04217344,
+              "hitRate": "21.9%"
+            },
+            "activeLabels": [],
+            "gpuValidationErrors": []
+          }
+        },
+        {
+          "barriers": 1,
+          "snapshot": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 35213816,
+              "peakBytes": 756922768,
+              "allocations": 8732,
+              "rejected": 0,
+              "categories": {
+                "weights": 0,
+                "attention": 880,
+                "recurrent": 0,
+                "other": 35212936
+              },
+              "labels": [
+                {
+                  "label": "gather_uniforms_cached",
+                  "category": "other",
+                  "bytes": 128,
+                  "count": 4
+                },
+                {
+                  "label": "staging_read_65536",
+                  "category": "other",
+                  "bytes": 65536,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_256",
+                  "category": "other",
+                  "bytes": 256,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_512",
+                  "category": "other",
+                  "bytes": 512,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_uniforms_cached",
+                  "category": "other",
+                  "bytes": 128,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_524288",
+                  "category": "other",
+                  "bytes": 524288,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_uniforms_cached",
+                  "category": "other",
+                  "bytes": 992,
+                  "count": 31
+                },
+                {
+                  "label": "matmul_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "L0.linear_attention_core_out_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "L0.linear_conv_out_524288",
+                  "category": "other",
+                  "bytes": 524288,
+                  "count": 1
+                },
+                {
+                  "label": "linear_attention_params_cached",
+                  "category": "other",
+                  "bytes": 256,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_327680",
+                  "category": "other",
+                  "bytes": 655360,
+                  "count": 2
+                },
+                {
+                  "label": "silu_output_327680",
+                  "category": "other",
+                  "bytes": 655360,
+                  "count": 2
+                },
+                {
+                  "label": "silu_uniforms_cached",
+                  "category": "other",
+                  "bytes": 112,
+                  "count": 7
+                },
+                {
+                  "label": "residual_uniforms_cached",
+                  "category": "other",
+                  "bytes": 64,
+                  "count": 4
+                },
+                {
+                  "label": "split_qg_uniforms_cached",
+                  "category": "other",
+                  "bytes": 64,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_65536",
+                  "category": "other",
+                  "bytes": 131072,
+                  "count": 2
+                },
+                {
+                  "label": "rmsnorm_qk_q_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_k_output_65536",
+                  "category": "other",
+                  "bytes": 65536,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_uniforms_cached",
+                  "category": "other",
+                  "bytes": 128,
+                  "count": 4
+                },
+                {
+                  "label": "rope_qk_uniforms_cached",
+                  "category": "other",
+                  "bytes": 1760,
+                  "count": 55
+                },
+                {
+                  "label": "kv_cache_write_uniforms_cached",
+                  "category": "attention",
+                  "bytes": 880,
+                  "count": 55
+                },
+                {
+                  "label": "attention_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "attention_uniforms_cached",
+                  "category": "other",
+                  "bytes": 4400,
+                  "count": 55
+                },
+                {
+                  "label": "attention_kv_len_fallback",
+                  "category": "other",
+                  "bytes": 4,
+                  "count": 1
+                },
+                {
+                  "label": "attention_page_table_fallback",
+                  "category": "other",
+                  "bytes": 4,
+                  "count": 1
+                },
+                {
+                  "label": "silu_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_131072",
+                  "category": "other",
+                  "bytes": 131072,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_output_4096",
+                  "category": "other",
+                  "bytes": 32768,
+                  "count": 8
+                },
+                {
+                  "label": "fused_ffn_uniforms_cached",
+                  "category": "other",
+                  "bytes": 32,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_16384",
+                  "category": "other",
+                  "bytes": 16384,
+                  "count": 1
+                },
+                {
+                  "label": "fused_ffn_output_16384",
+                  "category": "other",
+                  "bytes": 16384,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_393216",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 2
+                },
+                {
+                  "label": "embed_tokens_1024",
+                  "category": "other",
+                  "bytes": 1024,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_4521984",
+                  "category": "other",
+                  "bytes": 4521984,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "L0.linear_attention_core_out_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "L0.linear_conv_out_4521984",
+                  "category": "other",
+                  "bytes": 4521984,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_2686976",
+                  "category": "other",
+                  "bytes": 5373952,
+                  "count": 2
+                },
+                {
+                  "label": "matmul_output_3014656",
+                  "category": "other",
+                  "bytes": 3014656,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_q_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_k_output_393216",
+                  "category": "other",
+                  "bytes": 393216,
+                  "count": 1
+                },
+                {
+                  "label": "attention_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "silu_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "silu_output_2686976",
+                  "category": "other",
+                  "bytes": 2686976,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_output_786432",
+                  "category": "other",
+                  "bytes": 2359296,
+                  "count": 3
+                },
+                {
+                  "label": "rmsnorm_prenorm_placeholder_256",
+                  "category": "other",
+                  "bytes": 1024,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_256",
+                  "category": "other",
+                  "bytes": 1024,
+                  "count": 4
+                },
+                {
+                  "label": "L2.linear_attention_core_out_8192",
+                  "category": "other",
+                  "bytes": 40960,
+                  "count": 5
+                },
+                {
+                  "label": "L2.linear_conv_out_32768",
+                  "category": "other",
+                  "bytes": 163840,
+                  "count": 5
+                }
+              ]
+            },
+            "pool": {
+              "allocations": 8397,
+              "reuses": 2111,
+              "totalBytesAllocated": 839010048,
+              "peakBytesAllocated": 707236864,
+              "currentBytesAllocated": 35204864,
+              "totalBytesRequested": 825456640,
+              "peakBytesRequested": 691949824,
+              "currentBytesRequested": 0,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 0,
+                  "count": 0
+                },
+                "active": {
+                  "bytes": 0,
+                  "count": 0
+                },
+                "reusable": {
+                  "bytes": 35204864,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeBuffers": 0,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 900000000,
+              "budgetUtilization": 0.03911651555555556,
+              "hitRate": "20.1%"
+            },
+            "activeLabels": [],
+            "gpuValidationErrors": []
+          }
+        }
+      ],
+      "rawEvidence": {
+        "retainedCompressedLinux": "/tmp/reploid-numerical-024/reference-linux-mac.json.gz",
+        "retainedMac": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-linux-mac.json",
+        "compressedSha256": "e857cbfb0153b37a58e60291f468550392b1cf5112d3df0777c7e64061600a74",
+        "projection": "Complete first-failure tensors and native logits retained here; full operator timeline and streaming chunks remain in raw evidence."
+      },
+      "projectionSha256": "c69a3935338153f97c2325ad6b2f22a32ca32c0eac2b8439f3d1db2c0ac089c7"
+    },
+    {
+      "direction": "mac-linux",
+      "rawSha256": "9d009b90ea300273d7576891441a246a2fe1df3cb7c6943055d8a17981bf7568",
+      "runs": [
+        {
+          "attempt": 0,
+          "inputTokens": 19,
+          "completed": true,
+          "stopReason": "eos-token",
+          "numerical": [
+            {
+              "step": 0,
+              "tokenId": 9419,
+              "stopReason": null,
+              "maxDifference": 0.001379251480102539,
+              "maxDifferenceIndex": 22856,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 1,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.0017719268798828125,
+              "maxDifferenceIndex": 220,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ]
+        },
+        {
+          "attempt": 1,
+          "inputTokens": 21,
+          "completed": true,
+          "stopReason": "eos-token",
+          "numerical": [
+            {
+              "step": 0,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.0006144046783447266,
+              "maxDifferenceIndex": 32594,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 1,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.0009942054748535156,
+              "maxDifferenceIndex": 30138,
+              "tolerance": 0.001,
+              "matches": true
+            }
+          ]
+        },
+        {
+          "attempt": 2,
+          "inputTokens": 184,
+          "completed": true,
+          "stopReason": "eos-token",
+          "numerical": [
+            {
+              "step": 0,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008623600006103516,
+              "maxDifferenceIndex": 423,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 1,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0009865760803222656,
+              "maxDifferenceIndex": 55521,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 2,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0009298324584960938,
+              "maxDifferenceIndex": 318,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 3,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0014004707336425781,
+              "maxDifferenceIndex": 920,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 4,
+              "tokenId": 18,
+              "stopReason": null,
+              "maxDifference": 0.0009891986846923828,
+              "maxDifferenceIndex": 2105,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 5,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0011185407638549805,
+              "maxDifferenceIndex": 82575,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 6,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.001299142837524414,
+              "maxDifferenceIndex": 103463,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 7,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0011229515075683594,
+              "maxDifferenceIndex": 31301,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 8,
+              "tokenId": 20,
+              "stopReason": null,
+              "maxDifference": 0.0010132789611816406,
+              "maxDifferenceIndex": 83817,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 9,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0009746551513671875,
+              "maxDifferenceIndex": 34431,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 10,
+              "tokenId": 21,
+              "stopReason": null,
+              "maxDifference": 0.0012475252151489258,
+              "maxDifferenceIndex": 170367,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 11,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008902549743652344,
+              "maxDifferenceIndex": 20,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 12,
+              "tokenId": 22,
+              "stopReason": null,
+              "maxDifference": 0.00121307373046875,
+              "maxDifferenceIndex": 65263,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 13,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0005910396575927734,
+              "maxDifferenceIndex": 99870,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 14,
+              "tokenId": 23,
+              "stopReason": null,
+              "maxDifference": 0.0007991790771484375,
+              "maxDifferenceIndex": 170367,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 15,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007483959197998047,
+              "maxDifferenceIndex": 107505,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 16,
+              "tokenId": 24,
+              "stopReason": null,
+              "maxDifference": 0.0006890296936035156,
+              "maxDifferenceIndex": 180667,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 17,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008392333984375,
+              "maxDifferenceIndex": 206230,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 18,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008900165557861328,
+              "maxDifferenceIndex": 23886,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 19,
+              "tokenId": 15,
+              "stopReason": null,
+              "maxDifference": 0.0006883740425109863,
+              "maxDifferenceIndex": 22197,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 20,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0010395050048828125,
+              "maxDifferenceIndex": 3346,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 21,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0012574195861816406,
+              "maxDifferenceIndex": 6878,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 22,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.001007080078125,
+              "maxDifferenceIndex": 153833,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 23,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007753372192382812,
+              "maxDifferenceIndex": 101529,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 24,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0010242462158203125,
+              "maxDifferenceIndex": 17461,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 25,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0007061958312988281,
+              "maxDifferenceIndex": 45467,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 26,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007636547088623047,
+              "maxDifferenceIndex": 8792,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 27,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0006811618804931641,
+              "maxDifferenceIndex": 135102,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 28,
+              "tokenId": 18,
+              "stopReason": null,
+              "maxDifference": 0.0006747245788574219,
+              "maxDifferenceIndex": 61179,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 29,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0009605884552001953,
+              "maxDifferenceIndex": 2978,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 30,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008473396301269531,
+              "maxDifferenceIndex": 9274,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 31,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.0010961294174194336,
+              "maxDifferenceIndex": 59819,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 32,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008487701416015625,
+              "maxDifferenceIndex": 17,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 33,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0012824535369873047,
+              "maxDifferenceIndex": 93538,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 34,
+              "tokenId": 20,
+              "stopReason": null,
+              "maxDifference": 0.0008592605590820312,
+              "maxDifferenceIndex": 58795,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 35,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008969306945800781,
+              "maxDifferenceIndex": 267,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 36,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0010836124420166016,
+              "maxDifferenceIndex": 71710,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 37,
+              "tokenId": 21,
+              "stopReason": null,
+              "maxDifference": 0.0007612705230712891,
+              "maxDifferenceIndex": 30463,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 38,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.001016855239868164,
+              "maxDifferenceIndex": 88995,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 39,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0009746551513671875,
+              "maxDifferenceIndex": 4635,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 40,
+              "tokenId": 22,
+              "stopReason": null,
+              "maxDifference": 0.0009222030639648438,
+              "maxDifferenceIndex": 80217,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 41,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.00106048583984375,
+              "maxDifferenceIndex": 38290,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 42,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0009851455688476562,
+              "maxDifferenceIndex": 212048,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 43,
+              "tokenId": 23,
+              "stopReason": null,
+              "maxDifference": 0.0014462471008300781,
+              "maxDifferenceIndex": 5589,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 44,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0010647177696228027,
+              "maxDifferenceIndex": 9825,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 45,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0009191036224365234,
+              "maxDifferenceIndex": 102048,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 46,
+              "tokenId": 24,
+              "stopReason": null,
+              "maxDifference": 0.0009923279285430908,
+              "maxDifferenceIndex": 41991,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 47,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0012011528015136719,
+              "maxDifferenceIndex": 40985,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 48,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0012812614440917969,
+              "maxDifferenceIndex": 99190,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 49,
+              "tokenId": 15,
+              "stopReason": null,
+              "maxDifference": 0.0008275508880615234,
+              "maxDifferenceIndex": 77120,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 50,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.001380324363708496,
+              "maxDifferenceIndex": 36640,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ]
+        }
+      ],
+      "unsplit": [
+        {
+          "host": "mac",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 5.841255187988281e-05,
+              "maxDifferenceIndex": 313,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.0013737678527832031,
+              "maxDifferenceIndex": 22856,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        },
+        {
+          "host": "linux",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 0.0006990432739257812,
+              "maxDifferenceIndex": 87689,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.0012409687042236328,
+              "maxDifferenceIndex": 28251,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        }
+      ],
+      "firstOperatorDifference": {
+        "opId": "layer.3.layer.out",
+        "shape": [
+          19,
+          1024
+        ],
+        "dtype": "f32",
+        "maxDifference": 1.1920928955078125e-07,
+        "maxDifferenceIndex": 0
+      },
+      "residentSettlement": [
+        {
+          "barriers": 1,
+          "snapshot": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 35213816,
+              "peakBytes": 756922768,
+              "allocations": 8732,
+              "rejected": 0,
+              "categories": {
+                "weights": 0,
+                "attention": 880,
+                "recurrent": 0,
+                "other": 35212936
+              },
+              "labels": [
+                {
+                  "label": "gather_uniforms_cached",
+                  "category": "other",
+                  "bytes": 128,
+                  "count": 4
+                },
+                {
+                  "label": "staging_read_65536",
+                  "category": "other",
+                  "bytes": 65536,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_256",
+                  "category": "other",
+                  "bytes": 256,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_512",
+                  "category": "other",
+                  "bytes": 512,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_uniforms_cached",
+                  "category": "other",
+                  "bytes": 128,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_524288",
+                  "category": "other",
+                  "bytes": 524288,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_uniforms_cached",
+                  "category": "other",
+                  "bytes": 992,
+                  "count": 31
+                },
+                {
+                  "label": "matmul_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "L0.linear_attention_core_out_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "L0.linear_conv_out_524288",
+                  "category": "other",
+                  "bytes": 524288,
+                  "count": 1
+                },
+                {
+                  "label": "linear_attention_params_cached",
+                  "category": "other",
+                  "bytes": 256,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_327680",
+                  "category": "other",
+                  "bytes": 655360,
+                  "count": 2
+                },
+                {
+                  "label": "silu_output_327680",
+                  "category": "other",
+                  "bytes": 655360,
+                  "count": 2
+                },
+                {
+                  "label": "silu_uniforms_cached",
+                  "category": "other",
+                  "bytes": 112,
+                  "count": 7
+                },
+                {
+                  "label": "residual_uniforms_cached",
+                  "category": "other",
+                  "bytes": 64,
+                  "count": 4
+                },
+                {
+                  "label": "split_qg_uniforms_cached",
+                  "category": "other",
+                  "bytes": 64,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_65536",
+                  "category": "other",
+                  "bytes": 131072,
+                  "count": 2
+                },
+                {
+                  "label": "rmsnorm_qk_q_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_k_output_65536",
+                  "category": "other",
+                  "bytes": 65536,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_uniforms_cached",
+                  "category": "other",
+                  "bytes": 128,
+                  "count": 4
+                },
+                {
+                  "label": "rope_qk_uniforms_cached",
+                  "category": "other",
+                  "bytes": 1760,
+                  "count": 55
+                },
+                {
+                  "label": "kv_cache_write_uniforms_cached",
+                  "category": "attention",
+                  "bytes": 880,
+                  "count": 55
+                },
+                {
+                  "label": "attention_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "attention_uniforms_cached",
+                  "category": "other",
+                  "bytes": 4400,
+                  "count": 55
+                },
+                {
+                  "label": "attention_kv_len_fallback",
+                  "category": "other",
+                  "bytes": 4,
+                  "count": 1
+                },
+                {
+                  "label": "attention_page_table_fallback",
+                  "category": "other",
+                  "bytes": 4,
+                  "count": 1
+                },
+                {
+                  "label": "silu_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_131072",
+                  "category": "other",
+                  "bytes": 131072,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_output_4096",
+                  "category": "other",
+                  "bytes": 32768,
+                  "count": 8
+                },
+                {
+                  "label": "fused_ffn_uniforms_cached",
+                  "category": "other",
+                  "bytes": 32,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_16384",
+                  "category": "other",
+                  "bytes": 16384,
+                  "count": 1
+                },
+                {
+                  "label": "fused_ffn_output_16384",
+                  "category": "other",
+                  "bytes": 16384,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_393216",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 2
+                },
+                {
+                  "label": "embed_tokens_1024",
+                  "category": "other",
+                  "bytes": 1024,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_4521984",
+                  "category": "other",
+                  "bytes": 4521984,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "L0.linear_attention_core_out_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "L0.linear_conv_out_4521984",
+                  "category": "other",
+                  "bytes": 4521984,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_2686976",
+                  "category": "other",
+                  "bytes": 5373952,
+                  "count": 2
+                },
+                {
+                  "label": "matmul_output_3014656",
+                  "category": "other",
+                  "bytes": 3014656,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_q_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_k_output_393216",
+                  "category": "other",
+                  "bytes": 393216,
+                  "count": 1
+                },
+                {
+                  "label": "attention_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "silu_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "silu_output_2686976",
+                  "category": "other",
+                  "bytes": 2686976,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_output_786432",
+                  "category": "other",
+                  "bytes": 2359296,
+                  "count": 3
+                },
+                {
+                  "label": "rmsnorm_prenorm_placeholder_256",
+                  "category": "other",
+                  "bytes": 1024,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_256",
+                  "category": "other",
+                  "bytes": 1024,
+                  "count": 4
+                },
+                {
+                  "label": "L2.linear_attention_core_out_8192",
+                  "category": "other",
+                  "bytes": 40960,
+                  "count": 5
+                },
+                {
+                  "label": "L2.linear_conv_out_32768",
+                  "category": "other",
+                  "bytes": 163840,
+                  "count": 5
+                }
+              ]
+            },
+            "pool": {
+              "allocations": 8397,
+              "reuses": 2111,
+              "totalBytesAllocated": 839010048,
+              "peakBytesAllocated": 707236864,
+              "currentBytesAllocated": 35204864,
+              "totalBytesRequested": 825456640,
+              "peakBytesRequested": 691949824,
+              "currentBytesRequested": 0,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 0,
+                  "count": 0
+                },
+                "active": {
+                  "bytes": 0,
+                  "count": 0
+                },
+                "reusable": {
+                  "bytes": 35204864,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeBuffers": 0,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 900000000,
+              "budgetUtilization": 0.03911651555555556,
+              "hitRate": "20.1%"
+            },
+            "activeLabels": [],
+            "gpuValidationErrors": []
+          }
+        },
+        {
+          "barriers": 1,
+          "snapshot": {
+            "device": {
+              "scope": "device-gpu-buffers",
+              "maxBytes": 1420000000,
+              "liveBytes": 37964920,
+              "peakBytes": 391430544,
+              "allocations": 8882,
+              "rejected": 0,
+              "categories": {
+                "weights": 0,
+                "attention": 880,
+                "recurrent": 0,
+                "other": 37964040
+              },
+              "labels": [
+                {
+                  "label": "staging_read_65536",
+                  "category": "other",
+                  "bytes": 65536,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_256",
+                  "category": "other",
+                  "bytes": 256,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_512",
+                  "category": "other",
+                  "bytes": 512,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_uniforms_cached",
+                  "category": "other",
+                  "bytes": 128,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_524288",
+                  "category": "other",
+                  "bytes": 524288,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_uniforms_cached",
+                  "category": "other",
+                  "bytes": 992,
+                  "count": 31
+                },
+                {
+                  "label": "matmul_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "L12.linear_attention_core_out_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "L12.linear_conv_out_524288",
+                  "category": "other",
+                  "bytes": 524288,
+                  "count": 1
+                },
+                {
+                  "label": "linear_attention_params_cached",
+                  "category": "other",
+                  "bytes": 256,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_327680",
+                  "category": "other",
+                  "bytes": 655360,
+                  "count": 2
+                },
+                {
+                  "label": "silu_output_327680",
+                  "category": "other",
+                  "bytes": 655360,
+                  "count": 2
+                },
+                {
+                  "label": "silu_uniforms_cached",
+                  "category": "other",
+                  "bytes": 112,
+                  "count": 7
+                },
+                {
+                  "label": "residual_uniforms_cached",
+                  "category": "other",
+                  "bytes": 64,
+                  "count": 4
+                },
+                {
+                  "label": "split_qg_uniforms_cached",
+                  "category": "other",
+                  "bytes": 64,
+                  "count": 4
+                },
+                {
+                  "label": "matmul_output_65536",
+                  "category": "other",
+                  "bytes": 131072,
+                  "count": 2
+                },
+                {
+                  "label": "rmsnorm_qk_q_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_k_output_65536",
+                  "category": "other",
+                  "bytes": 65536,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_uniforms_cached",
+                  "category": "other",
+                  "bytes": 128,
+                  "count": 4
+                },
+                {
+                  "label": "rope_qk_uniforms_cached",
+                  "category": "other",
+                  "bytes": 1760,
+                  "count": 55
+                },
+                {
+                  "label": "kv_cache_write_uniforms_cached",
+                  "category": "attention",
+                  "bytes": 880,
+                  "count": 55
+                },
+                {
+                  "label": "attention_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "attention_uniforms_cached",
+                  "category": "other",
+                  "bytes": 4400,
+                  "count": 55
+                },
+                {
+                  "label": "attention_kv_len_fallback",
+                  "category": "other",
+                  "bytes": 4,
+                  "count": 1
+                },
+                {
+                  "label": "attention_page_table_fallback",
+                  "category": "other",
+                  "bytes": 4,
+                  "count": 1
+                },
+                {
+                  "label": "silu_output_196608",
+                  "category": "other",
+                  "bytes": 196608,
+                  "count": 1
+                },
+                {
+                  "label": "staging_read_1048576",
+                  "category": "other",
+                  "bytes": 1048576,
+                  "count": 1
+                },
+                {
+                  "label": "fused_ffn_output_16384",
+                  "category": "other",
+                  "bytes": 32768,
+                  "count": 2
+                },
+                {
+                  "label": "fused_ffn_uniforms_cached",
+                  "category": "other",
+                  "bytes": 32,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_output_4096",
+                  "category": "other",
+                  "bytes": 32768,
+                  "count": 8
+                },
+                {
+                  "label": "matmul_output_393216",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 2
+                },
+                {
+                  "label": "matmul_output_4521984",
+                  "category": "other",
+                  "bytes": 4521984,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "L12.linear_attention_core_out_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "L12.linear_conv_out_4521984",
+                  "category": "other",
+                  "bytes": 4521984,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_2686976",
+                  "category": "other",
+                  "bytes": 5373952,
+                  "count": 2
+                },
+                {
+                  "label": "silu_output_2686976",
+                  "category": "other",
+                  "bytes": 2686976,
+                  "count": 1
+                },
+                {
+                  "label": "residual_output_786432",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_3014656",
+                  "category": "other",
+                  "bytes": 3014656,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_q_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_qk_k_output_393216",
+                  "category": "other",
+                  "bytes": 393216,
+                  "count": 1
+                },
+                {
+                  "label": "attention_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "silu_output_1507328",
+                  "category": "other",
+                  "bytes": 1507328,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_786432",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 1
+                },
+                {
+                  "label": "fused_prenorm_sum_786432",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_output_786432",
+                  "category": "other",
+                  "bytes": 786432,
+                  "count": 1
+                },
+                {
+                  "label": "rmsnorm_prenorm_placeholder_256",
+                  "category": "other",
+                  "bytes": 768,
+                  "count": 3
+                },
+                {
+                  "label": "matmul_output_1048576",
+                  "category": "other",
+                  "bytes": 1048576,
+                  "count": 1
+                },
+                {
+                  "label": "matmul_output_256",
+                  "category": "other",
+                  "bytes": 1024,
+                  "count": 4
+                },
+                {
+                  "label": "L14.linear_attention_core_out_8192",
+                  "category": "other",
+                  "bytes": 40960,
+                  "count": 5
+                },
+                {
+                  "label": "L14.linear_conv_out_32768",
+                  "category": "other",
+                  "bytes": 163840,
+                  "count": 5
+                }
+              ]
+            },
+            "pool": {
+              "allocations": 8386,
+              "reuses": 2346,
+              "totalBytesAllocated": 518189056,
+              "peakBytesAllocated": 342689792,
+              "currentBytesAllocated": 37956096,
+              "totalBytesRequested": 501881344,
+              "peakBytesRequested": 326424832,
+              "currentBytesRequested": 0,
+              "resources": {
+                "retainedModel": {
+                  "bytes": 0,
+                  "count": 0
+                },
+                "active": {
+                  "bytes": 0,
+                  "count": 0
+                },
+                "reusable": {
+                  "bytes": 37956096,
+                  "count": 64
+                },
+                "deferredCleanup": {
+                  "bytes": 0,
+                  "count": 0
+                }
+              },
+              "activeBuffers": 0,
+              "pooledBuffers": 64,
+              "budgetMaxBytes": 900000000,
+              "budgetUtilization": 0.04217344,
+              "hitRate": "21.9%"
+            },
+            "activeLabels": [],
+            "gpuValidationErrors": []
+          }
+        }
+      ],
+      "rawEvidence": {
+        "retainedCompressedLinux": "/tmp/reploid-numerical-024/reference-mac-linux.json.gz",
+        "retainedMac": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T03-47-57-486Z/reference-mac-linux.json",
+        "compressedSha256": "9d009b90ea300273d7576891441a246a2fe1df3cb7c6943055d8a17981bf7568",
+        "projection": "Complete first-failure tensors and native logits retained here; full operator timeline and streaming chunks remain in raw evidence."
+      },
+      "projectionSha256": "8b576f41e39b720d769e8c472429ebbc96b6ec55a9e4de078e34789d586acbcf"
+    }
+  ]
+}

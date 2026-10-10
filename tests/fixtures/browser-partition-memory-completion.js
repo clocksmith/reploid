@@ -293,14 +293,15 @@ try {
       const diagnostic = { host: slot ? 'linux' : 'mac', unsplitStepParity: [] };
       const linearCaptures = [];
       const captureKind = process.env.DOPPLER_ATTENTION_CACHE_CAPTURE;
-      const captureAttention = !referenceHost && ['1', 'attention'].includes(captureKind);
+      const captureAttention = !referenceHost && ['1', 'attention', 'attention-projection'].includes(captureKind);
       evidence.unsplitFirstDivergence.runs.push(diagnostic);
       try {
         if (captureAttention) {
           const { observeAttentionCache } = await import('../../../doppler/tests/fixtures/attention-cache-observer.js');
           diagnostic.captureHelperSha256 = createHash('sha256').update(observeAttentionCache.toString()).digest('hex');
           await observeAttentionCache(context, new URL('../../node_modules/doppler-gpu', import.meta.url).pathname,
-            linearCaptures, { ...(captureKind === 'attention' ? { attentionLayer: probeLayer }
+            linearCaptures, { ...(captureKind !== '1' ? { attentionLayer: probeLayer,
+              ...(captureKind === 'attention-projection' ? { projectionLayer: probeLayer } : {}) }
               : probePrompt === null ? { linearOnly: true } : { linearLayer: probeLayer }),
               captureCondition: 'globalThis.numericalObservation?.capture === true' });
         }
@@ -523,9 +524,13 @@ try {
         catch (error) { diagnostic.cleanupFailure = { name: error.name, message: error.message }; }
         if (captureAttention) {
           diagnostic.linearCapture = { captures: linearCaptures };
-          const inputBoundary = captureKind === 'attention' ? 'inputs' : 'linear-inputs';
+          const inputBoundary = captureKind === '1' ? 'linear-inputs' : 'inputs';
           if (!linearCaptures.some(capture => capture.records.some(record => record.boundary === inputBoundary))) {
             diagnostic.captureFailure = 'The attention diagnostic did not retain its actual input boundary';
+          }
+          if (captureKind === 'attention-projection'
+            && !linearCaptures.some(capture => capture.records.some(record => record.boundary === 'projection'))) {
+            diagnostic.captureFailure = 'The attention diagnostic did not retain its output projection';
           }
         }
         await writeFile(output, JSON.stringify(evidence));
