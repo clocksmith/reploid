@@ -7,7 +7,7 @@
 !deploy/
 !deploy/Dockerfile
 !deploy/artifacts/
-!deploy/artifacts/doppler-gpu-0.6.24.tgz
+!deploy/artifacts/doppler-gpu-0.6.25.tgz
 
 !server/
 !server/**

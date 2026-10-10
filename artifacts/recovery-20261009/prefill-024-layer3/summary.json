@@ -1,0 +1,157 @@
+{
+  "scope": "Selected frozen prompt 0 prefill step 0, both placements; complete numerical qualification remains failed",
+  "placements": [
+    {
+      "direction": "linux-mac",
+      "rawEvidence": {
+        "local": "/tmp/reploid-prefill-024-layer3-linux-mac.json.gz",
+        "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-01-58-668Z/reference-linux-mac.json",
+        "compressedSha256": "c1649f5cc339be09947383b3886e887104cd7c5fed41a930315f614edaff4b18"
+      },
+      "projection": "artifacts/recovery-20261009/prefill-024-layer3/reference-linux-mac.json.gz",
+      "projectionSha256": "34ff706c843645ac5f0b838034d6008b5174d03c0cb52448583ec994d01efc3d",
+      "comparisons": [
+        {
+          "host": "mac",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 0.0007069110870361328,
+              "maxDifferenceIndex": 87689,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.0013737678527832031,
+              "maxDifferenceIndex": 22856,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        },
+        {
+          "host": "linux",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 0.00011849403381347656,
+              "maxDifferenceIndex": 414,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.0012409687042236328,
+              "maxDifferenceIndex": 28251,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        }
+      ]
+    },
+    {
+      "direction": "mac-linux",
+      "rawEvidence": {
+        "local": "/tmp/reploid-prefill-024-layer3-mac-linux.json.gz",
+        "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-01-58-668Z/reference-mac-linux.json",
+        "compressedSha256": "4b163f6cf8cfaf204b4d3b36a397364f1f022555e941399e1819798131d83a4c"
+      },
+      "projection": "artifacts/recovery-20261009/prefill-024-layer3/reference-mac-linux.json.gz",
+      "projectionSha256": "f309c0ac0edda3399c39a90882ebd965d1a02a303ba327d8f03629545c779f44",
+      "comparisons": [
+        {
+          "host": "mac",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 5.841255187988281e-05,
+              "maxDifferenceIndex": 313,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.0013737678527832031,
+              "maxDifferenceIndex": 22856,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        },
+        {
+          "host": "linux",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 0.0006990432739257812,
+              "maxDifferenceIndex": 87689,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.0012409687042236328,
+              "maxDifferenceIndex": 28251,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        }
+      ]
+    }
+  ]
+}
