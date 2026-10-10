@@ -18,7 +18,18 @@ describe('chat model manifest delivery', () => {
       expect(bytes.length).toBe(file.sizeBytes);
       expect(createHash('sha256').update(bytes).digest('hex')).toBe(file.hash);
       expect(model.identity).toBe(`sha256:${file.hash}`);
-      expect(JSON.parse(bytes).modelId).toBe(model.id);
+      const manifest = JSON.parse(bytes);
+      expect(manifest.modelId).toBe(model.id);
+      const pieces = model.source.files.find(item => item.role === 'model-piece-index');
+      const indexBytes = await readFile(resolve(selfDir, pieces.url.slice(1)));
+      expect(hosted.has(pieces.url.slice(1))).toBe(true);
+      expect(indexBytes.length).toBe(pieces.sizeBytes);
+      expect(createHash('sha256').update(indexBytes).digest('hex')).toBe(pieces.hash);
+      const index = JSON.parse(indexBytes);
+      expect(index.manifestIdentity, model.id + ' piece index must bind the admitted manifest').toBe(model.identity);
+      for (const shard of manifest.shards) {
+        expect(index.files.find(entry => entry.path === shard.filename)?.size).toBe(shard.size);
+      }
     }
   });
 });
