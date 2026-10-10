@@ -1,0 +1,246 @@
+{
+  "scope": "Frozen prompt 2 decode step 7, recurrent operation has identical operands and states; later arithmetic remains failed",
+  "archiveSha256": "cbec67e09fc7c443115558788d65a661e7e63d5907c7e7de3c07f3ecbba269c4",
+  "operandProof": [
+    {
+      "boundary": "linear-inputs",
+      "role": "qkv",
+      "byteExact": true,
+      "sha256": "5df23ad6c05a0abd19daef634d0c7b6038c0800088a3f6bb13b6bd2ba24e8b60"
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "z",
+      "byteExact": true,
+      "sha256": "62aefa1761804326d4bad3f62e5c6452c86e41c7e10d9fade89277691bef1590"
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "a",
+      "byteExact": true,
+      "sha256": "0985b92c820b1902567a258e2321401f29327a21ad36be06737141f767bcdf1c"
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "b",
+      "byteExact": true,
+      "sha256": "a2fe23bad54d794c8e4362f1fcb2a0fd79e97072f4abab5e316730bad9ad4f89"
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "convWeight",
+      "byteExact": true,
+      "sha256": "42671f9cc0e26159d1410b0dabbdaee226ecc156b39a488a21d29519ddc260c3"
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "convState",
+      "byteExact": true,
+      "sha256": "893fe18524a5aada5c28d7f656bbf1eef54baaf02335ef3a13bc998e855b10f9"
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "dtBias",
+      "byteExact": true,
+      "sha256": "00768421ec303be4663b6955f14f43893f54107d728babc10aedfbdab72eb169"
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "aLog",
+      "byteExact": true,
+      "sha256": "068576ffacceb69c07b246a4310e8207121bd296cc92f00ec1fa3dcb67464215"
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "normWeight",
+      "byteExact": true,
+      "sha256": "b92121af2866c2e156749dc12e27d5f873abb1595291be3a7465c8c65fd6e439"
+    },
+    {
+      "boundary": "linear-inputs",
+      "role": "recurrentState",
+      "byteExact": true,
+      "sha256": "84b50a9b399f90240eb91ff2d800f93aa310890e6ba200ca75c4df422bf80356"
+    },
+    {
+      "boundary": "linear-outputs",
+      "role": "convOutput",
+      "byteExact": true,
+      "sha256": "e348c7b037f094fdb54059af754d8fe11705c185716d364cf9e1480613abcbc8"
+    },
+    {
+      "boundary": "linear-outputs",
+      "role": "coreOutput",
+      "byteExact": true,
+      "sha256": "d45f9994d3786f8b34b82a8e58a25320d6a56f2b48051e1986fcdc87f5d84d35"
+    },
+    {
+      "boundary": "linear-outputs",
+      "role": "convState",
+      "byteExact": true,
+      "sha256": "4071a03b94c32742dd8b14f470300cb687aa5b9ad82f9f04cccea08e1f5c307f"
+    },
+    {
+      "boundary": "linear-outputs",
+      "role": "recurrentState",
+      "byteExact": true,
+      "sha256": "aad2c4ebfbfdaa2c15e370d282ef4e2215bec14b1551dc3bbc51f1dcdb9d49c5"
+    }
+  ],
+  "firstVisibleDifference": {
+    "opId": "layer.3.layer.out",
+    "shape": [
+      1,
+      1024
+    ],
+    "dtype": "f32",
+    "maxDifference": 5.960464477539063e-08,
+    "maxDifferenceIndex": 0
+  },
+  "rawEvidence": [
+    {
+      "direction": "linux-mac",
+      "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-14-18-449Z/reference-linux-mac.json",
+      "local": "/tmp/reploid-decode-025-layer0-linux-mac.json.gz",
+      "compressedSha256": "583195809aa2b7801529e15f961a8af9c74afb6571ddc5bbff7189fdaa3c3a24",
+      "nativeComparisons": [
+        {
+          "host": "mac",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 0.0012241005897521973,
+              "maxDifferenceIndex": 82558,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "frozen": {
+              "maxDifference": 0.001599729061126709,
+              "maxDifferenceIndex": 17207,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        },
+        {
+          "host": "linux",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 3.1113624572753906e-05,
+              "maxDifferenceIndex": 103090,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.0013012290000915527,
+              "maxDifferenceIndex": 2632,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        }
+      ]
+    },
+    {
+      "direction": "mac-linux",
+      "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-14-18-449Z/reference-mac-linux.json",
+      "local": "/tmp/reploid-decode-025-layer0-mac-linux.json.gz",
+      "compressedSha256": "abeb451dfa20d82c32c590a6159262d67d2785bc6d419cea888798394de04137",
+      "nativeComparisons": [
+        {
+          "host": "mac",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 8.678436279296875e-05,
+              "maxDifferenceIndex": 13,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.001599729061126709,
+              "maxDifferenceIndex": 17207,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        },
+        {
+          "host": "linux",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 0.0012134909629821777,
+              "maxDifferenceIndex": 82558,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "frozen": {
+              "maxDifference": 0.0013012290000915527,
+              "maxDifferenceIndex": 2632,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        }
+      ]
+    }
+  ]
+}
