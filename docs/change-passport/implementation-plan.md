@@ -85,7 +85,7 @@ observations.
 | `self/core/change-passport*.js` | Browser/VFS compatibility exports for the shared contract |
 | `server/change-control/` | Hosted store, authorization, API, GitHub App, effect adapters, and trigger ingestion |
 | `self/ui/change-passport/` | Operator review, evidence, dissent, approval, effect, and reopening views |
-| `sdk/change-passport/` | Standalone TypeScript client, package-local declarations, and bundled offline verifier |
+| `packages/change-passport/` | Standalone TypeScript client, package-local declarations, and bundled offline verifier |
 | `.github/actions/change-passport/` | Reusable CI action for candidate freeze, evidence upload, and required-check polling |
 | `tests/fixtures/change-passport/` | Canonical valid and adversarial conformance fixtures |
 | `tests/unit/change-passport*.test.js` | Contract, projection, policy, and adapter unit evidence |

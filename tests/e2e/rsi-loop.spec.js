@@ -14,8 +14,8 @@
  * - CLOUD=true: Uses cloud provider (requires API key)
  *
  * Run:
- *   npx playwright test tests/e2e/rsi-loop.spec.js
- *   DOPPLER=true npx playwright test tests/e2e/rsi-loop.spec.js --headed
+ *   npx playwright test --config tests/playwright.config.js tests/e2e/rsi-loop.spec.js
+ *   DOPPLER=true npx playwright test --config tests/playwright.config.js tests/e2e/rsi-loop.spec.js --headed
  */
 
 import { test, expect } from '@playwright/test';

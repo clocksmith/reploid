@@ -4,7 +4,7 @@
 
 packages/reploid is the publishable browser package. The root package is the
 private application and development workspace. self/ remains the static host
-surface; server/, functions/ and deployment tooling remain outside the library.
+surface; server/, packages/functions/ and deployment tooling remain outside the library.
 
 JavaScript implementations and declaration files live together in the package.
 Schemas, profiles and selectable policies are JSON. Application-only configuration

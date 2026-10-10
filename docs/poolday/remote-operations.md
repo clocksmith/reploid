@@ -52,8 +52,8 @@ operators.
 Acceptance commands:
 
 ```sh
-npx vitest run tests/unit/pool-peer-pack-job.test.js tests/unit/pool-peer-adapter-execution.test.js tests/unit/pool-document-delegation.test.js
-REPLOID_E2E_SKIP_LOCAL_SERVER=1 npx playwright test tests/e2e/peer-pack-jobs.spec.js --project=chromium
+npx vitest run --config tests/vitest.config.js tests/unit/pool-peer-pack-job.test.js tests/unit/pool-peer-adapter-execution.test.js tests/unit/pool-document-delegation.test.js
+REPLOID_E2E_SKIP_LOCAL_SERVER=1 npx playwright test --config tests/playwright.config.js tests/e2e/peer-pack-jobs.spec.js --project=chromium
 ```
 
 These protocol and browser tests use synthetic model outputs. They cover exact

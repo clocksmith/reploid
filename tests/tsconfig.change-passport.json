@@ -12,6 +12,6 @@
     "checkJs": false
   },
   "include": [
-    "../sdk/change-passport/src/**/*.ts"
+    "../packages/change-passport/src/**/*.ts"
   ]
 }

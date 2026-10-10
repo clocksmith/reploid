@@ -55,6 +55,9 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 
 ### Repository support files
 
+- [Development environment template](../examples/.env.example) and [configuration example](../examples/.reploidrc.json.example).
+- [Test configuration](../tests/vitest.config.js), [browser test configuration](../tests/playwright.config.js), and [browser type-check configuration](../tests/tsconfig.browser.json).
+- [Cloud Run container](../deploy/Dockerfile) — build from the repository root with `docker build -f deploy/Dockerfile .`.
 - [Governance details](GOVERNANCE_DETAILS.md) — supporting intent and acceptance constraints.
 - [Security audit policy](SECURITY_AUDIT.md) — cooperative self-audit scope and sanitized findings.
 - [Approved symbols](EMOJI.md) — presentation and documentation conventions.

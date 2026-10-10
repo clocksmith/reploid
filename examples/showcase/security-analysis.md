@@ -1,6 +1,6 @@
 # REPLOID Agent Loop Analysis
 
-**Curated run summary (not replayable):** [reploid-export-1765143717007.json](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1765143717007.json)
+**Curated run summary (not replayable):** [reploid-export-1765143717007.json](https://github.com/clocksmith/reploid/blob/main/examples/showcase/runs/reploid-export-1765143717007.json)
 
 ## Overview
 The REPLOID agent operates on a recursive "Think-Act-Observe" cycle, implemented primarily in `/core/agent-loop.js`. This architecture supports autonomous recursive self-improvement (RSI) through dynamic tool loading and hot-swappable modules.

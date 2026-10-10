@@ -135,7 +135,7 @@ Read the claim index row before repeating a capability statement.
 - [`docs/`](docs/): product intent, claims, security, architecture, and operator guides
 - [`deploy/`](deploy/): deployment and access-window tooling
 - [`doppler/`](doppler/): vendored or paired Doppler integration surface
-- [`showcase/`](showcase/): demonstrations and recorded runs
+- [`showcase/`](examples/showcase/): demonstrations and recorded runs
 - [`package.json`](package.json): package metadata and local commands
 
 ## Intent and component authority

@@ -4,7 +4,6 @@
 
 !.gcloudignore
 !.dockerignore
-!Dockerfile
 !package.json
 !package-lock.json
 
@@ -20,6 +19,7 @@ server/logs/**
 !scripts/print-pool-env.js
 
 !deploy/
+!deploy/Dockerfile
 !deploy/cloudbuild.yaml
 !deploy/env.production.json
 !deploy/artifacts/

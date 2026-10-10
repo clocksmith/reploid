@@ -2,7 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { execFileSync, spawnSync } from 'node:child_process';
 import { readFileSync, existsSync } from 'node:fs';
-import { parseArgs, buildTestCommands, buildProofCommand, proofCommands } from '../../bin/reploid-cli.ts';
+import { parseArgs, buildTestCommands, buildProofCommand, proofCommands } from '../../scripts/reploid-cli.ts';
 
 describe('Reploid command entrypoint', () => {
   it('runs the advertised npm CLI and discovers actual proof targets', () => {
@@ -17,11 +17,11 @@ describe('Reploid command entrypoint', () => {
   it('preserves test options across full-suite dispatch without opening a debugger', () => {
     const commands = buildTestCommands(parseArgs(['test', '--full', '--filter', 'Pack', '--coverage', '--headed', '--verbose']));
     expect(commands).toEqual([
-      ['vitest', 'run', '-t', 'Pack', '--coverage', '--reporter=verbose'],
-      ['playwright', 'test', 'tests/e2e', '--headed', '--grep', 'Pack', '--reporter=list']
+      ['vitest', 'run', '--config', 'tests/vitest.config.js', '-t', 'Pack', '--coverage', '--reporter=verbose'],
+      ['playwright', 'test', '--config', 'tests/playwright.config.js', 'tests/e2e', '--headed', '--grep', 'Pack', '--reporter=list']
     ]);
-    expect(buildTestCommands(parseArgs(['test']))).toEqual([['vitest', 'run']]);
-    expect(buildTestCommands(parseArgs(['unit']))).toEqual([['vitest', 'run', 'tests/unit']]);
+    expect(buildTestCommands(parseArgs(['test']))).toEqual([['vitest', 'run', '--config', 'tests/vitest.config.js']]);
+    expect(buildTestCommands(parseArgs(['unit']))).toEqual([['vitest', 'run', '--config', 'tests/vitest.config.js', 'tests/unit']]);
     expect(buildProofCommand(['peer-pack', '--config', '/tmp/explicit.json', '--dry-run'])).toEqual(['scripts/verify-peer-pack-execution.js', '--config', '/tmp/explicit.json']);
   });
 
@@ -41,7 +41,7 @@ describe('Reploid command entrypoint', () => {
     expect(workflow).toContain('playwright-report/');
     expect(workflow).toContain('npm run verify:registry');
     expect(workflow).not.toContain('          tests/');
-    expect(readFileSync('vitest.config.js', 'utf8')).toContain('test-results/vitest-results.json');
+    expect(readFileSync('tests/vitest.config.js', 'utf8')).toContain('test-results/vitest-results.json');
     expect(JSON.parse(readFileSync('package.json', 'utf8')).scripts['test:ci']).toContain('--outputFile=test-results/vitest-results.json');
   });
 });

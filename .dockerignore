@@ -2,10 +2,10 @@
 # identity in server/pool/release-identity.js.
 **
 
-!Dockerfile
 !package.json
 !package-lock.json
 !deploy/
+!deploy/Dockerfile
 !deploy/artifacts/
 !deploy/artifacts/doppler-gpu-0.6.23.tgz
 
