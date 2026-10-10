@@ -1,0 +1,38 @@
+{
+  "scope": "Physical Linux only; browser fixture legacy host labels are not hardware evidence",
+  "physicalDevices": 1,
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.19",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.19.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.19.tgz",
+    "integrity": "sha512-wpU+6e6yBNM/bfR7z++CiP6up5o1kZQdsxOm8XxxdkyXA2V7Xzab+PWMoxBN6DP5TVEroF9YRWExZ/yuP8pfDg=="
+  },
+  "bundleHash": "sha256:6f2d914394947a917711d8791e2ee67f9d43e3da121a5f62448ee726b114a5ec",
+  "restarts": [
+    {
+      "layerRange": [
+        12,
+        23
+      ],
+      "before": "Ready",
+      "stopped": "Not sharing",
+      "ready": "Ready",
+      "answer": "YES",
+      "retainedWeightInventoryEqual": true
+    },
+    {
+      "layerRange": [
+        0,
+        11
+      ],
+      "before": "Ready",
+      "stopped": "Not sharing",
+      "ready": "Ready",
+      "answer": "YES",
+      "retainedWeightInventoryEqual": true
+    }
+  ],
+  "requesterWeights": [],
+  "errors": []
+}

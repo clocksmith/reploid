@@ -12,7 +12,7 @@
           "sizeBytes": 214204,
           "hashAlgorithm": "sha256",
           "hash": "43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0",
-          "url": "https://storage.googleapis.com/reploid-model-artifacts/manifests/sha256/43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0.json"
+          "url": "/config/model-manifests/43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0.json"
         },
         {
           "path": "tokenizer.json",
@@ -95,7 +95,7 @@
           "sizeBytes": 183803,
           "hashAlgorithm": "sha256",
           "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
-          "url": "https://storage.googleapis.com/reploid-model-artifacts/manifests/sha256/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+          "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
         },
         {
           "path": "tokenizer.json",
