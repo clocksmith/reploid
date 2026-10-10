@@ -1850,6 +1850,7 @@
     "vendor/reploid/config/request-overrides.json",
     "vendor/reploid/config/schema.json",
     "vendor/reploid/config/transport-defaults.json",
+    "vendor/reploid/contracts/doppler-partitions.provenance.json",
     "vendor/reploid/improvement/code-evolution.js",
     "vendor/reploid/improvement/episodes.js",
     "vendor/reploid/improvement/index.js",

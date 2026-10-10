@@ -1,0 +1,30 @@
+{
+  "schema": "reploid.doppler-partition-types/v1",
+  "packageVersion": "0.6.27",
+  "publicExport": "./partitions",
+  "exportedTypes": [
+    "LAYER_PARTITION_SCHEMA",
+    "ACTIVATION_TENSOR_SCHEMA",
+    "ActivationDtype",
+    "PartitionTensorContract",
+    "LayerPartition",
+    "LayerPartitionPlan",
+    "ActivationFrame",
+    "PartitionTiming",
+    "ResidentPartitionAllocation",
+    "ResidentPartitionDescriptor",
+    "ResidentPartitionIdentity",
+    "ResidentPartitionLimits",
+    "ResidentPartitionStep",
+    "ResidentPartitionTokenizationRequest",
+    "ResidentPartitionTokenizationResult",
+    "ResidentPartitionARequest",
+    "ResidentPartitionAResult",
+    "ResidentPartitionBRequest",
+    "ResidentPartitionBResult",
+    "ResidentPartitionMetrics",
+    "ResidentRecoveryCapabilities",
+    "ResidentPartitionSession"
+  ],
+  "sha256": "907fabad0a6125369d769e530e54544093530bb283f6a89a17b5568f157f6a6b"
+}

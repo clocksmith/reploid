@@ -1311,7 +1311,7 @@
     {
       "path": "config/module-inventory.json",
       "byteLength": 516304,
-      "sha256": "sha256:4043dd6cf7563282f175ce830f7514ac42df87a388d2036c21c60ecf729a9d72"
+      "sha256": "sha256:b16a151c8f7103dd7350da9492f6bbf902557d600cdb04d80c2480e54c06eb98"
     },
     {
       "path": "config/module-registry.json",
@@ -1360,8 +1360,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 111335,
-      "sha256": "sha256:6792ed452567c87d908b5d38b079bfe557f8634d3e001f14ecafedcfb7a134b8"
+      "byteLength": 111402,
+      "sha256": "sha256:f78116e5dcee8fd04afa4e7044140bc106d9d262822c3574334b7bc6afb50c34"
     },
     {
       "path": "config/vfs-policy.js",
@@ -9249,6 +9249,11 @@
       "sha256": "sha256:48555be6fa31fc3bc9d0f414e6dc86b6f8ae674a3ff941c77393a2bc2668a21b"
     },
     {
+      "path": "vendor/reploid/contracts/doppler-partitions.provenance.json",
+      "byteLength": 912,
+      "sha256": "sha256:614a685a40de6df82536e01a6e38fa4a94abf2c6fbf3d94a5f01597eb5d7c69a"
+    },
+    {
       "path": "vendor/reploid/improvement/code-evolution.js",
       "byteLength": 21961,
       "sha256": "sha256:ddbab4ca17d2fc0b17147ce3d27d494412edd700ee6caed421e81b51b65011b5"
@@ -9410,8 +9415,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 27687,
-      "sha256": "sha256:ec8732b36d5fe0e35ba5c8d410d7037fa2476c355cc55ca271800ff7f90bb011"
+      "byteLength": 28033,
+      "sha256": "sha256:89670483a17990710574dcc39ebf7b13c3018d747f6864d6d3cb31704387e5d6"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -9474,5 +9479,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:ecd5445bb5842faafad797e75cfe735027f7c64ae2804dfd5f22374baf08fefe"
+  "bundleHash": "sha256:90a0409c346b55111148192e47e1669237bb451863d6a0d50b00f07bf4e16f28"
 }

@@ -9,7 +9,10 @@ and authenticated browser conversation tests. This is an integration candidate;
 physical numerical acceptance and public deployment are separate gates.
 
 Doppler's public `doppler-gpu/partitions` exports own resident computation types.
-Reploid derives them and retains its grant, routing and transport extensions.
+Reploid generates its optional-consumer declarations from those public exports
+and checks assignability against the installed package. This keeps standalone
+Reploid type checking independent of installing Doppler. Grants, routing and
+transport extensions remain Reploid-owned.
 Hosts pass generation settings resolved by the installed public generation API.
 Admission checks the descriptor's generation digest, model, plan, partition index,
 layer range, readiness and required methods before advertising a ready resident.

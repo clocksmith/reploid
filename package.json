@@ -55,7 +55,7 @@
     "sync:runtime-config": "node scripts/sync-runtime-config.js --write",
     "sync:doppler": "node scripts/sync-doppler.js",
     "sync:doppler-generation": "node scripts/sync-doppler-generation-contract.js",
-    "verify:doppler-generation": "node scripts/sync-doppler-generation-contract.js --check",
+    "verify:doppler-generation": "node scripts/sync-doppler-generation-contract.js --check && node scripts/sync-doppler-partition-contract.js --check",
     "deploy:pool-env": "node scripts/print-pool-env.js",
     "deploy:simulatte-hosting": "firebase deploy --config firebase.simulatte-hosting.json --project simulatte-world --only hosting:simulatte-world",
     "verify:journeys": "node scripts/verify-critical-user-journeys.js",

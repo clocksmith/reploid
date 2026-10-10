@@ -179,10 +179,13 @@ try {
     await check('doppler-fixture-install', async () => {
       const directory = await mkdtemp(path.join(tmpdir(), 'reploid-doppler-consumer-'));
       report.dopplerConsumer = directory;
-      const expectedVersion = dopplerFixture.dependencies['doppler-gpu'];
+      const pin = JSON.parse(await readFile(path.join(root, 'self/config/doppler-package.json'), 'utf8'));
+      const expectedVersion = pin.version;
+      const archive = path.resolve(root, pin.resolved.replace(/^file:/, ''));
+      assert.equal('sha512-' + createHash('sha512').update(await readFile(archive)).digest('base64'), pin.integrity);
       assert(/^\d+\.\d+\.\d+$/.test(expectedVersion), 'Doppler fixture must use an exact version');
       await writeFile(path.join(directory, 'package.json'), JSON.stringify({
-        ...dopplerFixture, dependencies: { ...dopplerFixture.dependencies, reploid: 'file:' + report.archive.path }
+        ...dopplerFixture, dependencies: { ...dopplerFixture.dependencies, 'doppler-gpu': 'file:' + archive, reploid: 'file:' + report.archive.path }
       }, null, 2));
       await command('npm-install-doppler', 'npm', ['install', '--ignore-scripts', '--no-audit', '--no-fund'], directory);
       const installedDoppler = JSON.parse(await readFile(path.join(directory, 'node_modules/doppler-gpu/package.json'), 'utf8'));

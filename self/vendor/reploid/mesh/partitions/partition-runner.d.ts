@@ -2,7 +2,7 @@ import type { PartitionRequestTiming } from '../../transport/partition-data-chan
 
 import type { LayerPartitionPlan, ResidentPartitionIdentity, ResidentPartitionStep,
   ResidentPartitionLimits, ResidentPartitionARequest, ResidentPartitionAResult,
-  ResidentPartitionBRequest, ResidentPartitionBResult, ActivationFrame as DopplerActivationFrame } from 'doppler-gpu/partitions';
+  ResidentPartitionBRequest, ResidentPartitionBResult, ActivationFrame as DopplerActivationFrame } from '../../contracts/doppler-partitions.js';
 export type PartitionPlan = LayerPartitionPlan;
 export type AttemptIdentity = Omit<ResidentPartitionIdentity, 'modelId' | 'participantA' | 'participantB'>;
 export type PartitionBinding = ResidentPartitionIdentity;

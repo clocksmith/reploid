@@ -1,13 +1,14 @@
 import type { PartitionPlan, PartitionLimits, PartitionDeviceA, PartitionDeviceB, PartitionBinding } from './partition-runner.js';
 import type { ResidentPartitionDescriptor as DopplerDescriptor, ResidentPartitionSession,
-  ResidentPartitionOpenOptions, ResidentPartitionTokenizationResult, ResidentRecoveryCapabilities } from 'doppler-gpu/partitions';
+  ResidentPartitionAllocation, ResidentPartitionTokenizationResult, ResidentRecoveryCapabilities } from '../../contracts/doppler-partitions.js';
 /** A ready descriptor is admitted only after runtime identity and generation checks. */
 export type ResidentPartitionDescriptor = DopplerDescriptor & { ready: true };
 export type PartitionTokenization = ResidentPartitionTokenizationResult;
 export type DopplerResidentPartitionSession = ResidentPartitionSession;
 export interface DopplerPartitionSessionFactory {
-  openResidentPartition(options: Omit<ResidentPartitionOpenOptions, 'model'> & {
-    model: Omit<ResidentPartitionOpenOptions['model'], 'capsule'> & { capsule?: ResidentPartitionOpenOptions['model']['capsule'] };
+  openResidentPartition(options: Omit<ResidentPartitionAllocation, 'generation' | 'model'> & {
+    model: ResidentPartitionAllocation['model'] & { generation: ResidentPartitionAllocation['generation']; [key: string]: unknown };
+    signal: AbortSignal;
   }): Promise<ResidentPartitionSession>;
 }
 export interface PartitionReservation {
