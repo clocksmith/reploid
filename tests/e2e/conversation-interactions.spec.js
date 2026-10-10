@@ -23,26 +23,26 @@ for (const width of [1440, 390]) test(`model picker retains unavailable choices 
       async close() { dispose(); await session.close(); }
     };
   });
-  const { first, second } = await page.evaluate(() => ({ first: modelPickerFixture.first, second: modelPickerFixture.second }));
+  const { first, second } = await page.evaluate(() => ({ first: window.modelPickerFixture.first, second: window.modelPickerFixture.second }));
   await page.locator('[data-composer-input]').fill('Keep this original draft');
   await page.locator('[data-current-model]').click();
   await expect(page.locator('[data-model-picker]')).toBeVisible();
   await expect(page.locator('[data-next-model]')).toHaveValue(first);
   await page.locator('[data-next-model]').selectOption(second);
-  await page.evaluate(() => modelPickerFixture.setCapacity(false));
+  await page.evaluate(() => window.modelPickerFixture.setCapacity(false));
   await expect(page.locator('[data-next-model]')).toHaveValue(second);
   await expect(page.locator('[data-next-model]')).toContainText('Unavailable');
   await expect(page.locator('[data-next-model-status]')).toBeVisible();
   await expect(page.locator('[data-change-model]')).toBeDisabled();
-  await page.evaluate(() => modelPickerFixture.setCapacity(true));
+  await page.evaluate(() => window.modelPickerFixture.setCapacity(true));
   await expect(page.locator('[data-next-model]')).toHaveValue(second);
   await expect(page.locator('[data-change-model]')).toBeEnabled();
   await page.locator('[data-change-model]').click();
   await expect(page.locator('[data-model-picker]')).toBeHidden();
   await expect(page.locator('[data-active-model-select]')).toHaveValue(second);
-  expect(await page.evaluate(() => modelPickerFixture.original())).toBe(first);
+  expect(await page.evaluate(() => window.modelPickerFixture.original())).toBe(first);
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this original draft');
-  await page.evaluate(() => modelPickerFixture.close());
+  await page.evaluate(() => window.modelPickerFixture.close());
 });
 
 test('optional and specialist routes still mount their existing views', async ({ page }) => {

@@ -56,6 +56,12 @@ test('compact ribbon keeps availability and attempt status visible', async ({ pa
     await expect(status).toBeInViewport();
     await expect(page.locator('[data-composer-input]')).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    const trigger = await page.locator('[data-ribbon-trigger]').boundingBox();
+    for (const participant of await page.locator('[data-ribbon-route] .execution-ribbon-participant').all()) {
+      const node = await participant.boundingBox();
+      expect(node.x).toBeGreaterThanOrEqual(trigger.x);
+      expect(node.x + node.width).toBeLessThanOrEqual(trigger.x + trigger.width);
+    }
     if (mode === 'empty') await expect(page.locator('.execution-ribbon-node')).toHaveCount(0);
     if (mode === 'cancelling') await page.screenshot({ path: info.outputPath('compact-stopping.png'), fullPage: true });
   }
