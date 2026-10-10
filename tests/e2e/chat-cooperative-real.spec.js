@@ -307,11 +307,58 @@ test('one model executes cooperatively on discovered physical peers from selecti
       await expect(requester.locator('[data-message-stream] details')).toHaveCount(3);
       await downloadConversation();
     };
+    const runConversationIsolation = async () => {
+      const receipt = { physicalDevices: remote ? 2 : 1, modelIdentity: model.identity };
+      const save = () => writeFile(info.outputPath('conversation-isolation.json'), JSON.stringify(receipt, null, 2));
+      try {
+        const concurrentId = await sendNew('Count from one to twenty, one number per line.');
+        const concurrentBriefId = await sendNew('Return only the word YES.');
+        receipt.concurrent = { long: await lastAttempt(concurrentId), brief: await lastAttempt(concurrentBriefId) };
+        await save();
+        expect(receipt.concurrent.long.status).toBe('executing');
+        await Promise.all([waitCompleted(concurrentId), waitCompleted(concurrentBriefId)]);
+        receipt.concurrent = { long: await lastAttempt(concurrentId), brief: await lastAttempt(concurrentBriefId) };
+        await save();
+        expect(receipt.concurrent.long.execution.stopReason).toBe('eos-token');
+        expect(receipt.concurrent.brief.execution.stopReason).toBe('eos-token');
+
+        const survivorId = await sendNew('Count from one to two hundred, one number per line.');
+        const cancelledId = await sendNew('Count from one to one hundred, writing every number on its own line.');
+        await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === cancelledId)
+          .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
+        receipt.beforeCancellation = { survivor: await lastAttempt(survivorId), cancelled: await lastAttempt(cancelledId) };
+        await save();
+        expect(receipt.beforeCancellation.survivor.status).toBe('executing');
+        expect(receipt.beforeCancellation.cancelled.status).toBe('executing');
+        await requester.locator('[data-composer-stop]').click();
+        await expect.poll(async () => (await lastAttempt(cancelledId)).status).toBe('cancelled');
+        await waitCompleted(survivorId, 600000);
+        receipt.afterCancellation = { survivor: await lastAttempt(survivorId), cancelled: await lastAttempt(cancelledId) };
+        await save();
+        expect(receipt.afterCancellation.survivor.id).toBe(receipt.beforeCancellation.survivor.id);
+        expect(receipt.afterCancellation.survivor.execution.stopReason).toBe('eos-token');
+        expect(receipt.afterCancellation.cancelled.status).toBe('cancelled');
+        await requester.locator(`[data-thread-item-id="${firstThreadId}"]`).click();
+        await requester.locator('[data-composer-input]').fill('Say goodbye briefly.');
+        await requester.locator('[data-composer-send]').click();
+        await approve(requester); await waitCompleted(firstThreadId);
+        receipt.reused = await lastAttempt(firstThreadId);
+        await save();
+        expect(receipt.reused.execution.stopReason).toBe('eos-token');
+        return receipt.concurrent;
+      } catch (error) {
+        receipt.exception = { name: error.name, message: error.message };
+        await save(); throw error;
+      }
+    };
     if (process.env.REPLOID_E2E_RECOVERY === '1') {
       // Keep the prepared pair and its caches alive across the focused restarts.
       // This is a diagnosis of contribution recovery, not full acceptance.
       const longRecovery = process.env.REPLOID_E2E_DOCUMENTS === '1';
-      if (longRecovery) await runDocuments();
+      if (longRecovery) {
+        await runConversationIsolation();
+        await runDocuments();
+      }
       const receipt = { physicalDevices: remote ? 2 : 1, modelIdentity: model.identity, longRecovery, restarts: [] };
       const save = () => writeFile(info.outputPath('contributor-restarts.json'), JSON.stringify(receipt, null, 2));
       const snapshot = async page => ({
@@ -458,23 +505,8 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await waitCompleted(secondId);
     expect((await history(requester)).threads.find(thread => thread.id === secondId).messages.at(-1).content.trim()).toBe('4');
     await expect(contributor.locator('[data-contrib-label]')).toHaveText('Ready');
-    const concurrentId = await sendNew('Count from one to twenty, one number per line.');
-    const concurrentBriefId = await sendNew('Return only the word YES.');
-    expect((await lastAttempt(concurrentId)).status).toBe('executing');
-    await Promise.all([waitCompleted(concurrentId), waitCompleted(concurrentBriefId)]);
-    const concurrent = { long: await lastAttempt(concurrentId), brief: await lastAttempt(concurrentBriefId) };
-    const cancelledId = await sendNew('Count from one to one hundred, writing every number on its own line.');
-    await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === cancelledId)
-      .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
-    await requester.locator('[data-composer-stop]').click();
-    await expect.poll(async () => (await lastAttempt(cancelledId)).status).toBe('cancelled');
-    await requester.locator(`[data-thread-item-id="${firstThreadId}"]`).click();
-    await requester.locator('[data-composer-input]').fill('Say goodbye briefly.');
-    await requester.locator('[data-composer-send]').click();
-    await approve(requester);
-    await waitCompleted(firstThreadId);
+    const concurrent = await runConversationIsolation();
     expect((await lastAttempt(secondId)).status).toBe('completed');
-    expect((await lastAttempt(cancelledId)).status).toBe('cancelled');
     if (reference) {
       for (const messages of reference.prompts.slice(2)) {
         const id = await sendNew(messages.at(-1).content); await waitCompleted(id);

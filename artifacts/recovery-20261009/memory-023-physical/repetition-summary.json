@@ -1,0 +1,484 @@
+{
+  "scope": "Installed package, exact local verified model bytes, two-browser partition memory acceptance; not P2P or numerical qualification",
+  "status": "repetition completed; cancellation run remains active; final destruction not observed in this receipt",
+  "packageIdentity": {
+    "name": "doppler-gpu",
+    "version": "0.6.23",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.23.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.23.tgz",
+    "integrity": "sha512-j/9kGjf6d91EC4eH8maKbaTeP3Zg3G1kYC5tFPLO+VdiwY9I3Ht6URchpLrZbhZalAv6qJ5MCsZa6QNMNVcKwQ=="
+  },
+  "browserBundle": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
+  "sourceRun": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T01-55-29-670Z",
+  "rawReceipt": {
+    "path": "memory-repetition.json.gz",
+    "sha256": "d3e2240c57dcb69669192df9e5f6ff87a8b3fd9a88c740946474106e73e2a8bd"
+  },
+  "partitionHosts": [
+    {
+      "index": 0,
+      "host": "mac"
+    },
+    {
+      "index": 1,
+      "host": "linux"
+    }
+  ],
+  "budgetBytes": 1420000000,
+  "requestFixtureSha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+  "runs": [
+    {
+      "attempt": 0,
+      "inputTokens": 494,
+      "generatedSteps": 1348,
+      "completed": true,
+      "stopReason": "eos-token",
+      "textSha256": "4ca8c4f1bb8ca4eda90067c895f06d473386e27862b76c0f8e9d11c005b3c10a",
+      "before": [
+        {
+          "liveBytes": 661502224,
+          "peakBytes": 862828944,
+          "categories": {
+            "weights": 650989568,
+            "attention": 0,
+            "recurrent": 0,
+            "other": 10512656
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 650989568,
+              "count": 172
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 256,
+              "count": 1
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        },
+        {
+          "liveBytes": 296010000,
+          "peakBytes": 497336720,
+          "categories": {
+            "weights": 285497344,
+            "attention": 0,
+            "recurrent": 0,
+            "other": 10512656
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 285497344,
+              "count": 173
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 256,
+              "count": 1
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        }
+      ],
+      "after": [
+        {
+          "liveBytes": 755846712,
+          "peakBytes": 881738808,
+          "categories": {
+            "weights": 650989568,
+            "attention": 1280,
+            "recurrent": 0,
+            "other": 104855864
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 650989568,
+              "count": 172
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 94333952,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        },
+        {
+          "liveBytes": 384201512,
+          "peakBytes": 515249160,
+          "categories": {
+            "weights": 285497344,
+            "attention": 1296,
+            "recurrent": 0,
+            "other": 98702872
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 285497344,
+              "count": 173
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 88180992,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        }
+      ]
+    },
+    {
+      "attempt": 1,
+      "inputTokens": 1588,
+      "generatedSteps": 1627,
+      "completed": true,
+      "stopReason": "eos-token",
+      "textSha256": "f249ef80c8ac978705b388da0c8b3d9d70a06fed6aae0265abc3828b4a52fa7e",
+      "before": [
+        {
+          "liveBytes": 755846712,
+          "peakBytes": 881738808,
+          "categories": {
+            "weights": 650989568,
+            "attention": 1280,
+            "recurrent": 0,
+            "other": 104855864
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 650989568,
+              "count": 172
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 94333952,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        },
+        {
+          "liveBytes": 384201512,
+          "peakBytes": 515249160,
+          "categories": {
+            "weights": 285497344,
+            "attention": 1296,
+            "recurrent": 0,
+            "other": 98702872
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 285497344,
+              "count": 173
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 88180992,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        }
+      ],
+      "after": [
+        {
+          "liveBytes": 760577336,
+          "peakBytes": 922615176,
+          "categories": {
+            "weights": 650989568,
+            "attention": 1280,
+            "recurrent": 0,
+            "other": 109586488
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 650989568,
+              "count": 172
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 99064576,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        },
+        {
+          "liveBytes": 387088680,
+          "peakBytes": 560124072,
+          "categories": {
+            "weights": 285497344,
+            "attention": 1296,
+            "recurrent": 0,
+            "other": 101590040
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 285497344,
+              "count": 173
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 91068160,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        }
+      ]
+    },
+    {
+      "attempt": 2,
+      "inputTokens": 1588,
+      "generatedSteps": 1627,
+      "completed": true,
+      "stopReason": "eos-token",
+      "textSha256": "f249ef80c8ac978705b388da0c8b3d9d70a06fed6aae0265abc3828b4a52fa7e",
+      "before": [
+        {
+          "liveBytes": 760577336,
+          "peakBytes": 922615176,
+          "categories": {
+            "weights": 650989568,
+            "attention": 1280,
+            "recurrent": 0,
+            "other": 109586488
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 650989568,
+              "count": 172
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 99064576,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        },
+        {
+          "liveBytes": 387088680,
+          "peakBytes": 560124072,
+          "categories": {
+            "weights": 285497344,
+            "attention": 1296,
+            "recurrent": 0,
+            "other": 101590040
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 285497344,
+              "count": 173
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 91068160,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        }
+      ],
+      "after": [
+        {
+          "liveBytes": 760577336,
+          "peakBytes": 922615176,
+          "categories": {
+            "weights": 650989568,
+            "attention": 1280,
+            "recurrent": 0,
+            "other": 109586488
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 650989568,
+              "count": 172
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 99064576,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        },
+        {
+          "liveBytes": 387088680,
+          "peakBytes": 560124072,
+          "categories": {
+            "weights": 285497344,
+            "attention": 1296,
+            "recurrent": 0,
+            "other": 101590040
+          },
+          "resources": {
+            "retainedModel": {
+              "bytes": 285497344,
+              "count": 173
+            },
+            "active": {
+              "bytes": 10485760,
+              "count": 4
+            },
+            "reusable": {
+              "bytes": 91068160,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        }
+      ]
+    }
+  ],
+  "sameRepeatedOutput": true,
+  "immediateAfterResidentClose": [
+    {
+      "liveBytes": 759502120,
+      "peakBytes": 922615176,
+      "categories": {
+        "weights": 650989568,
+        "attention": 1280,
+        "recurrent": 0,
+        "other": 108511272
+      },
+      "resources": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 99064576,
+          "count": 64
+        },
+        "deferredCleanup": {
+          "bytes": 660426752,
+          "count": 175
+        }
+      },
+      "gpuValidationErrors": []
+    },
+    {
+      "liveBytes": 386013464,
+      "peakBytes": 560124072,
+      "categories": {
+        "weights": 285497344,
+        "attention": 1296,
+        "recurrent": 0,
+        "other": 100514824
+      },
+      "resources": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 91068160,
+          "count": 64
+        },
+        "deferredCleanup": {
+          "bytes": 294934528,
+          "count": 176
+        }
+      },
+      "gpuValidationErrors": []
+    }
+  ],
+  "residentDestructionQualified": false,
+  "numericalQualified": false,
+  "applicationQualified": false,
+  "limitations": [
+    "HTTP fixture and Node tensor forwarding do not establish P2P acquisition or zero requester downloads in the ordinary UI.",
+    "Immediate close snapshots have no active or retained ownership, but weights remain pending destruction. The new settled snapshot was added after this run started.",
+    "This is correctness and lifecycle evidence, not a performance benchmark."
+  ]
+}
