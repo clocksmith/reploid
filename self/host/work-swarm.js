@@ -12,7 +12,7 @@ import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-ru
 import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
 import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkPeerOffers } from './work-peer-offers.js';
-import { createWorkModelFiles } from './work-model-files.js';
+import { createWorkModelFiles, getFileContributionLimits } from './work-model-files.js';
 import { loadWorkPartition } from './work-partitions.js';
 import { createWorkPartitionNetworks } from './work-partition-networks.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
@@ -243,7 +243,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     }
   return Object.freeze({ getState, connect, disconnect, partitions,
     getPartitionState: () => partitionMesh?.getState() || null,
-    getFileState: () => modelFiles?.getState() || { sharing: false, preparing: false },
+    getFileState: () => modelFiles?.getState() || { sharing: false, preparing: false, limits: getFileContributionLimits() },
     async shareFiles(model, approved) {
       await connect({ automatic: true });
       await modelFiles.share(model, approved, { retainedOnly: contribution.partition === true });

@@ -79,12 +79,12 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     expect(focused.height).toBeGreaterThanOrEqual(44);
     expect(await page.locator('[data-active-model-select]').evaluate(node => getComputedStyle(node).backgroundImage)).toContain('linear-gradient');
     const glassFill = await page.locator('[data-active-model-select]').evaluate(node => getComputedStyle(node).backgroundImage);
-    const selectedNav = page.locator('.pool-primary-nav [aria-current="page"]');
+    const modelControl = page.locator('[data-active-model-select]');
     // Focus has a stronger edge; compare the two unfocused glass surfaces.
     await textarea.blur();
-    expect(await selectedNav.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
-    await selectedNav.hover();
-    expect(await selectedNav.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
+    expect(await textarea.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
+    await modelControl.hover();
+    expect(await textarea.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
     await page.locator('[data-toggle-inspector]').click();
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

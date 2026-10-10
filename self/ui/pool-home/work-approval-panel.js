@@ -1,3 +1,4 @@
+import { renderPermissionSummary } from '../components/permission-card.js';
 /**
  * Approval panel component for reviewing proposed peer operations before sending.
  * Refusal stops this disclosure; it never silently retries elsewhere.
@@ -10,8 +11,7 @@ export function renderApprovalPanel() {
     '    <span class="pool-work-badge pool-work-badge--approval">&#9675; Approval required</span>',
     '  </div>',
     '  <p class="pool-work-approval-intro">This request has not been sent. Approval shares the payload below with the named peer as public data.</p>',
-    '  <p class="type-caption" data-work-approval-identity></p>',
-    '  <pre data-work-approval-payload></pre>',
+    renderPermissionSummary(),
     '  <label class="pool-consent-row">',
     '    <input type="checkbox" data-work-public>',
     '    <span>I approve sharing this exact input with this provider as public data.</span>',

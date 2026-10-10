@@ -8,6 +8,8 @@ import { openPeerPackFileCheckpoints } from '../infrastructure/pack-transfer-sto
 import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_STORAGE_TOOLING_URL, LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 import policy from '../config/chat-files.json' with { type: 'json' };
 
+export const getFileContributionLimits = () => ({ storedBytes: policy.maxStoredBytes, supplyBytes: policy.maxSupplyBytes });
+
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const decoder = new TextDecoder('utf-8', { fatal: true });
 
@@ -47,7 +49,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
     model: sharedModel && { ...sharedModel },
     preparing, error, progress: structuredClone(progress), receivedBytes: receipts.reduce((sum, item) => sum + item.receivedBytes, 0),
     verifiedFiles: receipts.flatMap(item => item.completed || []).map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })),
-    limits: { storedBytes: policy.maxStoredBytes, supplyBytes: policy.maxSupplyBytes } });
+    limits: getFileContributionLimits() });
   const notify = () => onChange(getState());
   const tools = async () => {
     tooling ||= await import(globalThis.REPLOID_DOPPLER_STORAGE_MODULE_URL || DOPPLER_STORAGE_TOOLING_URL);

@@ -266,7 +266,8 @@ describe('poolday home navigation', () => {
     expect(html).toContain('class="pool-nav-rail pool-primary-nav pool-surface"');
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(1);
     expect(html).toContain('aria-label="Reploid home"');
-    expect(html).not.toContain('>Network</a>');
+    const host = document.createElement('div'); host.innerHTML = html;
+    expect(host.querySelector('[data-pool-route-link="/network"]').closest('[data-pool-settings]')).not.toBeNull();
     expect(html).toContain('data-pool-changes');
     expect(html).not.toContain('pool-control-drawer');
     expect(html).not.toContain('data-pool-drawer-section');

@@ -1,3 +1,4 @@
+import { updateModelSelect } from '../components/model-select.js';
 /** Shared network controls consume host snapshots; they never grant permission on render. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 
@@ -9,16 +10,16 @@ export const renderConnectionControl = () => `<div class="network-sharing-row">
 export const renderSharingControls = () => `<p class="network-sharing-summary" data-tab-sharing-summary role="status">No models shared by this tab</p>
         <label>Model to share <select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
         <div class="network-sharing-row">
-          <div><strong>Share compute <span data-contrib-label>Not sharing</span></strong>
+          <div><strong>Help answer requests <span data-contrib-label>Not sharing</span></strong>
             <p>Run peers’ public prompts on this device.</p><p data-contribution-limits></p>
             <p data-contribution-progress role="status" hidden></p></div>
-          <button class="network-switch" type="button" role="switch" aria-label="Share compute" aria-checked="false" data-toggle-contribution><span></span></button>
+          <button class="network-switch" type="button" role="switch" aria-label="Help answer requests" aria-checked="false" data-toggle-contribution><span></span></button>
         </div>
         <div class="network-sharing-row">
-          <div><strong>Share model files <span data-file-contribution-label>Not sharing</span></strong>
-            <p>Store up to 3 GiB and send up to 4 GiB to peers. Conversations are not shared.</p>
+          <div><strong>Store and share model files <span data-file-contribution-label>Not sharing</span></strong>
+            <p>Model files can be downloaded and sent to peers. Conversations are not shared.</p><p data-file-limits></p>
             <p data-file-progress role="status" hidden></p></div>
-          <button class="network-switch" type="button" role="switch" aria-label="Share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
+          <button class="network-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
         </div>`;
 
 export function projectNetworkPeers(state) {
@@ -64,13 +65,7 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
     const prepared = catalogModels.find(model => !model.partition && model.id === state.defaultModel?.id
       && ['ready', 'busy'].includes(state.defaultModel?.availability));
     const contributionKey = contributionSelect.value || keyFor(prepared || catalogModels.find(model => !model.partition));
-    const contributionCatalog = JSON.stringify(catalogModels.filter(model => !model.partition).map(model => [keyFor(model), model.name]));
-    if (contributionSelect.dataset.catalog !== contributionCatalog) {
-      contributionSelect.innerHTML = catalogModels.filter(model => !model.partition)
-        .map(model => `<option value="${escape(keyFor(model))}">${escape(model.name)}</option>`).join('');
-      contributionSelect.dataset.catalog = contributionCatalog;
-      if ([...contributionSelect.options].some(option => option.value === contributionKey)) contributionSelect.value = contributionKey;
-    }
+    updateModelSelect(contributionSelect, catalogModels.filter(model => !model.partition), { value: contributionKey });
     const network = state.network || {}, peers = network.consumer?.peers || network.supplier?.peers || [];
     find('[data-mesh-invite]').hidden = network.discoveryScope !== 'private';
     contributionSelect.disabled = !!network.sharing || !!network.stopping || !!network.files?.sharing || !!network.files?.preparing;
@@ -96,6 +91,10 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
     const progressNode = find('[data-contribution-progress]');
     progressNode.textContent = network.contribution?.error || progressText;
     progressNode.hidden = !progressNode.textContent;
+    const fileLimits = network.files?.limits;
+    const gib = bytes => (bytes / 1073741824).toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' GiB';
+    find('[data-file-limits]').textContent = fileLimits
+      ? `Store up to ${gib(fileLimits.storedBytes)} · Send up to ${gib(fileLimits.supplyBytes)}` : 'Limits will be shown when file sharing is prepared.';
     const sharingFiles = network.files?.sharing || network.files?.preparing;
     find('[data-file-contribution-label]').textContent = network.files?.error || (network.files?.preparing ? 'Preparing' : sharingFiles ? 'Sharing' : 'Not sharing');
     find('[data-file-progress]').textContent = network.files?.progress?.message || '';

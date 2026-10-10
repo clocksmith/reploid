@@ -1,3 +1,4 @@
+import { bindDisclosure } from '../components/disclosure.js';
 const THEME_STORAGE_KEY = 'reploid.appearance.v1';
 const THEMES = new Set(['system', 'dark', 'light']);
 const systemMedia = globalThis.matchMedia?.bind(globalThis);
@@ -49,7 +50,14 @@ export function applyTheme(root, theme, media = systemMedia) {
 export function bindThemeSelector(root, { storage = globalThis.localStorage, media = systemMedia } = {}) {
   let choice = readChoice(storage);
   const system = typeof media === 'function' ? media('(prefers-color-scheme: light)') : null;
-  const sync = () => applyTheme(root, choice, system ? () => system : undefined);
+  let disclosures = [];
+  const sync = () => {
+    disclosures.forEach(item => item.dispose());
+    disclosures = [...root.querySelectorAll('[data-pool-settings]')].map(panel => bindDisclosure({
+      root: panel, trigger: panel.querySelector('summary'), panel: panel.querySelector('section'), native: true
+    }));
+    return applyTheme(root, choice, system ? () => system : undefined);
+  };
   const onSystemChange = () => { if (choice === 'system') sync(); };
   const onChange = event => {
     const button = event.target.closest?.('[data-pool-theme-choice]');
@@ -61,26 +69,14 @@ export function bindThemeSelector(root, { storage = globalThis.localStorage, med
     try { storage?.setItem(THEME_STORAGE_KEY, choice); }
     catch { /* Appearance persistence is optional. */ }
   };
-  const closeSettings = event => {
-    root.querySelectorAll('[data-pool-settings][open]').forEach(panel => {
-      if (event.type === 'keydown') {
-        if (event.key !== 'Escape') return;
-        panel.open = false;
-        panel.querySelector('summary').focus();
-      } else if (!panel.contains(event.target)) panel.open = false;
-    });
-  };
   sync();
-  root.ownerDocument?.addEventListener('pointerdown', closeSettings);
-  root.addEventListener('keydown', closeSettings);
   system?.addEventListener?.('change', onSystemChange);
   root.addEventListener('click', onChange);
   return {
     sync,
     dispose() {
       root.removeEventListener('click', onChange);
-      root.removeEventListener('keydown', closeSettings);
-      root.ownerDocument?.removeEventListener('pointerdown', closeSettings);
+      disclosures.forEach(item => item.dispose());
       system?.removeEventListener?.('change', onSystemChange);
     }
   };
