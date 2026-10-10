@@ -17,7 +17,7 @@ claim of completed integration.
 - Operational observations retaining provenance, costs and duplicate identities for later Bayesian scheduling.
 - Monochrome neumorphism, no main-workspace presets, tool import/export furniture or empty improvement sections.
 
-Develop one bounded two-device layer split alongside this integration. Doppler
+Qualify the implemented bounded two-device layer split through this integration. Doppler
 must define executable portions, tensor interfaces, continuation state and the
 comparison contract. File sharing and whole-request execution do not qualify a
 split. Reploid's legacy arithmetic layer grouping is not a Doppler partition contract.
@@ -61,7 +61,21 @@ queue/load/execution times, transferred/reused bytes, failures, retries and
 resource budgets. Compare the bounded split with an unsplit reference under
 Doppler's declared numerical and output comparison contract.
 
-## Current implementation boundary
+## Implementation and qualification
+
+| Category | Boundary |
+| --- | --- |
+| Implemented | Conversation lifecycle, automatic partition discovery/placement, resident admission, selectively acquired pieces and two-partition step execution through public Doppler contracts. See [chat](../packages/reploid/src/chat/), [partitions](../packages/reploid/src/mesh/partitions/) and [host composition](../self/host/work-partitions.js). |
+| Tested under identified configurations | Retained physical cooperative answers and bounded restart/capacity controls. Their exact package, model, placements and budget matter; two tabs are not two physical machines. |
+| Qualification open | Both-direction frozen numerical parity at 0.001, repeatable ordinary application acceptance, lifecycle/capacity evidence and separate answer-quality evaluation. |
+| Planned or separately scoped | Additional qualified native hosts, generalized continuations, adapter/catalog expansion and independently evaluated network improvement. Source existence establishes none of these outcomes. |
+
+[Current dependency and retained evidence](doppler-partition-handoff.md#current-checkout-and-evidence)
+separates checkout, investigated candidate, accepted controls and served identity.
+A failed numerical gate means not qualified, not unimplemented. A model can
+faithfully execute and still produce a poor answer; task quality has its own tests.
+
+## September 2026 implementation checkpoint
 
 The new `reploid/chat` library entry implements conversation lifecycle and a
 resident-device scheduling owner. The public workspace composes it with prepared
@@ -83,8 +97,8 @@ actual adapter custody/application. Real adapter transfer uses the existing
 custody APIs with explicit artifact grants; it is not yet selectable adapted
 execution in the public chat UI. Model weight-shard acquisition through chat,
 signed complete-job integration, full three-participant model/adapter execution
-and independent-device qualification remain required. The bounded layer split
-remains unimplemented. Placeholder adapter hashes cannot be admitted.
+and independent-device qualification remain required. At this September checkpoint, the bounded layer split
+was unimplemented; the current implementation is described above. Placeholder adapter hashes cannot be admitted.
 
 The [three-tab harness](../tests/e2e/chat-three-tab.spec.js) uses one browser profile,
 real WebRTC, signed custody, interrupted-transfer checkpoints and cache reuse.

@@ -5,7 +5,7 @@ Recursive authority charters discovered from the repository root.
 
 | Component | Charter | Parent | Target |
 | --- | --- | --- | --- |
-| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Coordinate and evolve distributed intelligence that expands participants' capability or improves results, reliability, or total resource cost. |
+| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Coordinate/evolve distributed intelligence expanding capability or improving results, reliability or total resource cost. |
 | Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible deployment inputs and service boundaries. |
 | Documentation | [`docs/CATSCAN.md`](CATSCAN.md) | Reploid | Keep product intent, contracts, mechanisms, claims, and current evidence discoverable without conflating their authority. |
 | Hosted Zero Function | [`functions/CATSCAN.md`](../functions/CATSCAN.md) | Reploid | Expose the bounded Gemini-backed Zero function with explicit authentication, App Check, input, quota, and failure contracts. |
@@ -15,7 +15,7 @@ Recursive authority charters discovered from the repository root.
 | Change Passport Documentation | [`docs/change-passport/CATSCAN.md`](change-passport/CATSCAN.md) | Documentation | Preserve Change Passport as an inactive commercial alternative with independent workflow, evidence, and decision-state contracts. |
 | Poolday Product Contracts | [`docs/poolday/CATSCAN.md`](poolday/CATSCAN.md) | Documentation | Define Reploid's network product through voluntary storage, computation, agent work and evaluated improvement. Standalone usefulness belongs to participants. |
 | Evidence Status | [`docs/status/CATSCAN.md`](status/CATSCAN.md) | Documentation | Record current, evidence-linked claim status without turning observations into strategy or stronger assertions. |
-| Reploid Browser Library | [`packages/reploid/CATSCAN.md`](../packages/reploid/CATSCAN.md) | Reploid | Implement cooperating agents that solve useful problems and improve individual and collective methods through evaluated changes. |
+| Reploid Browser Library | [`packages/reploid/CATSCAN.md`](../packages/reploid/CATSCAN.md) | Reploid | Implement cooperating agents solving useful problems and improving individual and collective methods through evaluated changes. |
 | Blueprint Registry | [`self/blueprints/CATSCAN.md`](../self/blueprints/CATSCAN.md) | Browser Runtime | Preserve discoverable design records for runtime modules without substituting design descriptions for current proof. |
 | Optional Capabilities | [`self/capabilities/CATSCAN.md`](../self/capabilities/CATSCAN.md) | Browser Runtime | Package optional optimization, reflection, memory, and swarm behaviors behind explicit runtime and verification boundaries. |
 | Runtime Configuration | [`self/config/CATSCAN.md`](../self/config/CATSCAN.md) | Browser Runtime | Declare reproducible boot, route, module, environment, and capability configuration for each Reploid surface. |
