@@ -35,6 +35,12 @@ const referenceHost = referenceHostArgument < 0 ? null : process.argv[referenceH
 if (referenceHostArgument >= 0 && (!numericalDiagnostic || !['mac', 'linux'].includes(referenceHost) || reverseHosts)) {
   throw new Error('--reference-host mac|linux requires --numerical-only and excludes --reverse');
 }
+const probePrompt = process.env.REPLOID_DIAGNOSTIC_PROMPT === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_PROMPT);
+const probeStep = process.env.REPLOID_DIAGNOSTIC_STEP === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_STEP);
+if ((probePrompt !== null || probeStep !== null) && (!numericalDiagnostic || referenceHost
+  || !Number.isSafeInteger(probePrompt) || probePrompt < 0 || !Number.isSafeInteger(probeStep) || probeStep < 0)) {
+  throw new Error('A selected numerical boundary requires --numerical-only, a prompt and step, and excludes --reference-host');
+}
 const localConversation = process.argv.includes('--local');
 if (localConversation && process.env.REPLOID_E2E_BASE_URL) {
   throw new Error('--local owns its isolated application endpoint; omit REPLOID_E2E_BASE_URL');
@@ -137,6 +143,9 @@ try {
   }
   if (frozenWorkloads || capacityDiagnostic) await writeFile(reference, bytes);
   referenceGeneration = JSON.parse(bytes).generation;
+  if (probePrompt !== null && !JSON.parse(bytes).expected[probePrompt]?.steps[probeStep]) {
+    throw new Error('Selected numerical boundary is outside the unchanged frozen reference');
+  }
   const model = JSON.parse(await readFile(resolve(modelDirectory, 'manifest.json')));
   if (frozenWorkloads) referenceBinding = await bindReferenceModel(model, JSON.parse(bytes).modelIdentity);
   const catalog = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json'))).find(model => model.id === modelId);
@@ -352,7 +361,9 @@ try {
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId, modelFixtureHost,
     conversationBaseUrl, conversationDeployment,
     conversationTarget: localConversation ? 'isolated-loopback' : 'configured-host',
-    scope: numericalDiagnostic ? referenceHost
+    scope: numericalDiagnostic ? probePrompt !== null
+      ? 'Selected frozen-prompt boundary diagnostic; complete numerical and application qualification not exercised'
+      : referenceHost
       ? 'Same-device partition versus unsplit fixed-token diagnostic; frozen failures retained, not release qualification'
       : 'Installed-package numerical diagnostic in both physical placements; application acceptance not exercised'
       : memoryDiagnostic ? 'Installed-package long-prompt memory, reuse and cancellation diagnostic; numerical and application acceptance not exercised'
@@ -361,7 +372,7 @@ try {
         : 'Physical contributor restart diagnostic; other acceptance categories not exercised'
       : capacityDiagnostic ? 'Installed-package capacity diagnostic; no peer acquisition proof'
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
-    documentWorkload, reverseHosts, referenceHost, standaloneControls,
+    documentWorkload, reverseHosts, referenceHost, probePrompt, probeStep, standaloneControls,
     frozenReferenceApplicable: frozenWorkloads,
     numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource, referenceBinding,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
