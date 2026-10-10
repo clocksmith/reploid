@@ -52,6 +52,7 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 - **[docs/poolday/discovery-contract.md](./poolday/discovery-contract.md)** - Target atomic active-science object, action-value boundary, epistemic updates, replication, and closure
 
 ### Reference
+- **[Distributed conversation diagrams](./open-mesh-architecture.md#technical-diagrams)** - Component ownership, two-partition generation, and attempt recovery, linked to implementation.
 - **[Reploid–Doppler development docket and partition handoff](./doppler-partition-handoff.md)** - Current numerical and UI tasks, operating constraints, session API, ownership and scoped acceptance
 - **[Architecture stabilization](./architecture-stabilization.md)** - Integration baseline, execution ownership, persistence and verification boundaries
 - **[docs/API.md](./API.md)** - Module API documentation
