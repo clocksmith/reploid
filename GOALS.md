@@ -104,7 +104,7 @@ system works today. Preserve separate scientific and commercial acceptance bound
 
 Execution experiments: [network plan](docs/poolday/executable-intelligence-network-plan.md).
 Authority and qualification: [INTENT.md](INTENT.md), [CATSCAN.md](CATSCAN.md),
-[GOVERNANCE_DETAILS.md](GOVERNANCE_DETAILS.md), and the
+[GOVERNANCE_DETAILS.md](docs/GOVERNANCE_DETAILS.md), and the
 [claim index](docs/status/surface-claim-index.json).
 
 *Last updated: September 2026*

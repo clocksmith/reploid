@@ -56,7 +56,7 @@ reploid/
 ### Before Starting
 - Read `docs/INDEX.md` for documentation overview
 - Read `docs/style-guide.md` for complete style guidelines
-- Read `EMOJI.md` for approved Unicode symbols
+- Read `docs/EMOJI.md` for approved Unicode symbols
 - Read [`docs/maverick-hunting.md`](docs/maverick-hunting.md) before diagnosing, containing, or repairing evidence-backed provider, mutation, or tool failures
 - Review `self/blueprints/` for architectural documentation
 
@@ -109,7 +109,7 @@ npm start                   # Start server
 - **LLM errors:** Check `core/llm-client.js`, verify API keys in `.env`
 
 ### Guardrails
-- Enforce `EMOJI.md`; use only approved Unicode symbols, no emojis
+- Enforce `docs/EMOJI.md`; use only approved Unicode symbols, no emojis
 - All code changes must pass Verification Worker sandbox
 - Preserve Genesis Kernel immutability for recovery
 - Test in browser environment; uses IndexedDB for VFS

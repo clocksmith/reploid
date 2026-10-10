@@ -414,7 +414,7 @@ npm run verify:surface-claims
 npm run verify:browser-bundle:local
 npm run verify:change-passport:sdk
 npm run verify:change-passport:pilot
-npm exec -- tsc -p tsconfig.change-passport.json --noEmit
+npm exec -- tsc -p tests/tsconfig.change-passport.json --noEmit
 npm run verify:change-passport:visual
 npm run test:unit
 npm run test:integration

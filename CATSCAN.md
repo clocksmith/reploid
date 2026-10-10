@@ -21,7 +21,7 @@ Repository work not narrowed by child charters.
 Inputs:
 
 - Mission: [GOALS.md](GOALS.md); protections: [INTENT.md](INTENT.md).
-- Supporting constraints: [governance](GOVERNANCE_DETAILS.md); qualification: [claim index](docs/status/surface-claim-index.json).
+- Supporting constraints: [governance](docs/GOVERNANCE_DETAILS.md); qualification: [claim index](docs/status/surface-claim-index.json).
 
 Outputs:
 

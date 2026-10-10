@@ -269,7 +269,7 @@ const checkLocalFiles = () => {
     if (!rewriteSources.has(source)) reasons.push(`firebase rewrite missing: ${source}`);
   }
 
-  const indexes = readJson(path.join(repoRoot, 'firestore.indexes.json'));
+  const indexes = readJson(path.join(repoRoot, 'deploy', 'firestore.indexes.json'));
   const hasAssignmentIndex = indexes.indexes?.some((index) => (
     index.collectionGroup === 'assignments'
     && JSON.stringify(index.fields) === JSON.stringify([
