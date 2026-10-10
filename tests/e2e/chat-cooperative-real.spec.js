@@ -78,7 +78,9 @@ test('one model executes cooperatively on discovered physical peers from selecti
   });
   for (const page of [requester, contributor, seed, second]) {
     page.on('pageerror', error => { errors.push(error.message); console.log('Page failure', error.message); });
-    page.on('console', message => { if (message.type() === 'error') console.log('[browser]', message.text()); });
+    page.on('console', message => {
+      if (['error', 'warning'].includes(message.type())) console.log(`[browser:${message.type()}]`, message.text());
+    });
   }
   const modelRequest = url => /huggingface\.co|shard_\d+\.bin/.test(url);
   requester.on('request', request => { if (modelRequest(request.url())) requesterWeights.push(request.url()); });
