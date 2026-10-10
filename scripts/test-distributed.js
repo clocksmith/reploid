@@ -212,9 +212,9 @@ try {
   const seedUrl = new URL(endpoints.seed), replacementUrl = new URL(endpoints.replacement);
   const seedSocketPort = await freePort(), replacementSocketPort = await freePort();
   modelFixtureHost = endpoints.fixturePort ? 'peer' : 'local';
-  // Numerical and memory controls read each host's verified local bytes.
+  // Numerical, memory and standalone controls read each host's verified bytes.
   // Conversation acquisition still uses the ordinary peer file source below.
-  const independentFixtures = frozenWorkloads || memoryDiagnostic;
+  const independentFixtures = frozenWorkloads || memoryDiagnostic || standaloneControls;
   const localFixturePort = endpoints.fixturePort && independentFixtures ? await freePort() : modelPort;
   if (!endpoints.fixturePort || independentFixtures) {
     phase = 'local model fixture';
@@ -313,7 +313,7 @@ try {
         REPLOID_E2E_BASE_URL: conversationBaseUrl, REPLOID_E2E_SKIP_LOCAL_SERVER: '1',
         REPLOID_SEED_WS: `ws://127.0.0.1:${seedSocketPort}${seedUrl.pathname}`,
         REPLOID_REPLACEMENT_WS: `ws://127.0.0.1:${replacementSocketPort}${replacementUrl.pathname}`,
-        REPLOID_DIAGNOSTIC_MODEL_BASE_URL: `http://localhost:${modelPort}/`,
+        REPLOID_DIAGNOSTIC_MODEL_BASE_URL: `http://localhost:${localFixturePort}/`,
         REPLOID_DIAGNOSTIC_PEER_MODEL_BASE_URL: `http://localhost:${endpoints.fixturePort || modelPort}/`,
         REPLOID_E2E_CHROMIUM_CHANNEL: 'chrome', REPLOID_E2E_CUSTODY_TRACE: '1', REPLOID_E2E_REPLICA: '1',
         REPLOID_E2E_DOCUMENTS: documentWorkload ? '1' : '0',

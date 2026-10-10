@@ -4,22 +4,24 @@
   "changes": [
     "Reuse the existing concurrent-conversation controls in document/recovery diagnosis.",
     "Cancel a streaming conversation while another conversation remains active and require the same surviving attempt to reach EOS.",
-    "Retain immediate resident-close snapshots and observe deferred cleanup separately before browser teardown."
+    "Retain immediate resident-close snapshots and observe deferred cleanup separately before browser teardown.",
+    "Standalone initialization failure now retains immediate and settled resource snapshots; retired weights, active buffers and deferred cleanup must reach zero.",
+    "Standalone controls read each host's verified local fixture, while ordinary application acquisition still exercises peer delivery."
   ],
   "validation": {
-    "syntax": "both changed JavaScript files passed node --check",
+    "syntax": "all four changed JavaScript files passed node --check across the two commits",
     "playwrightDiscovery": "one physical conversation test discovered; no browser execution claim",
     "unit": {
       "command": "npm run test:unit",
       "filesPassed": 241,
       "testsPassed": 2505,
       "testsSkipped": 18,
-      "log": "isolation-unit.log.gz"
+      "log": "capacity-unit.log.gz"
     },
     "pool": {
       "command": "npm run verify:pool",
       "passed": true,
-      "log": "isolation-pool.log.gz"
+      "log": "capacity-pool.log.gz"
     }
   },
   "physicalAcceptance": "new assertions have not been exercised yet",
