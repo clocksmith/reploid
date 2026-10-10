@@ -97,3 +97,39 @@ qualification. It rejects required numerical qualification and incompatible
 diagnostic flags. `REPLOID_E2E_CAPACITY=1` with `--recovery` additionally runs
 the existing independent standalone-opening denial controls on both hosts;
 a generated-code assertion cannot prevent those controls from recording results.
+
+## Installed 0.6.23 memory and submitted cancellation
+
+[The memory receipt](memory-023-physical/result.json) completes the original
+Mac-prefix/Linux-suffix placement: 494 tokens, then the same 1,588-token request
+twice, all with EOS. Repeated output is identical and settled attempt allocations
+do not grow. Peak tracked allocations are 922,615,176 bytes on the Mac and
+560,124,072 bytes on Linux, below the unchanged 1,420,000,000-byte ceiling.
+
+[Cancellation and reuse](memory-023-physical/cancellation-summary.json) records
+an abort after `queue.submit` returned, allocation-guard rejection on both hosts,
+and complete reuse with the identical 1,588-token input. This is cooperative
+settlement, not immediate interruption of submitted GPU work. Both GPU error
+lists are empty. Raw receipts are retained losslessly as compressed JSON.
+
+The original resident-close snapshots have no active or retained ownership but
+still show deferred destruction. They do not prove final weight destruction.
+The existing fixture now separately observes deferred cleanup before closing
+the browser, preserving the immediate snapshots. Its reversed-placement physical
+check is still running. Standalone failed initialization receives the same
+settled-cleanup requirement. [Harness validation](memory-023-physical/harness-validation.json)
+records passing CPU checks; those checks do not substitute for physical execution.
+
+[The separate factual review](memory-023-physical/document-quality-review.json)
+fails the retained 0.8B answer: it adds an included allowance to Harbor's price,
+misidentifies Cedar's passages, and invents a precedence rule. This bounded
+observation does not establish whether unsplit inference produces the same errors.
+Neither identical output nor EOS completion qualifies task quality.
+
+These diagnostics use HTTP model fixtures and Node tensor forwarding. They do
+not establish ordinary peer acquisition, requester download behavior, numerical
+qualification, public deployment, or performance superiority. The ordinary
+larger-model recovery check separately exercises concurrent conversations,
+cancellation while another conversation remains active, document generation,
+contributor loss/retry and independent standalone denial. Its physical result
+remains open. No npm publication or production deployment occurred.

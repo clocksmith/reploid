@@ -1,0 +1,31 @@
+{
+  "scope": "Retained checks after integrating the repository root layout migration; these predate the physical isolation assertions.",
+  "initialFailure": {
+    "log": "merged-unit-failure.log.gz",
+    "failedFiles": 1,
+    "cause": "surface-claim-index pointed to sdk/change-passport/src/index.ts after the package moved"
+  },
+  "correction": {
+    "file": "docs/status/surface-claim-index.json",
+    "path": "packages/change-passport/src/index.ts",
+    "committedBy": "071616b0"
+  },
+  "finalUnit": {
+    "filesPassed": 241,
+    "testsPassed": 2505,
+    "testsSkipped": 18,
+    "log": "merged-unit-fixed.log.gz"
+  },
+  "pool": {
+    "passed": true,
+    "log": "merged-pool.log.gz"
+  },
+  "hosting": {
+    "command": "npm run prepare:hosting",
+    "passed": true,
+    "packagedFiles": 1889,
+    "log": "merged-hosting.log.gz",
+    "deployed": false
+  },
+  "boundaryEffects": "Claim path follows the existing package move. No runtime arithmetic changed."
+}
