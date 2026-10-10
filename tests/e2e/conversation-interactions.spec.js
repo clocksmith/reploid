@@ -1,5 +1,50 @@
 import { test, expect } from '@playwright/test';
 
+for (const width of [1440, 390]) test(`model picker retains unavailable choices and the original thread at ${width}px`, async ({ page }) => {
+  await page.setViewportSize({ width, height: 844 });
+  await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await page.evaluate(async () => {
+    window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
+    document.querySelector('[data-shell-inspector]')?.remove();
+    const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
+    const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const [first, second] = CANONICAL_CHAT_MODELS;
+    const peer = (model, index) => ({ peerId: `fixture-${index}`, model: model.id, modelIdentity: model.identity,
+      readiness: 'ready', hasInference: true, availableSlots: 1 });
+    let peers = [peer(first, 0), peer(second, 1)];
+    const session = createChatSession({ storage: null, swarm: { getState: () => ({ consumer: { peers } }) } });
+    const original = session.createThread({ model: first });
+    const root = document.querySelector('.pool-route-content'); root.innerHTML = renderConversationWorkspace();
+    const dispose = bindConversationWorkspace(root, session);
+    window.modelPickerFixture = {
+      first: first.id, second: second.id,
+      setCapacity(ready) { peers = ready ? [peer(first, 0), peer(second, 1)] : [peer(first, 0)]; session.refreshNetwork(); },
+      original() { session.select(original); return session.getState().activeThread.model.id; },
+      async close() { dispose(); await session.close(); }
+    };
+  });
+  const { first, second } = await page.evaluate(() => ({ first: modelPickerFixture.first, second: modelPickerFixture.second }));
+  await page.locator('[data-composer-input]').fill('Keep this original draft');
+  await page.locator('[data-current-model]').click();
+  await expect(page.locator('[data-model-picker]')).toBeVisible();
+  await expect(page.locator('[data-next-model]')).toHaveValue(first);
+  await page.locator('[data-next-model]').selectOption(second);
+  await page.evaluate(() => modelPickerFixture.setCapacity(false));
+  await expect(page.locator('[data-next-model]')).toHaveValue(second);
+  await expect(page.locator('[data-next-model]')).toContainText('Unavailable');
+  await expect(page.locator('[data-next-model-status]')).toBeVisible();
+  await expect(page.locator('[data-change-model]')).toBeDisabled();
+  await page.evaluate(() => modelPickerFixture.setCapacity(true));
+  await expect(page.locator('[data-next-model]')).toHaveValue(second);
+  await expect(page.locator('[data-change-model]')).toBeEnabled();
+  await page.locator('[data-change-model]').click();
+  await expect(page.locator('[data-model-picker]')).toBeHidden();
+  await expect(page.locator('[data-active-model-select]')).toHaveValue(second);
+  expect(await page.evaluate(() => modelPickerFixture.original())).toBe(first);
+  await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this original draft');
+  await page.evaluate(() => modelPickerFixture.close());
+});
+
 test('optional and specialist routes still mount their existing views', async ({ page }) => {
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));

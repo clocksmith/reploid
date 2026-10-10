@@ -79,6 +79,37 @@ describe('Conversation workspace', () => {
     session.select(id); expect(find('[data-composer-input]').value).toBe('Keep this draft');
   });
 
+  it('refreshes an open model picker without replacing a choice whose capacity disappears', async () => {
+    const first = CANONICAL_CHAT_MODELS[0], second = CANONICAL_CHAT_MODELS[1];
+    let peers = [first, second].map((model, index) => ({ peerId: 'peer-' + index, model: model.id,
+      modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }));
+    dispose(); await session.close();
+    session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
+    dispose = bindConversationWorkspace(root, session);
+    const id = session.createThread({ model: first });
+    find('[data-composer-input]').value = 'Keep this draft';
+    find('[data-current-model]').click();
+    const next = find('[data-next-model]');
+    next.value = second.id; next.dispatchEvent(new Event('change'));
+    peers = peers.slice(0, 1); session.refreshNetwork();
+    expect(next.value).toBe(second.id);
+    expect(next.textContent).toContain('Unavailable');
+    expect(find('[data-change-model]').disabled).toBe(true);
+    expect(session.getState().selectedId).toBe(id);
+    expect(find('[data-composer-input]').value).toBe('Keep this draft');
+    peers.push({ peerId: 'peer-1', model: second.id, modelIdentity: second.identity,
+      readiness: 'ready', hasInference: true, availableSlots: 1 });
+    session.refreshNetwork();
+    expect(next.value).toBe(second.id);
+    expect(find('[data-change-model]').disabled).toBe(false);
+    find('[data-change-model]').click();
+    expect(session.getState().selectedId).toBeNull();
+    expect(find('[data-active-model-select]').value).toBe(second.id);
+    session.select(id);
+    expect(session.getState().activeThread.model.id).toBe(first.id);
+    expect(find('[data-composer-input]').value).toBe('Keep this draft');
+  });
+
   it('renames, archives, and restores a thread without changing its purpose or draft', async () => {
     const id = session.createThread({ purpose: 'Original instruction' });
     find('[data-composer-input]').value = 'Preserve draft';

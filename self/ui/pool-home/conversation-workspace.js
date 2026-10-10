@@ -9,6 +9,8 @@ import { bindDialog } from '../components/dialog.js';
 import { renderPermissionSummary, updatePermissionSummary } from '../components/permission-card.js';
 import { createMessageList } from './message-list.js';
 
+const selectable = model => ['ready', 'busy', 'loading', 'preparing'].includes(model.availability);
+
 export function renderConversationWorkspace({ inspector = true } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
     <aside id="chat-threads" class="chat-thread-sidebar pool-surface" data-thread-sidebar aria-label="Threads">
@@ -57,6 +59,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         <h2 id="chat-model-picker-title">Conversation model</h2><p data-current-model-description></p>
         <p>This thread keeps its model. Choose a model for a new thread.</p>
         <label>Model<select class="pool-input" data-next-model></select></label>
+        <p data-next-model-status role="status" hidden></p>
         <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>New thread with this model</button></div>
       </dialog>
     </section>
@@ -71,7 +74,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl });
-  let archived = false, renameId = null, chosenModel = viewState.chosenModel || null;
+  let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
   let files = [], fileRevision = 0, reading = false, approvalKey = '';
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
   const threads = createConversationList(find('[data-thread-list]'), viewState.seen);
@@ -110,6 +113,21 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const act = operation => Promise.resolve().then(operation).catch(error);
   const on = (selector, event, callback) => find(selector)?.addEventListener(event, callback, options);
   const showFiles = () => { renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
+  const updatePicker = state => {
+    const keyFor = model => model?.selectionId || model?.id;
+    const models = state.models.filter(selectable);
+    const selected = state.models.find(model => keyFor(model) === keyFor(pickerModel));
+    if (pickerModel && !models.some(model => keyFor(model) === keyFor(pickerModel))) {
+      models.push(selected || { ...pickerModel, availability: 'unavailable' });
+    }
+    updateModelSelect(find('[data-next-model]'), models, { value: keyFor(pickerModel), showAvailability: true });
+    const available = selected && selectable(selected);
+    find('[data-change-model]').disabled = !available;
+    const status = find('[data-next-model-status]');
+    status.textContent = !pickerModel ? 'No model is available right now.'
+      : !available ? 'This model is unavailable. Choose another model or wait for capacity.' : '';
+    status.hidden = !status.textContent;
+  };
   const render = state => {
     if (controller.signal.aborted) return;
     if (selectedId !== state.selectedId) {
@@ -118,7 +136,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const thread = state.activeThread, catalogModels = state.models || [];
     const keyFor = model => model?.selectionId || model?.id;
-    const models = catalogModels.filter(model => ['ready', 'busy', 'loading', 'preparing'].includes(model.availability));
+    const models = catalogModels.filter(selectable);
     if (!thread && chosenModel && !models.some(model => keyFor(model) === keyFor(chosenModel))) {
       models.push(catalogModels.find(model => keyFor(model) === keyFor(chosenModel)) || { ...chosenModel, availability: 'unavailable' });
     }
@@ -157,6 +175,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
     messages.update(thread, { usable: usable && !thread?.closed, busy });
+    if (find('[data-model-picker]').open) updatePicker(state);
     const pending = attempt?.approval, key = pending ? JSON.stringify([thread.id, attempt.id, pending]) : '';
     if (key !== approvalKey) {
       approvalKey = key; find('[data-approval-consent]').checked = false; find('[data-approval-remember]').checked = false;
@@ -189,17 +208,26 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-current-model]', 'click', event => {
     const state = session.getState();
     find('[data-current-model-description]').textContent = state.activeThread?.model.name || '';
-    const models = state.models.filter(model => ['ready', 'busy', 'loading', 'preparing'].includes(model.availability));
-    updateModelSelect(find('[data-next-model]'), models, { showAvailability: true });
-    find('[data-change-model]').disabled = !models.length;
+    pickerModel = state.activeThread?.model || state.models.find(selectable) || null;
+    updatePicker(state);
     picker.open(find('[data-next-model]'), event.currentTarget);
   });
   on('[data-model-picker-close]', 'click', () => picker.close());
+  on('[data-next-model]', 'change', () => {
+    pickerModel = session.getState().models.find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
+    updatePicker(session.getState());
+  });
   on('[data-composer-input]', 'input', () => { try { saveDraft(); } catch (cause) { error(cause); } });
   const newThread = () => { saveDraft(); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); session.select(null); if (drawer.open) closeThreads(); input.focus(); };
   on('[data-new-thread]', 'click', newThread);
   on('[data-active-model-select]', 'change', () => { chosenModel = session.getState().models.find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); });
-  on('[data-change-model]', 'click', () => { const next = find('[data-next-model]').value; picker.close(); newThread(); chosenModel = session.getState().models.find(model => (model.selectionId || model.id) === next); viewState.chosenModel = chosenModel; modelSelect.value = next; render(session.getState()); modelSelect.focus(); });
+  on('[data-change-model]', 'click', () => {
+    const next = find('[data-next-model]').value;
+    const model = session.getState().models.find(model => (model.selectionId || model.id) === next && selectable(model));
+    if (!model) { updatePicker(session.getState()); return; }
+    picker.close(); newThread(); chosenModel = model; viewState.chosenModel = chosenModel;
+    modelSelect.value = next; render(session.getState()); modelSelect.focus();
+  });
   on('[data-open-threads]', 'click', () => { drawer.append(sidebar); threadDialog.open(sidebar.querySelector('[aria-current="true"]') || sidebar.querySelector('[data-new-thread]')); });
   on('[data-close-threads]', 'click', closeThreads);
   on('[data-retry-connection]', 'click', () => act(() => session.connect()));
