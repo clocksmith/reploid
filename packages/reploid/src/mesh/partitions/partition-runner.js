@@ -122,7 +122,7 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
         receipt.reservations.push(snapshot(admission.reservation));
       }
       for (let index = 0; index < maxTokens; index++) {
-        const terminal = await lease(async () => {
+        const delivery = await lease(async () => {
           combined.throwIfAborted();
           const generationDigest = await generationDigestPromise;
           combined.throwIfAborted();
@@ -203,14 +203,17 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
             localStepMs, serializationMs, computationA: resultA.metrics ?? null, computationB: resultB.metrics ?? null,
             transferMs, remoteStepMs, transportTiming: resultB.transportTiming ?? null,
             elapsedMs: performance.now() - started });
-          if (resultB.delta) await onDelta(resultB.delta);
           combined.throwIfAborted();
           position += input.length;
           input = [resultB.tokenId];
           if (resultB.done) stopReason = resultB.stopReason;
-          return resultB.done;
+          return { delta: resultB.delta, terminal: resultB.done };
         });
-        if (terminal) break;
+        // Per-attempt backpressure must not hold another conversation's GPU lease.
+        combined.throwIfAborted();
+        if (delivery.delta) await onDelta(delivery.delta);
+        combined.throwIfAborted();
+        if (delivery.terminal) break;
       }
       return { content, tokenIds: outputTokens, logits, stopReason,
         execution: { schema: 'reploid.mesh.partition-execution/v2', ...binding,

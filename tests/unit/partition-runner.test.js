@@ -163,6 +163,39 @@ describe('partition autoregressive orchestration (injected execution)', () => {
     expect(f.runner.getState().attempts.every(attempt => attempt.cleanupSettledAt !== null)).toBe(true);
   });
 
+  it.each(['continue', 'cancel'])('isolates a blocked output callback while preserving %s and token order', async mode => {
+    const f = fixture(), firstDeltas = [], secondDeltas = [], abort = new AbortController();
+    let release, entered;
+    const blocked = new Promise(resolve => { release = resolve; });
+    const started = new Promise(resolve => { entered = resolve; });
+    const first = f.runner.execute({ ...f.request, signal: abort.signal, onDelta: async delta => {
+      firstDeltas.push(delta); entered(); await blocked;
+    } });
+    const result = first.then(value => ({ value }), error => ({ error }));
+    try {
+      await started;
+      const second = await f.runner.execute({ ...f.request,
+        identity: { ...f.request.identity, threadId: 'second', attemptId: 'second' },
+        onDelta: delta => { secondDeltas.push(delta); } });
+      expect(second.tokenIds).toEqual([10, 11, 12]);
+      expect(secondDeltas).toEqual(['0', '1']);
+      expect(firstDeltas).toEqual(['0']);
+      expect(f.calls.filter(([thread, stage]) => thread === 'thread' && stage === 'A')).toHaveLength(1);
+      if (mode === 'cancel') abort.abort(new Error('cancelled while delivering'));
+    } finally { release(); }
+    const settled = await result;
+    if (mode === 'cancel') {
+      expect(settled.error.message).toBe('cancelled while delivering');
+      expect(firstDeltas).toEqual(['0']);
+    } else {
+      expect(settled.value.tokenIds).toEqual([10, 11, 12]);
+      expect(firstDeltas).toEqual(['0', '1']);
+    }
+    expect(f.deviceA.closeAttempt).toHaveBeenCalledTimes(2);
+    expect(f.deviceB.closeAttempt).toHaveBeenCalledTimes(2);
+    await f.runner.close();
+  });
+
   it('fairly interleaves two complete generations instead of monopolizing resident weights', async () => {
     const f = fixture();
     const [first, second] = await Promise.all([
