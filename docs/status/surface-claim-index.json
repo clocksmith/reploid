@@ -103,7 +103,7 @@
         "server/change-control/firestore-store.js",
         "server/change-control/effects.js",
         "server/change-control/triggers.js",
-        "sdk/change-passport/src/index.ts",
+        "packages/change-passport/src/index.ts",
         ".github/actions/change-passport/action.yml",
         "scripts/verify-change-passport.js",
         "tests/unit/change-passport.test.js",
