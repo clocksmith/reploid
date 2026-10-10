@@ -1,0 +1,114 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
+<title id="title">Reploid: technical architecture</title>
+<desc id="desc">Ten components connect persistent conversations to discovery, admission, authorized model-piece preparation, and two Doppler executors. Activations travel from A to B; selected tokens return to the coordinator for the next step. Weight delivery and contribution permission are separate from requester input disclosure.</desc>
+<style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.label{font-size:14px;font-weight:500;paint-order:stroke;stroke:white;stroke-width:6px;stroke-linejoin:round}</style>
+<defs>
+<marker id="ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#16181d" stroke-width="1.5"/></marker>
+<marker id="purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#7441ce" stroke-width="1.5"/></marker>
+<marker id="blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#245cd6" stroke-width="1.5"/></marker>
+<marker id="red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#d52749" stroke-width="1.5"/></marker>
+<marker id="gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#626976" stroke-width="1.5"/></marker>
+</defs>
+<rect x="1" y="1" width="1198" height="898" rx="18" fill="white" stroke="#dcdfe6"/>
+<text x="40" y="44" font-size="22" fill="#16181d" font-weight="650" text-anchor="start">reploid</text>
+<text x="1160" y="44" font-size="12" fill="#626976" font-weight="500" text-anchor="end">TECHNICAL ARCHITECTURE</text>
+<text x="40" y="80" font-size="23" fill="#16181d" font-weight="600" text-anchor="start">One answer, cooperating computers</text>
+<path d="M360 158 H452" fill="none" stroke="white" stroke-width="6"/>
+<path d="M360 158 H452" fill="none" stroke="#16181d" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ink)"/>
+<text x="406" y="149" font-size="14" fill="#626976" font-weight="500" text-anchor="middle" class="label">request</text>
+<path d="M452 203 H360" fill="none" stroke="white" stroke-width="6"/>
+<path d="M452 203 H360" fill="none" stroke="#16181d" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ink)"/>
+<text x="406" y="194" font-size="14" fill="#626976" font-weight="500" text-anchor="middle" class="label">render</text>
+<path d="M748 178 H840" fill="none" stroke="white" stroke-width="6"/>
+<path d="M748 178 H840" fill="none" stroke="#245cd6" stroke-width="1.8" stroke-linejoin="round" marker-start="url(#blue)" marker-end="url(#blue)"/>
+<text x="794" y="168" font-size="14" fill="#245cd6" font-weight="500" text-anchor="middle" class="label">save / load</text>
+<path d="M600 228 V310" fill="none" stroke="white" stroke-width="6"/>
+<path d="M600 228 V310" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
+<text x="600" y="273" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">approved disclosure</text>
+<path d="M360 359 H452" fill="none" stroke="white" stroke-width="6"/>
+<path d="M360 359 H452" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="5 5" marker-end="url(#purple)"/>
+<text x="406" y="350" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">candidates</text>
+<path d="M530 408 V463 H212 V510" fill="none" stroke="white" stroke-width="6"/>
+<path d="M530 408 V463 H212 V510" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
+<text x="365" y="455" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">admitted attempt</text>
+<path d="M360 551 H452" fill="none" stroke="white" stroke-width="6"/>
+<path d="M360 551 H452" fill="none" stroke="#d52749" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#red)"/>
+<text x="406" y="542" font-size="14" fill="#d52749" font-weight="500" text-anchor="middle" class="label">tokens</text>
+<path d="M748 551 H840" fill="none" stroke="white" stroke-width="6"/>
+<path d="M748 551 H840" fill="none" stroke="#d52749" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#red)"/>
+<text x="794" y="542" font-size="14" fill="#d52749" font-weight="500" text-anchor="middle" class="label">activations</text>
+<path d="M988 608 V651 H212 V608" fill="none" stroke="white" stroke-width="6"/>
+<path d="M988 608 V651 H212 V608" fill="none" stroke="#d52749" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#red)"/>
+<text x="420" y="637" font-size="14" fill="#d52749" font-weight="500" text-anchor="middle" class="label">next token + delta + stop</text>
+<path d="M64 560 H30 V269 H490 V228" fill="none" stroke="white" stroke-width="6"/>
+<path d="M64 560 H30 V269 H490 V228" fill="none" stroke="#16181d" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ink)"/>
+<text x="248" y="260" font-size="14" fill="#626976" font-weight="500" text-anchor="middle" class="label">ordered output / failure</text>
+<path d="M480 510 V437 H212 V408" fill="none" stroke="white" stroke-width="6"/>
+<path d="M480 510 V437 H212 V408" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="5 5" marker-end="url(#purple)"/>
+<text x="342" y="429" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">prepared path</text>
+<path d="M900 408 V469 H666 V510" fill="none" stroke="white" stroke-width="6"/>
+<path d="M900 408 V469 H666 V510" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
+<text x="820" y="460" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">compute grant</text>
+<path d="M1136 359 H1170 V759 H1136" fill="none" stroke="white" stroke-width="6"/>
+<path d="M1136 359 H1170 V759 H1136" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
+<path d="M840 756 H795 V687 H600 V608" fill="none" stroke="white" stroke-width="6"/>
+<path d="M840 756 H795 V687 H600 V608" fill="none" stroke="#245cd6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#blue)"/>
+<text x="614" y="680" font-size="14" fill="#245cd6" font-weight="500" text-anchor="middle" class="label">verified pieces</text>
+<path d="M988 710 V687 H1104 V608" fill="none" stroke="white" stroke-width="6"/>
+<path d="M988 710 V687 H1104 V608" fill="none" stroke="#245cd6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#blue)"/>
+<path d="M900 469 H1060 V510" fill="none" stroke="#7441ce" stroke-width="1.8" marker-end="url(#purple)"/>
+<g data-component="Conversation UI"><rect x="64" y="130" width="296" height="98" rx="10" fill="#ffffff" stroke="#16181d" stroke-width="1.3"/>
+<text x="82" y="151" font-size="11" fill="#16181d" font-weight="600" text-anchor="start">REQUESTER · NO WEIGHTS</text>
+<text x="82" y="176" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Conversation UI</text>
+<text x="82" y="199" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Prompt, disclosure, stream, Stop</text>
+</g>
+<g data-component="Conversation workspace"><rect x="452" y="130" width="296" height="98" rx="10" fill="#ffffff" stroke="#16181d" stroke-width="1.3"/>
+<text x="470" y="151" font-size="11" fill="#16181d" font-weight="600" text-anchor="start">APPLICATION</text>
+<text x="470" y="176" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Conversation workspace</text>
+<text x="470" y="199" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Threads, grants, isolated attempts</text>
+</g>
+<g data-component="Persistent history"><rect x="840" y="130" width="296" height="98" rx="10" fill="#f2f6ff" stroke="#245cd6" stroke-width="1.3"/>
+<text x="858" y="151" font-size="11" fill="#245cd6" font-weight="600" text-anchor="start">LOCAL STORAGE</text>
+<text x="858" y="176" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Persistent history</text>
+<text x="858" y="199" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Drafts, partial answers, retries</text>
+</g>
+<g data-component="Discovery"><rect x="64" y="310" width="296" height="98" rx="10" fill="#f7f3ff" stroke="#7441ce" stroke-width="1.3"/>
+<text x="82" y="331" font-size="11" fill="#7441ce" font-weight="600" text-anchor="start">OBSERVATION</text>
+<text x="82" y="356" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Discovery</text>
+<text x="82" y="379" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Capabilities and readiness expire</text>
+</g>
+<g data-component="Placement + admission"><rect x="452" y="310" width="296" height="98" rx="10" fill="#f7f3ff" stroke="#7441ce" stroke-width="1.3"/>
+<text x="470" y="331" font-size="11" fill="#7441ce" font-weight="600" text-anchor="start">COORDINATION</text>
+<text x="470" y="356" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Placement + admission</text>
+<text x="470" y="379" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Compatible split, scoped reservations</text>
+</g>
+<g data-component="Contribution controls"><rect x="840" y="310" width="296" height="98" rx="10" fill="#ffffff" stroke="#16181d" stroke-width="1.3"/>
+<text x="858" y="331" font-size="11" fill="#16181d" font-weight="600" text-anchor="start">PARTICIPANT CHOICE</text>
+<text x="858" y="356" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Contribution controls</text>
+<text x="858" y="379" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Compute and file-sharing permissions</text>
+</g>
+<g data-component="Partition coordinator"><rect x="64" y="510" width="296" height="98" rx="10" fill="#f7f3ff" stroke="#7441ce" stroke-width="1.3"/>
+<text x="82" y="531" font-size="11" fill="#7441ce" font-weight="600" text-anchor="start">REPLOID ON A</text>
+<text x="82" y="556" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Partition coordinator</text>
+<text x="82" y="579" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Ordered steps, cancellation, settlement</text>
+</g>
+<g data-component="Executor A · Doppler"><rect x="452" y="510" width="296" height="98" rx="10" fill="#fff3f5" stroke="#d52749" stroke-width="1.3"/>
+<text x="470" y="531" font-size="11" fill="#d52749" font-weight="600" text-anchor="start">PHYSICAL COMPUTER A</text>
+<text x="470" y="556" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Executor A · Doppler</text>
+<text x="470" y="579" font-size="14" fill="#626976" font-weight="400" text-anchor="start">First layers; own attention / state</text>
+</g>
+<g data-component="Executor B · Doppler"><rect x="840" y="510" width="296" height="98" rx="10" fill="#fff3f5" stroke="#d52749" stroke-width="1.3"/>
+<text x="858" y="531" font-size="11" fill="#d52749" font-weight="600" text-anchor="start">PHYSICAL COMPUTER B</text>
+<text x="858" y="556" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Executor B · Doppler</text>
+<text x="858" y="579" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Remaining layers; sampling; own state</text>
+</g>
+<g data-component="Authorized piece custody"><rect x="840" y="710" width="296" height="98" rx="10" fill="#f2f6ff" stroke="#245cd6" stroke-width="1.3"/>
+<text x="858" y="731" font-size="11" fill="#245cd6" font-weight="600" text-anchor="start">STORAGE PARTICIPANTS</text>
+<text x="858" y="756" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Authorized piece custody</text>
+<text x="858" y="779" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Supplier offers, verification, limits</text>
+</g>
+<text x="64" y="743" font-size="16" fill="#16181d" font-weight="600" text-anchor="start">The decode loop returns a selected token, not a second answer.</text>
+<text x="64" y="770" font-size="15" fill="#626976" font-weight="400" text-anchor="start">A → B carries activations and token context over WebRTC.</text>
+<text x="64" y="795" font-size="15" fill="#626976" font-weight="400" text-anchor="start">Each attempt closes on both executors; weights can remain resident.</text>
+<text x="64" y="857" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Purple: coordination / grants · Blue: storage / pieces · Red: inference · Dashed: availability</text>
+</svg>
