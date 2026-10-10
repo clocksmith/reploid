@@ -4,6 +4,7 @@ import { test, expect } from '@playwright/test';
 async function installConversation(page, theme) {
   await page.evaluate(async theme => {
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
+    const { bindExecutionRibbon } = await import('/ui/pool-home/execution-ribbon.js');
     const root = document.querySelector('.pool-home');
     const fixture = root.cloneNode(false);
     fixture.dataset.poolTheme = theme;
@@ -24,7 +25,7 @@ async function installConversation(page, theme) {
         permissions: { sharingScope: 'mesh' }, grants: [],
         messages: [{ id: 'question', role: 'user', content: 'Check the formatter against malformed JSON.' },
           { id: 'response', role: 'assistant', content: mode === 'completed' ? 'Valid values are preserved. Two malformed inputs need a clearer error.' : 'Checking edge cases…' }],
-        attempts: [{ id: 'attempt', status: mode, execution: { placement: 'local-webgpu' },
+        attempts: [{ id: 'attempt', status: mode, execution: { placement: 'two-device-layer-partition', participantA: 'fixture-A', participantB: 'fixture-B', requesterId: 'requester', splitLayer: 12 },
           approval: mode === 'approval' ? { id: 'approval', peerId: 'fixture-peer', modelId: model.id,
             input: 'Check these public JSON edge cases.', options: {}, limits: { maxOutputTokens: 1024 } } : null }] };
       state = { models: [{ ...model, availability: mode === 'empty' ? 'unavailable' : 'ready' }], defaultModel: model,
@@ -35,6 +36,7 @@ async function installConversation(page, theme) {
     };
     window.setVisualState('empty');
     window.disposeVisual = bindConversationWorkspace(fixture, session);
+    const ribbon = bindExecutionRibbon(fixture); session.subscribe(state => ribbon.update(state));
   }, theme);
 }
 
@@ -54,9 +56,11 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
       const geometry = await page.evaluate(() => ({
         overflow: document.documentElement.scrollWidth - innerWidth,
         nav: document.querySelector('.pool-primary-nav').getBoundingClientRect().toJSON(),
-        content: document.querySelector('.pool-route-content').getBoundingClientRect().toJSON()
+        content: document.querySelector('.pool-route-content').getBoundingClientRect().toJSON(),
+        composer: document.querySelector('[data-composer-area]').getBoundingClientRect().toJSON(), height: innerHeight
       }));
       expect(geometry.overflow).toBeLessThanOrEqual(1);
+      expect(geometry.composer.bottom).toBeLessThanOrEqual(geometry.height);
       expect(geometry.nav.left).toBe(geometry.content.left);
       expect(geometry.nav.width).toBe(geometry.content.width);
       if (state === 'approval') {
@@ -114,4 +118,55 @@ test('activity settles, stops on cancel and respects accessibility settings', as
   expect(await field.evaluate(node => getComputedStyle(node, '::after').display)).toBe('none');
   await page.evaluate(() => window.disposeVisual());
   await expect(field).toHaveAttribute('data-activity', 'idle');
+});
+
+
+test('bounded inspector and reduced viewport preserve a long conversation and composer', async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'dark');
+  await page.evaluate(() => window.setVisualState('executing'));
+  await page.evaluate(() => {
+    const stream = document.querySelector('[data-message-stream]');
+    for (let i = 0; i < 100; i++) { const p = document.createElement('p'); p.textContent = `Earlier message ${i}`; stream.append(p); }
+    stream.scrollTop = 100;
+  });
+  const before = await page.locator('[data-composer-area]').boundingBox();
+  for (let i = 0; i < 3; i++) {
+    await page.locator('[data-toggle-inspector]').click();
+    await page.locator('[data-inspector-section=conversation]').click();
+    await expect(page.locator('[data-inspector-route]')).toContainText('Peer A');
+    await page.keyboard.press('Escape'); await expect(page.locator('[data-toggle-inspector]')).toBeFocused();
+  }
+  expect(await page.locator('[data-composer-area]').boundingBox()).toEqual(before);
+  expect(await page.locator('[data-message-stream]').evaluate(node => node.scrollTop)).toBe(100);
+  await page.setViewportSize({ width: 390, height: 460 });
+  await page.locator('[data-composer-input]').focus();
+  const composer = await page.locator('[data-composer-area]').boundingBox();
+  expect(composer.y + composer.height).toBeLessThanOrEqual(460);
+  expect((await page.locator('[data-message-stream]').boundingBox()).height).toBeGreaterThanOrEqual(60);
+  await expect(page.locator('[data-composer-stop]')).toBeInViewport();
+  await page.screenshot({ path: info.outputPath('reduced-viewport.png'), fullPage: true });
+});
+
+test('keyboard-sized visual viewport compacts the workspace without resizing the layout viewport', async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height: 844 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  await page.evaluate(() => window.setVisualState('executing'));
+  await page.locator('[data-composer-input]').fill('Keep this draft');
+  // Explicit viewport fixture: models keyboards that leave CSS height queries unchanged.
+  await page.evaluate(() => {
+    Object.defineProperty(visualViewport, 'height', { configurable: true, value: 460 });
+    visualViewport.dispatchEvent(new Event('resize'));
+  });
+  expect(await page.evaluate(() => innerHeight)).toBe(844);
+  const composer = await page.locator('[data-composer-area]').boundingBox();
+  expect(composer.y + composer.height).toBeLessThanOrEqual(460);
+  expect((await page.locator('[data-message-stream]').boundingBox()).height).toBeGreaterThanOrEqual(60);
+  await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft');
+  await page.screenshot({ path: info.outputPath('visual-viewport-keyboard.png'), fullPage: true });
+  await page.evaluate(() => {
+    delete visualViewport.height; visualViewport.dispatchEvent(new Event('resize'));
+  });
+  expect((await page.locator('[data-composer-area]').boundingBox()).y).toBeGreaterThan(460);
+  await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft');
 });

@@ -20,7 +20,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <header class="chat-thread-header" data-network-header>
         <button class="pool-button chat-mobile-threads" type="button" data-open-threads>Threads</button>
         <div class="chat-thread-info">
-          <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model hidden></button></span>
+          <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model aria-haspopup="dialog" hidden></button></span>
           </div>
         <button class="btn pool-button btn-ghost" type="button" data-toggle-inspector aria-haspopup="dialog">Network <span data-mesh-peers>0 peers</span></button>
       </header>
@@ -71,7 +71,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl });
-  let archived = false, renameId = null;
+  let archived = false, renameId = null, chosenModel = viewState.chosenModel || null;
   let files = [], fileRevision = 0, reading = false, approvalKey = '';
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
   const threads = createConversationList(find('[data-thread-list]'), viewState.seen);
@@ -83,8 +83,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const closeThreads = () => { threadDialog.close(); container.prepend(sidebar); };
   drawer.addEventListener('close', () => container.prepend(sidebar), options);
   onResize();
-  function onResize() { if (globalThis.innerWidth > 760 && drawer.open) closeThreads(); }
+  function onResize() {
+    if (globalThis.innerWidth > 760 && drawer.open) closeThreads();
+    const surface = container.closest('.pool-home');
+    if (surface) {
+      const height = globalThis.visualViewport?.height || globalThis.innerHeight;
+      surface.style.setProperty('--pool-param-workspace-height', `${height}px`);
+      // Mobile keyboards may resize only visualViewport; CSS height queries stay unchanged.
+      surface.toggleAttribute('data-chat-compact', height <= 600);
+    }
+  }
   globalThis.addEventListener('resize', onResize, options);
+  globalThis.visualViewport?.addEventListener('resize', onResize, options);
   const drafts = new Map();
   const persisted = session.getDraft?.(session.getState().selectedId);
   if (persisted) { input.value = persisted.text; files = persisted.files; }
@@ -109,10 +119,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const thread = state.activeThread, catalogModels = state.models || [];
     const keyFor = model => model?.selectionId || model?.id;
     const models = catalogModels.filter(model => ['ready', 'busy', 'loading', 'preparing'].includes(model.availability));
+    if (!thread && chosenModel && !models.some(model => keyFor(model) === keyFor(chosenModel))) {
+      models.push(catalogModels.find(model => keyFor(model) === keyFor(chosenModel)) || { ...chosenModel, availability: 'unavailable' });
+    }
     if (thread && !models.some(model => keyFor(model) === keyFor(thread.model))) {
       models.push(catalogModels.find(model => keyFor(model) === keyFor(thread.model)) || { ...thread.model, availability: 'unavailable' });
     }
-    const current = keyFor(thread?.model) || (models.some(model => keyFor(model) === modelSelect.value) ? modelSelect.value : null)
+    const current = keyFor(thread?.model) || keyFor(chosenModel) || (models.some(model => keyFor(model) === modelSelect.value) ? modelSelect.value : null)
       || keyFor(models.find(model => keyFor(model) === keyFor(state.defaultModel))) || keyFor(models[0]);
     updateModelSelect(modelSelect, models, { value: current, showAvailability: true });
     modelSelect.value = current || ''; modelSelect.disabled = !models.length; modelSelect.hidden = !!thread;
@@ -126,10 +139,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const modelStatus = find('[data-model-status]');
     const networkState = state.network?.consumer?.connectionState;
     const preparing = state.localModel?.phase === 'loading';
-    modelStatus.textContent = preparing ? 'Downloading model…' + (Number.isFinite(state.localModel.progress?.progress) ? ' ' + Math.round(state.localModel.progress.progress * 100) + '%' : '')
+    modelStatus.textContent = thread?.closed ? 'Archived thread. Restore it to continue.' : preparing ? 'Downloading model…' + (Number.isFinite(state.localModel.progress?.progress) ? ' ' + Math.round(state.localModel.progress.progress * 100) + '%' : '')
       : state.localModel?.error && !usable ? 'Download failed: ' + state.localModel.error
       : usable ? '' : state.network?.paused ? 'Disconnected. Reconnect to find available models.'
-      : catalogModels.some(model => model.availability === 'loading') ? 'A contributor is loading a model…'
+      : ['loading', 'preparing'].includes(models.find(model => keyFor(model) === current)?.availability) ? 'This model is preparing…'
+      : current ? 'This model is unavailable. Your draft stays here.'
         : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding available models…'
           : 'No model is available right now. Your draft stays here.';
     modelStatus.hidden = !modelStatus.textContent;
@@ -138,11 +152,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     threads.update(state.threads, state.selectedId, { archived });
     const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
     find('[data-composer-send]').hidden = busy;
-    find('[data-retry-connection]').hidden = busy || usable || preparing || state.network?.connecting || ['connecting', 'retrying'].includes(networkState); find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
+    find('[data-retry-connection]').hidden = busy || usable || preparing || state.network?.connecting || ['connecting', 'retrying'].includes(networkState); find('[data-composer-send]').disabled = reading || !usable || !!thread?.closed || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
-    messages.update(thread, { usable, busy });
+    messages.update(thread, { usable: usable && !thread?.closed, busy });
     const pending = attempt?.approval, key = pending ? JSON.stringify([thread.id, attempt.id, pending]) : '';
     if (key !== approvalKey) {
       approvalKey = key; find('[data-approval-consent]').checked = false; find('[data-approval-remember]').checked = false;
@@ -182,9 +196,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   on('[data-model-picker-close]', 'click', () => picker.close());
   on('[data-composer-input]', 'input', () => { try { saveDraft(); } catch (cause) { error(cause); } });
-  const newThread = () => { saveDraft(); actionsPanel.setOpen(false); session.select(null); if (drawer.open) closeThreads(); input.focus(); };
+  const newThread = () => { saveDraft(); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); session.select(null); if (drawer.open) closeThreads(); input.focus(); };
   on('[data-new-thread]', 'click', newThread);
-  on('[data-change-model]', 'click', () => { const next = find('[data-next-model]').value; picker.close(); newThread(); modelSelect.value = next; render(session.getState()); modelSelect.focus(); });
+  on('[data-active-model-select]', 'change', () => { chosenModel = session.getState().models.find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); });
+  on('[data-change-model]', 'click', () => { const next = find('[data-next-model]').value; picker.close(); newThread(); chosenModel = session.getState().models.find(model => (model.selectionId || model.id) === next); viewState.chosenModel = chosenModel; modelSelect.value = next; render(session.getState()); modelSelect.focus(); });
   on('[data-open-threads]', 'click', () => { drawer.append(sidebar); threadDialog.open(sidebar.querySelector('[aria-current="true"]') || sidebar.querySelector('[data-new-thread]')); });
   on('[data-close-threads]', 'click', closeThreads);
   on('[data-retry-connection]', 'click', () => act(() => session.connect()));
@@ -199,7 +214,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       rename.closest('details').open = false; renameDialog.open(find('[data-thread-name]'), rename.closest('details').querySelector('summary')); return;
     }
     const archive = event.target.closest('[data-archive-thread]');
-    if (archive) { saveDraft(); void act(() => archived ? session.restoreThread(archive.dataset.threadId) : session.archiveThread(archive.dataset.threadId)); return; }
+    if (archive) {
+      saveDraft(); void act(() => {
+        if (archived) { archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; session.restoreThread(archive.dataset.threadId); }
+        else session.archiveThread(archive.dataset.threadId);
+        (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
+      }); return;
+    }
     const button = event.target.closest('[data-thread-item-id]'); if (button) { saveDraft(); session.select(button.dataset.threadItemId); if (drawer.open) closeThreads(); } });
   on('[data-composer-form]', 'submit', event => {
     event.preventDefault();
@@ -269,6 +290,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   return () => {
     try { saveDraft(); } catch (cause) { error(cause); }
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose(); threadDialog.dispose();
+    const surface = container.closest('.pool-home');
+    surface?.style.removeProperty('--pool-param-workspace-height');
+    surface?.removeAttribute('data-chat-compact');
     controller.abort(); fileRevision++; unsubscribe(); if (!sharedInspector) inspector.dispose();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';
