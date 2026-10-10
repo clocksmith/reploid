@@ -1,0 +1,52 @@
+
+ RUN  v4.1.10 <reploid>
+
+ ❯ tests/unit/document-comparison.test.js (7 tests | 1 failed) 176ms
+     × gives ordinary attachments stable passages without starting a comparison or checking pass 35ms
+     ✓ preserves quoted text and passage identities through history and export 2ms
+     ✓ exports ordinary conversations without document-workflow labels 0ms
+     ✓ runs the checking pass as a separate retained attempt using injected execution 36ms
+     ✓ keeps the selected conversation while a background comparison starts checking 97ms
+     ✓ does not launch checking after cancellation 3ms
+     ✓ restores drafts without executing or mixing threads 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/document-comparison.test.js > Document workflow ownership > gives ordinary attachments stable passages without starting a comparison or checking pass
+AssertionError: expected undefined to deeply equal { id: 'D1', name: 'notes.txt', …(1) }
+
+- Expected:
+{
+  "id": "D1",
+  "name": "notes.txt",
+  "passages": [
+    {
+      "id": "D1:P1",
+      "text": "May deliver Friday.",
+    },
+    {
+      "id": "D1:P2",
+      "text": "No guarantee.",
+    },
+  ],
+}
+
++ Received:
+undefined
+
+ ❯ tests/unit/document-comparison.test.js:16:35
+     14|     const thread = session.getState().activeThread;
+     15|     const sources = session.getDocumentSources(thread.messages[0].cont…
+     16|     expect(sources?.documents[0]).toEqual({ id: 'D1', name: 'notes.txt…
+       |                                   ^
+     17|       { id: 'D1:P1', text: 'May deliver Friday.' }, { id: 'D1:P2', tex…
+     18|     ] });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 6 passed (7)
+   Start at  21:09:31
+   Duration  1.26s (transform 235ms, setup 0ms, import 303ms, tests 176ms, environment 642ms)
+

@@ -1,0 +1,16 @@
+{
+  "scope": "Synthetic saved conversation and draft across actual old/new host serializers; no inference",
+  "source": {
+    "package": {
+      "name": "doppler-gpu",
+      "version": "0.6.11",
+      "spec": "file:deploy/artifacts/doppler-gpu-0.6.11.tgz",
+      "resolved": "file:deploy/artifacts/doppler-gpu-0.6.11.tgz",
+      "integrity": "sha512-CscvLW+KCT9kAHa1oOSGJSzgtnIvKrHalFxtlmC7hzu57ciVYC2OK4L8G+l8edeaF10uAI+JvBSdIyRpqJo+wA=="
+    },
+    "bundle": "sha256:6f03c7424faf3fa2ba74efe6ebdef729a342abe211767f29966bac7575006d07"
+  },
+  "target": null,
+  "completed": false,
+  "failure": "page.evaluate: Error: Doppler loaded a different model artifact\n    at eval (eval at evaluate (:290:30), <anonymous>:11:46)\n    at async <anonymous>:316:30"
+}

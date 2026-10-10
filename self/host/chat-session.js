@@ -8,7 +8,7 @@ import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-ru
 import { createChatExecution } from './chat-execution.js';
 import { projectChatCatalog, projectChatPlacements } from './chat-view.js';
 import { createChatDrafts } from './chat-drafts.js';
-import { comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
+import { attachmentInput, comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
@@ -192,15 +192,14 @@ export function createChatSession({
       assert(threadId, 'threadId required');
       assert(Array.isArray(attachments) && attachments.length <= profile.files.maxInputs, 'Too many attachments');
       let total = 0;
-      const appended = attachments.map(file => {
+      attachments.forEach(file => {
         assert(typeof file.name === 'string' && typeof file.text === 'string', 'Invalid text attachment');
         const bytes = new TextEncoder().encode(file.text).byteLength;
         total += bytes;
         assert(bytes <= profile.files.maxFileBytes, 'Attachment exceeds the file allowance');
-        return '\n\nAttached file: ' + file.name + '\n' + file.text;
-      }).join('');
+      });
       assert(total <= profile.files.maxInputBytes, 'Attachments exceed the input allowance');
-      return workspace.send(threadId, content + appended);
+      return workspace.send(threadId, attachmentInput(content, attachments));
     },
     cancel(threadId) {
       assertOpen();

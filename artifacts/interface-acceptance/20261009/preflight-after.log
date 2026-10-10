@@ -1,0 +1,5 @@
+
+> reploid@0.1.0 verify:pool
+> node scripts/verify-pool-production.js
+
+Pool production verification passed for 2026-09-06.remote-adapters.v1.doppler-0.6.21.esm2-capsule-v2 sha256:c10fbc32615fe4c6ecd382f9407109a581d3d969a89de9574e8dfd0e2a335e80

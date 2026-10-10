@@ -2117,7 +2117,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:196dc01781f2ccfa8b9db83e99aeecc58c84e4a03582e3a913214219d4f881b9",
+      "sha256": "sha256:2d39e0619f5f0e020e638318e4e0ad1b463a1a1e761907aaafeed61f4345fb50",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2139,7 +2139,7 @@
     {
       "path": "self/host/document-comparison.js",
       "owner": "self",
-      "sha256": "sha256:b9286ec4ff46d09ec14040e9afe0e0e675c3e629b4e320e5d259e3ee5ef1eba5",
+      "sha256": "sha256:78982ae492c93b71cce6401784ec5c201b8b86c8d5f26b0cd34379dc909be3dd",
       "imports": []
     },
     {

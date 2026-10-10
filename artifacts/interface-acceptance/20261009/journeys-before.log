@@ -1,0 +1,52 @@
+
+Running 5 tests using 1 worker
+
+(node:61147) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:61147) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1/5] [chromium] › tests/e2e/conversation-acceptance.spec.js:81:1 › scripted first visit: capacity retry preserves draft, approval precedes output
+[2/5] [chromium] › tests/e2e/conversation-acceptance.spec.js:97:1 › scripted attachment: disclosed text, usable citation and copying
+  1) [chromium] › tests/e2e/conversation-acceptance.spec.js:97:1 › scripted attachment: disclosed text, usable citation and copying 
+
+    Test timeout of 45000ms exceeded.
+
+    Error: locator.click: Test timeout of 45000ms exceeded.
+    Call log:
+      - waiting for locator('[data-source-reference]')
+
+
+      101 |   await expect(page.locator('[data-permission-content]')).toContainText('Delivery may happen Friday.');
+      102 |   await approve(page); await emit(page, 'Friday is possible, not promised. [D1:P1]');
+    > 103 |   await page.locator('[data-source-reference]').click();
+          |                                                 ^
+      104 |   await expect(page.locator('[id$="D1-P1"]')).toBeFocused();
+      105 |   await expect(page.locator('[id$="D1-P1"]')).toContainText('Delivery may happen Friday.');
+      106 |   await page.locator('.is-assistant [data-copy-message]').click();
+        at <reploid>/.deployment-checkouts/qualify-7bbca4f8/tests/e2e/conversation-acceptance.spec.js:103:49
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/conversation-acceptance-sc-ea4c3-usable-citation-and-copying-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/conversation-acceptance-sc-ea4c3-usable-citation-and-copying-chromium/error-context.md
+
+
+(node:68655) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+(node:68655) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[3/5] [chromium] › tests/e2e/conversation-acceptance.spec.js:110:1 › scripted multitasking: Stop is isolated; completed answer and draft survive reload
+[4/5] [chromium] › tests/e2e/conversation-acceptance.spec.js:125:1 › scripted contributor loss: explicit retry keeps the partial response separate
+[5/5] [chromium] › tests/e2e/conversation-acceptance.spec.js:137:1 › scripted sharing: decline and revocation stop sharing; panels restore focus
+  1 failed
+    [chromium] › tests/e2e/conversation-acceptance.spec.js:97:1 › scripted attachment: disclosed text, usable citation and copying 
+  4 passed (1.1m)

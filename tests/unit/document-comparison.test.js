@@ -6,6 +6,25 @@ import sample from '../../self/config/document-comparison-sample.json' with { ty
 const storage = () => { const values = new Map(); return { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) }; };
 
 describe('Document workflow ownership', () => {
+  it('gives ordinary attachments stable passages without starting a comparison or checking pass', async () => {
+    const store = storage();
+    const session = createChatSession({ storage: store, service: createChatTestService() });
+    const id = session.createThread({ sharingScope: 'local' });
+    await session.send(id, 'What was promised?', [{ name: 'notes.txt', text: 'May deliver Friday.\n\nNo guarantee.' }]);
+    const thread = session.getState().activeThread;
+    const sources = session.getDocumentSources(thread.messages[0].content);
+    expect(sources?.documents[0]).toEqual({ id: 'D1', name: 'notes.txt', passages: [
+      { id: 'D1:P1', text: 'May deliver Friday.' }, { id: 'D1:P2', text: 'No guarantee.' }
+    ] });
+    expect(thread.attempts).toHaveLength(1);
+    expect(thread.messages[0].content).not.toContain('Compare costs');
+    await session.close();
+    const restored = createChatSession({ storage: store, service: createChatTestService() });
+    expect(restored.getDocumentSources(restored.getState().threads[0].messages[0].content)).toEqual(sources);
+    expect(restored.exportConversation(id)).toContain('[D1:P2] No guarantee.');
+    expect(restored.exportConversation(id)).not.toContain('second model pass');
+    await restored.close();
+  });
   it('preserves quoted text and passage identities through history and export', () => {
     const input = comparisonInput(sample.question, sample.files);
     const result = comparisonSources(input);
