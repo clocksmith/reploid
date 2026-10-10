@@ -1,0 +1,344 @@
+{
+  "component": "Installed Doppler resident partition memory and lifecycle",
+  "intent": "preserved",
+  "sourceRun": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T02-18-40-522Z",
+  "archiveSha256": "14f95c3492b4db049c3083059f1340d02918f835caf4237aad5994227a006ab9",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.23",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.23.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.23.tgz",
+    "integrity": "sha512-j/9kGjf6d91EC4eH8maKbaTeP3Zg3G1kYC5tFPLO+VdiwY9I3Ht6URchpLrZbhZalAv6qJ5MCsZa6QNMNVcKwQ=="
+  },
+  "browserIdentity": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
+  "budgetBytes": 1420000000,
+  "ok": true,
+  "captures": [
+    {
+      "phase": "repetition",
+      "sha256": "6dd88e65841dd57c90eb9ce70eb85786e04b86d3d7d3cb0f484bd8f44b13d427",
+      "partitionHosts": [
+        {
+          "index": 1,
+          "host": "mac"
+        },
+        {
+          "index": 0,
+          "host": "linux"
+        }
+      ],
+      "browsers": [
+        {
+          "platform": "mac",
+          "browser": "155.0.8059.39",
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+          }
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 0,
+            "layerRange": [
+              0,
+              11
+            ],
+            "residentWeightBytes": 650989568,
+            "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+          }
+        }
+      ],
+      "runs": [
+        {
+          "attempt": 0,
+          "inputTokens": 494,
+          "steps": 1348,
+          "completed": true,
+          "cancelled": false,
+          "stopReason": "eos-token",
+          "textSha256": "4ca8c4f1bb8ca4eda90067c895f06d473386e27862b76c0f8e9d11c005b3c10a",
+          "peaks": [
+            515249160,
+            881738808
+          ],
+          "gpuErrors": [
+            [],
+            []
+          ],
+          "submissionSnapshots": [
+            65,
+            62
+          ]
+        },
+        {
+          "attempt": 1,
+          "inputTokens": 1588,
+          "steps": 1627,
+          "completed": true,
+          "cancelled": false,
+          "stopReason": "eos-token",
+          "textSha256": "f249ef80c8ac978705b388da0c8b3d9d70a06fed6aae0265abc3828b4a52fa7e",
+          "peaks": [
+            556187816,
+            926551432
+          ],
+          "gpuErrors": [
+            [],
+            []
+          ],
+          "submissionSnapshots": [
+            125,
+            127
+          ]
+        },
+        {
+          "attempt": 2,
+          "inputTokens": 1588,
+          "steps": 1627,
+          "completed": true,
+          "cancelled": false,
+          "stopReason": "eos-token",
+          "textSha256": "f249ef80c8ac978705b388da0c8b3d9d70a06fed6aae0265abc3828b4a52fa7e",
+          "peaks": [
+            556187816,
+            926551432
+          ],
+          "gpuErrors": [
+            [],
+            []
+          ],
+          "submissionSnapshots": [
+            125,
+            127
+          ]
+        }
+      ],
+      "residentSettlement": [
+        {
+          "barriers": 1,
+          "weights": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 91068160,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "liveBytes": 91078936
+        },
+        {
+          "barriers": 1,
+          "weights": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 99064576,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "liveBytes": 99075368
+        }
+      ]
+    },
+    {
+      "phase": "cancellation",
+      "sha256": "95f0c861f921b10618cf8a33ddc12b2931ada05ad032b58084098dd6aa257cae",
+      "partitionHosts": [
+        {
+          "index": 1,
+          "host": "mac"
+        },
+        {
+          "index": 0,
+          "host": "linux"
+        }
+      ],
+      "browsers": [
+        {
+          "platform": "mac",
+          "browser": "155.0.8059.39",
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+          }
+        },
+        {
+          "platform": "linux",
+          "browser": "146.0.7680.177",
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:43f35f03a92f94ef7113b9f20834620a8d55f5575cfb721d5687e158bf5ad7d0",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 0,
+            "layerRange": [
+              0,
+              11
+            ],
+            "residentWeightBytes": 650989568,
+            "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+          }
+        }
+      ],
+      "runs": [
+        {
+          "attempt": 0,
+          "inputTokens": 1588,
+          "steps": 0,
+          "completed": false,
+          "cancelled": true,
+          "textSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "peaks": [
+            497336720,
+            862828944
+          ],
+          "gpuErrors": [
+            [],
+            []
+          ],
+          "submissionSnapshots": [
+            0,
+            5
+          ],
+          "rejections": [
+            {
+              "code": "RESOURCE_EXHAUSTED",
+              "liveBytesBefore": 296010000,
+              "liveBytesAfter": 296010000
+            },
+            {
+              "code": "RESOURCE_EXHAUSTED",
+              "liveBytesBefore": 698041712,
+              "liveBytesAfter": 698041712
+            }
+          ]
+        },
+        {
+          "attempt": 1,
+          "inputTokens": 1588,
+          "steps": 1627,
+          "completed": true,
+          "cancelled": false,
+          "stopReason": "eos-token",
+          "textSha256": "f249ef80c8ac978705b388da0c8b3d9d70a06fed6aae0265abc3828b4a52fa7e",
+          "peaks": [
+            508909192,
+            874677304
+          ],
+          "gpuErrors": [
+            [],
+            []
+          ],
+          "submissionSnapshots": [
+            125,
+            127
+          ]
+        }
+      ],
+      "residentSettlement": [
+        {
+          "barriers": 1,
+          "weights": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 52852992,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "liveBytes": 52863768
+        },
+        {
+          "barriers": 1,
+          "weights": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 60349184,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "liveBytes": 60359976
+        }
+      ]
+    }
+  ],
+  "cleanupAcceptance": "GPU completion plus observed zero retained, active and deferred ownership and zero weight allocations before browser teardown. Both phases settle in one observed barrier; no sleep is used as an acceptance condition.",
+  "scope": "Reversed Mac-suffix/Linux-prefix memory, actual submitted cancellation, rejection and resident reuse; HTTP fixtures and Node tensor forwarding are not application, P2P acquisition, task-quality or numerical qualification.",
+  "numericalQualified": false,
+  "applicationQualified": false,
+  "publication": false,
+  "deployment": false
+}

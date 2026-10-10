@@ -115,8 +115,12 @@ lists are empty. Raw receipts are retained losslessly as compressed JSON.
 The original resident-close snapshots have no active or retained ownership but
 still show deferred destruction. They do not prove final weight destruction.
 The existing fixture now separately observes deferred cleanup before closing
-the browser, preserving the immediate snapshots. Its reversed-placement physical
-check is still running. Standalone failed initialization receives the same
+the browser, preserving the immediate snapshots. [Reversed placement](memory-023-physical-reverse/summary.json)
+now passes repetition, actual submitted cancellation, rejection and resident
+reuse. Both phases settle with zero weight allocations and zero retained,
+active or deferred ownership before teardown. The observation uses GPU
+completion and the ownership counters; a delay cannot satisfy acceptance.
+Standalone failed initialization receives the same
 settled-cleanup requirement. [Harness validation](memory-023-physical/harness-validation.json)
 records passing CPU checks; those checks do not substitute for physical execution.
 
@@ -133,3 +137,10 @@ larger-model recovery check separately exercises concurrent conversations,
 cancellation while another conversation remains active, document generation,
 contributor loss/retry and independent standalone denial. Its physical result
 remains open. No npm publication or production deployment occurred.
+
+[The numerical control audit](numerical-controls-023-audit.json) retains the
+existing same-token-prefix comparisons rather than rerunning them. Each mixed
+placement stays within 0.001 of the unsplit device owning its prefix at all 55
+steps. Comparisons with the other unsplit device fail 13 or 15 steps. The missing
+same-device partition controls and materially divergent decode-step operand
+replay remain diagnostic work, not an arithmetic correction or qualification.
