@@ -44,6 +44,7 @@ const local = await chromium.launch(physicalWebGpuBrowserOptions(process.platfor
 const remote = await connectPhysicalBrowser(chromium, process.env.REPLOID_EXECUTOR_WS);
 const contexts = [], pages = [], runs = [], descriptors = [];
 const distributedControls = [];
+let cleanupFailure = null;
 const reverse = process.env.REPLOID_REFERENCE_REVERSE === '1';
 const evidence = { scope: reference
   ? 'Installed package, frozen generation options, exact model bytes and logits on two physical GPUs; not P2P acquisition proof'
@@ -226,6 +227,33 @@ try {
   for (const page of pages) evidence.afterResidentClose.push(await page.evaluate(async () => {
     await globalThis.resident?.close(); return globalThis.settleMemory?.();
   }).catch(error => ({ error: error.message })));
+  // A completion requested by close can retire one batch and schedule another.
+  // Preserve the first snapshot, then observe cleanup without destroying the pool.
+  evidence.residentSettlement = [];
+  for (const page of pages) evidence.residentSettlement.push(await page.evaluate(async () => {
+    const started = performance.now();
+    let snapshot = await settleMemory(), barriers = 1;
+    while (snapshot.pool.resources.deferredCleanup.count > 0 && performance.now() - started < 10000) {
+      await new Promise(resolve => setTimeout(resolve, 0));
+      snapshot = await settleMemory(); barriers++;
+    }
+    return { barriers, snapshot };
+  }).catch(error => ({ error: error.message })));
+  await writeFile(output, JSON.stringify(evidence));
+  try {
+    for (const settlement of evidence.residentSettlement) {
+      assert(!settlement.error, 'Resident cleanup observation failed');
+      const { snapshot } = settlement;
+      assert.equal(snapshot.pool.resources.retainedModel.count, 0, 'Closed resident still owns weights');
+      assert.equal(snapshot.pool.resources.active.count, 0, 'Closed resident still owns active buffers');
+      assert.equal(snapshot.pool.resources.deferredCleanup.count, 0, 'Retired buffers did not settle');
+      assert.equal(snapshot.device.categories.weights, 0, 'Closed resident weights were not destroyed');
+      assert.deepEqual(snapshot.gpuValidationErrors, [], 'Cleanup produced WebGPU errors');
+    }
+  } catch (error) {
+    cleanupFailure = error;
+    evidence.cleanupFailure = { message: error.message };
+  }
   const first = runs.find(row => row.firstDivergence)?.firstDivergence;
   if (first && process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1') {
     const probeLayer = Number(process.env.REPLOID_DIAGNOSTIC_LAYER ?? 0);
@@ -468,4 +496,5 @@ try {
   await writeFile(output, JSON.stringify(evidence));
   for (const context of contexts) await context.close();
   await local.close(); await remote.close();
+  if (cleanupFailure) throw cleanupFailure;
 }

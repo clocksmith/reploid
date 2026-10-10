@@ -1,0 +1,27 @@
+{
+  "component": "Reploid physical integration acceptance",
+  "intent": "preserved",
+  "changes": [
+    "Reuse the existing concurrent-conversation controls in document/recovery diagnosis.",
+    "Cancel a streaming conversation while another conversation remains active and require the same surviving attempt to reach EOS.",
+    "Retain immediate resident-close snapshots and observe deferred cleanup separately before browser teardown."
+  ],
+  "validation": {
+    "syntax": "both changed JavaScript files passed node --check",
+    "playwrightDiscovery": "one physical conversation test discovered; no browser execution claim",
+    "unit": {
+      "command": "npm run test:unit",
+      "filesPassed": 241,
+      "testsPassed": 2505,
+      "testsSkipped": 18,
+      "log": "isolation-unit.log.gz"
+    },
+    "pool": {
+      "command": "npm run verify:pool",
+      "passed": true,
+      "log": "isolation-pool.log.gz"
+    }
+  },
+  "physicalAcceptance": "new assertions have not been exercised yet",
+  "boundaryEffects": "test harness only; no shipped Doppler files or browser bundle changed"
+}
