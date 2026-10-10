@@ -1,3 +1,4 @@
+import { resolveGenerationOptions } from 'doppler-gpu/generation-contract';
 import { it, expect } from 'vitest';
 import * as runtime from 'doppler-gpu/partitions';
 import { qualifyDopplerPartitionSessions } from '../contracts/doppler-partition-session.js';
@@ -6,7 +7,9 @@ import { createPartitionRuntimeFixture } from '../fixtures/partition-runtime.js'
 // These independent arithmetic expectations qualify the harness, not any model.
 it.each(['match', 'logits', 'token', 'stop'])('conformance harness detects %s against independent reference', async kind => {
   const factory = createPartitionRuntimeFixture();
-  const model = { id: 'fixture', identity: 'sha256:' + 'a'.repeat(64) };
+  const model = { id: 'fixture', identity: 'sha256:' + 'a'.repeat(64),
+    generation: resolveGenerationOptions({ maxTokens: 4, maxSeqLen: 128, temperature: 0, topK: 0, topP: 1,
+      repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: false }) };
   const plan = runtime.createLayerPartitionPlan({ modelId: model.id, numLayers: 4, hiddenSize: 8, vocabSize: 128, splitLayer: 2 });
   const reference = { modelIdentity: model.identity, content: '2 3 4 ',
     steps: [{ tokenId: 2, logits: [2, -2] }, { tokenId: 3, logits: [3, -3] }, { tokenId: 4, logits: [4, -4] }] };
@@ -19,6 +22,6 @@ it.each(['match', 'logits', 'token', 'stop'])('conformance harness detects %s ag
     messages: [{ role: 'user', content: '1' }], reference: async () => reference });
   if (kind === 'match') expect((await result).steps).toHaveLength(3);
   else await expect(result).rejects.toThrow(/divergen|diverged/);
-  expect(factory.log.opens).toEqual([0, 1]);
+  expect(factory.log.opens.sort()).toEqual([0, 1]);
   expect(factory.log.closes.sort()).toEqual([0, 1]);
 });

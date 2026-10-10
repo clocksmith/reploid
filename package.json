@@ -103,7 +103,7 @@
   "license": "MIT",
   "dependencies": {
     "acorn": "^8.15.0",
-    "doppler-gpu": "file:deploy/artifacts/doppler-gpu-0.6.26.tgz",
+    "doppler-gpu": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
     "dotenv": "^16.3.1",
     "express": "^4.22.2",
     "jose": "6.2.12",
@@ -130,6 +130,7 @@
     "@playwright/test": "^1.57.0",
     "@types/node": "^22.0.0",
     "@vitest/coverage-v8": "4.1.10",
+    "@webgpu/types": "^0.1.71",
     "concurrently": "^8.0.0",
     "esbuild": "^0.28.1",
     "eslint": "^9.39.5",

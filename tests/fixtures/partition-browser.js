@@ -1,4 +1,5 @@
-import * as runtime from '/vendor/doppler/0.6.3-dev.split.1/src/inference/pipelines/text/layer-partition-contract.js';
+import { DOPPLER_PARTITIONS_MODULE_URL } from '/config/doppler-local-models.js';
+const runtime = await import(DOPPLER_PARTITIONS_MODULE_URL);
 import { createSigningIdentity } from '/vendor/reploid/artifacts/identity.js';
 import { createMeshPeerIdentity } from '/vendor/reploid/mesh/peer-identity.js';
 import { createResidentPartition, createPartitionGrantAuthority, createPartitionPeer,

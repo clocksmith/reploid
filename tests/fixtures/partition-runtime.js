@@ -4,12 +4,16 @@ export function createPartitionRuntimeFixture({ beforeStep = async () => {} } = 
   return { log, async openResidentPartition(allocation) {
     const { model, plan, planId, index } = allocation;
     log.opens.push(index);
+    const generation = model.generation;
+    const generationBytes = new TextEncoder().encode(JSON.stringify(generation, Object.keys(generation).sort()));
+    const generationDigest = 'sha256:' + [...new Uint8Array(await crypto.subtle.digest('SHA-256', generationBytes))]
+      .map(byte => byte.toString(16).padStart(2, '0')).join('');
     const retired = new Set();
     const positions = new Map();
     let closed = false;
     const descriptor = { schema: 'doppler.resident-partition/v1', ready: true,
       modelId: model.id, modelIdentity: model.identity, planId, index,
-      layerRange: [...plan.partitions[index].layerRange], residentWeightBytes: 1024 };
+      layerRange: [...plan.partitions[index].layerRange], residentWeightBytes: 1024, generationDigest };
     async function step(request) {
       if (closed || retired.has(request.identity.attemptId)) throw new Error('Fixture attempt retired');
       const expected = positions.get(request.identity.attemptId) || { step: 0, position: 0 };
@@ -22,6 +26,8 @@ export function createPartitionRuntimeFixture({ beforeStep = async () => {} } = 
     }
     return {
       getDescriptor: () => ({ ...descriptor, ready: !closed }),
+      getRecoveryCapabilities: () => ({ schema: 'doppler.resident-recovery/v1',
+        inputReplay: false, checkpointExport: false, checkpointImport: false }),
       async tokenize({ messages }) {
         log.tokenizations.push(structuredClone(messages));
         const value = Number.parseInt(messages.at(-1).content, 10);

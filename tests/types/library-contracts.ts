@@ -58,7 +58,7 @@ import { createResidentPartition, createPartitionPeer, createPartitionChat,
   type PartitionLimits, type PartitionGrantAuthority } from '../../packages/reploid/src/mesh/index.js';
 import type { ChatModel } from '../../packages/reploid/src/chat/index.js';
 export function composePartitionChat(factory: DopplerPartitionSessionFactory, runtime: PartitionRuntime,
-  model: ChatModel, plan: PartitionPlan, planId: string, limits: PartitionLimits,
+  model: ChatModel & { generation: import('doppler-gpu/generation-contract').ResolvedGenerationOptions }, plan: PartitionPlan, planId: string, limits: PartitionLimits,
   authority: PartitionGrantAuthority, channel: RTCDataChannel, channelLimits: PartitionChannelLimits) {
   const local = createResidentPartition({ runtime: factory, model, plan, planId, limits,
     index: 0, participantId: authority.participantId });
@@ -68,4 +68,17 @@ export function composePartitionChat(factory: DopplerPartitionSessionFactory, ru
   // @ts-expect-error contribution requires explicit approval
   void local.prepare({});
   return createPartitionChat({ runtime, model, plan, planId, limits, authority, local, remote, grantTtlMs: 60000 });
+}
+
+// Installed Doppler declarations own computation; Reploid adds coordination only.
+import type { ResidentPartitionSession, ResidentPartitionDescriptor, ResidentPartitionFactory } from 'doppler-gpu/partitions';
+import type { DopplerResidentPartitionSession } from '../../packages/reploid/src/mesh/partitions/resident-partition.js';
+export function publicResidentContract(session: ResidentPartitionSession, factory: ResidentPartitionFactory) {
+  const adapted: DopplerResidentPartitionSession = session;
+  const opening: DopplerPartitionSessionFactory = factory;
+  const descriptor: ResidentPartitionDescriptor = adapted.getDescriptor();
+  const digest: string = descriptor.generationDigest;
+  // @ts-expect-error readiness requires runtime admission
+  const ready: true = descriptor.ready;
+  return { opening, digest, ready, recovery: adapted.getRecoveryCapabilities() };
 }
