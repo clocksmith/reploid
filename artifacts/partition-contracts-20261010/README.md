@@ -59,6 +59,23 @@ Physical evidence in `physical/` uses the same exact 0.6.27 archive:
   29 tests retain their declared skips. Generated public contracts also pass
   `npm run verify:doppler-generation`.
 
+The installed-package memory run also passes (`physical/memory-result.json`).
+It completes the retained 494-token request and two 1,588-token document requests;
+the repeated document text and 1,627 output steps agree exactly. Peak tracked GPU
+buffer allocation is 924,216,712 bytes on partition 0 and 560,124,072 on partition
+1, below the existing 1,420,000,000-byte per-device limit. Live allocation after
+each repeated document is unchanged. See the complete compressed receipts and
+`memory-repetition-summary.json` / `memory-cancellation-summary.json`.
+
+Submitted-prefill cancellation rejects, the explicit oversized-allocation
+negative control rejects, and subsequent generation reaches EOS. Closing each
+resident leaves zero retained-model, active and deferred-cleanup resources, zero
+weight bytes, and no WebGPU validation errors. Reusable pool buffers remain
+within the configured policy; these are tracked buffer allocations, not a claim
+about all physical GPU/process memory. The memory run uses installed public
+resident APIs rather than application coordination and does not establish
+numerical qualification.
+
 The candidate has not been publicly deployed and full end-to-end numerical
 acceptance remains open.
 
