@@ -40,19 +40,27 @@ const cases = capacityModel ? [{ request: { ...requests[0], model: { ...capacity
   : [{ request: requests[1], tokens: 1588, cancel: true }, { request: requests[1], tokens: 1588 }];
 if (phase === 'cancel-only') cases.splice(1);
 assert(output && process.env.REPLOID_EXECUTOR_WS);
+const reverse = process.env.REPLOID_REFERENCE_REVERSE === '1';
+const referenceHost = process.env.REPLOID_REFERENCE_HOST || null;
+assert(!referenceHost || (reference && ['mac', 'linux'].includes(referenceHost) && !reverse));
+if (referenceHost) assert.equal(process.platform, 'darwin', 'The physical controller must be the Mac; its remote executor is Linux');
 const local = await chromium.launch(physicalWebGpuBrowserOptions(process.platform));
 const remote = await connectPhysicalBrowser(chromium, process.env.REPLOID_EXECUTOR_WS);
 const contexts = [], pages = [], runs = [], descriptors = [];
 const distributedControls = [];
 let cleanupFailure = null;
-const reverse = process.env.REPLOID_REFERENCE_REVERSE === '1';
+const hostBrowsers = referenceHost === 'mac' ? [local, local]
+  : referenceHost === 'linux' ? [remote, remote] : [local, remote];
+const hostNames = referenceHost ? [referenceHost, referenceHost] : ['mac', 'linux'];
 const evidence = { scope: reference
-  ? 'Installed package, frozen generation options, exact model bytes and logits on two physical GPUs; not P2P acquisition proof'
+  ? referenceHost ? 'Same-device partition versus unsplit execution on shared frozen tokens; not mixed-device or application acceptance'
+    : 'Installed package, frozen generation options, exact model bytes and logits on two physical GPUs; not P2P acquisition proof'
   : 'Installed package, exact local verified model bytes, two-browser partition memory acceptance; not P2P or numerical qualification',
-  partitionHosts: [{ index: reverse ? 1 : 0, host: 'mac' }, { index: reverse ? 0 : 1, host: 'linux' }],
+  partitionHosts: hostNames.map((host, slot) => ({ index: reverse ? 1 - slot : slot, host })),
+  tokenSequence: reference ? 'Frozen reference token IDs, with sampled tokens checked separately' : null,
   requestFixtureSha256: createHash('sha256').update(raw).digest('hex'), phase, runs, descriptors };
 try {
-  for (const [slot, browser] of [local, remote].entries()) {
+  for (const [slot, browser] of hostBrowsers.entries()) {
     const index = reverse ? 1 - slot : slot;
     const context = await browser.newContext(); contexts.push(context);
     const page = await context.newPage(); pages.push(page);
@@ -121,7 +129,7 @@ try {
     }, { model: { ...(capacityModel || requests[0].model), generation }, index,
       modelSource: (browser === remote ? process.env.REPLOID_PEER_MODEL_BASE_URL : null)
         || process.env.REPLOID_MODEL_BASE_URL || 'http://127.0.0.1:9230/' });
-    descriptors.push({ ...prepared, platform: slot ? 'linux' : 'mac', browser: browser.version() });
+    descriptors.push({ ...prepared, platform: hostNames[slot], browser: browser.version() });
     console.log(JSON.stringify({ prepared: index, bytes: prepared.afterPreparation.device.liveBytes }));
   }
   if (reference) assert.equal(descriptors[0].planId, reference.planId, 'Frozen partition traversal must remain unchanged');
@@ -181,12 +189,14 @@ try {
             await writeFile(output, JSON.stringify(evidence));
           }
           row.numerical.push({ step, tokenId: b.tokenId, stopReason: b.stopReason,
-            maxDifference, maxDifferenceIndex, tolerance: 0.001, matches: maxDifference <= 0.001 });
+            maxDifference, maxDifferenceIndex, tolerance: 0.001, matches: maxDifference <= 0.001,
+            ...(referenceHost ? { logits: b.logits } : {}) });
           assert.equal(b.tokenId, expected.tokenId, 'Sampled token differs from the frozen reference');
           assert.equal(b.stopReason, expected.stopReason, 'Stopping differs from the frozen reference');
         }
         row.steps++; row.text += b.delta; row.stopReason = b.stopReason;
-        position += ids.length; ids = [b.tokenId]; aContinuation = a.continuation; bContinuation = b.continuation;
+        position += ids.length; ids = [reference ? testCase.expected.steps[step].tokenId : b.tokenId];
+        aContinuation = a.continuation; bContinuation = b.continuation;
         if (step % 128 === 0 || b.done) console.log(JSON.stringify({ attempt, inputTokens: row.inputTokens, step, done: b.done }));
         if (b.done) { row.completed = true; break; }
       }
@@ -254,16 +264,22 @@ try {
     cleanupFailure = error;
     evidence.cleanupFailure = { message: error.message };
   }
-  const first = runs.find(row => row.firstDivergence)?.firstDivergence;
-  if (first && process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1') {
+  const completeControl = referenceHost && runs.length === cases.length && runs.every(row => row.completed);
+  const first = runs.find(row => row.firstDivergence)?.firstDivergence || (completeControl && {
+    attempt: 0, parameters: { step: 0 }, messages: cases[0].request.messages,
+    prefillTokenIds: distributedControls[0].tokenIds, priorTokenIds: [],
+    group1: distributedControls[0].steps[0], frozen: cases[0].expected.steps[0] });
+  if (first && (!referenceHost || completeControl) && (referenceHost || process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1')) {
     const probeLayer = Number(process.env.REPLOID_DIAGNOSTIC_LAYER ?? 0);
     assert(Number.isSafeInteger(probeLayer) && probeLayer >= 0, 'Invalid diagnostic layer');
     evidence.unsplitFirstDivergence = { scope: 'Same installed package, model, prompt tokens and generation; independent 6 GB diagnostics, excluded from constrained capacity proof', runs: [] };
-    for (const [slot, browser] of [local, remote].entries()) {
+    const unsplitBrowsers = referenceHost ? [[referenceHost === 'mac' ? 0 : 1, hostBrowsers[0]]]
+      : [...[local, remote].entries()];
+    for (const [slot, browser] of unsplitBrowsers) {
       const context = await browser.newContext();
       const diagnostic = { host: slot ? 'linux' : 'mac', unsplitStepParity: [] };
       const linearCaptures = [];
-      const captureLinear = process.env.DOPPLER_ATTENTION_CACHE_CAPTURE === '1';
+      const captureLinear = !referenceHost && process.env.DOPPLER_ATTENTION_CACHE_CAPTURE === '1';
       evidence.unsplitFirstDivergence.runs.push(diagnostic);
       try {
         if (captureLinear) {
@@ -289,7 +305,8 @@ try {
             if (difference > maxDifference) { maxDifference = difference; maxDifferenceIndex = index; }
           }
           diagnostic.unsplitStepParity.push({ attempt, step, maxDifference, maxDifferenceIndex,
-            tolerance: 0.001, matches: maxDifference <= 0.001 });
+            tolerance: 0.001, matches: maxDifference <= 0.001,
+            ...(referenceHost ? { logits: encoded } : {}) });
         });
         page.on('console', message => {
           if (message.text().startsWith('numerical-diagnostic:')) console.log(message.text());
@@ -297,7 +314,7 @@ try {
         console.log(JSON.stringify({ unsplit: diagnostic.host, phase: 'loading' }));
         await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL).href);
         const source = slot ? process.env.REPLOID_PEER_MODEL_BASE_URL : process.env.REPLOID_MODEL_BASE_URL;
-        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy, controls, captureLinear, probeLayer }) => {
+        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy, controls, captureLinear, probeLayer, referenceHost }) => {
           const config = await import('/config/doppler-local-models.js');
           const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
           globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
@@ -321,16 +338,38 @@ try {
             const tokenIds = handle.advanced.tokenizePrompt(first.messages, generation);
             if (JSON.stringify(tokenIds) !== JSON.stringify(first.prefillTokenIds)) throw Error('Unsplit diagnostic tokenization differs');
             const { maxSeqLen: _contextLength, ...executionOptions } = generation;
-            globalThis.numericalObservation = { prompt: first.attempt, step: 0, capture: captureLinear };
-            let result = await handle.advanced.prefillWithLogits(first.messages, { ...executionOptions, inputIds: tokenIds });
-            globalThis.numericalObservation.capture = false;
-            result.cache?.destroy();
-            for (const tokenId of first.priorTokenIds) result = await handle.advanced.decodeStepLogits([tokenId], executionOptions);
             const encode = logits => {
               const bytes = new Uint8Array(logits.buffer, logits.byteOffset, logits.byteLength);
               let encoded = ''; for (let offset = 0; offset < bytes.length; offset += 8192) encoded += String.fromCharCode(...bytes.subarray(offset, offset + 8192));
               return btoa(encoded);
             };
+            const replayControls = async checkReplay => {
+              for (const [attempt, control] of controls.entries()) {
+                await handle.resetGenerationState();
+                const ids = handle.advanced.tokenizePrompt(control.messages, generation);
+                if (JSON.stringify(ids) !== JSON.stringify(control.tokenIds)) throw Error('Unsplit control tokenization differs');
+                let value = await handle.advanced.prefillWithLogits(control.messages, { ...executionOptions, inputIds: ids });
+                value.cache?.destroy();
+                checkReplay?.(attempt, 0, value.logits);
+                await globalThis.compareUnsplitStep(attempt, 0, encode(value.logits));
+                for (let step = 1; step < control.tokenIdsByStep.length; step++) {
+                  value = await handle.advanced.decodeStepLogits([control.tokenIdsByStep[step - 1]], executionOptions);
+                  checkReplay?.(attempt, step, value.logits);
+                  await globalThis.compareUnsplitStep(attempt, step, encode(value.logits));
+                }
+              }
+            };
+            if (referenceHost) {
+              await replayControls();
+              return { packageVersion: config.DOPPLER_PACKAGE_VERSION, modelIdentity: model.identity,
+                generation, maxGpuBufferBytes, resolvedRuntimeSession: handle.advanced.getResolvedRuntimeSession(),
+                memory: runtime.inspectDeviceMemory() };
+            }
+            globalThis.numericalObservation = { prompt: first.attempt, step: 0, capture: captureLinear };
+            let result = await handle.advanced.prefillWithLogits(first.messages, { ...executionOptions, inputIds: tokenIds });
+            globalThis.numericalObservation.capture = false;
+            result.cache?.destroy();
+            for (const tokenId of first.priorTokenIds) result = await handle.advanced.decodeStepLogits([tokenId], executionOptions);
             const firstLogits = Float32Array.from(result.logits);
             const logits = encode(firstLogits);
             const { operatorDiagnostics: _initialDiagnostics, ...stats } = handle.advanced.getStats();
@@ -400,27 +439,23 @@ try {
             // Compare every retained distributed step against fresh unsplit
             // state on the same installed package. Feed identical token prefixes;
             // this is numerical parity, not free-running answer-quality proof.
-            for (const [attempt, control] of controls.entries()) {
-              await handle.resetGenerationState();
-              const ids = handle.advanced.tokenizePrompt(control.messages, generation);
-              if (JSON.stringify(ids) !== JSON.stringify(control.tokenIds)) throw Error('Unsplit control tokenization differs');
-              let value = await handle.advanced.prefillWithLogits(control.messages, { ...executionOptions, inputIds: ids });
-              value.cache?.destroy();
-              checkCaptureReplay(attempt, 0, value.logits);
-              await globalThis.compareUnsplitStep(attempt, 0, encode(value.logits));
-              for (let step = 1; step < control.tokenIdsByStep.length; step++) {
-                value = await handle.advanced.decodeStepLogits([control.tokenIdsByStep[step - 1]], executionOptions);
-                checkCaptureReplay(attempt, step, value.logits);
-                await globalThis.compareUnsplitStep(attempt, step, encode(value.logits));
-              }
-            }
+            await replayControls(checkCaptureReplay);
             return { packageVersion: config.DOPPLER_PACKAGE_VERSION, modelIdentity: model.identity,
               tokenIds, generation, maxGpuBufferBytes, logits, stats, probe, probeLayer, captureReplay,
               resolvedRuntimeSession: handle.advanced.getResolvedRuntimeSession(), memory: runtime.inspectDeviceMemory() };
           } finally { await handle?.unload(); }
-        }, { model: requests[0].model, source, first, generation, policy, captureLinear, probeLayer,
-          controls: distributedControls.map(({ messages, tokenIds, steps }) => ({ messages, tokenIds,
-            tokenIdsByStep: steps.map(step => step.tokenId) })) }));
+        }, { model: requests[0].model, source, first, generation, policy, captureLinear, probeLayer, referenceHost,
+          controls: distributedControls.map(({ messages, tokenIds }, attempt) => ({ messages, tokenIds,
+            tokenIdsByStep: reference.expected[attempt].steps.map(step => step.tokenId) })) }));
+        if (referenceHost) {
+          assert.equal(diagnostic.unsplitStepParity.length, distributedControls.reduce((count, control) => count + control.steps.length, 0));
+          diagnostic.summary = { steps: diagnostic.unsplitStepParity.length,
+            failed: diagnostic.unsplitStepParity.filter(step => !step.matches).length,
+            maxDifference: Math.max(...diagnostic.unsplitStepParity.map(step => step.maxDifference)), tolerance: 0.001 };
+          console.log(JSON.stringify({ unsplit: diagnostic.host, sameDevicePartitionParity: diagnostic.summary }));
+          assert.equal(diagnostic.summary.failed, 0, 'Same-device partition versus unsplit tolerance exceeded');
+          continue;
+        }
         const decode = text => { const bytes = Buffer.from(text, 'base64');
           return new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)); };
         const actual = decode(diagnostic.logits);
@@ -458,7 +493,10 @@ try {
             observedLogitsMaxDifference: diagnostic.comparisons.observed.maxDifference };
         }
         console.log(JSON.stringify({ unsplit: diagnostic.host, comparisons: diagnostic.comparisons }));
-      } catch (error) { diagnostic.failure = { name: error.name, message: error.message }; }
+      } catch (error) {
+        diagnostic.failure = { name: error.name, message: error.message };
+        if (referenceHost) cleanupFailure ||= error;
+      }
       finally {
         try { await context.close(); }
         catch (error) { diagnostic.cleanupFailure = { name: error.name, message: error.message }; }
@@ -472,7 +510,7 @@ try {
       }
     }
     const [mac, linux] = evidence.unsplitFirstDivergence.runs;
-    if (mac.probe?.timeline && linux.probe?.timeline) {
+    if (mac?.probe?.timeline && linux?.probe?.timeline) {
       evidence.unsplitFirstDivergence.operatorComparison = mac.probe.timeline
         .filter(record => record.capture?.data).map(record => {
           const counterpart = linux.probe.timeline.find(item => item.opId === record.opId && item.capture?.data);
