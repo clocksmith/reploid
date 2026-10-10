@@ -62,11 +62,10 @@
 .chat-thread-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chat-thread-item small { color: var(--pool-surface-muted); }
 .chat-thread-item[aria-current="true"] { background: var(--pool-surface-inset); box-shadow: var(--pool-surface-shadow-inset); }
-.chat-conversation-area { display: flex; flex-direction: column; min-height: 70dvh; gap: var(--pool-space-lg); }
+.chat-conversation-area { display: flex; flex-direction: column; min-height: 0; gap: var(--pool-space-lg); }
 .chat-message-stream {
   flex: 1;
-  min-height: var(--pool-px-96);
-  max-height: 55dvh;
+  min-height: 0;
   overflow-y: auto;
   overflow-wrap: anywhere;
   display: flex;
@@ -82,7 +81,7 @@
   box-sizing: border-box;
   width: 100%;
   min-height: var(--pool-px-96);
-  max-height: 35dvh;
+  max-height: 22dvh;
   padding: var(--pool-space-md);
   resize: vertical;
   font: inherit;
@@ -96,7 +95,7 @@
   line-height: var(--pool-type-leading-snug); color: var(--pool-surface-muted);
 }
 .pool-home .chat-composer-area textarea::placeholder { color: var(--pool-surface-muted); opacity: 1; }
-.reploid-chat-workspace select:disabled { opacity: 1; }
+
 .chat-composer-toolbar .chat-file-label { margin-right: auto; position: relative; overflow: hidden; cursor: pointer; }
 .chat-file-label input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
 .chat-visually-hidden { position: absolute; width: var(--pool-px-1); height: var(--pool-px-1); padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
@@ -124,7 +123,7 @@
   .chat-thread-list:empty { display: none; }
   .reploid-chat-workspace > .chat-thread-sidebar { display: none; }
   .chat-mobile-threads { display: inline-flex; }
-  .chat-conversation-area { min-height: 60dvh; }
+  .chat-conversation-area { min-height: 0; }
   .chat-thread-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
   .chat-thread-header [data-open-threads] { justify-self: start; }
   .chat-thread-info { grid-column: 1 / -1; grid-row: 2; }
@@ -150,3 +149,27 @@
 .chat-message-actions p, .chat-message-actions details { flex-basis: 100%; }
 .chat-message-actions pre { white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 760px) { .chat-mobile-threads { display: inline-flex; } }
+
+/* Bound the workspace, not its growing transcript. Dialogs occupy the top layer. */
+.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) { box-sizing: border-box; height: 100dvh; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) > .pool-route-content { flex: 1; min-height: 0; }
+.reploid-chat-workspace { height: 100%; min-height: 0; }
+.chat-thread-sidebar, .chat-conversation-area { min-height: 0; }
+.chat-thread-list { min-height: 0; overflow-y: auto; flex: 1; }
+.chat-thread-header, .chat-sidebar-header, .chat-composer-area { flex-shrink: 0; }
+.chat-composer-area { max-height: 45dvh; overflow-y: auto; overflow-x: clip; }
+.chat-approval { max-height: 30dvh; overflow-y: auto; flex-shrink: 0; }
+.chat-thread-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+.chat-thread-menu { position: relative; }
+.chat-thread-menu > summary { list-style: none; }
+.chat-thread-menu > div { display: grid; }
+.chat-thread-menu button { font-size: var(--pool-text-sm); }
+.chat-thread-drawer .chat-thread-sidebar { max-height: 85dvh; }
+.chat-message-content :is(h1, h2, h3, h4, h5, h6) { font-size: var(--pool-text-lg); margin-block: var(--pool-space-sm); }
+.chat-message-content :is(ul, ol, table) { white-space: normal; }
+.chat-message-content :is(ul, ol) { padding-left: var(--pool-space-lg); }
+.chat-message-content a { color: inherit; text-decoration: underline; }
+.chat-table-scroll { overflow-x: auto; max-width: 100%; }
+.chat-message-content table { border-collapse: collapse; }
+.chat-message-content :is(th, td) { border: var(--pool-border-hairline) solid var(--pool-surface-line); padding: var(--pool-space-sm); text-align: left; }
+[data-current-model] { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }

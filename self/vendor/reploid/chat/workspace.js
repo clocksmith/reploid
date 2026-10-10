@@ -160,6 +160,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       threads.push(thread); selectedId = thread.id; persist(); return thread.id;
     },
     select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; notify(); },
+    renameThread(threadId, title) { current(); assert(typeof title === 'string' && title.trim() && title.length <= limits.maxMessageCharacters, 'Invalid conversation title'); find(threadId).title = title.trim(); persist(); },
     closeThread(threadId) { current(); find(threadId).closed = true; if (selectedId === threadId) selectedId = null; persist(); },
     reopenThread(threadId) { current(); find(threadId).closed = false; selectedId = threadId; persist(); },
     send(threadId, content, { select = true } = {}) {

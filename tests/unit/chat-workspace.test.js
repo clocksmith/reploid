@@ -37,6 +37,16 @@ describe('conversation workspace', () => {
     await app.close();
   });
 
+  it('persists a display title without modifying the model input', async () => {
+    const execute = vi.fn(async request => result(request, 'Answer'));
+    const { app, options } = fixture(execute);
+    const id = app.createThread({ model, purpose: 'Original instruction' });
+    app.renameThread(id, 'Friendly title'); await app.send(id, 'Question');
+    expect(execute.mock.calls[0][0].messages[0]).toEqual({ role: 'system', content: 'Original instruction' });
+    await app.close(); const restored = createChatWorkspace(options);
+    expect(restored.getState().threads[0].title).toBe('Friendly title'); await restored.close();
+  });
+
   it('retains multi-turn context only inside its conversation', async () => {
     const execute = vi.fn(async request => result(request, 'A response'));
     const { app } = fixture(execute);

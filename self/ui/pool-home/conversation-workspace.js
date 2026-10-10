@@ -1,38 +1,29 @@
 import { createConversationList } from './conversation-list.js';
 import { updateModelSelect } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
-import { renderSharingControls, renderConnectionControl, bindNetworkControls } from './network-controls.js';
+import { projectNetworkPeers } from './network-controls.js';
+import { renderNetworkInspector, bindNetworkInspector } from './network-inspector.js';
 import { escapeHtml as escape, renderAttachments, readTextAttachments } from '../components/attachments.js';
 import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
 import { renderPermissionSummary, updatePermissionSummary } from '../components/permission-card.js';
 import { createMessageList } from './message-list.js';
 
-export function renderConversationWorkspace() {
+export function renderConversationWorkspace({ inspector = true } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
     <aside id="chat-threads" class="chat-thread-sidebar pool-surface" data-thread-sidebar aria-label="Threads">
       <header class="chat-sidebar-header"><h2 id="chat-threads-title">Threads</h2><button class="pool-button chat-mobile-threads" type="button" data-close-threads>Close</button><button class="btn pool-button btn-ghost" type="button" data-new-thread>New thread</button></header>
-      <div class="chat-thread-list" data-thread-list></div>
+      <div class="chat-thread-list" data-thread-list></div><button class="pool-button" type="button" data-show-archived aria-pressed="false">Archived threads</button>
     </aside>
     <dialog class="chat-thread-drawer pool-surface" data-thread-dialog aria-labelledby="chat-threads-title"></dialog>
     <section class="chat-conversation-area pool-surface" data-conversation-area aria-label="Current conversation">
       <header class="chat-thread-header" data-network-header>
         <button class="pool-button chat-mobile-threads" type="button" data-open-threads>Threads</button>
         <div class="chat-thread-info">
-          <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select></span>
+          <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model hidden></button></span>
           </div>
-        <button class="btn pool-button btn-ghost" type="button" data-toggle-inspector aria-expanded="false" aria-controls="chat-network-details">Network <span data-mesh-peers>0 peers</span></button>
+        <button class="btn pool-button btn-ghost" type="button" data-toggle-inspector aria-haspopup="dialog">Network <span data-mesh-peers>0 peers</span></button>
       </header>
-      <section class="chat-network-details" id="chat-network-details" data-contextual-inspector hidden aria-label="Network">
-        <header class="chat-network-heading"><h2>Network</h2><button class="btn pool-button btn-ghost" type="button" data-close-inspector>Close</button></header>
-        <ul data-insp-device-list></ul>
-        <div class="chat-network-actions">${renderConnectionControl()}<button class="btn pool-button btn-ghost" type="button" data-mesh-invite>Invite</button></div>
-        <p data-network-message role="status" hidden></p>
-        <details data-thread-permissions hidden><summary>Thread permissions</summary>
-          <p data-thread-permission-description>Approved recipients can receive this thread’s messages and attached text as public data, using its selected model. Revoking stops active work and future sharing; it cannot recall data already sent.</p>
-          <ul data-thread-grants></ul></details>
-        ${renderSharingControls()}
-      </section>
       <div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
         <h2>Review before sending</h2><p>Other people’s computers will process what you share.</p>${renderPermissionSummary()}
@@ -47,9 +38,7 @@ export function renderConversationWorkspace() {
         <div class="chat-composer-toolbar">
           <label class="btn pool-button btn-ghost chat-file-label pool-focus-within">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
           <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button">Actions</summary><div class="pool-surface">
-            <button class="pool-button chat-model-change" type="button" data-change-model hidden>Start a new conversation with another model</button>
             <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
-            <button class="btn pool-button btn-ghost" type="button" data-model-setup>Run on this device</button>
           </div></details>
           <div class="chat-composer-submit">
             <p class="chat-setup-hint" id="chat-model-status" data-model-status role="status" hidden></p>
@@ -57,32 +46,36 @@ export function renderConversationWorkspace() {
             <button class="btn pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button>
             <button class="btn pool-button btn-ghost" type="button" data-composer-stop hidden>Stop</button>
           </div>
-        </div><p class="chat-attachment-help">Text files: up to 8, 64 KB each, 128 KB total.</p><div class="chat-attachments" data-attachments-preview hidden></div>
+        </div><p class="chat-attachment-help" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p><div class="chat-attachments" data-attachments-preview hidden></div>
       </form></footer>
-      <dialog class="chat-model-setup pool-surface" data-model-dialog aria-labelledby="model-setup-title">
-        <h2 id="model-setup-title">Run on this device</h2>
-        <label>Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
-        <p data-download-size role="status">Checking download size…</p>
-        <p>Stored on this device.</p>
-        <div class="chat-network-actions"><button class="pool-button" type="button" data-download-cancel>Cancel</button><button class="pool-button btn-primary" type="button" data-download-confirm disabled>Download model</button></div>
+      <dialog class="chat-model-setup pool-surface" data-rename-dialog aria-labelledby="chat-rename-title">
+        <form data-rename-form><h2 id="chat-rename-title">Rename thread</h2><label>Name<input class="pool-input" data-thread-name required maxlength="256"></label>
+          <div class="chat-network-actions"><button class="pool-button" type="button" data-rename-cancel>Cancel</button><button class="pool-button" type="submit">Save</button></div>
+        </form>
+      </dialog>
+      <dialog class="chat-model-setup pool-surface" data-model-picker aria-labelledby="chat-model-picker-title">
+        <h2 id="chat-model-picker-title">Conversation model</h2><p data-current-model-description></p>
+        <p>This thread keeps its model. Choose a model for a new thread.</p>
+        <label>Model<select class="pool-input" data-next-model></select></label>
+        <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>New thread with this model</button></div>
       </dialog>
     </section>
+    ${inspector ? renderNetworkInspector() : ''}
   </section>`;
 }
 
-export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {} } = {}) {
+export function bindConversationWorkspace(root, session, { getInviteUrl, viewState = {}, inspector: sharedInspector } = {}) {
   const container = root.querySelector('[data-chat-workspace]');
   if (!container || !session) return () => {};
   const find = selector => container.querySelector(selector);
   const controller = new AbortController(), options = { signal: controller.signal };
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
-  const disposeNetwork = bindNetworkControls(container, session, { getInviteUrl });
-  let files = [], fileRevision = 0, reading = false, approvalKey = '', grantsKey = '';
+  const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl });
+  let archived = false, renameId = null;
+  let files = [], fileRevision = 0, reading = false, approvalKey = '';
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
   const threads = createConversationList(find('[data-thread-list]'), viewState.seen);
   const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions });
-  const networkPanel = bindDisclosure({ root: find('[data-conversation-area]'), trigger: find('[data-toggle-inspector]'),
-    panel: find('[data-contextual-inspector]'), closeButton: find('[data-close-inspector]') });
   const actions = find('[data-conversation-actions]');
   const actionsPanel = bindDisclosure({ root: actions, trigger: actions.querySelector('summary'), panel: actions.querySelector('div'), native: true });
   const drawer = find('[data-thread-dialog]'), sidebar = find('[data-thread-sidebar]');
@@ -106,7 +99,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   };
   const act = operation => Promise.resolve().then(operation).catch(error);
   const on = (selector, event, callback) => find(selector)?.addEventListener(event, callback, options);
-  const showFiles = () => renderAttachments(find('[data-attachments-preview]'), files);
+  const showFiles = () => { renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
   const render = state => {
     if (controller.signal.aborted) return;
     if (selectedId !== state.selectedId) {
@@ -115,16 +108,19 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     const thread = state.activeThread, catalogModels = state.models || [];
     const keyFor = model => model?.selectionId || model?.id;
-    const models = catalogModels.filter(model => ['ready', 'busy'].includes(model.availability));
+    const models = catalogModels.filter(model => ['ready', 'busy', 'loading', 'preparing'].includes(model.availability));
     if (thread && !models.some(model => keyFor(model) === keyFor(thread.model))) {
       models.push(catalogModels.find(model => keyFor(model) === keyFor(thread.model)) || { ...thread.model, availability: 'unavailable' });
     }
     const current = keyFor(thread?.model) || (models.some(model => keyFor(model) === modelSelect.value) ? modelSelect.value : null)
       || keyFor(models.find(model => keyFor(model) === keyFor(state.defaultModel))) || keyFor(models[0]);
     updateModelSelect(modelSelect, models, { value: current, showAvailability: true });
-    modelSelect.value = current || ''; modelSelect.disabled = !!thread || !models.length;
-    modelSelect.title = thread ? 'This conversation keeps its model. Choose Actions to start another.' : 'Choose a model';
-    find('[data-change-model]').hidden = !thread;
+    modelSelect.value = current || ''; modelSelect.disabled = !models.length; modelSelect.hidden = !!thread;
+    const currentModel = find('[data-current-model]'); currentModel.hidden = !thread;
+    currentModel.textContent = thread?.model.name || 'Model';
+    currentModel.setAttribute('aria-label', `${thread?.model.name || 'Model'}. Choose a model for a new thread`);
+    const peerCount = projectNetworkPeers(state).length;
+    find('[data-mesh-peers]').textContent = `${peerCount} ${peerCount === 1 ? 'peer' : 'peers'}`;
     const usable = thread?.permissions?.sharingScope === 'local'
       || models.some(model => keyFor(model) === current && ['ready', 'busy'].includes(model.availability));
     const modelStatus = find('[data-model-status]');
@@ -139,12 +135,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     modelStatus.hidden = !modelStatus.textContent;
     find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
-    threads.update(state.threads, state.selectedId);
+    threads.update(state.threads, state.selectedId, { archived });
     const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
     find('[data-composer-send]').hidden = busy;
-    find('[data-model-setup]').hidden = busy || !!thread?.model.partition || !!thread?.model.adapters?.length;
-    find('[data-model-setup]').disabled = preparing;
-    find('[data-model-setup]').textContent = preparing ? 'Downloading…' : 'Run on this device';
     find('[data-retry-connection]').hidden = busy || usable || preparing || state.network?.connecting || ['connecting', 'retrying'].includes(networkState); find('[data-composer-send]').disabled = reading || !usable || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
@@ -171,66 +164,43 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       });
     }
     find('[data-approval-send]').disabled = !pending || !find('[data-approval-consent]').checked;
-    const grants = (thread?.grants || []).filter(grant => grant.revokedAt === null);
-    find('[data-thread-permission-description]').textContent = thread?.model.partition
-      ? 'Approved recipients can receive model activations derived from this thread’s messages and attached text, for this model and split. Revoking stops active work and future sharing; it cannot recall data already sent.'
-      : 'Approved recipients can receive this thread’s messages and attached text as public data, using its selected model. Revoking stops active work and future sharing; it cannot recall data already sent.';
-    find('[data-thread-permissions]').hidden = !grants.length;
-    const nextGrants = JSON.stringify([thread?.id, grants]);
-    if (nextGrants !== grantsKey) {
-      grantsKey = nextGrants;
-      find('[data-thread-grants]').innerHTML = grants.map(grant => `<li>${escape(grant.recipientIdentity)} · ${escape(grant.modelId)} <button class="btn pool-button btn-ghost" type="button" data-revoke-grant="${escape(grant.id)}">Revoke</button></li>`).join('');
-    }
     error(state.storageError || '');
 
   };
   const unsubscribe = session.subscribe(render);
   showFiles();
-  let metadataController = null;
-  const dialog = find('[data-model-dialog]');
-  const modelDialog = bindDialog(dialog);
-  const checkDownload = async () => {
-    metadataController?.abort();
-    const request = metadataController = new AbortController();
-    find('[data-download-confirm]').disabled = true;
-    find('[data-download-size]').textContent = 'Checking download size…';
-    try {
-      const info = await session.getModelDownload(find('[data-download-model]').value, { signal: request.signal });
-      if (request.signal.aborted || controller.signal.aborted) return;
-      find('[data-download-size]').textContent = Math.ceil(info.sizeBytes / 1e6) + ' MB download';
-      find('[data-download-confirm]').disabled = false;
-    } catch (cause) {
-      if (!request.signal.aborted && !controller.signal.aborted) find('[data-download-size]').textContent = cause.message;
-    }
-  };
-  on('[data-model-setup]', 'click', () => {
-    saveDraft();
-    const state = session.getState(), currentModel = state.activeThread?.model;
-    const models = state.models.filter(model => !model.partition && !model.adapters?.length);
-    const select = find('[data-download-model]');
-    updateModelSelect(select, models);
-    if (currentModel) select.value = currentModel.id;
-    select.disabled = !!currentModel;
-    actionsPanel.setOpen(false);
-    modelDialog.open(select, actions.querySelector('summary'));
-    void checkDownload();
+  const renameDialog = bindDialog(find('[data-rename-dialog]'));
+  const picker = bindDialog(find('[data-model-picker]'));
+  on('[data-toggle-inspector]', 'click', event => inspector.open('participants', event.currentTarget));
+  on('[data-current-model]', 'click', event => {
+    const state = session.getState();
+    find('[data-current-model-description]').textContent = state.activeThread?.model.name || '';
+    const models = state.models.filter(model => ['ready', 'busy', 'loading', 'preparing'].includes(model.availability));
+    updateModelSelect(find('[data-next-model]'), models, { showAvailability: true });
+    find('[data-change-model]').disabled = !models.length;
+    picker.open(find('[data-next-model]'), event.currentTarget);
   });
-  on('[data-download-model]', 'change', () => { void checkDownload(); });
-  on('[data-download-cancel]', 'click', () => modelDialog.close());
-  on('[data-model-dialog]', 'close', () => { metadataController?.abort(); });
-  on('[data-download-confirm]', 'click', () => {
-    const modelId = find('[data-download-model]').value;
-    dialog.close();
-    void act(() => session.prepareLocalModel(modelId));
-  });
+  on('[data-model-picker-close]', 'click', () => picker.close());
   on('[data-composer-input]', 'input', () => { try { saveDraft(); } catch (cause) { error(cause); } });
   const newThread = () => { saveDraft(); actionsPanel.setOpen(false); session.select(null); if (drawer.open) closeThreads(); input.focus(); };
   on('[data-new-thread]', 'click', newThread);
-  on('[data-change-model]', 'click', () => { newThread(); modelSelect.focus(); });
+  on('[data-change-model]', 'click', () => { const next = find('[data-next-model]').value; picker.close(); newThread(); modelSelect.value = next; render(session.getState()); modelSelect.focus(); });
   on('[data-open-threads]', 'click', () => { drawer.append(sidebar); threadDialog.open(sidebar.querySelector('[aria-current="true"]') || sidebar.querySelector('[data-new-thread]')); });
   on('[data-close-threads]', 'click', closeThreads);
   on('[data-retry-connection]', 'click', () => act(() => session.connect()));
-  on('[data-thread-list]', 'click', event => { const button = event.target.closest('[data-thread-item-id]'); if (button) { saveDraft(); session.select(button.dataset.threadItemId); if (drawer.open) closeThreads(); } });
+  on('[data-show-archived]', 'click', event => { archived = !archived; event.currentTarget.setAttribute('aria-pressed', String(archived)); event.currentTarget.textContent = archived ? 'Back to threads' : 'Archived threads'; render(session.getState()); });
+  on('[data-rename-cancel]', 'click', () => renameDialog.close());
+  on('[data-rename-form]', 'submit', event => { event.preventDefault(); void act(() => { session.renameThread(renameId, find('[data-thread-name]').value); renameDialog.close(); }); });
+  on('[data-thread-list]', 'click', event => {
+    const rename = event.target.closest('[data-rename-thread]');
+    if (rename) {
+      renameId = rename.dataset.threadId; const thread = session.getState().threads.find(item => item.id === renameId);
+      find('[data-thread-name]').value = thread.title || thread.purpose || thread.messages.find(message => message.role === 'user')?.content || 'New thread';
+      rename.closest('details').open = false; renameDialog.open(find('[data-thread-name]'), rename.closest('details').querySelector('summary')); return;
+    }
+    const archive = event.target.closest('[data-archive-thread]');
+    if (archive) { saveDraft(); void act(() => archived ? session.restoreThread(archive.dataset.threadId) : session.archiveThread(archive.dataset.threadId)); return; }
+    const button = event.target.closest('[data-thread-item-id]'); if (button) { saveDraft(); session.select(button.dataset.threadItemId); if (drawer.open) closeThreads(); } });
   on('[data-composer-form]', 'submit', event => {
     event.preventDefault();
     const content = input.value.trim(), state = session.getState();
@@ -261,6 +231,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const button = event.target.closest('[data-retry-attempt]');
     if (button && !button.disabled) act(() => session.retry(session.getState().selectedId, button.dataset.retryAttempt));
   });
+  on('[data-composer-files]', 'click', () => { find('[data-attachment-help]').hidden = false; });
+  on('[data-composer-files]', 'focus', () => { find('[data-attachment-help]').hidden = false; });
   on('[data-composer-files]', 'change', event => {
     const chosen = [...event.target.files]; event.target.value = '';
     const revision = fileRevision; reading = true; render(session.getState());
@@ -294,15 +266,10 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-approval-consent]', 'change', () => render(session.getState()));
   on('[data-approval-send]', 'click', () => { if (find('[data-approval-consent]').checked) approve(true); });
   on('[data-approval-decline]', 'click', () => approve(false));
-  on('[data-thread-grants]', 'click', event => {
-    const button = event.target.closest('[data-revoke-grant]');
-    if (button) act(() => session.revokeGrant(session.getState().selectedId, button.dataset.revokeGrant));
-  });
   return () => {
-    metadataController?.abort();
     try { saveDraft(); } catch (cause) { error(cause); }
-    messages.dispose(); threads.dispose(); networkPanel.dispose(); actionsPanel.dispose(); modelDialog.dispose(); threadDialog.dispose();
-    controller.abort(); fileRevision++; unsubscribe(); disposeNetwork();
+    messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose(); threadDialog.dispose();
+    controller.abort(); fileRevision++; unsubscribe(); if (!sharedInspector) inspector.dispose();
     find('[data-composer-field]').dataset.activity = 'idle';
     find('[data-model-control]').dataset.activity = 'idle';
   };

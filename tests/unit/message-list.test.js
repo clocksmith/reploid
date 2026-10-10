@@ -39,6 +39,21 @@ describe('Stable message presentation', () => {
     selection.removeAllRanges(); view.dispose(); root.remove();
   });
 
+  it('formats ordinary answers safely and retains earlier Markdown nodes during streaming', () => {
+    const root = document.createElement('div'), view = createMessageList(root), thread = conversation();
+    thread.messages[1].content = '# Result\n**Strong** and *emphasis*\n- first\n- second\n\n| Choice | Score |\n| --- | --- |\n| A | 1 |\n\n[Safe](https://example.com) [Bad](javascript:alert%281%29) <img src=x onerror=alert(1)>';
+    view.update(thread, { usable: true, busy: true });
+    expect(root.querySelector('h1').textContent).toBe('Result');
+    expect(root.querySelector('strong').textContent).toBe('Strong');
+    expect(root.querySelectorAll('li')).toHaveLength(2); expect(root.querySelectorAll('td')).toHaveLength(2);
+    expect(root.querySelector('img')).toBeNull(); expect(root.querySelector('a[href^="javascript:"]')).toBeNull();
+    const heading = root.querySelector('h1'), link = root.querySelector('a');
+    thread.messages[1].content += ' More text'; view.update(thread, { usable: true, busy: true });
+    expect(root.querySelector('h1')).toBe(heading); expect(root.querySelector('a')).toBe(link);
+    thread.messages[1].content = 'x'.repeat(100001); view.update(thread, { usable: true, busy: true });
+    expect(root.querySelector('[data-message-id="reply"] .chat-message-content').textContent).toHaveLength(100001);
+  });
+
   it('restores the reading position when switching conversations', () => {
     const root = document.createElement('div'), positions = new Map();
     const view = createMessageList(root, { positions }), one = conversation(), two = { ...conversation(), id: 'two' };

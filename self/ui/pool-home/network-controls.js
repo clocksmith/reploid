@@ -43,7 +43,7 @@ function renderPeerRows(list, state) {
   const rows = projectNetworkPeers(state), key = JSON.stringify(rows);
   if (list.dataset.projection === key) return;
   list.dataset.projection = key;
-  list.innerHTML = rows.length ? rows.map(peer => `<li class="network-peer-row"><div><strong>Peer ${escape(peer.id.slice(0, 8))}</strong><span>${escape(peer.model)}</span></div><span class="network-status">${escape(peer.status)}</span></li>`).join('')
+  list.innerHTML = rows.length ? rows.map((peer, index) => `<li class="network-peer-row"><div><strong>Computer ${index + 1}</strong><span>${escape(peer.model)}</span><details><summary>Identity</summary><code>${escape(peer.id)}</code></details></div><span class="network-status">${escape(peer.status)}</span></li>`).join('')
     : '<li class="network-empty">No peers connected yet</li>';
 }
 
@@ -66,7 +66,7 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
       && ['ready', 'busy'].includes(state.defaultModel?.availability));
     const contributionKey = contributionSelect.value || keyFor(prepared || catalogModels.find(model => !model.partition));
     updateModelSelect(contributionSelect, catalogModels.filter(model => !model.partition), { value: contributionKey });
-    const network = state.network || {}, peers = network.consumer?.peers || network.supplier?.peers || [];
+    const network = state.network || {}, peers = projectNetworkPeers(state);
     find('[data-mesh-invite]').hidden = network.discoveryScope !== 'private';
     contributionSelect.disabled = !!network.sharing || !!network.stopping || !!network.files?.sharing || !!network.files?.preparing;
     find('[data-mesh-peers]').textContent = peers.length + (peers.length === 1 ? ' peer' : ' peers');

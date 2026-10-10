@@ -63,7 +63,7 @@ export interface ChatAttempt {
   request: ChatRequest;
 }
 export interface ChatThread {
-  id: string; model: ChatModel; purpose: string; members: string[];
+  id: string; model: ChatModel; purpose: string; title?: string; members: string[];
   permissions: Record<string, unknown>; grants: ChatThreadGrant[]; messages: ChatMessage[];
   attempts: ChatAttempt[]; closed: boolean; createdAt: number;
 }
@@ -88,6 +88,7 @@ export function createChatWorkspace(options: {
   subscribe(listener: (state: ChatState) => void): () => void;
   createThread(options: { model: ChatModel; purpose?: string; members?: string[]; permissions?: Record<string, unknown> }): string;
   select(threadId: string | null): void;
+  renameThread(threadId: string, title: string): void;
   closeThread(threadId: string): void;
   reopenThread(threadId: string): void;
   send(threadId: string, content: string, options?: { select?: boolean }): Promise<ChatAttempt>;

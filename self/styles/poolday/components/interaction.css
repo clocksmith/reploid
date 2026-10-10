@@ -114,26 +114,36 @@
   background-image: linear-gradient(90deg, transparent 45%, var(--pool-surface-ink) 50%, transparent 55%);
   background-size: 200% var(--pool-px-2); background-repeat: no-repeat; background-position: 0% 100%;
 }
-.execution-ribbon-details {
-  position: absolute; z-index: var(--pool-z-dropdown); top: 100%; left: 0; right: 0;
-  max-height: 60dvh; overflow: auto; padding: var(--pool-space-md); font-size: var(--pool-text-sm);
-}
-.execution-ribbon-details header { display: flex; align-items: center; justify-content: space-between; gap: var(--pool-space-sm); }
-.execution-ribbon-details dl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--pool-space-xs) var(--pool-space-md); }
-.execution-ribbon-details dt { color: var(--pool-surface-muted); }
-.execution-ribbon-details dd { margin: 0; overflow-wrap: anywhere; }
-.execution-ribbon-details ul { padding: 0; list-style: none; }
-.execution-ribbon-details li { padding-block: var(--pool-space-sm); }
-.execution-ribbon-details code { display: block; overflow-wrap: anywhere; font-size: var(--pool-text-xs); }
-.execution-ribbon-details summary { cursor: pointer; }
+.execution-inspector-facts header { display: flex; align-items: center; justify-content: space-between; gap: var(--pool-space-sm); }
+.execution-inspector-facts dl { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 2fr); gap: var(--pool-space-xs) var(--pool-space-md); }
+.execution-inspector-facts dt { color: var(--pool-surface-muted); }
+.execution-inspector-facts dd { margin: 0; overflow-wrap: anywhere; }
+.execution-inspector-facts ul { padding: 0; list-style: none; }
+.execution-inspector-facts li { padding-block: var(--pool-space-sm); }
+.execution-inspector-facts code { display: block; overflow-wrap: anywhere; font-size: var(--pool-text-xs); }
+.execution-inspector-facts summary { cursor: pointer; }
 @media (max-width: 480px) {
   .execution-ribbon-trigger { flex-wrap: wrap; gap: var(--pool-space-xs); }
   .execution-ribbon-route { flex-basis: 100%; }
   .execution-ribbon-node { font-size: var(--pool-text-xs); }
   .execution-ribbon-status { min-height: 0; padding-bottom: 0; }
   .chat-composer-submit { flex-basis: 100%; justify-content: space-between; }
-  .execution-ribbon-details dl { grid-template-columns: minmax(0, 1fr); }
+  .execution-inspector-facts dl { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {
   .execution-ribbon[data-output-observed] .execution-ribbon-route { background-image: none; }
 }
+
+/* One modal inspector, shared by all Network entry points. */
+.network-inspector { box-sizing: border-box; color: var(--pool-surface-ink); width: min(100%, var(--pool-px-r28)); max-width: 100%; height: 100dvh; max-height: 100dvh; inset: 0 0 0 auto; margin: 0; padding: var(--pool-space-lg); overflow: auto; }
+.network-inspector [hidden] { display: none !important; }
+.network-inspector::backdrop { background: var(--pool-tint-black-56); }
+.network-inspector-tabs { display: flex; flex-wrap: wrap; gap: var(--pool-space-xs); margin-block: var(--pool-space-md); }
+.network-inspector-tabs button { flex: 1; white-space: normal; }
+.network-inspector section { display: grid; gap: var(--pool-space-md); }
+.network-inspector :is(h3, h4, p) { margin: 0; }
+.network-inspector :is(pre, code, dd) { overflow-wrap: anywhere; white-space: pre-wrap; }
+.network-inspector ul { padding: 0; list-style: none; }
+.network-inspector select { width: 100%; }
+.execution-ribbon-route:empty { display: none; }
+@media (max-width: 760px) { .network-inspector { width: 100%; height: 90dvh; inset: auto 0 0; } }

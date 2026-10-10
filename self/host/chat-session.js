@@ -223,6 +223,9 @@ export function createChatSession({
       workspace.approve(threadId, attemptId, previewId, accepted, options);
     },
     revokeGrant(threadId, grantId) { assertOpen(); workspace.revokeGrant(threadId, grantId); },
+    renameThread(threadId, title) { assertOpen(); workspace.renameThread(threadId, title); },
+    archiveThread(threadId) { assertOpen(); workspace.closeThread(threadId); },
+    restoreThread(threadId) { assertOpen(); workspace.reopenThread(threadId); },
     closeThread(threadId) {
       assertOpen();
       comparisons.get(threadId)?.controller.abort();

@@ -25,7 +25,7 @@ describe('Conversation workspace', () => {
     expect(find('[data-composer-send]').hidden).toBe(false);
     expect(find('[data-retry-connection]').hidden).toBe(false);
     expect(find('[data-contribution-model]').value).toBe(CANONICAL_CHAT_MODELS[1].id);
-    expect(find('[data-contextual-inspector]').hidden).toBe(true);
+    expect(find('[data-contextual-inspector]').open).toBe(false);
     expect(find('[data-composer-input]').placeholder).toBeTruthy();
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
@@ -59,11 +59,39 @@ describe('Conversation workspace', () => {
     submit('First message');
     await vi.waitFor(() => expect(session.getState().threads[0]?.attempts[0]?.status).toBe('completed'));
     expect(find('[data-message-stream]').textContent).toContain('Fixture: First message');
-    expect(find('[data-active-model-select]').disabled).toBe(true);
+    expect(find('[data-active-model-select]').hidden).toBe(true);
     submit('Followup');
     await vi.waitFor(() => expect(session.getState().activeThread.messages).toHaveLength(4));
     await vi.waitFor(() => expect(session.getState().activeThread.attempts[1].status).toBe('completed'));
     expect(service.calls[0].source).toBe(CANONICAL_CHAT_MODELS[1].id);
+  });
+
+  it('offers a new model directly without changing an existing thread or draft', async () => {
+    await session.prepareLocalModel(CANONICAL_CHAT_MODELS[1].id);
+    const id = session.createThread({ sharingScope: 'local' });
+    find('[data-composer-input]').value = 'Keep this draft';
+    find('[data-current-model]').click();
+    expect(find('[data-model-picker]').open).toBe(true);
+    expect(session.getState().selectedId).toBe(id);
+    find('[data-change-model]').click();
+    expect(session.getState().selectedId).toBeNull();
+    expect(session.getState().threads[0].model.id).toBe(CANONICAL_CHAT_MODELS[1].id);
+    session.select(id); expect(find('[data-composer-input]').value).toBe('Keep this draft');
+  });
+
+  it('renames, archives, and restores a thread without changing its purpose or draft', async () => {
+    const id = session.createThread({ purpose: 'Original instruction' });
+    find('[data-composer-input]').value = 'Preserve draft';
+    find('[data-rename-thread]').click(); find('[data-thread-name]').value = 'My thread';
+    find('[data-rename-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(session.getState().activeThread.title).toBe('My thread'));
+    expect(session.getState().activeThread.purpose).toBe('Original instruction');
+    find('[data-archive-thread]').click();
+    await vi.waitFor(() => expect(session.getState().selectedId).toBeNull());
+    find('[data-show-archived]').click(); expect(find('[data-thread-item-id]').textContent).toContain('My thread');
+    find('[data-archive-thread]').click();
+    await vi.waitFor(() => expect(session.getState().selectedId).toBe(id));
+    expect(find('[data-composer-input]').value).toBe('Preserve draft');
   });
 
   it('keeps drafts separate while selecting threads and starting a new one', () => {
@@ -97,12 +125,12 @@ describe('Conversation workspace', () => {
 
   it('shows actual network state and removes its event handlers on teardown', () => {
     find('[data-toggle-inspector]').click();
-    expect(find('[data-contextual-inspector]').hidden).toBe(false);
+    expect(find('[data-contextual-inspector]').open).toBe(true);
     expect(find('[data-contrib-label]').textContent).toBe('Not sharing');
     find('[data-close-inspector]').click();
     dispose();
     find('[data-toggle-inspector]').click();
-    expect(find('[data-contextual-inspector]').hidden).toBe(true);
+    expect(find('[data-contextual-inspector]').open).toBe(false);
   });
 
   it('keeps another thread running when the selected thread is cancelled', async () => {
@@ -187,7 +215,7 @@ describe('Conversation workspace', () => {
     peers = []; session.refreshNetwork();
     expect(find('[data-model-control]').dataset.activity).toBe('idle');
     expect(find('[data-active-model-select]').value).toBe(model.id);
-    expect(find('[data-active-model-select]').disabled).toBe(true);
+    expect(find('[data-active-model-select]').hidden).toBe(true);
     expect(find('[data-composer-send]').disabled).toBe(true);
     find('[data-composer-input]').value = 'Keep my draft';
     find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
