@@ -292,18 +292,20 @@ try {
       const context = await browser.newContext();
       const diagnostic = { host: slot ? 'linux' : 'mac', unsplitStepParity: [] };
       const linearCaptures = [];
-      const captureLinear = !referenceHost && process.env.DOPPLER_ATTENTION_CACHE_CAPTURE === '1';
+      const captureKind = process.env.DOPPLER_ATTENTION_CACHE_CAPTURE;
+      const captureAttention = !referenceHost && ['1', 'attention'].includes(captureKind);
       evidence.unsplitFirstDivergence.runs.push(diagnostic);
       try {
-        if (captureLinear) {
+        if (captureAttention) {
           const { observeAttentionCache } = await import('../../../doppler/tests/fixtures/attention-cache-observer.js');
           diagnostic.captureHelperSha256 = createHash('sha256').update(observeAttentionCache.toString()).digest('hex');
           await observeAttentionCache(context, new URL('../../node_modules/doppler-gpu', import.meta.url).pathname,
-            linearCaptures, { ...(probePrompt === null ? { linearOnly: true } : { linearLayer: probeLayer }),
+            linearCaptures, { ...(captureKind === 'attention' ? { attentionLayer: probeLayer }
+              : probePrompt === null ? { linearOnly: true } : { linearLayer: probeLayer }),
               captureCondition: 'globalThis.numericalObservation?.capture === true' });
         }
         const page = await context.newPage();
-        if (captureLinear) {
+        if (captureAttention) {
           const session = await context.newCDPSession(page);
           session.on('Debugger.paused', () => session.send('Debugger.resume'));
         }
@@ -463,7 +465,7 @@ try {
               tokenIds, generation, maxGpuBufferBytes, logits, stats, probe, probeLayer, captureReplay,
               resolvedRuntimeSession: handle.advanced.getResolvedRuntimeSession(), memory: runtime.inspectDeviceMemory() };
           } finally { await handle?.unload(); }
-        }, { model: requests[0].model, source, first, generation, policy, captureLinear, probeLayer, referenceHost,
+        }, { model: requests[0].model, source, first, generation, policy, captureLinear: captureAttention, probeLayer, referenceHost,
           controls: distributedControls.map(({ messages, tokenIds }, attempt) => ({ messages, tokenIds,
             tokenIdsByStep: cases[attempt].expected.steps.map(step => step.tokenId) })) }));
         if (referenceHost) {
@@ -519,10 +521,11 @@ try {
       finally {
         try { await context.close(); }
         catch (error) { diagnostic.cleanupFailure = { name: error.name, message: error.message }; }
-        if (captureLinear) {
+        if (captureAttention) {
           diagnostic.linearCapture = { captures: linearCaptures };
-          if (!linearCaptures.some(capture => capture.records.some(record => record.boundary === 'linear-inputs'))) {
-            diagnostic.captureFailure = 'The recurrent diagnostic did not retain its actual input boundary';
+          const inputBoundary = captureKind === 'attention' ? 'inputs' : 'linear-inputs';
+          if (!linearCaptures.some(capture => capture.records.some(record => record.boundary === inputBoundary))) {
+            diagnostic.captureFailure = 'The attention diagnostic did not retain its actual input boundary';
           }
         }
         await writeFile(output, JSON.stringify(evidence));
