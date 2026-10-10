@@ -14,7 +14,7 @@ workspace. Each person controls what their device shares and runs.
 The diagram illustrates partitioned execution; model availability, disclosure
 permissions, and qualified peers determine which requests can run. Reploid
 coordinates work; Doppler owns model computation; Poolday connects participants.
-[Architecture and qualification boundaries](docs/open-mesh-architecture.md).
+[Technical diagrams: components, generation, recovery](docs/open-mesh-architecture.md#technical-diagrams).
 
 **[Try Reploid](https://replo.id/)** · [Run locally](#how-to-use-reploid)
 
