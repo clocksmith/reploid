@@ -1,0 +1,217 @@
+{
+  "scope": "Frozen prompt 2 decode step 7; identical operands, local decode attention error, not model acceptance",
+  "operandComparison": [
+    {
+      "boundary": "inputs",
+      "role": "q",
+      "byteExact": true,
+      "maxDifference": 0.0,
+      "different": 0
+    },
+    {
+      "boundary": "inputs",
+      "role": "k",
+      "byteExact": true,
+      "maxDifference": 0.0,
+      "different": 0
+    },
+    {
+      "boundary": "inputs",
+      "role": "v",
+      "byteExact": true,
+      "maxDifference": 0.0,
+      "different": 0
+    },
+    {
+      "boundary": "inputs",
+      "role": "cachedK",
+      "byteExact": true,
+      "maxDifference": 0.0,
+      "different": 0
+    },
+    {
+      "boundary": "inputs",
+      "role": "cachedV",
+      "byteExact": true,
+      "maxDifference": 0.0,
+      "different": 0
+    },
+    {
+      "boundary": "inputs",
+      "role": "gate",
+      "byteExact": true,
+      "maxDifference": 0.0,
+      "different": 0
+    },
+    {
+      "boundary": "outputs",
+      "role": "core",
+      "byteExact": false,
+      "maxDifference": 2.384185791015625e-07,
+      "different": 985
+    },
+    {
+      "boundary": "outputs",
+      "role": "projectionInput",
+      "byteExact": false,
+      "maxDifference": 5.960464477539063e-08,
+      "different": 919
+    }
+  ],
+  "firstVisibleDifference": {
+    "opId": "layer.3.attn.core_out",
+    "shape": [
+      1,
+      2048
+    ],
+    "dtype": "f32",
+    "maxDifference": 2.384185791015625e-07,
+    "maxDifferenceIndex": 1190
+  },
+  "rawEvidence": [
+    {
+      "direction": "linux-mac",
+      "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-17-35-244Z/reference-linux-mac.json",
+      "local": "/tmp/reploid-decode-025-layer3-linux-mac.json.gz",
+      "compressedSha256": "05e2702126122e780ae36c8170ad465fdc8b7876c7941397a9a3d404fc325728",
+      "nativeComparisons": [
+        {
+          "host": "mac",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 0.0012241005897521973,
+              "maxDifferenceIndex": 82558,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "frozen": {
+              "maxDifference": 0.001599729061126709,
+              "maxDifferenceIndex": 17207,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        },
+        {
+          "host": "linux",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 3.1113624572753906e-05,
+              "maxDifferenceIndex": 103090,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.0013012290000915527,
+              "maxDifferenceIndex": 2632,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        }
+      ]
+    },
+    {
+      "direction": "mac-linux",
+      "remote": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T04-17-35-244Z/reference-mac-linux.json",
+      "local": "/tmp/reploid-decode-025-layer3-mac-linux.json.gz",
+      "compressedSha256": "788bcd5595c4c8914487230e9c8d230814f10bc930404ea312322647dddc47ef",
+      "nativeComparisons": [
+        {
+          "host": "mac",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 8.678436279296875e-05,
+              "maxDifferenceIndex": 13,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            "frozen": {
+              "maxDifference": 0.001599729061126709,
+              "maxDifferenceIndex": 17207,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        },
+        {
+          "host": "linux",
+          "comparisons": {
+            "distributed": {
+              "maxDifference": 0.0012134909629821777,
+              "maxDifferenceIndex": 82558,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "frozen": {
+              "maxDifference": 0.0013012290000915527,
+              "maxDifferenceIndex": 2632,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            "observed": {
+              "maxDifference": 0,
+              "maxDifferenceIndex": null,
+              "tolerance": 0.001,
+              "matches": true,
+              "samplingMasks": [
+                248055
+              ],
+              "scope": "Unmasked logits; declared sampling exclusions checked separately"
+            }
+          },
+          "captureReplay": {
+            "maxDifference": 0,
+            "byteExact": true,
+            "scope": "Same prefix replayed after state reset without buffer observation"
+          }
+        }
+      ]
+    }
+  ]
+}
