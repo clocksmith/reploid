@@ -648,7 +648,7 @@ Reploid is a peer-to-peer network of agents that runs and distributes model comp
 These checks verify repository changes. They are not runtime prerequisites for
 authorized reasoning, collaboration, evaluation or adoption.
 
-- Run CATSCAN charter verification via `npx vitest run tests/unit/catscan.test.js`.
+- Run CATSCAN charter verification via `npx vitest run --config tests/vitest.config.js tests/unit/catscan.test.js`.
 - Run applicable unit, integration, browser, and peer protocol checks in `tests/`.
 - Validate claim references with `npm run verify:surface-claims`.
 

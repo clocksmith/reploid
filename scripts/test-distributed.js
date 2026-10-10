@@ -287,7 +287,7 @@ try {
     }
     phase = recoveryDiagnostic ? 'contributor restart diagnostic' : 'conversation acceptance';
     console.log(`[distributed] ${phase}; evidence: ${output}`);
-    const test = start(process.execPath, ['node_modules/@playwright/test/cli.js', 'test',
+    const test = start(process.execPath, ['node_modules/@playwright/test/cli.js', 'test', '--config', 'tests/playwright.config.js',
       'tests/e2e/chat-cooperative-real.spec.js', '--project=chromium', `--output=${resolve(output, 'conversation')}`], { env: {
         ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, DOPPLER_PARTITION_REFERENCE_OUT: '',
         REPLOID_TEST_MODEL: modelId, REPLOID_E2E_CAPACITY: frozenWorkloads || recoveryDiagnostic ? '0' : '1',

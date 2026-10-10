@@ -93,6 +93,51 @@ var SWARM_ROLES = Object.freeze({
   DEAD: "dead"
 });
 
+// self/vendor/reploid/mesh/partitions/partition-contract.js
+var partitionIdentityKeys = Object.freeze(["modelId", "modelIdentity", "planId", "threadId", "attemptId", "participantA", "participantB"]);
+var partitionActions = Object.freeze([
+  "mesh.execute_partition_a",
+  "mesh.execute_partition_b",
+  "mesh.transfer_intermediate_activation",
+  "mesh.transfer_token_context",
+  "mesh.transfer_partition_output"
+]);
+
+// self/vendor/reploid/transport/partition-data-channel.js
+var encoder2 = new TextEncoder();
+
+// self/vendor/reploid/config/transport-defaults.json
+var transport_defaults_default = {
+  DEFAULT_SIGNAL_POLL_TIMEOUT_MS: 5e3,
+  DEFAULT_SIGNAL_FAILURE_THRESHOLD: 3,
+  DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS: 1e3,
+  DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS: 3e4,
+  pollIntervalMs: 1e3
+};
+
+// self/vendor/reploid/transport/signaling.js
+var SIGNAL_TYPES = Object.freeze({
+  OFFER: "offer",
+  ANSWER: "answer",
+  ICE_CANDIDATE: "ice-candidate",
+  CLOSE: "close",
+  PING: "ping"
+});
+var DEFAULT_SIGNAL_POLL_TIMEOUT_MS = transport_defaults_default.DEFAULT_SIGNAL_POLL_TIMEOUT_MS;
+var DEFAULT_SIGNAL_FAILURE_THRESHOLD = transport_defaults_default.DEFAULT_SIGNAL_FAILURE_THRESHOLD;
+var DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS = transport_defaults_default.DEFAULT_SIGNAL_POLL_BACKOFF_BASE_MS;
+var DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS = transport_defaults_default.DEFAULT_SIGNAL_POLL_BACKOFF_MAX_MS;
+
+// self/vendor/reploid/transport/assignment.js
+var P2P_TRANSPORT_STATES = Object.freeze({
+  IDLE: "idle",
+  CONNECTING: "connecting",
+  CONNECTED: "connected",
+  CLOSING: "closing",
+  CLOSED: "closed",
+  FAILED: "failed"
+});
+
 // self/shared/change-passport/contract.js
 var CHANGE_PASSPORT_SCHEMA = "change.passport/v1";
 var CHANGE_PASSPORT_EVENT_SCHEMA = "change.passport-event/v1";
@@ -884,7 +929,7 @@ async function verifyChangePassportExport(exported = {}, options = {}) {
   };
 }
 
-// sdk/change-passport/src/index.ts
+// packages/change-passport/src/index.ts
 var ChangePassportHttpError = class extends Error {
   status;
   code;

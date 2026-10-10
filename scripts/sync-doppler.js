@@ -27,7 +27,7 @@ try {
   await copyFile(resolve(staging, packed.filename), archive);
   const old = JSON.parse(await readFile(resolve(root, 'package-lock.json'))).packages['node_modules/doppler-gpu'];
   await exec('npm', ['install', '--save-exact', '--ignore-scripts', `file:${relative(root, archive)}`], { cwd: root });
-  for (const name of ['Dockerfile', '.gcloudignore', '.dockerignore']) {
+  for (const name of ['deploy/Dockerfile', '.gcloudignore', '.dockerignore']) {
     const file = resolve(root, name);
     const text = await readFile(file, 'utf8');
     const oldName = old.resolved.split('/').at(-1);

@@ -57,7 +57,7 @@ function main() {
     backup = realpathSync(backupPath);
     if (backup === root || backup.startsWith(root + path.sep)) throw new Error('Private backup must be outside the repository');
   }
-  const directory = path.join(root, 'showcase/runs');
+  const directory = path.join(root, 'examples/showcase/runs');
   let checked = 0;
   for (const name of readdirSync(directory).filter(name => name.endsWith('.json'))) {
     const target = path.join(directory, name), bytes = readFileSync(target);

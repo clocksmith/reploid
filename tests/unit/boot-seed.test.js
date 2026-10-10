@@ -235,7 +235,7 @@ describe('boot seed manifest', () => {
   it('rewrites the Zero model proxy to a Firebase function', () => {
     const hosting = firebaseConfig.hosting.find((entry) => entry.target === 'reploid');
     expect(firebaseConfig.functions).toMatchObject({
-      source: 'functions'
+      source: 'packages/functions'
     });
     expect(hosting?.rewrites).toContainEqual({
       source: '/zero/gemini',

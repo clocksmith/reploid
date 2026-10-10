@@ -11,7 +11,7 @@ RUN node --input-type=module -e "import fs from 'node:fs'; import crypto from 'n
     && npm cache add /tmp/doppler-gpu-0.6.23.tgz --ignore-scripts \
     && npm ci --prefer-offline --omit=dev --include=optional --ignore-scripts
 
-COPY Dockerfile ./Dockerfile
+COPY deploy/Dockerfile ./deploy/Dockerfile
 COPY server ./server
 COPY self ./self
 

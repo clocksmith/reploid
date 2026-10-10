@@ -136,9 +136,9 @@ strategy without introducing an execution loop.
 Run:
 
 ```sh
-npx vitest run tests/unit/belief-planner.test.js tests/integration/diagnostic-strategy.test.js
+npx vitest run --config tests/vitest.config.js tests/unit/belief-planner.test.js tests/integration/diagnostic-strategy.test.js
 node tests/diagnostic-planning-comparison.js
-npx playwright test tests/e2e/diagnostic-strategy.spec.js --project=chromium
+npx playwright test --config tests/playwright.config.js tests/e2e/diagnostic-strategy.spec.js --project=chromium
 ```
 
 The comparison exhausts 16 synthetic states: four GPU-fault labels crossed with

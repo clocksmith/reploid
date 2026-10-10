@@ -91,7 +91,7 @@ npm run verify:module-system
 npm run verify:registry
 npm run verify:runtime-config
 npm run verify:browser-bundle:local
-npx playwright test tests/e2e/vfs-storage-contract.spec.js tests/e2e/boot.spec.js tests/e2e/peer-pack-jobs.spec.js --project=chromium --workers=2
+npx playwright test --config tests/playwright.config.js tests/e2e/vfs-storage-contract.spec.js tests/e2e/boot.spec.js tests/e2e/peer-pack-jobs.spec.js --project=chromium --workers=2
 node tests/library-package-acceptance.js
 ```
 

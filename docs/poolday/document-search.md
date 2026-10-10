@@ -109,14 +109,14 @@ before public enablement. No production deployment occurred.
 
 ## Verification
 
-`npx vitest run tests/unit/pool-document-search.test.js` covers input bounds,
+`npx vitest run --config tests/vitest.config.js tests/unit/pool-document-search.test.js` covers input bounds,
 content deduplication, retrieval, exact model admission, receipt consumption,
 cancellation, and clear-during-execution. `tests/e2e/document-search.spec.js`
 exercises Chrome desktop/mobile UI, explicit publisher trust, private payload
 non-transmission, literal rendering, and the actual Verification Worker.
 Model outputs in these fixtures are synthetic, not physical GPU evidence.
 
-`DOPPLER_TEST_CHECKOUT=/path/to/doppler npx vitest run
+`DOPPLER_TEST_CHECKOUT=/path/to/doppler npx vitest run --config tests/vitest.config.js
 tests/integration/doppler-pack-handoff.test.js` exercises the real Doppler Pack
 producer and Reploid consumer with injected model programs. Source production,
 model qualification, package release, and external adoption remain separate.

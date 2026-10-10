@@ -53,7 +53,7 @@ jobs:
       env:
         REPLOID_E2E_ARTIFACT_DIR: artifacts/product-browser-ci
       run: >-
-        npx playwright test
+        npx playwright test --config tests/playwright.config.js
         tests/e2e/vfs-storage-contract.spec.js
         tests/e2e/boot.spec.js
         tests/e2e/peer-pack-jobs.spec.js

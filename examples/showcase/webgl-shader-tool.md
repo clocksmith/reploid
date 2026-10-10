@@ -2,7 +2,7 @@
 
 **Date:** January 18, 2026
 **Cycles:** 36
-**Run JSON:** [reploid-export-1768748358065.json](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-export-1768748358065.json)
+**Run JSON:** [reploid-export-1768748358065.json](https://github.com/clocksmith/reploid/blob/main/examples/showcase/runs/reploid-export-1768748358065.json)
 **Goal:** Create a WebGL-based tool that renders custom GLSL shaders with live editing in the existing Reploid UI.
 
 ---

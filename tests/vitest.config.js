@@ -1,9 +1,10 @@
 import { defineConfig } from 'vitest/config';
 import { resolve } from 'path';
 
-const selfRoot = resolve('self');
+const selfRoot = resolve(import.meta.dirname, '../self');
 
 export default defineConfig({
+  root: resolve(import.meta.dirname, '..'),
   resolve: {
     alias: [
       // Tests import ../../core/ etc. which resolves to <root>/core/
