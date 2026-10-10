@@ -6,7 +6,10 @@
 Reploid brings conversations, local AI, and participating devices into one browser
 workspace. Each person controls what their device shares and runs.
 
-![A requester without model weights receives an answer from two contributors executing different parts of one model; dotted links supply model pieces.](docs/diagrams/readme-architecture.svg)
+<picture>
+  <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg" />
+  <img src="docs/diagrams/readme-architecture.svg" alt="A requester without model weights receives an answer from two contributors executing different parts of one model; dotted links supply model pieces." />
+</picture>
 
 The diagram illustrates partitioned execution; model availability, disclosure
 permissions, and qualified peers determine which requests can run. Reploid
