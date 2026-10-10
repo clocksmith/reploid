@@ -5,7 +5,7 @@ export const partitionActions = Object.freeze(['mesh.execute_partition_a', 'mesh
 export const assertPartition = (value, message) => { if (!value) throw new Error(message); };
 export const samePartitionIdentity = (actual, expected) => actual && [...partitionIdentityKeys, 'requesterId', 'placementGeneration'].every(key => actual[key] === expected[key]);
 export function validatePartitionIdentity(identity) {
-  assertPartition(identity && partitionIdentityKeys.every(key => typeof identity[key] === 'string'
+  assertPartition(identity && typeof identity === 'object' && !Array.isArray(identity) && partitionIdentityKeys.every(key => typeof identity[key] === 'string'
     && identity[key].length > 0 && identity[key].length <= 256)
     && /^sha256:[a-f0-9]{64}$/.test(identity.modelIdentity)
     && identity.participantA !== identity.participantB, 'Invalid partition identity');
@@ -13,6 +13,13 @@ export function validatePartitionIdentity(identity) {
     assertPartition(typeof identity.requesterId === 'string' && identity.requesterId.length > 0 && identity.requesterId.length <= 256
       && Number.isSafeInteger(identity.placementGeneration) && identity.placementGeneration >= 0, 'Invalid requester placement binding');
   }
+}
+/** Snapshot the complete validated identity; optional placement fields travel as a pair. */
+export function canonicalPartitionBinding(identity) {
+  validatePartitionIdentity(identity);
+  const keys = identity.requesterId === undefined ? partitionIdentityKeys
+    : [...partitionIdentityKeys, 'requesterId', 'placementGeneration'];
+  return Object.freeze(Object.fromEntries(keys.map(key => [key, identity[key]])));
 }
 export function canonicalPartitionJson(value) {
   if (Array.isArray(value)) return '[' + value.map(canonicalPartitionJson).join(',') + ']';

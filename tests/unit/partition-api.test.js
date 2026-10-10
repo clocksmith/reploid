@@ -76,6 +76,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
 
   it('verifies signatures, exact attempt/recipient/plan binding, expiry, revocation and cleanup authority', async () => {
     const f = await fixture();
+    Object.assign(f.binding, { requesterId: 'requester', placementGeneration: 1 });
     const grant = await f.authority.issue(f.binding, policy, { approved: true, ttlMs: 10000,
       disclosure: 'partition-activations-and-tokens', generationDigest: f.generationDigest });
     const request = { identity: f.binding, action: 'mesh.execute_partition_b', step: 0, inputTokenCount: 1,
@@ -86,8 +87,11 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
       disclosure: 'partition-activations', generationDigest: f.generationDigest });
     expect(await f.otherAuthority.verify(activationOnly, { ...request, action: 'mesh.transfer_intermediate_activation' })).toBe(true);
     expect(await f.otherAuthority.verify(activationOnly, { ...request, action: 'mesh.transfer_token_context' })).toBe(false);
-    for (const key of ['threadId', 'attemptId', 'planId', 'participantB', 'modelIdentity']) {
-      expect(await f.otherAuthority.verify(grant, { ...request, identity: { ...f.binding, [key]: 'wrong' } })).toBe(false);
+    for (const key of ['modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId', 'participantA',
+      'participantB', 'requesterId', 'placementGeneration']) {
+      const changed = { ...request, identity: { ...f.binding, [key]: key === 'placementGeneration' ? 2 : 'wrong' } };
+      expect(await f.otherAuthority.verify(grant, changed)).toBe(false);
+      expect(await f.otherAuthority.verify(grant, changed, { settlement: true })).toBe(false);
     }
     const changed = structuredClone(grant); changed.claim.limits.maxTokens++;
     expect(await f.otherAuthority.verify(changed, request)).toBe(false);

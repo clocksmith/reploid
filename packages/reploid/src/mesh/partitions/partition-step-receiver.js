@@ -1,3 +1,5 @@
+import { canonicalPartitionBinding, samePartitionIdentity } from './partition-contract.js';
+
 /** Receiver-side ordering/idempotency. Execution and verified identity remain host ports. */
 export function createPartitionStepReceiver({ executeStep, authorize, fingerprint, settleAttempt, limits }) {
   for (const port of [executeStep, authorize, fingerprint, settleAttempt]) {
@@ -11,14 +13,9 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
   const attempts = new Map();
   const operations = new Set();
   let closed = false;
-  const identityKeys = ['modelId', 'modelIdentity', 'planId', 'threadId', 'attemptId', 'participantA', 'participantB'];
-  const validIdentity = identity => identity && typeof identity === 'object' && !Array.isArray(identity)
-    && identityKeys.every(key => typeof identity[key] === 'string'
-      && identity[key].length > 0 && identity[key].length <= 256);
-  const bindingOf = identity => JSON.stringify(identityKeys.map(key => identity[key]));
   const registerAttempt = identity => {
     if (attempts.size >= maxAttempts) throw new Error('Partition receiver attempt budget exhausted');
-    const state = { binding: bindingOf(identity), identity: structuredClone(identity), nextStep: 0, nextPosition: 0, maxTokens: null,
+    const state = { identity: canonicalPartitionBinding(identity), nextStep: 0, nextPosition: 0, maxTokens: null,
       last: null, retired: false, controller: new AbortController(), settlement: null };
     attempts.set(identity.attemptId, state);
     return state;
@@ -33,8 +30,8 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
     if (closed) throw new Error('Partition receiver closed');
     // Host ingress validates payload shape/byte budgets before this copy or hashing.
     const request = structuredClone(input);
-    if (!validIdentity(request.identity)
-      || !Number.isSafeInteger(request.step) || request.step < 0 || request.step >= maxSteps
+    request.identity = canonicalPartitionBinding(request.identity);
+    if (!Number.isSafeInteger(request.step) || request.step < 0 || request.step >= maxSteps
       || !Number.isSafeInteger(request.maxTokens) || request.maxTokens <= 0 || request.step >= request.maxTokens
       || !Number.isSafeInteger(request.tokenPosition) || request.tokenPosition < 0
       || !Number.isSafeInteger(request.inputTokenCount) || request.inputTokenCount <= 0) {
@@ -48,14 +45,13 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
       signal?.throwIfAborted();
       if (closed) throw new Error('Partition receiver closed');
       const key = request.identity.attemptId;
-      const binding = bindingOf(request.identity);
       let state = attempts.get(key);
       if (!state) {
         if (request.step !== 0 || request.tokenPosition !== 0) throw new Error('Partition attempt must start with prefill');
         state = registerAttempt(request.identity);
         state.maxTokens = request.maxTokens;
       }
-      if (state.binding !== binding) throw new Error('Partition attempt identity collision');
+      if (!samePartitionIdentity(state.identity, request.identity)) throw new Error('Partition attempt identity collision');
       if (state.retired) throw new Error('Partition attempt retired; start a new attempt');
       if (state.maxTokens !== request.maxTokens) throw new Error('Partition request token limit changed');
       if (state.last?.step === request.step) {
@@ -96,7 +92,8 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
   }
 
   function closeAttempt(identity) {
-    if (!validIdentity(identity)) return Promise.reject(new Error('Invalid partition settlement identity'));
+    try { identity = canonicalPartitionBinding(identity); }
+    catch (error) { return Promise.reject(error); }
     let state = attempts.get(identity.attemptId);
     if (!state) {
       if (closed) return Promise.resolve();
@@ -108,7 +105,7 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
       state.settlement = Promise.resolve();
       return state.settlement;
     }
-    if (state.binding !== bindingOf(identity)) {
+    if (!samePartitionIdentity(state.identity, identity)) {
       return Promise.reject(new Error('Partition settlement identity collision'));
     }
     if (state.settlement) return state.settlement;

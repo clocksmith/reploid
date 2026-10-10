@@ -9,13 +9,52 @@ function fixture(limits = { maxAttempts: 8, maxSteps: 8 }) {
   const fingerprint = vi.fn(async request => 'sha256:' + createHash('sha256').update(JSON.stringify(request)).digest('hex'));
   const receiver = createPartitionStepReceiver({ executeStep, authorize, fingerprint, settleAttempt,
     limits });
-  const request = { identity: { modelId: 'model', modelIdentity: 'hash', planId: 'plan', threadId: 'thread',
+  const request = { identity: { modelId: 'model', modelIdentity: 'sha256:' + 'a'.repeat(64), planId: 'plan', threadId: 'thread',
     attemptId: 'attempt', participantA: 'a', participantB: 'b' },
   step: 0, tokenPosition: 0, inputTokenCount: 3, maxTokens: 8, payload: 5, grant: { id: 'grant' } };
   return { receiver, request, executeStep, authorize, fingerprint, settleAttempt };
 }
 
 describe('partition receiver ordering (injected computation)', () => {
+  it.each(['modelId', 'modelIdentity', 'planId', 'threadId', 'participantA', 'participantB',
+    'requesterId', 'placementGeneration'])('rejects %s collisions for execution and settlement', async key => {
+    const f = fixture();
+    f.request.identity = { ...f.request.identity, requesterId: 'requester', placementGeneration: 1 };
+    await f.receiver.receive(f.request);
+    const identity = { ...f.request.identity, [key]: key === 'placementGeneration' ? 2
+      : key === 'modelIdentity' ? 'sha256:' + 'b'.repeat(64) : 'other' };
+    await expect(f.receiver.receive({ ...f.request, identity })).rejects.toThrow('identity collision');
+    await expect(f.receiver.closeAttempt(identity)).rejects.toThrow('identity collision');
+    expect(f.executeStep).toHaveBeenCalledTimes(1);
+    expect(f.settleAttempt).not.toHaveBeenCalled();
+    await f.receiver.close();
+  });
+
+  it.each([{ modelIdentity: 'hash' }, { requesterId: 'requester' }, { placementGeneration: 1 }])(
+    'rejects malformed identities before admission or cancellation: %j', async patch => {
+      const f = fixture();
+      const identity = { ...f.request.identity, ...patch };
+      await expect(f.receiver.receive({ ...f.request, identity })).rejects.toThrow('Invalid');
+      await expect(f.receiver.closeAttempt(identity)).rejects.toThrow('Invalid');
+      expect(f.authorize).not.toHaveBeenCalled();
+      expect(f.executeStep).not.toHaveBeenCalled();
+      await f.receiver.close();
+    });
+
+  it('retains placement fields when cancellation overtakes admission', async () => {
+    const f = fixture();
+    const identity = { ...f.request.identity, requesterId: 'requester', placementGeneration: 1 };
+    await f.receiver.closeAttempt(identity);
+    await expect(f.receiver.receive({ ...f.request, identity })).rejects.toThrow('retired');
+    for (const changed of [{ ...identity, requesterId: 'other' }, { ...identity, placementGeneration: 2 },
+      f.request.identity]) {
+      await expect(f.receiver.receive({ ...f.request, identity: changed })).rejects.toThrow('identity collision');
+      await expect(f.receiver.closeAttempt(changed)).rejects.toThrow('identity collision');
+    }
+    expect(f.executeStep).not.toHaveBeenCalled();
+    await f.receiver.close();
+  });
+
   it('binds the output limit before execution and rejects a changed limit on a later step', async () => {
     const f = fixture();
     for (const maxTokens of [undefined, 0, -1, 1.5]) {
