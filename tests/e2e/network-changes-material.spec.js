@@ -3,8 +3,10 @@ import { test, expect } from '@playwright/test';
 async function networkFixture(page) {
   await page.evaluate(async () => {
     const { renderNetworkSurface } = await import('/ui/pool-home/work.js');
-    const { bindNetworkControls } = await import('/ui/pool-home/network-controls.js');
-    const root = document.querySelector('.pool-route-content'); root.innerHTML = renderNetworkSurface();
+    const { bindNetworkInspector } = await import('/ui/pool-home/network-inspector.js');
+    window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
+    document.querySelector('[data-shell-inspector]')?.remove();
+    const root = document.querySelector('.pool-route-content'); root.innerHTML = '<div>' + renderNetworkSurface() + '</div>';
     let state = { models: [{ id: 'qwen', name: 'Qwen 3.5 0.8B' }], defaultModel: { id: 'qwen' }, network: {
       sharing: true, contribution: { modelId: 'qwen', phase: 'ready', partition: true },
       limits: { maxInboundJobs: 2, maxOutputTokens: 1024 },
@@ -13,8 +15,8 @@ async function networkFixture(page) {
       partitionPeers: [0, 1].map(index => ({ transportId: index ? 'remote-b' : 'remote-a', available: true,
         description: { offer: { id: 'qwen' }, index, phase: 'ready' } }))
     } };
-    let listener;
-    const session = { getState: () => state, subscribe(fn) { listener = fn; fn(state); return () => {}; },
+    const listeners = new Set(), listener = state => listeners.forEach(fn => fn(state));
+    const session = { getState: () => state, subscribe(fn) { listeners.add(fn); fn(state); return () => listeners.delete(fn); },
       async connect() { state.network.paused = false; state.network.consumer.connectionState = 'connected'; listener(state); },
       async disconnect() { state.network.paused = true; state.network.consumer.connectionState = 'disconnected'; state.network.sharing = false; state.network.files.sharing = false; listener(state); },
       async setSharing(enabled, model, approved) {
@@ -26,7 +28,7 @@ async function networkFixture(page) {
       }
     };
     globalThis.networkFixture = { state, session, notify: () => listener(state) };
-    bindNetworkControls(root, session);
+    bindNetworkInspector(root, session).open('device');
   });
 }
 
@@ -36,19 +38,16 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     const errors = []; page.on('pageerror', error => errors.push(error.message));
     await page.goto('/network?room=reploid-default&reploidBootRetry=2026091901');
     await expect(page.locator('[data-network-workspace]')).toBeVisible();
-    await page.getByRole('button', { name: theme === 'light' ? 'Light' : 'Dark', exact: true }).click();
+    await page.evaluate(theme => document.querySelector('.pool-home').dataset.poolTheme = theme, theme);
     await networkFixture(page);
     await expect(page.locator('[data-tab-sharing-summary]')).toHaveText('Qwen 3.5 0.8B · partition compute');
     await expect(page.locator('[data-insp-device-list] li')).toHaveCount(3);
     await expect(page.locator('[data-insp-device-list]')).toContainText('Partition 2 · ready');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.evaluate(() => scrollTo(0, 0));
-    expect(await page.locator('.pool-primary-nav').evaluate(node => node.getBoundingClientRect().bottom))
-      .toBeLessThan((await page.locator('.network-card').first().boundingBox()).y);
     await page.screenshot({ path: info.outputPath('network.png'), fullPage: true });
-    const compute = page.getByRole('switch', { name: 'Share compute', exact: true });
-    const files = page.getByRole('switch', { name: 'Share model files', exact: true });
-    const connection = page.getByRole('switch', { name: 'Connect to network' });
+    const compute = page.getByRole('switch', { name: 'Help answer requests', exact: true, includeHidden: true });
+    const files = page.getByRole('switch', { name: 'Store and share model files', exact: true, includeHidden: true });
+    const connection = page.getByRole('switch', { name: 'Connect to network', includeHidden: true });
     await expect(compute).toHaveAttribute('aria-checked', 'true');
     await compute.click();
     await expect(page.locator('[data-tab-sharing-summary]')).toHaveText('No models shared by this tab');
@@ -59,9 +58,11 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(files).toHaveAttribute('aria-checked', 'true');
     await compute.click();
     await expect(files).toHaveAttribute('aria-checked', 'true');
+    await page.locator('[data-inspector-section=participants]').click();
     await connection.click();
     await expect(connection).toHaveAttribute('aria-checked', 'false');
     await expect(files).toHaveAttribute('aria-checked', 'false');
+    await page.locator('[data-inspector-section=device]').click();
     // One explicit compute switch reconnects a deliberately disconnected tab.
     await compute.click();
     await expect(connection).toHaveAttribute('aria-checked', 'true');
@@ -79,8 +80,8 @@ test('Changes keeps old failures in cards and opens detail only on selection', a
     const root = document.querySelector('.pool-route-content'); root.innerHTML = renderImproveSurface();
     const records = [{ id: 'a', goal: 'Review the formatter', modelName: 'Qwen 3.5 0.8B', status: 'failed', createdAt: Date.now(),
       error: 'The contributor disconnected.', events: [], artifacts: [], output: '' }];
-    let listener; const state = { records, selectedId: 'a', runningIds: [], peerModels: [], models: [], available: true, activity: 'Idle' };
-    const app = { getState: () => state, getDraft: () => null, subscribe(fn) { listener = fn; fn(state); return () => {}; }, select(id) { state.selectedId = id; listener(state); } };
+    const listeners = new Set(), listener = state => listeners.forEach(fn => fn(state)); const state = { records, selectedId: 'a', runningIds: [], peerModels: [], models: [], available: true, activity: 'Idle' };
+    const app = { getState: () => state, getDraft: () => null, subscribe(fn) { listeners.add(fn); fn(state); return () => listeners.delete(fn); }, select(id) { state.selectedId = id; listener(state); } };
     bindWorkSurface(root, app, { evolution: { list: async () => [], describe: async () => [] } });
   });
   await expect(page.locator('[data-change-inspection]')).toBeHidden();
@@ -100,11 +101,11 @@ test('failed sharing stays off and remains visible during peer updates', async (
     networkFixture.session.setSharing = async () => { throw Error('GPU memory unavailable'); };
     networkFixture.notify();
   });
-  const compute = page.getByRole('switch', { name: 'Share compute', exact: true });
+  const compute = page.getByRole('switch', { name: 'Help answer requests', exact: true, includeHidden: true });
   await compute.click();
   await expect(page.locator('[data-network-message]')).toHaveText('GPU memory unavailable');
   await page.evaluate(() => networkFixture.notify());
   await expect(compute).toHaveAttribute('aria-checked', 'false');
   await expect(page.locator('[data-network-message]')).toHaveText('GPU memory unavailable');
-  await expect(page.getByRole('switch', { name: 'Share model files', exact: true })).toHaveAttribute('aria-checked', 'false');
+  await expect(page.getByRole('switch', { name: 'Store and share model files', exact: true, includeHidden: true })).toHaveAttribute('aria-checked', 'false');
 });

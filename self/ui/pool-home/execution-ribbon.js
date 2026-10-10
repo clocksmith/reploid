@@ -23,7 +23,9 @@ export function projectExecutionRibbon(state) {
   // Discovery reports availability, never the health of an assigned execution channel.
   if (active && attempt.retryOf && ['queued', 'loading'].includes(status)) status = 'recovering';
   const ready = (state.models || []).filter(model => model.availability === 'ready');
-  const labels = { idle: ready.length ? `${ready.length} model${ready.length === 1 ? '' : 's'} ready` : 'Finding capacity', queued: 'Queued', loading: 'Loading', executing: 'Executing', approval: 'Awaiting approval',
+  const availability = ready.length ? `${ready.length} model${ready.length === 1 ? '' : 's'} ready`
+    : state.network?.paused ? 'Disconnected' : state.network?.connecting || ['connecting', 'retrying'].includes(state.network?.consumer?.connectionState) ? 'Finding capacity' : 'No model ready';
+  const labels = { idle: availability, queued: 'Queued', loading: 'Loading', executing: 'Executing', approval: 'Awaiting approval',
     completed: 'Complete', failed: 'Failed', cancelled: 'Stopped', cancelling: 'Stopping', interrupted: 'Interrupted', disconnected: 'Disconnected', recovering: 'Recovering' };
   const response = thread?.messages.find(message => message.id === attempt?.responseId)?.content || '';
   return { key: attempt ? `${thread.id}:${attempt.id}` : null, thread, attempt, execution, requester, local, split, executors,

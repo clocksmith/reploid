@@ -196,6 +196,20 @@ describe('Conversation workspace', () => {
     expect(result.messages.map(message => message.content)).toEqual(['Keep this question', 'Partial answer', 'Recovered answer']);
   });
 
+  it('retains a deliberate new-thread model selection when its capacity disappears', async () => {
+    const first = CANONICAL_CHAT_MODELS[0], second = CANONICAL_CHAT_MODELS[1];
+    let peers = [first, second].map((model, index) => ({ peerId: 'peer-' + index, model: model.id, modelIdentity: model.identity, readiness: 'ready', hasInference: true, availableSlots: 1 }));
+    dispose(); await session.close();
+    session = createChatSession({ storage: null, service, swarm: { getState: () => ({ consumer: { peers } }) } });
+    dispose = bindConversationWorkspace(root, session);
+    find('[data-active-model-select]').value = second.id;
+    find('[data-active-model-select]').dispatchEvent(new Event('change'));
+    peers = peers.slice(0, 1); session.refreshNetwork();
+    expect(find('[data-active-model-select]').value).toBe(second.id);
+    expect(find('[data-composer-send]').disabled).toBe(true);
+    expect(find('[data-active-model-select]').textContent).toContain('Unavailable');
+  });
+
   it('automatically selects newly available capacity and preserves a thread model when its peer leaves', async () => {
     const model = CANONICAL_CHAT_MODELS[0];
     let peers = [];
