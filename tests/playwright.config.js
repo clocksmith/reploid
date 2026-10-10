@@ -2,6 +2,7 @@
  * Playwright configuration for Reploid E2E tests
  */
 import { defineConfig, devices } from '@playwright/test';
+import { fileURLToPath } from 'node:url';
 
 const targetBaseUrl = process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000';
 const targetUrl = new URL(targetBaseUrl);
@@ -19,14 +20,15 @@ const chromiumGpuArgs = process.platform === 'darwin'
     ];
 
 export default defineConfig({
-  testDir: './tests/e2e',
+  testDir: './e2e',
+  outputDir: '../test-results',
   fullyParallel: false, // Run tests serially for GPU resource sharing
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
   workers: 1, // Single worker for GPU tests
   reporter: [
     ['list'],
-    ['html', { open: 'never' }],
+    ['html', { open: 'never', outputFolder: 'playwright-report' }],
     ['json', { outputFile: 'test-results/e2e-results.json' }]
   ],
 
@@ -70,6 +72,7 @@ export default defineConfig({
   webServer: useLocalServer && !skipLocalServer ? [
     {
       command: 'npm start',
+      cwd: fileURLToPath(new URL('..', import.meta.url)),
       url: targetBaseUrl,
       env: {
         ...process.env,

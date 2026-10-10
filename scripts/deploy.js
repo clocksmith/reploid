@@ -25,7 +25,7 @@ try {
   checkout = await mkdtemp(resolve(directory, 'release-'));
   await run('git', ['clone', '--no-local', '--depth', '1', '--single-branch', '--branch', 'main', root, checkout], root);
   await run('npm', ['ci', '--ignore-scripts'], checkout);
-  await run('npm', ['ci', '--ignore-scripts'], resolve(checkout, 'functions'));
+  await run('npm', ['ci', '--ignore-scripts'], resolve(checkout, 'packages/functions'));
   await run('npm', ['run', 'verify:pool'], checkout);
   await run('npm', ['run', 'prepare:hosting'], checkout);
   await run('gcloud', ['builds', 'submit', '--project=reploid', '--config=deploy/cloudbuild.yaml',

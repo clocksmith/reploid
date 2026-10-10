@@ -1,6 +1,6 @@
 # reploid governance details
 
-These supporting requirements were retained when the root triad was condensed. They remain applicable constraints, not a second mission document. Dated implementation statements below retain their original scope and are not fresh verification. The root [GOALS.md](GOALS.md), [INTENT.md](INTENT.md), and [CATSCAN.md](CATSCAN.md) summarize direction and authority.
+These supporting requirements were retained when the root triad was condensed. They remain applicable constraints, not a second mission document. Dated implementation statements below retain their original scope and are not fresh verification. The root [GOALS.md](../GOALS.md), [INTENT.md](../INTENT.md), and [CATSCAN.md](../CATSCAN.md) summarize direction and authority.
 
 ## Retained GOALS.md requirements
 
@@ -535,7 +535,7 @@ explicit permissions and isolation requirements. A route or profile never
 establishes evaluator independence. Candidates cannot control protected tests,
 their evaluator, permission ceilings, approval, or activation.
 
-The named [scientific-policy promotion workflow](docs/poolday/product-intent.md#scientific-policy-promotion-boundary)
+The named [scientific-policy promotion workflow](poolday/product-intent.md#scientific-policy-promotion-boundary)
 assigns a Zero proposer, a distinct X evaluator, a human approver, and a Poolday
 policy owner. Those are that protocol's role assignments, not definitions of
 Zero and X. Its frozen cohorts, protected evaluation, review, revocation and
@@ -594,15 +594,15 @@ This document is the repository-level authority for mission, value, and
 strategic goals. Narrower product contracts, scientific non-claims, target
 object design, current status, and executable policy live in:
 
-- [`docs/poolday/product-intent.md`](docs/poolday/product-intent.md)
-- [`docs/poolday/claims-and-nonclaims.md`](docs/poolday/claims-and-nonclaims.md)
-- [`docs/poolday/discovery-contract.md`](docs/poolday/discovery-contract.md)
-- [`docs/change-passport/product-intent.md`](docs/change-passport/product-intent.md)
-- [`docs/change-passport/implementation-plan.md`](docs/change-passport/implementation-plan.md)
-- [`docs/rsi-improvement-episodes.md`](docs/rsi-improvement-episodes.md)
-- [`docs/status/surface-claim-index.json`](docs/status/surface-claim-index.json)
-- [`self/pool/pool-config.json`](self/pool/pool-config.json)
-- [`self/pool/TODO.md`](self/pool/TODO.md)
+- [`docs/poolday/product-intent.md`](poolday/product-intent.md)
+- [`docs/poolday/claims-and-nonclaims.md`](poolday/claims-and-nonclaims.md)
+- [`docs/poolday/discovery-contract.md`](poolday/discovery-contract.md)
+- [`docs/change-passport/product-intent.md`](change-passport/product-intent.md)
+- [`docs/change-passport/implementation-plan.md`](change-passport/implementation-plan.md)
+- [`docs/rsi-improvement-episodes.md`](rsi-improvement-episodes.md)
+- [`docs/status/surface-claim-index.json`](status/surface-claim-index.json)
+- [`self/pool/pool-config.json`](../self/pool/pool-config.json)
+- [`self/pool/TODO.md`](../self/pool/TODO.md)
 
 External baseline references:
 
@@ -648,15 +648,15 @@ Reploid is a peer-to-peer network of agents that runs and distributes model comp
 These checks verify repository changes. They are not runtime prerequisites for
 authorized reasoning, collaboration, evaluation or adoption.
 
-- Run CATSCAN charter verification via `npx vitest run tests/unit/catscan.test.js`.
+- Run CATSCAN charter verification via `npx vitest run --config tests/vitest.config.js tests/unit/catscan.test.js`.
 - Run applicable unit, integration, browser, and peer protocol checks in `tests/`.
 - Validate claim references with `npm run verify:surface-claims`.
 
 ## Recorded evidence
 
-The [surface claim index](docs/status/surface-claim-index.json) bounds claims by
+The [surface claim index](status/surface-claim-index.json) bounds claims by
 their evidence and blockers. The versioned
-[architecture convergence report](artifacts/architecture-convergence-2026-09-19/report.json)
+[architecture convergence report](../artifacts/architecture-convergence-2026-09-19/report.json)
 records shared-engine, contract, browser, and installed-package checks for its
 identified sources. It does not demonstrate the full recursive-improvement
 mission or physical GPU qualification. Each capability or improvement claim
@@ -676,5 +676,5 @@ Independently evaluated test suites and frozen benchmark populations govern all 
 ---
 
 Links:
-- Root strategy: [GOALS.md](GOALS.md)
-- Technical charter: [CATSCAN.md](CATSCAN.md)
+- Root strategy: [GOALS.md](../GOALS.md)
+- Technical charter: [CATSCAN.md](../CATSCAN.md)

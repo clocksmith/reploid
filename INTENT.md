@@ -25,6 +25,11 @@ subtly neumorphic styling.
   Selecting, closing or cancelling one cannot stop unrelated conversations.
   Requesting intelligence and contributing storage or execution are separate grants.
   The participant's device is part of the mesh, not a competing local product.
+- Browser and native hosts participate through the same contracts, qualified
+  separately. Prepared peer execution requires no requester weight downloads;
+  contribution preparation remains separate.
+- Model decisions and scores inform choices but cannot grant permission or
+  bypass independent evaluation and operator adoption.
 - Doppler owns model computation; Poolday owns peer infrastructure; Reploid owns
   orchestration and improvement.
 - Weight-shard storage, whole-request inference, computational partitions, and
@@ -60,7 +65,7 @@ network benefit nor recursive improvement.
 ## Truth
 
 These are targets. The [claim index](docs/status/surface-claim-index.json) bounds
-qualification; [detailed requirements](GOVERNANCE_DETAILS.md) preserve separate acceptance boundaries.
+qualification; [detailed requirements](docs/GOVERNANCE_DETAILS.md) preserve separate acceptance boundaries.
 
 Related: [GOALS.md](GOALS.md), [CATSCAN.md](CATSCAN.md).
 

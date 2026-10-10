@@ -3,7 +3,7 @@
  * REPLOID CLI - Unified testing, benchmarking, and debugging
  *
  * Usage:
- *   npx tsx bin/reploid-cli.ts <command> [options]
+ *   npx tsx scripts/reploid-cli.ts <command> [options]
  *
  * Commands:
  *   test [suite]     Run tests (unit, integration, e2e, full)
@@ -244,12 +244,12 @@ function runCommand(
 }
 
 export function buildTestCommands(opts: CLIOptions): string[][] {
-  const vitest = ['vitest', ...(!opts.watch ? ['run'] : [])];
+  const vitest = ['vitest', ...(!opts.watch ? ['run'] : []), '--config', 'tests/vitest.config.js'];
   if (opts.suite === 'unit' || opts.suite === 'integration') vitest.push(`tests/${opts.suite}`);
   if (opts.filter) vitest.push('-t', opts.filter);
   if (opts.coverage) vitest.push('--coverage');
   if (opts.verbose) vitest.push('--reporter=verbose');
-  const playwright = ['playwright', 'test', 'tests/e2e'];
+  const playwright = ['playwright', 'test', '--config', 'tests/playwright.config.js', 'tests/e2e'];
   if (opts.headed) playwright.push('--headed');
   if (opts.filter) playwright.push('--grep', opts.filter);
   if (opts.verbose) playwright.push('--reporter=list');
@@ -283,7 +283,7 @@ async function runBench(opts: CLIOptions): Promise<number> {
 
   log('Running performance benchmarks...', colors.cyan);
 
-  const args = ['vitest', 'bench'];
+  const args = ['vitest', 'bench', '--config', 'tests/vitest.config.js'];
   if (opts.filter) {
     args.push('-t', opts.filter);
   }
@@ -303,7 +303,7 @@ async function runDebug(opts: CLIOptions): Promise<number> {
   }
 
   // Use the E2E debug console
-  const args = ['playwright', 'test', 'tests/e2e/debug-console.js'];
+  const args = ['playwright', 'test', '--config', 'tests/playwright.config.js', 'tests/e2e/debug-console.js'];
 
   if (opts.headed) {
     args.push('--headed');

@@ -20,7 +20,7 @@ describe('Cloud Run build context', () => {
     const integrity = `sha512-${createHash('sha512').update(archive).digest('base64')}`;
     expect(integrity).toBe(pin.integrity);
 
-    const dockerfile = await readRootFile('Dockerfile');
+    const dockerfile = await readRootFile('deploy/Dockerfile');
     expect(dockerfile).toContain(`COPY ${archivePath} `);
     for (const ignorePath of ['.gcloudignore', '.dockerignore']) {
       const ignore = await readRootFile(ignorePath);
@@ -33,7 +33,7 @@ describe('Cloud Run build context', () => {
 
     expect(ignore).toContain('**');
     for (const requiredPath of [
-      '!Dockerfile',
+      '!deploy/Dockerfile',
       '!package.json',
       '!package-lock.json',
       '!server/**',
@@ -50,11 +50,11 @@ describe('Cloud Run build context', () => {
   });
 
   it('copies only the declared coordinator runtime scope into the image', async () => {
-    const dockerfile = await readRootFile('Dockerfile');
+    const dockerfile = await readRootFile('deploy/Dockerfile');
     const dockerIgnore = await readRootFile('.dockerignore');
 
     expect(dockerfile).not.toMatch(/^COPY\s+\.\s+\.$/m);
-    expect(dockerfile).toContain('COPY Dockerfile ./Dockerfile');
+    expect(dockerfile).toContain('COPY deploy/Dockerfile ./deploy/Dockerfile');
     expect(dockerfile).toContain('COPY package.json package-lock.json ./');
     expect(dockerfile).toContain('COPY server ./server');
     expect(dockerfile).toContain('COPY self ./self');

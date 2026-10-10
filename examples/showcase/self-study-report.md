@@ -1,6 +1,6 @@
 # REPLOID Agent Loop Analysis
 
-**Curated run summary (not replayable):** [reploid-gemini3-run.json](https://github.com/clocksmith/reploid/blob/main/showcase/runs/reploid-gemini3-run.json)
+**Curated run summary (not replayable):** [reploid-gemini3-run.json](https://github.com/clocksmith/reploid/blob/main/examples/showcase/runs/reploid-gemini3-run.json)
 
 ## Overview
 The REPLOID agent operates on a recursive "Think-Act-Observe" cycle, implemented primarily in `/core/agent-loop.js`. It features advanced capabilities like multi-model consensus, self-reflection, and robust error handling.

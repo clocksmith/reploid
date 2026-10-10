@@ -1695,7 +1695,7 @@ app.get('/design', (req, res) => {
 
 app.get('/SECURITY_AUDIT.md', (req, res) => {
   res.type('text/markdown; charset=utf-8');
-  res.sendFile(path.join(__dirname, '..', 'SECURITY_AUDIT.md'));
+  res.sendFile(path.join(__dirname, '..', 'docs', 'SECURITY_AUDIT.md'));
 });
 
 app.get(['/audit', '/audit/'], (req, res) => {

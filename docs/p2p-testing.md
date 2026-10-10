@@ -60,7 +60,7 @@ executors. `npm ci` replaces dependencies in this checkout:
 
 ```bash
 npm ci
-npx vitest run tests/unit/partition-data-channel.test.js
+npx vitest run --config tests/vitest.config.js tests/unit/partition-data-channel.test.js
 node scripts/run-mesh-contributor.js --help
 ```
 
@@ -93,7 +93,7 @@ For the automated hosted journey, run from its Reploid checkout:
 ```bash
 REPLOID_PUBLIC_URL='https://reploid.example.invalid/' \
 REPLOID_E2E_SKIP_LOCAL_SERVER=1 REPLOID_E2E_CHROMIUM_CHANNEL=chrome \
-  npx playwright test tests/e2e/chat-public-mesh.spec.js --project=chromium
+  npx playwright test --config tests/playwright.config.js tests/e2e/chat-public-mesh.spec.js --project=chromium
 ```
 
 Inspect `test-results/e2e-results.json`. Check complete answers, retained-weight

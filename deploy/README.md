@@ -62,7 +62,7 @@ Cloud Build tags and deploys the coordinator image with the full commit SHA,
 then exposes that SHA and image identity through `/pool/deployment/check`.
 Triggered builds receive `COMMIT_SHA` from Cloud Build; manual submissions must
 provide it as shown above. The backend computes a deterministic SHA-256 identity
-over `server/`, `self/`, `Dockerfile`, `package.json`, and `package-lock.json`.
+over `server/`, `self/`, `deploy/Dockerfile`, `package.json`, and `package-lock.json`.
 Firebase Hosting must be deployed from the same clean checkout. A mutable
 `latest` image, missing commit, mismatched coordinator bytes, or mismatched
 static browser bytes fails release verification.

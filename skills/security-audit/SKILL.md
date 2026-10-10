@@ -5,7 +5,7 @@ description: Inspect sanitized metadata for likely secret exposure when an opera
 
 # Security Audit Skill
 
-Follow the policy in `../../SECURITY_AUDIT.md`.
+Follow the policy in `../../docs/SECURITY_AUDIT.md`.
 
 ## Prerequisites
 

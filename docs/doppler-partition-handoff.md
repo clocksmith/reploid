@@ -1,6 +1,37 @@
 # Doppler resident partition handoff
 
-## Current development docket
+## Current checkout and evidence
+
+Inspected on 2026-10-10 UTC. Re-read the linked machine-owned pin before acting;
+these observations are a checkpoint, not a new release or qualification.
+
+| Identity | Observed state | Source |
+| --- | --- | --- |
+| Checkout dependency | Standard `doppler-gpu` 0.6.23; installed package also reports 0.6.23 | [Package pin](../self/config/doppler-package.json), [lockfile](../package-lock.json) |
+| Candidate under investigation | The checkout dependency is the working candidate; no retained record here closes its full numerical/application gates. The older 0.6.21 candidate remains a dated result. | [Recovery qualification record](../artifacts/recovery-20261009/README.md) |
+| Last accepted full distributed configuration | None established by the cited qualification record. Its 0.6.19 Linux restart control passes, but both-direction frozen comparisons fail the unchanged 0.001 gate. | Same recovery record and its original receipts |
+| Last verified public delivery | `replo.id` returned Doppler 0.6.11 and bundle `sha256:6f03c7424faf3fa2ba74efe6ebdef729a342abe211767f29966bac7575006d07` over HTTP 200 | [Served package pin](https://replo.id/config/doppler-package.json), [served bundle manifest](https://replo.id/config/browser-bundle-manifest.json) |
+
+The public package-pin bytes hashed to
+`3971246c07fb128f26ee76fcb3efac481ca896d6fd3aa3d4e1007a11904b8b20`;
+the served bundle-manifest bytes hashed to
+`bac732dd2b4d0d6681ce812697cc989ab1360aa01ef8320b6f2f51d429189e21`.
+This verifies served identities, not successful fresh-client execution. It does
+not establish the public source commit or qualify the checkout for deployment.
+
+Partition execution, selective piece loading and two-physical-computer runs are
+implemented. Numerical qualification and repeatable ordinary-application
+acceptance remain open. The [conversation contract](chat-mvp.md) distinguishes
+these categories. Preserve generation, scoring, memory repairs, model bytes,
+precision and the frozen reference; keep the 0.001 gate unchanged.
+
+The material below records earlier instructions and failures with their original
+package/source identities. Its split.13 preservation and 0.6.4 investigation
+instructions are historical, not the current dependency policy. Use one ordinary
+Doppler package through public APIs; historical archives serve regression and
+rollback only. A dependency version is not a separate runtime development track.
+
+## Dated split.13 development checkpoint
 
 This records the user's selected Reploid/Doppler work and takeover constraints.
 It does not replace either repository's goals, component ownership, or acceptance

@@ -4,47 +4,13 @@
 
 These views trace the ordinary distributed conversation through the implementation
 at `1c8860f4`. They describe ownership and message flow, not a qualification result.
+The README contains the diagrams; their source owners and contracts remain here.
 The dated design and its original gap ledger remain below. Solid arrows in the
 component view are calls or data flow; dotted arrows supply observations.
 
 ### Component ownership
 
-```mermaid
-flowchart TB
-    UI["Conversation UI<br/>messages, drafts, disclosure, Stop"]
-    HOST["Product session<br/>application lifetime and host ports"]
-    CHAT["Chat workspace<br/>threads, attempts, grants, persistence"]
-    EXEC["Chat execution adapter<br/>local, whole-request, or partition path"]
-    AUTO["Automatic partitions<br/>contribution and prepared execution paths"]
-    DISC["Partition discovery<br/>expiring capability snapshots"]
-    PLACE["Placement<br/>compatible participants and plan"]
-    INPUT["Partition entry and chat<br/>input admission and scoped grants"]
-    RUN["Partition runner<br/>ordered steps and cancellation"]
-    RES["Resident owner<br/>reservations and attempt settlement"]
-    FILES["Model-file host + custody<br/>offers, grants, bounded transfers"]
-    DOP["Doppler public package<br/>verified pieces, dependencies, model math"]
-    NET["Poolday transport<br/>signaling, WebRTC, bounded delivery"]
-    UI --> HOST --> CHAT --> EXEC
-    EXEC -->|partition path| AUTO
-    DISC -.->|availability| AUTO
-    AUTO --> PLACE
-    PLACE -->|selected path| INPUT
-    INPUT --> RUN --> RES --> DOP
-    AUTO -->|approved contribution| RES
-    RES -->|host preparation port| FILES
-    FILES -->|verified storage port| DOP
-    DISC --> NET
-    FILES --> NET
-    RUN -->|activation frames and step replies| NET
-    classDef app fill:#ffffff,stroke:#111827,color:#111827
-    classDef mesh fill:#f3edff,stroke:#7c3aed,color:#111827
-    classDef data fill:#edf3ff,stroke:#2563eb,color:#111827
-    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
-    class UI,HOST,CHAT,EXEC app
-    class AUTO,DISC,PLACE,INPUT,RUN,RES mesh
-    class FILES,NET data
-    class DOP compute
-```
+[View this diagram in the README.](../README.md#component-ownership)
 
 The host passes `swarm.partitions` into `createChatSession`; it does not import
 model mathematics into the chat library. Discovery reports candidates. Placement
@@ -66,36 +32,7 @@ This is the implemented two-partition path. Reploid on contributor A coordinates
 steps; Doppler on B owns sampling, text decoding, and stopping. A whole-request
 peer invocation is a different path through the same chat execution adapter.
 
-```mermaid
-sequenceDiagram
-    participant U as Requester / chat
-    participant A as Contributor A / first layers
-    participant B as Contributor B / remaining layers
-    participant S as Authorized piece suppliers
-    Note over A,S: Preparation requires explicit contribution permission
-    A->>S: Acquire assigned dependencies and declared shared pieces
-    S-->>A: Piece bytes, verified against pinned identities
-    A->>A: Doppler opens resident partition A
-    B->>S: Acquire partition B dependencies
-    S-->>B: Piece bytes, verified against pinned identities
-    B->>B: Doppler opens resident partition B
-    A-->>U: Advertise prepared path A + B
-    U->>U: Approve messages and recipient disclosure scope
-    U->>A: Bound request: thread, attempt, model, plan, participants
-    A->>A: Tokenize with Doppler, admit attempt and issue grants
-    A->>B: Open remote attempt with authorized token context
-    loop Prompt prefill, then one selected token per decode step
-        A->>A: Check grants and bounds, execute first layers
-        A->>B: Activation frame + token context + step identity
-        B->>B: Validate, execute remaining layers, sample and decode
-        B-->>A: Selected token, text delta, continuation, stop reason
-        A-->>U: Ordered text delta for this attempt
-        Note over A,B: Each executor retains its own attention/recurrent state
-    end
-    A->>B: Close this attempt and await settlement
-    A->>A: Close local attempt, retain reusable weights
-    A-->>U: Completion or explicit failure
-```
+[View this diagram in the README.](../README.md#preparation-and-the-generation-loop)
 
 The requester receives no weights on this path. Token context as well as
 activations can leave A; intermediate tensors are not a privacy guarantee.
@@ -111,35 +48,10 @@ Sequence owners: [partition-chat.js](../packages/reploid/src/mesh/partitions/par
 
 ### Attempt failure and recovery
 
-Selected transitions from the chat workspace are shown below. A retry constructs
-a new attempt; it does not revive an old executor's missing generation state.
+The linked diagram shows selected transitions from the chat workspace. A retry
+constructs a new attempt; it does not revive missing generation state.
 
-```mermaid
-stateDiagram-v2
-    [*] --> Queued
-    Queued --> Approval: disclosure needed
-    Approval --> Queued: approved
-    Approval --> Failed: declined or expired
-    Queued --> Loading: preparation
-    Queued --> Executing: prepared path
-    Loading --> Executing
-    Loading --> Failed: preparation error
-    Executing --> Completed: valid complete response
-    Executing --> Failed: participant loss or execution error
-    Approval --> Cancelling: Stop
-    Queued --> Cancelling: Stop
-    Loading --> Cancelling: Stop
-    Executing --> Cancelling: Stop
-    Cancelling --> Cancelled: execution promise settles
-    Failed --> [*]
-    Cancelled --> [*]
-    Completed --> [*]
-    note right of Failed
-        Keep partial answer and error.
-        Explicit Retry creates a new attempt ID.
-        Other conversations remain independent.
-    end note
-```
+[View this diagram in the README.](../README.md#attempt-failure-and-recovery)
 
 Reload marks unfinished saved attempts interrupted; the user can explicitly retry.
 UI navigation detaches a view rather than closing the application session.

@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 
 import { describe, expect, it } from 'vitest';
 
-const rulesPath = resolve(process.cwd(), 'firestore.rules');
+const rulesPath = resolve(process.cwd(), 'deploy/firestore.rules');
 
 describe('hosted Firestore boundary', () => {
   it('denies all direct client reads and writes', async () => {

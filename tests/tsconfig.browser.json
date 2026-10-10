@@ -3,7 +3,11 @@
     "target": "ES2022",
     "module": "ES2022",
     "moduleResolution": "bundler",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": [
+      "ES2022",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "strict": true,
     "strictNullChecks": true,
     "strictFunctionTypes": true,
@@ -27,12 +31,12 @@
     "isolatedModules": true
   },
   "include": [
-    "self/**/*.js"
+    "../self/**/*.js"
   ],
   "exclude": [
-    "node_modules",
-    "tests",
-    "scripts",
-    "vendor"
+    "../node_modules",
+    "../tests",
+    "../scripts",
+    "../vendor"
   ]
 }
