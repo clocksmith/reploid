@@ -1,53 +1,15 @@
 import type { PartitionRequestTiming } from '../../transport/partition-data-channel.js';
 
-export interface PartitionPlan {
-  schema: string;
-  modelId: string;
-  totalLayers: number;
-  hiddenSize: number;
-  vocabSize: number;
-  splitLayer: number;
-  activationDtype: 'f16' | 'f32';
-  partitions: readonly unknown[];
-}
-export interface AttemptIdentity {
-  requesterId?: string;
-  placementGeneration?: number;
-  modelIdentity: string;
-  planId: string;
-  threadId: string;
-  attemptId: string;
-}
-export interface PartitionBinding extends AttemptIdentity {
-  modelId: string;
-  participantA: string;
-  participantB: string;
-}
-export interface PartitionStep {
-  step: number;
-  tokenPosition: number;
-  inputTokenCount: number;
-  /** Effective request limit, unchanged for every stage; Doppler owns length-stop finalization. */
-  maxTokens: number;
-  generationDigest: string;
-}
-export interface ActivationTensor {
-  shape: number[];
-  dtype: 'f16' | 'f32';
-  data: ArrayBuffer | ArrayBufferView;
-  seqOffset: number;
-  step: number;
-}
-export interface ActivationFrame {
-  schema: string;
-  shape: readonly number[];
-  dtype: 'f16' | 'f32';
-  seqOffset: number;
-  step: number;
-  byteLength: number;
-  metadata: Record<string, unknown>;
-  buffer: ArrayBuffer;
-}
+import type { LayerPartitionPlan, ResidentPartitionIdentity, ResidentPartitionStep,
+  ResidentPartitionLimits, ResidentPartitionARequest, ResidentPartitionAResult,
+  ResidentPartitionBRequest, ResidentPartitionBResult, ActivationFrame as DopplerActivationFrame } from 'doppler-gpu/partitions';
+export type PartitionPlan = LayerPartitionPlan;
+export type AttemptIdentity = Omit<ResidentPartitionIdentity, 'modelId' | 'participantA' | 'participantB'>;
+export type PartitionBinding = ResidentPartitionIdentity;
+export type PartitionStep = Pick<ResidentPartitionStep, 'step' | 'tokenPosition' | 'inputTokenCount' | 'maxTokens'>
+  & { generationDigest: string };
+export type ActivationTensor = ResidentPartitionAResult['activationTensor'];
+export type ActivationFrame = DopplerActivationFrame;
 export interface PartitionRuntime {
   LAYER_PARTITION_SCHEMA: string;
   ACTIVATION_TENSOR_SCHEMA: string;
@@ -61,50 +23,24 @@ export interface PartitionGrants {
   tokenContext: object;
   output: object;
 }
-export interface PartitionLimits {
-  maxTokens: number;
-  maxPromptTokens: number;
-  maxActivationBytes: number;
-  maxOutputCharacters: number;
-  maxAttempts: number;
-  maxConcurrentAttempts: number;
-}
-export interface PartitionStepOptions extends PartitionStep {
-  identity: Readonly<PartitionBinding>;
-  /** Structured-cloneable session handle; KV/GPU resources stay at their device. */
-  continuation: unknown;
-  executionGrant: object;
-  generation: Record<string, unknown> & { maxTokens: number };
-  signal: AbortSignal;
-}
+export type PartitionLimits = ResidentPartitionLimits;
+export type PartitionStepOptions = ResidentPartitionStep & { executionGrant: object; generationDigest: string };
 export interface PartitionDevice {
   id: string;
   /** Settles only the named attempt; does not release shared resident weights. */
   closeAttempt(options: { identity: Readonly<PartitionBinding> }): Promise<void>;
 }
 export interface PartitionDeviceA extends PartitionDevice {
-  executeGroup0(options: PartitionStepOptions & { tokenIds: number[] }): Promise<{
-    activationTensor: ActivationTensor;
-    continuation: unknown;
-  }>;
+  executeGroup0(options: ResidentPartitionARequest & { executionGrant: object; generationDigest: string }): Promise<ResidentPartitionAResult>;
 }
 export interface PartitionDeviceB extends PartitionDevice {
-  executeGroup1(options: PartitionStepOptions & { activation: unknown; inputTokenIds: number[]; outputGrant: object }): Promise<{
-    identity: PartitionBinding;
-    step: number;
-    tokenPosition: number;
-    tokenId: number;
-    done: boolean;
-    delta: string;
-    stopReason?: string;
-    continuation: unknown;
-    logits?: Float32Array | number[] | null;
-    transportTiming?: PartitionRequestTiming | null;
-  }>;
+  executeGroup1(options: ResidentPartitionBRequest & { executionGrant: object; outputGrant: object; generationDigest: string }):
+    Promise<Omit<ResidentPartitionBResult, 'logits' | 'metrics'> & Partial<Pick<ResidentPartitionBResult, 'logits' | 'metrics'>>
+      & { transportTiming?: PartitionRequestTiming | null }>;
 }
 export interface PartitionRequest {
   tokenIds: number[];
-  generation: Record<string, unknown> & { maxTokens: number };
+  generation: ResidentPartitionStep['generation'];
   identity: AttemptIdentity;
   grants: PartitionGrants;
   maxTokens: number;

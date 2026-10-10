@@ -2,6 +2,7 @@
 import { createResidentPartition } from '../vendor/reploid/mesh/index.js';
 import { DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_KERNEL_BASE_URL } from '../config/doppler-local-models.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
+import { resolveGenerationOptions } from '../config/doppler-generation-contract.js';
 import policy from '../config/partition-policy.json' with { type: 'json' };
 
 export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress }) {
@@ -16,7 +17,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
     splitLayer: selected.partitionSplitLayer,
     activationDtype: manifest.inference.session.compute.defaults.activationDtype });
   const planId = runtime.hashLayerPartitionPlan(plan);
-  const model = { ...selected, generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen } };
+  const model = { ...selected, generation: resolveGenerationOptions({ ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen }) };
   const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
     runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
       inference: { session: { kvcache: { maxSeqLen: policy.maxSeqLen },

@@ -1,13 +1,16 @@
 /** Real local model loading for the existing two-tab partition coordinator.
  * This diagnostic uses installed Doppler internals, not signed Capsule opening.
  */
-import * as runtime from '/vendor/doppler/0.6.3-dev.split.1/src/partitions.js';
-import { createPipeline } from '/vendor/doppler/0.6.3-dev.split.1/src/inference/pipelines/text.js';
-import { createHttpArtifactStorageContext } from '/vendor/doppler/0.6.3-dev.split.1/src/storage/artifact-storage-context.js';
-import { createModelHandle } from '/vendor/doppler/0.6.3-dev.split.1/src/client/model-host/model-session.js';
-import { createCapsuleProgramAdapter } from '/vendor/doppler/0.6.3-dev.split.1/src/client/runtime/capsule-program-adapter.js';
-import { createResidentPartitionSession } from '/vendor/doppler/0.6.3-dev.split.1/src/inference/pipelines/text/resident-partition.js';
-import { resolveResidentPartitionAllocation } from '/vendor/doppler/0.6.3-dev.split.1/src/inference/pipelines/text/resident-partition-contract.js';
+import { DOPPLER_PARTITIONS_MODULE_URL } from '/config/doppler-local-models.js';
+import { resolveGenerationOptions } from '/config/doppler-generation-contract.js';
+const base = new URL('.', new URL(DOPPLER_PARTITIONS_MODULE_URL, location.href));
+const installed = relative => import(new URL(relative, base).href);
+const [runtime, { createPipeline }, { createHttpArtifactStorageContext }, { createModelHandle },
+  { createCapsuleProgramAdapter }, { createResidentPartitionSession }, { resolveResidentPartitionAllocation }] = await Promise.all([
+  import(DOPPLER_PARTITIONS_MODULE_URL), installed('inference/pipelines/text.js'),
+  installed('storage/artifact-storage-context.js'), installed('client/model-host/model-session.js'),
+  installed('client/runtime/capsule-program-adapter.js'), installed('inference/pipelines/text/resident-partition.js'),
+  installed('inference/pipelines/text/resident-partition-contract.js')]);
 import { start } from '/partition-browser-fixture.js';
 
 export async function startReal(index) {
@@ -20,9 +23,9 @@ export async function startReal(index) {
   const modelIdentity = 'sha256:' + digest;
   const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
     activationDtype: manifest.inference.session.compute.defaults.activationDtype });
-  const generation = { maxTokens: 3, maxSeqLen: 128, temperature: 0, topK: 0, topP: 1,
+  const generation = resolveGenerationOptions({ maxTokens: 3, maxSeqLen: 128, temperature: 0, topK: 0, topP: 1,
     repetitionPenalty: 1.1, repetitionPenaltyWindow: 0, presencePenalty: 0.1,
-    useChatTemplate: false };
+    useChatTemplate: false });
   const policy = { maxTokens: 3, maxPromptTokens: 64, maxActivationBytes: 1024 * 1024,
     maxOutputCharacters: 1024, maxAttempts: 16, maxConcurrentAttempts: 2 };
   const channelLimits = { maxFrameBytes: 16 * 1024, maxControlBytes: 8192,

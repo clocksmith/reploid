@@ -74,6 +74,34 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     expect(f.chat.getModels()[0].availability).toBe('ready');
   });
 
+  it.each(['schema', 'ready', 'modelId', 'modelIdentity', 'planId', 'index', 'layerRange', 'generationDigest'])
+    ('rejects a mismatched resident %s before readiness', async key => {
+      const f = await fixture();
+      const open = f.factory.openResidentPartition;
+      f.factory.openResidentPartition = async allocation => {
+        const session = await open(allocation), descriptor = session.getDescriptor();
+        const value = key === 'ready' ? false : key === 'index' ? 1 : key === 'layerRange' ? [1, 2] : 'wrong';
+        return { ...session, getDescriptor: () => ({ ...descriptor, [key]: value }) };
+      };
+      await expect(f.local.prepare({ approved: true })).rejects.toThrow('identity or readiness');
+      expect(f.local.getState().ready).toBe(false);
+      expect(f.factory.log.closes).toEqual([0]);
+      expect(f.factory.log.steps).toEqual([]);
+    });
+
+  it('declares live continuation unsupported after the session is closed', async () => {
+    const f = await fixture();
+    await f.local.prepare({ approved: true });
+    const expected = { schema: 'doppler.resident-recovery/v1', inputReplay: false,
+      checkpointExport: false, checkpointImport: false };
+    expect(f.local.getState().recovery).toEqual(expected);
+    f.local.getState().recovery.inputReplay = true;
+    await f.local.close();
+    expect(f.local.getState().recovery).toEqual(expected);
+    expect(f.local.getState().ready).toBe(false);
+    expect(() => f.local.executeGroup0({ identity: f.binding })).toThrow('not ready');
+  });
+
   it('verifies signatures, exact attempt/recipient/plan binding, expiry, revocation and cleanup authority', async () => {
     const f = await fixture();
     Object.assign(f.binding, { requesterId: 'requester', placementGeneration: 1 });

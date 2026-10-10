@@ -14,7 +14,8 @@
     "checkJs": true,
     "skipLibCheck": false,
     "types": [
-      "node"
+      "node",
+      "@webgpu/types"
     ]
   },
   "include": [

@@ -1,6 +1,32 @@
 # Doppler resident partition handoff
 
-## Current checkout and evidence
+## Current contract integration: 0.6.27
+
+The checkout uses the exact standard 0.6.27 archive retained by Doppler. The
+[contract receipt](../artifacts/partition-contracts-20261010/README.md) records
+installed public declarations, signed opening and rejection, receiver identity,
+and authenticated browser conversation tests. This is an integration candidate;
+physical numerical acceptance and public deployment are separate gates.
+
+Doppler's public `doppler-gpu/partitions` exports own resident computation types.
+Reploid derives them and retains its grant, routing and transport extensions.
+Hosts pass generation settings resolved by the installed public generation API.
+Admission checks the descriptor's generation digest, model, plan, partition index,
+layer range, readiness and required methods before advertising a ready resident.
+
+`getRecoveryCapabilities()` reports `doppler.resident-recovery/v1` with
+`inputReplay`, `checkpointExport` and `checkpointImport` all false. A live
+continuation cannot recover a lost process or device. Restart creates a new
+attempt and leaves previous partial output attributed to the old attempt.
+Artifact acquisition resume and durable job-outcome replay keep their existing
+owners; neither restores model execution state. Replayed output still requires
+current authorization. A disconnected transport does not confirm GPU cleanup.
+
+The receiver uses the shared validated identity, including paired requester and
+placement fields, for steps, duplicate results and cancellation tombstones.
+Changing placement requires a new attempt. Portable checkpoints remain deferred.
+
+## Earlier checkout and evidence checkpoint
 
 Inspected on 2026-10-10 UTC. Re-read the linked machine-owned pin before acting;
 these observations are a checkpoint, not a new release or qualification.

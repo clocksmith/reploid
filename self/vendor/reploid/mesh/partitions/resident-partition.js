@@ -13,10 +13,10 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
   const reservations = createPartitionReservations({ limits, participantId, index });
   let draining = null, finishDrain = null;
   let phase = 'idle', error = null, session = null, preparing = null, closing = null, disposal = null, descriptor = null;
-  let tail = Promise.resolve();
+  let tail = Promise.resolve(), generationDigest = null, recovery = null;
   const state = () => ({ phase, ready: phase === 'ready' && !lifetime.signal.aborted,
     activeAttempts: attempts.size, reservations: reservations.getState(),
-    error, descriptor: structuredClone(descriptor), index, participantId,
+    error, descriptor: structuredClone(descriptor), recovery: structuredClone(recovery), index, participantId,
     modelId: allocation.model.id, modelIdentity: allocation.model.identity, planId });
   const notify = () => { for (const listener of listeners) { try { listener(state()); } catch {} } };
   const dispose = () => disposal ||= Promise.resolve().then(() => session?.close()).then(() => {
@@ -26,6 +26,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     const actual = session?.getDescriptor();
     assert(actual?.schema === 'doppler.resident-partition/v1' && actual.ready === true
       && actual.modelId === allocation.model.id && actual.modelIdentity === allocation.model.identity
+      && actual.generationDigest === generationDigest
       && actual.planId === allocation.planId && actual.index === allocation.index
       && canonicalPartitionJson(actual.layerRange) === canonicalPartitionJson(allocation.plan.partitions[index].layerRange)
       && Number.isSafeInteger(actual.residentWeightBytes) && actual.residentWeightBytes > 0,
@@ -85,10 +86,19 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       preparing = (async () => {
         try {
           combined.throwIfAborted();
+          const bytes = new TextEncoder().encode(canonicalPartitionJson(allocation.model.generation));
+          generationDigest = 'sha256:' + [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
+            .map(byte => byte.toString(16).padStart(2, '0')).join('');
+          combined.throwIfAborted();
           session = await runtime.openResidentPartition({ ...structuredClone(allocation), signal: combined });
-          assert(typeof session?.close === 'function' && typeof session.closeAttempt === 'function'
-            && typeof session[index === 0 ? 'executeGroup0' : 'executeGroup1'] === 'function'
-            && (index !== 0 || typeof session.tokenize === 'function'), 'Incomplete Doppler resident partition API');
+          assert(['getDescriptor', 'getRecoveryCapabilities', 'tokenize', 'executeGroup0', 'executeGroup1',
+            'closeAttempt', 'close'].every(method => typeof session?.[method] === 'function'),
+          'Incomplete Doppler resident partition API');
+          const capabilities = session.getRecoveryCapabilities();
+          assert(capabilities?.schema === 'doppler.resident-recovery/v1'
+            && ['inputReplay', 'checkpointExport', 'checkpointImport'].every(key => capabilities[key] === false),
+          'Unsupported Doppler resident recovery contract');
+          recovery = structuredClone(capabilities);
           combined.throwIfAborted(); descriptor = check(); phase = 'ready'; notify(); return state();
         } catch (cause) {
           phase = 'failed'; error = String(cause.message || cause);
