@@ -796,13 +796,53 @@
     },
     {
       "path": "transport/index.d.ts",
-      "bytes": 344,
-      "sha256": "079f92fbe15d6cdf6b21dea96310a5f55367ae4ff7dfdb93157049b88c35545e"
+      "bytes": 470,
+      "sha256": "7219c182a4341e079771cb11bf53e1a0939474f1e9dfbb19196782a80924e193"
     },
     {
       "path": "transport/index.js",
-      "bytes": 557,
-      "sha256": "311bff5a3bd50a5f9d038887c417626c0716b941b1b211f8e65e4fc8ecc4d7f2"
+      "bytes": 683,
+      "sha256": "312dad76a219fba0b74f5eb028eba6860ce70d9ad34353002f9eb16f6bf6eb89"
+    },
+    {
+      "path": "transport/introduction-admission.d.ts",
+      "bytes": 323,
+      "sha256": "fc1812c5781f792df8632d2eafd6bd10700db1794675764656c364e1138f1758"
+    },
+    {
+      "path": "transport/introduction-admission.js",
+      "bytes": 1402,
+      "sha256": "59393a285926bdb0f968fc5d8c639ac422d7703f7e8112041f205f78259672c1"
+    },
+    {
+      "path": "transport/introduction-bootstrap.d.ts",
+      "bytes": 1305,
+      "sha256": "d7fd7081f2452dfbb67a6df716d0a3ee6c3f5ed2405cc76d6f5acad4a6cc3d7f"
+    },
+    {
+      "path": "transport/introduction-bootstrap.js",
+      "bytes": 7793,
+      "sha256": "2dbd3f813e6eaab4d2e843dd39fc28f9657a5bcd73c28364eb95e0f6376c5bb5"
+    },
+    {
+      "path": "transport/introduction-policy.json",
+      "bytes": 274,
+      "sha256": "f6d9da9b942fb7c5ed9fede2c36066f213f7637f9cb90bc3952880671bb8144b"
+    },
+    {
+      "path": "transport/introduction-records.js",
+      "bytes": 6319,
+      "sha256": "be0c4a3a4d3447ba9a2d7a4fa6b0b09bd142da2aa4c3ed33f03fe78215a27e25"
+    },
+    {
+      "path": "transport/introductions.d.ts",
+      "bytes": 3118,
+      "sha256": "31ad3c554fc44717c5fb0e4abf613f56587ac756ed43657b706cfa4d711d6523"
+    },
+    {
+      "path": "transport/introductions.js",
+      "bytes": 12115,
+      "sha256": "d95f1aefc90b733d8c81252c042d47e42c3d162be884900cae6f2490a5ac86ef"
     },
     {
       "path": "transport/partition-data-channel.d.ts",
@@ -836,8 +876,8 @@
     },
     {
       "path": "transport/room.js",
-      "bytes": 15774,
-      "sha256": "1359c9099b69fe511747ba3e8880c01e5fe565c3c201497265f3b4b98d227f48"
+      "bytes": 15848,
+      "sha256": "ae23d6665b2de8f74afa5dce3f6fec3f560cedb0c0a2fb135b48b329e8e62ef6"
     },
     {
       "path": "transport/signaling.d.ts",
@@ -851,13 +891,13 @@
     },
     {
       "path": "transport/swarm.d.ts",
-      "bytes": 1669,
-      "sha256": "9f7c0185176eadd01574c694377568f8f551ae3ce66e33ea3baa7f367ffff5bd"
+      "bytes": 2222,
+      "sha256": "a92a20eaae22f66049c6af9fe1a0b35e89aa5e349b5f81ef829fdb9f159b00d5"
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 37029,
-      "sha256": "2fb3ffa96da785b523c3749dabf5d51e5b4d93c611e709ff29dd3bbd9a3a7e78"
+      "bytes": 45465,
+      "sha256": "859b232423212040129eb2a236656c0b740865459ef25eb4ee1de8aa90bf39fc"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

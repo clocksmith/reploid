@@ -7,7 +7,10 @@ export const renderConnectionControl = () => `<div class="network-sharing-row">
   <button class="network-switch" type="button" role="switch" aria-label="Connect to network" aria-checked="false" data-mesh-connect><span></span></button>
 </div>`;
 
-export const renderSharingControls = () => `<p class="network-sharing-summary" data-tab-sharing-summary role="status">No models shared by this tab</p>
+export const renderSharingControls = () => `<div class="network-sharing-row">
+          <div><strong>Help peers connect</strong><p>Forward connection invitations. This does not share conversations, model files, or compute.</p></div>
+          <button class="network-switch" type="button" role="switch" aria-label="Help peers connect" aria-checked="false" data-toggle-introductions><span></span></button>
+        </div><p class="network-sharing-summary" data-tab-sharing-summary role="status">No models shared by this tab</p>
         <label>Model to share <select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
         <div class="network-sharing-row">
           <div><strong>Help answer requests <span data-contrib-label>Not sharing</span></strong>
@@ -67,17 +70,19 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
     const contributionKey = contributionSelect.value || keyFor(prepared || catalogModels.find(model => !model.partition));
     updateModelSelect(contributionSelect, catalogModels.filter(model => !model.partition), { value: contributionKey });
     const network = state.network || {}, peers = projectNetworkPeers(state);
+    find('[data-toggle-introductions]')?.setAttribute('aria-checked', String(!!network.introductionAssistance));
     find('[data-mesh-invite]').hidden = network.discoveryScope !== 'private';
     contributionSelect.disabled = !!network.sharing || !!network.stopping || !!network.files?.sharing || !!network.files?.preparing;
     find('[data-mesh-peers]').textContent = peers.length + (peers.length === 1 ? ' peer' : ' peers');
     renderPeerRows(find('[data-insp-device-list]'), state);
     const discoveryState = network.consumer?.connectionState;
-    const activeDiscovery = network.connecting || ['connected', 'connecting', 'retrying'].includes(discoveryState);
+    const activeDiscovery = network.connecting || ['connected', 'connecting', 'retrying', 'awaiting-introduction'].includes(discoveryState);
     const connectControl = find('[data-mesh-connect]');
     connectControl.disabled = false;
     connectControl.dataset.disconnect = String(!!activeDiscovery);
     connectControl.setAttribute('aria-checked', String(!!activeDiscovery));
     find('[data-connection-label]').textContent = network.connecting || discoveryState === 'connecting' ? 'Connecting…'
+      : discoveryState === 'awaiting-introduction' ? 'Needs an invitation'
       : discoveryState === 'retrying' ? 'Reconnecting…' : activeDiscovery ? 'Connected' : 'Disconnected';
     const message = find('[data-network-message]');
     message.textContent = network.error || actionError || (network.connecting ? 'Connecting…' : ''); message.hidden = !message.textContent;
@@ -119,6 +124,8 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
     await navigator.clipboard.writeText(getInviteUrl());
     const node = find('[data-network-message]'); node.textContent = 'Invite copied'; node.hidden = false;
   }));
+  on('[data-toggle-introductions]', 'click', () => act(() =>
+    session.setIntroductionAssistance(!session.getState().network?.introductionAssistance)));
   on('[data-toggle-contribution]', 'click', () => act(async () => {
     const network = session.getState().network, enable = !network?.sharing;
     if (enable && network?.paused) await session.connect();

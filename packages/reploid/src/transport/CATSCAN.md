@@ -3,7 +3,7 @@
 Parent: [Reploid Browser Library](../../CATSCAN.md)
 
 ## Target
-Provide Poolday's WebRTC connections and authorized peer exchange.
+Provide authorized WebRTC exchange.
 
 ## Authority
 Owns bounded setup/delivery/recovery, not models/UI/evaluation/adoption. Legacy swarm and complete-job protocols remain distinct.
@@ -12,13 +12,14 @@ Owns bounded setup/delivery/recovery, not models/UI/evaluation/adoption. Legacy 
 Subtree.
 
 ## Contracts
-Inputs: immutable policy and host ports. `getRtcConfig` supplies authorized ICE
-configuration; transport never issues/persists credentials.
-Outputs: bounded operations and evidence.
-Partition channels transfer binary requests and bounded JSON replies through
-required host authorization. Receipt/cancellation does not establish GPU settlement.
+Inputs: immutable policy/ports; `getRtcConfig` supplies ICE. Never issue/persist credentials.
+Outputs: bounded delivery evidence.
+Partitions use authorized binary requests/bounded JSON replies; receipt/cancellation proves no GPU settlement.
 
 ## Invariants
+- Introduction availability is separate from established direct channel liveness.
+- Introductions authenticate contacts, encrypt negotiation and bound separately authorized forwarding.
+- Replaceable bootstrap ports grant no admission/compute/disclosure. Qualify WebRTC Direct separately.
 - Imports are inert and application independent.
 - Candidates cannot expand permissions or approve their own output.
 - Cancellation does not claim termination of borrowed work.
@@ -28,7 +29,7 @@ required host authorization. Receipt/cancellation does not establish GPU settlem
 - Reconnection honors trusted host retry deadlines; disconnect cancels that wait.
 - Custody and partitions use reliable ordered auxiliary channels, granting no permissions.
   Reject unknown labels and channels arriving after disconnect.
-- Storage shards, complete requests, partition tensors/continuation state and agent subtask messages retain distinct payload contracts. Transfers do not authorize execution or prove partition compatibility.
+- Shards, jobs, tensors/continuations and subtasks retain distinct contracts. Transfers authorize no execution/compatibility.
 - Candidate transfers bind endpoints, room, contract, bytes and expiry. Retried delivery is bounded at-least-once; acknowledgements establish retained preview only.
 
 ## Acceptance
@@ -40,6 +41,6 @@ Account for bytes, retries, cancellation and peer loss.
 Catalogs, credentials, UI, scientific truth or deployment claims.
 
 ## Freedom
-Preserve boundaries and acceptance.
+Preserve contracts.
 
 *Last updated: September 2026*

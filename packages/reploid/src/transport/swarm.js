@@ -5,11 +5,14 @@
  */
 
 import { requireResolvedConfig } from '../config/index.js';
+import { bootstrapIntroductions } from './introduction-bootstrap.js';
+import { createPeerIntroductions, INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL } from './introductions.js';
 
 const PROTOCOL_VERSION = 1;
 
 // Valid message types
 const MESSAGE_TYPES = new Set([
+  INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL,
   'sync-request', 'sync-response',
   'goal-update', 'reflection-share',
   'artifact-announce', 'artifact-request', 'artifact-chunk', 'artifact-ack',
@@ -73,6 +76,10 @@ const WebRTCSwarm = {
     let _heartbeatTimer = null;
     let _refreshingRtc = false;
     let _manualStop = false;
+    let _generation = 0;
+    let introductions = null, bootstrapLifetime = null;
+    let adapter = null, unsubscribeAdapter = null, adapterEpoch = 0;
+    const negotiationTimers = new Map();
     let _cancelConnect = null;
     let _peers = new Map(); // peerId -> { connection, dataChannel, metadata, status, lastSeen }
     const auxiliaryHandlers = new Map(), auxiliaryChannels = new WeakMap();
@@ -118,7 +125,7 @@ const WebRTCSwarm = {
 
     const setConnectionState = (state, detail = {}) => {
       _connectionState = state;
-      EventBus.emit('swarm:state-change', { state, ...detail });
+      EventBus.emit('swarm:state-change', { state: !_manualStop && [..._peers.values()].some(peer => peer.dataChannel?.readyState === 'open') ? 'connected' : state, introductionState: state, ...detail });
     };
 
     /**
@@ -200,16 +207,6 @@ const WebRTCSwarm = {
     };
 
     /**
-     * Get room ID from token
-     */
-    const getRoomId = (credentials) => {
-      if (!credentials?.roomId || !credentials?.token) {
-        throw new Error('Swarm room credentials are required');
-      }
-      return credentials.roomId;
-    };
-
-    /**
      * Initialize the swarm transport
      */
     const init = async () => {
@@ -220,24 +217,89 @@ const WebRTCSwarm = {
       }
 
       _manualStop = false;
+      const generation = ++_generation;
 
       // Generate or restore IDs
       _peerId = deps.peerId || generateId('peer');
       _sessionId = deps.getSessionId ? deps.getSessionId() : policy.webrtc.sessionId;
       if (!_sessionId) throw new Error('Explicit swarm session identity is required');
 
-      // A room capability is distinct from the room ID and is never public by default.
+      _roomId = policy.mesh.roomId;
+      if (deps.introductions) {
+        const created = await createPeerIntroductions({ ...deps.introductions, transport: introductionTransport,
+          identity: await deps.introductions.getIdentity(), roomId: _roomId,
+          onError: error => EventBus.emit('swarm:introduction-error', { message: error.message }) });
+        if (_manualStop || generation !== _generation) { created.close(); return false; }
+        introductions = created;
+        startHeartbeat();
+        if (deps.introductionBootstrap) {
+          bootstrapLifetime = new AbortController();
+          try {
+            await bootstrapIntroductions({ ...deps.introductionBootstrap, introductions, signal: bootstrapLifetime.signal,
+              policy: deps.introductions.policy,
+              isConnected: id => _peers.get(id)?.dataChannel?.readyState === 'open',
+              onState: state => EventBus.emit('swarm:bootstrap-state', state) });
+            if (_manualStop || generation !== _generation) return false;
+            setConnectionState('connected'); return true;
+          } catch (error) {
+            if (_manualStop || generation !== _generation) return false;
+            EventBus.emit('swarm:bootstrap-error', { message: error.message, failures: error.failures || [] });
+            if (!CONFIG.signalingServer && !deps.signalingAdapter) { setConnectionState('awaiting-introduction'); return true; }
+          }
+        }
+      }
+      if (deps.signalingAdapter) return connectAdapter();
+      if (!CONFIG.signalingServer && introductions) {
+        setConnectionState('awaiting-introduction');
+        return true;
+      }
+      // Legacy WebSocket admission retains its own room capability.
       const roomCredentials = getRoomCredentials();
-      _roomId = getRoomId(roomCredentials);
       _roomToken = roomCredentials.token;
-
-
-
       logger.info(`[WebRTCSwarm] Initializing - peerId: ${_peerId}, room: ${_roomId}`);
-
-      // Connect to signaling server
       return connectToSignaling();
     };
+
+    const connectAdapter = () => new Promise((resolve) => {
+      if (_manualStop) return resolve(false);
+      _cancelConnect?.(); unsubscribeAdapter?.();
+      const generation = _generation, epoch = ++adapterEpoch;
+      const current = deps.signalingAdapter;
+      adapter = current;
+      let settled = false, timer;
+      const settle = value => {
+        if (settled) return; settled = true; clearTimeout(timer);
+        if (_cancelConnect === cancel) _cancelConnect = null;
+        resolve(value);
+      };
+      const cancel = () => settle(false);
+      _cancelConnect = cancel;
+      const failed = error => {
+        if (_manualStop || generation !== _generation || epoch !== adapterEpoch || adapter !== current) return;
+        unsubscribeAdapter?.(); unsubscribeAdapter = null; adapter = null;
+        discardSignalingRoutes(); settle(false);
+        EventBus.emit('swarm:signaling-unavailable', { message: error?.message || 'Introduction route unavailable' });
+        scheduleReconnect(error?.retryAfterMs);
+      };
+      setConnectionState('connecting');
+      timer = setTimeout(() => failed(new Error('Introduction adapter acknowledgement timed out')), policy.webrtc.connectTimeoutMs);
+      try {
+        unsubscribeAdapter = current.subscribe(async message => {
+          if (_manualStop || generation !== _generation || epoch !== adapterEpoch || adapter !== current) return;
+          try {
+            if (message.type === 'unavailable') return failed(new Error(message.reason));
+            if (message.type === 'joined') {
+              if (message.peerId !== _peerId || message.roomId !== _roomId || !Array.isArray(message.peers)
+                || message.peers.some(id => typeof id !== 'string')) throw new Error('Invalid adapter admission');
+              if (settled) return;
+              setConnectionState('connected'); _reconnectAttempt = 0; startHeartbeat(); settle(true);
+            } else if (!settled) throw new Error('Adapter signaling before admission');
+            await handleSignalingMessage(message);
+          } catch (error) { failed(error); }
+        });
+        Promise.resolve(current.publish({ type: 'join', peerId: _peerId, roomId: _roomId })).catch(failed);
+      } catch (error) { failed(error); }
+    });
 
     /**
      * Connect to signaling server with retry
@@ -384,7 +446,7 @@ const WebRTCSwarm = {
       _reconnectTimer = setTimeout(() => {
         _reconnectTimer = null;
         if (_manualStop) return;
-        connectToSignaling().catch(e => {
+        (deps.signalingAdapter ? connectAdapter() : connectToSignaling()).catch(e => {
           logger.error('[WebRTCSwarm] Reconnect failed:', e);
         });
       }, backoff);
@@ -394,6 +456,13 @@ const WebRTCSwarm = {
      * Send message to signaling server
      */
     const sendSignaling = (message) => {
+      if (adapter) {
+        try {
+          const result = adapter.publish(structuredClone(message));
+          Promise.resolve(result).catch(error => EventBus.emit('swarm:signaling-error', { message: error.message }));
+          return result !== false;
+        } catch { return false; }
+      }
       if (!_signalingWs || _signalingWs.readyState !== WebSocket.OPEN) {
         logger.warn('[WebRTCSwarm] Cannot send signaling: not connected');
         return false;
@@ -412,6 +481,7 @@ const WebRTCSwarm = {
      */
     const handleSignalingMessage = async (message) => {
       const { type } = message;
+      if (['offer', 'answer', 'ice-candidate'].includes(type) && _peers.get(message.peerId)?.exchange) return;
 
       switch (type) {
         case 'welcome':
@@ -457,6 +527,7 @@ const WebRTCSwarm = {
           break;
 
         case 'relay-message':
+          if (_peers.get(message.peerId)?.dataChannel?.readyState === 'open') return;
           if (!_peers.has(message.peerId)) {
             registerRelayPeer(message.peerId, { transport: 'signaling-relay' });
           }
@@ -472,33 +543,50 @@ const WebRTCSwarm = {
       }
     };
 
+    const boundNegotiation = (remote, peer) => {
+      clearTimeout(negotiationTimers.get(remote));
+      negotiationTimers.set(remote, setTimeout(() => {
+        negotiationTimers.delete(remote);
+        if (_peers.get(remote) === peer && peer.dataChannel?.readyState !== 'open') {
+          removePeer(remote);
+          EventBus.emit('swarm:connection-failed', { peerId: remote, message: 'Peer connection unavailable; check the invitation route and ICE/relay configuration' });
+        }
+      }, policy.webrtc.connectTimeoutMs));
+    };
+    const sendPeerSignal = (peer, message) => {
+      if (peer.exchange) return peer.exchange.publish(message);
+      return sendSignaling(message);
+    };
+
     /**
      * Connect to a remote peer
      */
-    const connectToPeer = async (remotePeerId) => {
+    const connectToPeer = async (remotePeerId, exchange = null) => {
       if (_manualStop) return;
       // Skip if already connected or connecting
       const existingPeer = _peers.get(remotePeerId);
       if (existingPeer) {
+        if (existingPeer.exchange && !exchange) return;
         if (existingPeer.status === 'connected') {
           logger.debug(`[WebRTCSwarm] Already connected to ${remotePeerId}, skipping`);
           return;
         }
         // Close stale connection before reconnecting
         logger.info(`[WebRTCSwarm] Closing stale connection to ${remotePeerId}`);
-        removePeer(remotePeerId);
+        removePeer(remotePeerId, Boolean(exchange));
       }
 
       logger.info(`[WebRTCSwarm] Connecting to peer: ${remotePeerId}`);
 
-      const signalingWs = _signalingWs;
+      const generation = _generation;
       const rtcConfig = deps.getRtcConfig ? await deps.getRtcConfig() : deps.rtcConfig || policy.webrtc.rtcConfig;
-      if (_manualStop || _signalingWs !== signalingWs) return;
+      if (_manualStop || _generation !== generation || exchange && !exchange.isActive()) return;
       const connection = new RTCPeerConnection(rtcConfig);
       const dataChannel = connection.createDataChannel('reploid', CONFIG.channelOptions);
 
       const peer = {
         id: remotePeerId,
+        exchange,
         connection,
         rtcConfigKey: JSON.stringify(rtcConfig),
         dataChannel,
@@ -508,18 +596,19 @@ const WebRTCSwarm = {
       };
 
       _peers.set(remotePeerId, peer);
+      boundNegotiation(remotePeerId, peer);
 
       connection.ondatachannel = event => incomingChannel(remotePeerId, peer, event.channel);
 
       // ICE candidate handler
       connection.onicecandidate = (event) => {
         if (event.candidate && !_manualStop && _peers.get(remotePeerId) === peer) {
-          sendSignaling({
+          Promise.resolve(sendPeerSignal(peer, {
             type: 'ice-candidate',
             peerId: _peerId,
             targetPeer: remotePeerId,
-            candidate: event.candidate
-          });
+            candidate: event.candidate.toJSON?.() || event.candidate
+          })).catch(error => logger.warn('[WebRTCSwarm] Candidate publication failed:', error));
         }
       };
 
@@ -541,7 +630,7 @@ const WebRTCSwarm = {
       await connection.setLocalDescription(offer);
       if (_manualStop || _peers.get(remotePeerId) !== peer) return;
 
-      sendSignaling({
+      await sendPeerSignal(peer, {
         type: 'offer',
         peerId: _peerId,
         targetPeer: remotePeerId,
@@ -552,17 +641,20 @@ const WebRTCSwarm = {
     /**
      * Handle incoming WebRTC offer
      */
-    const handleOffer = async (remotePeerId, offer) => {
+    const handleOffer = async (remotePeerId, offer, exchange = null) => {
       if (_manualStop) return;
+      if (_peers.get(remotePeerId)?.dataChannel?.readyState === 'open') return;
+      if (_peers.has(remotePeerId)) removePeer(remotePeerId, Boolean(exchange));
       logger.info(`[WebRTCSwarm] Received offer from: ${remotePeerId}`);
 
-      const signalingWs = _signalingWs;
+      const generation = _generation;
       const rtcConfig = deps.getRtcConfig ? await deps.getRtcConfig() : deps.rtcConfig || policy.webrtc.rtcConfig;
-      if (_manualStop || _signalingWs !== signalingWs) return;
+      if (_manualStop || _generation !== generation || exchange && !exchange.isActive()) return;
       const connection = new RTCPeerConnection(rtcConfig);
 
       const peer = {
         id: remotePeerId,
+        exchange,
         connection,
         rtcConfigKey: JSON.stringify(rtcConfig),
         dataChannel: null,
@@ -572,16 +664,17 @@ const WebRTCSwarm = {
       };
 
       _peers.set(remotePeerId, peer);
+      boundNegotiation(remotePeerId, peer);
 
       // ICE candidate handler
       connection.onicecandidate = (event) => {
         if (event.candidate && !_manualStop && _peers.get(remotePeerId) === peer) {
-          sendSignaling({
+          Promise.resolve(sendPeerSignal(peer, {
             type: 'ice-candidate',
             peerId: _peerId,
             targetPeer: remotePeerId,
-            candidate: event.candidate
-          });
+            candidate: event.candidate.toJSON?.() || event.candidate
+          })).catch(error => logger.warn('[WebRTCSwarm] Candidate publication failed:', error));
         }
       };
 
@@ -605,7 +698,7 @@ const WebRTCSwarm = {
       await connection.setLocalDescription(answer);
       if (_manualStop || _peers.get(remotePeerId) !== peer) return;
 
-      sendSignaling({
+      await sendPeerSignal(peer, {
         type: 'answer',
         peerId: _peerId,
         targetPeer: remotePeerId,
@@ -666,6 +759,11 @@ const WebRTCSwarm = {
         if (_manualStop || _peers.get(remotePeerId) !== peer) { dataChannel.close(); return; }
         logger.info(`[WebRTCSwarm] Data channel opened with ${remotePeerId}`);
         peer.status = 'connected';
+        clearTimeout(negotiationTimers.get(remotePeerId)); negotiationTimers.delete(remotePeerId);
+        introductions?.settled(remotePeerId);
+        startHeartbeat();
+        if (!_signalingWs && !adapter) setConnectionState('connected');
+        introductions?.announce(remotePeerId).catch(error => logger.warn('[WebRTCSwarm] Contact announcement failed:', error));
         EventBus.emit('swarm:peer-connected', { peerId: remotePeerId });
 
         // Request initial sync
@@ -718,10 +816,12 @@ const WebRTCSwarm = {
     /**
      * Remove peer and cleanup
      */
-    const removePeer = (remotePeerId) => {
+    const removePeer = (remotePeerId, preserveIntroduction = false) => {
+      clearTimeout(negotiationTimers.get(remotePeerId)); negotiationTimers.delete(remotePeerId);
       const peer = _peers.get(remotePeerId);
       if (peer) {
         _peers.delete(remotePeerId);
+        if (!preserveIntroduction) introductions?.retirePeer(remotePeerId, peer.exchange?.attemptId);
         try {
           if (peer.dataChannel) peer.dataChannel.close();
           if (peer.connection) peer.connection.close();
@@ -739,7 +839,7 @@ const WebRTCSwarm = {
      */
     const discardSignalingRoutes = () => {
       for (const [peerId, peer] of _peers) {
-        if (peer.transport === 'signaling-relay' || peer.dataChannel?.readyState !== 'open') removePeer(peerId);
+        if (peer.transport === 'signaling-relay' || !peer.exchange && peer.dataChannel?.readyState !== 'open') removePeer(peerId);
       }
       _pendingIceCandidates.clear();
     };
@@ -775,7 +875,7 @@ const WebRTCSwarm = {
 
       // Validate envelope
       const validation = validateEnvelope(envelope);
-      if (!validation.valid) {
+      if (!validation.valid || envelope.peerId !== remotePeerId) {
         logger.warn(`[WebRTCSwarm] Invalid message from ${remotePeerId}: ${validation.reason}`);
         _stats.rejected++;
         return;
@@ -851,6 +951,7 @@ const WebRTCSwarm = {
           return false;
         }
 
+        if ((peer.dataChannel.bufferedAmount || 0) + new TextEncoder().encode(data).length > policy.webrtc.maxBufferedBytes) return false;
         peer.dataChannel.send(data);
 
         _stats.messagesSent++;
@@ -892,10 +993,10 @@ const WebRTCSwarm = {
     const refreshRtcConfiguration = async () => {
       if (_refreshingRtc || !deps.getRtcConfig || !_peers.size || _manualStop) return;
       _refreshingRtc = true;
-      const signalingWs = _signalingWs;
+      const generation = _generation;
       try {
         const rtcConfig = await deps.getRtcConfig();
-        if (_manualStop || _signalingWs !== signalingWs) return;
+        if (_manualStop || _generation !== generation) return;
         const key = JSON.stringify(rtcConfig);
         for (const peer of _peers.values()) {
           if (!peer.connection || peer.rtcConfigKey === key) continue;
@@ -912,7 +1013,7 @@ const WebRTCSwarm = {
       stopHeartbeat();
       _heartbeatTimer = setInterval(() => {
         // Send heartbeat to signaling
-        if (_signalingWs?.readyState === WebSocket.OPEN) sendSignaling({
+        if (adapter || _signalingWs?.readyState === WebSocket.OPEN) sendSignaling({
           type: 'heartbeat',
           peerId: _peerId,
           roomId: _roomId
@@ -922,6 +1023,9 @@ const WebRTCSwarm = {
 
         // Ping all peers
         broadcast('ping', { ts: Date.now() });
+        if (introductions) for (const remote of getConnectedPeers()) {
+          introductions.announce(remote.id).catch(error => logger.warn('[WebRTCSwarm] Contact refresh failed:', error));
+        }
 
         // Check for stale peers
         const now = Date.now();
@@ -955,6 +1059,10 @@ const WebRTCSwarm = {
      */
     const disconnect = () => {
       _manualStop = true;
+      _generation++;
+      bootstrapLifetime?.abort(); bootstrapLifetime = null;
+      introductions?.close(); introductions = null;
+      unsubscribeAdapter?.(); unsubscribeAdapter = null; adapter = null;
       _cancelConnect?.();
       if (_reconnectTimer) {
         clearTimeout(_reconnectTimer);
@@ -980,7 +1088,8 @@ const WebRTCSwarm = {
     /**
      * Get current connection state
      */
-    const getConnectionState = () => _connectionState;
+    const getConnectionState = () => !_manualStop && [..._peers.values()].some(peer => peer.dataChannel?.readyState === 'open')
+      ? 'connected' : _connectionState;
 
     /**
      * Get connected peers
@@ -1002,7 +1111,8 @@ const WebRTCSwarm = {
       peerId: _peerId,
       sessionId: _sessionId,
       roomId: _roomId,
-      connectionState: _connectionState,
+      connectionState: getConnectionState(),
+      introductionState: _connectionState,
       connectedPeers: getConnectedPeers().length,
       totalPeers: _peers.size,
       ..._stats,
@@ -1032,7 +1142,23 @@ const WebRTCSwarm = {
       logger.debug(`[WebRTCSwarm] Latency to ${peerId}: ${latency}ms`);
     });
 
+    const introductionTransport = {
+      _getPeerId: () => _peerId, getConnectedPeers, onMessage, sendToPeer,
+      connectIntroducedPeer: connectToPeer,
+      cancelIntroduction(remote, attemptId) {
+        if (!_peers.has(remote)) _pendingIceCandidates.delete(remote);
+        if (_peers.get(remote)?.exchange?.attemptId === attemptId) removePeer(remote);
+      },
+      async acceptIntroductionSignal(remote, message, exchange) {
+        if (message.type === 'offer') return handleOffer(remote, message.offer, exchange);
+        const peer = _peers.get(remote);
+        if (peer && peer.exchange?.attemptId !== exchange.attemptId) throw new Error('Stale introduction attempt');
+        if (message.type === 'answer') return handleAnswer(remote, message.answer);
+        if (message.type === 'ice-candidate') return handleIceCandidate(remote, message.candidate);
+      }
+    };
     return {
+      getIntroductions: () => introductions,
       init,
       disconnect,
       sendToPeer,

@@ -265,3 +265,54 @@ Derived map of runtime modules, dependencies, and genesis introduction levels.
 | `modules` | Module metadata with dependency lists |
 
 *Last updated: March 2026*
+
+## Peer introductions
+
+The browser library exposes `createPeerIntroductions`,
+`bootstrapIntroductions`, and `createWebSocketIntroductionRoute` through
+`reploid/transport`. `createWebRTCSwarm` and `createSwarmTransport` accept:
+
+- `introductions`: the existing signing identity through `getIdentity`, an
+  explicit `authorize` port, and optional bounded policy. Admission, connection,
+  announcements and forwarding are separate authorization actions.
+- `introductionBootstrap`: configured routes and an optional public-contact store.
+  Retained routes run first, then remaining configured routes. Each route returns
+  a signed contact plus `publish` and `close`; opening and connection have bounds.
+- `signalingAdapter`: a borrowed publish/subscribe adapter for the existing swarm
+  join/offer/answer/candidate messages. It must acknowledge namespace admission
+  with matching `peerId`, `roomId` and a peer list. This is a different wire
+  contract from assignment signaling; neither adapter silently converts it.
+
+Without `webrtc.signalingUrl`, enabled introductions start in
+`awaiting-introduction`. `transport.getIntroductions()` exposes `exportContact`,
+`connect(contact, deliver)` and `receive(via, type, envelope, replyRoute)` for
+out-of-band pairing or an already reachable channel. A contact alone is not a
+reachable address. An invitation exchange must deliver encrypted offers,
+answers and candidates in both directions. Do not put private keys or room
+capabilities into contact storage.
+
+Participant endpoints may implement the small WebSocket bootstrap exchange:
+`{type:'contact', contact}` in each direction, then
+`{type:'signal', envelope}`. The browser route requires a pinned participant
+identity, WSS (or loopback WS), bounded messages and cancellation. The participant
+owns the endpoint; no particular host or operator is required. Configure an
+independent `getRtcConfig` or explicit `rtcConfig` alongside independent entry
+points. The standard hosted profile still uses its configured credential issuer;
+replacing introductions alone does not replace STUN/TURN provisioning.
+
+The conversation host uses its existing identity. Public-room contacts require
+valid endpoint signatures. Private-room contacts additionally prove the existing
+room capability with `createRoomIntroductionAdmission`; the token is never sent
+in an introduction. Neither proof authorizes inference or file disclosure.
+“Help peers connect” grants one-hop forwarding separately from compute and files,
+starts disabled, and can be revoked. Established direct channels survive loss of
+signaling; socket-relayed routes do not. Explicit disconnect closes both.
+
+Browser tests exercise encrypted introductions, bootstrap failover, real direct
+channels and auxiliary bytes after removal of the introducer. They do not qualify
+internet-wide discovery, restrictive NAT/TURN deployments, WebRTC Direct native
+listeners, model numerics, or portable inference recovery. A newly opened browser
+still needs an invitation, a reachable configured participant, or another live
+connection. No independently operated public endpoints are installed by default.
+
+*Last updated: October 2026*

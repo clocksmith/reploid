@@ -1,6 +1,6 @@
 /** Explicit compatibility text swarm, separate from admitted signed Pack operations. */
 import { createLegacyGenerationMesh, createAutomaticPartitions } from '../vendor/reploid/mesh/index.js';
-import { createSwarmTransport } from '../vendor/reploid/transport/index.js';
+import { createSwarmTransport, createRoomIntroductionAdmission } from '../vendor/reploid/transport/index.js';
 import { resolveConfig } from '../vendor/reploid/config/index.js';
 import { createLegacyNetworkOptions } from '../capabilities/communication/library-adapter.js';
 import { ensureIdentityBundle, saveIdentityBundle, rotateIdentityBundle } from '../identity.js';
@@ -22,7 +22,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const utils = Utils.factory({}), eventBus = EventBus.factory({ Utils: utils });
   const options = networkOptions({ Utils: utils, EventBus: eventBus }, { enabled: true });
   let consumer = null, supplier = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
-  let connection = null;
+  let connection = null, introductionAssistance = false;
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
   let automaticAllowed = options.autoConnect !== false;
   const requests = new Map();
@@ -40,18 +40,22 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   });
   let contributor = null, stoppingContribution = null, contributionEpoch = 0;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
-  const getState = () => ({ sharing, stopping, connecting, paused, error, models: LOCAL_DOPPLER_MODELS,
+  const getState = () => ({ introductionAssistance, sharing, stopping, connecting, paused, error, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
     partitionPeers: partitionMesh?.getState?.()?.capabilities || [],
     contribution: { ...contribution }, limits: { maxInboundJobs: contribution.partition ? partitionPolicy.limits.maxConcurrentAttempts : 1, maxOutputTokens: profile.generation.maxTokens },
     consumer: consumer?.getSwarmSnapshot() || null, supplier: supplier?.getSwarmSnapshot() || null,
     offers: peerOffers?.getState() || null });
   const notify = () => onChange(getState());
+  for (const event of ['swarm:bootstrap-error', 'swarm:connection-failed']) eventBus.on(event, detail => {
+    if (!closed && !paused) { error = detail.message; notify(); }
+  });
   const peerOffers = evolution ? createWorkPeerOffers({ storage, evolution, roomId: options.config.value.mesh.roomId,
     getTransport: () => consumerTransport, onChange: notify }) : null;
   eventBus.on('swarm:peer-connected', () => modelFiles?.announce());
   const build = (model, peerId, execution = null) => {
     const version = generation;
+    let signingIdentity = null;
     const instanceId = 'work-swarm:' + crypto.randomUUID();
     const events = EventBus.factory({ Utils: utils });
     events.on('swarm-state', notify);
@@ -66,12 +70,23 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       },
       createTransport: () => {
         if (closed || paused || version !== generation) throw new Error('Text swarm connection stopped');
-        const transport = createSwarmTransport({ ...options, config, ...(peerId ? { peerId } : {}) });
+        const admission = options.discoveryScope === 'private'
+          ? createRoomIntroductionAdmission(options.getRoomCredentials()) : null;
+        const introductions = options.introductions || (['public', 'private'].includes(options.discoveryScope) ? {
+          getIdentity: () => signingIdentity,
+          ...(admission ? { createAdmission: admission.create } : {}),
+          authorize: async request => !closed && !paused && version === generation
+            && request.roomId === config.value.mesh.roomId
+            && (request.action !== 'forward' || introductionAssistance)
+            && (!admission || (!request.contact && !request.from) || await admission.verify(request.contact || request.from))
+        } : undefined);
+        const transport = createSwarmTransport({ ...options, config, introductions, ...(peerId ? { peerId } : {}) });
         if (!model) consumerTransport = transport;
         return transport;
       },
       identity: { ensure: async input => {
         const bundle = await ensureIdentityBundle({ ...input, storage });
+        signingIdentity = bundle;
         if (!model) consumerIdentity = bundle; return bundle;
       },
         save: bundle => saveIdentityBundle(bundle, storage, { instanceId }),
@@ -242,6 +257,16 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       return partitionNetworks.open({ createEndpoint, maxPeers, timeoutMs, onPeer, label });
     }
   return Object.freeze({ getState, connect, disconnect, partitions,
+    allowIntroductions(allowed) {
+      if (closed) throw new Error('Network is closed');
+      introductionAssistance = allowed === true;
+      const introductions = consumerTransport?.getIntroductions?.();
+      if (introductionAssistance && introductions) for (const peer of consumerTransport.getConnectedPeers()) {
+        introductions.announce(peer.id).catch(cause => { error = cause.message; notify(); });
+      }
+      notify();
+    },
+    getIntroductions: () => consumerTransport?.getIntroductions?.() || null,
     getPartitionState: () => partitionMesh?.getState() || null,
     getFileState: () => modelFiles?.getState() || { sharing: false, preparing: false, limits: getFileContributionLimits() },
     async shareFiles(model, approved) {
