@@ -95,7 +95,7 @@ for (const schema of ['doppler.pack/v2', 'doppler.capsule/v2']) test(`reviewed p
     await provider.locator('[data-operation-toggle]').click();
     await expect(provider.locator('[data-operation-status]')).toHaveText(/Offering .*Jobs load the exact model when needed\./);
     const task = 'PUBLIC-TASK-TRIPWIRE: Suggest a concise answer structure.';
-    await requester.locator('[data-document-share] summary').click();
+    await requester.locator('[data-document-share] > summary').click();
     await expect(requester.locator('[data-document-share-task]')).toHaveValue('');
     await requester.locator('[data-document-task-class]').selectOption('derived-remote');
     await requester.locator('[data-document-share-task]').fill(task);
