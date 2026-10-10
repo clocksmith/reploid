@@ -396,17 +396,27 @@ test('one model executes cooperatively on discovered physical peers from selecti
         .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
       const lostAt = Date.now(); await bPage.locator('[data-toggle-contribution]').click();
       await expect.poll(async () => (await lastAttempt(lostId)).status).toBe('failed');
+      const interruptedThread = (await history(requester)).threads.find(thread => thread.id === lostId);
+      const interruptedAttempt = interruptedThread.attempts.at(-1);
+      const interruptedMessage = interruptedThread.messages.find(message => message.id === interruptedAttempt.responseId);
+      expect(interruptedMessage.content).not.toBe('');
       await expect(requester.locator('[data-model-control]')).toHaveAttribute('data-activity', 'ready');
       await expect(requester.locator('[data-composer-send]')).toBeEnabled();
       await requester.locator('[data-retry-attempt]').click(); await approve(requester); await waitCompleted(lostId);
       const replacement = await lastAttempt(lostId);
+      expect(replacement.id).not.toBe(interruptedAttempt.id);
+      expect(replacement.retryOf).toBe(interruptedAttempt.id);
+      expect(replacement.execution.stopReason).toBe('eos-token');
       expect(replacement.execution.participantA).toBe(originalPlacement.participantA);
       expect(replacement.execution.participantB).not.toBe(originalPlacement.participantB);
-      expect((await history(requester)).threads.find(thread => thread.id === lostId).attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
+      const retriedThread = (await history(requester)).threads.find(thread => thread.id === lostId);
+      expect(retriedThread.attempts.map(attempt => attempt.status)).toEqual(['failed', 'completed']);
+      expect(retriedThread.attempts[0]).toEqual(interruptedAttempt);
+      expect(retriedThread.messages.find(message => message.id === interruptedMessage.id)).toEqual(interruptedMessage);
       expect(observation.loads).toHaveLength(1);
       const replica = { observation, memory: await inspectExecutorMemory(page), recoveryMs: Date.now() - lostAt,
         originalPlacement: { participantA: originalPlacement.participantA, participantB: originalPlacement.participantB },
-        replacementAttempt: replacement, originalSeedStoppedBeforeAcquisition: true };
+        interruptedThread, replacementAttempt: replacement, originalSeedStoppedBeforeAcquisition: true };
       completed = await history(requester);
       await writeFile(info.outputPath('contributor-replacement.json'), JSON.stringify(replica, null, 2));
       return replica;
