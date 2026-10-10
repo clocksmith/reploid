@@ -42,6 +42,25 @@ async function installConversation(page, theme) {
 
 const animation = (locator, pseudo = '::after') => locator.evaluate((node, pseudo) => getComputedStyle(node, pseudo).animationName, pseudo);
 
+test('compact ribbon keeps availability and attempt status visible', async ({ page }, info) => {
+  await page.setViewportSize({ width: 320, height: 460 });
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'light');
+  for (const [mode, label] of [['empty', 'No model ready'], ['queued', 'Queued'],
+    ['executing', 'Executing'], ['cancelling', 'Stopping'], ['cancelled', 'Stopped']]) {
+    await page.evaluate(mode => window.setVisualState(mode), mode);
+    const status = page.locator('[data-ribbon-status]');
+    await expect(status).toHaveText(label);
+    await expect(status).toBeVisible();
+    await expect(status).toBeInViewport();
+    await expect(page.locator('[data-composer-input]')).toBeInViewport();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+    if (mode === 'empty') await expect(page.locator('.execution-ribbon-node')).toHaveCount(0);
+    if (mode === 'cancelling') await page.screenshot({ path: info.outputPath('compact-stopping.png'), fullPage: true });
+  }
+});
+
 for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
   test(`${theme} conversation materials at ${width}px`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: width === 1440 ? 1000 : 844 });

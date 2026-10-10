@@ -190,7 +190,7 @@
 .pool-home[data-chat-compact] .pool-primary-nav .pool-primary-wordmark { display: none; }
 .pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon { grid-column: 2; grid-row: 1; }
 .pool-home[data-chat-compact] .pool-primary-nav .pool-primary-actions { grid-column: 3; grid-row: 1; }
-.pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-status { display: none; }
+.pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-status { display: flex; min-height: 0; max-width: 100%; }
 .pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-trigger { gap: 0; }
 .pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-wire { height: var(--pool-px-24); }
 .pool-home[data-chat-compact] .pool-primary-nav .execution-ribbon-node { grid-template-rows: var(--pool-px-24); }
