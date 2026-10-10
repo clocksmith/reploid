@@ -2,6 +2,7 @@
 node_modules/
 
 # Raw physical decision observations are retained locally and hash-inventoried.
+/artifacts/**/*.json.gz
 /artifacts/doppler-choice/*.json
 /artifacts/doppler-choice/package-difference/
 !/artifacts/doppler-choice/summary.json
