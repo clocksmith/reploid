@@ -1,0 +1,81 @@
+{
+  "scope": "Observed source drift during an active physical lifecycle diagnostic; prevents matched application build acceptance",
+  "macControllerSource": "a6d47daa",
+  "linuxSource": "45479272562ee663c91800b5386ed800374ccae2",
+  "run": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-10T02-31-40-485Z",
+  "declaredBundle": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
+  "changedDeclaredFiles": [
+    {
+      "path": "host/chat-session.js",
+      "declared": "sha256:2d39e0619f5f0e020e638318e4e0ad1b463a1a1e761907aaafeed61f4345fb50",
+      "actual": "sha256:d0f639988b80357a73628f7225e5b62ba6c2efb0762b03ca023480d1724bc7e7"
+    },
+    {
+      "path": "styles/poolday/components/conversation.css",
+      "declared": "sha256:37e9055a147f67bcfbca5f964cac8bba0452214f2c248759c740ae7f364374f2",
+      "actual": "sha256:0fafdec4a5c82ee9a18e10126c153767e63399f5ab8a4936dd97c1cb3138328f"
+    },
+    {
+      "path": "styles/poolday/components/interaction.css",
+      "declared": "sha256:23965be6f9aefb5d56152429e493633f56eb77db536153f450c0523b90fa499b",
+      "actual": "sha256:a4f72205fec6854bdf2d3de95c714344b3175a162fa436fedce0c2e9add65562"
+    },
+    {
+      "path": "ui/components/model-select.js",
+      "declared": "sha256:28001d70f30570ff92365ce20df91433b7ab23808af3af0a858f678be4ed6960",
+      "actual": "sha256:dbe183596315531f219cb000e4c4f6a410a673cee798aad96d4577fc094b1fbf"
+    },
+    {
+      "path": "ui/pool-home/conversation-list.js",
+      "declared": "sha256:3f532a81dc1925636c446079042f00a3da500ec6a6019acdb0c06ecdae04e956",
+      "actual": "sha256:e7e7744530ab9aaf989018593c2e8309d07c4dbb400d4a1867a1eb9317ea005f"
+    },
+    {
+      "path": "ui/pool-home/conversation-workspace.js",
+      "declared": "sha256:63d4880174e9b9efc29339f1fc9ee0efca3722712f3561ddb392e16f6db56a1e",
+      "actual": "sha256:03920fc9d0306e68a9f09ddee91fc9fb51f22025febefdef1e46e1feee56277f"
+    },
+    {
+      "path": "ui/pool-home/execution-ribbon.js",
+      "declared": "sha256:301375f787c177b7f07c3575d3405d9d19b3b566841a92e27e90c750af48349f",
+      "actual": "sha256:489234097bc4c0561de5f16948aecd4cd99ec129ecbc7dc216c09b23e0e6e21f"
+    },
+    {
+      "path": "ui/pool-home/index.js",
+      "declared": "sha256:a3828164059cfef497692660513c40e962c8e659193174da05028e3f2134f4b6",
+      "actual": "sha256:0c83a773a183cb0ad8f8a39abc31f8407754488056e93f4a36e4b894823dc25b"
+    },
+    {
+      "path": "ui/pool-home/message-list.js",
+      "declared": "sha256:433d6181f6c5516700873afb1a1d2207ea6f10be61e310a836f3bf0a8f4df01d",
+      "actual": "sha256:a9f9f4e5e359c27fddf9af386908d84b047795b6bf9e603ace14902d3673fec3"
+    },
+    {
+      "path": "ui/pool-home/network-controls.js",
+      "declared": "sha256:2692077db247bb749bdc0f03a0b635ef84506bb78d41b8f5329b168d9cbb860e",
+      "actual": "sha256:3ee7f4af1cf123aed3e557e76b781195c96904a649014a238431ab3e561f9ad2"
+    },
+    {
+      "path": "ui/pool-home/shell-view.js",
+      "declared": "sha256:129834b2a64cc903e0f023ed0e580548d67e69dde305f1f1e569e55fde2a5079",
+      "actual": "sha256:1830b14728d525eb9edb2700d829715540ea965dea5215808429f2cdce28ff8b"
+    },
+    {
+      "path": "vendor/reploid/chat/workspace.js",
+      "declared": "sha256:890b244a6c588521679295394d6b97fd51536755393731e68b32547a89cf4b0f",
+      "actual": "sha256:8fb45d79df00ac1a13fb2709d0db456296edd377858bae350989167e920f4655"
+    },
+    {
+      "path": "vendor/reploid/package-assets.json",
+      "declared": "sha256:aac59075a03cecb78a0548b002b5eec390c33f0e28abfbc4455830d9f803bc89",
+      "actual": "sha256:d9f972af62aa534b8116fbbe516899a98ee4719f5c2082f252c297b068df441b"
+    }
+  ],
+  "addedFiles": [
+    "ui/components/message-markdown.js",
+    "ui/pool-home/network-inspector.js"
+  ],
+  "dopplerVersion": "0.6.23",
+  "archiveSha256": "14f95c3492b4db049c3083059f1340d02918f835caf4237aad5994227a006ab9",
+  "effect": "Retain actual outcomes; rerun affected application controls against one generated, matched browser build before qualification"
+}

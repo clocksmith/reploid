@@ -1,0 +1,2079 @@
+{
+  "physicalDevices": 2,
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "concurrent": {
+    "long": {
+      "id": "446e3e82-d53d-4ede-9e2c-bcb1319dbdf2",
+      "threadId": "7eda9ab9-3db3-4c54-9974-327a61cc44a0",
+      "userMessageId": "b2c0694f-b9e0-4505-ac42-69aa41a79d20",
+      "responseId": "1b9648f3-1a6f-4eb0-afd0-41565990d935",
+      "retryOf": null,
+      "status": "completed",
+      "createdAt": 1791600511875,
+      "finishedAt": 1791600520793,
+      "error": null,
+      "approval": null,
+      "execution": {
+        "schema": "reploid.mesh.partition-summary/v1",
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+        "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+        "threadId": "7eda9ab9-3db3-4c54-9974-327a61cc44a0",
+        "attemptId": "446e3e82-d53d-4ede-9e2c-bcb1319dbdf2",
+        "participantA": "peer:14d87c81fdc500dbeff4557b",
+        "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+        "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+        "placementGeneration": 0,
+        "placement": "two-device-layer-partition",
+        "splitLayer": 4,
+        "activationBytes": 598016,
+        "stopReason": "eos-token",
+        "settlement": {
+          "identity": {
+            "modelId": "qwen-3-5-2b-q4k-ehaf16",
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+            "threadId": "7eda9ab9-3db3-4c54-9974-327a61cc44a0",
+            "attemptId": "446e3e82-d53d-4ede-9e2c-bcb1319dbdf2",
+            "participantA": "peer:14d87c81fdc500dbeff4557b",
+            "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+            "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+            "placementGeneration": 0
+          },
+          "phase": "completed",
+          "startedAt": 1791600512102,
+          "failure": null,
+          "reservations": [
+            {
+              "identity": {
+                "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+                "participantA": "peer:14d87c81fdc500dbeff4557b",
+                "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+                "modelId": "qwen-3-5-2b-q4k-ehaf16",
+                "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "threadId": "7eda9ab9-3db3-4c54-9974-327a61cc44a0",
+                "attemptId": "446e3e82-d53d-4ede-9e2c-bcb1319dbdf2",
+                "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:14d87c81fdc500dbeff4557b",
+              "index": 0,
+              "phase": "reserved",
+              "reservedAt": 1791600512099,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "modelId": "qwen-3-5-2b-q4k-ehaf16",
+                "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+                "threadId": "7eda9ab9-3db3-4c54-9974-327a61cc44a0",
+                "attemptId": "446e3e82-d53d-4ede-9e2c-bcb1319dbdf2",
+                "participantA": "peer:14d87c81fdc500dbeff4557b",
+                "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+                "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+              "index": 1,
+              "phase": "reserved",
+              "reservedAt": 1791600512094,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            }
+          ],
+          "cleanupStartedAt": 1791600520755,
+          "cleanupSettledAt": 1791600520778,
+          "cleanup": [
+            {
+              "participantId": "peer:14d87c81fdc500dbeff4557b",
+              "status": "settled",
+              "settledAt": 1791600520755,
+              "error": null
+            },
+            {
+              "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+              "status": "settled",
+              "settledAt": 1791600520778,
+              "error": null
+            }
+          ]
+        },
+        "provider": "peer",
+        "stepSummary": {
+          "count": 51,
+          "metrics": {
+            "localStepMs": {
+              "count": 51,
+              "total": 585.3999967575073,
+              "min": 7.40000057220459,
+              "max": 64.10000038146973
+            },
+            "serializationMs": {
+              "count": 51,
+              "total": 1.3000001907348633,
+              "min": 0,
+              "max": 0.10000038146972656
+            },
+            "remoteStepMs": {
+              "count": 51,
+              "total": 7246.299999237061,
+              "min": 113.60000038146973,
+              "max": 556.3000001907349
+            },
+            "elapsedMs": {
+              "count": 51,
+              "total": 7879.699999809265,
+              "min": 124.29999923706055,
+              "max": 621.1999998092651
+            },
+            "computationA.inputUploadMs": {
+              "count": 51,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.encodeMs": {
+              "count": 51,
+              "total": 189.4000005722046,
+              "min": 2.3999996185302734,
+              "max": 41.80000019073486
+            },
+            "computationA.submitWaitMs": {
+              "count": 51,
+              "total": 239.3000030517578,
+              "min": 2.5,
+              "max": 19.699999809265137
+            },
+            "computationA.activationReadbackMs": {
+              "count": 51,
+              "total": 88.69999599456787,
+              "min": 0.19999980926513672,
+              "max": 5.5
+            },
+            "computationA.logitsMs": {
+              "count": 51,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.executionMs": {
+              "count": 51,
+              "total": 528.1000003814697,
+              "min": 6,
+              "max": 62.30000019073486
+            },
+            "computationA.logitsReadbackMs": {
+              "count": 51,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.samplingMs": {
+              "count": 51,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationB.inputUploadMs": {
+              "count": 51,
+              "total": 0.7000000476837158,
+              "min": 0,
+              "max": 0.10000002384185791
+            },
+            "computationB.encodeMs": {
+              "count": 51,
+              "total": 754.5000002384186,
+              "min": 5.599999904632568,
+              "max": 63.60000002384186
+            },
+            "computationB.submitWaitMs": {
+              "count": 51,
+              "total": 2112.8999996185303,
+              "min": 30.399999976158142,
+              "max": 235.59999990463257
+            },
+            "computationB.activationReadbackMs": {
+              "count": 51,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationB.logitsMs": {
+              "count": 51,
+              "total": 31.399999260902405,
+              "min": 0.2999999523162842,
+              "max": 1.2000000476837158
+            },
+            "computationB.executionMs": {
+              "count": 51,
+              "total": 2914.800000190735,
+              "min": 41.299999952316284,
+              "max": 299.89999997615814
+            },
+            "computationB.logitsReadbackMs": {
+              "count": 51,
+              "total": 779.6999995708466,
+              "min": 11,
+              "max": 51.89999997615814
+            },
+            "computationB.samplingMs": {
+              "count": 51,
+              "total": 140.40000021457672,
+              "min": 1.5,
+              "max": 4.399999976158142
+            },
+            "transportTiming.authorizationMs": {
+              "count": 51,
+              "total": 17.799996376037598,
+              "min": 0.19999980926513672,
+              "max": 0.7999992370605469
+            },
+            "transportTiming.readyWaitMs": {
+              "count": 51,
+              "total": 946.5000047683716,
+              "min": 12.100000381469727,
+              "max": 38.60000038146973
+            },
+            "transportTiming.payloadUploadMs": {
+              "count": 51,
+              "total": 31.700000762939453,
+              "min": 0.19999980926513672,
+              "max": 1.0999994277954102
+            },
+            "transportTiming.responseWaitMs": {
+              "count": 51,
+              "total": 6201.599995613098,
+              "min": 97.60000038146973,
+              "max": 538.7000007629395
+            },
+            "transportTiming.acceptanceMs": {
+              "count": 51,
+              "total": 38.60000038146973,
+              "min": 0.39999961853027344,
+              "max": 1.1000003814697266
+            },
+            "transportTiming.totalMs": {
+              "count": 51,
+              "total": 7236.1999979019165,
+              "min": 113.30000019073486,
+              "max": 556
+            }
+          },
+          "detail": "aggregate; no per-step trace transferred"
+        },
+        "memoryAtLastStep": {
+          "computationA": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1195229992,
+            "peakBytes": 1240917672,
+            "categories": {
+              "weights": 1146343424,
+              "attention": 33743792,
+              "recurrent": 3538944,
+              "other": 11603832
+            }
+          },
+          "computationB": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1136446440,
+            "peakBytes": 1327830568,
+            "categories": {
+              "weights": 932192256,
+              "attention": 168715184,
+              "recurrent": 17694720,
+              "other": 17844280
+            }
+          }
+        },
+        "transport": {
+          "schema": "reploid.partition-channel/v1",
+          "sentFrameBytes": 1174920,
+          "receivedFrameBytes": 84852,
+          "sentFrames": 167,
+          "receivedFrames": 152,
+          "completedRequests": 76,
+          "cancelledRequests": 0,
+          "discardedFrames": 0,
+          "pendingRequests": 0,
+          "inboundRequests": 0,
+          "reservedBytes": 0,
+          "closed": false,
+          "wireBytes": null,
+          "relayBytes": null
+        },
+        "selection": {
+          "transportId": "f9d7990f-3511-44dc-97b1-1b25653a8469",
+          "eligibility": [
+            {
+              "participantId": "peer:72da6c9c159cda36635ce7d3",
+              "transportId": "78bc050d-e554-4486-b5ee-fc262a654264",
+              "reason": "no-prepared-path",
+              "eligible": false,
+              "capacity": null
+            },
+            {
+              "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+              "transportId": "30fb9074-ed37-485e-94ef-e66c6a3d28d7",
+              "reason": "no-prepared-path",
+              "eligible": false,
+              "capacity": {
+                "active": 0,
+                "availableSlots": 2,
+                "closed": false
+              }
+            },
+            {
+              "participantId": "peer:14d87c81fdc500dbeff4557b",
+              "transportId": "f9d7990f-3511-44dc-97b1-1b25653a8469",
+              "reason": "reservation-required",
+              "eligible": true,
+              "capacity": {
+                "active": 0,
+                "availableSlots": 2,
+                "closed": false
+              }
+            }
+          ]
+        }
+      },
+      "authorization": {
+        "kind": "once",
+        "grantId": null,
+        "peerId": "peer:14d87c81fdc500dbeff4557b",
+        "recipientIdentity": "peer:14d87c81fdc500dbeff4557b"
+      },
+      "request": {
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "partitionSplitLayer": 4,
+          "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "source": {
+            "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+            "files": [
+              {
+                "path": "manifest.json",
+                "role": "model-manifest",
+                "sizeBytes": 183803,
+                "hashAlgorithm": "sha256",
+                "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+              },
+              {
+                "path": "tokenizer.json",
+                "role": "tokenizer",
+                "sizeBytes": 9088480,
+                "hashAlgorithm": "sha256",
+                "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+              },
+              {
+                "path": "qwen-2b-pieces.json",
+                "role": "model-piece-index",
+                "sizeBytes": 111108,
+                "hashAlgorithm": "sha256",
+                "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                "url": "/config/model-pieces/qwen-2b-pieces.json"
+              }
+            ]
+          },
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "recommended": true,
+          "adapters": [],
+          "packageName": "doppler-gpu",
+          "packageVersion": "0.6.23",
+          "generation": {
+            "maxTokens": 4096,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "maxSeqLen": 8192
+          },
+          "selectionId": "qwen-3-5-2b-q4k-ehaf16/partition/sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+          "partition": {
+            "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+            "participantA": "peer:14d87c81fdc500dbeff4557b",
+            "participantB": "peer:168b6b2fa5f2b79ce4b75b72"
+          },
+          "availability": "ready",
+          "providerIds": [
+            "peer:14d87c81fdc500dbeff4557b",
+            "peer:168b6b2fa5f2b79ce4b75b72"
+          ],
+          "placement": "two-device-layer-partition"
+        },
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "members": [
+          "local-user"
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "Count from one to twenty, one number per line."
+          }
+        ]
+      }
+    },
+    "brief": {
+      "id": "533ddf0d-a18f-4655-8866-58a50e38f50c",
+      "threadId": "208c9344-35a9-4737-9989-c52a13262908",
+      "userMessageId": "e465cc6f-c070-4902-802a-08ab16f84501",
+      "responseId": "2e183950-d35f-4812-acc8-bd728ed3c164",
+      "retryOf": null,
+      "status": "completed",
+      "createdAt": 1791600512121,
+      "finishedAt": 1791600513659,
+      "error": null,
+      "approval": null,
+      "execution": {
+        "schema": "reploid.mesh.partition-summary/v1",
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+        "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+        "threadId": "208c9344-35a9-4737-9989-c52a13262908",
+        "attemptId": "533ddf0d-a18f-4655-8866-58a50e38f50c",
+        "participantA": "peer:14d87c81fdc500dbeff4557b",
+        "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+        "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+        "placementGeneration": 0,
+        "placement": "two-device-layer-partition",
+        "splitLayer": 4,
+        "activationBytes": 155648,
+        "stopReason": "eos-token",
+        "settlement": {
+          "identity": {
+            "modelId": "qwen-3-5-2b-q4k-ehaf16",
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+            "threadId": "208c9344-35a9-4737-9989-c52a13262908",
+            "attemptId": "533ddf0d-a18f-4655-8866-58a50e38f50c",
+            "participantA": "peer:14d87c81fdc500dbeff4557b",
+            "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+            "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+            "placementGeneration": 0
+          },
+          "phase": "completed",
+          "startedAt": 1791600512384,
+          "failure": null,
+          "reservations": [
+            {
+              "identity": {
+                "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+                "participantA": "peer:14d87c81fdc500dbeff4557b",
+                "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+                "modelId": "qwen-3-5-2b-q4k-ehaf16",
+                "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "threadId": "208c9344-35a9-4737-9989-c52a13262908",
+                "attemptId": "533ddf0d-a18f-4655-8866-58a50e38f50c",
+                "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:14d87c81fdc500dbeff4557b",
+              "index": 0,
+              "phase": "reserved",
+              "reservedAt": 1791600512382,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "modelId": "qwen-3-5-2b-q4k-ehaf16",
+                "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+                "threadId": "208c9344-35a9-4737-9989-c52a13262908",
+                "attemptId": "533ddf0d-a18f-4655-8866-58a50e38f50c",
+                "participantA": "peer:14d87c81fdc500dbeff4557b",
+                "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+                "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+              "index": 1,
+              "phase": "reserved",
+              "reservedAt": 1791600512379,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            }
+          ],
+          "cleanupStartedAt": 1791600513625,
+          "cleanupSettledAt": 1791600513648,
+          "cleanup": [
+            {
+              "participantId": "peer:14d87c81fdc500dbeff4557b",
+              "status": "settled",
+              "settledAt": 1791600513626,
+              "error": null
+            },
+            {
+              "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+              "status": "settled",
+              "settledAt": 1791600513648,
+              "error": null
+            }
+          ]
+        },
+        "provider": "peer",
+        "stepSummary": {
+          "count": 2,
+          "metrics": {
+            "localStepMs": {
+              "count": 2,
+              "total": 66.60000038146973,
+              "min": 10.100000381469727,
+              "max": 56.5
+            },
+            "serializationMs": {
+              "count": 2,
+              "total": 0.10000038146972656,
+              "min": 0,
+              "max": 0.10000038146972656
+            },
+            "remoteStepMs": {
+              "count": 2,
+              "total": 683.6999988555908,
+              "min": 123.29999923706055,
+              "max": 560.3999996185303
+            },
+            "elapsedMs": {
+              "count": 2,
+              "total": 752.0999994277954,
+              "min": 134.19999980926514,
+              "max": 617.8999996185303
+            },
+            "computationA.inputUploadMs": {
+              "count": 2,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.encodeMs": {
+              "count": 2,
+              "total": 43.40000057220459,
+              "min": 4.100000381469727,
+              "max": 39.30000019073486
+            },
+            "computationA.submitWaitMs": {
+              "count": 2,
+              "total": 16.899999618530273,
+              "min": 4.199999809265137,
+              "max": 12.699999809265137
+            },
+            "computationA.activationReadbackMs": {
+              "count": 2,
+              "total": 2.90000057220459,
+              "min": 0.40000057220458984,
+              "max": 2.5
+            },
+            "computationA.logitsMs": {
+              "count": 2,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.executionMs": {
+              "count": 2,
+              "total": 63.80000019073486,
+              "min": 9,
+              "max": 54.80000019073486
+            },
+            "computationA.logitsReadbackMs": {
+              "count": 2,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.samplingMs": {
+              "count": 2,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationB.inputUploadMs": {
+              "count": 2,
+              "total": 0.20000004768371582,
+              "min": 0,
+              "max": 0.20000004768371582
+            },
+            "computationB.encodeMs": {
+              "count": 2,
+              "total": 91.60000002384186,
+              "min": 7.099999904632568,
+              "max": 84.50000011920929
+            },
+            "computationB.submitWaitMs": {
+              "count": 2,
+              "total": 287.69999980926514,
+              "min": 33.89999997615814,
+              "max": 253.799999833107
+            },
+            "computationB.activationReadbackMs": {
+              "count": 2,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationB.logitsMs": {
+              "count": 2,
+              "total": 0.6000001430511475,
+              "min": 0.30000007152557373,
+              "max": 0.30000007152557373
+            },
+            "computationB.executionMs": {
+              "count": 2,
+              "total": 380.40000009536743,
+              "min": 41.60000002384186,
+              "max": 338.8000000715256
+            },
+            "computationB.logitsReadbackMs": {
+              "count": 2,
+              "total": 55.99999988079071,
+              "min": 12.299999952316284,
+              "max": 43.699999928474426
+            },
+            "computationB.samplingMs": {
+              "count": 2,
+              "total": 8.600000023841858,
+              "min": 2.5,
+              "max": 6.100000023841858
+            },
+            "transportTiming.authorizationMs": {
+              "count": 2,
+              "total": 0.5,
+              "min": 0.19999980926513672,
+              "max": 0.3000001907348633
+            },
+            "transportTiming.readyWaitMs": {
+              "count": 2,
+              "total": 44.59999942779541,
+              "min": 15.899999618530273,
+              "max": 28.699999809265137
+            },
+            "transportTiming.payloadUploadMs": {
+              "count": 2,
+              "total": 1.3999996185302734,
+              "min": 0.5,
+              "max": 0.8999996185302734
+            },
+            "transportTiming.responseWaitMs": {
+              "count": 2,
+              "total": 635.2000007629395,
+              "min": 105.80000019073486,
+              "max": 529.4000005722046
+            },
+            "transportTiming.acceptanceMs": {
+              "count": 2,
+              "total": 1.3999996185302734,
+              "min": 0.6999998092651367,
+              "max": 0.6999998092651367
+            },
+            "transportTiming.totalMs": {
+              "count": 2,
+              "total": 683.0999994277954,
+              "min": 123.09999942779541,
+              "max": 560
+            }
+          },
+          "detail": "aggregate; no per-step trace transferred"
+        },
+        "memoryAtLastStep": {
+          "computationA": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1232861096,
+            "peakBytes": 1240917672,
+            "categories": {
+              "weights": 1146343424,
+              "attention": 67444928,
+              "recurrent": 7077888,
+              "other": 11994856
+            }
+          },
+          "computationB": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1324626024,
+            "peakBytes": 1327830568,
+            "categories": {
+              "weights": 932192256,
+              "attention": 337223872,
+              "recurrent": 35389440,
+              "other": 19820456
+            }
+          }
+        },
+        "transport": {
+          "schema": "reploid.partition-channel/v1",
+          "sentFrameBytes": 622761,
+          "receivedFrameBytes": 24400,
+          "sentFrames": 69,
+          "receivedFrames": 52,
+          "completedRequests": 26,
+          "cancelledRequests": 0,
+          "discardedFrames": 0,
+          "pendingRequests": 1,
+          "inboundRequests": 0,
+          "reservedBytes": 8192,
+          "closed": false,
+          "wireBytes": null,
+          "relayBytes": null
+        },
+        "selection": {
+          "transportId": "f9d7990f-3511-44dc-97b1-1b25653a8469",
+          "eligibility": [
+            {
+              "participantId": "peer:72da6c9c159cda36635ce7d3",
+              "transportId": "78bc050d-e554-4486-b5ee-fc262a654264",
+              "reason": "no-prepared-path",
+              "eligible": false,
+              "capacity": null
+            },
+            {
+              "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+              "transportId": "30fb9074-ed37-485e-94ef-e66c6a3d28d7",
+              "reason": "no-prepared-path",
+              "eligible": false,
+              "capacity": {
+                "active": 0,
+                "availableSlots": 2,
+                "closed": false
+              }
+            },
+            {
+              "participantId": "peer:14d87c81fdc500dbeff4557b",
+              "transportId": "f9d7990f-3511-44dc-97b1-1b25653a8469",
+              "reason": "reservation-required",
+              "eligible": true,
+              "capacity": {
+                "active": 0,
+                "availableSlots": 2,
+                "closed": false
+              }
+            }
+          ]
+        }
+      },
+      "authorization": {
+        "kind": "once",
+        "grantId": null,
+        "peerId": "peer:14d87c81fdc500dbeff4557b",
+        "recipientIdentity": "peer:14d87c81fdc500dbeff4557b"
+      },
+      "request": {
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "partitionSplitLayer": 4,
+          "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "source": {
+            "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+            "files": [
+              {
+                "path": "manifest.json",
+                "role": "model-manifest",
+                "sizeBytes": 183803,
+                "hashAlgorithm": "sha256",
+                "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+              },
+              {
+                "path": "tokenizer.json",
+                "role": "tokenizer",
+                "sizeBytes": 9088480,
+                "hashAlgorithm": "sha256",
+                "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+              },
+              {
+                "path": "qwen-2b-pieces.json",
+                "role": "model-piece-index",
+                "sizeBytes": 111108,
+                "hashAlgorithm": "sha256",
+                "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                "url": "/config/model-pieces/qwen-2b-pieces.json"
+              }
+            ]
+          },
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "recommended": true,
+          "adapters": [],
+          "packageName": "doppler-gpu",
+          "packageVersion": "0.6.23",
+          "generation": {
+            "maxTokens": 4096,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "maxSeqLen": 8192
+          },
+          "selectionId": "qwen-3-5-2b-q4k-ehaf16/partition/sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+          "partition": {
+            "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+            "participantA": "peer:14d87c81fdc500dbeff4557b",
+            "participantB": "peer:168b6b2fa5f2b79ce4b75b72"
+          },
+          "availability": "ready",
+          "providerIds": [
+            "peer:14d87c81fdc500dbeff4557b",
+            "peer:168b6b2fa5f2b79ce4b75b72"
+          ],
+          "placement": "two-device-layer-partition"
+        },
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "members": [
+          "local-user"
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "Return only the word YES."
+          }
+        ]
+      }
+    }
+  },
+  "beforeCancellation": {
+    "survivor": {
+      "id": "25e05ef4-f108-4bd8-a872-3e3ef1560f4e",
+      "threadId": "503158c3-2985-4739-a7f5-7b67b210e659",
+      "userMessageId": "ecc1e5b0-a3f2-4a23-bf70-4c35063f46ea",
+      "responseId": "a09d18f6-943a-4d28-9927-bcdacc59ae53",
+      "retryOf": null,
+      "status": "executing",
+      "createdAt": 1791600521385,
+      "finishedAt": null,
+      "error": null,
+      "approval": null,
+      "execution": {
+        "placement": "two-device-layer-partition",
+        "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+        "participantA": "peer:14d87c81fdc500dbeff4557b",
+        "participantB": "peer:168b6b2fa5f2b79ce4b75b72"
+      },
+      "authorization": {
+        "kind": "once",
+        "grantId": null,
+        "peerId": "peer:14d87c81fdc500dbeff4557b",
+        "recipientIdentity": "peer:14d87c81fdc500dbeff4557b"
+      },
+      "request": {
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "partitionSplitLayer": 4,
+          "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "source": {
+            "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+            "files": [
+              {
+                "path": "manifest.json",
+                "role": "model-manifest",
+                "sizeBytes": 183803,
+                "hashAlgorithm": "sha256",
+                "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+              },
+              {
+                "path": "tokenizer.json",
+                "role": "tokenizer",
+                "sizeBytes": 9088480,
+                "hashAlgorithm": "sha256",
+                "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+              },
+              {
+                "path": "qwen-2b-pieces.json",
+                "role": "model-piece-index",
+                "sizeBytes": 111108,
+                "hashAlgorithm": "sha256",
+                "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                "url": "/config/model-pieces/qwen-2b-pieces.json"
+              }
+            ]
+          },
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "recommended": true,
+          "adapters": [],
+          "packageName": "doppler-gpu",
+          "packageVersion": "0.6.23",
+          "generation": {
+            "maxTokens": 4096,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "maxSeqLen": 8192
+          },
+          "selectionId": "qwen-3-5-2b-q4k-ehaf16/partition/sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+          "partition": {
+            "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+            "participantA": "peer:14d87c81fdc500dbeff4557b",
+            "participantB": "peer:168b6b2fa5f2b79ce4b75b72"
+          },
+          "availability": "ready",
+          "providerIds": [
+            "peer:14d87c81fdc500dbeff4557b",
+            "peer:168b6b2fa5f2b79ce4b75b72"
+          ],
+          "placement": "two-device-layer-partition"
+        },
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "members": [
+          "local-user"
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "Count from one to two hundred, one number per line."
+          }
+        ]
+      }
+    },
+    "cancelled": {
+      "id": "35d8e211-49da-44c7-a6d5-1fe81f44e254",
+      "threadId": "1a148951-1ed4-47d0-85ca-ae70fc3e6629",
+      "userMessageId": "5b2fb1eb-4396-4cdc-9cbc-b15175febf85",
+      "responseId": "290e1ec3-2dbd-484b-a662-74e9c6f3dca1",
+      "retryOf": null,
+      "status": "executing",
+      "createdAt": 1791600521634,
+      "finishedAt": null,
+      "error": null,
+      "approval": null,
+      "execution": {
+        "placement": "two-device-layer-partition",
+        "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+        "participantA": "peer:14d87c81fdc500dbeff4557b",
+        "participantB": "peer:168b6b2fa5f2b79ce4b75b72"
+      },
+      "authorization": {
+        "kind": "once",
+        "grantId": null,
+        "peerId": "peer:14d87c81fdc500dbeff4557b",
+        "recipientIdentity": "peer:14d87c81fdc500dbeff4557b"
+      },
+      "request": {
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "partitionSplitLayer": 4,
+          "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "source": {
+            "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+            "files": [
+              {
+                "path": "manifest.json",
+                "role": "model-manifest",
+                "sizeBytes": 183803,
+                "hashAlgorithm": "sha256",
+                "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+              },
+              {
+                "path": "tokenizer.json",
+                "role": "tokenizer",
+                "sizeBytes": 9088480,
+                "hashAlgorithm": "sha256",
+                "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+              },
+              {
+                "path": "qwen-2b-pieces.json",
+                "role": "model-piece-index",
+                "sizeBytes": 111108,
+                "hashAlgorithm": "sha256",
+                "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                "url": "/config/model-pieces/qwen-2b-pieces.json"
+              }
+            ]
+          },
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "recommended": true,
+          "adapters": [],
+          "packageName": "doppler-gpu",
+          "packageVersion": "0.6.23",
+          "generation": {
+            "maxTokens": 4096,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "maxSeqLen": 8192
+          },
+          "selectionId": "qwen-3-5-2b-q4k-ehaf16/partition/sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+          "partition": {
+            "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+            "participantA": "peer:14d87c81fdc500dbeff4557b",
+            "participantB": "peer:168b6b2fa5f2b79ce4b75b72"
+          },
+          "availability": "ready",
+          "providerIds": [
+            "peer:14d87c81fdc500dbeff4557b",
+            "peer:168b6b2fa5f2b79ce4b75b72"
+          ],
+          "placement": "two-device-layer-partition"
+        },
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "members": [
+          "local-user"
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "Count from one to one hundred, writing every number on its own line."
+          }
+        ]
+      }
+    }
+  },
+  "afterCancellation": {
+    "survivor": {
+      "id": "25e05ef4-f108-4bd8-a872-3e3ef1560f4e",
+      "threadId": "503158c3-2985-4739-a7f5-7b67b210e659",
+      "userMessageId": "ecc1e5b0-a3f2-4a23-bf70-4c35063f46ea",
+      "responseId": "a09d18f6-943a-4d28-9927-bcdacc59ae53",
+      "retryOf": null,
+      "status": "completed",
+      "createdAt": 1791600521385,
+      "finishedAt": 1791600582207,
+      "error": null,
+      "approval": null,
+      "execution": {
+        "schema": "reploid.mesh.partition-summary/v1",
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+        "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+        "threadId": "503158c3-2985-4739-a7f5-7b67b210e659",
+        "attemptId": "25e05ef4-f108-4bd8-a872-3e3ef1560f4e",
+        "participantA": "peer:14d87c81fdc500dbeff4557b",
+        "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+        "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+        "placementGeneration": 0,
+        "placement": "two-device-layer-partition",
+        "splitLayer": 4,
+        "activationBytes": 3235840,
+        "stopReason": "eos-token",
+        "settlement": {
+          "identity": {
+            "modelId": "qwen-3-5-2b-q4k-ehaf16",
+            "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+            "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+            "threadId": "503158c3-2985-4739-a7f5-7b67b210e659",
+            "attemptId": "25e05ef4-f108-4bd8-a872-3e3ef1560f4e",
+            "participantA": "peer:14d87c81fdc500dbeff4557b",
+            "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+            "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+            "placementGeneration": 0
+          },
+          "phase": "completed",
+          "startedAt": 1791600521594,
+          "failure": null,
+          "reservations": [
+            {
+              "identity": {
+                "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+                "participantA": "peer:14d87c81fdc500dbeff4557b",
+                "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+                "modelId": "qwen-3-5-2b-q4k-ehaf16",
+                "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "threadId": "503158c3-2985-4739-a7f5-7b67b210e659",
+                "attemptId": "25e05ef4-f108-4bd8-a872-3e3ef1560f4e",
+                "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:14d87c81fdc500dbeff4557b",
+              "index": 0,
+              "phase": "reserved",
+              "reservedAt": 1791600521591,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "modelId": "qwen-3-5-2b-q4k-ehaf16",
+                "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+                "threadId": "503158c3-2985-4739-a7f5-7b67b210e659",
+                "attemptId": "25e05ef4-f108-4bd8-a872-3e3ef1560f4e",
+                "participantA": "peer:14d87c81fdc500dbeff4557b",
+                "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+                "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+              "index": 1,
+              "phase": "reserved",
+              "reservedAt": 1791600521585,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            }
+          ],
+          "cleanupStartedAt": 1791600582181,
+          "cleanupSettledAt": 1791600582197,
+          "cleanup": [
+            {
+              "participantId": "peer:14d87c81fdc500dbeff4557b",
+              "status": "settled",
+              "settledAt": 1791600582181,
+              "error": null
+            },
+            {
+              "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+              "status": "settled",
+              "settledAt": 1791600582196,
+              "error": null
+            }
+          ]
+        },
+        "provider": "peer",
+        "stepSummary": {
+          "count": 372,
+          "metrics": {
+            "localStepMs": {
+              "count": 372,
+              "total": 3754.700015068054,
+              "min": 6,
+              "max": 55.40000057220459
+            },
+            "serializationMs": {
+              "count": 372,
+              "total": 10.899992942810059,
+              "min": 0,
+              "max": 0.20000076293945312
+            },
+            "remoteStepMs": {
+              "count": 372,
+              "total": 55250.60000324249,
+              "min": 99.90000057220459,
+              "max": 511.8999996185303
+            },
+            "elapsedMs": {
+              "count": 372,
+              "total": 59333.90000247955,
+              "min": 110,
+              "max": 568.4000005722046
+            },
+            "computationA.inputUploadMs": {
+              "count": 372,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.encodeMs": {
+              "count": 372,
+              "total": 940.1000003814697,
+              "min": 2,
+              "max": 38.40000057220459
+            },
+            "computationA.submitWaitMs": {
+              "count": 372,
+              "total": 1781.2999982833862,
+              "min": 2.5,
+              "max": 12.699999809265137
+            },
+            "computationA.activationReadbackMs": {
+              "count": 372,
+              "total": 572.2000179290771,
+              "min": 0.10000038146972656,
+              "max": 21.700000762939453
+            },
+            "computationA.logitsMs": {
+              "count": 372,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.executionMs": {
+              "count": 372,
+              "total": 3363.9999856948853,
+              "min": 5.100000381469727,
+              "max": 53.80000019073486
+            },
+            "computationA.logitsReadbackMs": {
+              "count": 372,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.samplingMs": {
+              "count": 372,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationB.inputUploadMs": {
+              "count": 372,
+              "total": 3.999999761581421,
+              "min": 0,
+              "max": 0.10000002384185791
+            },
+            "computationB.encodeMs": {
+              "count": 372,
+              "total": 4563.500000476837,
+              "min": 4.5,
+              "max": 58.799999952316284
+            },
+            "computationB.submitWaitMs": {
+              "count": 372,
+              "total": 17024.099999547005,
+              "min": 25.600000023841858,
+              "max": 222.0000001192093
+            },
+            "computationB.activationReadbackMs": {
+              "count": 372,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationB.logitsMs": {
+              "count": 372,
+              "total": 193.99999964237213,
+              "min": 0.19999992847442627,
+              "max": 1.100000023841858
+            },
+            "computationB.executionMs": {
+              "count": 372,
+              "total": 21909.59999895096,
+              "min": 34.199999928474426,
+              "max": 281.2000000476837
+            },
+            "computationB.logitsReadbackMs": {
+              "count": 372,
+              "total": 6479.600000977516,
+              "min": 9.699999928474426,
+              "max": 52.799999952316284
+            },
+            "computationB.samplingMs": {
+              "count": 372,
+              "total": 916.5000011920929,
+              "min": 1.5,
+              "max": 4.299999952316284
+            },
+            "transportTiming.authorizationMs": {
+              "count": 372,
+              "total": 121.60000228881836,
+              "min": 0.09999942779541016,
+              "max": 0.7000007629394531
+            },
+            "transportTiming.readyWaitMs": {
+              "count": 372,
+              "total": 7556.199995040894,
+              "min": 10.799999237060547,
+              "max": 200.60000038146973
+            },
+            "transportTiming.payloadUploadMs": {
+              "count": 372,
+              "total": 237.19999408721924,
+              "min": 0.10000038146972656,
+              "max": 1.4000005722045898
+            },
+            "transportTiming.responseWaitMs": {
+              "count": 372,
+              "total": 46963.20000362396,
+              "min": 78.80000019073486,
+              "max": 487.20000076293945
+            },
+            "transportTiming.acceptanceMs": {
+              "count": 372,
+              "total": 291.50000858306885,
+              "min": 0.3000001907348633,
+              "max": 1.3000001907348633
+            },
+            "transportTiming.totalMs": {
+              "count": 372,
+              "total": 55169.70000362396,
+              "min": 99.60000038146973,
+              "max": 511.69999980926514
+            }
+          },
+          "detail": "aggregate; no per-step trace transferred"
+        },
+        "memoryAtLastStep": {
+          "computationA": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1195239720,
+            "peakBytes": 1244741864,
+            "categories": {
+              "weights": 1146343424,
+              "attention": 33752336,
+              "recurrent": 3538944,
+              "other": 11605016
+            }
+          },
+          "computationB": {
+            "maxBytes": 1420000000,
+            "liveBytes": 1136489064,
+            "peakBytes": 1331917048,
+            "categories": {
+              "weights": 932192256,
+              "attention": 168756496,
+              "recurrent": 17694720,
+              "other": 17845592
+            }
+          }
+        },
+        "transport": {
+          "schema": "reploid.partition-channel/v1",
+          "sentFrameBytes": 5846249,
+          "receivedFrameBytes": 553373,
+          "sentFrames": 955,
+          "receivedFrames": 922,
+          "completedRequests": 460,
+          "cancelledRequests": 1,
+          "discardedFrames": 1,
+          "pendingRequests": 0,
+          "inboundRequests": 0,
+          "reservedBytes": 0,
+          "closed": false,
+          "wireBytes": null,
+          "relayBytes": null
+        },
+        "selection": {
+          "transportId": "f9d7990f-3511-44dc-97b1-1b25653a8469",
+          "eligibility": [
+            {
+              "participantId": "peer:72da6c9c159cda36635ce7d3",
+              "transportId": "78bc050d-e554-4486-b5ee-fc262a654264",
+              "reason": "no-prepared-path",
+              "eligible": false,
+              "capacity": null
+            },
+            {
+              "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+              "transportId": "30fb9074-ed37-485e-94ef-e66c6a3d28d7",
+              "reason": "no-prepared-path",
+              "eligible": false,
+              "capacity": {
+                "active": 1,
+                "availableSlots": 1,
+                "closed": false
+              }
+            },
+            {
+              "participantId": "peer:14d87c81fdc500dbeff4557b",
+              "transportId": "f9d7990f-3511-44dc-97b1-1b25653a8469",
+              "reason": "reservation-required",
+              "eligible": true,
+              "capacity": {
+                "active": 1,
+                "availableSlots": 1,
+                "closed": false
+              }
+            }
+          ]
+        }
+      },
+      "authorization": {
+        "kind": "once",
+        "grantId": null,
+        "peerId": "peer:14d87c81fdc500dbeff4557b",
+        "recipientIdentity": "peer:14d87c81fdc500dbeff4557b"
+      },
+      "request": {
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "partitionSplitLayer": 4,
+          "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "source": {
+            "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+            "files": [
+              {
+                "path": "manifest.json",
+                "role": "model-manifest",
+                "sizeBytes": 183803,
+                "hashAlgorithm": "sha256",
+                "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+              },
+              {
+                "path": "tokenizer.json",
+                "role": "tokenizer",
+                "sizeBytes": 9088480,
+                "hashAlgorithm": "sha256",
+                "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+              },
+              {
+                "path": "qwen-2b-pieces.json",
+                "role": "model-piece-index",
+                "sizeBytes": 111108,
+                "hashAlgorithm": "sha256",
+                "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                "url": "/config/model-pieces/qwen-2b-pieces.json"
+              }
+            ]
+          },
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "recommended": true,
+          "adapters": [],
+          "packageName": "doppler-gpu",
+          "packageVersion": "0.6.23",
+          "generation": {
+            "maxTokens": 4096,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "maxSeqLen": 8192
+          },
+          "selectionId": "qwen-3-5-2b-q4k-ehaf16/partition/sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+          "partition": {
+            "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+            "participantA": "peer:14d87c81fdc500dbeff4557b",
+            "participantB": "peer:168b6b2fa5f2b79ce4b75b72"
+          },
+          "availability": "ready",
+          "providerIds": [
+            "peer:14d87c81fdc500dbeff4557b",
+            "peer:168b6b2fa5f2b79ce4b75b72"
+          ],
+          "placement": "two-device-layer-partition"
+        },
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "members": [
+          "local-user"
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "Count from one to two hundred, one number per line."
+          }
+        ]
+      }
+    },
+    "cancelled": {
+      "id": "35d8e211-49da-44c7-a6d5-1fe81f44e254",
+      "threadId": "1a148951-1ed4-47d0-85ca-ae70fc3e6629",
+      "userMessageId": "5b2fb1eb-4396-4cdc-9cbc-b15175febf85",
+      "responseId": "290e1ec3-2dbd-484b-a662-74e9c6f3dca1",
+      "retryOf": null,
+      "status": "cancelled",
+      "createdAt": 1791600521634,
+      "finishedAt": 1791600523803,
+      "error": "Response stopped",
+      "approval": null,
+      "execution": {
+        "placement": "two-device-layer-partition",
+        "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+        "participantA": "peer:14d87c81fdc500dbeff4557b",
+        "participantB": "peer:168b6b2fa5f2b79ce4b75b72"
+      },
+      "authorization": {
+        "kind": "once",
+        "grantId": null,
+        "peerId": "peer:14d87c81fdc500dbeff4557b",
+        "recipientIdentity": "peer:14d87c81fdc500dbeff4557b"
+      },
+      "request": {
+        "model": {
+          "id": "qwen-3-5-2b-q4k-ehaf16",
+          "name": "Qwen 3.5 2B",
+          "partitionSplitLayer": 4,
+          "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "source": {
+            "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+            "files": [
+              {
+                "path": "manifest.json",
+                "role": "model-manifest",
+                "sizeBytes": 183803,
+                "hashAlgorithm": "sha256",
+                "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+                "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+              },
+              {
+                "path": "tokenizer.json",
+                "role": "tokenizer",
+                "sizeBytes": 9088480,
+                "hashAlgorithm": "sha256",
+                "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+              },
+              {
+                "path": "qwen-2b-pieces.json",
+                "role": "model-piece-index",
+                "sizeBytes": 111108,
+                "hashAlgorithm": "sha256",
+                "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+                "url": "/config/model-pieces/qwen-2b-pieces.json"
+              }
+            ]
+          },
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "recommended": true,
+          "adapters": [],
+          "packageName": "doppler-gpu",
+          "packageVersion": "0.6.23",
+          "generation": {
+            "maxTokens": 4096,
+            "temperature": 0,
+            "topK": 1,
+            "topP": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "stopSequences": [],
+            "useChatTemplate": true,
+            "maxSeqLen": 8192
+          },
+          "selectionId": "qwen-3-5-2b-q4k-ehaf16/partition/sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+          "partition": {
+            "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+            "participantA": "peer:14d87c81fdc500dbeff4557b",
+            "participantB": "peer:168b6b2fa5f2b79ce4b75b72"
+          },
+          "availability": "ready",
+          "providerIds": [
+            "peer:14d87c81fdc500dbeff4557b",
+            "peer:168b6b2fa5f2b79ce4b75b72"
+          ],
+          "placement": "two-device-layer-partition"
+        },
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "members": [
+          "local-user"
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "Count from one to one hundred, writing every number on its own line."
+          }
+        ]
+      }
+    }
+  },
+  "reused": {
+    "id": "31a14e76-5eb5-48b7-ae16-97c533ad12a7",
+    "threadId": "f1ce420c-38a7-4bf8-bf28-2c0b215ffc78",
+    "userMessageId": "e4a30a12-eb91-48ee-a071-874624c1285d",
+    "responseId": "1cd50ae0-c1ca-45d5-b2ed-376b4d1b0b5b",
+    "retryOf": null,
+    "status": "completed",
+    "createdAt": 1791600582802,
+    "finishedAt": 1791600585318,
+    "error": null,
+    "approval": null,
+    "execution": {
+      "schema": "reploid.mesh.partition-summary/v1",
+      "modelId": "qwen-3-5-2b-q4k-ehaf16",
+      "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+      "threadId": "f1ce420c-38a7-4bf8-bf28-2c0b215ffc78",
+      "attemptId": "31a14e76-5eb5-48b7-ae16-97c533ad12a7",
+      "participantA": "peer:14d87c81fdc500dbeff4557b",
+      "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+      "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+      "placementGeneration": 0,
+      "placement": "two-device-layer-partition",
+      "splitLayer": 4,
+      "activationBytes": 417792,
+      "stopReason": "eos-token",
+      "settlement": {
+        "identity": {
+          "modelId": "qwen-3-5-2b-q4k-ehaf16",
+          "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+          "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+          "threadId": "f1ce420c-38a7-4bf8-bf28-2c0b215ffc78",
+          "attemptId": "31a14e76-5eb5-48b7-ae16-97c533ad12a7",
+          "participantA": "peer:14d87c81fdc500dbeff4557b",
+          "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+          "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+          "placementGeneration": 0
+        },
+        "phase": "completed",
+        "startedAt": 1791600583051,
+        "failure": null,
+        "reservations": [
+          {
+            "identity": {
+              "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+              "participantA": "peer:14d87c81fdc500dbeff4557b",
+              "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+              "modelId": "qwen-3-5-2b-q4k-ehaf16",
+              "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+              "threadId": "f1ce420c-38a7-4bf8-bf28-2c0b215ffc78",
+              "attemptId": "31a14e76-5eb5-48b7-ae16-97c533ad12a7",
+              "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:14d87c81fdc500dbeff4557b",
+            "index": 0,
+            "phase": "reserved",
+            "reservedAt": 1791600583048,
+            "settlingAt": null,
+            "settledAt": null,
+            "failure": null,
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          },
+          {
+            "identity": {
+              "modelId": "qwen-3-5-2b-q4k-ehaf16",
+              "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+              "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+              "threadId": "f1ce420c-38a7-4bf8-bf28-2c0b215ffc78",
+              "attemptId": "31a14e76-5eb5-48b7-ae16-97c533ad12a7",
+              "participantA": "peer:14d87c81fdc500dbeff4557b",
+              "participantB": "peer:168b6b2fa5f2b79ce4b75b72",
+              "requesterId": "peer:64cc23d35e6b1abc9b1d7231",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+            "index": 1,
+            "phase": "reserved",
+            "reservedAt": 1791600583042,
+            "settlingAt": null,
+            "settledAt": null,
+            "failure": null,
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ],
+        "cleanupStartedAt": 1791600585292,
+        "cleanupSettledAt": 1791600585310,
+        "cleanup": [
+          {
+            "participantId": "peer:14d87c81fdc500dbeff4557b",
+            "status": "settled",
+            "settledAt": 1791600585293,
+            "error": null
+          },
+          {
+            "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+            "status": "settled",
+            "settledAt": 1791600585310,
+            "error": null
+          }
+        ]
+      },
+      "provider": "peer",
+      "stepSummary": {
+        "count": 12,
+        "metrics": {
+          "localStepMs": {
+            "count": 12,
+            "total": 200.10000133514404,
+            "min": 7.699999809265137,
+            "max": 91.89999961853027
+          },
+          "serializationMs": {
+            "count": 12,
+            "total": 0.5999984741210938,
+            "min": 0,
+            "max": 0.19999980926513672
+          },
+          "remoteStepMs": {
+            "count": 12,
+            "total": 2012.9000024795532,
+            "min": 109.60000038146973,
+            "max": 700
+          },
+          "elapsedMs": {
+            "count": 12,
+            "total": 2223.9999980926514,
+            "min": 118.29999923706055,
+            "max": 793.3000001907349
+          },
+          "computationA.inputUploadMs": {
+            "count": 12,
+            "total": 0,
+            "min": 0,
+            "max": 0
+          },
+          "computationA.encodeMs": {
+            "count": 12,
+            "total": 93.59999942779541,
+            "min": 2.09999942779541,
+            "max": 67.30000019073486
+          },
+          "computationA.submitWaitMs": {
+            "count": 12,
+            "total": 71.90000057220459,
+            "min": 3.90000057220459,
+            "max": 19.600000381469727
+          },
+          "computationA.activationReadbackMs": {
+            "count": 12,
+            "total": 18.500000953674316,
+            "min": 0.3000001907348633,
+            "max": 3
+          },
+          "computationA.logitsMs": {
+            "count": 12,
+            "total": 0,
+            "min": 0,
+            "max": 0
+          },
+          "computationA.executionMs": {
+            "count": 12,
+            "total": 186.0999994277954,
+            "min": 6.699999809265137,
+            "max": 89.5
+          },
+          "computationA.logitsReadbackMs": {
+            "count": 12,
+            "total": 0,
+            "min": 0,
+            "max": 0
+          },
+          "computationA.samplingMs": {
+            "count": 12,
+            "total": 0,
+            "min": 0,
+            "max": 0
+          },
+          "computationB.inputUploadMs": {
+            "count": 12,
+            "total": 0.40000009536743164,
+            "min": 0,
+            "max": 0.20000004768371582
+          },
+          "computationB.encodeMs": {
+            "count": 12,
+            "total": 221.69999992847443,
+            "min": 4.699999928474426,
+            "max": 112.30000007152557
+          },
+          "computationB.submitWaitMs": {
+            "count": 12,
+            "total": 667.1999998092651,
+            "min": 29.5,
+            "max": 312.39999997615814
+          },
+          "computationB.activationReadbackMs": {
+            "count": 12,
+            "total": 0,
+            "min": 0,
+            "max": 0
+          },
+          "computationB.logitsMs": {
+            "count": 12,
+            "total": 5.700000047683716,
+            "min": 0.30000007152557373,
+            "max": 0.6000000238418579
+          },
+          "computationB.executionMs": {
+            "count": 12,
+            "total": 898.3000000715256,
+            "min": 34.699999928474426,
+            "max": 425.39999997615814
+          },
+          "computationB.logitsReadbackMs": {
+            "count": 12,
+            "total": 178.29999995231628,
+            "min": 10.799999952316284,
+            "max": 46.200000047683716
+          },
+          "computationB.samplingMs": {
+            "count": 12,
+            "total": 27.49999988079071,
+            "min": 1.5999999046325684,
+            "max": 2.700000047683716
+          },
+          "transportTiming.authorizationMs": {
+            "count": 12,
+            "total": 4.100000381469727,
+            "min": 0.19999980926513672,
+            "max": 0.8000001907348633
+          },
+          "transportTiming.readyWaitMs": {
+            "count": 12,
+            "total": 231.10000038146973,
+            "min": 15.59999942779541,
+            "max": 26.5
+          },
+          "transportTiming.payloadUploadMs": {
+            "count": 12,
+            "total": 7.599998474121094,
+            "min": 0.39999961853027344,
+            "max": 1.1000003814697266
+          },
+          "transportTiming.responseWaitMs": {
+            "count": 12,
+            "total": 1757.9000024795532,
+            "min": 91.10000038146973,
+            "max": 670.9000005722046
+          },
+          "transportTiming.acceptanceMs": {
+            "count": 12,
+            "total": 9.199999809265137,
+            "min": 0.39999961853027344,
+            "max": 1
+          },
+          "transportTiming.totalMs": {
+            "count": 12,
+            "total": 2009.900001525879,
+            "min": 109.30000019073486,
+            "max": 699.7000007629395
+          }
+        },
+        "detail": "aggregate; no per-step trace transferred"
+      },
+      "memoryAtLastStep": {
+        "computationA": {
+          "maxBytes": 1420000000,
+          "liveBytes": 1195370600,
+          "peakBytes": 1244741864,
+          "categories": {
+            "weights": 1146343424,
+            "attention": 33883328,
+            "recurrent": 3538944,
+            "other": 11604904
+          }
+        },
+        "computationB": {
+          "maxBytes": 1420000000,
+          "liveBytes": 1137144264,
+          "peakBytes": 1331917048,
+          "categories": {
+            "weights": 932192256,
+            "attention": 169411792,
+            "recurrent": 17694720,
+            "other": 17845496
+          }
+        }
+      },
+      "transport": {
+        "schema": "reploid.partition-channel/v1",
+        "sentFrameBytes": 6305732,
+        "receivedFrameBytes": 570410,
+        "sentFrames": 1003,
+        "receivedFrames": 954,
+        "completedRequests": 476,
+        "cancelledRequests": 1,
+        "discardedFrames": 1,
+        "pendingRequests": 0,
+        "inboundRequests": 0,
+        "reservedBytes": 0,
+        "closed": false,
+        "wireBytes": null,
+        "relayBytes": null
+      },
+      "selection": {
+        "transportId": "f9d7990f-3511-44dc-97b1-1b25653a8469",
+        "eligibility": [
+          {
+            "participantId": "peer:72da6c9c159cda36635ce7d3",
+            "transportId": "78bc050d-e554-4486-b5ee-fc262a654264",
+            "reason": "no-prepared-path",
+            "eligible": false,
+            "capacity": null
+          },
+          {
+            "participantId": "peer:168b6b2fa5f2b79ce4b75b72",
+            "transportId": "30fb9074-ed37-485e-94ef-e66c6a3d28d7",
+            "reason": "no-prepared-path",
+            "eligible": false,
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          },
+          {
+            "participantId": "peer:14d87c81fdc500dbeff4557b",
+            "transportId": "f9d7990f-3511-44dc-97b1-1b25653a8469",
+            "reason": "reservation-required",
+            "eligible": true,
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        ]
+      }
+    },
+    "authorization": {
+      "kind": "once",
+      "grantId": null,
+      "peerId": "peer:14d87c81fdc500dbeff4557b",
+      "recipientIdentity": "peer:14d87c81fdc500dbeff4557b"
+    },
+    "request": {
+      "model": {
+        "id": "qwen-3-5-2b-q4k-ehaf16",
+        "name": "Qwen 3.5 2B",
+        "partitionSplitLayer": 4,
+        "identity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+        "source": {
+          "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/977d145bf2478a7fb542e6aca65030585620ca60/models/qwen-3-5-2b-q4k-ehaf16/",
+          "files": [
+            {
+              "path": "manifest.json",
+              "role": "model-manifest",
+              "sizeBytes": 183803,
+              "hashAlgorithm": "sha256",
+              "hash": "83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+              "url": "/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+            },
+            {
+              "path": "tokenizer.json",
+              "role": "tokenizer",
+              "sizeBytes": 9088480,
+              "hashAlgorithm": "sha256",
+              "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+            },
+            {
+              "path": "qwen-2b-pieces.json",
+              "role": "model-piece-index",
+              "sizeBytes": 111108,
+              "hashAlgorithm": "sha256",
+              "hash": "fb16dcc36771b478d811e83b3fad453cd1ee23b8b01d33eb0b797412032109dc",
+              "url": "/config/model-pieces/qwen-2b-pieces.json"
+            }
+          ]
+        },
+        "provider": "doppler",
+        "contextLength": 262144,
+        "quantization": "q4k",
+        "size": "Q4K",
+        "recommended": true,
+        "adapters": [],
+        "packageName": "doppler-gpu",
+        "packageVersion": "0.6.23",
+        "generation": {
+          "maxTokens": 4096,
+          "temperature": 0,
+          "topK": 1,
+          "topP": 1,
+          "repetitionPenalty": 1.1,
+          "repetitionPenaltyWindow": 0,
+          "stopSequences": [],
+          "useChatTemplate": true,
+          "maxSeqLen": 8192
+        },
+        "selectionId": "qwen-3-5-2b-q4k-ehaf16/partition/sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+        "partition": {
+          "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+          "participantA": "peer:14d87c81fdc500dbeff4557b",
+          "participantB": "peer:168b6b2fa5f2b79ce4b75b72"
+        },
+        "availability": "ready",
+        "providerIds": [
+          "peer:14d87c81fdc500dbeff4557b",
+          "peer:168b6b2fa5f2b79ce4b75b72"
+        ],
+        "placement": "two-device-layer-partition"
+      },
+      "permissions": {
+        "sharingScope": "mesh"
+      },
+      "members": [
+        "local-user"
+      ],
+      "messages": [
+        {
+          "role": "user",
+          "content": "Greet me briefly."
+        },
+        {
+          "role": "assistant",
+          "content": "Hello! How can I help you today?"
+        },
+        {
+          "role": "user",
+          "content": "Say goodbye briefly."
+        }
+      ]
+    }
+  }
+}
