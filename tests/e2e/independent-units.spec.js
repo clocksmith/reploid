@@ -1,16 +1,45 @@
 import { test, expect, chromium } from '@playwright/test';
 import { createServer } from 'node:http';
-import { readFile, mkdtemp, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { createReadStream } from 'node:fs';
+import { createHash } from 'node:crypto';
 
-let server, origin;
+let server, origin, physicalConfig;
 test.beforeAll(async () => {
   const root = path.resolve('.');
   const installedRoot = process.env.REPLOID_UNITS_INSTALLED_ROOT ? path.resolve(process.env.REPLOID_UNITS_INSTALLED_ROOT) : null;
+  let runtimeRoot, capsuleRoot;
+  if (process.env.REPLOID_UNITS_PHYSICAL_CONFIG) {
+    const config = JSON.parse(await readFile(process.env.REPLOID_UNITS_PHYSICAL_CONFIG, 'utf8'));
+    const receipt = JSON.parse(await readFile(path.join(config.packageBundlePath, 'receipt.json'), 'utf8'));
+    const archive = await readFile(path.join(config.packageBundlePath, receipt.package.filename));
+    expect(createHash('sha256').update(archive).digest('hex')).toBe(receipt.package.sha256);
+    expect(receipt.passed).toBe(true);
+    const reference = JSON.parse(await readFile(config.referencePath, 'utf8'));
+    const capsule = JSON.parse(await readFile(config.capsulePath, 'utf8'));
+    physicalConfig = { config: { ...config, capsuleFilename: path.basename(config.capsulePath) },
+      reference, capsule, expectedReferenceDigest: config.application.oracle.digest, runtimePackage: receipt.package };
+    runtimeRoot = path.join(config.packageBundlePath, 'consumer/node_modules/doppler-gpu');
+    capsuleRoot = path.dirname(config.capsulePath);
+  }
   server = createServer(async (request, response) => {
     try {
       const pathname = new URL(request.url, 'http://localhost').pathname;
+      if (physicalConfig && pathname === '/physical/config.json') {
+        response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(physicalConfig)); return;
+      }
+      const mounted = physicalConfig && (pathname.startsWith('/src/') ? [runtimeRoot, pathname.slice(1)]
+        : pathname.startsWith('/capsule/') ? [capsuleRoot, decodeURIComponent(pathname.slice('/capsule/'.length))] : null);
+      if (mounted) {
+        const file = path.resolve(...mounted);
+        if (!file.startsWith(mounted[0] + path.sep)) { response.writeHead(403).end(); return; }
+        response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json'
+          : file.endsWith('.js') ? 'text/javascript' : 'application/octet-stream');
+        const stream = createReadStream(file);
+        stream.on('error', () => response.destroy()); stream.pipe(response); return;
+      }
       if (pathname === '/') {
         response.setHeader('Content-Type', 'text/html');
         response.end('<!doctype html><title>Independent units</title><script type="importmap">{"imports":{"reploid/jobs":"/packages/reploid/src/mesh/jobs/index.js"}}</script>');
@@ -30,6 +59,90 @@ test.beforeAll(async () => {
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
   origin = `http://127.0.0.1:${server.address().port}`;
+});
+
+test('physical signed embedding units retain independent source agreement across requester restart', async ({}, testInfo) => {
+  test.skip(!physicalConfig, 'Set REPLOID_UNITS_PHYSICAL_CONFIG to a currently eligible signed embedding qualification configuration.');
+  test.setTimeout(physicalConfig.config.timeoutMs);
+  const profile = await mkdtemp(path.join(tmpdir(), 'reploid-physical-independent-units-'));
+  let context;
+  let currentPage;
+  const open = async saved => {
+    context = await chromium.launchPersistentContext(profile, { headless: true, args: physicalConfig.config.launchArgs });
+    const page = await context.newPage();
+    currentPage = page;
+    await page.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+    await page.goto(origin);
+    await page.evaluate(async seed => {
+      const fixture = await import('/tests/fixtures/independent-units-physical.js');
+      window.units = await fixture.startPhysical(seed);
+    }, saved);
+    return page;
+  };
+  try {
+    let page = await open(null);
+    const first = await page.evaluate(async () => {
+      const state = await units.create('physical');
+      await units.current.runUnit('physical', state.pendingUnitIds.at(-1));
+      const lost = units.dropUntilCompletion();
+      window.lostDelivery = units.current.runUnit('physical', state.pendingUnitIds.at(-2)).catch(error => error.message);
+      await lost;
+      return { seed: await units.seed(), state: await units.current.get('physical'), calls: units.calls(),
+        gpu: units.gpu, semantics: units.semantics, releaseCheckpoint: units.releaseCheckpoint, buffers: units.buffers() };
+    });
+    expect(first.state.committedUnitIds).toHaveLength(1);
+    expect(first.calls).toEqual([2, 0]);
+    await context.close(); context = null;
+    page = await open(first.seed);
+    const final = await page.evaluate(async () => {
+      const restored = await units.current.get('physical');
+      units.select(1);
+      for (const unitId of restored.pendingUnitIds.toReversed()) await units.current.runUnit('physical', unitId);
+      const state = await units.current.get('physical');
+      await units.current.runUnit('physical', state.committedUnitIds.at(-1));
+      const evaluation = await units.evaluate('physical');
+      const completedCalls = units.calls();
+      const cancelledParent = await units.create('physical-cancel');
+      await units.current.runUnit('physical-cancel', cancelledParent.pendingUnitIds[0]);
+      const gate = units.holdNextPartial();
+      const submitted = units.current.runUnit('physical-cancel', cancelledParent.pendingUnitIds[1])
+        .then(() => 'accepted', error => error.message);
+      await gate.ready;
+      await units.current.cancel('physical-cancel');
+      gate.release();
+      const cancellationError = await submitted;
+      await units.closeProvider(1);
+      const cancellation = await units.current.get('physical-cancel');
+      units.select(0);
+      const recovery = await units.create('physical-recovery');
+      const recovered = await units.current.runUnit('physical-recovery', recovery.pendingUnitIds[0]);
+      const result = { restored, state, evaluation, calls: completedCalls, releaseCheckpoint: units.releaseCheckpoint,
+        cancellationError, cancellation, recovered, buffers: units.buffers() };
+      await units.close();
+      return result;
+    });
+    expect(final.restored.committedUnitIds).toEqual(first.state.committedUnitIds);
+    expect(final.state.status).toBe('completed');
+    expect(final.calls).toEqual([0, 4]);
+    expect(final.evaluation.comparison.passed).toBe(true);
+    expect(final.cancellationError).toContain('cancelled');
+    expect(final.cancellation).toMatchObject({ status: 'cancelled', output: null });
+    expect(final.cancellation.committedUnitIds).toHaveLength(1);
+    expect(final.recovered.committedUnitIds).toHaveLength(1);
+    expect(final.evaluation.record.units.every(unit => unit.outcome.result.execution.request.assignment !== null)).toBe(true);
+    const { seed: _ephemeralKeys, ...firstObservation } = first;
+    const report = { executionClass: 'physical-amd-signed-capsule-native-indexeddb',
+      operatorCount: 1, independentMachines: false, deployed: false, runtimePackage: physicalConfig.runtimePackage,
+      referenceDigest: physicalConfig.expectedReferenceDigest, first: firstObservation, final };
+    const reportPath = testInfo.outputPath('physical-independent-units.json');
+    await writeFile(reportPath, JSON.stringify(report, null, 2));
+    await testInfo.attach('physical-independent-units', { path: reportPath, contentType: 'application/json' });
+  } catch (error) {
+    const status = await currentPage?.evaluate(() => window.units?.status()).catch(() => null);
+    await testInfo.attach('physical-failure', { body: JSON.stringify({ error: error.message, status }, null, 2), contentType: 'application/json' });
+    console.error(JSON.stringify({ physicalFailure: error.message, status }));
+    throw error;
+  } finally { await context?.close(); await rm(profile, { recursive: true, force: true }); }
 });
 test.afterAll(async () => new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }));
 
@@ -142,6 +255,28 @@ test('aggregate binding collisions, conflicting duplicates and storage exhaustio
   expect(result.duplicate).toContain('conflicting duplicate');
   expect(result.budget).toContain('storage budget exhausted');
   expect(result.missing).toContain('not found');
+});
+
+test('execution and idempotent calls cannot disclose committed outputs without read permission', async ({ page }) => {
+  await start(page);
+  const result = await page.evaluate(async () => {
+    const state = await units.create('disclosure', ['private']);
+    units.allow(action => action !== 'read');
+    const id = state.pendingUnitIds[0];
+    const committed = await units.current.runUnit('disclosure', id).then(() => 'disclosed', error => error.message);
+    const record = await units.journal.get('disclosure');
+    const manifest = record.manifest;
+    const duplicateCreate = await units.current.create({ parentId: manifest.parentId, application: manifest.application,
+      ...manifest.binding, unitSize: 1, expiresAt: manifest.expiresAt }).then(() => 'disclosed', error => error.message);
+    const duplicateRun = await units.current.runUnit('disclosure', id).then(() => 'disclosed', error => error.message);
+    const cancellation = await units.current.cancel('disclosure').then(() => 'disclosed', error => error.message);
+    units.allow(true);
+    return { committed, duplicateCreate, duplicateRun, cancellation, final: await units.current.get('disclosure'), calls: units.calls() };
+  });
+  for (const key of ['committed', 'duplicateCreate', 'duplicateRun', 'cancellation']) expect(result[key]).toContain('authorization denied');
+  expect(result.final.status).toBe('completed');
+  expect(result.final.output.embeddings).toHaveLength(1);
+  expect(result.calls).toEqual([1, 0]);
 });
 
 test('bounds, expiry, revoked commit authority and the Verification Worker reject unsafe progress', async ({ page }) => {

@@ -49,10 +49,15 @@ unsupported `npm test -- --run`; a direct Vitest invocation without repository
 configuration lacked legacy aliases. The configured run passes. Updating the
 job charter required regenerating the component index.
 
-All vector computation here is synthetic. The tests prove orchestration,
+The original four scenarios use synthetic vector computation. They prove orchestration,
 signatures, storage and comparison enforcement, not model mathematics, physical
 inference, fresh delegated eligibility, independent operators or deployment.
 Application qualification and Doppler's additive batch-semantics declaration are
 separate evidence. The standard Doppler 0.6.27 archive is unchanged.
+
+The later [physical acceptance](physical/README.md) runs the same coordinator and
+signed jobs with the existing Qwen embedding Capsule. It retains the exact
+installed archives, independent source comparison, requester restart, actual
+submitted cancellation and settled recovery separately from these initial tests.
 
 *Last updated: October 2026*

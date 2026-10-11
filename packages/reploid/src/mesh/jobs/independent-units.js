@@ -39,7 +39,9 @@ export function createIndependentUnitCoordinator({ requesterId, journal, operati
     }
     return row;
   };
-  const collect = row => {
+  const collect = async row => {
+    // Compute, cancellation and idempotent creation do not grant saved-output disclosure.
+    if (row.status === 'completed') await permitted('read', row.manifest);
     const embeddings = new Array(row.manifest.binding.input.texts.length);
     for (const unit of row.units) if (unit.outcome) {
       const specification = row.manifest.units.find(value => value.unitId === unit.unitId);
