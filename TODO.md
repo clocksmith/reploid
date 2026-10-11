@@ -76,6 +76,8 @@ chat or deployment gates. Callback isolation in R5 has already landed.
 
   Enforcement: the [acceptance reporting correction](artifacts/reference-correction-20261011/README.md) separates frozen-runtime regression from independent accuracy. A passing captured fixture cannot produce a qualified numerical verdict or unblock ordinary application acceptance. Fifteen focused checks pass; neither fixture nor runtime arithmetic changes.
 
+  Contract clarification: the [independent evaluator](https://github.com/clocksmith/doppler/blob/815ed6cf/tools/qwen35-f64-reference.py) widens deployed weights and keeps intermediate arithmetic/state in F64, narrowing only stored K/V to F16. It does not round intermediate operations to the manifest's declared F32 policy. Its results are mathematical-accuracy diagnostics, not independent simulation of that F32 execution. A proposed accuracy contract may explicitly use this target; an F32 conformance contract must instead specify materialization, rounding, reduction/recurrence order and fused-operation policy. Neither choice qualifies the currently failing candidates or authorizes activating captured output.
+
 - [x] **9. Doppler and application: diagnose repetitive answers.**
   Replay the failing counting request through independent source-model computation with identical deployed weights and generation settings. Its uncancelled unsplit Doppler control reproduces the distributed prefix, so cancellation is not a necessary cause. Fix runtime differences if demonstrated; otherwise evaluate model or prompt changes on fresh tasks without weakening protected correctness cases.
 
