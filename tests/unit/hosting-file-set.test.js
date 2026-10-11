@@ -1,5 +1,6 @@
 // @vitest-environment node
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { promises as fs } from 'node:fs';
 import { mkdtemp, mkdir, readFile, writeFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -76,10 +77,20 @@ describe('Hosting dependency projection', () => {
     await put(selfDir, BROWSER_BUNDLE_DESCRIPTOR_PATH, JSON.stringify(await buildBrowserBundleManifest(entries)));
     const outputDir = path.join(root, 'output');
     await put(outputDir, 'retired.js', 'stale');
-    await packageHosting({ selfDir, outputDir });
+    const originalRemove = fs.rm.bind(fs);
+    const remove = vi.spyOn(fs, 'rm').mockImplementation(async (target, options) => {
+      // Reproduce a concurrent checkout edit after validation but before copy.
+      if (target === outputDir) {
+        await put(selfDir, prefix + 'src/index.js', 'export const ready = false;');
+        await put(selfDir, BROWSER_BUNDLE_DESCRIPTOR_PATH, '{}');
+      }
+      return originalRemove(target, options);
+    });
+    try { await packageHosting({ selfDir, outputDir }); } finally { remove.mockRestore(); }
     expect(await walkFiles(outputDir)).toEqual(files);
     expect(await readFile(path.join(outputDir, prefix + 'src/index.js'), 'utf8')).toBe('export const ready = true;');
-    await put(selfDir, prefix + 'src/index.js', 'export const ready = false;');
+    expect(JSON.parse(await readFile(path.join(outputDir, BROWSER_BUNDLE_DESCRIPTOR_PATH))))
+      .toEqual(await buildBrowserBundleManifest(entries));
     await expect(packageHosting({ selfDir, outputDir })).rejects.toThrow('Doppler asset differs from its archive');
     await put(selfDir, 'pool/pool-config.json', JSON.stringify({ browserRuntime: {
       dopplerModuleUrl: '/vendor/doppler/0.0.2/src/index.js',

@@ -104,6 +104,10 @@ const dopplerKernelDir = path.join(dopplerRootDir, 'src', 'gpu', 'kernels');
 // Load environment variables
 dotenv.config();
 
+// Physical acceptance may serve an owned snapshot of the ordinary Hosting
+// payload. All browser entry points and assets must use that same directory.
+const selfRootDir = path.resolve(process.env.REPLOID_STATIC_ROOT || path.join(__dirname, '..', 'self'));
+
 // Load unified configuration
 let appConfig = null;
 try {
@@ -676,7 +680,7 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use('/pool', express.static(path.join(__dirname, '..', 'self', 'pool'), {
+app.use('/pool', express.static(path.join(selfRootDir, 'pool'), {
   index: false,
   fallthrough: true
 }));
@@ -1672,17 +1676,17 @@ const sendUiFile = async (res, filePath) => {
 // Main routes
 app.get(PRODUCT_ROUTES, async (req, res) => {
   res.setHeader('X-Reploid-Experience', 'browser-inference-pool');
-  await sendUiFile(res, path.join(__dirname, '..', 'self', 'pool-entry.html'));
+  await sendUiFile(res, path.join(selfRootDir, 'pool-entry.html'));
 });
 
 app.get(CHANGE_PASSPORT_ROUTES, async (req, res) => {
   res.setHeader('X-Reploid-Experience', 'change-passport');
-  await sendUiFile(res, path.join(__dirname, '..', 'self', 'change-passport-entry.html'));
+  await sendUiFile(res, path.join(selfRootDir, 'change-passport-entry.html'));
 });
 
 app.get(SUBSTRATE_ROUTES, async (req, res) => {
   res.setHeader('X-Reploid-Experience', req.path === '/zero' ? 'zero' : 'x');
-  await sendUiFile(res, path.join(__dirname, '..', 'self', 'index.html'));
+  await sendUiFile(res, path.join(selfRootDir, 'index.html'));
 });
 
 app.get(['/doppler', '/doppler/'], (req, res) => {
@@ -1690,7 +1694,7 @@ app.get(['/doppler', '/doppler/'], (req, res) => {
 });
 
 app.get('/design', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'self', 'design.html'));
+  res.sendFile(path.join(selfRootDir, 'design.html'));
 });
 
 app.get('/SECURITY_AUDIT.md', (req, res) => {
@@ -1699,11 +1703,11 @@ app.get('/SECURITY_AUDIT.md', (req, res) => {
 });
 
 app.get(['/audit', '/audit/'], (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'self', 'audit.html'));
+  res.sendFile(path.join(selfRootDir, 'audit.html'));
 });
 
 app.get('/reset', (req, res) => {
-  res.sendFile(path.join(__dirname, '..', 'self', 'reset.html'));
+  res.sendFile(path.join(selfRootDir, 'reset.html'));
 });
 
 // Serve DOPPLER assets from the local runtime source of truth.
@@ -1730,7 +1734,7 @@ app.use('/gpu/kernels', express.static(dopplerKernelDir, {
   }
 }));
 
-app.use(express.static(path.join(__dirname, '..', 'self'), {
+app.use(express.static(selfRootDir, {
   setHeaders: (res, filePath) => {
     setStaticHeaders(res, filePath);
   }

@@ -132,6 +132,7 @@ let referenceGeneration = null;
 let referenceBinding = null;
 let modelFixtureHost = null;
 let conversationDeployment = null;
+let browserDelivery = null;
 const memory = [];
 // Freeze identities before starting any browser, rather than relabeling a run
 // with files that a developer may change while diagnosing its failure.
@@ -172,8 +173,9 @@ try {
     import { createHash } from 'node:crypto'; import { once } from 'node:events';
     import { spawn } from 'node:child_process';
     import { tmpdir } from 'node:os'; import { join, resolve } from 'node:path';
+    import { packageHosting } from './scripts/package-hosting.js';
     const contexts = [], profiles = [], endpoints = [];
-    let fixture = null, application = null;
+    let fixture = null, application = null, snapshot = null;
     const close = async () => {
       fixture?.server.closeAllConnections(); fixture?.server.close();
       await Promise.allSettled(contexts.map(context => context.close()));
@@ -183,14 +185,19 @@ try {
         const force = setTimeout(() => application.kill('SIGKILL'), 5000);
         await exited; clearTimeout(force);
       }
+      if (snapshot) await rm(snapshot, { recursive: true, force: true });
     };
     try {
       const bundle = JSON.parse(await readFile('self/config/browser-bundle-manifest.json'));
       if (bundle.bundleHash !== ${JSON.stringify(browserIdentity)}) throw Error('Physical peer browser package identity mismatch');
       const check = spawn(process.execPath, ['scripts/build-browser-bundle-manifest.js', '--check'], { stdio: 'inherit' });
       if ((await once(check, 'exit'))[0] !== 0) throw Error('Physical peer browser delivery differs from its standard package');
+      snapshot = await mkdtemp(join(tmpdir(), 'reploid-physical-assets-'));
+      const delivery = await packageHosting({ outputDir: join(snapshot, 'self') });
+      if (delivery.bundleHash !== ${JSON.stringify(browserIdentity)}) throw Error('Physical browser changed before snapshot');
       application = spawn(process.execPath, ['server/proxy.js'], { env: { ...process.env,
-        PORT: ${JSON.stringify(String(port))}, POOL_ALLOW_UNAUTHENTICATED_LOCAL: 'true', REPLOID_SKIP_CLOUD_ACCESS_BUILD: 'true'
+        PORT: ${JSON.stringify(String(port))}, POOL_ALLOW_UNAUTHENTICATED_LOCAL: 'true', REPLOID_SKIP_CLOUD_ACCESS_BUILD: 'true',
+        REPLOID_STATIC_ROOT: join(snapshot, 'self'), DECO_VISUAL_FEEDBACK: '0'
       }, stdio: ['ignore', 'pipe', 'pipe'] });
       application.stdout.pipe(process.stdout); application.stderr.pipe(process.stderr);
       await new Promise((done, reject) => {
@@ -216,7 +223,8 @@ try {
         const [port, path] = (await readFile(join(profile, 'DevToolsActivePort'), 'utf8')).trim().split(String.fromCharCode(10));
         endpoints.push('ws://127.0.0.1:' + port + path);
       }
-      console.log(JSON.stringify({ ws: endpoints[0], seed: endpoints[1], replacement: endpoints[2], fixturePort: fixture?.server.address().port || null }));
+      console.log(JSON.stringify({ ws: endpoints[0], seed: endpoints[1], replacement: endpoints[2], fixturePort: fixture?.server.address().port || null,
+        browserDelivery: { kind: 'verified-hosting-snapshot', bundleHash: delivery.bundleHash, fileCount: delivery.files.length } }));
       let closing = false;
       const stop = async () => { if (closing) return; closing = true; await close(); process.exit(); };
       process.stdin.resume(); process.stdin.on('end', stop); process.on('SIGTERM', stop); process.on('SIGINT', stop);
@@ -226,6 +234,7 @@ try {
   const endpoints = await waitForLine(remote, line => {
     try { const value = JSON.parse(line); return value.ws ? value : null; } catch { return null; }
   });
+  browserDelivery = localConversation ? endpoints.browserDelivery : { kind: 'configured-host' };
   const remoteUrl = new URL(endpoints.ws);
   const seedUrl = new URL(endpoints.seed), replacementUrl = new URL(endpoints.replacement);
   const seedSocketPort = await freePort(), replacementSocketPort = await freePort();
@@ -364,7 +373,7 @@ try {
   await Promise.all(logs.map(log => new Promise(done => log.end(done))));
 
   await writeFile(resolve(output, 'result.json'), JSON.stringify({ ok: !failure, failure, modelId, modelFixtureHost,
-    conversationBaseUrl, conversationDeployment,
+    conversationBaseUrl, conversationDeployment, browserDelivery,
     conversationTarget: localConversation ? 'isolated-loopback' : 'configured-host',
     scope: numericalDiagnostic ? probePrompt !== null
       ? 'Selected frozen-prompt boundary diagnostic; complete numerical and application qualification not exercised'
