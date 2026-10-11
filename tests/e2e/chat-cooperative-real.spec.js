@@ -425,7 +425,9 @@ test('one model executes cooperatively on discovered physical peers from selecti
         await save();
         expect(receipt.afterCancellation.survivor.id).toBe(receipt.beforeCancellation.survivor.id);
         expect(receipt.afterCancellation.survivor.execution.stopReason).toBe('eos-token');
-        expect(receipt.survivorQuality.passed, 'EOS must include every requested number through 200').toBe(true);
+        // Keep the application verdict failed, while collecting independent
+        // reuse/replacement evidence after this settled, incomplete answer.
+        expect.soft(receipt.survivorQuality.passed, 'EOS must include every requested number through 200').toBe(true);
         expect(receipt.afterCancellation.cancelled.status).toBe('cancelled');
         await requester.locator(`[data-thread-item-id="${firstThreadId}"]`).click();
         await requester.locator('[data-composer-input]').fill('Say goodbye briefly.');
