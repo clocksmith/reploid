@@ -203,6 +203,7 @@ test('Verification Worker accepts complete-job modules and modified execution bo
       'vendor/reploid/transport/introduction-admission.js',
       'vendor/reploid/transport/introduction-bootstrap.js', 'host/work-swarm.js',
       'host/chat-session.js', 'ui/pool-home/network-controls.js',
+      'host/work-partitions.js', 'host/work-partition-capsule.js', 'host/work-model-files.js',
       'host/work-session.js', 'host/work-task.js', 'host/work-view.js', 'host/work-repository.js',
       'providers/work-provider.js', 'config/surface-intents.js', 'config/surface-resources.js',
       'vendor/reploid/agent/lifecycle.js', 'vendor/reploid/agent/tool-dispatch.js',
