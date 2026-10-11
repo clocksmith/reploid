@@ -76,3 +76,8 @@ and model-EOS checks. `neutral-2b-linux.json.gz` retains outputs and identities.
 This does not reverse the rejected 0.8B candidate. The original count-to-200
 request will now be replayed against the 2B candidate without changing the
 protected request, expected output or production profile.
+
+The neutral 2B candidate also emits only 1 through 120 and EOS on the original
+counting request. `counting-neutral-2b-linux.json.gz` preserves its rejection.
+Passing short fresh tasks did not establish completion of this longer request.
+Production generation remains unchanged.
