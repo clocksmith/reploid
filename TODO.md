@@ -18,8 +18,10 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
 ## A. Preserve the completed foundations
 
-- [ ] **1. Both: keep one implementation and explicit ownership.**
+- [x] **1. Both: keep one implementation and explicit ownership.**
   Use one ordinary Doppler package and matching browser delivery, identified by archive digests rather than version names alone. Doppler owns computation and state; Reploid owns coordination, permissions, assignments and history; transport owns delivery. Keep existing layers and wire protocols. Record contract, physical execution, application quality and deployment acceptance separately.
+
+  Evidence: both checked-out consumers retain the identical standard 0.6.27 archive, SHA-256 `9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc`; generated delivery and installed-consumer checks pass in the [failure-category receipt](artifacts/partition-failure-categories-20261011/README.md). Ownership and separately scoped acceptance remain unchanged.
 
 - [x] **2. Reploid R1: preserve canonical identity validation.**
   Retain the shared binding in `partition-contract.js` and its use by `partition-step-receiver.js`. Validate all nine identity fields, requiring requester and placement fields together when supplied. Reject changed bindings during execution, duplicate handling, cancellation and settlement. Matching duplicates reuse retained results; changed inputs reject. Contributor replacement creates a new attempt.
@@ -61,10 +63,10 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
   Progress: channel lifetime repair and authenticated RTC/custody controls are retained in the [introduction receipt](artifacts/peer-introductions-20261010/README.md). Physical acquisition and generation interruption acceptance remains separate.
 
-- [ ] **12. Both: deliver useful, bounded failure information.**
+- [x] **12. Both: deliver useful, bounded failure information.**
   Carry sanitized error categories through the resident interface, `partition-peer.js` and chat adapter instead of flattening failures into “Partition peer declined or failed request.” Distinguish output allowance, unavailable capacity, authorization, connection and cleanup failures. Preserve partial output and actual stop reasons. Do not expose private prompts or unrestricted remote exception details.
 
-  Progress: [typed output-limit and legacy 0.6.27 compatibility controls](artifacts/distributed-closure-20261011/README.md) pass through the signed chat adapter; unknown remote text stays private. Verify the full category and physical-application requirements before closing this item.
+  Evidence: [complete bounded failure categories](artifacts/partition-failure-categories-20261011/README.md), 81 focused tests, 2,983 repository tests, 17 browser tests and installed-consumer checks. Signed chat retains partial output and charged capacity after failed cleanup. This closes the reporting contract; physical application acceptance remains in 14–15.
 
 - [ ] **13. Both: connect signed contracts to physical execution.**
   The last review found physical manifest-based execution but only synthetic signed-Capsule opening coverage. After numerical qualification, connect the existing Capsule-backed resident path in `self/host/work-partitions.js` to real selective piece acquisition. Verify partition-specific qualification and rejected-opening cleanup. Do not claim signed physical acceptance from manifest execution or introduce another release framework.

@@ -83,6 +83,34 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
       expect(f.factory.log.settlements.some(row => row.index === 1)).toBe(true);
     });
 
+  it('retains partial output and charged capacity when remote cleanup fails', async () => {
+    const f = await fixture();
+    const open = f.factory.openResidentPartition;
+    let rejectCleanup = true;
+    cleanup.push(() => { rejectCleanup = false; });
+    f.factory.openResidentPartition = async options => {
+      const session = await open(options);
+      return { ...session, async closeAttempt(request) {
+        if (options.index === 1 && rejectCleanup) throw new Error('private cleanup device details');
+        return session.closeAttempt(request);
+      } };
+    };
+    await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
+    await f.chat.refresh();
+    const session = host(f), thread = session.createThread({ model: f.chat.getModels()[0] });
+    const pending = session.send(thread, '1');
+    await vi.waitFor(() => expect(session.getState().threads.find(t => t.id === thread).attempts.at(-1)?.approval).toBeTruthy());
+    approve(session, thread);
+    expect((await pending).status).toBe('failed');
+    const state = session.getState().threads.find(t => t.id === thread);
+    expect(state.messages.at(-1).content).toBe('2 3 4 ');
+    expect(JSON.stringify(state)).toContain('cleanup is not confirmed');
+    expect(JSON.stringify(state)).not.toContain('private cleanup device details');
+    expect(f.supplier.getState().reservations.active).toBe(1);
+    expect(f.supplier.getState().reservations.records[0].settledAt).toBeNull();
+    rejectCleanup = false;
+  });
+
   it('keeps imports inert and requires explicit contribution before readiness', async () => {
     const f = await fixture();
     await f.chat.refresh();
@@ -293,7 +321,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     };
     const other = { ...f.binding, attemptId: 'other', threadId: 'other' };
     await reserve(f.remote, f.binding);
-    await expect(reserve(second, other)).rejects.toThrow('capacity exhausted');
+    await expect(reserve(second, other)).rejects.toMatchObject({ code: 'CAPACITY_UNAVAILABLE' });
     expect(f.factory.log.steps).toEqual([]);
     expect(f.supplier.getState().reservations.active).toBe(1);
     await f.remote.closeAttempt({ identity: f.binding });
@@ -317,7 +345,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     await f.local.prepare({ approved: true });
     f.local.reserve(f.binding);
     const closing = f.local.closeAttempt({ identity: f.binding });
-    const rejected = expect(closing).rejects.toThrow('cleanup refused');
+    const rejected = expect(closing).rejects.toMatchObject({ code: 'CLEANUP_FAILED' });
     await entered.promise;
     expect(f.local.getState().reservations).toMatchObject({ active: 1, availableSlots: 0 });
     expect(() => f.local.reserve({ ...f.binding, attemptId: 'next' })).toThrow('capacity exhausted');

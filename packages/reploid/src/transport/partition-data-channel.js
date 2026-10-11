@@ -101,7 +101,8 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
   function close(reason = 'channel closed') {
     if (closed) return;
     closed = true;
-    const error = new Error(`Partition channel: ${reason}`);
+    const error = Object.assign(new Error(failureMessages.CONNECTION_LOST),
+      { code: 'CONNECTION_LOST', cause: new Error(`Partition channel: ${reason}`) });
     lifecycle.abort(error);
     for (const entry of outgoing.values()) finish(entry, error);
     for (const entry of incoming.values()) cancelIncoming(entry);
@@ -261,7 +262,9 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
   return Object.freeze({
     request(metadata, bytes, { signal, onTiming } = {}) {
       const startedAt = performance.now();
-      assert(!closed && channel.readyState === 'open', 'unavailable');
+      if (closed || channel.readyState !== 'open') {
+        throw Object.assign(new Error(failureMessages.CONNECTION_LOST), { code: 'CONNECTION_LOST' });
+      }
       signal?.throwIfAborted();
       assert(object(metadata) && bytes instanceof Uint8Array && bytes.length <= policy.maxPayloadBytes, 'request geometry');
       assert(nextId < policy.maxRequestsPerChannel, 'request identity budget exhausted');
@@ -279,7 +282,8 @@ export function createPartitionDataChannel({ channel, localParticipantId, remote
         cancelRemote(entry);
       };
       signal?.addEventListener('abort', entry.abort, { once: true });
-      entry.timer = setTimeout(entry.abort, policy.timeoutMs);
+      entry.timer = setTimeout(() => entry.abort(Object.assign(new Error(failureMessages.REQUEST_TIMEOUT),
+        { code: 'REQUEST_TIMEOUT' })), policy.timeoutMs);
       start(entry, text);
       return result;
     },

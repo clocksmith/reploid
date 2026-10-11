@@ -127,7 +127,10 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
         if (session) await session.closeAttempt({ identity: structuredClone(identity) });
         reservations.settled(identity); attempts.delete(identity.attemptId);
         if (!attempts.size) finishDrain?.(); notify();
-      } catch (cause) { reservations.fail(identity, cause); throw cause; }
+      } catch (cause) {
+        reservations.fail(identity, cause);
+        throw Object.assign(new Error(failureMessages.CLEANUP_FAILED, { cause }), { code: 'CLEANUP_FAILED' });
+      }
     },
     drain() {
       if (draining) return draining;

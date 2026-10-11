@@ -44,11 +44,12 @@ function fixture(overrides = {}) {
 const frames = channel => channel.frames.filter(frame => frame instanceof ArrayBuffer);
 
 describe('partition binary transport (injected host ports)', () => {
-  it('transmits bounded failure codes while retaining local cause and callback settlement', async () => {
+  it.each(['RESOURCE_EXHAUSTED', 'CAPACITY_UNAVAILABLE', 'CLEANUP_FAILED', 'OUTPUT_LIMIT_EXCEEDED'])
+    ('transmits bounded %s while retaining local cause and callback settlement', async code => {
     const f = fixture({ server: { serve: async () => {
-      throw Object.assign(Error('private device allocation detail'), { code: 'RESOURCE_EXHAUSTED' });
+      throw Object.assign(Error('private device allocation detail'), { code });
     } } });
-    await expect(f.client.request({}, new Uint8Array())).rejects.toMatchObject({ code: 'RESOURCE_EXHAUSTED' });
+    await expect(f.client.request({}, new Uint8Array())).rejects.toMatchObject({ code });
     await vi.waitFor(() => expect(f.server.getReceipt().lastFailure.settledAt).toEqual(expect.any(Number)));
     expect(f.server.getReceipt().lastFailure).toMatchObject({ phase: 'execution', message: 'private device allocation detail' });
     expect(JSON.stringify(f.b.frames)).not.toContain('private device allocation detail');
@@ -170,7 +171,10 @@ describe('partition binary transport (injected host ports)', () => {
         client: { limits: { ...limits, timeoutMs: 30 } } });
       const pending = f.client.request({}, new Uint8Array([1]));
       if (loss) f.b.close();
-      await expect(pending).rejects.toThrow(loss ? /disconnected/ : /timed out/);
+      await expect(pending).rejects.toMatchObject({
+        code: loss ? 'CONNECTION_LOST' : 'REQUEST_TIMEOUT',
+        message: expect.stringMatching(loss ? /disconnected.*cleanup is not confirmed/ : /timed out.*cleanup are not confirmed/),
+      });
       release.resolve();
     }
   });

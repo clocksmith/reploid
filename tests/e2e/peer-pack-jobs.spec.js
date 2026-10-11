@@ -196,6 +196,8 @@ test('Verification Worker accepts complete-job modules and modified execution bo
     for (const file of [
       'vendor/reploid/mesh/partitions/resident-partition.js',
       'vendor/reploid/mesh/partitions/partition-peer.js',
+      'vendor/reploid/mesh/partitions/partition-runner.js',
+      'vendor/reploid/transport/partition-data-channel.js',
       'vendor/reploid/transport/swarm.js', 'vendor/reploid/transport/room.js',
       'vendor/reploid/transport/introductions.js', 'vendor/reploid/transport/introduction-records.js',
       'vendor/reploid/transport/introduction-admission.js',

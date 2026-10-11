@@ -2,5 +2,9 @@
   "RESOURCE_EXHAUSTED": "A contributor exhausted its resource allowance. Retry with prepared capacity or a shorter conversation.",
   "AUTHORIZATION_DENIED": "A contributor declined authorization for this request.",
   "EXECUTION_FAILED": "Partition peer declined or failed request",
-  "OUTPUT_LIMIT_EXCEEDED": "A contributor exceeded the answer length allowance. The attempt failed; its partial answer is incomplete."
+  "OUTPUT_LIMIT_EXCEEDED": "A contributor exceeded the answer length allowance. The attempt failed; its partial answer is incomplete.",
+  "CAPACITY_UNAVAILABLE": "A contributor has no available prepared capacity for this attempt. Select available capacity and retry.",
+  "CONNECTION_LOST": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+  "REQUEST_TIMEOUT": "The contributor request timed out. Remote completion and cleanup are not confirmed.",
+  "CLEANUP_FAILED": "Partition attempt settlement failed. Contributor cleanup is not confirmed; its capacity remains unavailable."
 }

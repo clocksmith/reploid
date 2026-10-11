@@ -1,3 +1,4 @@
+import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
 import { createPartitionStepReceiver } from './partition-step-receiver.js';
 import { assertPartition as assert, samePartitionIdentity, partitionFingerprint } from './partition-contract.js';
@@ -83,9 +84,13 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       if (metadata.operation === 'settle') return byteLength === 0 && verify(metadata, 'mesh.execute_partition_b', true);
       if (metadata.operation === 'reserve') return byteLength === 0 && verify(metadata, 'mesh.execute_partition_b');
       if (metadata.operation !== 'step' || !validFrame(metadata) || metadata.frame.byteLength !== byteLength) return false;
-      if (!outbound && !(contributor?.canAccept ? contributor.canAccept(metadata.identity) : contributor?.getState().ready)) return false;
-      return verify(metadata, action === 'respond' || action === 'accept'
+      const allowed = await verify(metadata, action === 'respond' || action === 'accept'
         ? 'mesh.transfer_partition_output' : 'mesh.transfer_intermediate_activation');
+      if (!allowed) return false;
+      if (!outbound && !(contributor?.canAccept ? contributor.canAccept(metadata.identity) : contributor?.getState().ready)) {
+        throw Object.assign(new Error(failureMessages.CAPACITY_UNAVAILABLE), { code: 'CAPACITY_UNAVAILABLE' });
+      }
+      return true;
     },
     async serve(metadata, payload, { signal }) {
       if (metadata.operation === 'describe') return { descriptor: contributor?.getState().ready ? contributor.getState().descriptor : null };
@@ -98,15 +103,19 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
         try { reservation = contributor.reserve(metadata.identity); }
         catch (cause) {
           if (['Contributor reservation capacity exhausted', 'Contributor reservation history exhausted',
-            'Partition contributor is not ready'].includes(cause.message)) return { accepted: false, reason: cause.message };
+            'Partition contributor is not ready'].includes(cause.message)) return { accepted: false, code: 'CAPACITY_UNAVAILABLE' };
           throw cause;
         }
         reservations.set(metadata.identity.attemptId, structuredClone(metadata.identity));
         return { accepted: true, reservation };
       }
       if (metadata.operation === 'settle') {
-        await receiver.closeAttempt(metadata.identity);
-        await contributor.closeAttempt({ identity: metadata.identity });
+        try {
+          await receiver.closeAttempt(metadata.identity);
+          await contributor.closeAttempt({ identity: metadata.identity });
+        } catch (cause) {
+          throw Object.assign(new Error(failureMessages.CLEANUP_FAILED, { cause }), { code: 'CLEANUP_FAILED' });
+        }
         reservations.delete(metadata.identity.attemptId);
         return { settled: true };
       }
@@ -137,7 +146,11 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
       const metadata = { operation: 'reserve', identity, grant, generation, generationDigest, inputTokenCount, step: 0 };
       active.set(identity.attemptId, structuredClone(metadata));
       const result = await endpoint.request(metadata, new Uint8Array(), { signal });
-      assert(result.accepted === true, result.reason || 'Partition reservation declined');
+      if (result.accepted !== true) {
+        // Old peers may return a reason string; never expose remote exception text.
+        const code = result.code === 'CAPACITY_UNAVAILABLE' ? result.code : 'EXECUTION_FAILED';
+        throw Object.assign(new Error(failureMessages[code]), { code });
+      }
       assert(samePartitionIdentity(result.reservation?.identity, identity)
         && result.reservation.participantId === remoteParticipantId && result.reservation.index === 1
         && result.reservation.phase === 'reserved' && result.reservation.resources?.attemptSlots === 1,

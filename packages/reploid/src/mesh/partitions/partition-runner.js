@@ -1,3 +1,4 @@
+import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 /** Coordinates one Doppler token step through both partitions. No model math lives here. */
 import { partitionFingerprint } from './partition-contract.js';
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -242,8 +243,9 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
       const cleanupErrors = results.filter(result => result.status === 'rejected').map(result => result.reason);
       receipt.cleanupSettledAt = cleanupErrors.length ? null : Date.now();
       receipt.phase = cleanupErrors.length ? 'cleanup-failed' : combined.aborted ? 'cancelled' : failure ? 'failed' : 'completed';
-      if (cleanupErrors.length) throw new AggregateError(failure ? [failure, ...cleanupErrors] : cleanupErrors,
-        'Partition attempt settlement failed');
+      if (cleanupErrors.length) throw Object.assign(
+        new AggregateError(failure ? [failure, ...cleanupErrors] : cleanupErrors, failureMessages.CLEANUP_FAILED),
+        { code: 'CLEANUP_FAILED' });
     }
   }
 
