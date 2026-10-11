@@ -1,0 +1,269 @@
+{
+  "schema": "reploid.focused-recovery-review/v1",
+  "qualified": false,
+  "runId": "2026-10-11T11-31-14-805Z",
+  "sourceRevision": "a883ebac",
+  "browserIdentity": "sha256:58995833e517b623d337755695c36bd644109eae687b0cf0eb38a5bdc3e2c3e7",
+  "delivery": "Served assets held fixed by the operator throughout; immutable snapshot guard was added later and was not exercised. No secondary CDP attachments.",
+  "physicalRunArchiveSha256": "5c6c7a903ef465f45cc77d470d4b25ab7f95604c1219b8ced14cc5e51a77576f",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "dopplerArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "scope": "Reversed two-device recovery diagnosis after concurrent conversations and document reuse; not complete application acceptance",
+  "maxGpuBufferBytes": 1420000000,
+  "numericalAcceptance": "not-applicable",
+  "selectiveAcquisition": [
+    {
+      "host": "mac",
+      "index": 0,
+      "verifiedBytes": 1155365120,
+      "openingPeakBytes": 1223987856
+    },
+    {
+      "host": "linux-128",
+      "index": 1,
+      "verifiedBytes": 940946816,
+      "openingPeakBytes": 1278272144
+    },
+    {
+      "host": "linux-128",
+      "index": 1,
+      "verifiedBytes": 940946816,
+      "openingPeakBytes": 1278272144
+    }
+  ],
+  "requesterWeights": [],
+  "contributorOrigins": [],
+  "runtimeErrors": [],
+  "browserLifecycle": {
+    "events": [
+      {
+        "kind": "main-frame-navigation",
+        "role": "requester",
+        "observedAt": 1791718283663,
+        "url": "http://localhost:57295/"
+      },
+      {
+        "kind": "main-frame-navigation",
+        "role": "contributor-a",
+        "observedAt": 1791718283725,
+        "url": "http://localhost:57295/"
+      },
+      {
+        "kind": "main-frame-navigation",
+        "role": "seed",
+        "observedAt": 1791718284056,
+        "url": "http://localhost:57295/"
+      },
+      {
+        "kind": "main-frame-navigation",
+        "role": "contributor-b",
+        "observedAt": 1791718284056,
+        "url": "http://localhost:57295/"
+      },
+      {
+        "kind": "main-frame-navigation",
+        "role": "replacement",
+        "observedAt": 1791720189559,
+        "url": "http://localhost:57295/"
+      }
+    ],
+    "dropped": 0
+  },
+  "restarts": [
+    {
+      "host": "mac",
+      "layerRange": [
+        0,
+        3
+      ],
+      "interruptedAttempt": "47b900d5-de21-49c5-b0f4-3a49bc4f1c02",
+      "newAttempt": "1eba9076-cfb0-4a18-859e-5c9ebafcfcc0",
+      "retryStopReason": "eos-token",
+      "subsequentAnswer": "YES",
+      "retainedInventoryUnchanged": true,
+      "memory": {
+        "before": {
+          "maxBytes": 1420000000,
+          "liveBytes": 1160840744,
+          "peakBytes": 1320233832,
+          "categories": {
+            "weights": 1146343424,
+            "attention": 1296,
+            "recurrent": 3538944,
+            "other": 10957080
+          }
+        },
+        "stopped": {
+          "maxBytes": 1420000000,
+          "liveBytes": 70797656,
+          "peakBytes": 1320233832,
+          "categories": {
+            "weights": 70778880,
+            "attention": 1216,
+            "recurrent": 0,
+            "other": 17560
+          }
+        },
+        "ready": {
+          "maxBytes": 1420000000,
+          "liveBytes": 1156889192,
+          "peakBytes": 1320233832,
+          "categories": {
+            "weights": 1146343424,
+            "attention": 1216,
+            "recurrent": 0,
+            "other": 10544552
+          }
+        },
+        "retainedAfter": {
+          "maxBytes": 1420000000,
+          "liveBytes": 953229560,
+          "peakBytes": 1400055944,
+          "categories": {
+            "weights": 932192256,
+            "attention": 1152,
+            "recurrent": 7864320,
+            "other": 13171832
+          }
+        }
+      }
+    },
+    {
+      "host": "linux-128",
+      "layerRange": [
+        4,
+        23
+      ],
+      "interruptedAttempt": "e85b4f01-8247-4e27-8da3-0483160252a9",
+      "newAttempt": "2e5f7e61-761e-485c-8f14-ef6d4bdeed60",
+      "retryStopReason": "eos-token",
+      "subsequentAnswer": "YES",
+      "retainedInventoryUnchanged": true,
+      "memory": {
+        "before": {
+          "maxBytes": 1420000000,
+          "liveBytes": 953229560,
+          "peakBytes": 1400055944,
+          "categories": {
+            "weights": 932192256,
+            "attention": 1152,
+            "recurrent": 7864320,
+            "other": 13171832
+          }
+        },
+        "stopped": {
+          "maxBytes": 1420000000,
+          "liveBytes": 90222824,
+          "peakBytes": 1400055944,
+          "categories": {
+            "weights": 71331840,
+            "attention": 1152,
+            "recurrent": 7864320,
+            "other": 11025512
+          }
+        },
+        "ready": {
+          "maxBytes": 1420000000,
+          "liveBytes": 942737912,
+          "peakBytes": 1400055944,
+          "categories": {
+            "weights": 932192256,
+            "attention": 1152,
+            "recurrent": 0,
+            "other": 10544504
+          }
+        },
+        "retainedAfter": {
+          "maxBytes": 1420000000,
+          "liveBytes": 1160840408,
+          "peakBytes": 1320233832,
+          "categories": {
+            "weights": 1146343424,
+            "attention": 1136,
+            "recurrent": 3538944,
+            "other": 10956904
+          }
+        }
+      }
+    }
+  ],
+  "replacement": {
+    "changedParticipantB": true,
+    "unchangedParticipantA": true,
+    "newAttempt": "1e0ddba4-a7ab-47d2-9e3b-ec413e134b68",
+    "stopReason": "eos-token",
+    "originalSeedStoppedBeforeAcquisition": true,
+    "verifiedBytes": 940946816,
+    "memory": {
+      "maxBytes": 1420000000,
+      "liveBytes": 953226408,
+      "peakBytes": 1278272144,
+      "categories": {
+        "weights": 932192256,
+        "attention": 816,
+        "recurrent": 7864320,
+        "other": 13169016
+      }
+    }
+  },
+  "survivorQuality": {
+    "passed": false,
+    "expectedLines": 200,
+    "actualLines": 120,
+    "firstMismatch": {
+      "line": 121,
+      "actual": null,
+      "expected": "121"
+    }
+  },
+  "submittedCancellation": "cancelled",
+  "residentReuse": "completed",
+  "documentSteps": [
+    2248,
+    1874
+  ],
+  "documentStopReasons": [
+    "eos-token",
+    "eos-token"
+  ],
+  "documentContentBindings": [
+    {
+      "role": "user",
+      "sha256": "5d79f6e6a6acc16846a9049e31a71fd56d733925c4bfb3e684ba8a8acdef155d",
+      "matchesPriorRun": true
+    },
+    {
+      "role": "assistant",
+      "sha256": "e5237cd8f0014313610bb615891e0636bb7eaa905def24f10f52a07725089bb8",
+      "matchesPriorRun": true
+    },
+    {
+      "role": "user",
+      "sha256": "e6bcb5670579608d2d03efb227f349936161ba2091c36c00cb0916217a8472e8",
+      "matchesPriorRun": true
+    },
+    {
+      "role": "assistant",
+      "sha256": "5903d299d119dfc3ac799acc6b52482422ee5b8d1e05c17e78c62d4c8d077e43",
+      "matchesPriorRun": true
+    }
+  ],
+  "documentQuality": "Failed: exact same request and answer contents as prior source-grounded review in ../reverse-recovery-20261011/document-quality-review.json",
+  "playwrightErrors": [
+    "Error: EOS must include every requested number through 200\n\n\u001b[2mexpect(\u001b[22m\u001b[31mreceived\u001b[39m\u001b[2m).\u001b[22mtoBe\u001b[2m(\u001b[22m\u001b[32mexpected\u001b[39m\u001b[2m) // Object.is equality\u001b[22m\n\nExpected: \u001b[32mtrue\u001b[39m\nReceived: \u001b[31mfalse\u001b[39m\n\n  440 |         // Keep the application verdict failed, while collecting independent\n  441 |         // reuse/replacement evidence after this settled, incomplete answer.\n> 442 |         expect.soft(receipt.survivorQuality.passed, 'EOS must include every requested number through 200').toBe(true);\n      |                                                                                                            ^\n  443 |         expect(receipt.afterCancellation.cancelled.status).toBe('cancelled');\n  444 |         await requester.locator(`[data-thread-item-id=\"${firstThreadId}\"]`).click();\n  445 |         await requester.locator('[data-composer-input]').fill('Say goodbye briefly.');\n    at runConversationIsolation (/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:442:108)\n    at /Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:530:9"
+  ],
+  "limitations": [
+    "Lifecycle assertions passed, but the unaffected answer is incomplete; checklist 15 full valid-completion requirement remains open.",
+    "Only reversed placement exercised; no independent numerical comparison for this 2B application.",
+    "Snapshots immediately after stopping contain deferred/reusable allocations; no claim of zero live bytes or portable checkpoint recovery.",
+    "Timing aggregates contain nested scopes, instrumentation and network variation; they are not additive or a measured optimization gain."
+  ],
+  "completedAttemptCleanup": "All 13 retained completed attempts report both participant cleanup records settled.",
+  "retryAnswerQuality": "All three interrupted/retried counting requests return every integer 1 through 20 exactly, including replacement."
+}
