@@ -1,0 +1,7 @@
+{
+  "passed": false,
+  "stage": "provider-advert-admission",
+  "error": "Peer Pack job: capability model identity mismatch",
+  "cause": "The test capability helper hashed host-local Capsule opening options instead of the existing canonical packPeerModel projection used by signed job admission.",
+  "correction": "Project the advertised model with the existing packPeerModel before calculating capabilities. Production admission remains unchanged."
+}
