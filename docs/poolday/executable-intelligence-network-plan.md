@@ -38,7 +38,7 @@ Partition execution now exists in the [library](../../packages/reploid/src/mesh/
 and [ordinary host composition](../../self/host/work-partitions.js). Selective
 acquisition and cooperative computation have retained physical runs. This is
 implemented execution, not complete numerical or public-application qualification.
-See the [current handoff](../doppler-partition-handoff.md#current-contract-integration-0627)
+See the [implementation checklist](../../TODO.md)
 for the installed candidate, retained results and deployment gates, and [chat acceptance](../chat-mvp.md)
 for implemented, tested, blocked and planned boundaries.
 
@@ -87,7 +87,7 @@ gates. Neither category inherits evidence from the other.
    comparable. Another patch or posterior update alone is not recursive proof.
 
 Collective-improvement experiments follow the
-[current integration closure sequence](../doppler-partition-handoff.md#combined-closure-sequence).
+[current implementation checklist](../../TODO.md).
 The partition implementation already exists; its remaining numerical and
 application gates take priority. The interface preserves the causal connection between
 agents, models, shared execution, contributions, weaknesses, changes and outcomes.

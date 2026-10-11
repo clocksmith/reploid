@@ -43,6 +43,31 @@ each request, then clears both states before the next request. Failed cleanup
 retires the session. These are application allocation bounds, not physical GPU
 memory accounting or immediate GPU termination.
 
+## Resident integration contract
+
+Doppler's public `doppler-gpu/partitions` declarations and
+[resident execution contract](https://github.com/clocksmith/doppler/blob/main/docs/distribution/resident-partition-execution.md)
+own computation types. Reploid derives its optional-consumer declarations from
+those exports and checks them against the installed package. Grants, routing,
+transport envelopes and reservations remain Reploid-owned.
+
+Before advertising readiness, admission validates the model, plan, partition
+index, layer range, required methods, live readiness and resolved generation
+digest. The shared receiver binding includes paired requester and placement
+fields when supplied; execution, duplicates, cancellation and settlement preserve
+that identity. Contributor replacement creates a new assignment and attempt.
+
+`getRecoveryCapabilities()` declares `doppler.resident-recovery/v1` with
+`inputReplay`, `checkpointExport` and `checkpointImport` false. A live
+continuation cannot restore a lost process or device. Restart preserves previous
+partial output under its original attempt. Artifact resume and durable outcome
+replay do not restore inference state; replay or restart requires current
+authorization. A disconnected transport does not establish GPU cleanup.
+
+Exact package identity, retained evidence and remaining qualification belong in
+the [implementation checklist](../TODO.md). Contract tests, physical execution,
+numerical accuracy, answer quality and deployment remain separate claims.
+
 ## Explicit application generation policy
 
 The host resolves resident generation through `self/config/partition-generation.js`.
@@ -90,7 +115,7 @@ Doppler's declared numerical and output comparison contract.
 | Qualification open | Both-direction frozen numerical parity at 0.001, repeatable ordinary application acceptance, lifecycle/capacity evidence and separate answer-quality evaluation. |
 | Planned or separately scoped | Additional qualified native hosts, generalized continuations, adapter/catalog expansion and independently evaluated network improvement. Source existence establishes none of these outcomes. |
 
-[Current dependency and retained evidence](doppler-partition-handoff.md#current-contract-integration-0627)
+[Current dependency and retained evidence](../TODO.md)
 separates the installed candidate, scoped controls, remaining acceptance and
 public deployment gates.
 A failed numerical gate means not qualified, not unimplemented. A model can
