@@ -54,7 +54,9 @@ try {
   await page.exposeFunction('retainQualityResult', async row => {
     const task = suite.cases.find(item => item.id === row.id);
     const normalize = value => value.trim().replace(/\s+/g, ' ');
-    row.exactText = normalize(row.result.evidence.outputText) === normalize(task.expected);
+    const variant = suite.variants.find(item => item.id === row.variant);
+    row.exactText = normalize(variant.templateThinking ? row.result.finalAnswer : row.result.evidence.outputText)
+      === normalize(task.expected);
     row.naturalStop = ['stop-token', 'stop-token-or-sequence'].includes(row.result.evidence.stats.stopReason)
       && eosTokenIds.includes(row.result.evidence.stats.stopTokenId);
     row.passed = row.exactText && row.naturalStop;
@@ -69,6 +71,7 @@ try {
     globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
     const runtime = await import(config.DOPPLER_PARTITIONS_MODULE_URL);
     const { load } = await import(config.DOPPLER_MODULE_URL);
+    const { formatChatMessages } = await import(new URL('./inference/pipelines/text/chat-format.js', new URL(config.DOPPLER_MODULE_URL, location.href)).href);
     const { createHttpArtifactStorageContext } = await import(new URL('./storage/artifact-storage-context.js', new URL(config.DOPPLER_MODULE_URL, location.href)).href);
     const bytes = await (await fetch(selected.source.baseUrl + 'manifest.json')).arrayBuffer();
     const identity = 'sha256:' + Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
@@ -88,11 +91,24 @@ try {
           { role: 'user', content: task.prompt },
         ];
         const settings = { ...generation, repetitionPenalty: variant.repetitionPenalty };
-        const tokenIds = handle.advanced.tokenizePrompt(messages, settings);
+        const renderedPrompt = variant.templateThinking
+          ? formatChatMessages(messages, manifest.inference.chatTemplate.type, { thinking: true }) : null;
+        const tokenIds = renderedPrompt === null ? handle.advanced.tokenizePrompt(messages, settings)
+          : handle.advanced.tokenizeText(renderedPrompt);
         const { maxSeqLen, ...options } = settings;
         const evidence = await handle.generateWithEvidence('', { ...options, inputIds: tokenIds, disableCommandBatching: true });
+        let finalAnswer = evidence.outputText;
+        if (variant.templateThinking) {
+          // Diagnostic channel split only. Preserve raw output and every token;
+          // application streaming must qualify its own channel handling.
+          const marker = handle.advanced.tokenizeText('</think>');
+          if (marker.length !== 1) throw Error('Reasoning diagnostic requires a single closing marker');
+          const boundary = evidence.tokenIds.indexOf(marker[0]);
+          finalAnswer = boundary < 0 ? '' : handle.advanced.decodeTokens(evidence.tokenIds.slice(boundary + 1));
+        }
         await globalThis.retainQualityResult({ id: task.id, variant: variant.id,
-          input: { messages, generation: settings }, result: { tokenIds, evidence } });
+          input: { messages, generation: settings, ...(renderedPrompt === null ? {} : { renderedPrompt, templateThinking: true }) },
+          result: { tokenIds, evidence, ...(variant.templateThinking ? { finalAnswer } : {}) } });
       }
     } finally { await handle?.unload(); }
     return runtime.inspectDeviceMemory();
