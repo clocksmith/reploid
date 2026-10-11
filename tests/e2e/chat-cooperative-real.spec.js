@@ -765,9 +765,9 @@ test('one model executes cooperatively on discovered physical peers from selecti
       observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), configuredExecutorQuotaBytes: executorQuotaMiB * 1024 * 1024,
       requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2) });
-    // The operator may track historical score drift without blocking release.
-    // Shape, finite values, sampled tokens and stopping remain required above.
-    if (numerical && process.env.REPLOID_TRACK_NUMERICAL_DRIFT !== '1') {
+    // This application journey always requires its applicable numerical gate.
+    // The separate numerical diagnostic can retain failures for investigation.
+    if (numerical) {
       expect(numerical.filter(step => !step.matches), 'Distributed numerical tolerance failures').toEqual([]);
     }
   } catch (error) {

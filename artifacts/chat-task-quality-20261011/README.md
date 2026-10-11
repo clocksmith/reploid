@@ -116,3 +116,13 @@ first candidate generation. `reasoning-harness-failure.json.gz` preserves it;
 `45f2f737` corrects the harness to public `decodeTokenIds`. The retained completed
 run uses that correction. These unsplit runs share neither the physical
 distributed memory budget nor an application performance claim.
+
+## Longer worded-request holdout
+
+Suite `5f062ce9` freezes five fresh tasks including lists exceeding two hundred
+items, with bounds expressed in words. Both existing policy and the proposed
+completion-first instruction pass three of five. Both fail the two complete
+ordered-list requirements. `completion-2b-linux.json.gz` retains every output
+and exact input. The candidate is rejected without replaying the protected
+counting request. Production instructions remain unchanged. This closes the
+shorter numeric-bound test-coverage gap without weakening the application gate.

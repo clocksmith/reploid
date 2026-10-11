@@ -12,6 +12,7 @@ import { once } from 'node:events';
 import { physicalWebGpuBrowserOptions } from '../tests/fixtures/physical-webgpu-browser.js';
 import { bindReferenceModel } from '../tests/fixtures/distributed-reference-model.js';
 import referenceContract from '../tests/fixtures/distributed-reference-contract.json' with { type: 'json' };
+import { resolveNumericalPolicy, numericalAcceptance } from '../tests/fixtures/distributed-numerical-policy.js';
 
 const root = resolve(import.meta.dirname, '..');
 const modelArgument = process.argv.indexOf('--model');
@@ -67,7 +68,8 @@ const output = resolve(process.env.REPLOID_DISTRIBUTED_OUTPUT_ROOT || resolve(ro
 const reference = resolve(output, 'reference.json');
 const children = [];
 const logs = [];
-const numericalPolicy = process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1' ? 'required' : 'tracked';
+const numericalPolicy = resolveNumericalPolicy({ applicable: frozenWorkloads,
+  diagnostic: numericalDiagnostic, requested: process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE });
 const quote = value => `'${value.replaceAll("'", "'\\''")}'`;
 let phase = 'inputs';
 
@@ -337,8 +339,7 @@ try {
         REPLOID_DIAGNOSTIC_MODEL_BASE_URL: `http://localhost:${localFixturePort}/`,
         REPLOID_DIAGNOSTIC_PEER_MODEL_BASE_URL: `http://localhost:${endpoints.fixturePort || modelPort}/`,
         REPLOID_E2E_CHROMIUM_CHANNEL: 'chrome', REPLOID_E2E_CUSTODY_TRACE: '1', REPLOID_E2E_REPLICA: '1',
-        REPLOID_E2E_DOCUMENTS: documentWorkload ? '1' : '0',
-        REPLOID_TRACK_NUMERICAL_DRIFT: numericalPolicy === 'tracked' ? '1' : '0'
+        REPLOID_E2E_DOCUMENTS: documentWorkload ? '1' : '0'
       } });
     test.stdout.pipe(process.stdout);
     const [exitCode] = await once(test, 'exit');
@@ -379,7 +380,8 @@ try {
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
     documentWorkload, reverseHosts, referenceHost, probePrompt, probeStep, standaloneControls,
     frozenReferenceApplicable: frozenWorkloads,
-    numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource, referenceBinding,
+    numericalPolicy, numericalAcceptance: numericalAcceptance(numericalPolicy, numerical),
+    numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource, referenceBinding,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
     maxGpuBufferBytes: policy.maxGpuBufferBytes, bufferPool: policy.bufferPool, referenceGeneration,
     referenceSha256: referenceContract.sha256, referenceRevision: referenceContract.revision }, null, 2));

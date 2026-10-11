@@ -20,3 +20,11 @@ qualifies neither full-model accuracy nor deployment. Its scope is the declared
 implementation regression. The independent source, task-quality and lifecycle
 gates remain separate and required. The original review and independent
 actual-operand controls are linked from the versioned contract.
+
+The ordinary distributed runner now requires applicable numerical tolerance by
+default, and rejects an opt-out before starting devices. Explicit tracking is
+restricted to `--numerical-only` diagnostics. Application browser tests always
+assert the frozen gate. Result records distinguish failed, passed, not-run and
+not-applicable numerical status. Twelve focused tests pass, including rejection
+of an ordinary opt-out and preservation of a failed diagnostic verdict. This
+closes a harness acceptance bypass; it does not clear independent-source accuracy.
