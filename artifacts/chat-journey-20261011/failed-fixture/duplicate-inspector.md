@@ -1,0 +1,64 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - navigation "Reploid" [ref=e4]:
+    - link "Reploid home" [ref=e5] [cursor=pointer]:
+      - /url: /?room=reploid-default
+      - generic [ref=e6]:
+        - superscript [ref=e7]: "7"
+        - generic [ref=e8]: "7"
+      - generic [ref=e9]: Reploid
+    - button "No model ready. No executor assigned. Execution details" [ref=e11] [cursor=pointer]:
+      - status [ref=e12]: No model ready
+    - group [ref=e14]:
+      - generic "Settings" [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]:
+          - generic [ref=e17]: "7"
+          - superscript [ref=e18]: "7"
+  - region "Conversation workspace" [ref=e20]:
+    - region "Current conversation" [ref=e21]:
+      - generic [ref=e22]:
+        - button "Threads" [ref=e23] [cursor=pointer]
+        - button "Qwen 3.5 0.8B. Choose a model for a new thread" [ref=e26] [cursor=pointer]: Qwen 3.5 0.8B
+        - button "Network 0 peers" [ref=e27] [cursor=pointer]:
+          - text: Network
+          - generic [ref=e28]: 0 peers
+        - group [ref=e29]:
+          - generic "Actions" [ref=e30] [cursor=pointer]
+      - log "Messages" [ref=e31]:
+        - article [ref=e32]:
+          - generic [ref=e33]: You
+          - generic [ref=e35]: What can you help with?
+          - button "Copy" [ref=e37] [cursor=pointer]
+        - article [ref=e38]:
+          - generic [ref=e39]: Assistant
+          - generic [ref=e41]: Scripted answer, supplied by the test.
+          - button "Copy" [ref=e43] [cursor=pointer]
+      - generic [ref=e45]:
+        - generic [ref=e46]: Message
+        - textbox "Message" [ref=e48]:
+          - /placeholder: Ask a question…
+        - generic [ref=e49]:
+          - generic [ref=e50] [cursor=pointer]:
+            - text: Attach
+            - button "Attach" [ref=e51]
+          - button "Send" [ref=e53] [cursor=pointer]
+    - dialog "Network" [ref=e54]:
+      - generic [ref=e55]:
+        - heading "Network" [level=2] [ref=e56]
+        - button "Close" [ref=e57] [cursor=pointer]
+      - navigation "Network sections" [ref=e58]:
+        - button "This conversation" [ref=e59] [cursor=pointer]
+        - button "Participants" [active] [pressed] [ref=e60] [cursor=pointer]
+        - button "This device" [ref=e61] [cursor=pointer]
+      - region "Available participants" [ref=e62]:
+        - heading "Available participants 0 peers" [level=3] [ref=e63]
+        - generic [ref=e64]:
+          - generic [ref=e65]:
+            - strong [ref=e66]: Network connection
+            - generic [ref=e67]: Disconnected
+          - switch "Connect to network" [ref=e68] [cursor=pointer]
+        - list [ref=e69]:
+          - listitem [ref=e70]: No peers connected yet
+```

@@ -7,6 +7,7 @@ async function mount(page, { available = true } = {}) {
   await page.locator('[data-chat-workspace]').waitFor();
   await page.evaluate(async ({ available }) => {
     window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
+    document.querySelector('[data-shell-inspector]')?.remove();
     const { createChatSession, CANONICAL_CHAT_MODELS } = await import('/host/chat-session.js');
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
     const listeners = new Set(), jobs = new Map();
@@ -91,7 +92,9 @@ test('scripted first visit: capacity retry preserves draft, approval precedes ou
   await expect(page.locator('.is-assistant')).toContainText('Scripted answer');
   await expect(page.locator('[data-composer-stop]')).toBeHidden();
   await page.locator('[data-toggle-inspector]').click();
+  await page.locator('[data-inspector-section="device"]').click();
   await expect(page.locator('[data-contrib-label]')).toHaveText('Not sharing');
+  await expect(page.locator('[data-toggle-contribution]')).toHaveAttribute('aria-checked', 'false');
 });
 
 test('scripted attachment: disclosed text, usable citation and copying', async ({ page }) => {
@@ -142,7 +145,8 @@ test('scripted sharing: decline and revocation stop sharing; panels restore focu
   await page.locator('[data-composer-input]').fill('Allowed follow-up'); await page.locator('[data-composer-send]').click();
   await expect.poll(() => page.evaluate(() => window.journey.jobs.size)).toBe(1);
   await page.locator('[data-toggle-inspector]').click();
-  await page.locator('[data-thread-permissions] summary').click();
+  await page.locator('[data-inspector-section="conversation"]').click();
+  await expect(page.locator('[data-thread-permissions]')).toBeVisible();
   await page.locator('[data-revoke-grant]').click();
   await expect.poll(() => page.evaluate(() => window.journey.jobs.size)).toBe(0);
   await page.locator('[data-close-inspector]').click();

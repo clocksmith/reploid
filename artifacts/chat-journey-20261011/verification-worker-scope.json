@@ -1,0 +1,290 @@
+{
+  "baseline": {
+    "passed": false,
+    "errors": [
+      "Security Violation in /scripts/test-distributed.js: process.env access is forbidden - environment leakage risk",
+      "Security Violation in /scripts/test-distributed.js: child_process operations are forbidden",
+      "Security Violation in /scripts/test-distributed.js: process.exit is forbidden",
+      "Security Violation in /tests/fixtures/physical-webgpu-browser.js: process.env access is forbidden - environment leakage risk"
+    ],
+    "warnings": [
+      "Warning in /scripts/test-distributed.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /scripts/test-distributed.js:139: Dynamic property write detected: [packageIdentity, bundle, profile, policy] - verify input sanitization",
+      "Warning in /scripts/test-distributed.js:223: Dynamic property write detected: [port, path] - verify input sanitization",
+      "Warning in /scripts/test-distributed.js:288: Dynamic property write detected: [code] - verify input sanitization",
+      "Warning in /scripts/test-distributed.js:318: Dynamic property write detected: [deployedPackage, deployedBundle, deployedRelease] - verify input sanitization",
+      "Warning in /scripts/test-distributed.js:355: Dynamic property write detected: [exitCode] - verify input sanitization",
+      "File has 25 functions (max 20) - consider modularizing"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431540,
+        "path": "/scripts/test-distributed.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431540,
+        "path": "/scripts/test-distributed.js",
+        "patternId": "process_env",
+        "category": "process",
+        "message": "process.env access is forbidden - environment leakage risk",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431540,
+        "path": "/scripts/test-distributed.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431540,
+        "path": "/scripts/test-distributed.js",
+        "patternId": "process_exit",
+        "category": "process",
+        "message": "process.exit is forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431541,
+        "path": "/scripts/test-distributed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [packageIdentity, bundle, profile, policy] - verify input sanitization",
+        "line": 139,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431541,
+        "path": "/scripts/test-distributed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [port, path] - verify input sanitization",
+        "line": 223,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431541,
+        "path": "/scripts/test-distributed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [code] - verify input sanitization",
+        "line": 288,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431541,
+        "path": "/scripts/test-distributed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [deployedPackage, deployedBundle, deployedRelease] - verify input sanitization",
+        "line": 318,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431541,
+        "path": "/scripts/test-distributed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [exitCode] - verify input sanitization",
+        "line": 355,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791760431543,
+        "metric": "functions",
+        "value": 25,
+        "threshold": 20,
+        "message": "File has 25 functions (max 20) - consider modularizing",
+        "path": "/scripts/test-distributed.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431543,
+        "path": "/tests/fixtures/physical-webgpu-browser.js",
+        "patternId": "process_env",
+        "category": "process",
+        "message": "process.env access is forbidden - environment leakage risk",
+        "severity": "error"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/scripts/test-distributed.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/scripts/test-distributed.js",
+          "patternId": "process_env",
+          "category": "process",
+          "message": "process.env access is forbidden - environment leakage risk",
+          "severity": "error"
+        },
+        {
+          "path": "/scripts/test-distributed.js",
+          "patternId": "child_process",
+          "category": "process",
+          "message": "child_process operations are forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/scripts/test-distributed.js",
+          "patternId": "process_exit",
+          "category": "process",
+          "message": "process.exit is forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/tests/fixtures/physical-webgpu-browser.js",
+          "patternId": "process_env",
+          "category": "process",
+          "message": "process.env access is forbidden - environment leakage risk",
+          "severity": "error"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 25,
+          "threshold": 20,
+          "message": "File has 25 functions (max 20) - consider modularizing",
+          "path": "/scripts/test-distributed.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    },
+    "reason": "Verification Failed"
+  },
+  "changedBrowserCode": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /tests/unit/physical-webgpu-browser.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/e2e/conversation-acceptance.spec.js: innerHTML assignment is risky - consider textContent",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /tests/e2e/conversation-interactions.spec.js: innerHTML assignment is risky - consider textContent",
+      "Warning in /tests/e2e/conversation-interactions.spec.js:11: Dynamic property write detected: [first, second] - verify input sanitization",
+      "Nesting depth of 6 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431641,
+        "path": "/tests/unit/physical-webgpu-browser.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431650,
+        "path": "/tests/e2e/conversation-acceptance.spec.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791760431652,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/tests/e2e/conversation-acceptance.spec.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431656,
+        "path": "/tests/e2e/conversation-interactions.spec.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791760431656,
+        "path": "/tests/e2e/conversation-interactions.spec.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [first, second] - verify input sanitization",
+        "line": 11,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791760431657,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/tests/e2e/conversation-interactions.spec.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/tests/unit/physical-webgpu-browser.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/e2e/conversation-acceptance.spec.js",
+          "patternId": "innerhtml_assign",
+          "category": "dom",
+          "message": "innerHTML assignment is risky - consider textContent",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/e2e/conversation-interactions.spec.js",
+          "patternId": "innerhtml_assign",
+          "category": "dom",
+          "message": "innerHTML assignment is risky - consider textContent",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/tests/e2e/conversation-acceptance.spec.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/tests/e2e/conversation-interactions.spec.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}

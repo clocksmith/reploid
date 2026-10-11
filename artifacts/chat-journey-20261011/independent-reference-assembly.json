@@ -1,0 +1,12 @@
+{
+  "kind": "independent-f64",
+  "proposalSha256": "138a76cff303746fe73e5307659c0aaca5a6b2c953ac44a8798c58f6ac297210",
+  "outputIndexSha256": "2c95ecd599b5007b15872c7f3b1ddc5934f5319f983375a996dab536e1021979",
+  "evaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+  "tolerance": 0.001,
+  "steps": 55,
+  "assembledSha256": "ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "bytes": 145686766,
+  "historicalSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "scope": "Verified independent target assembly only; no new GPU execution or numerical pass"
+}

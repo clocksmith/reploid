@@ -79,11 +79,12 @@ test('one model executes cooperatively on discovered physical peers from selecti
   };
   if (signalingOnly) for (const context of contexts) context.setDefaultTimeout(30000);
   const localHost = process.platform === 'darwin' ? 'mac' : process.platform;
-  const observations = [1, 3].map(index => ({ physicalHost: isRemote(hosts[index]) ? 'linux-128' : localHost, loads: [], steps: [], errors: [] }));
+  const remoteHost = process.env.REPLOID_TEST_PEER || 'remote-executor';
+  const observations = [1, 3].map(index => ({ physicalHost: isRemote(hosts[index]) ? remoteHost : localHost, loads: [], steps: [], errors: [] }));
   const reference = process.env.DOPPLER_PARTITION_REFERENCE_OUT
     ? JSON.parse(await readFile(process.env.DOPPLER_PARTITION_REFERENCE_OUT, 'utf8')) : null;
   const captureCustody = process.env.REPLOID_E2E_CUSTODY_TRACE === '1';
-  const seedObservation = { physicalHost: isRemote(hosts[2]) ? 'linux-128' : localHost, loads: [], steps: [], errors: [] };
+  const seedObservation = { physicalHost: isRemote(hosts[2]) ? remoteHost : localHost, loads: [], steps: [], errors: [] };
   const tokenObservers = [];
   const onInput = input => Promise.all(tokenObservers.map(observer => observer.captureAttempt(input.identity.attemptId)));
   const replicaEnabled = process.env.REPLOID_E2E_REPLICA === '1';
@@ -831,7 +832,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       executorQuotaMiB, seedObservation,
       physicalDevices: remote ? 2 : 1, browserContexts: contexts.length,
       applicationProfiles: { [localHost]: process.platform === 'darwin' ? 'ordinary' : 'private',
-        ...(remote ? { 'linux-128': process.env.REPLOID_EXECUTOR_CDP === '1' ? 'ordinary' : 'private' } : {}) },
+        ...(remote ? { [remoteHost]: process.env.REPLOID_EXECUTOR_CDP === '1' ? 'ordinary' : 'private' } : {}) },
       adapterInfo, browser: browser.version(), modelIdentity: model.identity,
       states, replicaObservation, observations: observations.map(({ steps, ...device }) => ({ ...device, steps: steps.map(({ logits, ...step }) => step) })), requesterWeights, contributorOrigins, seedFiles, errors
     }, null, 2);

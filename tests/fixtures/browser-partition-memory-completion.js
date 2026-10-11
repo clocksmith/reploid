@@ -5,6 +5,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
 import referenceContract from './distributed-reference-contract.json' with { type: 'json' };
+import { decodeReferenceLogits } from './independent-numerical-reference.js';
 import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from './physical-webgpu-browser.js';
 const raw = await readFile(process.env.REPLOID_DIAGNOSTIC_REQUESTS);
 assert.equal(createHash('sha256').update(raw).digest('hex'), '794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e');
@@ -24,8 +25,12 @@ const profile = JSON.parse(await readFile(new URL('../../self/config/work-profil
 const phase = process.env.REPLOID_MEMORY_PHASE ?? 'repetition';
 const referenceBytes = phase === 'reference' ? await readFile(process.env.REPLOID_REFERENCE_FILE) : null;
 if (referenceBytes) assert.equal(createHash('sha256').update(referenceBytes).digest('hex'),
-  referenceContract.sha256);
+  process.env.REPLOID_REFERENCE_SHA256 || referenceContract.sha256);
 const reference = referenceBytes ? JSON.parse(referenceBytes) : null;
+if (reference) {
+  assert.equal(reference.numericalReference?.proposalSha256, referenceContract.independent.proposal.sha256);
+  assert.equal(reference.numericalReference?.outputIndexSha256, referenceContract.independent.index.sha256);
+}
 const probePrompt = process.env.REPLOID_DIAGNOSTIC_PROMPT === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_PROMPT);
 const probeStep = process.env.REPLOID_DIAGNOSTIC_STEP === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_STEP);
 if (probePrompt !== null || probeStep !== null) {
@@ -181,7 +186,7 @@ try {
           assert(expected, 'Reference generation has an unexpected extra step');
           const decode = text => { const bytes = Buffer.from(text, 'base64');
             return new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)); };
-          const actual = decode(b.logits), baseline = decode(expected.logits);
+          const actual = decode(b.logits), baseline = decodeReferenceLogits(expected);
           assert.equal(actual.length, baseline.length);
           let maxDifference = 0, maxDifferenceIndex = null;
           for (let i = 0; i < actual.length; i++) {
@@ -486,7 +491,8 @@ try {
         const references = [['distributed', first.group1.logits], ['frozen', first.frozen.logits]];
         if (diagnostic.probe?.logits) references.push(['observed', diagnostic.probe.logits]);
         for (const [name, encoded] of references) {
-          const expected = decode(encoded); assert.equal(actual.length, expected.length);
+          const expected = name === 'frozen' ? decodeReferenceLogits(first.frozen) : decode(encoded);
+          assert.equal(actual.length, expected.length);
           let maxDifference = 0, maxDifferenceIndex = null;
           const samplingMasks = [];
           for (let index = 0; index < actual.length; index++) {

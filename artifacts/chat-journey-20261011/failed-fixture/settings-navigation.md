@@ -1,0 +1,57 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - navigation "Reploid" [ref=e4]:
+    - link "Reploid home" [ref=e5] [cursor=pointer]:
+      - /url: /?room=reploid-default
+      - generic [ref=e6]:
+        - superscript [ref=e7]: "7"
+        - generic [ref=e8]: "7"
+      - generic [ref=e9]: Reploid
+    - button "No model ready. No executor assigned. Execution details" [ref=e11] [cursor=pointer]:
+      - status [ref=e12]: No model ready
+    - group [ref=e14]:
+      - generic "Settings" [active] [ref=e15] [cursor=pointer]:
+        - generic [ref=e16]:
+          - generic [ref=e17]: "7"
+          - superscript [ref=e18]: "7"
+      - region "Settings" [ref=e19]:
+        - group "Appearance" [ref=e20]:
+          - button "System" [pressed] [ref=e21] [cursor=pointer]
+          - button "Light" [ref=e22] [cursor=pointer]
+          - button "Dark" [ref=e23] [cursor=pointer]
+        - link "Changes" [ref=e24] [cursor=pointer]:
+          - /url: /improve?room=reploid-default
+        - link "Examples" [ref=e25] [cursor=pointer]:
+          - /url: /examples
+  - region "Conversation workspace" [ref=e27]:
+    - complementary "Threads" [ref=e28]:
+      - generic [ref=e29]:
+        - heading "Threads" [level=2] [ref=e30]
+        - button "New thread" [ref=e31] [cursor=pointer]
+    - region "Current conversation" [ref=e33]:
+      - generic [ref=e34]:
+        - button "Network 0 peers" [ref=e35] [cursor=pointer]:
+          - text: Network
+          - generic [ref=e36]: 0 peers
+        - group [ref=e37]:
+          - generic "Actions" [ref=e38] [cursor=pointer]
+      - log "Messages" [ref=e39]:
+        - generic [ref=e40]:
+          - heading "Start a conversation" [level=2] [ref=e41]
+          - paragraph [ref=e42]: Ask a question or attach a document.
+      - generic [ref=e44]:
+        - generic [ref=e45]: Message
+        - textbox "Message" [ref=e47]:
+          - /placeholder: Ask a question…
+          - text: Keep my question while I inspect the network
+        - status [ref=e48]: No model is available right now. Your draft stays here.
+        - generic [ref=e49]:
+          - generic [ref=e50] [cursor=pointer]:
+            - text: Attach
+            - button "Attach" [ref=e51]
+          - generic [ref=e52]:
+            - button "Send" [disabled] [ref=e53]
+            - button "Retry connection" [ref=e54] [cursor=pointer]
+```

@@ -1,0 +1,41 @@
+{
+  "peer": "clocksmith@suby.tail995236.ts.net",
+  "legacyEvidenceHostLabel": "linux-128 means Suby in this run; outer runner binds actual SSH peer",
+  "requesterWeightRequests": 0,
+  "contributorOriginRequests": 0,
+  "physicalDevices": 2,
+  "errors": [],
+  "longRecovery": false,
+  "restarts": [
+    {
+      "host": "mac",
+      "layers": [
+        12,
+        23
+      ],
+      "residentWeightBytes": 285497344,
+      "phases": [
+        "Ready",
+        "Not sharing",
+        "Ready"
+      ],
+      "answer": "YES",
+      "stopReason": "eos-token"
+    },
+    {
+      "host": "linux-128",
+      "layers": [
+        0,
+        11
+      ],
+      "residentWeightBytes": 650989568,
+      "phases": [
+        "Ready",
+        "Not sharing",
+        "Ready"
+      ],
+      "answer": "YES",
+      "stopReason": "eos-token"
+    }
+  ]
+}

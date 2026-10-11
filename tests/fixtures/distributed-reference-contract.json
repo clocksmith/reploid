@@ -1,22 +1,35 @@
 {
   "schema": "reploid.distributed-reference/v1",
-  "revision": 3,
+  "revision": 4,
   "file": "distributed-reference.json.gz",
   "sha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
   "tolerance": 0.001,
-  "scope": "Historical acceptance reference; known shader-entry mismatch retained pending independently justified explicit correction approval",
+  "scope": "Approved independent F64-equation accuracy with exact deployed weights, independently evolved state, nearest-even F16 KV stores, unchanged runtime precision and 0.001 tolerance.",
   "historical": {
     "file": "distributed-reference.json.gz",
-    "sha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd"
+    "sha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+    "role": "Frozen prompt, generation, continuation and stopping input; numerical scores retained only as historical regression evidence."
   },
-  "review": "https://github.com/clocksmith/doppler/blob/c4217f75/artifacts/source-model-reference-20261011/reference-correction-review.json",
-  "authorization": "The latest user instruction requires specific independently justified approval; a general instruction to finish work does not activate this candidate.",
+  "review": "https://github.com/clocksmith/doppler/blob/main/artifacts/whole-model-f64-complete-20261011/approval.json",
+  "authorization": "User explicitly approved this independent numerical contract on 2026-10-11. Approval changes reference authority only; no failing implementation becomes qualified.",
   "candidate": {
     "revision": 2,
     "file": "distributed-reference-declared-main-v2.json.gz",
     "sha256": "a056956131e6944de2ba1d7f13b48327bc9e2c7fc55b55c57f1fc95fcca00046",
     "scope": "Declared-main implementation regression; independent source qualification remains a separate failed gate",
     "review": "https://github.com/clocksmith/doppler/blob/c4217f75/artifacts/source-model-reference-20261011/reference-correction-review.json",
-    "status": "inactive-awaiting-explicit-approval"
+    "status": "inactive-runtime-capture-not-an-independent-reference"
+  },
+  "independent": {
+    "kind": "independent-f64",
+    "approved": true,
+    "proposal": {
+      "path": "artifacts/whole-model-f64-complete-20261011/proposal.json",
+      "sha256": "138a76cff303746fe73e5307659c0aaca5a6b2c953ac44a8798c58f6ac297210"
+    },
+    "index": {
+      "path": "artifacts/whole-model-f64-complete-20261011/independent-output-index.json",
+      "sha256": "2c95ecd599b5007b15872c7f3b1ddc5934f5319f983375a996dab536e1021979"
+    }
   }
 }
