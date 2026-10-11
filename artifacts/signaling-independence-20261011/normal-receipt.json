@@ -1,0 +1,68 @@
+{
+  "result": "passed",
+  "sourceCommit": "b4712f18",
+  "run": "2026-10-11T02-51-37-395Z",
+  "command": "caffeinate -i node scripts/test-distributed.js --local --signaling-only",
+  "scope": "Physical selective acquisition and generation during signaling loss; numerical and full application acceptance not exercised",
+  "physicalDevices": 2,
+  "hosts": [
+    "linux-128",
+    "mac"
+  ],
+  "browser": "155.0.8059.39",
+  "requesterAdapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "isFallbackAdapter": false,
+    "shaderF16": true
+  },
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "browserIdentity": "sha256:892258b5366b0e82ddee4719bdab9cc99992371b5d60c02e2a6f38f474d5656d",
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "generation": {
+    "sameAttempt": true,
+    "status": "completed",
+    "stopReason": "eos-token"
+  },
+  "disconnectInput": {
+    "clicks": [
+      {
+        "trusted": true,
+        "networkSwitch": true,
+        "disconnect": "true",
+        "inspectorSection": null
+      }
+    ],
+    "control": {
+      "disconnect": "false",
+      "checked": "false"
+    }
+  },
+  "explicitDisconnect": {
+    "status": "failed",
+    "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+  },
+  "memory": [
+    {
+      "peakBytes": 862828944,
+      "maxBytes": 1420000000
+    },
+    {
+      "peakBytes": 497336720,
+      "maxBytes": 1420000000
+    }
+  ],
+  "residentLoads": [
+    1,
+    1
+  ],
+  "requesterWeightRequests": 0,
+  "contributorOriginRequests": 0,
+  "pageErrors": []
+}
