@@ -1,6 +1,6 @@
 # Poolday executable-intelligence network plan
 
-Status: selected strategy; connected network completion remains unproved
+Status: design and acceptance contracts; active work is selected only by [TODO.md](../../TODO.md). Connected network completion remains unproved.
 Strategy unit: Doppler plus Poolday and Reploid  
 Network owner: Reploid through Poolday
 
@@ -423,25 +423,11 @@ Stop or narrow the network strategy when:
 - the network requires claims of physical independence or honest hardware that
   its evidence cannot establish.
 
-## Retained custody and whole-job experiment scope
+## Work selection
 
-1. Generalize Pack invocation, admission, receipts, and operation adapters.
-   Preserve the existing public catalog and all separate research functionality.
-2. Qualify real text Packs and connect the local assistant lifecycle.
-3. Finish persistent, resumable, parallel custody and independent-machine N2.
-4. Connect heterogeneous jobs to authorized provider execution and implement the
-   complete N4 failure and conventional-queue comparison.
-5. Project admitted memory into the existing router, retaining snapshot,
-   policy, provenance, corrections, revocations, and reproducible reasons.
-6. Freeze the 1,000-job history and unseen cohort; run N6a/N6b with all controls.
-7. Establish independent repeat use without broadening unsupported claims.
-
-These items retain the scope of the custody and whole-job comparison, not a
-parallel work queue. Select any remaining experiment only after the current
-integration closure sequence; an existing implementation is not a new task.
-Tokens, payments, global reputation, Doe integration and social features remain
-outside these demonstrations. No allocation here authorizes recruitment,
-deployment or publication.
+The [canonical checklist](../../TODO.md) selects implementation work. The
+experiments above retain their acceptance contracts without creating a parallel
+queue. Historical custody and whole-job sequencing remains in Git history.
 
 Mutable support and deployment status remain owned by the surface claim index,
 Poolday configuration, runtime contracts, tests, and retained evidence.

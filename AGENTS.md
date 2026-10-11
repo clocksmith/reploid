@@ -4,6 +4,12 @@
 
 **See also:** [DOPPLER](https://github.com/clocksmith/doppler) for WebGPU inference engine (separate repo).
 
+## Current implementation work
+
+Follow [TODO.md](TODO.md), the single Doppler–Reploid implementation checklist.
+Update its evidence and checkboxes as complete acceptance passes. Historical
+plans cannot start a competing campaign. Preserve the GOALS and CATSCAN boundaries.
+
 ## Git workflow: direct to main
 
 - Work and commit directly on the owning repository's `main` branch, then push

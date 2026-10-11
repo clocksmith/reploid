@@ -48,35 +48,8 @@ implementation, which also stops at the token budget without EOS. This separates
 the task-quality failure from transport and cancellation; it does not qualify
 numerical accuracy or a replacement application policy.
 
-1. Finish operation-by-operation numerical diagnosis on the identified failing
-   decode prefix, including accumulated recurrent state and F16 cache boundaries.
-   Preserve 0.001 and historical failures. Any reference correction requires
-   independent evidence and explicit versioned review, not captured Doppler output.
-2. Evaluate an application prompt/model correction on fresh task-quality cases.
-   Preserve the original failing counting case, limits and distinct stopping reasons.
-   Trace acquisition through connection, inventory, permission and piece request;
-   the original report lacks the first connection-close reason. A successful retry
-   or the signaling-lifetime repair does not supply that missing causal evidence.
-3. After numerical qualification, connect the existing signed-Capsule resident
-   factory to `self/host/work-partitions.js` and exercise physical selective acquisition.
-   Existing manifest-based physical tests and synthetic signed-opening tests remain
-   separate evidence. Preserve every admission/attempt/placement identity to settlement.
-4. Qualify one standard archive and browser bundle in both physical placements:
-   weightless requester, origin-blocked pieces, complete answers, repeated long input,
-   concurrent threads, isolated cancellation, interruption, replacement, explicit new
-   attempt, extended document reuse, and another successful request. Keep partial
-   output attributed to its original attempt and recheck disclosure permissions.
-5. Only after all applicable numerical, lifecycle, acquisition and task-quality gates
-   pass: synchronize, deploy, verify served package/bundle identities and run the fresh
-   browser journey. Source commits and package checks do not constitute deployment.
-
-The [bounded introduction implementation](../artifacts/peer-introductions-20261010/README.md)
-is now checked separately. Do not expand bootstrap infrastructure, WebRTC Direct,
-checkpoint support, model catalogs or scheduling frameworks ahead of application
-closure. Larger-model capacity needs complete lifecycle and whole-model controls
-under the same contributor budgets. Later optimization follows measured preparation,
-transfer, GPU and complete-operation costs, preserving callback isolation. Doppler
-remains independently usable; Reploid owns connectivity, coordination and permissions.
+The active sequence and completion state now live only in [TODO.md](../TODO.md).
+This handoff retains contract and evidence context; it is not a second checklist.
 
 ## Public contracts and historical evidence
 
@@ -88,7 +61,7 @@ owns coordination; [chat acceptance](chat-mvp.md) defines the application journe
 The [earlier handoff](https://github.com/clocksmith/reploid/blob/3eced95089be278546e684fbbf4ed5488de1c09c/docs/doppler-partition-handoff.md#earlier-checkout-and-evidence-checkpoint)
 preserves the dated package pins, interface sketches, diagnostics, rejected
 candidates and receipt links. Those checkpoint instructions are historical;
-the combined closure sequence above selects current integration work. Retained
+the canonical TODO selects current integration work. Retained
 reports remain in the repository with their original failures and scope.
 
 *Last updated: October 2026*
