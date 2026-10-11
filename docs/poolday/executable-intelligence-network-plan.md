@@ -38,8 +38,8 @@ Partition execution now exists in the [library](../../packages/reploid/src/mesh/
 and [ordinary host composition](../../self/host/work-partitions.js). Selective
 acquisition and cooperative computation have retained physical runs. This is
 implemented execution, not complete numerical or public-application qualification.
-See the [current handoff](../doppler-partition-handoff.md#current-checkout-and-evidence)
-for checkout, investigation and served identities, and [chat acceptance](../chat-mvp.md)
+See the [current handoff](../doppler-partition-handoff.md#current-contract-integration-0627)
+for the installed candidate, retained results and deployment gates, and [chat acceptance](../chat-mvp.md)
 for implemented, tested, blocked and planned boundaries.
 
 Keep the same frozen model/reference and 0.001 tolerance. Finish computation and
@@ -86,9 +86,10 @@ gates. Neither category inherits evidence from the other.
    improvement, keeping models, resources, evaluator access and assistance
    comparable. Another patch or posterior update alone is not recursive proof.
 
-These experiments are active development targets. Neither whole-job success,
-tool-repair completion nor a new UI is a prerequisite to starting the bounded
-partition implementation. The interface preserves the causal connection between
+Collective-improvement experiments follow the
+[current integration closure sequence](../doppler-partition-handoff.md#combined-closure-sequence).
+The partition implementation already exists; its remaining numerical and
+application gates take priority. The interface preserves the causal connection between
 agents, models, shared execution, contributions, weaknesses, changes and outcomes.
 
 ## Optional application workload
@@ -422,7 +423,7 @@ Stop or narrow the network strategy when:
 - the network requires claims of physical independence or honest hardware that
   its evidence cannot establish.
 
-## Existing custody and whole-job work queue
+## Retained custody and whole-job experiment scope
 
 1. Generalize Pack invocation, admission, receipts, and operation adapters.
    Preserve the existing public catalog and all separate research functionality.
@@ -435,8 +436,9 @@ Stop or narrow the network strategy when:
 6. Freeze the 1,000-job history and unseen cohort; run N6a/N6b with all controls.
 7. Establish independent repeat use without broadening unsupported claims.
 
-This queue scopes the custody and whole-job comparison, not the complete product.
-The active partition/learning/adoption contracts above may proceed alongside it.
+These items retain the scope of the custody and whole-job comparison, not a
+parallel work queue. Select any remaining experiment only after the current
+integration closure sequence; an existing implementation is not a new task.
 Tokens, payments, global reputation, Doe integration and social features remain
 outside these demonstrations. No allocation here authorizes recruitment,
 deployment or publication.

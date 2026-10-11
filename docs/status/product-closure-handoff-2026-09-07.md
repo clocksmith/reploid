@@ -1,3 +1,7 @@
+> Historical checkpoint. Package, deployment and next-work statements below
+> apply only to this dated observation. Follow the [current integration closure
+> sequence](../doppler-partition-handoff.md#combined-closure-sequence) for active work.
+
 Reploid product closure handoff: September 7, 2026
 
 The finish line remains a public assistant that keeps private retrieval local, borrows another operator's GPU with explicit consent, exchanges useful coding adapters, survives failures, and continues after its original supplier disappears. Prioritize product closure and physical proof.

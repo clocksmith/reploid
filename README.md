@@ -73,7 +73,7 @@ Open `http://localhost:8000`, or use [replo.id](https://replo.id/).
    preparation is separate from using capacity already prepared by other peers.
 
 See the [network quick start](docs/QUICK-START.md) and
-[current partition handoff](docs/doppler-partition-handoff.md#current-checkout-and-evidence).
+[current partition handoff](docs/doppler-partition-handoff.md#current-contract-integration-0627).
 Partition execution is implemented; complete numerical and application
 qualification remains open. Evaluated tool improvement is a distinct workflow,
 with independent evaluation and operator adoption rather than automatic mutation.

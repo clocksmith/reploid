@@ -70,8 +70,9 @@ Doppler's declared numerical and output comparison contract.
 | Qualification open | Both-direction frozen numerical parity at 0.001, repeatable ordinary application acceptance, lifecycle/capacity evidence and separate answer-quality evaluation. |
 | Planned or separately scoped | Additional qualified native hosts, generalized continuations, adapter/catalog expansion and independently evaluated network improvement. Source existence establishes none of these outcomes. |
 
-[Current dependency and retained evidence](doppler-partition-handoff.md#current-checkout-and-evidence)
-separates checkout, investigated candidate, accepted controls and served identity.
+[Current dependency and retained evidence](doppler-partition-handoff.md#current-contract-integration-0627)
+separates the installed candidate, scoped controls, remaining acceptance and
+public deployment gates.
 A failed numerical gate means not qualified, not unimplemented. A model can
 faithfully execute and still produce a poor answer; task quality has its own tests.
 
