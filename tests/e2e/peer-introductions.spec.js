@@ -1,8 +1,11 @@
-import { test, expect } from '@playwright/test';
+import { test, expect, chromium } from '@playwright/test';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-let server, origin;
+import { connectPhysicalBrowser } from '../fixtures/physical-webgpu-browser.js';
+let server, origin, remoteBrowser;
+const hostScope = process.env.REPLOID_EXECUTOR_WS ? 'two-physical-hosts' : 'one-host';
+const createContext = (browser, index) => (index === 1 && remoteBrowser ? remoteBrowser : browser).newContext();
 test.beforeAll(async () => {
   const root = path.resolve('.');
   server = createServer(async (request, response) => {
@@ -14,16 +17,20 @@ test.beforeAll(async () => {
       response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json' : 'text/javascript'); response.end(await readFile(file));
     } catch { response.writeHead(404).end(); }
   });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  await new Promise(resolve => server.listen(Number(process.env.REPLOID_INTRODUCTIONS_PORT || 0), '127.0.0.1', resolve));
   origin = `http://127.0.0.1:${server.address().port}`;
+  if (process.env.REPLOID_EXECUTOR_WS) remoteBrowser = await connectPhysicalBrowser(chromium, process.env.REPLOID_EXECUTOR_WS);
 });
-test.afterAll(async () => { await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); }); });
+test.afterAll(async () => {
+  await remoteBrowser?.close();
+  await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); });
+});
 
 test('browsers introduce peers over existing channels with all signaling servers blocked', async ({ browser }, testInfo) => {
   const contexts = [], pages = [], contacts = [], manual = [];
   try {
     for (const id of ['b', 'a', 'c']) {
-      const context = await browser.newContext(); contexts.push(context);
+      const context = await createContext(browser, contexts.length); contexts.push(context);
       const page = await context.newPage(); pages.push(page);
       await page.goto(origin);
       await page.exposeFunction('deliverIntroduction', async envelope => {
@@ -52,7 +59,7 @@ test('browsers introduce peers over existing channels with all signaling servers
     expect(await pages[1].evaluate(() => window.introductions.echo('c'))).toEqual([1, 3, 5, 7]);
     const observations = await Promise.all(pages.map(page => page.evaluate(() => ({ peers: window.introductions.peers(),
       errors: window.introductions.errors, events: window.introductions.events }))));
-    await testInfo.attach('introductions', { body: JSON.stringify({ executionClass: 'three-isolated-browser-contexts-real-webrtc',
+    await testInfo.attach('introductions', { body: JSON.stringify({ executionClass: 'three-isolated-browser-contexts-real-webrtc', hostScope,
       signalingServer: false, modelInference: false, observations }, null, 2), contentType: 'application/json' });
     expect(observations.flatMap(item => item.events.filter(event => event.type === 'swarm:introduction-error'))).toEqual([]);
   } finally {
@@ -65,7 +72,7 @@ test('reports connection failure when policy requires a relay and none is config
   const contexts = [], pages = [], contacts = [];
   try {
     for (const id of ['a', 'b']) {
-      const context = await browser.newContext(); contexts.push(context);
+      const context = await createContext(browser, contexts.length); contexts.push(context);
       const page = await context.newPage(); pages.push(page); await page.goto(origin);
       await page.exposeFunction('deliverIntroduction', async envelope => {
         pages[['a', 'b'].indexOf(envelope.record.body.to)].evaluate(value => window.introductions.receive(value), envelope).catch(() => {});
@@ -81,7 +88,7 @@ test('reports connection failure when policy requires a relay and none is config
     expect(await pages[0].evaluate(() => window.introductions.peers())).toEqual([]);
     expect(await pages[0].evaluate(() => window.introductions.send('b', { text: 'must-not-arrive' }))).toBe(false);
     await testInfo.attach('restricted-connectivity', { body: JSON.stringify({ scenario: 'relay-required-without-a-relay',
-      externalNATTest: false, events: await pages[0].evaluate(() => window.introductions.events) }, null, 2), contentType: 'application/json' });
+      hostScope, externalNATTest: false, events: await pages[0].evaluate(() => window.introductions.events) }, null, 2), contentType: 'application/json' });
   } finally {
     for (const page of pages) await page.evaluate(() => window.introductions?.close()).catch(() => {});
     for (const context of contexts) await context.close();
@@ -92,7 +99,7 @@ test('ordinary product host uses independent bootstrap and ICE without granting 
   const contexts = [], pages = [], external = [];
   try {
     for (let index = 0; index < 2; index++) {
-      const context = await browser.newContext(); contexts.push(context);
+      const context = await createContext(browser, index); contexts.push(context);
       await context.route('**/*', route => {
         if (new URL(route.request().url()).origin === origin) return route.continue();
         external.push(route.request().url()); return route.abort();
@@ -123,7 +130,7 @@ test('ordinary product host uses independent bootstrap and ICE without granting 
     expect(external).toEqual([]);
     await testInfo.attach('ordinary-host-bootstrap', { body: JSON.stringify({
       executionClass: 'ordinary-product-host-two-browser-contexts-real-webrtc',
-      modelInference: false, externalNATTest: false, configuredParticipant: true, externalRequests: external,
+      hostScope, modelInference: false, externalNATTest: false, configuredParticipant: true, externalRequests: external,
       state: await pages[1].evaluate(() => window.introductions.hostState()), events
     }, null, 2), contentType: 'application/json' });
   } finally {
