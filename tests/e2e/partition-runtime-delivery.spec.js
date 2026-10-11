@@ -73,3 +73,21 @@ test('two local tabs import the pinned partition contract independently', async 
         moduleUrl: DOPPLER_PARTITIONS_MODULE_URL, results }, null, 2) });
   } finally { await Promise.all(tabs.map(page => page.close())); }
 });
+
+test('browser host resolves explicit partition generation without activating a model', async ({ page }) => {
+  await page.goto('/config/chat-files.json');
+  const result = await page.evaluate(async () => {
+    const { resolvePartitionGeneration } = await import('/config/partition-generation.js');
+    const current = resolvePartitionGeneration({});
+    const explicit = resolvePartitionGeneration({ generation: { ...current,
+      temperature: 0.6, topK: 20, topP: 0.95, repetitionPenalty: 1, seed: 37 } });
+    const rejected = [];
+    for (const generation of [null, { temperature: 0.6 }, { ...explicit, minP: 0 }, { ...explicit, maxTokens: current.maxTokens + 1 }]) {
+      try { resolvePartitionGeneration({ generation }); rejected.push(false); } catch { rejected.push(true); }
+    }
+    return { current, explicit, rejected };
+  });
+  expect(result.current).toMatchObject({ temperature: 0, topK: 1 });
+  expect(result.explicit).toMatchObject({ temperature: 0.6, topK: 20, topP: 0.95, repetitionPenalty: 1, seed: 37 });
+  expect(result.rejected).toEqual([true, true, true, true]);
+});

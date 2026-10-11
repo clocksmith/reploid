@@ -1,0 +1,9 @@
+# Application reference and generation policy binding
+
+The cooperative application harness verifies the exact model, partition plan, generation settings and grant digest, then the retained attempt's full ordered messages, before interpreting logits or sampled tokens. Different system instructions or history cannot share a reference merely because the last user question matches. Historical fixtures, failed receipts and the 0.001 threshold remain unchanged. References whose identities disagree with actual execution now reject prospectively; their former results are not regraded.
+
+The resident host accepts an explicit complete model generation policy through the pinned Doppler public resolver. Absent policy preserves every current catalog setting. Unsupported options, missing stochastic seeds and contradictory context/output limits reject before acquisition or device setup. The admitted policy and cache context agree. Required application instructions use the existing explicit thread `purpose` port, which persists and discloses the actual system message; no hidden candidate instruction is inserted.
+
+Validation: 3,072 repository tests passed with 29 skips before the final fixture-only full-prompt binding addition; 58 affected tests passed afterward. Four Chromium controls include Verification Worker validation, independent tabs importing the retained installed partition contract, host failure cleanup and explicit policy resolution. Layer/delivery and served-manifest checks pass. `review.json` binds exact files and unchanged inputs; compressed logs retain the initial synthetic-fixture failure and corrected results.
+
+This evidence does not qualify a model, numerical reference, physical inference placement or deployment. No catalog, release archive or pin changed. Canonical library package files are untouched, so no replacement installed package was built.

@@ -1,13 +1,13 @@
 /** Host composition of explicit manifest or signed Capsule residents and verified pieces. */
 import { createResidentPartition } from '../vendor/reploid/mesh/index.js';
 import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_KERNEL_BASE_URL } from '../config/doppler-local-models.js';
-import profile from '../config/work-profile.json' with { type: 'json' };
-import { resolveGenerationOptions } from '../config/doppler-generation-contract.js';
+import { resolvePartitionGeneration } from '../config/partition-generation.js';
 import policy from '../config/partition-policy.json' with { type: 'json' };
 import { prepareLocalPackRelease } from '../pool/pack-release-policy.js';
 import { assertWorkResidentCapsule } from './work-partition-capsule.js';
 
 export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress }) {
+  const model = { ...selected, generation: resolvePartitionGeneration(selected) };
   const openedAt = performance.now();
   globalThis.__DOPPLER_KERNEL_BASE_PATH__ = DOPPLER_KERNEL_BASE_URL;
   const runtime = await import(DOPPLER_PARTITIONS_MODULE_URL);
@@ -33,7 +33,6 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
       splitLayer: selected.partitionSplitLayer,
       activationDtype: manifest.inference.session.compute.defaults.activationDtype });
     const planId = runtime.hashLayerPartitionPlan(plan);
-    const model = { ...selected, generation: resolveGenerationOptions({ ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen }) };
     let factory;
     if (selected.capsule !== undefined) {
       if (!source.artifactStore || !selected.packOpenOptions || !selected.executablePack) {
@@ -83,7 +82,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
         } });
     } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
       runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
-        inference: { session: { kvcache: { maxSeqLen: policy.maxSeqLen },
+        inference: { session: { kvcache: { maxSeqLen: model.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => source.storage });
     resident = createResidentPartition({ runtime: factory, model, plan, planId, index,
