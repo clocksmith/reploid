@@ -126,6 +126,8 @@ chat or deployment gates. Callback isolation in R5 has already landed.
 
   Batch completion: Doppler `b0354ba4` applies the same token-indexed seed to recorded GPU batches and the PLE fallback. Whole versus split batches, same-index retry, seed validation, greedy execution and immutable request options pass focused control-loop tests. This closes the missed source paths; physical GPU sampling and partial-batch cancellation are being checked separately and are not established by the stubbed controls.
 
+  Application candidate: [Qwen3-1.7B source-policy evaluation](https://github.com/clocksmith/doppler/blob/d2993d2f/artifacts/qwen3-17b-application-policy-20261011/README.md) passes all 14 frozen fresh tasks with natural reasoning closure and EOS under unchanged token, context and raw-character limits. A 48-case template audit identifies the existing ChatML formatter as exact for the supported thinking-enabled, user-ended, final-answer-only histories. These results qualify neither converted weights nor Doppler execution. The independently decoded deployed-weight suite is frozen separately and running before model integration; no catalog, standard archive or protected requirement changed.
+
 - [ ] **15. Both: finish interruption, replacement and settlement.**
   Cancel submitted work while another conversation continues to a valid completion. Stop and rejoin each contributor, replace an unavailable executor, and explicitly retry using a new authorized attempt. Preserve unaffected weights and histories. Await owned cleanup rather than arbitrary sleeps. Complete document and extended-retry checks previously skipped when earlier application assertions failed.
 
