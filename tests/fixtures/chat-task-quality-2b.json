@@ -1,0 +1,17 @@
+{
+  "schema": "reploid.chat-task-quality/v1",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "hypothesis": "The existing larger application model satisfies exact, bounded requests that remain unreliable in the small-model control.",
+  "acceptance": "Every fresh task must produce its exact expected text, ignoring whitespace differences, and end naturally. Any failure rejects the candidate. Protected numerical and application cases remain unchanged.",
+  "maxGpuBufferBytes": 6000000000,
+  "scope": "Unsplit application-quality diagnostic of the existing larger model; higher-budget control, not distributed capacity or numerical qualification.",
+  "variants": [{ "id": "existing-2b", "repetitionPenalty": 1.1 }],
+  "cases": [
+    { "id": "ascending-2b", "prompt": "List all integers from 208 through 219 inclusive in ascending order, one integer per line. Return only the list.", "expected": "208\n209\n210\n211\n212\n213\n214\n215\n216\n217\n218\n219" },
+    { "id": "descending-2b", "prompt": "List all integers from 304 down through 296 inclusive in descending order, one integer per line. Return only the list.", "expected": "304\n303\n302\n301\n300\n299\n298\n297\n296" },
+    { "id": "duplicates-2b", "prompt": "Copy these six labels without changing their order or removing duplicates. Write one label per line, no commas or other text: river, cloud, cloud, river, river, cloud.", "expected": "river\ncloud\ncloud\nriver\nriver\ncloud" },
+    { "id": "identifier-2b", "prompt": "Record: Owner=Ivo; Ref=ZX-731; State=waiting. Return only the Ref value, exactly as written.", "expected": "ZX-731" },
+    { "id": "negation-2b", "prompt": "Policy: 'Do not release the shipment until the inspection passes.' The inspection has not passed. Is release allowed? Answer only Yes or No, without punctuation.", "expected": "No" },
+    { "id": "arithmetic-2b", "prompt": "What is 27 + 8? Output only the integer answer.", "expected": "35" }
+  ]
+}
