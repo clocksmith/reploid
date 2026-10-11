@@ -56,18 +56,20 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 - [ ] **8. Doppler: resolve the reference-contract mismatch explicitly.**
   Preserve declared normalization entry points rather than restoring the historical `main_subgroup` substitution. Keep old fixtures and failed receipts unchanged. Independently assess any correction before proposing a versioned reference replacement, requiring explicit approval. Retain precision, inputs, token expectations and **0.001 tolerance**. Newly captured Doppler outputs alone cannot validate their own correctness.
 
-- [ ] **9. Doppler and application: diagnose repetitive answers.**
+- [x] **9. Doppler and application: diagnose repetitive answers.**
   Replay the failing counting request through independent source-model computation with identical deployed weights and generation settings. Its uncancelled unsplit Doppler control reproduces the distributed prefix, so cancellation is not a necessary cause. Fix runtime differences if demonstrated; otherwise evaluate model or prompt changes on fresh tasks without weakening protected correctness cases.
 
-  Progress: [source-model replay](https://github.com/clocksmith/doppler/blob/02c864cf/artifacts/source-model-reference-20261010/count-generation.json) matches all 4,096 tokens and 16,821 characters, ending without EOS. Independent reproduction is complete; fresh task-quality evaluation and a qualified application correction remain open.
+  Progress: [source-model replay](https://github.com/clocksmith/doppler/blob/02c864cf/artifacts/source-model-reference-20261010/count-generation.json) matches all 4,096 tokens and 16,821 characters, ending without EOS. Independent reproduction is complete. The subsequent fresh task-quality evaluations below complete this diagnostic item; the application-quality acceptance in item 14 remains failed.
 
   Further evidence: [fresh task-quality comparison](artifacts/chat-task-quality-20261011/README.md) rejects neutral repetition as a standalone application correction: both existing and candidate settings pass three of six cases, failing requested list formatting. All cases reach EOS. Production settings and protected cases remain unchanged.
 
-  Further evidence: the same [quality receipt](artifacts/chat-task-quality-20261011/README.md) rejects a general formatting instruction on a separate holdout. The existing 2B model passes six additional fresh exact-output/EOS cases with unchanged application settings. Its complete distributed application journey remains required; these unsplit results do not close item 9 or establish capacity.
+  Further evidence: the same [quality receipt](artifacts/chat-task-quality-20261011/README.md) rejects a general formatting instruction on a separate holdout. The existing 2B model passes six additional fresh exact-output/EOS cases with unchanged application settings. Its complete distributed application journey remains required; these unsplit results do not establish capacity or application acceptance.
 
   Remaining quality failure: the 2B replay of the original count-to-200 request stops at 120 with EOS. The [retained result](artifacts/chat-task-quality-20261011/README.md) rejects it. The application cancellation test now verifies the full ordered count, so natural stopping alone cannot qualify an incomplete answer.
 
   Independent attribution: the [2B source replay](https://github.com/clocksmith/doppler/blob/c45daac1/artifacts/source-model-reference-20261011/model-2b-counting-source.json) matches all 372 tokens, including EOS after 120. A neutral repetition candidate also fails the unchanged request. No production policy changed. The application test retains a failing quality verdict while continuing independent recovery checks after settlement.
+
+  Completion scope: diagnosis and fresh-task evaluation only. The independent source reproduces the original repetition and the larger-model incomplete answer; no runtime difference requiring correction was found. Both evaluated policy candidates remain inactive after failing the unchanged counting request. Complete, useful distributed answers are still required by item 14.
 
 - [ ] **10. Reploid: explain and repair acquisition disconnects.**
   Trace the first failed peer acquisition through `self/host/work-model-files.js`, custody and transport: actual connection loss, retained inventory, requested piece, permissions and supplier replacement. Preserve the earlier failed run even when retry succeeds. Retain the already-repaired manifest binding. Completion requires a reproduced cause, targeted regression and successful selective acquisition with origins blocked.
