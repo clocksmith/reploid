@@ -1,0 +1,41 @@
+{
+  "schema": "reploid.chat-task-quality/v1",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "hypothesis": "The existing Qwen reasoning prompt mode may improve completion on fresh longer tasks with unchanged model weights, arithmetic and token budget.",
+  "acceptance": "Every fresh task must produce its exact expected text, ignoring whitespace differences, and end naturally. Any failure rejects the candidate. Protected numerical and application cases remain unchanged.",
+  "maxGpuBufferBytes": 6000000000,
+  "scope": "Unsplit reasoning-template diagnostic. Exact final answer and natural EOS required; raw reasoning is retained. Application streaming and numerical qualification are separate.",
+  "variants": [
+    {
+      "id": "existing-2b",
+      "repetitionPenalty": 1.1
+    },
+    {
+      "id": "reasoning-2b",
+      "repetitionPenalty": 1.1,
+      "templateThinking": true
+    }
+  ],
+  "cases": [
+    {
+      "id": "ascending-reasoning",
+      "prompt": "Write every integer from 57 through 198 inclusive in ascending order, one number per line. Return only the list.",
+      "expected": "57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\n78\n79\n80\n81\n82\n83\n84\n85\n86\n87\n88\n89\n90\n91\n92\n93\n94\n95\n96\n97\n98\n99\n100\n101\n102\n103\n104\n105\n106\n107\n108\n109\n110\n111\n112\n113\n114\n115\n116\n117\n118\n119\n120\n121\n122\n123\n124\n125\n126\n127\n128\n129\n130\n131\n132\n133\n134\n135\n136\n137\n138\n139\n140\n141\n142\n143\n144\n145\n146\n147\n148\n149\n150\n151\n152\n153\n154\n155\n156\n157\n158\n159\n160\n161\n162\n163\n164\n165\n166\n167\n168\n169\n170\n171\n172\n173\n174\n175\n176\n177\n178\n179\n180\n181\n182\n183\n184\n185\n186\n187\n188\n189\n190\n191\n192\n193\n194\n195\n196\n197\n198"
+    },
+    {
+      "id": "descending-reasoning",
+      "prompt": "Write every integer from 211 down through 74 inclusive in descending order, one number per line. Return only the list.",
+      "expected": "211\n210\n209\n208\n207\n206\n205\n204\n203\n202\n201\n200\n199\n198\n197\n196\n195\n194\n193\n192\n191\n190\n189\n188\n187\n186\n185\n184\n183\n182\n181\n180\n179\n178\n177\n176\n175\n174\n173\n172\n171\n170\n169\n168\n167\n166\n165\n164\n163\n162\n161\n160\n159\n158\n157\n156\n155\n154\n153\n152\n151\n150\n149\n148\n147\n146\n145\n144\n143\n142\n141\n140\n139\n138\n137\n136\n135\n134\n133\n132\n131\n130\n129\n128\n127\n126\n125\n124\n123\n122\n121\n120\n119\n118\n117\n116\n115\n114\n113\n112\n111\n110\n109\n108\n107\n106\n105\n104\n103\n102\n101\n100\n99\n98\n97\n96\n95\n94\n93\n92\n91\n90\n89\n88\n87\n86\n85\n84\n83\n82\n81\n80\n79\n78\n77\n76\n75\n74"
+    },
+    {
+      "id": "duplicate-reasoning",
+      "prompt": "Output these labels in order, preserving duplicates, one label per line: birch, ash, ash, birch, ash, birch. Output only the labels.",
+      "expected": "birch\nash\nash\nbirch\nash\nbirch"
+    },
+    {
+      "id": "negation-reasoning",
+      "prompt": "Policy: Guests may not enter the room before approval. Approval has not been given. May a guest enter now? Reply only Yes or No without punctuation.",
+      "expected": "No"
+    }
+  ]
+}
