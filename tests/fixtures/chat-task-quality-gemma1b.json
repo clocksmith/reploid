@@ -1,7 +1,7 @@
 {
   "schema": "reploid.chat-task-quality/v1",
   "modelId": "gemma-3-1b-it-q4k-ehf16-af32",
-  "diagnosticManifestIdentity": "sha256:734f8d68925581ef8ed9a8363dc887c8ad13ffb9d4ba146746d74fcca6549c65",
+  "diagnosticManifestIdentity": "sha256:f947e3ccac8028c9fcd0eb87cad3deec023102672288c75353d97d3b813e731b",
   "hypothesis": "An already available instruction-model artifact may satisfy longer worded requests that both current chat models fail, without changing the protected requests or output requirements.",
   "acceptance": "All fresh cases must produce every expected item, exact text except whitespace, and natural model EOS. Any failure rejects the candidate before protected replay.",
   "maxGpuBufferBytes": 6000000000,
