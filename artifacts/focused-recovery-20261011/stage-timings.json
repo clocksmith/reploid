@@ -1,0 +1,2308 @@
+{
+  "schema": "reploid.physical-stage-timings/v1",
+  "runId": "2026-10-11T11-31-14-805Z",
+  "scope": "Observed aggregate timing only; nested scopes must not be summed; no stage-overlap candidate tested",
+  "attempts": [
+    {
+      "attemptId": "29eba98a-b339-4772-b749-33ecd8009838",
+      "prompt": "Greet me briefly.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 10,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 10,
+          "total": 0.30000007152557373,
+          "min": 0,
+          "max": 0.30000007152557373
+        },
+        "outputDeliveryMs": {
+          "count": 10,
+          "total": 1.0999999046325684,
+          "min": 0,
+          "max": 0.2999999523162842
+        },
+        "localStepMs": {
+          "count": 10,
+          "total": 797.799999833107,
+          "min": 17.799999952316284,
+          "max": 439.89999997615814
+        },
+        "serializationMs": {
+          "count": 10,
+          "total": 0.8000001907348633,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "remoteStepMs": {
+          "count": 10,
+          "total": 1840.4000000953674,
+          "min": 67.80000007152557,
+          "max": 939.6000000238419
+        },
+        "elapsedMs": {
+          "count": 10,
+          "total": 2659.3000000715256,
+          "min": 102.30000007152557,
+          "max": 1380.7999999523163
+        },
+        "computationA.inputUploadMs": {
+          "count": 10,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 10,
+          "total": 523.7999999523163,
+          "min": 4,
+          "max": 359
+        },
+        "computationA.submitWaitMs": {
+          "count": 10,
+          "total": 239.10000002384186,
+          "min": 11.400000095367432,
+          "max": 77.20000004768372
+        },
+        "computationA.activationReadbackMs": {
+          "count": 10,
+          "total": 9.99999988079071,
+          "min": 0.5,
+          "max": 2
+        },
+        "computationA.logitsMs": {
+          "count": 10,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 10,
+          "total": 776.2999999523163,
+          "min": 16.5,
+          "max": 437.39999997615814
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 10,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 10,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 10,
+          "total": 0.10000038146972656,
+          "min": 0,
+          "max": 0.10000038146972656
+        },
+        "computationB.encodeMs": {
+          "count": 10,
+          "total": 766.2000007629395,
+          "min": 8.5,
+          "max": 563.9000005722046
+        },
+        "computationB.submitWaitMs": {
+          "count": 10,
+          "total": 191.29999923706055,
+          "min": 11.09999942779541,
+          "max": 62.89999961853027
+        },
+        "computationB.activationReadbackMs": {
+          "count": 10,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 10,
+          "total": 60.19999980926514,
+          "min": 0.5,
+          "max": 47.60000038146973
+        },
+        "computationB.executionMs": {
+          "count": 10,
+          "total": 1021.3999977111816,
+          "min": 20.5,
+          "max": 675.3999996185303
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 10,
+          "total": 32.50000286102295,
+          "min": 1.9000005722045898,
+          "max": 4
+        },
+        "computationB.samplingMs": {
+          "count": 10,
+          "total": 36.5,
+          "min": 1.3000001907348633,
+          "max": 8.59999942779541
+        },
+        "transportTiming.authorizationMs": {
+          "count": 10,
+          "total": 4.499999523162842,
+          "min": 0.19999992847442627,
+          "max": 0.6999999284744263
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 10,
+          "total": 165.00000023841858,
+          "min": 14.600000023841858,
+          "max": 18
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 10,
+          "total": 6.400000095367432,
+          "min": 0.3999999761581421,
+          "max": 1
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 10,
+          "total": 1650.200000166893,
+          "min": 48.90000009536743,
+          "max": 921.1000000238419
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 10,
+          "total": 11.399999737739563,
+          "min": 0.6000000238418579,
+          "max": 2.100000023841858
+        },
+        "transportTiming.totalMs": {
+          "count": 10,
+          "total": 1837.4999997615814,
+          "min": 67.39999997615814,
+          "max": 939.1999999284744
+        }
+      }
+    },
+    {
+      "attemptId": "5762ea82-d3aa-475e-8e05-7159f44666ac",
+      "prompt": "Greet me briefly.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 12,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 12,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "outputDeliveryMs": {
+          "count": 12,
+          "total": 1.3000000715255737,
+          "min": 0,
+          "max": 0.20000004768371582
+        },
+        "localStepMs": {
+          "count": 12,
+          "total": 486.2999999523163,
+          "min": 20.300000071525574,
+          "max": 207.59999990463257
+        },
+        "serializationMs": {
+          "count": 12,
+          "total": 0.20000004768371582,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "remoteStepMs": {
+          "count": 12,
+          "total": 2169.1999999284744,
+          "min": 99.90000009536743,
+          "max": 812.2999999523163
+        },
+        "elapsedMs": {
+          "count": 12,
+          "total": 2675.600000023842,
+          "min": 126.5,
+          "max": 1020.8000000715256
+        },
+        "computationA.inputUploadMs": {
+          "count": 12,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 12,
+          "total": 167.09999990463257,
+          "min": 2.3000000715255737,
+          "max": 115.5
+        },
+        "computationA.submitWaitMs": {
+          "count": 12,
+          "total": 281.09999990463257,
+          "min": 11.699999928474426,
+          "max": 89.5
+        },
+        "computationA.activationReadbackMs": {
+          "count": 12,
+          "total": 11.90000033378601,
+          "min": 0.6000000238418579,
+          "max": 2.600000023841858
+        },
+        "computationA.logitsMs": {
+          "count": 12,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 12,
+          "total": 462.09999990463257,
+          "min": 17.399999976158142,
+          "max": 206.5
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 12,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 12,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 12,
+          "total": 0.39999961853027344,
+          "min": 0,
+          "max": 0.19999980926513672
+        },
+        "computationB.encodeMs": {
+          "count": 12,
+          "total": 338.6999988555908,
+          "min": 6.300000190734863,
+          "max": 264.30000019073486
+        },
+        "computationB.submitWaitMs": {
+          "count": 12,
+          "total": 322.5,
+          "min": 10.90000057220459,
+          "max": 100
+        },
+        "computationB.activationReadbackMs": {
+          "count": 12,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 12,
+          "total": 9.899999618530273,
+          "min": 0.3000001907348633,
+          "max": 1.3000001907348633
+        },
+        "computationB.executionMs": {
+          "count": 12,
+          "total": 675.3999977111816,
+          "min": 17.899999618530273,
+          "max": 364.9000005722046
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 12,
+          "total": 46.89999961853027,
+          "min": 2.8999996185302734,
+          "max": 9.09999942779541
+        },
+        "computationB.samplingMs": {
+          "count": 12,
+          "total": 16.700000762939453,
+          "min": 1.1999998092651367,
+          "max": 1.8999996185302734
+        },
+        "transportTiming.authorizationMs": {
+          "count": 12,
+          "total": 5.300000309944153,
+          "min": 0.30000007152557373,
+          "max": 0.6000000238418579
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 12,
+          "total": 341.10000002384186,
+          "min": 15.5,
+          "max": 35.299999952316284
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 12,
+          "total": 6.799999833106995,
+          "min": 0.2999999523162842,
+          "max": 1
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 12,
+          "total": 1799.8999999761581,
+          "min": 71.39999997615814,
+          "max": 774.3999999761581
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 12,
+          "total": 13.200000047683716,
+          "min": 0.2999999523162842,
+          "max": 1.6999999284744263
+        },
+        "transportTiming.totalMs": {
+          "count": 12,
+          "total": 2166.300000190735,
+          "min": 99.70000004768372,
+          "max": 812.0999999046326
+        }
+      }
+    },
+    {
+      "attemptId": "65e2a012-80cb-4a9c-8f51-f8a2ea87e7a3",
+      "prompt": "Count from one to twenty, one number per line.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 51,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 51,
+          "total": 640.1999999284744,
+          "min": 0,
+          "max": 517
+        },
+        "outputDeliveryMs": {
+          "count": 51,
+          "total": 7.100000381469727,
+          "min": 0,
+          "max": 0.3999999761581421
+        },
+        "localStepMs": {
+          "count": 51,
+          "total": 1517.8999997377396,
+          "min": 15.100000023841858,
+          "max": 102.70000004768372
+        },
+        "serializationMs": {
+          "count": 51,
+          "total": 1.9999998807907104,
+          "min": 0,
+          "max": 0.19999992847442627
+        },
+        "remoteStepMs": {
+          "count": 51,
+          "total": 5008.199999690056,
+          "min": 75.40000009536743,
+          "max": 442.10000002384186
+        },
+        "elapsedMs": {
+          "count": 51,
+          "total": 6640.999999761581,
+          "min": 97,
+          "max": 546.2000000476837
+        },
+        "computationA.inputUploadMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 51,
+          "total": 381.39999997615814,
+          "min": 3.5,
+          "max": 25.600000023841858
+        },
+        "computationA.submitWaitMs": {
+          "count": 51,
+          "total": 926.6000002622604,
+          "min": 9.200000047683716,
+          "max": 73.29999995231628
+        },
+        "computationA.activationReadbackMs": {
+          "count": 51,
+          "total": 73.59999966621399,
+          "min": 0.5,
+          "max": 8.899999976158142
+        },
+        "computationA.logitsMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 51,
+          "total": 1393.199999332428,
+          "min": 13.700000047683716,
+          "max": 101.10000002384186
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 51,
+          "total": 0.5,
+          "min": 0,
+          "max": 0.10000038146972656
+        },
+        "computationB.encodeMs": {
+          "count": 51,
+          "total": 659.1000051498413,
+          "min": 7.300000190734863,
+          "max": 200.8000030517578
+        },
+        "computationB.submitWaitMs": {
+          "count": 51,
+          "total": 835.8999977111816,
+          "min": 11,
+          "max": 64.79999732971191
+        },
+        "computationB.activationReadbackMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 51,
+          "total": 41.69999694824219,
+          "min": 0.40000057220458984,
+          "max": 1.6000003814697266
+        },
+        "computationB.executionMs": {
+          "count": 51,
+          "total": 1555.1999969482422,
+          "min": 19.800000190734863,
+          "max": 267.1000003814697
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 51,
+          "total": 189.89999961853027,
+          "min": 3,
+          "max": 10.300000190734863
+        },
+        "computationB.samplingMs": {
+          "count": 51,
+          "total": 90.29999828338623,
+          "min": 1.1999998092651367,
+          "max": 8.299999237060547
+        },
+        "transportTiming.authorizationMs": {
+          "count": 51,
+          "total": 30.399999856948853,
+          "min": 0.19999992847442627,
+          "max": 1.100000023841858
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 51,
+          "total": 961.7000002861023,
+          "min": 12.399999976158142,
+          "max": 40.60000002384186
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 51,
+          "total": 42.10000002384186,
+          "min": 0.2999999523162842,
+          "max": 1.5
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 51,
+          "total": 3875.6999999284744,
+          "min": 55.39999997615814,
+          "max": 423
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 51,
+          "total": 79.00000011920929,
+          "min": 0.5,
+          "max": 2.600000023841858
+        },
+        "transportTiming.totalMs": {
+          "count": 51,
+          "total": 4988.900000214577,
+          "min": 75.20000004768372,
+          "max": 442
+        }
+      }
+    },
+    {
+      "attemptId": "23ed9878-125e-4899-9456-bd91091c1db4",
+      "prompt": "Return only the word YES.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 2,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 2,
+          "total": 395.7000000476837,
+          "min": 125,
+          "max": 270.7000000476837
+        },
+        "outputDeliveryMs": {
+          "count": 2,
+          "total": 0.2999999523162842,
+          "min": 0,
+          "max": 0.2999999523162842
+        },
+        "localStepMs": {
+          "count": 2,
+          "total": 104.10000002384186,
+          "min": 17,
+          "max": 87.10000002384186
+        },
+        "serializationMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "remoteStepMs": {
+          "count": 2,
+          "total": 531.5,
+          "min": 104.39999997615814,
+          "max": 427.10000002384186
+        },
+        "elapsedMs": {
+          "count": 2,
+          "total": 640.3000000715256,
+          "min": 122.89999997615814,
+          "max": 517.4000000953674
+        },
+        "computationA.inputUploadMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 2,
+          "total": 28.59999990463257,
+          "min": 4.400000095367432,
+          "max": 24.199999809265137
+        },
+        "computationA.submitWaitMs": {
+          "count": 2,
+          "total": 68.30000019073486,
+          "min": 10,
+          "max": 58.30000019073486
+        },
+        "computationA.activationReadbackMs": {
+          "count": 2,
+          "total": 1.2999998331069946,
+          "min": 0.5999999046325684,
+          "max": 0.6999999284744263
+        },
+        "computationA.logitsMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 2,
+          "total": 98.79999995231628,
+          "min": 15.5,
+          "max": 83.29999995231628
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.encodeMs": {
+          "count": 2,
+          "total": 202.60000133514404,
+          "min": 9.300000190734863,
+          "max": 193.30000114440918
+        },
+        "computationB.submitWaitMs": {
+          "count": 2,
+          "total": 78.49999904632568,
+          "min": 23.40000057220459,
+          "max": 55.099998474121094
+        },
+        "computationB.activationReadbackMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 2,
+          "total": 1.8999996185302734,
+          "min": 0.5,
+          "max": 1.3999996185302734
+        },
+        "computationB.executionMs": {
+          "count": 2,
+          "total": 283.6000003814697,
+          "min": 34.30000019073486,
+          "max": 249.30000019073486
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 2,
+          "total": 20.399999618530273,
+          "min": 3.09999942779541,
+          "max": 17.300000190734863
+        },
+        "computationB.samplingMs": {
+          "count": 2,
+          "total": 11.600000381469727,
+          "min": 2.6999998092651367,
+          "max": 8.90000057220459
+        },
+        "transportTiming.authorizationMs": {
+          "count": 2,
+          "total": 0.7999999523162842,
+          "min": 0.2999999523162842,
+          "max": 0.5
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 2,
+          "total": 41.40000009536743,
+          "min": 15.600000023841858,
+          "max": 25.800000071525574
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 2,
+          "total": 1.100000023841858,
+          "min": 0.5,
+          "max": 0.6000000238418579
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 2,
+          "total": 484.7999999523163,
+          "min": 86.29999995231628,
+          "max": 398.5
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 2,
+          "total": 2.899999976158142,
+          "min": 1.2000000476837158,
+          "max": 1.6999999284744263
+        },
+        "transportTiming.totalMs": {
+          "count": 2,
+          "total": 531,
+          "min": 104.20000004768372,
+          "max": 426.7999999523163
+        }
+      }
+    },
+    {
+      "attemptId": "bd4a2808-a23a-43f9-8c7b-f55edb92d0b3",
+      "prompt": "Count from one to two hundred, one number per line.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 372,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 372,
+          "total": 559.4000000953674,
+          "min": 0,
+          "max": 518.1000000238419
+        },
+        "outputDeliveryMs": {
+          "count": 372,
+          "total": 44.20000159740448,
+          "min": 0,
+          "max": 0.30000007152557373
+        },
+        "localStepMs": {
+          "count": 372,
+          "total": 9885.599999427795,
+          "min": 13.799999952316284,
+          "max": 96.89999997615814
+        },
+        "serializationMs": {
+          "count": 372,
+          "total": 14.200000524520874,
+          "min": 0,
+          "max": 0.20000004768371582
+        },
+        "remoteStepMs": {
+          "count": 372,
+          "total": 36281.39999830723,
+          "min": 66.29999995231628,
+          "max": 395.6999999284744
+        },
+        "elapsedMs": {
+          "count": 372,
+          "total": 46993.09999871254,
+          "min": 86,
+          "max": 493.39999997615814
+        },
+        "computationA.inputUploadMs": {
+          "count": 372,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 372,
+          "total": 2256.699999690056,
+          "min": 1.7999999523162842,
+          "max": 25.600000023841858
+        },
+        "computationA.submitWaitMs": {
+          "count": 372,
+          "total": 6160.300000071526,
+          "min": 8.5,
+          "max": 69.69999992847443
+        },
+        "computationA.activationReadbackMs": {
+          "count": 372,
+          "total": 482.50000047683716,
+          "min": 0.3999999761581421,
+          "max": 24.600000023841858
+        },
+        "computationA.logitsMs": {
+          "count": 372,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 372,
+          "total": 8987.300000667572,
+          "min": 12.5,
+          "max": 95.70000004768372
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 372,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 372,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 372,
+          "total": 2.399998664855957,
+          "min": 0,
+          "max": 0.10000038146972656
+        },
+        "computationB.encodeMs": {
+          "count": 372,
+          "total": 2922.2999935150146,
+          "min": 5.899999618530273,
+          "max": 218.10000038146973
+        },
+        "computationB.submitWaitMs": {
+          "count": 372,
+          "total": 6874.300007820129,
+          "min": 11,
+          "max": 66
+        },
+        "computationB.activationReadbackMs": {
+          "count": 372,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 372,
+          "total": 297.199990272522,
+          "min": 0.19999980926513672,
+          "max": 1.7000007629394531
+        },
+        "computationB.executionMs": {
+          "count": 372,
+          "total": 10230.900001525879,
+          "min": 18.700000762939453,
+          "max": 285.0999994277954
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 372,
+          "total": 1299.0000085830688,
+          "min": 2.5,
+          "max": 19.800000190734863
+        },
+        "computationB.samplingMs": {
+          "count": 372,
+          "total": 583.4999942779541,
+          "min": 1.0999994277954102,
+          "max": 2.59999942779541
+        },
+        "transportTiming.authorizationMs": {
+          "count": 372,
+          "total": 228.80000042915344,
+          "min": 0.19999992847442627,
+          "max": 1.7999999523162842
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 372,
+          "total": 7691.499999880791,
+          "min": 11.699999928474426,
+          "max": 81.89999997615814
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 372,
+          "total": 334.40000081062317,
+          "min": 0.10000002384185791,
+          "max": 2.600000023841858
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 372,
+          "total": 27364.199999332428,
+          "min": 46.200000047683716,
+          "max": 374.7999999523163
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 372,
+          "total": 521.3000004291534,
+          "min": 0.2999999523162842,
+          "max": 2.5
+        },
+        "transportTiming.totalMs": {
+          "count": 372,
+          "total": 36140.20000088215,
+          "min": 66,
+          "max": 395.5
+        }
+      }
+    },
+    {
+      "attemptId": "bc217487-6bef-4c5a-8a17-88082fa6f8ed",
+      "prompt": "Compare these three fictional contractor quotes. My budget is $12,000 and completion before June 1 matters. Explain trad",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 2248,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 2248,
+          "total": 14.599999904632568,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "outputDeliveryMs": {
+          "count": 2248,
+          "total": 218.59999930858612,
+          "min": 0,
+          "max": 1.100000023841858
+        },
+        "localStepMs": {
+          "count": 2248,
+          "total": 55762.89999806881,
+          "min": 13.5,
+          "max": 612.2999999523163
+        },
+        "serializationMs": {
+          "count": 2248,
+          "total": 61.80000042915344,
+          "min": 0,
+          "max": 1.7000000476837158
+        },
+        "remoteStepMs": {
+          "count": 2248,
+          "total": 229516.2999998331,
+          "min": 64,
+          "max": 3785.2999999523163
+        },
+        "elapsedMs": {
+          "count": 2248,
+          "total": 289119.5000010729,
+          "min": 83.69999992847443,
+          "max": 4400.400000095367
+        },
+        "computationA.inputUploadMs": {
+          "count": 2248,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 2248,
+          "total": 9182.400003552437,
+          "min": 1.2999999523162842,
+          "max": 21.399999976158142
+        },
+        "computationA.submitWaitMs": {
+          "count": 2248,
+          "total": 39810.099999308586,
+          "min": 9.399999976158142,
+          "max": 577.3000000715256
+        },
+        "computationA.activationReadbackMs": {
+          "count": 2248,
+          "total": 2116.1000010967255,
+          "min": 0.2999999523162842,
+          "max": 19.200000047683716
+        },
+        "computationA.logitsMs": {
+          "count": 2248,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 2248,
+          "total": 51505.599999547005,
+          "min": 12.299999952316284,
+          "max": 607
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 2248,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 2248,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 2248,
+          "total": 15.599987030029297,
+          "min": 0,
+          "max": 1.5
+        },
+        "computationB.encodeMs": {
+          "count": 2248,
+          "total": 14820.699983596802,
+          "min": 5.399999618530273,
+          "max": 218.00000286102295
+        },
+        "computationB.submitWaitMs": {
+          "count": 2248,
+          "total": 49941.300028800964,
+          "min": 12.199999809265137,
+          "max": 767.1999969482422
+        },
+        "computationB.activationReadbackMs": {
+          "count": 2248,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 2248,
+          "total": 1887.5999660491943,
+          "min": 0.19999980926513672,
+          "max": 2.09999942779541
+        },
+        "computationB.executionMs": {
+          "count": 2248,
+          "total": 67495.19999408722,
+          "min": 19.600000381469727,
+          "max": 986.3999996185303
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 2248,
+          "total": 7451.100006103516,
+          "min": 1.3000001907348633,
+          "max": 33.10000038146973
+        },
+        "computationB.samplingMs": {
+          "count": 2248,
+          "total": 3500.199975013733,
+          "min": 1.0999994277954102,
+          "max": 3.3999996185302734
+        },
+        "transportTiming.authorizationMs": {
+          "count": 2248,
+          "total": 984.1000000238419,
+          "min": 0.09999990463256836,
+          "max": 2.4000000953674316
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 2248,
+          "total": 47367.600002765656,
+          "min": 10.600000023841858,
+          "max": 462.39999997615814
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 2248,
+          "total": 3270.799998998642,
+          "min": 0.10000002384185791,
+          "max": 1870.6000000238419
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 2248,
+          "total": 175042.10000252724,
+          "min": 44.10000002384186,
+          "max": 1834.6000000238419
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 2248,
+          "total": 2264.699996113777,
+          "min": 0.19999992847442627,
+          "max": 7.799999952316284
+        },
+        "transportTiming.totalMs": {
+          "count": 2248,
+          "total": 228929.30000042915,
+          "min": 63.799999952316284,
+          "max": 3785.100000023842
+        }
+      }
+    },
+    {
+      "attemptId": "b7a96e82-046d-4d9c-9d4e-30797f33c22f",
+      "prompt": "Compare these three fictional contractor quotes. My budget is $12,000 and completion before June 1 matters. Explain trad",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 1874,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 1874,
+          "total": 16.899999141693115,
+          "min": 0,
+          "max": 0.30000007152557373
+        },
+        "outputDeliveryMs": {
+          "count": 1874,
+          "total": 192.5000022649765,
+          "min": 0,
+          "max": 0.8999999761581421
+        },
+        "localStepMs": {
+          "count": 1874,
+          "total": 55182.00000035763,
+          "min": 15.300000071525574,
+          "max": 3523.399999976158
+        },
+        "serializationMs": {
+          "count": 1874,
+          "total": 59.500001549720764,
+          "min": 0,
+          "max": 9.899999976158142
+        },
+        "remoteStepMs": {
+          "count": 1874,
+          "total": 247297.3999967575,
+          "min": 65.39999997615814,
+          "max": 30123.800000071526
+        },
+        "elapsedMs": {
+          "count": 1874,
+          "total": 305759.4999972582,
+          "min": 93.70000004768372,
+          "max": 33658.200000047684
+        },
+        "computationA.inputUploadMs": {
+          "count": 1874,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 1874,
+          "total": 8112.799997091293,
+          "min": 1.600000023841858,
+          "max": 95.19999992847443
+        },
+        "computationA.submitWaitMs": {
+          "count": 1874,
+          "total": 41164.100002646446,
+          "min": 11,
+          "max": 3360.100000023842
+        },
+        "computationA.activationReadbackMs": {
+          "count": 1874,
+          "total": 1892.2000007629395,
+          "min": 0.2999999523162842,
+          "max": 32.799999952316284
+        },
+        "computationA.logitsMs": {
+          "count": 1874,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 1874,
+          "total": 51522.399997234344,
+          "min": 14.100000023841858,
+          "max": 3495.5999999046326
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 1874,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 1874,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 1874,
+          "total": 16.199992179870605,
+          "min": 0,
+          "max": 2.5999984741210938
+        },
+        "computationB.encodeMs": {
+          "count": 1874,
+          "total": 12452.900005340576,
+          "min": 5.399999618530273,
+          "max": 527.1000051498413
+        },
+        "computationB.submitWaitMs": {
+          "count": 1874,
+          "total": 53420.29999732971,
+          "min": 18.199999809265137,
+          "max": 6570.29999256134
+        },
+        "computationB.activationReadbackMs": {
+          "count": 1874,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 1874,
+          "total": 1458.4999980926514,
+          "min": 0.19999980926513672,
+          "max": 2
+        },
+        "computationB.executionMs": {
+          "count": 1874,
+          "total": 68042.600025177,
+          "min": 25.100000381469727,
+          "max": 7100.200000762939
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 1874,
+          "total": 6204.299998283386,
+          "min": 0.8000001907348633,
+          "max": 51.19999980926514
+        },
+        "computationB.samplingMs": {
+          "count": 1874,
+          "total": 3023.8000116348267,
+          "min": 1.1999998092651367,
+          "max": 2.8000001907348633
+        },
+        "transportTiming.authorizationMs": {
+          "count": 1874,
+          "total": 822.8000009059906,
+          "min": 0.09999990463256836,
+          "max": 3
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 1874,
+          "total": 48613.6999989748,
+          "min": 10.600000023841858,
+          "max": 1278.7000000476837
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 1874,
+          "total": 22810.600000023842,
+          "min": 0.19999992847442627,
+          "max": 21536.300000071526
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 1874,
+          "total": 172571.4999976158,
+          "min": 49.39999997615814,
+          "max": 8524.299999952316
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 1874,
+          "total": 1976.6000037193298,
+          "min": 0.19999992847442627,
+          "max": 3.8000000715255737
+        },
+        "transportTiming.totalMs": {
+          "count": 1874,
+          "total": 246795.20000123978,
+          "min": 65.20000004768372,
+          "max": 30123.299999952316
+        }
+      }
+    },
+    {
+      "attemptId": "1eba9076-cfb0-4a18-859e-5c9ebafcfcc0",
+      "prompt": "Count from one to twenty, one number per line.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 51,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 51,
+          "total": 0.19999992847442627,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "outputDeliveryMs": {
+          "count": 51,
+          "total": 6.200000286102295,
+          "min": 0,
+          "max": 0.7000000476837158
+        },
+        "localStepMs": {
+          "count": 51,
+          "total": 1268.3000004291534,
+          "min": 13.700000047683716,
+          "max": 71.60000002384186
+        },
+        "serializationMs": {
+          "count": 51,
+          "total": 1.600000023841858,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "remoteStepMs": {
+          "count": 51,
+          "total": 6066.899999856949,
+          "min": 81.60000002384186,
+          "max": 393
+        },
+        "elapsedMs": {
+          "count": 51,
+          "total": 7423.799999594688,
+          "min": 98.19999992847443,
+          "max": 465.10000002384186
+        },
+        "computationA.inputUploadMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 51,
+          "total": 246.99999952316284,
+          "min": 2.299999952316284,
+          "max": 10.5
+        },
+        "computationA.submitWaitMs": {
+          "count": 51,
+          "total": 858.8000003099442,
+          "min": 9.099999904632568,
+          "max": 59.5
+        },
+        "computationA.activationReadbackMs": {
+          "count": 51,
+          "total": 56.00000023841858,
+          "min": 0.40000009536743164,
+          "max": 4.300000071525574
+        },
+        "computationA.logitsMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 51,
+          "total": 1170.9999997615814,
+          "min": 12.300000071525574,
+          "max": 70.70000004768372
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.encodeMs": {
+          "count": 51,
+          "total": 556.6000003814697,
+          "min": 6.299999237060547,
+          "max": 176.9000015258789
+        },
+        "computationB.submitWaitMs": {
+          "count": 51,
+          "total": 929.9999990463257,
+          "min": 11.300000190734863,
+          "max": 64.39999866485596
+        },
+        "computationB.activationReadbackMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 51,
+          "total": 39.09999752044678,
+          "min": 0.39999961853027344,
+          "max": 1.6000003814697266
+        },
+        "computationB.executionMs": {
+          "count": 51,
+          "total": 1546.1999988555908,
+          "min": 19.899999618530273,
+          "max": 242
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 51,
+          "total": 193.60000133514404,
+          "min": 3,
+          "max": 11.5
+        },
+        "computationB.samplingMs": {
+          "count": 51,
+          "total": 80.49999904632568,
+          "min": 1.1999998092651367,
+          "max": 5.800000190734863
+        },
+        "transportTiming.authorizationMs": {
+          "count": 51,
+          "total": 24.199999809265137,
+          "min": 0.09999990463256836,
+          "max": 1.100000023841858
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 51,
+          "total": 1360.2000002861023,
+          "min": 14,
+          "max": 54.299999952316284
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 51,
+          "total": 38.299999594688416,
+          "min": 0.20000004768371582,
+          "max": 1.2999999523162842
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 51,
+          "total": 4577.399999976158,
+          "min": 59.5,
+          "max": 366.3000000715256
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 51,
+          "total": 51.50000035762787,
+          "min": 0.3999999761581421,
+          "max": 2.0999999046325684
+        },
+        "transportTiming.totalMs": {
+          "count": 51,
+          "total": 6051.600000023842,
+          "min": 81.39999997615814,
+          "max": 392.7999999523163
+        }
+      }
+    },
+    {
+      "attemptId": "a1183123-8235-4313-b204-6b97804213c1",
+      "prompt": "Return only the word YES.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 2,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "outputDeliveryMs": {
+          "count": 2,
+          "total": 0.10000002384185791,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "localStepMs": {
+          "count": 2,
+          "total": 98.79999995231628,
+          "min": 24.5,
+          "max": 74.29999995231628
+        },
+        "serializationMs": {
+          "count": 2,
+          "total": 0.10000002384185791,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "remoteStepMs": {
+          "count": 2,
+          "total": 453.2000000476837,
+          "min": 103.90000009536743,
+          "max": 349.2999999523163
+        },
+        "elapsedMs": {
+          "count": 2,
+          "total": 553.4999998807907,
+          "min": 129.29999995231628,
+          "max": 424.1999999284744
+        },
+        "computationA.inputUploadMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 2,
+          "total": 13.400000095367432,
+          "min": 2.700000047683716,
+          "max": 10.700000047683716
+        },
+        "computationA.submitWaitMs": {
+          "count": 2,
+          "total": 79.89999985694885,
+          "min": 17.699999928474426,
+          "max": 62.199999928474426
+        },
+        "computationA.activationReadbackMs": {
+          "count": 2,
+          "total": 3.100000023841858,
+          "min": 0.3999999761581421,
+          "max": 2.700000047683716
+        },
+        "computationA.logitsMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 2,
+          "total": 96.69999992847443,
+          "min": 23.299999952316284,
+          "max": 73.39999997615814
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.encodeMs": {
+          "count": 2,
+          "total": 192.29999828338623,
+          "min": 9.799999237060547,
+          "max": 182.49999904632568
+        },
+        "computationB.submitWaitMs": {
+          "count": 2,
+          "total": 79.30000019073486,
+          "min": 13,
+          "max": 66.30000019073486
+        },
+        "computationB.activationReadbackMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 2,
+          "total": 1.0000009536743164,
+          "min": 0.40000057220458984,
+          "max": 0.6000003814697266
+        },
+        "computationB.executionMs": {
+          "count": 2,
+          "total": 273.4000005722046,
+          "min": 23.800000190734863,
+          "max": 249.60000038146973
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 2,
+          "total": 27.299999237060547,
+          "min": 3.5,
+          "max": 23.799999237060547
+        },
+        "computationB.samplingMs": {
+          "count": 2,
+          "total": 4.600000381469727,
+          "min": 2.1000003814697266,
+          "max": 2.5
+        },
+        "transportTiming.authorizationMs": {
+          "count": 2,
+          "total": 0.5,
+          "min": 0.19999992847442627,
+          "max": 0.30000007152557373
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 2,
+          "total": 52.89999997615814,
+          "min": 14.200000047683716,
+          "max": 38.699999928474426
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 2,
+          "total": 0.7999999523162842,
+          "min": 0.2999999523162842,
+          "max": 0.5
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 2,
+          "total": 397.90000009536743,
+          "min": 63.800000071525574,
+          "max": 334.10000002384186
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 2,
+          "total": 0.7999999523162842,
+          "min": 0.3999999761581421,
+          "max": 0.3999999761581421
+        },
+        "transportTiming.totalMs": {
+          "count": 2,
+          "total": 452.89999997615814,
+          "min": 103.70000004768372,
+          "max": 349.1999999284744
+        }
+      }
+    },
+    {
+      "attemptId": "2e5f7e61-761e-485c-8f14-ef6d4bdeed60",
+      "prompt": "Count from one to twenty, one number per line.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 51,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 51,
+          "total": 0.19999992847442627,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "outputDeliveryMs": {
+          "count": 51,
+          "total": 5.400000214576721,
+          "min": 0,
+          "max": 0.20000004768371582
+        },
+        "localStepMs": {
+          "count": 51,
+          "total": 1383.9999998807907,
+          "min": 17.299999952316284,
+          "max": 92.89999997615814
+        },
+        "serializationMs": {
+          "count": 51,
+          "total": 1.3000003099441528,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "remoteStepMs": {
+          "count": 51,
+          "total": 14000.500000357628,
+          "min": 159.59999990463257,
+          "max": 712.1000000238419
+        },
+        "elapsedMs": {
+          "count": 51,
+          "total": 15471.699999809265,
+          "min": 184.5,
+          "max": 740.2999999523163
+        },
+        "computationA.inputUploadMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 51,
+          "total": 260.4999998807907,
+          "min": 2.100000023841858,
+          "max": 26.199999928474426
+        },
+        "computationA.submitWaitMs": {
+          "count": 51,
+          "total": 944.3999999761581,
+          "min": 11,
+          "max": 64.40000009536743
+        },
+        "computationA.activationReadbackMs": {
+          "count": 51,
+          "total": 67.70000004768372,
+          "min": 0.2999999523162842,
+          "max": 5.5
+        },
+        "computationA.logitsMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 51,
+          "total": 1284.3000000715256,
+          "min": 15.700000047683716,
+          "max": 91.39999997615814
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 51,
+          "total": 0.19999980926513672,
+          "min": 0,
+          "max": 0.10000038146972656
+        },
+        "computationB.encodeMs": {
+          "count": 51,
+          "total": 532.5000066757202,
+          "min": 6.100000381469727,
+          "max": 184.8000020980835
+        },
+        "computationB.submitWaitMs": {
+          "count": 51,
+          "total": 870.9999942779541,
+          "min": 11.800000190734863,
+          "max": 63.29999828338623
+        },
+        "computationB.activationReadbackMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 51,
+          "total": 36.2000036239624,
+          "min": 0.3000001907348633,
+          "max": 1.8000001907348633
+        },
+        "computationB.executionMs": {
+          "count": 51,
+          "total": 1458.1999969482422,
+          "min": 19.100000381469727,
+          "max": 248.89999961853027
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 51,
+          "total": 176.5999984741211,
+          "min": 2.799999237060547,
+          "max": 8.199999809265137
+        },
+        "computationB.samplingMs": {
+          "count": 51,
+          "total": 77.70000076293945,
+          "min": 1.1999998092651367,
+          "max": 2
+        },
+        "transportTiming.authorizationMs": {
+          "count": 51,
+          "total": 21.49999988079071,
+          "min": 0.20000004768371582,
+          "max": 0.7999999523162842
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 51,
+          "total": 3741.4000004529953,
+          "min": 30.200000047683716,
+          "max": 147.5
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 51,
+          "total": 44.799999356269836,
+          "min": 0.3999999761581421,
+          "max": 2.200000047683716
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 51,
+          "total": 10121.500000357628,
+          "min": 100.39999997615814,
+          "max": 608.8000000715256
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 51,
+          "total": 56.09999990463257,
+          "min": 0.2999999523162842,
+          "max": 2.200000047683716
+        },
+        "transportTiming.totalMs": {
+          "count": 51,
+          "total": 13985.299999952316,
+          "min": 159.30000007152557,
+          "max": 711.6999999284744
+        }
+      }
+    },
+    {
+      "attemptId": "0d5eb511-8624-4d86-891f-11ad7a0b4988",
+      "prompt": "Return only the word YES.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 2,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "outputDeliveryMs": {
+          "count": 2,
+          "total": 0.10000002384185791,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "localStepMs": {
+          "count": 2,
+          "total": 97.10000002384186,
+          "min": 23.799999952316284,
+          "max": 73.30000007152557
+        },
+        "serializationMs": {
+          "count": 2,
+          "total": 0.10000002384185791,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "remoteStepMs": {
+          "count": 2,
+          "total": 1037.2000000476837,
+          "min": 172.10000002384186,
+          "max": 865.1000000238419
+        },
+        "elapsedMs": {
+          "count": 2,
+          "total": 1137.2999999523163,
+          "min": 197.89999997615814,
+          "max": 939.3999999761581
+        },
+        "computationA.inputUploadMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 2,
+          "total": 17.299999952316284,
+          "min": 5,
+          "max": 12.299999952316284
+        },
+        "computationA.submitWaitMs": {
+          "count": 2,
+          "total": 72.90000009536743,
+          "min": 13.700000047683716,
+          "max": 59.200000047683716
+        },
+        "computationA.activationReadbackMs": {
+          "count": 2,
+          "total": 3.399999976158142,
+          "min": 0.5,
+          "max": 2.899999976158142
+        },
+        "computationA.logitsMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 2,
+          "total": 93.70000004768372,
+          "min": 21.700000047683716,
+          "max": 72
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.encodeMs": {
+          "count": 2,
+          "total": 197.4000005722046,
+          "min": 6.5,
+          "max": 190.9000005722046
+        },
+        "computationB.submitWaitMs": {
+          "count": 2,
+          "total": 82,
+          "min": 11.5,
+          "max": 70.5
+        },
+        "computationB.activationReadbackMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 2,
+          "total": 0.8999996185302734,
+          "min": 0.2999992370605469,
+          "max": 0.6000003814697266
+        },
+        "computationB.executionMs": {
+          "count": 2,
+          "total": 281.20000076293945,
+          "min": 19.200000762939453,
+          "max": 262
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 2,
+          "total": 12.499999046325684,
+          "min": 2.8999996185302734,
+          "max": 9.59999942779541
+        },
+        "computationB.samplingMs": {
+          "count": 2,
+          "total": 3.59999942779541,
+          "min": 1.6999998092651367,
+          "max": 1.8999996185302734
+        },
+        "transportTiming.authorizationMs": {
+          "count": 2,
+          "total": 0.7999999523162842,
+          "min": 0.2999999523162842,
+          "max": 0.5
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 2,
+          "total": 105,
+          "min": 38.10000002384186,
+          "max": 66.89999997615814
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 2,
+          "total": 1.4000000953674316,
+          "min": 0.30000007152557373,
+          "max": 1.100000023841858
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 2,
+          "total": 927.0999999046326,
+          "min": 102.29999995231628,
+          "max": 824.7999999523163
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 2,
+          "total": 2.5,
+          "min": 1,
+          "max": 1.5
+        },
+        "transportTiming.totalMs": {
+          "count": 2,
+          "total": 1036.7999999523163,
+          "min": 171.79999995231628,
+          "max": 865
+        }
+      }
+    },
+    {
+      "attemptId": "38f2cc9a-a664-4040-b0dc-42561c811b6d",
+      "prompt": "Reply with only the word Hello.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 2,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "outputDeliveryMs": {
+          "count": 2,
+          "total": 0.09999990463256836,
+          "min": 0,
+          "max": 0.09999990463256836
+        },
+        "localStepMs": {
+          "count": 2,
+          "total": 124.29999995231628,
+          "min": 30.899999976158142,
+          "max": 93.39999997615814
+        },
+        "serializationMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "remoteStepMs": {
+          "count": 2,
+          "total": 877.3000000715256,
+          "min": 96.30000007152557,
+          "max": 781
+        },
+        "elapsedMs": {
+          "count": 2,
+          "total": 1003.3000000715256,
+          "min": 128.20000004768372,
+          "max": 875.1000000238419
+        },
+        "computationA.inputUploadMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 2,
+          "total": 17.99999988079071,
+          "min": 4.600000023841858,
+          "max": 13.399999856948853
+        },
+        "computationA.submitWaitMs": {
+          "count": 2,
+          "total": 99.10000014305115,
+          "min": 21.5,
+          "max": 77.60000014305115
+        },
+        "computationA.activationReadbackMs": {
+          "count": 2,
+          "total": 3.399999976158142,
+          "min": 0.3999999761581421,
+          "max": 3
+        },
+        "computationA.logitsMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 2,
+          "total": 120.5,
+          "min": 29.100000023841858,
+          "max": 91.39999997615814
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.encodeMs": {
+          "count": 2,
+          "total": 234.79999923706055,
+          "min": 8.699999809265137,
+          "max": 226.0999994277954
+        },
+        "computationB.submitWaitMs": {
+          "count": 2,
+          "total": 68.10000133514404,
+          "min": 12.600000381469727,
+          "max": 55.500000953674316
+        },
+        "computationB.activationReadbackMs": {
+          "count": 2,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 2,
+          "total": 1.0999994277954102,
+          "min": 0.5,
+          "max": 0.5999994277954102
+        },
+        "computationB.executionMs": {
+          "count": 2,
+          "total": 305,
+          "min": 22.300000190734863,
+          "max": 282.69999980926514
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 2,
+          "total": 12.100000381469727,
+          "min": 3.5,
+          "max": 8.600000381469727
+        },
+        "computationB.samplingMs": {
+          "count": 2,
+          "total": 8.399999618530273,
+          "min": 2.1999998092651367,
+          "max": 6.199999809265137
+        },
+        "transportTiming.authorizationMs": {
+          "count": 2,
+          "total": 0.5999999046325684,
+          "min": 0.19999992847442627,
+          "max": 0.3999999761581421
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 2,
+          "total": 43.10000014305115,
+          "min": 21.300000071525574,
+          "max": 21.800000071525574
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 2,
+          "total": 0.9999998807907104,
+          "min": 0.2999999523162842,
+          "max": 0.6999999284744263
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 2,
+          "total": 830.8000000715256,
+          "min": 72.60000002384186,
+          "max": 758.2000000476837
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 2,
+          "total": 1.2999999523162842,
+          "min": 0.5,
+          "max": 0.7999999523162842
+        },
+        "transportTiming.totalMs": {
+          "count": 2,
+          "total": 876.7999999523163,
+          "min": 96,
+          "max": 780.7999999523163
+        }
+      }
+    },
+    {
+      "attemptId": "1e0ddba4-a7ab-47d2-9e3b-ec413e134b68",
+      "prompt": "Count from one to twenty, one number per line.",
+      "status": "completed",
+      "stopReason": "eos-token",
+      "steps": 51,
+      "metrics": {
+        "leaseWaitMs": {
+          "count": 51,
+          "total": 0.40000009536743164,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "outputDeliveryMs": {
+          "count": 51,
+          "total": 4.800000071525574,
+          "min": 0,
+          "max": 0.20000004768371582
+        },
+        "localStepMs": {
+          "count": 51,
+          "total": 1287.2000005245209,
+          "min": 13.700000047683716,
+          "max": 91.60000002384186
+        },
+        "serializationMs": {
+          "count": 51,
+          "total": 0.6999999284744263,
+          "min": 0,
+          "max": 0.10000002384185791
+        },
+        "remoteStepMs": {
+          "count": 51,
+          "total": 11628.199999928474,
+          "min": 71,
+          "max": 3603.2999999523163
+        },
+        "elapsedMs": {
+          "count": 51,
+          "total": 12994.099999904633,
+          "min": 89.39999997615814,
+          "max": 3695.6999999284744
+        },
+        "computationA.inputUploadMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.encodeMs": {
+          "count": 51,
+          "total": 205.10000026226044,
+          "min": 1.5,
+          "max": 18.00000011920929
+        },
+        "computationA.submitWaitMs": {
+          "count": 51,
+          "total": 944.8000004291534,
+          "min": 9.300000071525574,
+          "max": 71.89999997615814
+        },
+        "computationA.activationReadbackMs": {
+          "count": 51,
+          "total": 42.59999966621399,
+          "min": 0.3999999761581421,
+          "max": 2.5
+        },
+        "computationA.logitsMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.executionMs": {
+          "count": 51,
+          "total": 1200.6999998092651,
+          "min": 12.5,
+          "max": 90.5
+        },
+        "computationA.logitsReadbackMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationA.samplingMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.inputUploadMs": {
+          "count": 51,
+          "total": 0.2999992370605469,
+          "min": 0,
+          "max": 0.10000038146972656
+        },
+        "computationB.encodeMs": {
+          "count": 51,
+          "total": 3118.9999990463257,
+          "min": 7,
+          "max": 2286.199996948242
+        },
+        "computationB.submitWaitMs": {
+          "count": 51,
+          "total": 1189.7000036239624,
+          "min": 12.200000762939453,
+          "max": 88.2000036239624
+        },
+        "computationB.activationReadbackMs": {
+          "count": 51,
+          "total": 0,
+          "min": 0,
+          "max": 0
+        },
+        "computationB.logitsMs": {
+          "count": 51,
+          "total": 242.60000038146973,
+          "min": 0.3000001907348633,
+          "max": 192
+        },
+        "computationB.executionMs": {
+          "count": 51,
+          "total": 4572.599992752075,
+          "min": 20.5,
+          "max": 2567.2999992370605
+        },
+        "computationB.logitsReadbackMs": {
+          "count": 51,
+          "total": 185.6000051498413,
+          "min": 2.8999996185302734,
+          "max": 6.5
+        },
+        "computationB.samplingMs": {
+          "count": 51,
+          "total": 97.39999675750732,
+          "min": 1.1999998092651367,
+          "max": 4.800000190734863
+        },
+        "transportTiming.authorizationMs": {
+          "count": 51,
+          "total": 18.100000858306885,
+          "min": 0.10000002384185791,
+          "max": 0.6000000238418579
+        },
+        "transportTiming.readyWaitMs": {
+          "count": 51,
+          "total": 2176.299999475479,
+          "min": 12.799999952316284,
+          "max": 175.19999992847443
+        },
+        "transportTiming.payloadUploadMs": {
+          "count": 51,
+          "total": 28.699999809265137,
+          "min": 0.10000002384185791,
+          "max": 1.600000023841858
+        },
+        "transportTiming.responseWaitMs": {
+          "count": 51,
+          "total": 9346.300000190735,
+          "min": 45,
+          "max": 3502.2999999523163
+        },
+        "transportTiming.acceptanceMs": {
+          "count": 51,
+          "total": 46.4000004529953,
+          "min": 0.2999999523162842,
+          "max": 1.899999976158142
+        },
+        "transportTiming.totalMs": {
+          "count": 51,
+          "total": 11615.800000786781,
+          "min": 71,
+          "max": 3603
+        }
+      }
+    }
+  ]
+}
