@@ -75,6 +75,12 @@ Doe remains an optional provider.
   distributed qualification. The accepted 0.6.27 archive remains `9280ead5...`;
   no Reploid dependency, deployment, Mac run or captured reference is replaced.
 
+**Current release priority:** finish the usable conversation experience while
+numerical disposition and application quality proceed separately. W8A8 remains
+experimental and does not gate UX. Its [retained benchmark disposition](https://github.com/clocksmith/doppler/blob/b7b94713/artifacts/w8a8-model-qualification-20261011/benchmark/results.json)
+records slower packed execution against F16, the user-stopped partial Q4 run,
+and no portable timing campaign. The agents are stopped for handoff.
+
 ## A. Preserve the completed foundations
 
 - [x] **1. Both: keep one implementation and explicit ownership.**
@@ -214,6 +220,15 @@ Doe remains an optional provider.
 
 - [ ] **18. Reploid: deploy the usable product.**
   Deploy only the configuration whose applicable acceptance gates pass, then verify served package and browser identities. Test a fresh phone and an existing installation: automatic discovery, readable sharing approval, complete answers, persistent drafts and history, cancellation and explicit retry. Keep contribution optional, local download secondary, and technical details out of the primary conversation.
+
+  UI checkpoint: [usability handoff](artifacts/chat-usability-handoff-20261011/README.md)
+  retains simplified navigation, compact availability, readable transcript width,
+  archive actions and empty-state guidance. Fifty focused tests, eleven browser
+  fixture cases, CSS, generated browser identity and Verification Worker checks
+  pass. Phone unavailable-model guidance still wraps too narrowly beside buttons;
+  full visual/product acceptance, real phone keyboards, unfamiliar user journeys,
+  repository checks and deployment remain open. No numerical or release gate is
+  closed by these presentation fixtures.
 
 ## D. Add durable independent work units: R4
 

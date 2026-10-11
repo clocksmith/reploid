@@ -143,6 +143,25 @@ describe('Conversation workspace', () => {
     find('[data-new-thread]').click();
     expect(find('[data-composer-input]').placeholder).toBe(previous);
     expect(session.getState().threads).toHaveLength(0);
+    expect(find('.chat-empty-state').textContent).toContain('Start a conversation');
+    expect(find('[data-conversation-actions] [data-show-archived]')).not.toBeNull();
+    expect(find('[data-thread-sidebar] [data-show-archived]')).toBeNull();
+  });
+
+  it('opens archived threads from conversation actions in the phone drawer without losing the draft', () => {
+    const previous = globalThis.innerWidth;
+    Object.defineProperty(globalThis, 'innerWidth', { value: 390, configurable: true });
+    try {
+      const id = session.createThread({ sharingScope: 'local' });
+      session.archiveThread(id);
+      find('[data-composer-input]').value = 'Keep my phone draft';
+      find('[data-conversation-actions]').open = true;
+      find('[data-show-archived]').click();
+      expect(find('[data-conversation-actions]').open).toBe(false);
+      expect(find('[data-thread-dialog]').open).toBe(true);
+      expect(find('[data-thread-dialog] [data-thread-item-id]').dataset.threadItemId).toBe(id);
+      expect(find('[data-composer-input]').value).toBe('Keep my phone draft');
+    } finally { Object.defineProperty(globalThis, 'innerWidth', { value: previous, configurable: true }); }
   });
 
   it('surfaces execution failures instead of invented answers', async () => {

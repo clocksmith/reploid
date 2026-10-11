@@ -2640,8 +2640,8 @@
     },
     {
       "path": "styles/poolday/components/conversation.css",
-      "byteLength": 12393,
-      "sha256": "sha256:45faf64d90d9de5fe1cdf823b36d63b115b39e531e5722064139b56c92b058ef"
+      "byteLength": 14207,
+      "sha256": "sha256:1b6e6d222a321f5c5902cbc1bb4c4f0bef8547d46fe62fab8e298d4fd2dd2984"
     },
     {
       "path": "styles/poolday/components/interaction.css",
@@ -3070,8 +3070,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 25544,
-      "sha256": "sha256:1139c0c3cd20e657d6cf599f5a8dd6f35bbbc5a13a5dfa9bed94ce38724bd123"
+      "byteLength": 25776,
+      "sha256": "sha256:ca1eeb009170d85852cf30ef6ad0263210745ce3f9579ca686191efe413bff19"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -3080,13 +3080,13 @@
     },
     {
       "path": "ui/pool-home/execution-ribbon.js",
-      "byteLength": 8572,
-      "sha256": "sha256:3babec75d9981df9a34c8fb7d782aa81014c751952ef5cbb0186661134303d3a"
+      "byteLength": 8491,
+      "sha256": "sha256:6aea13672db382d595d19e7e5e1ec569a8226260904f9e39d4a6019d47d3cf44"
     },
     {
       "path": "ui/pool-home/index.js",
-      "byteLength": 7854,
-      "sha256": "sha256:0c83a773a183cb0ad8f8a39abc31f8407754488056e93f4a36e4b894823dc25b"
+      "byteLength": 7914,
+      "sha256": "sha256:ff4541b4af7e7d804192d79e860a88590b1740a55196a2b7b235c88d48c16f61"
     },
     {
       "path": "ui/pool-home/ledger-store.js",
@@ -3095,8 +3095,8 @@
     },
     {
       "path": "ui/pool-home/message-list.js",
-      "byteLength": 4668,
-      "sha256": "sha256:a9f9f4e5e359c27fddf9af386908d84b047795b6bf9e603ace14902d3673fec3"
+      "byteLength": 4991,
+      "sha256": "sha256:cfdbeb915a8c9b5e44d91081493fe3d8a75913d635a6a8ca197e6f83391f9c73"
     },
     {
       "path": "ui/pool-home/navigation.js",
@@ -3185,8 +3185,8 @@
     },
     {
       "path": "ui/pool-home/shell-view.js",
-      "byteLength": 3293,
-      "sha256": "sha256:1830b14728d525eb9edb2700d829715540ea965dea5215808429f2cdce28ff8b"
+      "byteLength": 3386,
+      "sha256": "sha256:a033d6cd889dba26f6b3aa10b7f2ab4529698cc2d3059262ae00c271876fd2e7"
     },
     {
       "path": "ui/pool-home/simulation-batches.js",
@@ -9529,5 +9529,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:bd4991e6737b6927153321ad7dc333d6048702bf40ee303850bb12cf4d207569"
+  "bundleHash": "sha256:a3ace00ed08d10ed8423d4e102f499095634b1060b965a212abd7cfcffb58703"
 }

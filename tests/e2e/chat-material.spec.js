@@ -15,23 +15,36 @@ async function installConversation(page, theme) {
     const model = { id: 'fixture-model', name: 'Presentation model', identity: 'sha256:' + 'a'.repeat(64), availability: 'ready' };
     let state;
     const listeners = new Set();
+    const drafts = new Map();
     const session = {
       getState: () => state,
       subscribe(callback) { listeners.add(callback); callback(state); return () => listeners.delete(callback); },
-      cancel() { window.setVisualState('cancelled'); }
+      cancel() { window.setVisualState('cancelled'); },
+      getDraft: id => drafts.get(id),
+      saveDraft: (id, draft) => drafts.set(id, draft),
+      getDocumentSources: content => content === 'Document question' ? {
+        question: 'What does the supplied document say?',
+        documents: [{ name: 'Notes.md', passages: [{ id: 'D1:P1', text: 'Keep the original amount of 42 dollars.' }] }]
+      } : null
+    };
+    window.setVisualMessages = (question, answer) => {
+      state.activeThread.messages[0].content = question;
+      state.activeThread.messages[1].content = answer;
+      listeners.forEach(callback => callback(state));
     };
     window.setVisualState = mode => {
       const busy = ['queued', 'loading', 'executing', 'approval', 'cancelling'].includes(mode);
+      const empty = ['empty', 'unavailable', 'preparing'].includes(mode);
       const thread = { id: 'thread', purpose: 'Review the formatter', model,
         permissions: { sharingScope: 'mesh' }, grants: [],
         messages: [{ id: 'question', role: 'user', content: 'Check the formatter against malformed JSON.' },
-          { id: 'response', role: 'assistant', content: mode === 'completed' ? 'Valid values are preserved. Two malformed inputs need a clearer error.' : 'Checking edge cases…' }],
+          { id: 'response', role: 'assistant', attemptId: 'attempt', content: mode === 'completed' ? 'Valid values are preserved. Two malformed inputs need a clearer error.' : 'Checking edge cases…' }],
         attempts: [{ id: 'attempt', status: mode, execution: { placement: 'two-device-layer-partition', participantA: 'fixture-A', participantB: 'fixture-B', requesterId: 'requester', splitLayer: 12 },
           approval: mode === 'approval' ? { id: 'approval', peerId: 'fixture-peer', modelId: model.id,
             input: 'Check these public JSON edge cases.', options: {}, limits: { maxOutputTokens: 1024 } } : null }] };
-      state = { models: [{ ...model, availability: mode === 'empty' ? 'unavailable' : 'ready' }], defaultModel: model,
-        threads: mode === 'empty' ? [] : [thread], selectedId: mode === 'empty' ? null : thread.id,
-        activeThread: mode === 'empty' ? null : thread, runningIds: busy ? [thread.id] : [],
+      state = { models: [{ ...model, availability: mode === 'preparing' ? 'preparing' : empty ? 'unavailable' : 'ready' }], defaultModel: model,
+        threads: empty ? [] : [thread], selectedId: empty ? null : thread.id,
+        activeThread: empty ? null : thread, runningIds: busy ? [thread.id] : [],
         network: { consumer: { peers: [] } } };
       listeners.forEach(callback => callback(state));
     };
@@ -75,7 +88,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(page.locator('[data-chat-workspace]')).toBeVisible();
     await installConversation(page, theme);
     const field = page.locator('[data-composer-field]');
-    for (const state of ['empty', 'queued', 'loading', 'executing', 'approval', 'completed']) {
+    for (const state of ['empty', 'unavailable', 'preparing', 'queued', 'loading', 'executing', 'approval', 'interrupted', 'completed']) {
       await page.evaluate(state => window.setVisualState(state), state);
       await expect(field).toHaveAttribute('data-activity', state === 'executing' ? 'executing' : 'idle');
       expect(await animation(field)).toBe(state === 'executing' ? 'pool-optical-flow' : 'none');
@@ -93,7 +106,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
         await expect(page.locator('[data-chat-approval]')).toBeVisible();
         await expect(page.locator('[data-approval-send]')).toBeDisabled();
       }
-      if (['empty', 'executing', 'approval'].includes(state)) {
+      if (['empty', 'unavailable', 'preparing', 'executing', 'approval', 'interrupted', 'completed'].includes(state)) {
         await page.screenshot({ path: testInfo.outputPath(`${theme}-${width}-${state}.png`), fullPage: true });
       }
     }
@@ -147,6 +160,39 @@ test('activity settles, stops on cancel and respects accessibility settings', as
   expect(await field.evaluate(node => getComputedStyle(node, '::after').display)).toBe('none');
   await page.evaluate(() => window.disposeVisual());
   await expect(field).toHaveAttribute('data-activity', 'idle');
+});
+
+test('reading and phone controls retain long answers, code, sources and a saved draft', async ({ page }, info) => {
+  await page.setViewportSize({ width: 1440, height: 1000 }); await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible(); await installConversation(page, 'light');
+  await page.evaluate(() => {
+    window.setVisualState('completed');
+    window.setVisualMessages('Document question', '## Reviewed answer\n\nThe amount remains 42 dollars. [D1:P1]\n\n'
+      + '```js\nconst amount = 42;\n```\n\n' + Array.from({ length: 30 }, (_, i) => `Paragraph ${i + 1}: Preserve the supplied conditions and explain each change clearly.\n\n`).join(''));
+  });
+  const stream = page.locator('[data-message-stream]');
+  await stream.evaluate(node => { node.scrollTop = 0; });
+  await page.locator('[data-composer-input]').fill('Keep this draft while I read.');
+  await expect(page.locator('[data-copy-code]')).toHaveText('Copy code');
+  await page.locator('[data-source-reference]').click();
+  await expect(page.locator('#source-question-D1-P1')).toBeFocused();
+  await expect(page.locator('.chat-message-content details')).toHaveAttribute('open', '');
+  await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
+  expect((await stream.boundingBox()).width).toBeLessThanOrEqual(768);
+  await page.screenshot({ path: info.outputPath('desktop-reading.png'), fullPage: true });
+  await page.setViewportSize({ width: 390, height: 460 });
+  await expect(page.locator('[data-composer-input]')).toBeInViewport();
+  await expect(page.locator('[data-thread-sidebar]')).not.toBeVisible();
+  await page.locator('[data-open-threads]').click();
+  await expect(page.locator('[data-thread-dialog]')).toBeVisible();
+  await page.locator('[data-close-threads]').click();
+  await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
+  await page.locator('[data-conversation-actions] > summary').click();
+  await expect(page.locator('[data-show-archived]')).toBeVisible();
+  await expect(page.locator('[data-conversation-download]')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('[data-conversation-actions] > summary')).toBeFocused();
+  await page.screenshot({ path: info.outputPath('phone-reading-keyboard.png'), fullPage: true });
 });
 
 

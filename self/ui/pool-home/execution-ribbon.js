@@ -23,8 +23,9 @@ export function projectExecutionRibbon(state) {
   // Discovery reports availability, never the health of an assigned execution channel.
   if (active && attempt.retryOf && ['queued', 'loading'].includes(status)) status = 'recovering';
   const ready = (state.models || []).filter(model => model.availability === 'ready');
+  const preparing = state.localModel?.phase === 'loading' || (state.models || []).some(model => ['loading', 'preparing'].includes(model.availability));
   const availability = ready.length ? `${ready.length} model${ready.length === 1 ? '' : 's'} ready`
-    : state.network?.paused ? 'Disconnected' : state.network?.connecting || ['connecting', 'retrying'].includes(state.network?.consumer?.connectionState) ? 'Finding capacity' : 'No model ready';
+    : preparing ? 'Preparing model' : state.network?.paused ? 'Disconnected' : state.network?.connecting || ['connecting', 'retrying'].includes(state.network?.consumer?.connectionState) ? 'Finding capacity' : 'No model ready';
   const labels = { idle: availability, queued: 'Queued', loading: 'Loading', executing: 'Executing', approval: 'Awaiting approval',
     completed: 'Complete', failed: 'Failed', cancelled: 'Stopped', cancelling: 'Stopping', interrupted: 'Interrupted', disconnected: 'Disconnected', recovering: 'Recovering' };
   const response = thread?.messages.find(message => message.id === attempt?.responseId)?.content || '';
@@ -38,8 +39,7 @@ export function projectExecutionRibbon(state) {
 export function renderExecutionRibbon() {
   return `<div class="execution-ribbon" data-execution-ribbon>
     <button class="execution-ribbon-trigger" type="button" aria-label="Inspect execution" aria-haspopup="dialog" data-ribbon-trigger>
-      <span class="execution-ribbon-route" data-ribbon-route></span>
-      <span class="execution-ribbon-status" data-ribbon-status></span>
+      <span class="execution-ribbon-status" data-ribbon-status role="status"></span>
     </button>
   </div>`;
 }
@@ -75,15 +75,15 @@ export function bindExecutionRibbon(root, { onInspect = () => {} } = {}) {
   const find = selector => ribbon.querySelector(selector);
   const trigger = find('[data-ribbon-trigger]');
   const controller = new AbortController(), options = { signal: controller.signal };
-  let key = null, lastResponse = '', routeKey = '', pulse = null, timer = null;
+  let key = null, lastResponse = '', pulse = null, timer = null;
   trigger.addEventListener('click', () => onInspect('conversation', trigger), options);
   const stopPulse = () => { pulse?.cancel(); pulse = null; clearTimeout(timer); timer = null; ribbon.removeAttribute('data-output-observed'); };
   const drawPulse = () => {
     stopPulse(); ribbon.dataset.outputObserved = 'true';
-    const path = find('[data-ribbon-route]');
+    const path = find('[data-ribbon-status]');
     if (!globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches && typeof path.animate === 'function') {
-      // One finite return sweep per observed response update, never an idle or executing loop.
-      pulse = path.animate([{ backgroundPosition: '0% 100%' }, { backgroundPosition: '100% 100%' }], { duration: 480, easing: 'ease-out' });
+      // One restrained acknowledgement of observed output, never an idle loop.
+      pulse = path.animate([{ opacity: 0.7 }, { opacity: 1 }], { duration: 480, easing: 'ease-out' });
     }
     timer = setTimeout(stopPulse, 500);
   };
@@ -91,8 +91,6 @@ export function bindExecutionRibbon(root, { onInspect = () => {} } = {}) {
     update(state) {
       const view = projectExecutionRibbon(state), changed = view.key !== key;
       if (changed) { key = view.key; lastResponse = view.response; stopPulse(); }
-      const markup = routeMarkup(view);
-      if (markup !== routeKey) { routeKey = markup; find('[data-ribbon-route]').innerHTML = markup; }
       find('[data-ribbon-status]').textContent = view.statusLabel;
       trigger.setAttribute('aria-label', `${view.statusLabel}. ${view.model ? view.model + ' on ' + view.executors.map(node => node.label).join(' and ') : 'No executor assigned'}. Execution details`);
       ribbon.dataset.state = view.status;

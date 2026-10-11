@@ -21,12 +21,13 @@ export const renderNav = (activeRoute) => {
   const home = escapeHtml(roomHref('/', getPeerRoomId()));
   const changes = POOLDAY_NAV_ROUTES.find(route => route.id === 'improve');
   const changesPath = escapeHtml(roomHref(changes.path, getPeerRoomId()));
+  const networkAction = ['home', 'network'].includes(activeRoute) ? '' : '<button class="pool-button" type="button" data-open-network>Network</button>';
   return `
     <nav class="pool-nav-rail pool-primary-nav pool-surface" aria-label="${escapeHtml(POOLDAY_NAME)}">
       <a class="pool-primary-brand" aria-label="${escapeHtml(POOLDAY_NAME)} home"${activeRoute === 'home' ? ' aria-current="page"' : ''} href="${home}" data-pool-route-link="${home}">${renderPowerTower()}<span class="pool-primary-wordmark">${escapeHtml(POOLDAY_NAME)}</span></a>
       ${renderExecutionRibbon()}
       <div class="pool-primary-actions">
-        ${renderSettings(renderPowerTower(true), `<a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count" data-pool-change-count aria-hidden="true" hidden></span></a><button class="pool-button" type="button" data-open-network>Network</button><a class="pool-button" href="/examples" data-pool-route-link="/examples">Examples</a>`)}
+        ${renderSettings(renderPowerTower(true), `<a class="pool-nav-link pool-button" href="${changesPath}" data-pool-route-link="${changesPath}" data-pool-nav-id="improve" data-pool-changes aria-label="Changes"${activeRoute === 'improve' ? ' aria-current="page"' : ''}>Changes<span class="pool-change-count" data-pool-change-count aria-hidden="true" hidden></span></a>${networkAction}<a class="pool-button" href="/examples" data-pool-route-link="/examples">Examples</a>`)}
       </div>
     </nav>
   `;
