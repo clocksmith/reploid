@@ -104,7 +104,7 @@ try {
           const marker = handle.advanced.tokenizeText('</think>');
           if (marker.length !== 1) throw Error('Reasoning diagnostic requires a single closing marker');
           const boundary = evidence.tokenIds.indexOf(marker[0]);
-          finalAnswer = boundary < 0 ? '' : handle.advanced.decodeTokens(evidence.tokenIds.slice(boundary + 1));
+          finalAnswer = boundary < 0 ? '' : handle.advanced.decodeTokenIds(evidence.tokenIds.slice(boundary + 1));
         }
         await globalThis.retainQualityResult({ id: task.id, variant: variant.id,
           input: { messages, generation: settings, ...(renderedPrompt === null ? {} : { renderedPrompt, templateThinking: true }) },
