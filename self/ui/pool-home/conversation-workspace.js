@@ -25,6 +25,10 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model aria-haspopup="dialog" hidden></button></span>
           </div>
         <button class="btn pool-button btn-ghost" type="button" data-toggle-inspector aria-haspopup="dialog">Network <span data-mesh-peers>0 peers</span></button>
+        <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button">Actions</summary><div class="pool-surface">
+          <button class="pool-button" type="button" data-show-archived aria-pressed="false">Archived threads</button>
+          <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
+        </div></details>
       </header>
       <div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
@@ -37,14 +41,10 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
         <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="Ask a question…"></textarea></div>
+        <p class="chat-setup-hint" id="chat-model-status" data-model-status role="status" hidden></p>
         <div class="chat-composer-toolbar">
           <label class="btn pool-button btn-ghost chat-file-label pool-focus-within">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
-          <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button">Actions</summary><div class="pool-surface">
-            <button class="pool-button" type="button" data-show-archived aria-pressed="false">Archived threads</button>
-            <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
-          </div></details>
           <div class="chat-composer-submit">
-            <p class="chat-setup-hint" id="chat-model-status" data-model-status role="status" hidden></p>
             <button class="btn pool-button btn-primary" type="submit" data-composer-send>Send</button>
             <button class="btn pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button>
             <button class="btn pool-button btn-ghost" type="button" data-composer-stop hidden>Stop</button>

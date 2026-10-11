@@ -100,8 +100,21 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
       }));
       expect(geometry.overflow).toBeLessThanOrEqual(1);
       expect(geometry.composer.bottom).toBeLessThanOrEqual(geometry.height);
+      const guidance = page.locator('[data-model-status]');
+      if (width < 760 && await guidance.isVisible()) {
+        const hint = await guidance.boundingBox();
+        const toolbar = await page.locator('.chat-composer-toolbar').boundingBox();
+        expect(hint.width).toBeGreaterThanOrEqual(geometry.composer.width - 1);
+        expect(hint.y + hint.height).toBeLessThanOrEqual(toolbar.y);
+      }
       expect(geometry.nav.left).toBe(geometry.content.left);
       expect(geometry.nav.width).toBe(geometry.content.width);
+      if (state === 'executing') {
+        const attach = await page.locator('.chat-file-label').boundingBox();
+        const stop = await page.locator('[data-composer-stop]').boundingBox();
+        expect(stop.y).toBe(attach.y);
+        expect(stop.x).toBeGreaterThan(attach.x + attach.width);
+      }
       if (state === 'approval') {
         await expect(page.locator('[data-chat-approval]')).toBeVisible();
         await expect(page.locator('[data-approval-send]')).toBeDisabled();
@@ -188,8 +201,10 @@ test('reading and phone controls retain long answers, code, sources and a saved 
   await page.locator('[data-close-threads]').click();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
   await page.locator('[data-conversation-actions] > summary').click();
+  await expect(page.locator('[data-network-header] [data-conversation-actions]')).toBeVisible();
   await expect(page.locator('[data-show-archived]')).toBeVisible();
   await expect(page.locator('[data-conversation-download]')).toBeVisible();
+  await expect(page.locator('[data-conversation-download]')).toBeInViewport();
   await page.keyboard.press('Escape');
   await expect(page.locator('[data-conversation-actions] > summary')).toBeFocused();
   await page.screenshot({ path: info.outputPath('phone-reading-keyboard.png'), fullPage: true });
@@ -244,4 +259,23 @@ test('keyboard-sized visual viewport compacts the workspace without resizing the
   });
   expect((await page.locator('[data-composer-area]').boundingBox()).y).toBeGreaterThan(460);
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft');
+});
+
+test('Verification Worker accepts the conversation presentation module', async ({ page }, info) => {
+  await page.goto('/');
+  const verification = await page.evaluate(async () => {
+    const file = '/self/ui/pool-home/conversation-workspace.js';
+    const response = await fetch('/ui/pool-home/conversation-workspace.js');
+    if (!response.ok) throw new Error(`Missing presentation module: ${response.status}`);
+    const code = await response.text();
+    return new Promise((resolve, reject) => {
+      const worker = new Worker('/core/verification-worker.js');
+      const timer = setTimeout(() => { worker.terminate(); reject(new Error('Verification Worker timeout')); }, 10000);
+      worker.onmessage = event => { clearTimeout(timer); worker.terminate(); resolve(event.data); };
+      worker.onerror = event => { clearTimeout(timer); worker.terminate(); reject(new Error(event.message)); };
+      worker.postMessage({ type: 'VERIFY', snapshot: { [file]: code } });
+    });
+  });
+  expect(verification.passed, JSON.stringify(verification)).toBe(true);
+  await info.attach('presentation-verification', { body: JSON.stringify(verification, null, 2), contentType: 'application/json' });
 });

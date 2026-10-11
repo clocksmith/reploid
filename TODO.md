@@ -8,7 +8,7 @@ This is the single cross-project implementation queue. Doppler and Doe link to i
 
 **Changes from the supplied checklist:** DOP-5 and DOP-8 are complete. DOP-4 has all four F16 cases, partial Q4, and no portable comparison. The last batch stopped on user instruction at a settled boundary, not a runtime failure. Reploid's coordinator is implemented, but ordinary document indexing still bypasses it. Doe's imported SPIR-V path exists but lacks qualified metadata; no mixed-compiler projection result is established.
 
-**Next independent work:** Reploid REP-2 → REP-3; Doe DOE-2/DOE-3 → DD-1 → DD-2; Doppler finish only the missing DOP-4 comparisons in an assigned window, then select one DOP-6 numerical question. Do not repeat DOP-5 or rebuild DOP-8. Their completed handoff already lets Doe proceed. ALL-2 governs physical windows, not ordinary source work.
+**Next work after the usability handoff:** finish the demonstrated REP-7 phone layout gap, then Reploid REP-2 → REP-3. Retain DOP-6’s inactive independent-reference proposal and DR-5’s ordered-message source-quality evaluation for the stopped Doppler owner. Doe DOE-2/DOE-3 → DD-1 → DD-2 remains the bounded optional-provider sequence. DOP-4’s missing comparisons stay paused at the recorded handoff; do not restart them just to complete a checklist. DOP-5 and DOP-8 are complete. ALL-2 governs any physical restart.
 
 **Current release priority:** finish the usable conversation experience while
 numerical disposition and application quality proceed separately. W8A8 remains
@@ -30,15 +30,17 @@ Doppler owns preparation, executable packages, tensor contracts, sampling, and g
 - [x] **DOP-3 — Complete the Gemma quality rejection.** Installed variants agree but pass only 4/12 frozen tasks against the 10/12 requirement and fail the F16-relative likelihood allowance. Independent source W8 passes 5/12 and also fails. This experiment is complete; Gemma W8A8 remains rejected. Evidence: [quality disposition][dop-quality]. Do not turn implementation agreement into model acceptance.
 
 <a id="dop-4"></a>
-- [ ] **DOP-4 — Finish missing frozen measurements. Partial; physical window required.** All four F16-versus-packed cases completed with ten pairs each. Packed complete-operation median paired ratios are approximately 2.16–2.39 times F16: slower, on these unqualified fixed-prefix workloads. Q4 stopped after five complete pairs in its first case; portable was not started. [Batch disposition][dop-benchmark] retains the controlled stop, all samples, and the failed both-resident attempt.
+- [ ] **DOP-4 — Finish missing frozen measurements. Partial; paused at user-priority handoff.** All four F16-versus-packed cases completed with ten pairs each. Packed complete-operation median paired ratios are approximately 2.16–2.39 times F16: slower, on these unqualified fixed-prefix workloads. Q4 stopped after five complete pairs in its first case; portable was not started. [Batch disposition][dop-benchmark] retains the controlled stop, all samples, and the failed both-resident attempt.
 
-  Next: use `tools/w8a8-benchmark-scenario.js` with the retained benchmark contracts; record a continuation identity, complete remaining Q4 coverage and portable comparisons without silently pooling incompatible sessions. Keep serialized residency and equal reuse; include quantization, packing, rescaling, submission, required completion/readback in the declared operation. Report loading/warmup separately. Completion requires all planned cases and adverse results retained, not a speed win or model promotion. No native provider claim follows from these quantization comparisons.
+  If this measurement batch is resumed in an assigned window: use `tools/w8a8-benchmark-scenario.js` with the retained benchmark contracts; record a continuation identity, complete remaining Q4 coverage and portable comparisons without silently pooling incompatible sessions. Keep serialized residency and equal reuse; include quantization, packing, rescaling, submission, required completion/readback in the declared operation. Report loading/warmup separately. Completion requires all planned cases and adverse results retained, not a speed win or model promotion. No native provider claim follows from these quantization comparisons.
 
 <a id="dop-5"></a>
 - [x] **DOP-5 — Freeze and validate the projection exporter.** Already implemented in `tools/export-w8a8-projection.js`. [Projection handoff][dop-export] contains deterministic F32 operands, scales, packed bytes, expected I32 intermediates, intermediate/final F32 bits, exact installed WGSL, layouts, constants, bindings, dispatches, and identities. Synthetic query shape is M=1, N=1024, K=640; seed 7331. Fresh offline test and all payload hashes pass in this audit. No new GPU evidence is implied. Hand to DD-1 now; whole-model W8 quality does not block it.
 
 <a id="dop-6"></a>
 - [ ] **DOP-6 — Resolve distributed numerical accuracy. Failed gate; next hypothesis must be explicit.** [Complete 55-prefix comparison][dop-numerical] rejects all retained candidates at unchanged 0.001. Local F16 projection accuracy improved, but the Q4 addition worsened maximum full-model error; neither qualifies. Physical cache readback, attention, recurrence, normalization, and projection investigations already exist—do not rerun them without a new question.
+
+  Numerical handoff: first propose one **inactive** independent reference contract naming evaluator/code identity, exact weights/tokens, recurrence, materialization, rounding, nonlinear behavior and reproducibility limits. Existing independent F32 evaluations reject every candidate; approving a contract cannot turn those failures into passes. Preserve historical failures and 0.001. Captured Doppler output remains inadmissible as independent accuracy evidence. No contract activation or physical run accompanies this tracking update.
 
   Next: use the retained failed-prefix and midpoint evidence to specify one unresolved upstream boundary and an independent same-operand test. Separate F64 mathematical accuracy from conformance to a specified F32 evaluation, including materialization, reduction order, fusion, and F16 cache boundaries. Keep manifest normalization enforced. Test a single correction locally, then the unchanged complete comparison. Historical captures cannot become their own oracle. A changed acceptance reference requires independent justification and explicit approval (ALL-4); Mac/directional acceptance belongs to DR-4.
 
@@ -107,10 +109,7 @@ Reploid owns conversations, authorized participation, placement, connectivity, a
   retains simplified navigation, compact availability, readable transcript width,
   archive actions and empty-state guidance. Fifty focused tests, eleven browser
   fixture cases, CSS, generated browser identity and Verification Worker checks
-  pass. Phone unavailable-model guidance still wraps too narrowly beside buttons;
-  full visual/product acceptance, real phone keyboards, unfamiliar user journeys,
-  repository checks and deployment remain open. No numerical or release gate is
-  closed by these presentation fixtures.
+  pass. The subsequent [phone guidance repair](artifacts/chat-phone-guidance-20261011/README.md) gives status text its own full-width row, moves conversation Actions into the header, and keeps Attach/Stop together. The original 320px regression failed at 12.375px guidance width; the fix passes the strengthened layouts, twelve browser/worker checks and 3,082 repository tests with 29 existing skips. Real phone keyboards, unfamiliar-user observation and full product acceptance remain open. Neither presentation checkpoint closes numerical or release gates.
 
 ## 4. Doppler + Doe: projection handoff, compiler/runtime matrix, and performance
 
@@ -161,6 +160,8 @@ This boundary owns public operation identities, signed requests, permissions, ex
 
 <a id="dr-5"></a>
 - [ ] **DR-5 — Exact integrated chat journey and lifecycle revalidation. Waits for applicable package/numerical/model-quality gates.** Use one immutable candidate archive, signed physical opening and real selective acquisition. Test both placements, complete useful answers, concurrent conversations, isolated cancellation, contributor stop/loss/replacement, explicit authorized retry, and settlement. Repeat the previously passed successive 1,588-token workload, allocation rejection and reuse within 1,420,000,000 allocated bytes without reopening weights. Keep earlier partial answers separate and distinguish model counting/grounding defects from distribution. REP-7 accepted-provider work continues independently.
+
+  Doppler source-quality handoff: use the already downloaded original Qwen3-1.7B checkpoint and its previously successful thinking policy on the retained contractor-document conversation. Extend the existing evaluator only to ordered messages. Freeze factual arithmetic, conditions, citations, uncertainty, natural completion and budgets before evaluation. Prior fourteen-task source success does not qualify this conversation; converted Q4 remains rejected. Gemma1B already consumed the additional-model authorization. Keep this evaluation separate from reference approval and distribution defects; no new model authorization or run is implied here.
 
 <a id="dr-6"></a>
 - [ ] **DR-6 — Useful combined capacity. Unqualified.** Compare cooperative execution with constrained standalone controls using fixed per-contributor budgets, precision, context and useful-answer requirements. Retained recovery allocations are below budget but do not establish successful larger-model capacity. Multiple participants/routing alone is insufficient. Do this through the same interface after DR-5, not by increasing budgets or trimming prompts.
