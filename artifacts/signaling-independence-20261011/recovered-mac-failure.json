@@ -1,0 +1,99 @@
+{
+  "run": "2026-10-11T01-13-36-604Z",
+  "result": "failed",
+  "failedBoundary": "Third request Send button disabled after available contributor paths disappeared; explicit-disconnect assertion was not reached.",
+  "priorChecks": {
+    "acquisitionCompleted": true,
+    "generationStatus": "completed",
+    "stopReason": "eos-token"
+  },
+  "transportEvidence": [
+    {
+      "host": "linux-128",
+      "retirements": [
+        {
+          "kind": "peer-retiring",
+          "observedAt": 1791681534787,
+          "peerId": "93c4994f-d70c-4eab-bf34-0a2a0ad4bcaf",
+          "manualStop": false,
+          "signalingState": null,
+          "connectionState": "connected",
+          "iceState": "connected",
+          "channelState": "closed",
+          "lastSeenAgeMs": 8649,
+          "callers": [
+            "dataChannel.onclose"
+          ]
+        },
+        {
+          "kind": "peer-retiring",
+          "observedAt": 1791681534839,
+          "peerId": "08ee9e4c-c00c-48a2-822c-cba58dc670d5",
+          "manualStop": false,
+          "signalingState": null,
+          "connectionState": "connected",
+          "iceState": "connected",
+          "channelState": "closed",
+          "lastSeenAgeMs": 8696,
+          "callers": [
+            "dataChannel.onclose"
+          ]
+        }
+      ]
+    },
+    {
+      "host": "mac",
+      "retirements": [
+        {
+          "kind": "peer-retiring",
+          "observedAt": 1791681534743,
+          "peerId": "08ee9e4c-c00c-48a2-822c-cba58dc670d5",
+          "manualStop": false,
+          "signalingState": null,
+          "connectionState": "closed",
+          "iceState": "closed",
+          "channelState": "closed",
+          "lastSeenAgeMs": 8700,
+          "callers": [
+            "dataChannel.onclose"
+          ]
+        },
+        {
+          "kind": "peer-retiring",
+          "observedAt": 1791681534843,
+          "peerId": "997ae35a-ee54-4bcc-aedd-2f8068b1514d",
+          "manualStop": false,
+          "signalingState": null,
+          "connectionState": "closed",
+          "iceState": "closed",
+          "channelState": "closed",
+          "lastSeenAgeMs": 8743,
+          "callers": [
+            "dataChannel.onclose"
+          ]
+        },
+        {
+          "kind": "peer-retiring",
+          "observedAt": 1791681534849,
+          "peerId": "d6f4a203-dfb9-41e4-bcc7-8f513501904c",
+          "manualStop": false,
+          "signalingState": null,
+          "connectionState": "closed",
+          "iceState": "closed",
+          "channelState": "closed",
+          "lastSeenAgeMs": 8751,
+          "callers": [
+            "dataChannel.onclose"
+          ]
+        }
+      ]
+    }
+  ],
+  "hostPowerLog": [
+    "2026-10-10 21:18:59 -0400 Sleep               \tEntering Sleep state due to 'Clamshell Sleep':TCPKeepAlive=active Using AC (Charge:100%) 953 secs  ",
+    "2026-10-10 21:19:01 -0400 PM Client Acks      \tDelays to Sleep notifications: [com.apple.bluetooth.sleep is slow(1540 ms)]           ",
+    "2026-10-10 21:34:52 -0400 DarkWake            \tDarkWake from Deep Idle [CDNPB] : due to NUB.SPMI0.SW3 nub-spmi0.0x02 nub-spmi-a0.0x0B rtc/SleepService Using AC (Charge:100%) 3308 secs "
+  ],
+  "interpretation": "Mac data channels closed at 01:18:54 UTC; macOS entered Clamshell Sleep at 01:18:59 UTC. This supports host suspension as the cause of this interrupted run, not a proven defect in signaling lifetime. The older acquisition failure has no corresponding sleep event in the examined 16:50\u201316:59 local-time power log.",
+  "scope": "Preserves the failed run; does not replace it with the later awake rerun."
+}
