@@ -62,10 +62,10 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
   Progress: [historical acquisition trace](artifacts/signaling-independence-20261011/historical-acquisition-trace.json) localizes the retained failure to loss of both remote peer entries before shard 1, while the supplier remained Sharing. The triggering socket/ICE/timeout event was not captured. New physical observations retain peer-retirement state and call sites; successful retries do not close the original cause investigation.
 
-- [ ] **11. Reploid: decouple signaling loss from healthy channels.**
+- [x] **11. Reploid: decouple signaling loss from healthy channels.**
   In `packages/reploid/src/transport/swarm.js`, remove indiscriminate destruction of healthy peer connections solely because signaling disappears. Preserve channels only while their own identity, authorization and liveness remain valid. Explicit disconnect or permission revocation still stops affected work. Test signaling interruption during acquisition and generation; this coupling is not yet the proven acquisition-failure cause.
 
-  Progress: channel lifetime repair and authenticated RTC/custody controls are retained in the [introduction receipt](artifacts/peer-introductions-20261010/README.md). Physical acquisition and generation interruption acceptance remains separate.
+  Evidence: channel lifetime repair and authenticated RTC/custody controls remain in the [introduction receipt](artifacts/peer-introductions-20261010/README.md). The [physical signaling receipt](artifacts/signaling-independence-20261011/README.md) passes selective acquisition, same-attempt EOS completion with signaling unavailable, and explicit-disconnect failure using two isolated contributors on one Linux/AMD GPU. Twelve focused, eighteen browser and ten UI tests pass. Two-host/reversed-placement application acceptance remains open; the Mac went offline before its final result was retrieved. Unconfirmed remote cleanup remains explicitly unavailable capacity.
 
 - [x] **12. Both: deliver useful, bounded failure information.**
   Carry sanitized error categories through the resident interface, `partition-peer.js` and chat adapter instead of flattening failures into “Partition peer declined or failed request.” Distinguish output allowance, unavailable capacity, authorization, connection and cleanup failures. Preserve partial output and actual stop reasons. Do not expose private prompts or unrestricted remote exception details.

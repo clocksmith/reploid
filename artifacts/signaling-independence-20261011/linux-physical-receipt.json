@@ -1,0 +1,60 @@
+{
+  "sourceCommit": "c7fb777b037da6ad05598c3d8cc5b117ea05af31",
+  "result": "passed",
+  "test": "tests/e2e/chat-cooperative-real.spec.js",
+  "command": "DOPPLER_CHAT_MODEL_DIR=/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16 REPLOID_E2E_SIGNALING=1 REPLOID_E2E_REPLICA=1 REPLOID_E2E_CUSTODY_TRACE=1 REPLOID_E2E_CHROMIUM_CHANNEL=chrome REPLOID_E2E_BASE_URL=http://localhost:44237 PLAYWRIGHT_JSON_OUTPUT_FILE=/tmp/reploid-signaling-local-report.json npx playwright test --config tests/playwright.config.js tests/e2e/chat-cooperative-real.spec.js --project=chromium --output=artifacts/signaling-independence-20261011/linux-local",
+  "scope": "One physical Linux GPU, two isolated contributor contexts; signaling independence only. Not two-host, numerical, capacity-benefit, full-application or deployment acceptance.",
+  "physicalDevices": 1,
+  "browserContexts": 4,
+  "browser": "146.0.7680.177",
+  "adapter": {
+    "vendor": "amd",
+    "architecture": "rdna-3",
+    "isFallbackAdapter": false,
+    "shaderF16": true
+  },
+  "dopplerArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "browserBundleIdentity": "sha256:892258b5366b0e82ddee4719bdab9cc99992371b5d60c02e2a6f38f474d5656d",
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "requesterWeightRequests": 0,
+  "contributorOriginRequests": 0,
+  "residentLoads": [
+    1,
+    1
+  ],
+  "generation": {
+    "sameAttempt": true,
+    "status": "completed",
+    "stopReason": "eos-token"
+  },
+  "explicitDisconnect": {
+    "status": "failed",
+    "error": "Partition attempt settlement failed. Contributor cleanup is not confirmed; its capacity remains unavailable.",
+    "cleanupConfirmed": false
+  },
+  "memory": [
+    {
+      "peakBytes": 497336720,
+      "maxBytes": 1420000000,
+      "scope": "device-gpu-buffers"
+    },
+    {
+      "peakBytes": 862828944,
+      "maxBytes": 1420000000,
+      "scope": "device-gpu-buffers"
+    }
+  ],
+  "pageErrors": [],
+  "files": {
+    "linux-physical-result.json.gz": {
+      "uncompressedSha256": "a3d6fc0c03513ec1a2fb827f5b1c36b7b4e044b7834921cb11eef9dfca9bb9d5"
+    },
+    "linux-physical-state.json.gz": {
+      "uncompressedSha256": "2a59e4ee540eeb537e0fbbdb4edfdbb17970c678e425a16e5b6462c1b81c412e"
+    },
+    "linux-physical-run.log.gz": {
+      "uncompressedSha256": "fb59fca583edf8cbcab6eb4f2866e22be2592421334d10ed2d31815f1ca3c79b"
+    }
+  },
+  "twoHostStatus": "Final result unavailable while Mac test host is offline; reverse placement not qualified."
+}

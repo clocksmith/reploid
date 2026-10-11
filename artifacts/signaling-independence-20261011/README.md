@@ -5,8 +5,9 @@ Boundary effects: test-owned signaling faults and passive transport observations
 no model arithmetic, production transport, permissions or package changes.
 
 This batch extends the existing two-host application journey with
-`node scripts/test-distributed.js --local --signaling-only`, also exercised with
-`--reverse`. It is a scoped transport diagnostic, not numerical, complete
+`node scripts/test-distributed.js --local --signaling-only`; `--reverse` selects
+the opposite placement. Reversed-placement completion is not yet established.
+This is a scoped transport diagnostic, not numerical, complete
 application or deployment acceptance. Both hosts use the standard 0.6.27 archive
 and browser bundle `sha256:892258b5366b0e82ddee4719bdab9cc99992371b5d60c02e2a6f38f474d5656d`.
 
@@ -62,4 +63,36 @@ neither SDP nor credentials. It does not change liveness or authorization rules.
 - Layer/delivery verification, public declaration type checking, CATSCAN,
   JavaScript syntax and diff checks pass.
 
-Physical result receipts are retained alongside this document as the runs complete.
+## Qualified Linux configuration
+
+[linux-physical-receipt.json](linux-physical-receipt.json) records a passing real
+GPU application run: Chrome 146.0.7680.177, AMD RDNA 3, one physical Linux GPU,
+four isolated browser contexts including two contributors. This is not a
+two-host or combined-capacity result.
+
+Selective acquisition completed after its signaling route was closed, with
+contributor origins blocked and no requester weight requests. After all remaining
+signaling routes and retries were blocked, generation completed with EOS under
+the same attempt identity. Each contributor opened one resident. Recorded GPU
+buffer peaks were 497,336,720 and 862,828,944 bytes, each below 1,420,000,000.
+
+The next request began through the surviving channels. Explicitly disconnecting
+one contributor failed that active attempt. Its cleanup remained unconfirmed and
+capacity stayed unavailable; the test does not claim remote settlement after a
+lost connection. There were no captured page errors. Expected RTC channel errors
+were logged at explicit disconnect. Full result, exit state and command output
+are retained as `linux-physical-{result,state}.json.gz` and
+`linux-physical-run.log.gz`.
+
+This closes checklist item 11 for the tested Linux configuration alongside the
+retained authenticated browser and liveness controls. It does not close numerical,
+original acquisition-cause, two-placement application or release acceptance.
+
+## Interrupted two-host qualification
+
+`host-unavailable.json` and `host-unavailable-run.log.gz` preserve the final
+Mac/Linux attempt's observable boundary. The Mac became unreachable over SSH and
+VPN before its final result could be retrieved. The host's disappearance is not
+attributed to application signaling. Earlier two-host attempts establish scoped
+positive acquisition/generation behavior but failed their UI test controls.
+Neither final two-host passage nor reversed placement is claimed here.

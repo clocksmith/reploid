@@ -1,0 +1,11 @@
+{
+  "observedAt": "2026-10-11T01:22:01.115076+00:00",
+  "host": "XY\u2019s MacBook Air",
+  "online": false,
+  "lastSeen": "2026-10-11T01:20:00.1Z",
+  "ssh": "Connection timed out on port 22 with ConnectTimeout=5",
+  "vpnProbes": "Two timed-out probes; no reply",
+  "cause": "Not established; host unavailability is not attributed to application signaling",
+  "physicalRun": "2026-10-11T01-13-36-604Z",
+  "scope": "Unable to retrieve final result or run reversed placement until host connectivity returns"
+}
