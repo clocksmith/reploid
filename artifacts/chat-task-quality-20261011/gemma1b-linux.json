@@ -1,0 +1,27 @@
+{
+  "schema": "reploid.chat-task-quality-result/v1",
+  "scope": "Unsplit diagnostic of an existing local artifact through the standard installed package. No application catalog addition, distributed capacity or numerical qualification.",
+  "qualified": false,
+  "suiteSha256": "eba5534e8c3a1cd4fb0ed500663f5f18d251a8b8a3b0f851fe5c02a1436dbf71",
+  "producerSha256": "d7c2c4a23187840bd227f986cc9834c9f1cfca7b6648c78f6bf56749115fdef5",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "archiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "modelIdentity": "sha256:734f8d68925581ef8ed9a8363dc887c8ad13ffb9d4ba146746d74fcca6549c65",
+  "eosTokenIds": [
+    1,
+    106
+  ],
+  "results": [],
+  "browser": "146.0.7680.177",
+  "platform": "linux",
+  "failure": {
+    "name": "Error",
+    "message": "page.evaluate: Error: Invalid manifest:\n  - Manifest \"gemma-3-1b-it-q4k-ehf16-af32\" has incomplete inference config. Missing required fields:\n  - output.embeddingScale must be explicitly set (null for scaleEmbeddings semantics, or number)\n  - output.logitInputScale is required\n  - layerPattern.residualBranchScale is required\n  - rope.longropeShortFactor must be explicitly set (null if not LongRoPE)\n  - rope.longropeLongFactor must be explicitly set (null if not LongRoPE)\n  - rope.longropeOriginalMaxPos must be explicitly set (null if not LongRoPE)\n  - rope LongRoPE fields must be null unless rope.ropeScalingType is \"longrope\"\nRe-convert the model using the latest converter.\n    at parseManifest (http://127.0.0.1:41057/vendor/doppler/0.6.27/src/formats/rdrr/parsing.js:74:11)\n    at resolveModelSource (http://127.0.0.1:41057/vendor/doppler/0.6.27/src/client/runtime/model-source.js:268:37)\n    at async loadProgram (http://127.0.0.1:41057/vendor/doppler/0.6.27/src/client/model-host/index.js:219:22)\n    at async load (http://127.0.0.1:41057/vendor/doppler/0.6.27/src/client/model-host/index.js:210:13)\n    at async eval (eval at evaluate (:290:30), <anonymous>:15:16)\n    at async <anonymous>:316:30"
+  }
+}

@@ -1,0 +1,927 @@
+{
+  "stage": "generation-completed",
+  "acquisition": {
+    "before": {
+      "phase": "Loading",
+      "progress": "Receiving required model pieces: 16 MB verified",
+      "error": "",
+      "storage": {
+        "quota": 1610612736,
+        "usage": 20353458,
+        "usageDetails": {
+          "fileSystem": 20353458
+        }
+      }
+    },
+    "connections": [
+      {
+        "connectionState": "connected",
+        "localCandidateType": "host",
+        "remoteCandidateType": "host",
+        "protocol": "udp",
+        "relayProtocol": null,
+        "roundTripMs": 0,
+        "bytesSent": 14343,
+        "bytesReceived": 12712,
+        "channels": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 11,
+            "messagesReceived": 9,
+            "bytesSent": 4507,
+            "bytesReceived": 3729
+          },
+          {
+            "label": "reploid-partitions-control",
+            "state": "open",
+            "messagesSent": 35,
+            "messagesReceived": 35,
+            "bytesSent": 5292,
+            "bytesReceived": 4507
+          }
+        ]
+      },
+      {
+        "connectionState": "connected",
+        "localCandidateType": "host",
+        "remoteCandidateType": "host",
+        "protocol": "udp",
+        "relayProtocol": null,
+        "roundTripMs": 0,
+        "bytesSent": 549848,
+        "bytesReceived": 22214971,
+        "channels": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 24,
+            "messagesReceived": 18,
+            "bytesSent": 11745,
+            "bytesReceived": 39342
+          },
+          {
+            "label": "reploid-partitions-control",
+            "state": "open",
+            "messagesSent": 35,
+            "messagesReceived": 35,
+            "bytesSent": 5350,
+            "bytesReceived": 4507
+          },
+          {
+            "label": "reploid-custody",
+            "state": "open",
+            "messagesSent": 82,
+            "messagesReceived": 1453,
+            "bytesSent": 59543,
+            "bytesReceived": 21216098
+          }
+        ]
+      },
+      {
+        "connectionState": "connected",
+        "localCandidateType": "host",
+        "remoteCandidateType": "host",
+        "protocol": "udp",
+        "relayProtocol": null,
+        "roundTripMs": 0,
+        "bytesSent": 10972,
+        "bytesReceived": 12282,
+        "channels": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 7,
+            "messagesReceived": 9,
+            "bytesSent": 2949,
+            "bytesReceived": 3729
+          },
+          {
+            "label": "reploid-partitions-control",
+            "state": "open",
+            "messagesSent": 29,
+            "messagesReceived": 32,
+            "bytesSent": 3903,
+            "bytesReceived": 4349
+          }
+        ]
+      }
+    ],
+    "after": [
+      {
+        "connectionState": "connected",
+        "localCandidateType": "host",
+        "remoteCandidateType": "host",
+        "protocol": "udp",
+        "relayProtocol": null,
+        "roundTripMs": 0,
+        "bytesSent": 67299,
+        "bytesReceived": 43332,
+        "channels": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 26,
+            "messagesReceived": 24,
+            "bytesSent": 10279,
+            "bytesReceived": 9498
+          },
+          {
+            "label": "reploid-partitions-control",
+            "state": "open",
+            "messagesSent": 191,
+            "messagesReceived": 149,
+            "bytesSent": 41130,
+            "bytesReceived": 18745
+          }
+        ]
+      },
+      {
+        "connectionState": "connected",
+        "localCandidateType": "host",
+        "remoteCandidateType": "host",
+        "protocol": "udp",
+        "relayProtocol": null,
+        "roundTripMs": 0,
+        "bytesSent": 7783024,
+        "bytesReceived": 323461657,
+        "channels": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 178,
+            "messagesReceived": 102,
+            "bytesSent": 91567,
+            "bytesReceived": 346234
+          },
+          {
+            "label": "reploid-partitions-control",
+            "state": "open",
+            "messagesSent": 191,
+            "messagesReceived": 149,
+            "bytesSent": 41188,
+            "bytesReceived": 18745
+          },
+          {
+            "label": "reploid-custody",
+            "state": "open",
+            "messagesSent": 1177,
+            "messagesReceived": 21160,
+            "bytesSent": 856493,
+            "bytesReceived": 309330267
+          }
+        ]
+      },
+      {
+        "connectionState": "connected",
+        "localCandidateType": "host",
+        "remoteCandidateType": "host",
+        "protocol": "udp",
+        "relayProtocol": null,
+        "roundTripMs": 0,
+        "bytesSent": 23026,
+        "bytesReceived": 33236,
+        "channels": [
+          {
+            "label": "reploid",
+            "state": "open",
+            "messagesSent": 22,
+            "messagesReceived": 24,
+            "bytesSent": 8722,
+            "bytesReceived": 9502
+          },
+          {
+            "label": "reploid-partitions-control",
+            "state": "open",
+            "messagesSent": 53,
+            "messagesReceived": 80,
+            "bytesSent": 6567,
+            "bytesReceived": 15461
+          }
+        ]
+      }
+    ]
+  },
+  "generation": {
+    "before": {
+      "id": "8899561c-10ae-460f-9496-280283ad232a",
+      "threadId": "9070219f-1d59-4a9e-b395-ebdf8bee5037",
+      "userMessageId": "4b7b8323-2e35-4efb-85c2-556c9bb606fa",
+      "responseId": "6211168b-eac2-4288-a493-928a85a5e748",
+      "retryOf": null,
+      "status": "executing",
+      "createdAt": 1791681890190,
+      "finishedAt": null,
+      "error": null,
+      "approval": null,
+      "execution": {
+        "placement": "two-device-layer-partition",
+        "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+        "participantA": "peer:38350b1a4a2319b667ef407c",
+        "participantB": "peer:7a0f73e8b275786a93f3d4c5"
+      },
+      "authorization": {
+        "kind": "once",
+        "grantId": null,
+        "peerId": "peer:38350b1a4a2319b667ef407c",
+        "recipientIdentity": "peer:38350b1a4a2319b667ef407c"
+      },
+      "request": {
+        "model": {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16",
+          "name": "Qwen 3.5 0.8B",
+          "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+          "source": {
+            "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
+            "files": [
+              {
+                "path": "manifest.json",
+                "role": "model-manifest",
+                "sizeBytes": 214203,
+                "hashAlgorithm": "sha256",
+                "hash": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "url": "/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json"
+              },
+              {
+                "path": "tokenizer.json",
+                "role": "tokenizer",
+                "sizeBytes": 9088480,
+                "hashAlgorithm": "sha256",
+                "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+              },
+              {
+                "path": "qwen-0-8b-pieces.json",
+                "role": "model-piece-index",
+                "sizeBytes": 34258,
+                "hashAlgorithm": "sha256",
+                "hash": "18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7",
+                "url": "/config/model-pieces/qwen-0-8b-pieces.json"
+              }
+            ]
+          },
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "adapters": [],
+          "availableAdapters": [
+            {
+              "id": "qwen35-0-8b-ner-json-lora",
+              "name": "Qwen 3.5 0.8B NER JSON LoRA",
+              "identity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+              "baseModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+              "weightsLayout": "peft",
+              "artifact": {
+                "artifactId": "qwen35-0-8b-ner-json-lora",
+                "role": "adapter",
+                "path": "adapter_model.safetensors",
+                "sizeBytes": 43346432,
+                "hash": "sha256:dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+                "url": "https://huggingface.co/Mike0021/qwen35-0.8b-ner-json-lora/resolve/6d4e4cf3ebe7d8df10897b9f44cbf1e647386bcb/adapter_model.safetensors"
+              },
+              "manifest": {
+                "id": "qwen35-0-8b-ner-json-lora",
+                "name": "Qwen 3.5 0.8B NER JSON LoRA",
+                "version": "1.0.0",
+                "baseModel": "qwen-3-5-0-8b-q4k-ehaf16",
+                "rank": 16,
+                "alpha": 32,
+                "targetModules": [
+                  "down_proj",
+                  "o_proj",
+                  "in_proj_a",
+                  "up_proj",
+                  "in_proj_z",
+                  "gate_proj",
+                  "q_proj",
+                  "out_proj",
+                  "v_proj",
+                  "k_proj",
+                  "in_proj_b",
+                  "in_proj_qkv"
+                ],
+                "weightsFormat": "safetensors",
+                "weightsPath": "https://huggingface.co/clocksmith/lora/resolve/a618a2ccab25928a98694930376ebb3c3db241cb/adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors",
+                "weightsSize": 43346432,
+                "checksum": "dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+                "checksumAlgorithm": "sha256"
+              }
+            }
+          ],
+          "packageName": "doppler-gpu",
+          "packageVersion": "0.6.27",
+          "generation": {
+            "maxTokens": 4096,
+            "maxSeqLen": 8192,
+            "temperature": 0,
+            "topP": 1,
+            "topK": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "presencePenalty": 0,
+            "useChatTemplate": true,
+            "suppressTokenIds": [],
+            "stopSequences": []
+          },
+          "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "partition": {
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "participantA": "peer:38350b1a4a2319b667ef407c",
+            "participantB": "peer:7a0f73e8b275786a93f3d4c5"
+          },
+          "availability": "ready",
+          "providerIds": [
+            "peer:38350b1a4a2319b667ef407c",
+            "peer:7a0f73e8b275786a93f3d4c5"
+          ],
+          "placement": "two-device-layer-partition"
+        },
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "members": [
+          "local-user"
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "Count from one to twenty, one number per line."
+          }
+        ]
+      }
+    },
+    "after": {
+      "id": "8899561c-10ae-460f-9496-280283ad232a",
+      "threadId": "9070219f-1d59-4a9e-b395-ebdf8bee5037",
+      "userMessageId": "4b7b8323-2e35-4efb-85c2-556c9bb606fa",
+      "responseId": "6211168b-eac2-4288-a493-928a85a5e748",
+      "retryOf": null,
+      "status": "completed",
+      "createdAt": 1791681890190,
+      "finishedAt": 1791681893073,
+      "error": null,
+      "approval": null,
+      "execution": {
+        "schema": "reploid.mesh.partition-summary/v1",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+        "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+        "threadId": "9070219f-1d59-4a9e-b395-ebdf8bee5037",
+        "attemptId": "8899561c-10ae-460f-9496-280283ad232a",
+        "participantA": "peer:38350b1a4a2319b667ef407c",
+        "participantB": "peer:7a0f73e8b275786a93f3d4c5",
+        "requesterId": "peer:a92a1d7cae8c86e4a15f9e0d",
+        "placementGeneration": 0,
+        "placement": "two-device-layer-partition",
+        "splitLayer": 12,
+        "activationBytes": 299008,
+        "stopReason": "eos-token",
+        "settlement": {
+          "identity": {
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "threadId": "9070219f-1d59-4a9e-b395-ebdf8bee5037",
+            "attemptId": "8899561c-10ae-460f-9496-280283ad232a",
+            "participantA": "peer:38350b1a4a2319b667ef407c",
+            "participantB": "peer:7a0f73e8b275786a93f3d4c5",
+            "requesterId": "peer:a92a1d7cae8c86e4a15f9e0d",
+            "placementGeneration": 0
+          },
+          "phase": "completed",
+          "startedAt": 1791681890397,
+          "failure": null,
+          "reservations": [
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:38350b1a4a2319b667ef407c",
+                "participantB": "peer:7a0f73e8b275786a93f3d4c5",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "9070219f-1d59-4a9e-b395-ebdf8bee5037",
+                "attemptId": "8899561c-10ae-460f-9496-280283ad232a",
+                "requesterId": "peer:a92a1d7cae8c86e4a15f9e0d",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:38350b1a4a2319b667ef407c",
+              "index": 0,
+              "phase": "reserved",
+              "reservedAt": 1791681890394,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "threadId": "9070219f-1d59-4a9e-b395-ebdf8bee5037",
+                "attemptId": "8899561c-10ae-460f-9496-280283ad232a",
+                "participantA": "peer:38350b1a4a2319b667ef407c",
+                "participantB": "peer:7a0f73e8b275786a93f3d4c5",
+                "requesterId": "peer:a92a1d7cae8c86e4a15f9e0d",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:7a0f73e8b275786a93f3d4c5",
+              "index": 1,
+              "phase": "reserved",
+              "reservedAt": 1791681890399,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            }
+          ],
+          "cleanupStartedAt": 1791681893070,
+          "cleanupSettledAt": 1791681893072,
+          "cleanup": [
+            {
+              "participantId": "peer:38350b1a4a2319b667ef407c",
+              "status": "settled",
+              "settledAt": 1791681893070,
+              "error": null
+            },
+            {
+              "participantId": "peer:7a0f73e8b275786a93f3d4c5",
+              "status": "settled",
+              "settledAt": 1791681893072,
+              "error": null
+            }
+          ]
+        },
+        "provider": "peer",
+        "stepSummary": {
+          "count": 51,
+          "metrics": {
+            "localStepMs": {
+              "count": 51,
+              "total": 1032.5000019073486,
+              "min": 13.300000190734863,
+              "max": 168.5
+            },
+            "serializationMs": {
+              "count": 51,
+              "total": 1.2999992370605469,
+              "min": 0,
+              "max": 0.10000038146972656
+            },
+            "remoteStepMs": {
+              "count": 51,
+              "total": 1587.3999938964844,
+              "min": 21.399999618530273,
+              "max": 187.39999961853027
+            },
+            "elapsedMs": {
+              "count": 51,
+              "total": 2665.6999979019165,
+              "min": 36.69999980926514,
+              "max": 356.79999923706055
+            },
+            "computationA.inputUploadMs": {
+              "count": 51,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.encodeMs": {
+              "count": 51,
+              "total": 488.4000005722046,
+              "min": 5.59999942779541,
+              "max": 127.30000019073486
+            },
+            "computationA.submitWaitMs": {
+              "count": 51,
+              "total": 368.89999866485596,
+              "min": 5.09999942779541,
+              "max": 36.80000019073486
+            },
+            "computationA.activationReadbackMs": {
+              "count": 51,
+              "total": 106.70000457763672,
+              "min": 0.19999980926513672,
+              "max": 19.300000190734863
+            },
+            "computationA.logitsMs": {
+              "count": 51,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.executionMs": {
+              "count": 51,
+              "total": 976.6999931335449,
+              "min": 12.5,
+              "max": 166.80000019073486
+            },
+            "computationA.logitsReadbackMs": {
+              "count": 51,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationA.samplingMs": {
+              "count": 51,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationB.inputUploadMs": {
+              "count": 51,
+              "total": 0.9999990463256836,
+              "min": 0,
+              "max": 0.10000038146972656
+            },
+            "computationB.encodeMs": {
+              "count": 51,
+              "total": 472.0999975204468,
+              "min": 5.399999618530273,
+              "max": 124.5
+            },
+            "computationB.submitWaitMs": {
+              "count": 51,
+              "total": 400.6000032424927,
+              "min": 5.09999942779541,
+              "max": 37.30000019073486
+            },
+            "computationB.activationReadbackMs": {
+              "count": 51,
+              "total": 0,
+              "min": 0,
+              "max": 0
+            },
+            "computationB.logitsMs": {
+              "count": 51,
+              "total": 25.100001335144043,
+              "min": 0.19999980926513672,
+              "max": 1
+            },
+            "computationB.executionMs": {
+              "count": 51,
+              "total": 910.7000026702881,
+              "min": 11.5,
+              "max": 162.5
+            },
+            "computationB.logitsReadbackMs": {
+              "count": 51,
+              "total": 225.80000019073486,
+              "min": 2.3999996185302734,
+              "max": 25.800000190734863
+            },
+            "computationB.samplingMs": {
+              "count": 51,
+              "total": 93.60000038146973,
+              "min": 1.2000007629394531,
+              "max": 9.199999809265137
+            },
+            "transportTiming.authorizationMs": {
+              "count": 51,
+              "total": 16.30000877380371,
+              "min": 0.19999980926513672,
+              "max": 0.6999998092651367
+            },
+            "transportTiming.readyWaitMs": {
+              "count": 51,
+              "total": 95.39999198913574,
+              "min": 0.5999994277954102,
+              "max": 19.09999942779541
+            },
+            "transportTiming.payloadUploadMs": {
+              "count": 51,
+              "total": 16.700003623962402,
+              "min": 0.09999942779541016,
+              "max": 1.1000003814697266
+            },
+            "transportTiming.responseWaitMs": {
+              "count": 51,
+              "total": 1419.200002670288,
+              "min": 19,
+              "max": 184
+            },
+            "transportTiming.acceptanceMs": {
+              "count": 51,
+              "total": 28.19999599456787,
+              "min": 0.19999980926513672,
+              "max": 1.0999994277954102
+            },
+            "transportTiming.totalMs": {
+              "count": 51,
+              "total": 1575.8000030517578,
+              "min": 21.200000762939453,
+              "max": 187.10000038146973
+            }
+          },
+          "detail": "aggregate; no per-step trace transferred"
+        },
+        "memoryAtLastStep": {
+          "computationA": {
+            "maxBytes": 1420000000,
+            "liveBytes": 783190184,
+            "peakBytes": 862828944,
+            "categories": {
+              "weights": 650989568,
+              "attention": 101229472,
+              "recurrent": 9437184,
+              "other": 21533960
+            }
+          },
+          "computationB": {
+            "maxBytes": 1420000000,
+            "liveBytes": 420712328,
+            "peakBytes": 497336720,
+            "categories": {
+              "weights": 285497344,
+              "attention": 101229472,
+              "recurrent": 7340032,
+              "other": 26645480
+            }
+          }
+        },
+        "transport": {
+          "schema": "reploid.partition-channel/v1",
+          "sentFrameBytes": 603609,
+          "receivedFrameBytes": 79932,
+          "sentFrames": 140,
+          "receivedFrames": 140,
+          "completedRequests": 70,
+          "cancelledRequests": 0,
+          "discardedFrames": 0,
+          "pendingRequests": 0,
+          "inboundRequests": 0,
+          "reservedBytes": 0,
+          "closed": false,
+          "wireBytes": null,
+          "relayBytes": null
+        },
+        "selection": {
+          "transportId": "871bd384-bc35-44aa-931d-59edab323cac",
+          "eligibility": [
+            {
+              "participantId": "peer:38350b1a4a2319b667ef407c",
+              "transportId": "871bd384-bc35-44aa-931d-59edab323cac",
+              "reason": "reservation-required",
+              "eligible": true,
+              "capacity": {
+                "active": 1,
+                "availableSlots": 1,
+                "closed": false
+              }
+            },
+            {
+              "participantId": "peer:89424f58cd0db4964634195f",
+              "transportId": "5220afb4-4d4c-4bd0-b851-98f471f7a761",
+              "reason": "no-prepared-path",
+              "eligible": false,
+              "capacity": null
+            },
+            {
+              "participantId": "peer:7a0f73e8b275786a93f3d4c5",
+              "transportId": "241f3ab8-9a9e-4ea7-ac13-c52b31642d0b",
+              "reason": "no-prepared-path",
+              "eligible": false,
+              "capacity": {
+                "active": 1,
+                "availableSlots": 1,
+                "closed": false
+              }
+            }
+          ]
+        }
+      },
+      "authorization": {
+        "kind": "once",
+        "grantId": null,
+        "peerId": "peer:38350b1a4a2319b667ef407c",
+        "recipientIdentity": "peer:38350b1a4a2319b667ef407c"
+      },
+      "request": {
+        "model": {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16",
+          "name": "Qwen 3.5 0.8B",
+          "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+          "source": {
+            "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
+            "files": [
+              {
+                "path": "manifest.json",
+                "role": "model-manifest",
+                "sizeBytes": 214203,
+                "hashAlgorithm": "sha256",
+                "hash": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "url": "/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json"
+              },
+              {
+                "path": "tokenizer.json",
+                "role": "tokenizer",
+                "sizeBytes": 9088480,
+                "hashAlgorithm": "sha256",
+                "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+              },
+              {
+                "path": "qwen-0-8b-pieces.json",
+                "role": "model-piece-index",
+                "sizeBytes": 34258,
+                "hashAlgorithm": "sha256",
+                "hash": "18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7",
+                "url": "/config/model-pieces/qwen-0-8b-pieces.json"
+              }
+            ]
+          },
+          "provider": "doppler",
+          "contextLength": 262144,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "adapters": [],
+          "availableAdapters": [
+            {
+              "id": "qwen35-0-8b-ner-json-lora",
+              "name": "Qwen 3.5 0.8B NER JSON LoRA",
+              "identity": "sha256:dc0248f45553e69defd8a1846619443f1ac5902a118548c70a7254c21f66f64b",
+              "baseModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+              "weightsLayout": "peft",
+              "artifact": {
+                "artifactId": "qwen35-0-8b-ner-json-lora",
+                "role": "adapter",
+                "path": "adapter_model.safetensors",
+                "sizeBytes": 43346432,
+                "hash": "sha256:dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+                "url": "https://huggingface.co/Mike0021/qwen35-0.8b-ner-json-lora/resolve/6d4e4cf3ebe7d8df10897b9f44cbf1e647386bcb/adapter_model.safetensors"
+              },
+              "manifest": {
+                "id": "qwen35-0-8b-ner-json-lora",
+                "name": "Qwen 3.5 0.8B NER JSON LoRA",
+                "version": "1.0.0",
+                "baseModel": "qwen-3-5-0-8b-q4k-ehaf16",
+                "rank": 16,
+                "alpha": 32,
+                "targetModules": [
+                  "down_proj",
+                  "o_proj",
+                  "in_proj_a",
+                  "up_proj",
+                  "in_proj_z",
+                  "gate_proj",
+                  "q_proj",
+                  "out_proj",
+                  "v_proj",
+                  "k_proj",
+                  "in_proj_b",
+                  "in_proj_qkv"
+                ],
+                "weightsFormat": "safetensors",
+                "weightsPath": "https://huggingface.co/clocksmith/lora/resolve/a618a2ccab25928a98694930376ebb3c3db241cb/adapters/network-canaries/qwen35-0.8b-ner-json-lora/adapter_model.safetensors",
+                "weightsSize": 43346432,
+                "checksum": "dfed3509fdd54c04e80e362b6b14f98d9c326a8e732f539996a137086dc4f636",
+                "checksumAlgorithm": "sha256"
+              }
+            }
+          ],
+          "packageName": "doppler-gpu",
+          "packageVersion": "0.6.27",
+          "generation": {
+            "maxTokens": 4096,
+            "maxSeqLen": 8192,
+            "temperature": 0,
+            "topP": 1,
+            "topK": 1,
+            "repetitionPenalty": 1.1,
+            "repetitionPenaltyWindow": 0,
+            "presencePenalty": 0,
+            "useChatTemplate": true,
+            "suppressTokenIds": [],
+            "stopSequences": []
+          },
+          "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "partition": {
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "participantA": "peer:38350b1a4a2319b667ef407c",
+            "participantB": "peer:7a0f73e8b275786a93f3d4c5"
+          },
+          "availability": "ready",
+          "providerIds": [
+            "peer:38350b1a4a2319b667ef407c",
+            "peer:7a0f73e8b275786a93f3d4c5"
+          ],
+          "placement": "two-device-layer-partition"
+        },
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "members": [
+          "local-user"
+        ],
+        "messages": [
+          {
+            "role": "user",
+            "content": "Count from one to twenty, one number per line."
+          }
+        ]
+      }
+    }
+  },
+  "explicitDisconnect": null,
+  "events": [
+    [
+      {
+        "kind": "connected-route",
+        "at": 1791681724704
+      },
+      {
+        "kind": "interrupted",
+        "at": 1791681890778,
+        "routes": 1
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681891787
+      }
+    ],
+    [
+      {
+        "kind": "connected-route",
+        "at": 1791681724815
+      },
+      {
+        "kind": "interrupted",
+        "at": 1791681751138,
+        "routes": 1
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681752148
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681754156
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681758171
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681766178
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681782312
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681812321
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681842330
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681872339
+      }
+    ],
+    [
+      {
+        "kind": "connected-route",
+        "at": 1791681724816
+      },
+      {
+        "kind": "interrupted",
+        "at": 1791681890778,
+        "routes": 1
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681891788
+      }
+    ],
+    [
+      {
+        "kind": "connected-route",
+        "at": 1791681724815
+      },
+      {
+        "kind": "interrupted",
+        "at": 1791681890778,
+        "routes": 1
+      },
+      {
+        "kind": "retry-blocked",
+        "at": 1791681891789
+      }
+    ]
+  ]
+}
