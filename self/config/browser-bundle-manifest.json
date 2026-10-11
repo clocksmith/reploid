@@ -9355,8 +9355,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-peer.js",
-      "byteLength": 12447,
-      "sha256": "sha256:f2847f9802e7436a0f71f992c6170938ef937a282de2687b4ee214c9ec727520"
+      "byteLength": 13097,
+      "sha256": "sha256:94b619d87acdfc916a4753b7265e8dc758dfd2c7c6da9fb4f15811460fc2e31b"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-placement.js",
@@ -9370,8 +9370,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-runner.js",
-      "byteLength": 17906,
-      "sha256": "sha256:1f857d97307ad73b0bc46260cbb0d691b096fec0eb8750490d69aeadd0212e64"
+      "byteLength": 18042,
+      "sha256": "sha256:a6a733af1070562a6ee9729cb990f6224e49cdec39d0af779e96121932e1e502"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-step-receiver.js",
@@ -9390,8 +9390,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/resident-partition.js",
-      "byteLength": 9178,
-      "sha256": "sha256:0054a2cfdfe1f53861a34906cff24ccd8e39164cd28268a6e5d4f64188fbf5e1"
+      "byteLength": 9290,
+      "sha256": "sha256:9a99a444d34ad7b802e243faff4097be1fc040f849c05a1dff653d7ec2ffb2cb"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -9416,7 +9416,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 29552,
-      "sha256": "sha256:0ea49aff7dbad973462841bd497ec3d2a12cd967da8d54e1975865b38276590c"
+      "sha256": "sha256:9bee9492b9c841794d80e9db079fba33bd7c80928bbfa843fdb0b72062718820"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -9470,13 +9470,13 @@
     },
     {
       "path": "vendor/reploid/transport/partition-data-channel.js",
-      "byteLength": 15074,
-      "sha256": "sha256:970d53ee1e57080ff257f66504bf555bff1568ce4987e5fe8a61859d056ce697"
+      "byteLength": 15369,
+      "sha256": "sha256:81f1a68711acae446d8e42c4f13728103b6003849892c8abba8279d1fa392fa5"
     },
     {
       "path": "vendor/reploid/transport/partition-errors.json",
-      "byteLength": 421,
-      "sha256": "sha256:0d7a40ba9aa712e3dc1eb9ca72c7c4f70a7f1aa275cadc11cfebb38c76c5fa26"
+      "byteLength": 908,
+      "sha256": "sha256:97f015750d991994bb6db79144f233cff519146848eb02d5b6acad09b548759c"
     },
     {
       "path": "vendor/reploid/transport/retry-policy.js",
@@ -9504,5 +9504,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:3333da7d88f32fc596053e964155ee6b6afa28e48fefc36623337cc794ed0f5f"
+  "bundleHash": "sha256:892258b5366b0e82ddee4719bdab9cc99992371b5d60c02e2a6f38f474d5656d"
 }

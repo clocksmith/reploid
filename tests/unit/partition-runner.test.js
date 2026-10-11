@@ -249,7 +249,7 @@ describe('partition autoregressive orchestration (injected execution)', () => {
   it('settles both devices if one cleanup throws', async () => {
     const f = fixture();
     f.deviceA.closeAttempt.mockRejectedValue(new Error('failed cleanup'));
-    await expect(f.runner.execute(f.request)).rejects.toThrow('settlement failed');
+    await expect(f.runner.execute(f.request)).rejects.toMatchObject({ code: 'CLEANUP_FAILED' });
     expect(f.deviceB.closeAttempt).toHaveBeenCalledTimes(1);
     expect(f.runner.getState().attempts[0]).toMatchObject({ phase: 'cleanup-failed', cleanupSettledAt: null,
       cleanup: expect.arrayContaining([{ participantId: 'a', status: 'failed', settledAt: null, error: 'failed cleanup' }]) });
