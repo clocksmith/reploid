@@ -54,6 +54,20 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
     await cdp.send('Debugger.setPauseOnExceptions', { state: 'all' });
   };
   if (captureCustody) {
+    // Preserve the first transport retirement boundary without retaining SDP,
+    // ICE addresses, credentials or application payloads.
+    const swarm = (await readFile('self/vendor/reploid/transport/swarm.js', 'utf8')).split('\n');
+    const retirement = swarm.findIndex(line => line.includes('if (!preserveIntroduction) introductions?.retirePeer'));
+    if (retirement < 0) throw Error('Transport retirement observation boundary missing');
+    const retired = await cdp.send('Debugger.setBreakpointByUrl', {
+      urlRegex: '/transport/swarm\\.js$', lineNumber: retirement });
+    custody.set(retired.breakpointId, { kind: 'peer-retiring', target: 'connections',
+      expression: `({ peerId: remotePeerId, manualStop: _manualStop,
+        signalingState: _signalingWs?.readyState ?? null,
+        connectionState: peer.connection?.connectionState ?? null,
+        iceState: peer.connection?.iceConnectionState ?? null,
+        channelState: peer.dataChannel?.readyState ?? null,
+        lastSeenAgeMs: Date.now() - peer.lastSeen })` });
     const chat = (await readFile('self/vendor/reploid/mesh/partitions/partition-chat.js', 'utf8')).split('\n');
     const inputBoundary = chat.findIndex(line => line.includes('grant = await authority.issue(identity, policy'));
     if (inputBoundary < 0) throw Error('Partition input observation boundary missing');
@@ -92,6 +106,9 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
         const target = probe.target || 'custody';
         evidence[target] ||= [];
         evidence[target].push({ kind: probe.kind, observedAt: Date.now(), ...result.result.value });
+        if (probe.kind === 'peer-retiring') {
+          evidence[target].at(-1).callers = event.callFrames.slice(1, 5).map(frame => frame.functionName);
+        }
         if (probe.kind === 'participant-identity') evidence.participantId = result.result.value.participantId;
         if (probe.kind === 'input-tokenized') await onInput?.(result.result.value);
         if (evidence[target].length > (target === 'files' ? 64 : 512)) evidence[target].shift();
