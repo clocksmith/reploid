@@ -8,7 +8,7 @@ import { createLayerPartitionPlan } from 'doppler-gpu/partitions';
 import { observeCooperativePage, compareObservedLogits } from '../fixtures/cooperative-observer.js';
 import { inspectExecutorMemory, measureStandaloneDenial, measureStandaloneGeneration, routeDiagnosticModel, inspectConnections } from '../fixtures/capacity-observer.js';
 import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from '../fixtures/physical-webgpu-browser.js';
-import { controlSignaling } from '../fixtures/signaling-interruption.js';
+import { controlSignaling, openParticipantControls } from '../fixtures/signaling-interruption.js';
 
 // Exact catalog bytes may be supplied by a local seed. The requester/executor
 // still use the normal page, real WebRTC, signed custody and installed WebGPU.
@@ -114,7 +114,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
   });
   const openContribution = async page => {
     const toggle = page.locator('[data-toggle-inspector]');
-    if (await toggle.getAttribute('aria-expanded') !== 'true') await toggle.click({ timeout: 30000 });
+    if (!await page.locator('[data-contextual-inspector]').isVisible()) await toggle.click({ timeout: 30000 });
     const deviceSection = page.locator('[data-inspector-section="device"]');
     if (await deviceSection.count()) await deviceSection.click();
     const selection = page.locator('[data-contribution-model]');
@@ -318,9 +318,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       expect(signalingEvidence.generation.after.execution.stopReason).toBe('eos-token');
       expect(signalingEvidence.generation.after.id).toBe(signalingEvidence.generation.before.id);
       await saveSignaling('generation-completed');
-      const inspector = contributor.locator('[data-toggle-inspector]');
-      if (await inspector.getAttribute('aria-expanded') !== 'true') await inspector.click();
-      await contributor.locator('[data-inspector-section="participants"]').click();
+      await openParticipantControls(contributor);
       await expect(contributor.locator('[data-mesh-connect]')).toBeVisible();
       const stoppedId = await sendNew('Count from one to twenty, one number per line.');
       await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === stoppedId)
