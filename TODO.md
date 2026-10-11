@@ -24,17 +24,30 @@ replace items 7–8, change their 0.001 tolerance, qualify distributed W8A8, or
 activate another model catalog campaign. Reploid's application APIs stay unchanged;
 Doe remains an optional provider.
 
-- [ ] **W1. Define and implement one numerical scheme.** Symmetric signed INT8
+- [x] **W1. Define and implement one numerical scheme.** Symmetric signed INT8
   weights with per-output-channel scales and activations with per-token scales;
   I32 accumulation and ordered F32 rescaling. Declare rounding, clipping, zero,
   nonfinite, padding, byte order and overflow behavior. Preserve other tensor
   precision. Conversion owns emitted bytes, JSON owns policy and kernel identity,
   JavaScript owns orchestration, and WGSL computes and packs activations.
-- [ ] **W2. Qualify both projection implementations.** Compare portable signed-byte
+
+  Evidence: Doppler [explicit numerical and storage contract](https://github.com/clocksmith/doppler/blob/42e57a5d/docs/conversion-runtime-contract.md#w8a8-linear-projections)
+  and [Gemma conversion](https://github.com/clocksmith/doppler/blob/42e57a5d/artifacts/w8a8-conversion-20261011/README.md).
+  All 126 projection matrices and seven shards validate; other tensor precision
+  is preserved. This is implementation evidence, not complete model acceptance.
+
+- [x] **W2. Qualify both projection implementations.** Compare portable signed-byte
   multiplication and `dot4I8Packed` on identical operands with exact integer
   accumulators, then compare packing/scales/reconstruction with an independent
   reference. Gate the packed variant on the host WGSL language feature; preserve
   explicit execution identities and reject unsupported contracts.
+
+  Evidence: Doppler [Linux AMD operator qualification](https://github.com/clocksmith/doppler/blob/1168be7c/artifacts/w8a8-kernels-20261011/README.md)
+  covers all 15 frozen Gemma projection shapes, irregular shapes, boundary values,
+  rejection and cleanup. Both implementations match independently calculated
+  packed bytes, I32 accumulators and ordered F32 outputs exactly. This scope does
+  not establish model quality, speed, another device, or distributed execution.
+
 - [ ] **W3. Qualify one installable model.** Freeze model-quality criteria before
   tuning. Exercise representative projection shapes, complete Gemma 3 270M
   generation, repeated requests, cancellation and resident reuse. Measure complete
