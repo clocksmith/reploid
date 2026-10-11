@@ -40,6 +40,45 @@ function fixture() {
 }
 
 describe('partition autoregressive orchestration (injected execution)', () => {
+  it('separates lease waiting from stalled output without blocking another attempt', async () => {
+    const f = fixture();
+    const enteredCompute = Promise.withResolvers(), releaseCompute = Promise.withResolvers();
+    const enteredOutput = Promise.withResolvers(), releaseOutput = Promise.withResolvers();
+    let clock = 0;
+    const timer = vi.spyOn(performance, 'now').mockImplementation(() => clock);
+    const compute = f.deviceA.executeGroup0.getMockImplementation();
+    f.deviceA.executeGroup0.mockImplementation(async args => {
+      if (args.identity.attemptId === 'attempt' && args.step === 0) {
+        enteredCompute.resolve(); await releaseCompute.promise;
+      }
+      return compute(args);
+    });
+    let first, second;
+    try {
+      first = f.runner.execute({ ...f.request, onDelta: async delta => {
+        if (delta === '0') { enteredOutput.resolve(); await releaseOutput.promise; }
+      } });
+      await enteredCompute.promise;
+      second = f.runner.execute({ ...f.request,
+        identity: { ...f.request.identity, attemptId: 'second', threadId: 'second-thread' } });
+      clock = 20; releaseCompute.resolve();
+      await enteredOutput.promise;
+      const other = await second;
+      expect(other.execution.steps[0].leaseWaitMs).toBe(20);
+      expect(other.content).toBe('01');
+      clock = 70; releaseOutput.resolve();
+      const result = await first;
+      expect(result.execution.steps[0].leaseWaitMs).toBe(0);
+      expect(result.execution.steps[0].outputDeliveryMs).toBe(50);
+      expect(result.execution.steps[0].elapsedMs).toBe(20);
+      expect(result.execution.steps.at(-1).outputDeliveryMs).toBe(0);
+    } finally {
+      releaseCompute.resolve(); releaseOutput.resolve();
+      await Promise.allSettled([first, second]);
+      timer.mockRestore();
+    }
+  });
+
   it('requires explicit runtime, authorizer and limits', () => {
     const f = fixture();
     expect(() => createLayerPartitionRunner({ ...f, runtime: undefined })).toThrow('Doppler partition runtime');

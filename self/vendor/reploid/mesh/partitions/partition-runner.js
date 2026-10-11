@@ -123,7 +123,9 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
         receipt.reservations.push(snapshot(admission.reservation));
       }
       for (let index = 0; index < maxTokens; index++) {
+        const queuedAt = performance.now();
         const delivery = await lease(async () => {
+          const leaseWaitMs = performance.now() - queuedAt;
           combined.throwIfAborted();
           const generationDigest = await generationDigestPromise;
           combined.throwIfAborted();
@@ -201,6 +203,7 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
           content += resultB.delta;
           activationBytes += sent.byteLength;
           steps.push({ ...step, tokenId: resultB.tokenId, activationBytes: sent.byteLength,
+            leaseWaitMs, outputDeliveryMs: 0,
             localStepMs, serializationMs, computationA: resultA.metrics ?? null, computationB: resultB.metrics ?? null,
             transferMs, remoteStepMs, transportTiming: resultB.transportTiming ?? null,
             elapsedMs: performance.now() - started });
@@ -212,7 +215,11 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
         });
         // Per-attempt backpressure must not hold another conversation's GPU lease.
         combined.throwIfAborted();
-        if (delivery.delta) await onDelta(delivery.delta);
+        if (delivery.delta) {
+          const deliveryStarted = performance.now();
+          try { await onDelta(delivery.delta); }
+          finally { steps.at(-1).outputDeliveryMs = performance.now() - deliveryStarted; }
+        }
         combined.throwIfAborted();
         if (delivery.terminal) break;
       }

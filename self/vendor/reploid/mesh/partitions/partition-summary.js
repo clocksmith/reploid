@@ -10,7 +10,8 @@ export function summarizePartitionExecution(execution) {
     row.count++; row.total += value; row.min = Math.min(row.min, value); row.max = Math.max(row.max, value);
   };
   for (const step of steps) {
-    for (const key of ['localStepMs', 'serializationMs', 'transferMs', 'remoteStepMs', 'elapsedMs']) add(key, step[key]);
+    for (const key of ['leaseWaitMs', 'outputDeliveryMs', 'localStepMs', 'serializationMs',
+      'transferMs', 'remoteStepMs', 'elapsedMs']) add(key, step[key]);
     for (const owner of ['computationA', 'computationB']) {
       for (const key of ['inputUploadMs', 'encodeMs', 'submitWaitMs', 'activationReadbackMs', 'logitsMs',
         'gpuKernelsMs', 'executionMs', 'logitsReadbackMs', 'samplingMs']) {

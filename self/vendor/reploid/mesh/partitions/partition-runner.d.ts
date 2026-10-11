@@ -68,6 +68,10 @@ export interface PartitionResult {
     splitLayer: number;
     activationBytes: number;
     steps: Array<PartitionStep & { tokenId: number; activationBytes: number;
+      /** Waiting for this runner's shared FIFO lease, excluding output delivery. */
+      leaseWaitMs: number;
+      /** Awaited output callback outside the lease; zero when no delta is delivered. */
+      outputDeliveryMs: number;
       localStepMs: number; serializationMs: number;
       computationA: Record<string, unknown> | null; computationB: Record<string, unknown> | null;
       transferMs: number | null; remoteStepMs: number | null;

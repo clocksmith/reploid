@@ -35,6 +35,16 @@ test('split chat composes real peer authentication, grants, binary transfer and 
     const first = await a.evaluate(() => window.partitionTest.snapshot());
     expect(first.workspace.threads.map(t => t.attempts[0].status)).toEqual(['completed', 'completed']);
     expect(first.workspace.threads.map(t => t.messages.at(-1).content)).toEqual(['2 3 4 ', '11 12 13 ']);
+    for (const thread of first.workspace.threads) {
+      const steps = thread.attempts[0].execution.steps;
+      expect(steps).toHaveLength(3);
+      for (const step of steps) {
+        expect(Number.isFinite(step.leaseWaitMs)).toBe(true);
+        expect(step.leaseWaitMs).toBeGreaterThanOrEqual(0);
+        expect(Number.isFinite(step.outputDeliveryMs)).toBe(true);
+        expect(step.outputDeliveryMs).toBeGreaterThanOrEqual(0);
+      }
+    }
     expect(first.workspace.threads.every(t => t.grants[0].disclosure === 'partition-activations-and-tokens')).toBe(true);
     await expect(a.locator('[data-message-stream]')).toContainText('11 12 13');
 
