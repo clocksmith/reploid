@@ -1,0 +1,95 @@
+{
+  "schema": "reploid.scoped-change-receipt/v1",
+  "date": "2026-10-11",
+  "component": "self/pool/operation-participation.js",
+  "intent": "preserved",
+  "baseline": "0cd90dfe",
+  "dopplerPin": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "boundary": "Sharing controls -> operation participation -> owned provider and executor cleanup",
+  "reproduction": {
+    "command": "npx vitest run --config tests/vitest.config.js tests/unit/operation-participation-lifecycle.test.js",
+    "before": "Three regressions failed: concurrent stop and opening stop reported idle prematurely; provider close rejection skipped executor cleanup.",
+    "after": "Six lifecycle regressions pass, including immediate cancellation, cleanup failure retry and startup rejection."
+  },
+  "repair": [
+    "Revoke admission before any cleanup await.",
+    "Coalesce overlapping stop calls and capture this generation's provider and executor.",
+    "Wait for pending startup before announcing idle.",
+    "Attempt both owned cleanup paths and retain failed ownership for explicit retry."
+  ],
+  "acceptance": {
+    "focusedTests": 52,
+    "repositoryTests": 3081,
+    "repositorySkipped": 29,
+    "browserTests": 4,
+    "browserScope": "Synthetic model outputs; real browser controls, WebRTC, signatures, and Verification Worker.",
+    "checks": [
+      "layers",
+      "library types",
+      "CATSCAN",
+      "browser delivery manifest",
+      "git diff --check"
+    ]
+  },
+  "commands": [
+    "npm test",
+    "REPLOID_E2E_SKIP_LOCAL_SERVER=1 npx playwright test tests/e2e/peer-pack-jobs.spec.js --config=tests/playwright.config.js --project=chromium --grep=\"sharing controls await|reviewed public task|Verification Worker accepts complete-job\"",
+    "npm run verify:layers",
+    "npm run verify:library-types",
+    "npm run verify:catscan",
+    "npm run verify:browser-bundle:local"
+  ],
+  "boundaryEffects": "No Doppler, transport protocol, numerical, disclosure, persisted job schema, or resource policy changes.",
+  "limits": [
+    "No GPU inference or remote physical runs in this change.",
+    "No deployment.",
+    "Durable unit coordination already exists; ordinary indexing integration and foreground-impact measurements remain unfinished."
+  ],
+  "logs": {
+    "regression-before.log": {
+      "sha256": "5d1d3ec31905e46d9dee2c1c02e64d32e457a3925dfd8e0dca6dd61bde71159b",
+      "bytes": 2870
+    },
+    "focused.log": {
+      "sha256": "26deeb9340995af574aa18eb1151e16ce4a3ce8d009ba47179c7ff4107d22dcf",
+      "bytes": 571
+    },
+    "repository.log": {
+      "sha256": "1a177ea7fa0c90ed000cc2b13238f9e75e43411c9ac05d504627b8b3d172721e",
+      "bytes": 95757
+    },
+    "browser-invalid-invocation.log": {
+      "sha256": "c9c7dd719cc805a7a4a05a913b26c3fa0b8ecfe357f72711645d50393f075795",
+      "bytes": 403
+    },
+    "browser.log": {
+      "sha256": "4331af42158fd75a74b9339a9dfbf68a922024575a4d3de1f9bda06cee9002aa",
+      "bytes": 1043
+    },
+    "types.log": {
+      "sha256": "c506d0cc9d9cefa4c95d86c4d9e2f96c055daf8a3d88cd154a54c42549d522a1",
+      "bytes": 76
+    },
+    "layers.log": {
+      "sha256": "1b6b02702fcbdd59cefff3d6dd6bc83918f46b9929fffbec84d9d863c24220c6",
+      "bytes": 129
+    },
+    "charters.log": {
+      "sha256": "462ce329868b81c1954a53d9e813ddd23d934d41ec803d3f65f99a2e22838a72",
+      "bytes": 125
+    },
+    "delivery.log": {
+      "sha256": "0b2ee720e80cb35dcd0087d2179dd1c847de730b7da391bc7cdac093108c7457",
+      "bytes": 215
+    }
+  },
+  "retainedFailedInvocations": [
+    "Initial Playwright command placed a file after variadic --project; no browser tests ran. Corrected invocation passed."
+  ]
+}

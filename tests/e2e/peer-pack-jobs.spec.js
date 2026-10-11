@@ -138,6 +138,43 @@ for (const schema of ['doppler.pack/v2', 'doppler.capsule/v2']) test(`reviewed p
   }
 });
 
+test('sharing controls await cleanup and allow retry after a failed stop', async ({ page }) => {
+  await page.goto(origin);
+  await page.evaluate(async () => {
+    const { createOperationParticipation } = await import('/self/pool/operation-participation.js');
+    const { renderOperationSharing, bindOperationSharing, refreshOperationSharing } = await import('/self/ui/pool-home/operation-sharing.js');
+    const { createDocumentPackFixture } = await import('/tests/fixtures/document-packs.js');
+    const { configuration } = await createDocumentPackFixture();
+    // Controlled cleanup; real browser identity, controller and rendered controls.
+    const cleanup = new Promise(resolve => { window.finishParticipationCleanup = resolve; });
+    let fail = true;
+    window.participation = createOperationParticipation({ networkOptions: () => ({}),
+      executorFactory: () => ({ getState: () => ({}), close: async () => {} }),
+      createProvider: () => ({ start: async () => {}, getState: () => ({}), close: async () => {
+        await cleanup;
+        if (fail) { fail = false; throw new Error('fixture cleanup failure'); }
+      } }), onChange: state => refreshOperationSharing(document, state) });
+    document.body.innerHTML = renderOperationSharing();
+    window.unbindParticipation = bindOperationSharing(document, window.participation);
+    await window.participation.start({ model: configuration.embedding, approved: true });
+  });
+  try {
+    const button = page.locator('[data-operation-toggle]');
+    await button.click();
+    await expect(button).toBeDisabled();
+    await expect(page.locator('[data-operation-status]')).toHaveText('Stopping participation and releasing owned work');
+    await page.evaluate(() => window.finishParticipationCleanup());
+    await expect(page.locator('[data-operation-status]')).toHaveText('Sharing cleanup failed; stop again to retry');
+    await expect(button).toBeEnabled();
+    await expect(page.locator('[data-operation-model]')).toBeDisabled();
+    await button.click();
+    await expect(page.locator('[data-operation-status]')).toHaveText('Not sharing');
+    await expect(page.locator('[data-operation-model]')).toBeEnabled();
+  } finally {
+    await page.evaluate(async () => { window.finishParticipationCleanup(); window.unbindParticipation(); await window.participation.stop(); });
+  }
+});
+
 test('common operations cross real WebRTC between browser contexts, with bounded large-message framing', async ({ browser }, testInfo) => {
   const observations = [];
   for (const operation of ['generate', 'embed', 'rerank', 'encodeSequence']) {
