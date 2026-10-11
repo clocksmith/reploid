@@ -12,7 +12,7 @@ import { once } from 'node:events';
 import { physicalWebGpuBrowserOptions } from '../tests/fixtures/physical-webgpu-browser.js';
 import { bindReferenceModel } from '../tests/fixtures/distributed-reference-model.js';
 import referenceContract from '../tests/fixtures/distributed-reference-contract.json' with { type: 'json' };
-import { resolveNumericalPolicy, numericalAcceptance } from '../tests/fixtures/distributed-numerical-policy.js';
+import { resolveNumericalPolicy, numericalEvidence, requireNumericalQualification } from '../tests/fixtures/distributed-numerical-policy.js';
 
 const root = resolve(import.meta.dirname, '..');
 const modelArgument = process.argv.indexOf('--model');
@@ -310,6 +310,7 @@ try {
     if (code !== 0) throw new Error(`${receipt.failure?.message || `Retained ${mode} workload failed (${code})`}; inspect ${capture}`);
   }
   if (numericalPolicy === 'required' && numerical?.failed) throw new Error('Frozen numerical tolerance exceeded');
+  if (!numericalDiagnostic) requireNumericalQualification(numericalPolicy, numerical);
   if (!capacityDiagnostic && !numericalDiagnostic && !memoryDiagnostic) {
     phase = 'conversation deployment identity';
     const applicationUrl = new URL(conversationBaseUrl);
@@ -389,7 +390,7 @@ try {
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
     documentWorkload, reverseHosts, referenceHost, probePrompt, probeStep, standaloneControls,
     frozenReferenceApplicable: frozenWorkloads,
-    numericalPolicy, numericalAcceptance: numericalAcceptance(numericalPolicy, numerical),
+    numericalPolicy, ...numericalEvidence(numericalPolicy, numerical),
     numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource, referenceBinding,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
     maxGpuBufferBytes: policy.maxGpuBufferBytes, bufferPool: policy.bufferPool, referenceGeneration,

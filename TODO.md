@@ -66,6 +66,8 @@ isolation in R5 has already landed.
 
   Current disposition: the earlier regression-only activation is retained as historical evidence, but the candidate is now inactive under reference contract revision 3. The latest user instruction requires specific, independently justified approval. Historical reference bytes, failed receipts, declared shader and 0.001 remain unchanged. Physical-cache verification passes; source evaluation/rounding disposition remains open. Broad completion authorization does not establish reference approval.
 
+  Enforcement: the [acceptance reporting correction](artifacts/reference-correction-20261011/README.md) separates frozen-runtime regression from independent accuracy. A passing captured fixture cannot produce a qualified numerical verdict or unblock ordinary application acceptance. Fifteen focused checks pass; neither fixture nor runtime arithmetic changes.
+
 - [x] **9. Doppler and application: diagnose repetitive answers.**
   Replay the failing counting request through independent source-model computation with identical deployed weights and generation settings. Its uncancelled unsplit Doppler control reproduces the distributed prefix, so cancellation is not a necessary cause. Fix runtime differences if demonstrated; otherwise evaluate model or prompt changes on fresh tasks without weakening protected correctness cases.
 

@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { it, expect } from 'vitest';
-import { resolveNumericalPolicy, numericalAcceptance } from '../fixtures/distributed-numerical-policy.js';
+import { resolveNumericalPolicy, frozenReferenceAcceptance, numericalEvidence,
+  requireNumericalQualification } from '../fixtures/distributed-numerical-policy.js';
 
 it('requires applicable numerical checks by default and rejects an ordinary opt-out', () => {
   expect(resolveNumericalPolicy({ applicable: true, diagnostic: false })).toBe('required');
@@ -11,14 +12,40 @@ it('requires applicable numerical checks by default and rejects an ordinary opt-
 it('permits explicit diagnostic tracking while retaining a failed numerical verdict', () => {
   const policy = resolveNumericalPolicy({ applicable: true, diagnostic: true, requested: '0' });
   expect(policy).toBe('tracked');
-  expect(numericalAcceptance(policy, { steps: 110, failed: 56 })).toBe('failed');
-  expect(numericalAcceptance(policy, null)).toBe('not-run');
+  expect(frozenReferenceAcceptance(policy, { steps: 110, failed: 56 })).toBe('failed');
+  expect(frozenReferenceAcceptance(policy, null)).toBe('not-run');
   expect(resolveNumericalPolicy({ applicable: true, diagnostic: true })).toBe('required');
 });
 
 it('does not treat an inapplicable comparison as passed', () => {
   const policy = resolveNumericalPolicy({ applicable: false, diagnostic: false });
-  expect(numericalAcceptance(policy, null)).toBe('not-applicable');
+  expect(frozenReferenceAcceptance(policy, null)).toBe('not-applicable');
   expect(() => resolveNumericalPolicy({ applicable: false, requested: '1' })).toThrow('no applicable');
   expect(() => resolveNumericalPolicy({ applicable: true, requested: 'yes' })).toThrow('must be 0 or 1');
+});
+
+it('never certifies independent accuracy from a passing runtime capture', () => {
+  const comparison = { steps: 110, failed: 0 };
+  expect(numericalEvidence('required', comparison)).toEqual({
+    frozenReferenceAcceptance: 'passed',
+    independentAccuracyAcceptance: 'not-run',
+    numericalAcceptance: 'not-qualified',
+  });
+  expect(() => requireNumericalQualification('required', comparison))
+    .toThrow('not established by the captured reference');
+  expect(() => requireNumericalQualification('required', null)).toThrow('not established');
+  expect(() => requireNumericalQualification('required', { steps: 110, failed: 56 }))
+    .toThrow('Frozen numerical tolerance exceeded');
+  expect(numericalEvidence('required', { steps: 110, failed: 56 }).numericalAcceptance).toBe('failed');
+});
+
+it('retains diagnostic and inapplicable scope without treating either as qualification', () => {
+  expect(() => requireNumericalQualification('tracked', { steps: 110, failed: 0 })).not.toThrow();
+  expect(numericalEvidence('tracked', { steps: 110, failed: 0 }).numericalAcceptance).toBe('not-qualified');
+  expect(() => requireNumericalQualification('not-applicable', null)).not.toThrow();
+  expect(numericalEvidence('not-applicable', null)).toEqual({
+    frozenReferenceAcceptance: 'not-applicable',
+    independentAccuracyAcceptance: 'not-applicable',
+    numericalAcceptance: 'not-applicable',
+  });
 });
