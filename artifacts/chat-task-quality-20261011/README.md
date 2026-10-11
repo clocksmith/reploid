@@ -81,3 +81,16 @@ The neutral 2B candidate also emits only 1 through 120 and EOS on the original
 counting request. `counting-neutral-2b-linux.json.gz` preserves its rejection.
 Passing short fresh tasks did not establish completion of this longer request.
 Production generation remains unchanged.
+
+## Longer 2B instruction holdout
+
+Suite `c67730fd` freezes two longer ordered-list tasks and four semantic/format
+checks. The unchanged policy passes five of six; the previously specified
+general instruction passes all six. `instruction-2b-linux.json.gz` retains
+identities, exact outputs and natural EOS evidence. The Linux quality process
+ran while Mac selectively acquired pieces for a separate application test;
+these measurements make no performance or combined-memory claim.
+
+The instruction candidate is now eligible for replay of the original counting
+request, with its prompt and full expected answer unchanged. It is not active
+in the application.
