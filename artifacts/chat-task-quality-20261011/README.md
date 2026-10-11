@@ -149,3 +149,11 @@ This artifact is rejected before any protected-request replay or partition
 integration. These failures do not establish whether its preparation, numerical
 execution or original model is responsible. No claim about the source model's
 inherent quality follows from this deployed-artifact diagnostic.
+
+Independent [deployed-weight source replay](https://github.com/clocksmith/doppler/blob/01c52b84/artifacts/gemma1b-source-control-20261011/README.md)
+now reproduces the duplicate-label failure token-for-token (nine tokens, EOS
+after four of six labels) and the negation failure (three tokens, “Yes” instead
+of “No”). This attributes those two failures outside Doppler execution while
+retaining the rejection. Other cases and numerical model qualification remain
+unestablished. The explicitly authorized additional-model evaluation is complete;
+the application model selection is unchanged.
