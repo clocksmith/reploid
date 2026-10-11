@@ -67,3 +67,12 @@ and rejects omissions, duplicates, reordering, extra values, summaries and
 comma-separated lists. Four focused tests and JavaScript syntax checks pass.
 The currently running physical attempt predates this stronger assertion; any
 result from it must be assessed against the retained answer as well as EOS.
+
+## Separate 2B neutral-penalty holdout
+
+Frozen suite `ab79b8a3` tests six additional fresh tasks on the existing 2B
+model. Both the unchanged 1.1 policy and candidate 1.0 policy pass all exact-text
+and model-EOS checks. `neutral-2b-linux.json.gz` retains outputs and identities.
+This does not reverse the rejected 0.8B candidate. The original count-to-200
+request will now be replayed against the 2B candidate without changing the
+protected request, expected output or production profile.
