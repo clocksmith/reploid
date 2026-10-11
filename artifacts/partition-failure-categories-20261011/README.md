@@ -17,15 +17,15 @@ older peers safely treat unfamiliar codes as a generic failure.
 
 Acceptance:
 
-- `focused-tests.log`: 81 partition API, runner and data-channel tests pass.
+- `focused-tests.log.gz`: 81 partition API, runner and data-channel tests pass.
   The signed chat-adapter failure control retains `2 3 4 ` as incomplete output,
   hides private cleanup details and retains the failed reservation.
-- `full-tests.log`: 2,983 tests pass; 29 existing skips remain.
-- `browser-tests.log`: 17 authenticated partition/chat and durable-job browser
+- `full-tests.log.gz`: 2,983 tests pass; 29 existing skips remain.
+- `browser-tests.log.gz`: 17 authenticated partition/chat and durable-job browser
   tests pass, including Verification Worker inspection of changed production modules.
 - `installed-report.json`: detached installed library/browser consumer checks pass.
 - Library layer, type and CATSCAN checks pass; generated delivery is synchronized.
-- `initial-tests.log` preserves the first failure: an assertion expected the old
+- `initial-tests.log.gz` preserves the first failure: an assertion expected the old
   capacity message. It now asserts the new `CAPACITY_UNAVAILABLE` contract.
 
 Synthetic resident arithmetic and real browser transport prove these contract
