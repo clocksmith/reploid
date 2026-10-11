@@ -72,6 +72,8 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
   Progress: [historical acquisition trace](artifacts/signaling-independence-20261011/historical-acquisition-trace.json) localizes the retained failure to loss of both remote peer entries before shard 1, while the supplier remained Sharing. The triggering socket/ICE/timeout event was not captured. New physical observations retain peer-retirement state and call sites; successful retries do not close the original cause investigation.
 
+  New evidence: [reproduced ICE teardown](artifacts/ice-acquisition-20261011/README.md) captures open channels being destroyed at a recoverable disconnected transition with signaling connected. Incoming/outgoing paths now retain them within the existing heartbeat deadline. Seven regressions reproduce the old defect; focused, repository and browser checks pass. Physical post-fix acquisition remains pending.
+
 - [x] **11. Reploid: decouple signaling loss from healthy channels.**
   In `packages/reploid/src/transport/swarm.js`, remove indiscriminate destruction of healthy peer connections solely because signaling disappears. Preserve channels only while their own identity, authorization and liveness remain valid. Explicit disconnect or permission revocation still stops affected work. Test signaling interruption during acquisition and generation; this coupling is not yet the proven acquisition-failure cause.
 

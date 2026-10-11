@@ -9416,7 +9416,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 29552,
-      "sha256": "sha256:9bee9492b9c841794d80e9db079fba33bd7c80928bbfa843fdb0b72062718820"
+      "sha256": "sha256:22712eaac9a530407efd1343c2aba0f3fb2dd4ab33f36f6a965b4f199c8d7116"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -9495,8 +9495,8 @@
     },
     {
       "path": "vendor/reploid/transport/swarm.js",
-      "byteLength": 45465,
-      "sha256": "sha256:859b232423212040129eb2a236656c0b740865459ef25eb4ee1de8aa90bf39fc"
+      "byteLength": 45770,
+      "sha256": "sha256:60c78ab38dfd5518c08cc2d82c973e88fab68dbe1fd0e098e8901085ff5ef1fd"
     },
     {
       "path": "vendor/reploid/transport/tool-offer-channel.js",
@@ -9504,5 +9504,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:892258b5366b0e82ddee4719bdab9cc99992371b5d60c02e2a6f38f474d5656d"
+  "bundleHash": "sha256:f4d77481427ceced750dad25833cbb9fa08269046691d6355f6223a0c6eaa963"
 }
