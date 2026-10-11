@@ -94,3 +94,8 @@ these measurements make no performance or combined-memory claim.
 The instruction candidate is now eligible for replay of the original counting
 request, with its prompt and full expected answer unchanged. It is not active
 in the application.
+
+The original counting replay rejects this candidate too: it emits 1 through
+120, then EOS. `counting-instruction-2b-linux.json.gz` preserves the result.
+The general instruction helps the fresh descending-list case but does not
+resolve the protected long counting failure. It remains inactive.
