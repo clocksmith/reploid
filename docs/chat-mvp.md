@@ -43,6 +43,26 @@ each request, then clears both states before the next request. Failed cleanup
 retires the session. These are application allocation bounds, not physical GPU
 memory accounting or immediate GPU termination.
 
+## Explicit application generation policy
+
+The host resolves resident generation through `self/config/partition-generation.js`.
+A host-selected model may supply a complete `generation` object using the pinned
+Doppler public contract. The resolver rejects unsupported fields, missing
+stochastic seeds and context/output limits above the existing host ceilings.
+Models without that field retain the existing application profile unchanged.
+The same resolved policy reaches resident admission and its generation digest;
+its context limit also sizes the resident cache. This configuration does not
+qualify or activate a model.
+
+An application instruction uses the existing explicit
+`chatSession.createThread({ model, purpose })` port. The workspace retains that
+purpose and places it in the system message before user input; the exact prompt
+travels through disclosure approval and Doppler tokenization. A qualification
+that requires an instruction must supply and record that purpose. A model's
+sampling settings alone cannot establish that the application's required
+instruction was used. Ordinary threads keep their current empty purpose unless
+the caller explicitly supplies one; no candidate instruction is inserted here.
+
 ## Acceptance
 
 Use three independent tabs for initial integration. A starts two conversations. B obtains missing model

@@ -743,7 +743,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     for (const [index, allocation] of allocations.entries()) {
       expect(allocation.acquisition.pieces.some(piece => !allocations[1 - index].acquisition.pieces.includes(piece))).toBe(true);
     }
-    const numerical = reference ? compareObservedLogits(observations, completed, reference, 0.001) : null;
+    const numerical = reference ? await compareObservedLogits(observations, completed, reference, 0.001) : null;
     if (numerical) await writeFile(info.outputPath('numerical-comparison.json'), JSON.stringify(numerical, null, 2));
     if (reference) expect(numerical).toHaveLength(reference.expected.reduce((sum, item) => sum + item.steps.length, 0));
     expect(observations.flatMap(device => device.errors)).toEqual([]);
@@ -818,7 +818,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     if (reference && states[0]?.history) {
       let evidence;
       try {
-        const comparison = compareObservedLogits(observations, states[0].history, reference, 0.001);
+        const comparison = await compareObservedLogits(observations, states[0].history, reference, 0.001);
         evidence = { expectedSteps: reference.expected.reduce((sum, item) => sum + item.steps.length, 0),
           observedSteps: comparison.length, comparison,
           scope: 'Retained even when a later lifecycle check fails; incomplete observation is not qualification.' };

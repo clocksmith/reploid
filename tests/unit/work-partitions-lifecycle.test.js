@@ -166,3 +166,16 @@ it('concurrent signed close callers await the same settled cleanup', async () =>
   expect(session.close).toHaveBeenCalledOnce();
   expect(source.storage.close).toHaveBeenCalledOnce();
 });
+
+it('passes explicit generation to admission and uses its context for owned cache allocation', async () => {
+  const generation = { maxTokens: 16, maxSeqLen: 2048, temperature: 0.6, topK: 20, topP: 0.95,
+    repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: true, seed: 37 };
+  const result = await loadWorkPartition(files, { ...selected, generation }, 0, controls);
+  expect(result.model.generation).toMatchObject(generation);
+  expect(ports.resident.mock.calls[0][0].model.generation).toEqual(result.model.generation);
+  expect(ports.factory.mock.calls[0][0].runtimeConfig.inference.session.kvcache.maxSeqLen).toBe(2048);
+});
+it('rejects unsupported explicit generation before acquiring model files or GPU resources', async () => {
+  await expect(loadWorkPartition(files, { ...selected, generation: { temperature: 0.6 } }, 0, controls)).rejects.toThrow();
+  expect(ports.budget).not.toHaveBeenCalled(); expect(files.preparePartitionSource).not.toHaveBeenCalled();
+});

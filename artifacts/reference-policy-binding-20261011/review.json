@@ -1,0 +1,52 @@
+{
+  "scope": "Prospective application reference binding and explicit generation policy; synthetic and browser contract acceptance only",
+  "baseCommit": "60b5523dec660cf9545f1384fe7eb5c78e7ab0b8",
+  "source": {
+    "docs/chat-mvp.md": "70d411dd5cfb8e3a2092bdadf5906f9693b70993ca80b8e438cc5e471b76c04e",
+    "self/config/partition-generation.js": "e71cad1f7601d50e8dd9038a7da678574ed12f0ad5fe5f7cc5edb61f3e828462",
+    "self/host/work-partitions.js": "90604c9d74519e5c31ebf343e45922f10ab5f75fb51bf393d9a89003f8393c09",
+    "self/config/browser-bundle-manifest.json": "b4291003ba60d6ce6cfa11ef62f09bdfcdb010e74630ccca4dd750210aabbbfe",
+    "tests/fixtures/cooperative-observer.js": "9754d643bcaa4b80cc404fa2679aad7d976d1db5559c2d8a839b963ddcee566b",
+    "tests/unit/cooperative-reference-binding.test.js": "f6fd9698e2e5a4d1ed598907fb46612f5007568ed6190b0ab9f47c585af1f3da",
+    "tests/unit/partition-generation-policy.test.js": "3c05c5dbadcc9e40b0a7cde0eeda1bb67b35f1361d695b089003238bcb957f42",
+    "tests/unit/work-partitions-lifecycle.test.js": "d6e484d88b4d910b0589f46ad9cb7512787044cc0600276da7ea34eb7040ce4f",
+    "tests/e2e/chat-cooperative-real.spec.js": "1ac699ae24dacde1967a25e0a9988003970b797ee34872a6ce540b61cc85de94",
+    "tests/e2e/partition-runtime-delivery.spec.js": "c2f57bfb75e860335eac4f895c1e4b3a267cd66f1fcb90a7b73936465f404d49",
+    "tests/e2e/peer-pack-jobs.spec.js": "b976bd9a25c63f9f74866043c40094d9af5406989b92f8bd472d2f38f40acbe3"
+  },
+  "unchangedInputs": {
+    "self/config/chat-models.json": "1d5e76f1a2259ef8641b325f6422c9ab48a83dd28528dae45abdddb708aa97d5",
+    "self/config/work-profile.json": "cf49115a229ae17aed1e424a41336340b125b474f72907ba03d20482bb32648c",
+    "self/config/partition-policy.json": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235",
+    "self/config/doppler-package.json": "8f2f73df2b77ad3047f87640f43844a98b21fd1b8861d09109a5e088feda036f",
+    "deploy/artifacts/doppler-gpu-0.6.27.tgz": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+    "tests/fixtures/distributed-reference.json.gz": "f1a2d9a0c153ff96de3cd556bb4e4f133c35ffd7c03553b8969d0878c287e8f7"
+  },
+  "checks": {
+    "repository": {
+      "passed": 3072,
+      "skipped": 29,
+      "scope": "Production final source; before final fixture-only complete-prompt binding addition"
+    },
+    "finalAffected": {
+      "passed": 58,
+      "scope": "After complete-prompt binding addition"
+    },
+    "chromium": {
+      "passed": 4,
+      "scope": "Host policy, cleanup, exact installed partition import and Verification Worker; no model execution"
+    },
+    "libraryDelivery": "passed",
+    "browserManifest": "passed",
+    "diffCheck": "passed"
+  },
+  "retainedFailure": "Initial focused invocation failed one synthetic test because its required workspace store port was omitted; fixture supplied that port and final tests passed. Production behavior was not weakened.",
+  "historicalAcceptance": "Unchanged fixtures and historical failed reports are preserved. New comparisons reject mismatched model, plan, generation, attempt or complete ordered prompt before numerical interpretation; 0.001 remains unchanged.",
+  "limitations": [
+    "No physical inference, model qualification or reference activation",
+    "No catalog, package pin, standard archive or deployment change",
+    "No installed package rebuild needed: canonical library/public package files unchanged; browser imports the retained installed public partition contract",
+    "Explicit host generation must use supported pinned public options; unsupported minP is rejected",
+    "Required application instruction must be explicitly supplied through existing thread purpose; sampling alone is insufficient"
+  ]
+}

@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { canonicalPartitionJson, partitionFingerprint } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 
 /** Passive debugger observations: never replace tensors, assign roles, or open a runtime. */
 export async function observeCooperativePage(cdp, evidence, { captureCustody = false, captureLogits = true, captureTokens = false, maxLogitSteps = 4, acceptStep = async () => true, onInput = null } = {}) {
@@ -147,7 +148,7 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
       }
       const expression = load
         ? '({descriptor:resident.getState().descriptor,acquisition:source.getReceipt(),preparation,memory:runtime.inspectDeviceMemory()})'
-        : captureLogits ? '({identity:result.identity,step:result.step,tokenId:result.tokenId,done:result.done,stopReason:result.stopReason,logits:Array.from(result.logits)})'
+        : captureLogits ? '({identity:result.identity,generation:request.generation,generationDigest:request.generationDigest,step:result.step,tokenId:result.tokenId,done:result.done,stopReason:result.stopReason,logits:Array.from(result.logits)})'
           : '({identity:result.identity,step:result.step,tokenId:result.tokenId,done:result.done,stopReason:result.stopReason})';
       const result = await cdp.send('Debugger.evaluateOnCallFrame', { callFrameId: event.callFrames[0].callFrameId,
         expression, returnByValue: true });
@@ -172,12 +173,32 @@ export async function observeCooperativePage(cdp, evidence, { captureCustody = f
   };
 }
 
-export function compareObservedLogits(observations, history, reference, tolerance) {
-  return observations.flatMap(device => device.steps).map(step => {
+export async function compareObservedLogits(observations, history, reference, tolerance) {
+  if (!/^sha256:[a-f0-9]{64}$/.test(reference.modelIdentity)
+    || !/^sha256:[a-f0-9]{64}$/.test(reference.planId) || !reference.generation) {
+    throw Error('Numerical reference requires model, plan and generation identities');
+  }
+  const generation = canonicalPartitionJson(reference.generation);
+  const generationDigest = await partitionFingerprint(reference.generation);
+  const steps = observations.flatMap(device => device.steps);
+  // Reject every mismatched binding before interpreting any numerical values.
+  const bound = steps.map(step => {
+    if (step.identity?.modelIdentity !== reference.modelIdentity || step.identity?.planId !== reference.planId) {
+      throw Error('Observed model or partition plan differs from the numerical reference');
+    }
+    if (!step.generation || canonicalPartitionJson(step.generation) !== generation
+      || step.generationDigest !== generationDigest) {
+      throw Error('Observed generation identity differs from the numerical reference');
+    }
     const thread = history.threads.find(thread => thread.id === step.identity.threadId);
-    const prompt = thread.messages[0].content;
-    const index = reference.prompts.findIndex(messages => messages.at(-1).content === prompt);
+    const attempt = thread?.attempts.find(attempt => attempt.id === step.identity.attemptId);
+    if (!Array.isArray(attempt?.request.messages)) throw Error('Observed attempt lacks its retained prompt identity');
+    const prompt = canonicalPartitionJson(attempt.request.messages);
+    const index = reference.prompts.findIndex(messages => canonicalPartitionJson(messages) === prompt);
     if (index < 0) throw Error('Observed prompt has no exact numerical reference');
+    return { step, index };
+  });
+  return bound.map(({ step, index }) => {
     const expected = reference.expected[index].steps[step.step];
     const bytes = Buffer.from(expected.logits, 'base64');
     const logits = new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
