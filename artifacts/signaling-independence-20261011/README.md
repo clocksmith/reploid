@@ -6,7 +6,7 @@ no model arithmetic, production transport, permissions or package changes.
 
 This batch extends the existing two-host application journey with
 `node scripts/test-distributed.js --local --signaling-only`; `--reverse` selects
-the opposite placement. Reversed-placement completion is not yet established.
+the opposite placement. The final receipts below pass this scoped control in both placements.
 This is a scoped transport diagnostic, not numerical, complete
 application or deployment acceptance. Both hosts use the standard 0.6.27 archive
 and browser bundle `sha256:892258b5366b0e82ddee4719bdab9cc99992371b5d60c02e2a6f38f474d5656d`.
@@ -95,7 +95,7 @@ Mac/Linux attempt's observable boundary. The Mac became unreachable over SSH and
 VPN before its final result could be retrieved. The host's disappearance is not
 attributed to application signaling. Earlier two-host attempts establish scoped
 positive acquisition/generation behavior but failed their UI test controls.
-Neither final two-host passage nor reversed placement is claimed here.
+Neither final two-host passage nor reversed placement was established by that interrupted attempt.
 
 
 ## Recovered Mac result
