@@ -1,0 +1,20 @@
+{
+  "schema": "reploid.chat-task-quality/v1",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "hypothesis": "A general formatting instruction improves obedience and bounded completion without changing sampling, weights, or task inputs.",
+  "acceptance": "Every fresh task must produce its exact expected text, ignoring whitespace differences, and end naturally. Any failure rejects the candidate. Protected numerical and application cases remain unchanged.",
+  "maxGpuBufferBytes": 6000000000,
+  "scope": "Unsplit application-quality diagnostic; higher-budget control, not distributed capacity or numerical qualification.",
+  "variants": [
+    { "id": "existing", "repetitionPenalty": 1.1 },
+    { "id": "formatting-instruction", "repetitionPenalty": 1.1, "instruction": "Answer the user's request directly and concisely. Follow the requested output format exactly, including line breaks. Use numerals for numbers unless words are explicitly requested. Include every requested item in the requested order, preserve duplicates, and stop when the request is complete. Do not add explanations or formatting the user did not request." }
+  ],
+  "cases": [
+    { "id": "ascending-holdout", "prompt": "List every integer from 118 to 130 inclusive, smallest first, one per line. Give only the list.", "expected": "118\n119\n120\n121\n122\n123\n124\n125\n126\n127\n128\n129\n130" },
+    { "id": "descending-holdout", "prompt": "List every integer from 96 down to 84 inclusive, largest first, one per line. Give only the list.", "expected": "96\n95\n94\n93\n92\n91\n90\n89\n88\n87\n86\n85\n84" },
+    { "id": "duplicate-holdout", "prompt": "Output the following six labels in their original order, retaining duplicates. Put each label on its own line with no commas or extra text: amber, violet, amber, violet, violet, amber.", "expected": "amber\nviolet\namber\nviolet\nviolet\namber" },
+    { "id": "identifier-holdout", "prompt": "The record is 'Owner: Noor; ticket: AB-204; state: open'. Return only the ticket identifier exactly as written.", "expected": "AB-204" },
+    { "id": "negation-holdout", "prompt": "Rule: 'Visitors may not enter the archive without an escort.' May an unescorted visitor enter? Output only No or Yes, without punctuation.", "expected": "No" },
+    { "id": "arithmetic-holdout", "prompt": "Compute 18 + 7. Output only the integer result.", "expected": "25" }
+  ]
+}
