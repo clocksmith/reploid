@@ -760,7 +760,7 @@ biological function or mutation fitness.
 | Exact enabled model, policy, trust, and transport configuration | [`pool-config.json`](../../self/pool/pool-config.json) |
 | Current runtime, peer, coordinator, and deployment behavior | [Browser inference contract](../browser-inference-pool.md) |
 | Supported public language and nonclaims | [Claims and nonclaims](./claims-and-nonclaims.md) |
-| Work queue and proof state | [`self/pool/TODO.md`](../../self/pool/TODO.md) |
+| Work queue and proof state | [Historical Poolday TODO](https://github.com/clocksmith/reploid/blob/3eced95089be278546e684fbbf4ed5488de1c09c/self/pool/TODO.md) |
 
 Cross-project strategy may frame markets and future products, but it does not
 override these project-owned sources.

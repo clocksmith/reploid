@@ -38,7 +38,7 @@ Report every sentence's support, requested-part completeness, conflicts,
 unknowns, and permitted complete abstentions; report usefulness separately.
 Agent review does not establish human review or independent operator adoption.
 
-After qualification, the [roadmap](../../docs/status/execution-roadmap-2026-09-07.md)
+After qualification, the [historical roadmap](https://github.com/clocksmith/reploid/blob/3eced95089be278546e684fbbf4ed5488de1c09c/docs/status/execution-roadmap-2026-09-07.md)
 uses the same frozen model and adapter for missing-byte acquisition,
 compatibility verification, approved execution, persisted completion,
 connection loss or restart, saved-outcome replay, and ownership reversal.

@@ -1360,8 +1360,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 111402,
-      "sha256": "sha256:f78116e5dcee8fd04afa4e7044140bc106d9d262822c3574334b7bc6afb50c34"
+      "byteLength": 111724,
+      "sha256": "sha256:4f41469de9abaedfa3da52c95248b20dbb3c5ff041c270efbe2058897a70d629"
     },
     {
       "path": "config/vfs-policy.js",
@@ -2522,11 +2522,6 @@
       "path": "pool/sequence-workload.js",
       "byteLength": 11153,
       "sha256": "sha256:026bd1944e69ce4bfb931489d216ebfe22add4ed4ecefb9fe7348d4ed2feec3c"
-    },
-    {
-      "path": "pool/TODO.md",
-      "byteLength": 30302,
-      "sha256": "sha256:c4bcd8c0d25086ed45f1fb7230ebffe41ea832a16e23587a740f054e25805c13"
     },
     {
       "path": "prompts/kernel.md",
@@ -9509,5 +9504,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:3bc724ffabfb5829a3f89485dc8c2af01d740441b9c701690796bb94e66af44d"
+  "bundleHash": "sha256:3333da7d88f32fc596053e964155ee6b6afa28e48fefc36623337cc794ed0f5f"
 }

@@ -602,7 +602,7 @@ object design, current status, and executable policy live in:
 - [`docs/rsi-improvement-episodes.md`](rsi-improvement-episodes.md)
 - [`docs/status/surface-claim-index.json`](status/surface-claim-index.json)
 - [`self/pool/pool-config.json`](../self/pool/pool-config.json)
-- [`self/pool/TODO.md`](../self/pool/TODO.md)
+- [Current integration closure sequence](doppler-partition-handoff.md#combined-closure-sequence)
 
 External baseline references:
 

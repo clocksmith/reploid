@@ -66,7 +66,7 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 
 ### Reference
 - **[Distributed conversation diagrams](./open-mesh-architecture.md#technical-diagrams)** - Component ownership, two-partition generation, and attempt recovery, linked to implementation.
-- **[Reploid–Doppler partition handoff](./doppler-partition-handoff.md)** - Checkout/candidate/accepted/deployed identities, numerical gates and preserved historical checkpoints
+- **[Reploid–Doppler partition handoff](./doppler-partition-handoff.md)** - Current package, combined closure sequence, numerical gates and pinned historical checkpoints
 - **[Architecture stabilization](./architecture-stabilization.md)** - Integration baseline, execution ownership, persistence and verification boundaries
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission

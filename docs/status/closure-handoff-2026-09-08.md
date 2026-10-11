@@ -1,3 +1,7 @@
+> Historical checkpoint. Package, deployment and next-work statements below
+> apply only to this dated observation. Follow the [current integration closure
+> sequence](../doppler-partition-handoff.md#combined-closure-sequence) for active work.
+
 Reploid, Simulatte, and Mandate are deployed, but the complete product finish line remains open. Retained [evidence](../../artifacts/product-closure-2026-09-08/README.md) separates implementation, physical execution, semantic review, and independent operation. The archive preserves failures, exact outputs, source identities, and subsequent corrections.
 
 Reploid production runs d1ba8ddc. Cancellation now observes the requester’s actual execution-start event and prevents automatic local recomputation after a contributor starts. Explicit recovery remains available. The deployed release sequence passed inference, requester reload recovery, explicit retry, cancellation, stale-result rejection, manifest corruption rejection, cached-shard recovery, and queued-provider continuity. Its ninth lane failed downloading a GCS shard with Chromium QUIC retransmission exhaustion. Consequently, the overall release record remains failed. A separate recorder correction preserves failed lanes even when their expected success receipt never existed; it cannot turn missing evidence into a pass.
