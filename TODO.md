@@ -56,6 +56,25 @@ Doe remains an optional provider.
   package/model identities. No speed, quality, capacity or distribution claim
   follows merely from eight-bit support or language-feature availability.
 
+  Installed progress: [final portable/packed model controls](https://github.com/clocksmith/doppler/blob/13e985cd/artifacts/w8a8-model-qualification-20261011/README.md#final-completion-metadata-control)
+  bind candidate `7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d`.
+  All twelve token sequences and 200 teacher-forced observations match between
+  variants; complete execution, valid stopping metadata, actual submitted
+  cancellation, deterministic reuse and settled unload pass. Peak owned buffer
+  allocation is 668,488,920 bytes under the unchanged 1,420,000,000-byte ceiling.
+  Model qualification remains failed: 4/12 tasks pass against the frozen 10/12
+  requirement, and mean NLL 4.76907409 exceeds the F16 +0.10 allowance. Independent
+  source W8 also fails task quality at 5/12. Actual-operand checks explain
+  quantization-threshold amplification without establishing a local arithmetic
+  defect. These failures must not be removed by changing the reference.
+
+  [Embedding and scoring on the same candidate](https://github.com/clocksmith/doppler/blob/292be9e8/artifacts/w8-runtime-core-completion-20261011/README.md)
+  retain all 18 complete-text vectors and all 24 choice logits, original order,
+  repetition, submitted cancellation and settled reuse against their independent
+  references. This preserves existing operation scope, not W8 embedding or
+  distributed qualification. The accepted 0.6.27 archive remains `9280ead5...`;
+  no Reploid dependency, deployment, Mac run or captured reference is replaced.
+
 ## A. Preserve the completed foundations
 
 - [x] **1. Both: keep one implementation and explicit ownership.**
