@@ -11,7 +11,7 @@ it('limits the reviewed reference correction to logits, preserving every frozen 
     expect(createHash('sha256').update(bytes).digest('hex')).toBe(binding.sha256);
     return JSON.parse(bytes);
   };
-  const original = read(contract.historical), corrected = read(contract);
+  const original = read(contract.historical), corrected = read(contract.candidate);
   expect(contract.tolerance).toBe(0.001);
   const { expected: oldOutputs, ...oldInputs } = original;
   const { expected: newOutputs, ...newInputs } = corrected;
@@ -32,4 +32,11 @@ it('limits the reviewed reference correction to logits, preserving every frozen 
     }
   }
   expect(count).toBe(55);
+});
+
+it('keeps the proposed correction inactive until explicit approval', () => {
+  expect(contract.file).toBe(contract.historical.file);
+  expect(contract.sha256).toBe(contract.historical.sha256);
+  expect(contract.candidate.status).toBe('inactive-awaiting-explicit-approval');
+  expect(contract.candidate.sha256).not.toBe(contract.sha256);
 });
