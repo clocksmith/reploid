@@ -13,9 +13,9 @@ const selectable = model => ['ready', 'busy', 'loading', 'preparing'].includes(m
 
 export function renderConversationWorkspace({ inspector = true } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
-    <aside id="chat-threads" class="chat-thread-sidebar pool-surface" data-thread-sidebar aria-label="Threads">
+    <aside id="chat-threads" class="chat-thread-sidebar" data-thread-sidebar aria-label="Threads">
       <header class="chat-sidebar-header"><h2 id="chat-threads-title">Threads</h2><button class="pool-button chat-mobile-threads" type="button" data-close-threads>Close</button><button class="btn pool-button btn-ghost" type="button" data-new-thread>New thread</button></header>
-      <div class="chat-thread-list" data-thread-list></div><button class="pool-button" type="button" data-show-archived aria-pressed="false">Archived threads</button>
+      <div class="chat-thread-list" data-thread-list></div>
     </aside>
     <dialog class="chat-thread-drawer pool-surface" data-thread-dialog aria-labelledby="chat-threads-title"></dialog>
     <section class="chat-conversation-area pool-surface" data-conversation-area aria-label="Current conversation">
@@ -40,6 +40,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         <div class="chat-composer-toolbar">
           <label class="btn pool-button btn-ghost chat-file-label pool-focus-within">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
           <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button">Actions</summary><div class="pool-surface">
+            <button class="pool-button" type="button" data-show-archived aria-pressed="false">Archived threads</button>
             <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
           </div></details>
           <div class="chat-composer-submit">
@@ -231,7 +232,14 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   on('[data-open-threads]', 'click', () => { drawer.append(sidebar); threadDialog.open(sidebar.querySelector('[aria-current="true"]') || sidebar.querySelector('[data-new-thread]')); });
   on('[data-close-threads]', 'click', closeThreads);
   on('[data-retry-connection]', 'click', () => act(() => session.connect()));
-  on('[data-show-archived]', 'click', event => { archived = !archived; event.currentTarget.setAttribute('aria-pressed', String(archived)); event.currentTarget.textContent = archived ? 'Back to threads' : 'Archived threads'; render(session.getState()); });
+  on('[data-show-archived]', 'click', event => {
+    archived = !archived; event.currentTarget.setAttribute('aria-pressed', String(archived));
+    event.currentTarget.textContent = archived ? 'Back to threads' : 'Archived threads';
+    actionsPanel.setOpen(false); render(session.getState());
+    if (globalThis.innerWidth <= 760) {
+      drawer.append(sidebar); threadDialog.open(sidebar.querySelector('[data-thread-item-id]') || sidebar.querySelector('[data-new-thread]'));
+    }
+  });
   on('[data-rename-cancel]', 'click', () => renameDialog.close());
   on('[data-rename-form]', 'submit', event => { event.preventDefault(); void act(() => { session.renameThread(renameId, find('[data-thread-name]').value); renameDialog.close(); }); });
   on('[data-thread-list]', 'click', event => {

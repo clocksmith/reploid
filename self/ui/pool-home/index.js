@@ -63,7 +63,8 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
       }
     });
     const ribbon = bindExecutionRibbon(mount.querySelector('.pool-primary-nav'), { onInspect: (section, opener) => inspector.open(section, opener) });
-    mount.querySelector('[data-open-network]').onclick = event => {
+    const networkAction = mount.querySelector('[data-open-network]');
+    if (networkAction) networkAction.onclick = event => {
       const settings = event.currentTarget.closest('details'); if (settings) settings.open = false;
       inspector.open('participants', settings?.querySelector('summary') || event.currentTarget);
     };

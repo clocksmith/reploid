@@ -63,15 +63,16 @@ describe('Execution ribbon interactions', () => {
     root = document.createElement('div'); root.innerHTML = renderExecutionRibbon(); document.body.append(root);
     binding = bindExecutionRibbon(root, { onInspect });
   }
-  it('shows the assigned route and opens the shared inspector only on activation', () => {
+  it('keeps one quiet status and opens assigned execution details only on activation', () => {
     const inspect = vi.fn(); mount(inspect); binding.update(snapshot(split));
     const trigger = root.querySelector('[data-ribbon-trigger]');
-    expect(root.querySelector('[data-ribbon-route]').textContent).toContain('Test model');
-    expect(root.querySelectorAll('.execution-ribbon-node')).toHaveLength(3);
+    expect(root.querySelector('[data-ribbon-status]').textContent).toBe('Executing');
+    expect(trigger.getAttribute('aria-label')).toContain('Test model on Peer A and Peer B');
+    expect(root.querySelectorAll('.execution-ribbon-node')).toHaveLength(0);
     trigger.focus(); expect(inspect).not.toHaveBeenCalled();
     trigger.click(); expect(inspect).toHaveBeenCalledWith('conversation', trigger);
     binding.update(snapshot(null, 'queued'));
-    expect(root.querySelector('[data-ribbon-route]').textContent).toBe('');
+    expect(root.querySelector('[data-ribbon-status]').textContent).toBe('Queued');
   });
   it('pulses only for new observed output, not execution state, history selection, or unrelated updates', () => {
     vi.useFakeTimers(); mount(); const state = snapshot(split);

@@ -12,6 +12,9 @@ function failureLabel(attempt) {
 
 export function createMessageList(stream, { getSources, positions = new Map() } = {}) {
   const rows = new Map();
+  const empty = stream.ownerDocument.createElement('div');
+  empty.className = 'chat-empty-state';
+  empty.innerHTML = '<h2>Start a conversation</h2><p>Ask a question or attach a document.</p>';
   let selected;
   return {
     update(thread, { usable, busy }) {
@@ -60,7 +63,9 @@ export function createMessageList(stream, { getSources, positions = new Map() } 
         }
         if (row.parentElement !== stream) stream.append(row);
       }
-      for (const child of [...stream.children]) if (!visible.has(`${thread?.id}:${child.dataset.messageId}`)) child.remove();
+      for (const child of [...stream.children]) if (child !== empty && !visible.has(`${thread?.id}:${child.dataset.messageId}`)) child.remove();
+      if (visible.size) empty.remove();
+      else if (empty.parentElement !== stream) stream.append(empty);
       if (changed) stream.scrollTop = positions.get(selected) ?? stream.scrollHeight;
       else if (nearBottom && !selecting) stream.scrollTop = stream.scrollHeight;
     },
