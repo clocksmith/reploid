@@ -8,13 +8,16 @@ This is the single cross-project implementation queue; evidence stays in its own
 
 **Changes from the supplied checklist:** DOP-5 and DOP-8 are complete. DOP-4 has all four F16 cases, partial Q4, and no portable comparison. The last batch stopped on user instruction at a settled boundary, not a runtime failure. Reploid's coordinator is implemented, but ordinary document indexing still bypasses it. Doe's imported SPIR-V path exists but lacks qualified metadata; no mixed-compiler projection result is established.
 
-**Next work after the usability handoff:** finish the demonstrated REP-7 phone layout gap, then Reploid REP-2 → REP-3. Retain DOP-6’s inactive independent-reference proposal and DR-5’s ordered-message source-quality evaluation for the stopped Doppler owner. Doe DOE-2/DOE-3 → DD-1 → DD-2 remains the bounded optional-provider sequence. DOP-4’s missing comparisons stay paused at the recorded handoff; do not restart them just to complete a checklist. DOP-5 and DOP-8 are complete. ALL-2 governs any physical restart.
+**Active order (2026-10-11, user-directed): finish distributed chat.**
+1. DR-5: evaluate the downloaded original Qwen3-1.7B on the retained ordered contractor conversation using its previously successful thinking policy. Freeze factual criteria and budgets before execution; preserve source-model failures separately from runtime defects.
+2. DOP-6 / DR-4: localize and correct demonstrated computation defects, retaining independent accuracy checks and the unchanged 0.001 directional comparisons. No replacement of the reference with captured output.
+3. DR-1 / DR-5 / REP-7: qualify one standard archive and connect signed opening, selective acquisition, automatic discovery, explicit disclosure and a complete answer with zero requester weights.
+4. REP-4 / REP-5 / REP-6 / DR-5: test concurrent conversations, isolated stop, contributor loss/replacement and explicit retry across physical hosts. Preserve earlier partial output, unrelated threads and resident weights.
+5. DR-5 / ALL-6: rerun repeated 1,588-token requests within 1,420,000,000 allocated bytes, rejection/cancellation settlement and successful reuse against the exact archive, then deploy only the qualified configuration and verify fresh/existing installations.
 
-**Current release priority:** finish the usable conversation experience while
-numerical disposition and application quality proceed separately. W8A8 remains
-experimental and does not gate UX. Its [retained benchmark disposition](https://github.com/clocksmith/doppler/blob/b7b94713/artifacts/w8a8-model-qualification-20261011/benchmark/results.json)
-records slower packed execution against F16, the user-stopped partial Q4 run,
-and no portable timing campaign. That retained handoff records stopped agents; this audit did not restart or verify their live sessions.
+REP-7's phone layout repair is complete at `7d3f3895`; broader application acceptance remains open. Durable indexing (REP-2/3), W8A8 timing (DOP-4), optional Doe optimization and additional models wait. Their retained results and item identities remain below.
+
+**Current execution ownership:** this agent owns the bounded source-quality CPU invocation on the authorized Linux heavy-work machine, in a separate `/var/tmp/doppler-contractor-source-20261011` directory. Existing public contributor processes remain untouched. Both authorized remote hosts were reached through their full Tailscale names with saved SSH host-key verification; short `suby` was an alias mismatch, not an authentication workaround. Physical GPU/browser windows still require checking active owners (ALL-2); no new GPU or deployment acceptance follows from connectivity. Exact run contracts and results belong in Doppler `artifacts/contractor-source-quality-20261011/`.
 
 ## 1. Doppler only: computation, numerical correctness, and packaging
 
