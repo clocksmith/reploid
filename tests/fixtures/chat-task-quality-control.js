@@ -11,11 +11,11 @@ import { physicalWebGpuBrowserOptions } from './physical-webgpu-browser.js';
 import { routeDiagnosticModel } from './capacity-observer.js';
 import { resolveGenerationOptions } from '../../self/config/doppler-generation-contract.js';
 
-const [destination] = process.argv.slice(2);
+const [destination, suitePath] = process.argv.slice(2);
 assert(destination && process.env.DOPPLER_CHAT_MODEL_DIR, 'Supply report path and DOPPLER_CHAT_MODEL_DIR');
 const root = resolve(new URL('../../', import.meta.url).pathname);
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
-const suiteBytes = await readFile(new URL('./chat-task-quality.json', import.meta.url));
+const suiteBytes = await readFile(suitePath || new URL('./chat-task-quality.json', import.meta.url));
 const suite = JSON.parse(suiteBytes);
 const profile = JSON.parse(await readFile(resolve(root, 'self/config/work-profile.json')));
 const policy = JSON.parse(await readFile(resolve(root, 'self/config/partition-policy.json')));
@@ -83,7 +83,10 @@ try {
         kvcache: { maxSeqLen: generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
         prefillTokenChunkSize: policy.prefillTokenChunkSize } } } });
       for (const variant of suite.variants) for (const task of suite.cases) {
-        const messages = [{ role: 'user', content: task.prompt }];
+        const messages = [
+          ...(variant.instruction ? [{ role: 'system', content: variant.instruction }] : []),
+          { role: 'user', content: task.prompt },
+        ];
         const settings = { ...generation, repetitionPenalty: variant.repetitionPenalty };
         const tokenIds = handle.advanced.tokenizePrompt(messages, settings);
         const { maxSeqLen, ...options } = settings;
@@ -94,8 +97,10 @@ try {
     } finally { await handle?.unload(); }
     return runtime.inspectDeviceMemory();
   }, { suite, selected, generation, policy });
-  report.candidatePassed = report.results.filter(row => row.variant === 'neutral-repetition').length === suite.cases.length
-    && report.results.filter(row => row.variant === 'neutral-repetition').every(row => row.passed);
+  report.variantResults = suite.variants.map(variant => {
+    const rows = report.results.filter(row => row.variant === variant.id);
+    return { id: variant.id, passed: rows.length === suite.cases.length && rows.every(row => row.passed) };
+  });
 } catch (error) {
   report.failure = { name: error.name, message: error.message }; process.exitCode = 1;
 } finally {
