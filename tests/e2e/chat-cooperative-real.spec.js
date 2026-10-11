@@ -59,6 +59,12 @@ test('one model executes cooperatively on discovered physical peers from selecti
   const signalingOnly = process.env.REPLOID_E2E_SIGNALING === '1';
   const signaling = signalingOnly ? await Promise.all(contexts.map(controlSignaling)) : null;
   const signalingEvidence = { acquisition: null, generation: null, explicitDisconnect: null };
+  const saveSignaling = async stage => {
+    if (signaling) await writeFile(info.outputPath('signaling-progress.json'), JSON.stringify({
+      stage, ...signalingEvidence, events: signaling.map(control => control.events),
+    }, null, 2));
+  };
+  if (signalingOnly) for (const context of contexts) context.setDefaultTimeout(30000);
   const localHost = process.platform === 'darwin' ? 'mac' : process.platform;
   const observations = [1, 3].map(index => ({ physicalHost: isRemote(hosts[index]) ? 'linux-128' : localHost, loads: [], steps: [], errors: [] }));
   const reference = process.env.DOPPLER_PARTITION_REFERENCE_OUT
@@ -245,6 +251,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
           && state.phase !== 'Ready' && state.storage.usage > 16 * 1024 * 1024) {
           signalingEvidence.acquisition = { before: state, connections: await inspectConnections(page) };
           await signaling[1].interrupt();
+          await saveSignaling('acquisition-interrupted');
         }
         return state.phase;
       }, { timeout: 1800000 }).toBe('Ready');
@@ -256,6 +263,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       expect(signalingEvidence.acquisition, 'Signaling must fail during actual selective acquisition').toBeTruthy();
       signalingEvidence.acquisition.after = await inspectConnections(contributor);
       expect(signalingEvidence.acquisition.after.some(item => item.connectionState === 'connected')).toBe(true);
+      await saveSignaling('acquisition-completed');
     }
     await expect(requester.locator('[data-active-model-select]')).toHaveValue(new RegExp(model.id), { timeout: 60000 });
     await expect(requester.locator('[data-composer-send]')).toBeEnabled();
@@ -296,16 +304,20 @@ test('one model executes cooperatively on discovered physical peers from selecti
       return attempt.status;
     }, { timeout }).toBe('completed');
     if (signaling) {
+      await saveSignaling('starting-generation');
       const id = await sendNew('Count from one to twenty, one number per line.');
       await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === id)
         .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
       signalingEvidence.generation = { before: await lastAttempt(id) };
       expect(signalingEvidence.generation.before.status).toBe('executing');
+      await saveSignaling('generation-started');
       await Promise.all([0, 2, 3].map(index => signaling[index].interrupt()));
+      await saveSignaling('generation-interrupted');
       await waitCompleted(id);
       signalingEvidence.generation.after = await lastAttempt(id);
       expect(signalingEvidence.generation.after.execution.stopReason).toBe('eos-token');
       expect(signalingEvidence.generation.after.id).toBe(signalingEvidence.generation.before.id);
+      await saveSignaling('generation-completed');
       const stoppedId = await sendNew('Count from one to twenty, one number per line.');
       await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === stoppedId)
         .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
