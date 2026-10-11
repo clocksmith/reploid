@@ -11,6 +11,7 @@ import { resolve } from 'node:path';
 import { once } from 'node:events';
 import { physicalWebGpuBrowserOptions } from '../tests/fixtures/physical-webgpu-browser.js';
 import { bindReferenceModel } from '../tests/fixtures/distributed-reference-model.js';
+import referenceContract from '../tests/fixtures/distributed-reference-contract.json' with { type: 'json' };
 
 const root = resolve(import.meta.dirname, '..');
 const modelArgument = process.argv.indexOf('--model');
@@ -60,7 +61,7 @@ let conversationBaseUrl = process.env.REPLOID_E2E_BASE_URL || 'https://replo.id'
 const modelDirectory = process.env.DOPPLER_CHAT_MODEL_DIR
   || resolve(root, `../doppler/models/local/${modelId}`);
 const referenceSource = process.env.DOPPLER_PARTITION_REFERENCE_OUT
-  || resolve(root, 'tests/fixtures/distributed-reference.json.gz');
+  || resolve(root, 'tests/fixtures', referenceContract.file);
 const output = resolve(process.env.REPLOID_DISTRIBUTED_OUTPUT_ROOT || resolve(root, 'artifacts/distributed'),
   new Date().toISOString().replace(/[:.]/g, '-'));
 const reference = resolve(output, 'reference.json');
@@ -139,7 +140,7 @@ const browserIdentity = bundle.bundleHash;
 try {
   const stored = await readFile(referenceSource);
   const bytes = stored[0] === 0x1f && stored[1] === 0x8b ? gunzipSync(stored) : stored;
-  if (createHash('sha256').update(bytes).digest('hex') !== '9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd') {
+  if (createHash('sha256').update(bytes).digest('hex') !== referenceContract.sha256) {
     throw new Error('The frozen numerical reference differs; refusing to replace or weaken it');
   }
   if (frozenWorkloads || capacityDiagnostic) await writeFile(reference, bytes);
@@ -381,5 +382,5 @@ try {
     numericalPolicy, numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource, referenceBinding,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
     maxGpuBufferBytes: policy.maxGpuBufferBytes, bufferPool: policy.bufferPool, referenceGeneration,
-    referenceSha256: '9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd' }, null, 2));
+    referenceSha256: referenceContract.sha256, referenceRevision: referenceContract.revision }, null, 2));
 }

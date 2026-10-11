@@ -1,0 +1,14 @@
+{
+  "schema": "reploid.distributed-reference/v1",
+  "revision": 2,
+  "file": "distributed-reference-declared-main-v2.json.gz",
+  "sha256": "a056956131e6944de2ba1d7f13b48327bc9e2c7fc55b55c57f1fc95fcca00046",
+  "tolerance": 0.001,
+  "scope": "Declared-main implementation regression; independent source qualification remains a separate failed gate",
+  "historical": {
+    "file": "distributed-reference.json.gz",
+    "sha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd"
+  },
+  "review": "https://github.com/clocksmith/doppler/blob/c4217f75/artifacts/source-model-reference-20261011/reference-correction-review.json",
+  "authorization": "User instructed finish the rest after the reviewed correction and required approval were presented; no tolerance or independent-source waiver."
+}

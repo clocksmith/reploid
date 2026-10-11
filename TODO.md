@@ -53,8 +53,10 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
   Further evidence: [feed-forward and cache-rounding controls](https://github.com/clocksmith/doppler/blob/b54c31b1/artifacts/source-model-reference-20261011/README.md) find local feed-forward errors below 0.000001328 and demonstrate F16 cache rounding amplification. The complete-model error remains 0.0014121532440185547. This does not authorize a new reference or close item 7.
 
-- [ ] **8. Doppler: resolve the reference-contract mismatch explicitly.**
+- [x] **8. Doppler: resolve the reference-contract mismatch explicitly.**
   Preserve declared normalization entry points rather than restoring the historical `main_subgroup` substitution. Keep old fixtures and failed receipts unchanged. Independently assess any correction before proposing a versioned reference replacement, requiring explicit approval. Retain precision, inputs, token expectations and **0.001 tolerance**. Newly captured Doppler outputs alone cannot validate their own correctness.
+
+  Evidence: the [reviewed revision-2 correction](artifacts/reference-correction-20261011/README.md) is activated following the user’s instruction to finish the rest after the review and approval requirement were presented. Nine focused checks preserve all frozen inputs, expected tokens and 0.001. The original fixture and failures remain unchanged. Independent source-equation qualification remains failed in item 7; this correction does not approve deployment.
 
 - [x] **9. Doppler and application: diagnose repetitive answers.**
   Replay the failing counting request through independent source-model computation with identical deployed weights and generation settings. Its uncancelled unsplit Doppler control reproduces the distributed prefix, so cancellation is not a necessary cause. Fix runtime differences if demonstrated; otherwise evaluate model or prompt changes on fresh tasks without weakening protected correctness cases.
