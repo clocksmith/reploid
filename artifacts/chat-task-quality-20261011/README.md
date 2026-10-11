@@ -99,3 +99,20 @@ The original counting replay rejects this candidate too: it emits 1 through
 120, then EOS. `counting-instruction-2b-linux.json.gz` preserves the result.
 The general instruction helps the fresh descending-list case but does not
 resolve the protected long counting failure. It remains inactive.
+
+## Reasoning-template holdout
+
+Suite `64dd3ec6` freezes four additional tasks before testing the existing 2B
+model with its thinking template enabled. Both variants pass three of four.
+Both abbreviate the descending sequence with an ellipsis, so the candidate is
+rejected before replaying the protected counting request.
+`reasoning-2b-linux.json.gz` retains raw outputs, final-answer grading, tokens,
+EOS identities and exact inputs. The diagnostic separates the final answer
+using the installed tokenizer's `</think>` token; it does not qualify an
+application streaming implementation. No production prompt or setting changed.
+
+The first invocation used an unavailable decoder method and failed after its
+first candidate generation. `reasoning-harness-failure.json.gz` preserves it;
+`45f2f737` corrects the harness to public `decodeTokenIds`. The retained completed
+run uses that correction. These unsplit runs share neither the physical
+distributed memory budget nor an application performance claim.
