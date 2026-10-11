@@ -858,9 +858,10 @@ self.onmessage = async (e) => {
           // Skip certain patterns for privileged modules
           if (isPrivileged && !pattern.requiresCap) continue;
 
-          // VFS storage moved from /core/vfs.js into this generated library owner.
-          // Retain only its IndexedDB access, not privilege for the vendor tree.
-          if (['/vendor/reploid/adapters/browser.js', '/vendor/reploid/artifacts/job-journal.js'].includes(path) && pattern.id === 'indexeddb') continue;
+          // Only the generated storage owners may open their bounded IndexedDB stores.
+          // This grants no other privilege to them or to the vendor tree.
+          if (['/vendor/reploid/adapters/browser.js', '/vendor/reploid/artifacts/job-journal.js',
+            '/vendor/reploid/artifacts/independent-unit-journal.js'].includes(path) && pattern.id === 'indexeddb') continue;
 
           const violation = {
             path,

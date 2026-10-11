@@ -275,6 +275,16 @@
       "sha256": "f67b1abd7728ca7d82430c9edee00b5b8d7c86185e52a3d5aaf9c64b06aa52aa"
     },
     {
+      "path": "artifacts/independent-unit-journal.d.ts",
+      "bytes": 2819,
+      "sha256": "3525834ca7b558c4a418eba4eb7b026cf252c0cfbc52a448d03ce308337fc5f4"
+    },
+    {
+      "path": "artifacts/independent-unit-journal.js",
+      "bytes": 8764,
+      "sha256": "2f02839caabdb4528b12181baa6c63fb35740770f28f594356246c2f665aa908"
+    },
+    {
       "path": "artifacts/job-journal.d.ts",
       "bytes": 65,
       "sha256": "bbe181427ee6058e6645ee5b951548b17d55ab1860c412e9d55f81dcdbe4901b"
@@ -560,14 +570,24 @@
       "sha256": "a1dfbe662b963d2f6a3b5a71a9cf3ba33e7b03431099c00dd477ed64f7d07c13"
     },
     {
+      "path": "mesh/jobs/independent-units.d.ts",
+      "bytes": 2592,
+      "sha256": "ed7bff25c41d5c894811e8f90593a9b68c1c3c2db1279f49f01ccc933ba6d975"
+    },
+    {
+      "path": "mesh/jobs/independent-units.js",
+      "bytes": 9953,
+      "sha256": "44417ec8ac572e350b69df90b79595065fc0d77b4dbfed0fbaf213f41060c48a"
+    },
+    {
       "path": "mesh/jobs/index.d.ts",
-      "bytes": 508,
-      "sha256": "5b7c8c2eaaaa4073c6da1eca79a18b43016cd48aa5ce4ec4f1fb6ac41de28230"
+      "bytes": 918,
+      "sha256": "792fb1de82f65255126851ba5cc413e194a1683437075a7758feecc588bc806a"
     },
     {
       "path": "mesh/jobs/index.js",
-      "bytes": 304,
-      "sha256": "6430804a707eecc28a7e661c8c079a56b5372510b803567a5c7f5bb3c9e8c06e"
+      "bytes": 469,
+      "sha256": "1778f5791655a02f8e287901eb3cceb0b8f38e11a202fd6e59238efe15f65295"
     },
     {
       "path": "mesh/jobs/provider.d.ts",

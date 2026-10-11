@@ -3,10 +3,10 @@
 Parent: [Reploid Browser Library](../../../CATSCAN.md)
 
 ## Target
-Delegate complete requests to authorized network participants with explicit host ports and bounded lifecycle.
+Delegate complete requests to authorized network participants with explicit host ports and bounded lifecycle. Aggregate independently valid embedding units through these existing signed requests.
 
 ## Authority
-Owns bounded request, provider, cancellation, replay and episode verification algorithms. The host supplies pinned operation contracts, policy, consent, model admission and execution ports. Transport delivery is bounded at-least-once.
+Owns bounded request, provider, cancellation, replay, independent-unit coordination and episode verification algorithms. The host supplies pinned operation contracts, policy, consent, model admission and execution ports. Transport delivery is bounded at-least-once. Requester aggregate persistence belongs to `artifacts/independent-unit-journal.js`; provider outcome journals retain their existing meaning.
 
 ## Scope
 This directory and unchartered descendants.
@@ -21,6 +21,7 @@ Outputs: bounded operations, state, failures and retained evidence.
 - Cancellation does not claim termination of borrowed work.
 - Preserve record identities and recovery compatibility.
 - Whole-request delegation does not prove model partitioning. Doppler owns valid layer/expert partitions; placement cannot change model semantics or expert selection.
+- Batch subdivision requires Doppler-defined independent-input semantics and an explicitly approved application/reference. Aggregation commits at most one outcome per unit, rejects superseded attempts, and preserves original input positions; it does not promise exactly-once execution.
 
 ## Acceptance
 Evidence: [contract tests](../../../../../tests/e2e/peer-pack-jobs.spec.js).

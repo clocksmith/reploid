@@ -13,7 +13,7 @@ these software contract checks.
 | reploid/agent | Minimal task agent entry and shared execution lifecycle |
 | reploid/diagnostics | Optional finite belief model, diagnostic action selection and shared-engine investigation |
 | reploid/legacy | Lab strategy compatibility adapter |
-| reploid/jobs | Complete-job contracts, requester, provider, verification and durable journal |
+| reploid/jobs | Complete-job contracts, requester, provider, verification, durable journals and independent embedding units |
 | reploid/custody | Authorized artifact transfer and reconstruction |
 | reploid/config | Immutable configuration resolution and provenance |
 | reploid/webrtc | Assignment signaling/WebRTC and separate legacy swarm transport |
@@ -39,6 +39,29 @@ The complete-job and custody factories accept explicit host policy, operation
 and execution ports. Their application wrappers retain catalogs, credentials,
 consent and domain workflows. Existing journal keys, wire identities and
 recovery semantics remain compatible. Legacy swarm deduplication remains separate.
+
+`createIndependentUnitCoordinator` subdivides only an explicitly approved
+`embed.v1` application. Its `validateApplication` host port must reject missing
+Doppler independent-input semantics or missing application qualification. A
+semantics declaration alone is not qualification. Freeze the model, application,
+options, comparison policy and independent reference before creating a parent.
+`prepareJob` calls the existing signed `createPackPeerJob`; `runPrepared` uses
+the existing requester. Provider selection and grants remain host responsibilities.
+
+`openIndependentUnitJournal` stores requester aggregates separately from provider
+outcomes in bounded, browser-managed IndexedDB. Pass explicit storage and
+coordinator limits. `create` records ordered input positions; `runUnit` executes
+one signed unit; `get` reconstructs pending and committed units from durable
+records. An explicit replacement creates a new job attempt. Only the current
+attempt may commit, and duplicate outcomes are included once. Reopening does
+not imply permission: authorization is checked again before reading, execution
+and commit. `cancel` durably rejects subsequent commits before cancelling owned
+deliveries; it does not establish remote GPU settlement. Close the borrowed
+requesters and journal separately after their owners settle.
+
+The native-browser independent-unit tests use synthetic vectors with real signed
+jobs and storage. Model correctness and fresh delegated application eligibility
+require separate physical evidence; the coordinator does not grant either.
 
 Construction is inert. Call store/VFS `init()` to establish readiness; failed or
 blocked database opens reject. VFS closes a store only with `ownsStore: true`.
