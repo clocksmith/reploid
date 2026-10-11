@@ -1,5 +1,34 @@
 # Resident contract integration
 
+## Contributor opening and networking correction, October 11
+
+Reploid `b1b2b34f` settles verified storage when plan construction, factory
+validation or resident construction rejects. Cancellation after acquisition
+closes storage before opening a resident. Cleanup attempts every owned resource
+and retains the original failure alongside cleanup failures. Seven focused
+regressions fail on the parent; all eight pass with the correction. Browser
+checks exercise the actual host and installed plan/factory contracts with GPU
+memory configuration stubbed. They establish admission cleanup, not inference.
+
+Reploid `8d9a0a37` rechecks current introduction grants on later signaling
+messages and cancels pending introductions when the controller closes.
+`7c8224c3` lets the ordinary product host supply the existing swarm network
+port independently of signed-job networking. Two browser hosts connect through
+replaceable introduction routes with external requests blocked and explicit ICE
+configuration. Discovery and introduction assistance grant neither computation
+nor file sharing. Public bootstrap availability and cross-network inference
+remain separate acceptance requirements.
+
+At `7c8224c3`, all 3,013 repository tests pass, with 29 declared skips; all 17
+detached installed-package checks pass. The first default-worker repository run
+has one installed-byte comparison timeout; that check passes independently and
+the complete suite passes with four workers at the unchanged timeout. Both
+contributor-opening/package-delivery browser checks pass. See the complete
+[retained receipts and digests](opening-20261011/bindings.json), including the
+exact validation archive, logs and installed-consumer observations. This does
+not replace Doppler's accepted archive, qualify numerical accuracy or complete
+the distributed-chat journey.
+
 Component: Reploid model partition coordination and installed Doppler consumer.
 Intent: preserved. Boundary effects: public types, admission and recovery capability
 reporting; generation arithmetic, frozen reference and 0.001 remain unchanged.

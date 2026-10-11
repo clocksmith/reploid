@@ -121,6 +121,8 @@ isolation in R5 has already landed.
 
   Further execution: the [fixed-delivery reversed run](artifacts/focused-recovery-20261011/README.md) completes both contributor stop/rejoin/retry sequences and executor replacement. Each fresh retry returns the complete 1–20 answer, unaffected resident weights and histories persist, replacement acquires verified pieces after the seed stops, and all 13 completed attempts settle both participants. The unaffected count-to-200 answer still stops at 120; document answers remain inaccurate. Those quality failures keep items 14–15 open.
 
+  Additional repair: [contributor-opening cleanup](artifacts/partition-contracts-20261010/README.md#contributor-opening-and-networking-correction-october-11), `b1b2b34f`, closes acquired storage across pre-resident failures, cancellation and failed cleanup. Eight focused tests and two browser admission/delivery checks pass; 3,013 repository tests and all 17 installed-package checks pass. These failure-path checks do not close application-quality acceptance.
+
 - [ ] **16. Both: prove useful combined capacity separately.**
   Qualify the larger model’s complete lifecycle under identical per-contributor limits, precision and context requirements. Show that neither executor can run the same workload alone within those limits while combined placement succeeds. Distinguish allocation ceilings from physical memory. Higher-budget unsplit diagnostics remain numerical controls, not evidence of capacity equivalence or production performance.
 
@@ -165,6 +167,10 @@ isolation in R5 has already landed.
   After the core journey passes, add bounded peer-carried introductions behind existing connection interfaces. Use authenticated, expiring contacts and replaceable bootstrap participants; ordinary use should not require manual pairing. Keep introduction, computing and disclosure permissions separate. Test fresh discovery and inference with company signaling blocked, retaining explicit bootstrap and relay limitations.
 
   Progress: [bounded implementation and browser controls](artifacts/peer-introductions-20261010/README.md) already exist. Preserve them; do not rebuild the protocol. Full fresh-discovery inference acceptance follows the core journey.
+
+  Additional repair: `8d9a0a37` rechecks current grants on later introduction messages and cancels pending connections on close. `7c8224c3` exposes the existing swarm network port through ordinary product composition. Two browser product hosts discover each other with external requests blocked, independent bootstrap/ICE configuration and separate compute/file/introduction permissions. This proves configured host integration, not public bootstrap availability, cross-network inference or deployment; [validation evidence](artifacts/partition-contracts-20261010/README.md#contributor-opening-and-networking-correction-october-11).
+
+  Physical transport: [Mac/Linux acceptance](artifacts/peer-introductions-20261010/physical-20261011/README.md), `64cfa31c`, passes all three introduction scenarios across the actual hosts. Direct messages and custody-channel bytes survive introducer removal; ordinary hosts discover each other without company requests; relay-required operation without a relay rejects. This does not execute a model, supply a public bootstrap participant or qualify arbitrary internet NATs. Full inference acceptance remains open.
 
 - [ ] **25. Later: portable checkpoints.**
   Defer portable checkpoints and expansion beyond two model partitions. Doppler must serialize every future-affecting state, including caches, recurrence, token context, sequence position, sampling and decoding. Reploid must enforce custody, compatibility, authorization and one consistent boundary across partitions. Restore into a new attempt, reject replaced-assignment output, and compare uninterrupted versus restored execution, including supported stochastic generation.
