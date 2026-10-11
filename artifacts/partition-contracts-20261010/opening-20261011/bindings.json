@@ -1,0 +1,16 @@
+{
+  "sourceRevision": "7c8224c3",
+  "archive": {
+    "path": "/home/x/deco/reploid/artifacts/library-acceptance/2026-10-11T13-54-18-700Z/reploid-0.1.0.tgz",
+    "sha256": "63f7a505f5e8e6738d7bd7c55062a260e91a9efba0e454efab0af9a7490277f0"
+  },
+  "installedChecks": 17,
+  "files": {
+    "browser-results.json.gz": "153606163bd513ca284a21f479bf0580e20b65cd0200e6a723b6881becd83bf6",
+    "browser.log.gz": "c82d3c5c0ba803dfb48484c87245b1d1f256dc0d351107e6c0e6157047cf2c95",
+    "installed-package.log.gz": "687db57f80f8c46cd2af9b1ba95a1917343d8da48dea81e2bf5cb4896d0b216a",
+    "installed-receipts.tar.gz": "5781a3c4656340d2e253c392c654f1e4243897e92bfad42aa4b03359ef1222e7",
+    "repository-final.log.gz": "6caef7b311f647c6e2ba896bf5bd3e3d7cc3c5a0f38fcb98e8514faaf663583f"
+  },
+  "scope": "Contributor-opening cleanup, introduction permissions and host composition; no GPU numerical, complete chat, or deployment acceptance."
+}
