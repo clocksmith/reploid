@@ -1,0 +1,60 @@
+{
+  "scope": "Synthetic completion propagation, partial answer history, failure taxonomy and installed package/browser contracts. No physical model qualification or deployment.",
+  "sourceHead": "7b136db66fb5e7df89542fd037f284eef4796562",
+  "sourceFiles": {
+    "packages/reploid/src/chat/workspace.js": "e64cc5c7564939c594c0d7019fbdd4a7d0b11cd69e913c106a9eabc497c95c34",
+    "packages/reploid/src/mesh/partitions/resident-error-codes.json": "6740f7b64ef193c82e1f0d880f9993109ac2592b3dffe8752ace8c290446e506",
+    "packages/reploid/src/transport/partition-errors.json": "00343205a631f2ef1bad9531ffbf4e0f307f1ce3117f4acef0ce97367dca0e62",
+    "self/providers/work-generation-completion.js": "5ee1cbc4f107878416e60f8fca2bb50d76ce86b1f051be40ab4a58b3d6b2a82a",
+    "self/providers/work-provider.js": "6addbd9b47c25ad9ffe482efbcf60c3ed375653176617c9d9b99e94c47dd2f5a",
+    "self/host/chat-execution.js": "cf65d63f580c5e928c0aefcf100183fda6e2ebbdc2da3d12f5b78179f1dcff44",
+    "self/config/browser-bundle-manifest.json": "8c53412c7efeaa01cc539f2c8f587e5c0dd05dd998bd8ac4604d386e699de049",
+    "tests/unit/work-generation-completion.test.js": "7ac4e05233223aa7e900e3fc4131224257aebca79af9cc6682eb32fe47525188",
+    "tests/e2e/chat-workspace.spec.js": "14a2af93213b0ad943b23a02220619c7baefa6f8061b158ae5b094c6b678e2a9",
+    "scripts/architecture-exceptions.json": "98b4f369445d2aa3753ed5fe31c68426693acd4248be255a3397bd7868b01844"
+  },
+  "checks": {
+    "focusedPassed": 131,
+    "repositoryPassed": 3050,
+    "repositorySkipped": 29,
+    "browserPassed": 7,
+    "installedChecksPassed": true,
+    "installedCheckCount": 17,
+    "types": true,
+    "layers": true,
+    "browserManifest": true
+  },
+  "installedArchive": {
+    "path": "/home/x/deco/reploid/artifacts/library-acceptance/2026-10-11T15-42-40-969Z/reploid-0.1.0.tgz",
+    "sha256": "f25ef3155a9baba1627de1e9dfe06275dec72e79cef07441a82353842e8ec39e"
+  },
+  "unchangedDopplerStandardSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "failuresRetained": [
+    "new error mapping baseline failures",
+    "browser metadata fixture missing maxTokens",
+    "synthetic test fixtures missing model.name and swarm.connect",
+    "unsupported forwarded CLI worker option, corrected direct runner invocation",
+    "missing existing signed Capsule loader declaration, corrected explicitly"
+  ],
+  "artifacts": {
+    "combined-focused-qualified.log.gz": "bdc69d4f1e6dd6a6d54f2d6ea68cabda8e474e77ef733c4926c90a52c840bb30",
+    "types.log.gz": "fd86b7c241bea5c5221c957026e258dc9ebf2855988c557b03724140531c4f5f",
+    "baseline.log.gz": "f35d4640ca2bed46e9ba2e9e26701b1264424442b5fc13c13769b350b82a2cdb",
+    "browser.log.gz": "1d2e7f0c47dbeea163fea35c51001a34818cba5c9dde80eca6818374ad867388",
+    "repository-final.log.gz": "c07cc045c12e12063123772a05298f91d9ac69c59c2a4327349aa7e02e749b35",
+    "sync.log.gz": "12781859696c7231cbcb67ce8f1ae1bc12010b8478ea76ee88d7ea0f06f99dbf",
+    "focused.log.gz": "4293c037e631e3a16b29866c054d6821c6122945a8c79cce8def0cc0bd4751d2",
+    "combined-focused.log.gz": "6ee3a104a807e1c8c2833ed7461535cf3146e4d01d821588e702713d25688b36",
+    "browser-corrected.log.gz": "d2373dd7fa043a6ee60360fbe0ab646f78a760acb276adebf6e65f698988ce6d",
+    "delivery.log.gz": "cecb114f35a7d7dd549c908e985bad21ce2c2da69c3412fd47c321a3234e0584",
+    "browser-final.log.gz": "bed93193289898b21ae69c74329a168d338e411ca659dbd72020260704693735",
+    "manifest-check.log.gz": "7294fde7cebd3082213823aef15b1137130419d13975acbb5803fcd2ce95eb7d",
+    "delivery-corrected.log.gz": "e5e1921c041487e86ae9ecead8ed93ed2f5eb6f78a730b71a340c68d1c07d6ea",
+    "installed-evidence.tar.gz": "236d5af39637542410450117f1387d343ed21c2b358d9647b2b85a0083edb68b",
+    "manifest.log.gz": "da21aa8df4dd06c33c64a961d5c085b0a511c4ba7ae0d23fc642d6e8cbb074ec",
+    "repository.log.gz": "d6cda77bfa3447c7806d385bfa8e745ecc40a213f685abe050327b796cf072cf",
+    "installed.log.gz": "eb5a2ab80cd22c7a4d87fc7dc7ffbae334f34e4e65cc0410b737ec9a1905c48f",
+    "manifest-final.log.gz": "e7fb7a3f4ae53eb7a67eae298353575553cb96e543638d806a9cf26c7f61ccc1",
+    "combined-focused-final.log.gz": "19b172ea41c675c2397162cc88eeceb87a63cc3774cddd081dc5666350edb6dc"
+  }
+}

@@ -3,6 +3,7 @@ import { createChatScheduler } from '../vendor/reploid/chat/index.js';
 import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
 import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
+import { readWorkGenerationCompletion } from '../providers/work-generation-completion.js';
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
@@ -63,6 +64,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       });
       const execution = { provider: 'doppler', placement: 'local-webgpu', modelId: result.model,
         modelIdentity: result.modelIdentity, adapterIdentities: result.adapterIdentities };
+      execution.completion = readWorkGenerationCompletion(result);
+      execution.stopReason = execution.completion?.stopReason ?? null;
       return {
         threadId,
         attemptId,
@@ -104,6 +107,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       ? { provider: 'peer', placement: 'peer-whole-request', peerId: result.peerId }
       : { provider: 'doppler', placement: 'local-webgpu' };
     Object.assign(execution, { modelId: result.model, modelIdentity: result.modelIdentity, adapterIdentities: result.adapterIdentities });
+    execution.completion = readWorkGenerationCompletion(result);
+    execution.stopReason = execution.completion?.stopReason ?? null;
     return { threadId, attemptId, modelId: result.model, modelIdentity: result.modelIdentity,
       adapterIdentities: result.adapterIdentities, content: result.content, execution };
   };

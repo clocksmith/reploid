@@ -13,6 +13,12 @@
       "contract": "Pinned public Doppler partition API owns plan and computation semantics. The host loads it only for approved compute contribution; peers cannot select runtime code or module URLs."
     },
     {
+      "source": "self/host/work-partitions.js",
+      "expression": "DOPPLER_MODULE_URL",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Pinned public Doppler Capsule API opens only the host-selected signed resident artifact after partition admission. Peers cannot select runtime code or module URLs; signature, release, target and piece verification remain required."
+    },
+    {
       "source": "self/host/work-model-files.js",
       "expression": "globalThis.REPLOID_DOPPLER_STORAGE_MODULE_URL || DOPPLER_STORAGE_TOOLING_URL",
       "owner": "self/host/CATSCAN.md",

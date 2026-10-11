@@ -51,7 +51,8 @@ test('two tabs transfer binary partition steps with isolated replay, cancellatio
       });
       state.metadata = (threadId, step = 0) => ({ operation: 'step', identity: { modelId: 'injected',
         modelIdentity: 'sha256:' + 'a'.repeat(64), planId: 'fixture-plan', threadId, attemptId: 'attempt-' + threadId,
-        participantA: 'a', participantB: 'b' }, step, tokenPosition: step, inputTokenCount: 1, grant: { id: 'fixture-grant' } });
+        participantA: 'a', participantB: 'b' }, step, tokenPosition: step, inputTokenCount: 1,
+        maxTokens: 16, grant: { id: 'fixture-grant' } });
       state.bytes = value => new Uint8Array(new Float32Array(512).fill(value).buffer);
       state.describe = async type => {
         await pc.setLocalDescription(type === 'offer' ? await pc.createOffer() : await pc.createAnswer());

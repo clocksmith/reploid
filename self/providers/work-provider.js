@@ -1,5 +1,6 @@
 /** Host-selected compatibility providers. Signed Pack providers remain separate. */
 import profile from '../config/work-profile.json' with { type: 'json' };
+import { readWorkGenerationCompletion } from './work-generation-completion.js';
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
 
 export function selectWorkModel({ models, modelId, defaultModelId }) {
@@ -89,7 +90,7 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
     async generate(messages, onUpdate = () => {}, { signal: attemptSignal, adapters = [] }) {
       const combined = AbortSignal.any([signal, attemptSignal]);
       combined.throwIfAborted();
-      let text = '', actualModel = model.id, actualIdentity = null;
+      let text = '', actualModel = model.id, actualIdentity = null, completion = null;
       const update = delta => {
         combined.throwIfAborted();
         requireValue(typeof delta === 'string', 'Provider emitted an invalid text delta');
@@ -103,17 +104,25 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
         try {
           await setAdapters(adapters, combined);
           if (adapters.length) {
-            const decoder = session.advanced.createIncrementalDecoder();
             const result = await session.generate(messages, { ...generation, signal: combined,
-              onToken: token => update(decoder.push(token)) });
-            update(decoder.finish());
+              onToken: (_token, delta) => { if (typeof delta === 'string') update(delta); } });
+            // Doppler owns visible output. Older callbacks supply only token IDs;
+            // those sessions deliver completion text without decoding IDs here.
+            requireValue(typeof result.outputText === 'string' && result.outputText.startsWith(text),
+              'Doppler streamed text differs from generation evidence');
+            update(result.outputText.slice(text.length));
             actualIdentity = evidencedIdentity(result, adapters);
+            completion = readWorkGenerationCompletion(result);
             requireValue(text === result.outputText, 'Doppler streamed text differs from generation evidence');
           } else {
             actualIdentity = executionIdentity();
             for await (const event of session.stream(messages, { ...generation, signal: combined })) {
               combined.throwIfAborted();
               if (event.type === 'text-delta') update(event.text);
+              if (event.type === 'complete') {
+                requireValue(event.outputText === text, 'Doppler completed text differs from its stream');
+                completion = readWorkGenerationCompletion(event);
+              }
             }
             requireValue(JSON.stringify(executionIdentity()) === JSON.stringify(actualIdentity),
               'Doppler execution identity changed during generation');
@@ -152,9 +161,9 @@ export async function openWorkProvider({ model, service, scope, signal, credenti
         update(data.content);
       }
       combined.throwIfAborted();
-      requireValue(text.trim(), 'Provider returned no text');
+      requireValue(text.trim() || completion?.stopReason === 'max-tokens', 'Provider returned no text');
       return { content: text, raw: text, requestedModel: model.id, model: actualModel,
-        ...(session ? actualIdentity : {}),
+        ...(session ? { ...actualIdentity, completion } : {}),
         provider: model.provider, execution: session ? 'local-scoped-session' : 'cloud-proxy-session' };
     }
   });
