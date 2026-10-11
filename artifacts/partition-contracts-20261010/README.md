@@ -1,5 +1,8 @@
 # Resident contract integration
 
+[Signed selective resident host implementation and scoped acceptance](signed-pieces-20261011/README.md)
+adds explicit Capsule admission without promoting a package or claiming physical qualification.
+
 ## Contributor opening and networking correction, October 11
 
 Reploid `b1b2b34f` settles verified storage when plan construction, factory

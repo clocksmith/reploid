@@ -1750,8 +1750,13 @@
     },
     {
       "path": "host/work-model-files.js",
-      "byteLength": 20128,
-      "sha256": "sha256:9136cd1b687f0dd978a62274c66c3f79b01c76eb56039a5e081ab97ebd76c323"
+      "byteLength": 21488,
+      "sha256": "sha256:3b5ee7ac5bad395d6f4989d06e563d5f28b18d207a6904533aaf4eb1954a82b5"
+    },
+    {
+      "path": "host/work-partition-capsule.js",
+      "byteLength": 2655,
+      "sha256": "sha256:0cdcb961a48b91e764bcca250bd4753c4aa06d1d5e141d5e3ee2b44f4e9e7d98"
     },
     {
       "path": "host/work-partition-networks.js",
@@ -1760,8 +1765,8 @@
     },
     {
       "path": "host/work-partitions.js",
-      "byteLength": 2910,
-      "sha256": "sha256:5cef8d4dfd143f4b231b76361b0d6afdca0db2ab0aa3d1ea47316e39e7458a41"
+      "byteLength": 6275,
+      "sha256": "sha256:9a2176f6087065ec5b9935debe28f3b079c24a928bccfab9d416e67026e5b893"
     },
     {
       "path": "host/work-peer-jobs.js",
@@ -9514,5 +9519,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:e683fbc5c7c9ec4a01e961f2c6a740f62f4b8512a24ceef4d420f149bd64a675"
+  "bundleHash": "sha256:0aa8f733d74b81b00add727db1e385600b1d724412d3fbac6add93959b275121"
 }

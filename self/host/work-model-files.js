@@ -192,7 +192,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
   };
   return Object.freeze({ getState, attach, announce: () => exchange?.announce(),
     async preparePartitionSource(model, { signal, onProgress }) {
-      signal = AbortSignal.any([signal, lifetime.signal]);
+      signal = AbortSignal.any([signal, lifetime.signal].filter(Boolean));
       const custody = { queueMs: 0, peerTransferMs: 0, cacheReadMs: 0, peerBytes: 0, cacheBytes: 0, transfers: 0, failures: 0 };
       const retained = async file => {
         const started = performance.now();
@@ -204,37 +204,62 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
       assert(descriptor, 'Model requires a pinned piece index for selective partition acquisition');
       const indexBytes = await read(descriptor, { signal, onProgress });
       const { createVerifiedPieceStorage } = await import(DOPPLER_PARTITIONS_MODULE_URL);
-      const opened = await createVerifiedPieceStorage({ manifestBytes: new TextEncoder().encode(manifestText).buffer,
-        indexBytes: indexBytes.slice().buffer, indexIdentity: 'sha256:' + descriptor.hash, signal,
-        async acquire(piece, controls) {
-          const file = files.find(file => file.path === piece.path);
-          assert(file, 'Piece source is not in the verified model');
-          const saved = { path: `piece-${piece.identity.slice(7)}.bin`, role: file.role,
-            sizeBytes: piece.size, hashAlgorithm: 'sha256', hash: piece.identity.slice(7) };
-          if (retainedPieces.size < policy.maxInventoryFiles) retainedPieces.set(fileKey(saved), saved);
-          const existing = await retained(saved);
-          if (existing) return existing;
-          assert(exchange?.has(saved) || exchange?.has(file), 'No peer offers the required verified model piece');
-          const combined = AbortSignal.any([signal, ...(controls.signal ? [controls.signal] : [])]);
-          const queuedAt = performance.now();
-          const release = await acquirePieceSlot(combined);
-          custody.queueMs += performance.now() - queuedAt;
+      let opened, sourceClosed = false;
+      const acquire = async (piece, controls) => {
+        assert(!sourceClosed, 'Partition artifact source is closed');
+        const combined = AbortSignal.any([signal, controls.signal].filter(Boolean));
+        combined.throwIfAborted();
+        const file = files.find(file => file.path === piece.path);
+        assert(file, 'Piece source is not in the verified model');
+        const saved = { path: `piece-${piece.identity.slice(7)}.bin`, role: file.role,
+          sizeBytes: piece.size, hashAlgorithm: 'sha256', hash: piece.identity.slice(7) };
+        if (retainedPieces.size < policy.maxInventoryFiles) retainedPieces.set(fileKey(saved), saved);
+        const existing = await retained(saved);
+        combined.throwIfAborted();
+        if (existing) return existing;
+        assert(exchange?.has(saved) || exchange?.has(file), 'No peer offers the required verified model piece');
+        const queuedAt = performance.now();
+        const release = await acquirePieceSlot(combined);
+        custody.queueMs += performance.now() - queuedAt;
+        try {
+          const present = await retained(saved);
+          combined.throwIfAborted();
+          if (present) return present;
+          onProgress?.({ stage: 'acquiring', path: piece.path,
+            message: 'Receiving required model pieces' });
+          const started = performance.now();
           try {
-            const present = await retained(saved);
-            if (present) return present;
-            onProgress?.({ stage: 'acquiring', path: piece.path,
-              message: `Receiving required model pieces: ${Math.floor(opened.getReceipt().verifiedBytes / 1048576)} MB verified` });
-            const started = performance.now();
-            try {
-              const bytes = exchange.has(saved) ? await exchange.acquire(saved, { signal: combined })
-                : await exchange.acquire(file, { signal: combined,
-                  range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
-              custody.transfers++; custody.peerBytes += bytes.byteLength; return bytes;
-            } catch (cause) { custody.failures++; throw cause; }
-            finally { custody.peerTransferMs += performance.now() - started; }
-          } finally { release(); }
-        } });
-      return { manifest, storage: opened.storage, getReceipt: () => ({ ...opened.getReceipt(), custody: { ...custody } }) };
+            const bytes = exchange.has(saved) ? await exchange.acquire(saved, { signal: combined })
+              : await exchange.acquire(file, { signal: combined,
+                range: { offset: piece.offset, size: piece.size, identity: piece.identity } });
+            custody.transfers++; custody.peerBytes += bytes.byteLength; return bytes;
+          } catch (cause) { custody.failures++; throw cause; }
+          finally { custody.peerTransferMs += performance.now() - started; }
+        } finally { release(); }
+      };
+      opened = await createVerifiedPieceStorage({ manifestBytes: new TextEncoder().encode(manifestText).buffer,
+        indexBytes: indexBytes.slice().buffer, indexIdentity: 'sha256:' + descriptor.hash, signal, acquire });
+      const pieceIndex = JSON.parse(decoder.decode(indexBytes));
+      const admittedFile = artifact => {
+        assert(!sourceClosed, 'Partition artifact source is closed');
+        const file = files.find(row => row.path === artifact.path);
+        assert(file && file.sizeBytes === artifact.sizeBytes && 'sha256:' + file.hash === artifact.hash
+          && file.hashAlgorithm === 'sha256', 'Capsule artifact differs from the pinned catalog source');
+        return file;
+      };
+      const artifactStore = Object.freeze({
+        async readArtifact(artifact, controls = {}) {
+          return read(admittedFile(artifact), { signal: AbortSignal.any([signal, controls.signal].filter(Boolean)), onProgress });
+        },
+        async readArtifactRange(artifact, offset, size, controls = {}) {
+          admittedFile(artifact);
+          const piece = pieceIndex.files.find(file => file.path === artifact.path)?.pieces
+            .find(piece => piece.offset === offset && piece.size === size);
+          assert(piece, 'Capsule range is not a complete pinned piece');
+          return acquire({ ...piece, path: artifact.path }, controls);
+        }
+      });
+      return { manifest, storage: { ...opened.storage, async close() { sourceClosed = true; await opened.storage.close(); } }, artifactStore, getReceipt: () => ({ ...opened.getReceipt(), custody: { ...custody } }) };
     },
     async prepareSource(model, { signal, onProgress }) {
       const acquisition = new AbortController();

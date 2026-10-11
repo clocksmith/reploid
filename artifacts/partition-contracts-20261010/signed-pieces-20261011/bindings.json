@@ -1,0 +1,27 @@
+{
+  "scope": "synthetic host signed-resident admission, custody ports, authorization and cleanup; no physical signed inference",
+  "standardArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "sourceHead": "3ccc1c680ec9194eb49ca0ad6bceee658a3d6ea5",
+  "sourceFiles": {
+    "self/host/work-partitions.js": "9a2176f6087065ec5b9935debe28f3b079c24a928bccfab9d416e67026e5b893",
+    "self/host/work-partition-capsule.js": "0cdcb961a48b91e764bcca250bd4753c4aa06d1d5e141d5e3ee2b44f4e9e7d98",
+    "self/host/work-model-files.js": "3b5ee7ac5bad395d6f4989d06e563d5f28b18d207a6904533aaf4eb1954a82b5",
+    "self/config/browser-bundle-manifest.json": "272aa2f0834ca2d20de1f78df0f368b7df577b9c72428e7b444d9866c1e60c2c",
+    "tests/unit/work-partitions-lifecycle.test.js": "ea749f58c54e8bb942f939465bf8bd814ab8069f26e036dfd44d333661d4655a",
+    "tests/unit/work-partition-capsule-admission.test.js": "12338402a933770030b5378a34cd581e263c6b54b24bb3e65237671c13cc8e88",
+    "tests/unit/work-partition-capsule-source.test.js": "a2a7a024ecdc8ef2822ae8229163c87bf7a00ec003ec6b7376281bd96e70f263",
+    "tests/e2e/peer-pack-jobs.spec.js": "36a1fc7d47b39f496012ff020899022fb1553c8d91b5aa3bd21197314dea9705"
+  },
+  "checks": {
+    "focusedPassed": 36,
+    "repositoryPassed": 3043,
+    "repositorySkipped": 29,
+    "browserPassed": 3
+  },
+  "artifactDigests": {
+    "browser.log.gz": "dc43e2fb7c1eef320bb32fb20706866a6e8b004ef0784719679c54fd4e7b7f7f",
+    "focused.log.gz": "dceaf86c5ec0192a3f9f3628e75c505014aae6e51243dc5de2062e9c7685b491",
+    "repository.log.gz": "ee68b3afbe9b6a8b0630415052b289f1a7abc45d648f932a30ada0d3de2711a4",
+    "repository-before-concurrent-close.log.gz": "c15e7d04e90a316aa8764c8a7b70e0896a889388cd3cb6c586cb6b5c0332fb85"
+  }
+}
