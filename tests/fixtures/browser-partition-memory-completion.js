@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
+import referenceContract from './distributed-reference-contract.json' with { type: 'json' };
 import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from './physical-webgpu-browser.js';
 const raw = await readFile(process.env.REPLOID_DIAGNOSTIC_REQUESTS);
 assert.equal(createHash('sha256').update(raw).digest('hex'), '794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e');
@@ -23,7 +24,7 @@ const profile = JSON.parse(await readFile(new URL('../../self/config/work-profil
 const phase = process.env.REPLOID_MEMORY_PHASE ?? 'repetition';
 const referenceBytes = phase === 'reference' ? await readFile(process.env.REPLOID_REFERENCE_FILE) : null;
 if (referenceBytes) assert.equal(createHash('sha256').update(referenceBytes).digest('hex'),
-  '9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd');
+  referenceContract.sha256);
 const reference = referenceBytes ? JSON.parse(referenceBytes) : null;
 const probePrompt = process.env.REPLOID_DIAGNOSTIC_PROMPT === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_PROMPT);
 const probeStep = process.env.REPLOID_DIAGNOSTIC_STEP === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_STEP);
