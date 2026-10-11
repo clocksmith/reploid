@@ -1,0 +1,508 @@
+{
+  "schema": "reploid.reversed-application-review/v1",
+  "qualified": false,
+  "runId": "2026-10-11T10-54-28-056Z",
+  "sourceRevision": "3113f50e",
+  "browserIdentity": "sha256:f4d77481427ceced750dad25833cbb9fa08269046691d6355f6223a0c6eaa963",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "maxGpuBufferBytes": 1420000000,
+  "archiveSha256": "85590ea58d0b71f10068cdb713314dde96d024ab2e9e31cba999f1b52bc1af3a",
+  "scope": "Two physical hosts, Mac partition 0 and Linux partition 1; failed complete application acceptance",
+  "selectiveAcquisition": [
+    {
+      "host": "mac",
+      "index": 0,
+      "verifiedBytes": 1155365120,
+      "openingPeakBytes": 1223987856
+    },
+    {
+      "host": "linux-128",
+      "index": 1,
+      "verifiedBytes": 940946816,
+      "openingPeakBytes": 1278272144
+    }
+  ],
+  "requesterWeights": [],
+  "contributorOrigins": [],
+  "survivorQuality": {
+    "passed": false,
+    "expectedLines": 200,
+    "actualLines": 120,
+    "firstMismatch": {
+      "line": 121,
+      "actual": null,
+      "expected": "121"
+    }
+  },
+  "submittedCancellation": "cancelled",
+  "residentReuse": "completed",
+  "documentSteps": [
+    2248,
+    1874
+  ],
+  "documentStopReasons": [
+    "eos-token",
+    "eos-token"
+  ],
+  "macContributorRetry": "passed",
+  "linuxContributorRetry": "not completed: browser execution context destroyed during readiness poll",
+  "replacement": "not reached",
+  "standaloneControls": [
+    {
+      "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "stage": "opening",
+      "generation": {
+        "maxTokens": 4096,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "repetitionPenalty": 1.1,
+        "repetitionPenaltyWindow": 0,
+        "stopSequences": [],
+        "useChatTemplate": true,
+        "maxSeqLen": 8192
+      },
+      "maxSeqLen": 8192,
+      "maxGpuBufferBytes": 1420000000,
+      "elapsedMs": 8091.799999952316,
+      "error": "Pipeline load phase \"loadWeights\" failed: GPU memory budget exceeded: q4k_model.language_model.layers.0.linear_attn.out_proj.weight_2359296 requires 2359296 bytes; 1419981824 live, 1420000000 allowed.",
+      "immediateCleanup": {
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 1017328640,
+          "peakBytes": 1419981824,
+          "allocations": 60,
+          "rejected": 3,
+          "categories": {
+            "weights": 0,
+            "attention": 0,
+            "recurrent": 0,
+            "other": 1017328640
+          },
+          "labels": [
+            {
+              "label": "raw_model.language_model.embed_tokens.weight_1017118720",
+              "category": "other",
+              "bytes": 1017118720,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.in_proj_a.weight_65536",
+              "category": "other",
+              "bytes": 65536,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.in_proj_b.weight_65536",
+              "category": "other",
+              "bytes": 65536,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.conv1d.weight_65536",
+              "category": "other",
+              "bytes": 65536,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.dt_bias_256",
+              "category": "other",
+              "bytes": 256,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.A_log_256",
+              "category": "other",
+              "bytes": 256,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.norm.weight_512",
+              "category": "other",
+              "bytes": 512,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.post_attention_layernorm.weight_4096",
+              "category": "other",
+              "bytes": 8192,
+              "count": 2
+            },
+            {
+              "label": "model.language_model.layers.0.input_layernorm.weight_4096",
+              "category": "other",
+              "bytes": 4096,
+              "count": 1
+            }
+          ]
+        },
+        "pool": {
+          "allocations": 10,
+          "reuses": 0,
+          "totalBytesAllocated": 1017328640,
+          "peakBytesAllocated": 1017328640,
+          "currentBytesAllocated": 209920,
+          "totalBytesRequested": 1017312256,
+          "peakBytesRequested": 1017312256,
+          "currentBytesRequested": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 209920,
+              "count": 9
+            },
+            "deferredCleanup": {
+              "bytes": 1017118720,
+              "count": 1
+            }
+          },
+          "activeBuffers": 0,
+          "pooledBuffers": 9,
+          "budgetMaxBytes": 900000000,
+          "budgetUtilization": 0.00023324444444444445,
+          "hitRate": "0.0%"
+        }
+      },
+      "cleanupBarriers": 1,
+      "memory": {
+        "scope": "device-gpu-buffers",
+        "maxBytes": 1420000000,
+        "liveBytes": 209920,
+        "peakBytes": 1419981824,
+        "allocations": 60,
+        "rejected": 3,
+        "categories": {
+          "weights": 0,
+          "attention": 0,
+          "recurrent": 0,
+          "other": 209920
+        },
+        "labels": [
+          {
+            "label": "model.language_model.layers.0.linear_attn.in_proj_a.weight_65536",
+            "category": "other",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.linear_attn.in_proj_b.weight_65536",
+            "category": "other",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.linear_attn.conv1d.weight_65536",
+            "category": "other",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.linear_attn.dt_bias_256",
+            "category": "other",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.linear_attn.A_log_256",
+            "category": "other",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.linear_attn.norm.weight_512",
+            "category": "other",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.post_attention_layernorm.weight_4096",
+            "category": "other",
+            "bytes": 8192,
+            "count": 2
+          },
+          {
+            "label": "model.language_model.layers.0.input_layernorm.weight_4096",
+            "category": "other",
+            "bytes": 4096,
+            "count": 1
+          }
+        ]
+      },
+      "pool": {
+        "allocations": 10,
+        "reuses": 0,
+        "totalBytesAllocated": 1017328640,
+        "peakBytesAllocated": 1017328640,
+        "currentBytesAllocated": 209920,
+        "totalBytesRequested": 1017312256,
+        "peakBytesRequested": 1017312256,
+        "currentBytesRequested": 0,
+        "resources": {
+          "retainedModel": {
+            "bytes": 0,
+            "count": 0
+          },
+          "active": {
+            "bytes": 0,
+            "count": 0
+          },
+          "reusable": {
+            "bytes": 209920,
+            "count": 9
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 0,
+        "pooledBuffers": 9,
+        "budgetMaxBytes": 900000000,
+        "budgetUtilization": 0.00023324444444444445,
+        "hitRate": "0.0%"
+      }
+    },
+    {
+      "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+      "stage": "opening",
+      "generation": {
+        "maxTokens": 4096,
+        "temperature": 0,
+        "topK": 1,
+        "topP": 1,
+        "repetitionPenalty": 1.1,
+        "repetitionPenaltyWindow": 0,
+        "stopSequences": [],
+        "useChatTemplate": true,
+        "maxSeqLen": 8192
+      },
+      "maxSeqLen": 8192,
+      "maxGpuBufferBytes": 1420000000,
+      "elapsedMs": 36873,
+      "error": "Pipeline load phase \"loadWeights\" failed: GPU memory budget exceeded: q4k_model.language_model.layers.0.linear_attn.in_proj_z.weight_2359296 requires 2359296 bytes; 1419902976 live, 1420000000 allowed.",
+      "immediateCleanup": {
+        "memory": {
+          "scope": "device-gpu-buffers",
+          "maxBytes": 1420000000,
+          "liveBytes": 1017328640,
+          "peakBytes": 1419981824,
+          "allocations": 60,
+          "rejected": 3,
+          "categories": {
+            "weights": 0,
+            "attention": 0,
+            "recurrent": 0,
+            "other": 1017328640
+          },
+          "labels": [
+            {
+              "label": "raw_model.language_model.embed_tokens.weight_1017118720",
+              "category": "other",
+              "bytes": 1017118720,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.in_proj_a.weight_65536",
+              "category": "other",
+              "bytes": 65536,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.in_proj_b.weight_65536",
+              "category": "other",
+              "bytes": 65536,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.conv1d.weight_65536",
+              "category": "other",
+              "bytes": 65536,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.dt_bias_256",
+              "category": "other",
+              "bytes": 256,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.A_log_256",
+              "category": "other",
+              "bytes": 256,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.linear_attn.norm.weight_512",
+              "category": "other",
+              "bytes": 512,
+              "count": 1
+            },
+            {
+              "label": "model.language_model.layers.0.post_attention_layernorm.weight_4096",
+              "category": "other",
+              "bytes": 8192,
+              "count": 2
+            },
+            {
+              "label": "model.language_model.layers.0.input_layernorm.weight_4096",
+              "category": "other",
+              "bytes": 4096,
+              "count": 1
+            }
+          ]
+        },
+        "pool": {
+          "allocations": 10,
+          "reuses": 0,
+          "totalBytesAllocated": 1017328640,
+          "peakBytesAllocated": 1017328640,
+          "currentBytesAllocated": 209920,
+          "totalBytesRequested": 1017312256,
+          "peakBytesRequested": 1017312256,
+          "currentBytesRequested": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 209920,
+              "count": 9
+            },
+            "deferredCleanup": {
+              "bytes": 1017118720,
+              "count": 1
+            }
+          },
+          "activeBuffers": 0,
+          "pooledBuffers": 9,
+          "budgetMaxBytes": 900000000,
+          "budgetUtilization": 0.00023324444444444445,
+          "hitRate": "0.0%"
+        }
+      },
+      "cleanupBarriers": 1,
+      "memory": {
+        "scope": "device-gpu-buffers",
+        "maxBytes": 1420000000,
+        "liveBytes": 209920,
+        "peakBytes": 1419981824,
+        "allocations": 60,
+        "rejected": 3,
+        "categories": {
+          "weights": 0,
+          "attention": 0,
+          "recurrent": 0,
+          "other": 209920
+        },
+        "labels": [
+          {
+            "label": "model.language_model.layers.0.linear_attn.in_proj_a.weight_65536",
+            "category": "other",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.linear_attn.in_proj_b.weight_65536",
+            "category": "other",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.linear_attn.conv1d.weight_65536",
+            "category": "other",
+            "bytes": 65536,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.linear_attn.dt_bias_256",
+            "category": "other",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.linear_attn.A_log_256",
+            "category": "other",
+            "bytes": 256,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.linear_attn.norm.weight_512",
+            "category": "other",
+            "bytes": 512,
+            "count": 1
+          },
+          {
+            "label": "model.language_model.layers.0.post_attention_layernorm.weight_4096",
+            "category": "other",
+            "bytes": 8192,
+            "count": 2
+          },
+          {
+            "label": "model.language_model.layers.0.input_layernorm.weight_4096",
+            "category": "other",
+            "bytes": 4096,
+            "count": 1
+          }
+        ]
+      },
+      "pool": {
+        "allocations": 10,
+        "reuses": 0,
+        "totalBytesAllocated": 1017328640,
+        "peakBytesAllocated": 1017328640,
+        "currentBytesAllocated": 209920,
+        "totalBytesRequested": 1017312256,
+        "peakBytesRequested": 1017312256,
+        "currentBytesRequested": 0,
+        "resources": {
+          "retainedModel": {
+            "bytes": 0,
+            "count": 0
+          },
+          "active": {
+            "bytes": 0,
+            "count": 0
+          },
+          "reusable": {
+            "bytes": 209920,
+            "count": 9
+          },
+          "deferredCleanup": {
+            "bytes": 0,
+            "count": 0
+          }
+        },
+        "activeBuffers": 0,
+        "pooledBuffers": 9,
+        "budgetMaxBytes": 900000000,
+        "budgetUtilization": 0.00023324444444444445,
+        "hitRate": "0.0%"
+      }
+    }
+  ],
+  "failure": {
+    "name": "Error",
+    "message": "page.evaluate: Execution context was destroyed, most likely because of a navigation.",
+    "stack": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at Object.expect.poll.timeout (/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:699:39)"
+  },
+  "inspection": "Read-only secondary CDP inspection of the Linux executor occurred during this run. Its effect is not established; the focused reproduction must omit it."
+}
