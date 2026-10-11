@@ -63,6 +63,8 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
   Further evidence: [fresh task-quality comparison](artifacts/chat-task-quality-20261011/README.md) rejects neutral repetition as a standalone application correction: both existing and candidate settings pass three of six cases, failing requested list formatting. All cases reach EOS. Production settings and protected cases remain unchanged.
 
+  Further evidence: the same [quality receipt](artifacts/chat-task-quality-20261011/README.md) rejects a general formatting instruction on a separate holdout. The existing 2B model passes six additional fresh exact-output/EOS cases with unchanged application settings. Its complete distributed application journey remains required; these unsplit results do not close item 9 or establish capacity.
+
 - [ ] **10. Reploid: explain and repair acquisition disconnects.**
   Trace the first failed peer acquisition through `self/host/work-model-files.js`, custody and transport: actual connection loss, retained inventory, requested piece, permissions and supplier replacement. Preserve the earlier failed run even when retry succeeds. Retain the already-repaired manifest binding. Completion requires a reproduced cause, targeted regression and successful selective acquisition with origins blocked.
 

@@ -33,3 +33,21 @@ DOPPLER_CHAT_MODEL_DIR=/path/to/qwen-3-5-0-8b-q4k-ehaf16 \
 ```
 
 *Last updated: October 2026*
+
+## Formatting instruction and existing larger model
+
+A separate six-task holdout was frozen in `bc0c0959` before testing a general
+formatting instruction, with sampling unchanged at repetition penalty 1.1. Both
+variants fail the ascending-list and duplicate-layout requirements; the proposed
+instruction is rejected. `instruction-linux.json.gz` retains exact results.
+
+The already-integrated 2B model was then tested on six additional fresh tasks,
+frozen in `9639f225`. `model-2b-linux.json.gz` passes every exact-text and EOS check
+using the existing application generation policy. No application setting or model
+catalog entry changed. This supports further application testing of the existing
+2B model; it does not establish complete answers to every request or close
+distributed lifecycle, numerical, capacity or deployment acceptance.
+
+Both additional runs use the existing fixture runner with a second argument
+selecting `chat-task-quality-instruction.json` or `chat-task-quality-2b.json`.
+The model directory must match the suite's catalog identity.
