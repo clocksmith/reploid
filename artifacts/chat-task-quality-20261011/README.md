@@ -51,3 +51,19 @@ distributed lifecycle, numerical, capacity or deployment acceptance.
 Both additional runs use the existing fixture runner with a second argument
 selecting `chat-task-quality-instruction.json` or `chat-task-quality-2b.json`.
 The model directory must match the suite's catalog identity.
+
+## Retained counting request: larger model still fails
+
+After the fresh-task pass, the unchanged count-to-200 request was replayed
+through the existing 2B model with the application settings. It emits 1 through
+120 and then EOS (372 tokens), omitting 121 through 200.
+`counting-2b-linux.json.gz` preserves this failure. The larger model therefore
+does not yet close the original task-quality requirement.
+
+The existing two-host cancellation test checked only EOS for the surviving
+count-to-200 conversation. It now also checks that every requested number is
+present in order. The task oracle accepts digits or ordinary written numbers
+and rejects omissions, duplicates, reordering, extra values, summaries and
+comma-separated lists. Four focused tests and JavaScript syntax checks pass.
+The currently running physical attempt predates this stronger assertion; any
+result from it must be assessed against the retained answer as well as EOS.
