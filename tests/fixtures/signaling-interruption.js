@@ -1,9 +1,13 @@
+import { readFile } from 'node:fs/promises';
+
 /** Test-owned signaling faults; direct RTC channels and model execution stay untouched. */
 export async function controlSignaling(context) {
+  const bootstrap = JSON.parse(await readFile('self/config/swarm-bootstrap.json', 'utf8'));
+  const configuredPath = new URL(bootstrap.signalingUrl).pathname;
   const sockets = [];
   const events = [];
   let blocked = false;
-  await context.routeWebSocket(url => url.pathname === '/signaling', route => {
+  await context.routeWebSocket(url => url.pathname === '/signaling' || url.pathname === configuredPath, route => {
     if (blocked) {
       events.push({ kind: 'retry-blocked', at: Date.now() });
       void route.close({ code: 1013, reason: 'Test signaling unavailable' });
