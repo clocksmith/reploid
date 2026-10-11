@@ -1,0 +1,46 @@
+{
+  "schema": "reploid.chat-task-quality/v1",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "hypothesis": "A completion-first system instruction may avoid abbreviation on longer requests expressed with worded bounds. Earlier shorter numeric-bound controls did not test this condition.",
+  "acceptance": "Every fresh task must match its complete expected text and stop naturally. A failure rejects the candidate before protected replay.",
+  "maxGpuBufferBytes": 6000000000,
+  "scope": "Fresh unsplit application-quality diagnostic, not distributed or numerical acceptance. Model, sampling, token budget and protected cases remain unchanged.",
+  "variants": [
+    {
+      "id": "existing-2b",
+      "repetitionPenalty": 1.1
+    },
+    {
+      "id": "complete-2b",
+      "repetitionPenalty": 1.1,
+      "instruction": "Fulfill the entire request before ending your answer. When asked to enumerate items, write each requested item explicitly in order, including the last item. Do not shorten an enumeration with ellipses, summaries, or an early ending. Follow the requested format and preserve repeated items. Give only the requested answer."
+    }
+  ],
+  "cases": [
+    {
+      "id": "worded-ascending",
+      "prompt": "Count from thirty-one to two hundred sixty-seven, one number per line.",
+      "expected": "31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45\n46\n47\n48\n49\n50\n51\n52\n53\n54\n55\n56\n57\n58\n59\n60\n61\n62\n63\n64\n65\n66\n67\n68\n69\n70\n71\n72\n73\n74\n75\n76\n77\n78\n79\n80\n81\n82\n83\n84\n85\n86\n87\n88\n89\n90\n91\n92\n93\n94\n95\n96\n97\n98\n99\n100\n101\n102\n103\n104\n105\n106\n107\n108\n109\n110\n111\n112\n113\n114\n115\n116\n117\n118\n119\n120\n121\n122\n123\n124\n125\n126\n127\n128\n129\n130\n131\n132\n133\n134\n135\n136\n137\n138\n139\n140\n141\n142\n143\n144\n145\n146\n147\n148\n149\n150\n151\n152\n153\n154\n155\n156\n157\n158\n159\n160\n161\n162\n163\n164\n165\n166\n167\n168\n169\n170\n171\n172\n173\n174\n175\n176\n177\n178\n179\n180\n181\n182\n183\n184\n185\n186\n187\n188\n189\n190\n191\n192\n193\n194\n195\n196\n197\n198\n199\n200\n201\n202\n203\n204\n205\n206\n207\n208\n209\n210\n211\n212\n213\n214\n215\n216\n217\n218\n219\n220\n221\n222\n223\n224\n225\n226\n227\n228\n229\n230\n231\n232\n233\n234\n235\n236\n237\n238\n239\n240\n241\n242\n243\n244\n245\n246\n247\n248\n249\n250\n251\n252\n253\n254\n255\n256\n257\n258\n259\n260\n261\n262\n263\n264\n265\n266\n267"
+    },
+    {
+      "id": "worded-descending",
+      "prompt": "Count backward from two hundred eighty-three to forty-six, one number per line.",
+      "expected": "283\n282\n281\n280\n279\n278\n277\n276\n275\n274\n273\n272\n271\n270\n269\n268\n267\n266\n265\n264\n263\n262\n261\n260\n259\n258\n257\n256\n255\n254\n253\n252\n251\n250\n249\n248\n247\n246\n245\n244\n243\n242\n241\n240\n239\n238\n237\n236\n235\n234\n233\n232\n231\n230\n229\n228\n227\n226\n225\n224\n223\n222\n221\n220\n219\n218\n217\n216\n215\n214\n213\n212\n211\n210\n209\n208\n207\n206\n205\n204\n203\n202\n201\n200\n199\n198\n197\n196\n195\n194\n193\n192\n191\n190\n189\n188\n187\n186\n185\n184\n183\n182\n181\n180\n179\n178\n177\n176\n175\n174\n173\n172\n171\n170\n169\n168\n167\n166\n165\n164\n163\n162\n161\n160\n159\n158\n157\n156\n155\n154\n153\n152\n151\n150\n149\n148\n147\n146\n145\n144\n143\n142\n141\n140\n139\n138\n137\n136\n135\n134\n133\n132\n131\n130\n129\n128\n127\n126\n125\n124\n123\n122\n121\n120\n119\n118\n117\n116\n115\n114\n113\n112\n111\n110\n109\n108\n107\n106\n105\n104\n103\n102\n101\n100\n99\n98\n97\n96\n95\n94\n93\n92\n91\n90\n89\n88\n87\n86\n85\n84\n83\n82\n81\n80\n79\n78\n77\n76\n75\n74\n73\n72\n71\n70\n69\n68\n67\n66\n65\n64\n63\n62\n61\n60\n59\n58\n57\n56\n55\n54\n53\n52\n51\n50\n49\n48\n47\n46"
+    },
+    {
+      "id": "preserve-labels",
+      "prompt": "Return these labels in order, one label per line, preserving duplicates: east, west, west, east, east, west. Return only the labels.",
+      "expected": "east\nwest\nwest\neast\neast\nwest"
+    },
+    {
+      "id": "literal-amount",
+      "prompt": "The stated invoice amount is 416.25 dollars. Return only that amount with two digits after the decimal point, without a currency symbol.",
+      "expected": "416.25"
+    },
+    {
+      "id": "negated-entry",
+      "prompt": "Rule: Members may not enter until the supervisor approves. The supervisor has not approved. May a member enter now? Answer only Yes or No without punctuation.",
+      "expected": "No"
+    }
+  ]
+}
