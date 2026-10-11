@@ -696,13 +696,13 @@
     },
     {
       "path": "mesh/partitions/partition-runner.d.ts",
-      "bytes": 5988,
-      "sha256": "74918429b47cd126bf71d0177b579b6dd1af7d5b81aaea31ff6283e7491a7318"
+      "bytes": 6221,
+      "sha256": "e3c7aebfb9fb838b8758e84bfb55c51979ebcfbe7ce2cd905b1d8f6fb8db3ccb"
     },
     {
       "path": "mesh/partitions/partition-runner.js",
-      "bytes": 18042,
-      "sha256": "a6a733af1070562a6ee9729cb990f6224e49cdec39d0af779e96121932e1e502"
+      "bytes": 18366,
+      "sha256": "2075920952bcd859aa360caaf504b0e06f3e58b76922edb0d810136d843adf38"
     },
     {
       "path": "mesh/partitions/partition-step-receiver.d.ts",
@@ -721,8 +721,8 @@
     },
     {
       "path": "mesh/partitions/partition-summary.js",
-      "bytes": 2173,
-      "sha256": "56bb695ecbfc998810ec4855f6bd10a9d2e743db2c3378a7d1ce8671dccee9d1"
+      "bytes": 2214,
+      "sha256": "3b99fac75db488d1d8fbf8ef797b1a80c0e5c8521e0d081235f610c23b8b596f"
     },
     {
       "path": "mesh/partitions/resident-error-codes.json",

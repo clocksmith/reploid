@@ -10,6 +10,7 @@ describe('bounded partition completion receipt', () => {
       transport: { sentFrameBytes: 50000, lastFailure: { message: 'private local failure' } },
       steps: Array.from({ length: policy.limits.maxTokens }, (_, step) => ({ step,
         tokenPosition: step, inputTokenCount: 1, generationDigest: 'sha256:' + 'a'.repeat(64),
+        leaseWaitMs: 3, outputDeliveryMs: 5,
         localStepMs: step + 1, serializationMs: 0.2, remoteStepMs: 12.4,
         elapsedMs: 14.6, computationA: { inputUploadMs: 0, encodeMs: 3, gpuKernelsMs: null },
         computationB: { encodeMs: 2, gpuKernelsMs: 1 }, transportTiming: { responseWaitMs: 10 } })) };
@@ -21,6 +22,8 @@ describe('bounded partition completion receipt', () => {
     expect(summary.stepSummary.count).toBe(policy.limits.maxTokens);
     const count = policy.limits.maxTokens;
     expect(summary.stepSummary.metrics.localStepMs).toEqual({ count, total: count * (count + 1) / 2, min: 1, max: count });
+    expect(summary.stepSummary.metrics.leaseWaitMs).toEqual({ count, total: count * 3, min: 3, max: 3 });
+    expect(summary.stepSummary.metrics.outputDeliveryMs).toEqual({ count, total: count * 5, min: 5, max: 5 });
     expect(summary.stepSummary.metrics['computationA.gpuKernelsMs']).toBeUndefined();
     expect(summary.stopReason).toBe('max-tokens');
     expect(summary.settlement).toEqual(execution.settlement);

@@ -131,6 +131,8 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 - [ ] **23. Reploid R5: measure before overlapping stages.**
   Measure local execution, remote execution, transport, callbacks and stage waiting separately. Introduce bounded stage scheduling only when useful overlap is demonstrated against the existing scheduler. Preserve per-attempt token order and Doppler’s mutable-state protections. Compare correctness, cancellation, progress, queued activation bytes and memory. Never obtain throughput gains through unbounded buffering or hidden budget increases.
 
+  Progress: [existing-runner stage measurements](artifacts/partition-stage-timing-20261011/README.md) now separate shared-lease waiting and awaited output delivery from compute and transport. Focused, full repository, installed-consumer and browser checks pass. No overlapping scheduler was introduced; physical measurement and any resulting decision remain open.
+
 - [ ] **24. Reploid: peer-carried introductions.**
   After the core journey passes, add bounded peer-carried introductions behind existing connection interfaces. Use authenticated, expiring contacts and replaceable bootstrap participants; ordinary use should not require manual pairing. Keep introduction, computing and disclosure permissions separate. Test fresh discovery and inference with company signaling blocked, retaining explicit bootstrap and relay limitations.
 

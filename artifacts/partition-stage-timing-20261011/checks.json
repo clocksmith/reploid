@@ -1,0 +1,22 @@
+{
+  "schema": "reploid.partition-stage-timing-checks/v1",
+  "qualified": false,
+  "scope": "Additive scheduling diagnostics; no stage-overlap or physical model acceptance claim",
+  "sourceSha256": {
+    "packages/reploid/src/mesh/partitions/partition-runner.js": "2075920952bcd859aa360caaf504b0e06f3e58b76922edb0d810136d843adf38",
+    "packages/reploid/src/mesh/partitions/partition-runner.d.ts": "e3c7aebfb9fb838b8758e84bfb55c51979ebcfbe7ce2cd905b1d8f6fb8db3ccb",
+    "packages/reploid/src/mesh/partitions/partition-summary.js": "3b99fac75db488d1d8fbf8ef797b1a80c0e5c8521e0d081235f610c23b8b596f",
+    "self/config/browser-bundle-manifest.json": "d83a82009f1c623f49e2b1ee80d4829626d9be22c82538986f503c79d987f238"
+  },
+  "checks": {
+    "focused": 25,
+    "repository": {
+      "passed": 2999,
+      "skipped": 29
+    },
+    "installed": 17,
+    "browser": 1
+  },
+  "browserBundle": "sha256:58995833e517b623d337755695c36bd644109eae687b0cf0eb38a5bdc3e2c3e7",
+  "schedulingChanged": false
+}
