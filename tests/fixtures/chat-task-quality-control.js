@@ -24,9 +24,12 @@ assert(selected);
 const generation = resolveGenerationOptions({ ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen });
 const pin = JSON.parse(await readFile(resolve(root, 'self/config/doppler-package.json')));
 const archive = await readFile(resolve(root, pin.spec.slice(5)));
+const manifestBytes = await readFile(resolve(process.env.DOPPLER_CHAT_MODEL_DIR, 'manifest.json'));
+assert.equal('sha256:' + hash(manifestBytes), selected.identity);
+const eosTokenIds = [JSON.parse(manifestBytes).eos_token_id].flat();
 const report = { schema: 'reploid.chat-task-quality-result/v1', scope: suite.scope, qualified: false,
   suiteSha256: hash(suiteBytes), producerSha256: hash(await readFile(new URL(import.meta.url))),
-  package: pin, archiveSha256: hash(archive), modelIdentity: selected.identity, results: [] };
+  package: pin, archiveSha256: hash(archive), modelIdentity: selected.identity, eosTokenIds, results: [] };
 const server = createServer(async (request, response) => {
   try {
     const pathname = new URL(request.url, 'http://localhost').pathname;
@@ -51,13 +54,14 @@ try {
   await page.exposeFunction('retainQualityResult', async row => {
     const task = suite.cases.find(item => item.id === row.id);
     const normalize = value => value.trim().replace(/\s+/g, ' ');
-    row.exactText = normalize(row.result.evidence.text) === normalize(task.expected);
-    row.naturalStop = ['eos-token', 'stop-token'].includes(row.result.evidence.completion.stopReason);
+    row.exactText = normalize(row.result.evidence.outputText) === normalize(task.expected);
+    row.naturalStop = ['stop-token', 'stop-token-or-sequence'].includes(row.result.evidence.stats.stopReason)
+      && eosTokenIds.includes(row.result.evidence.stats.stopTokenId);
     row.passed = row.exactText && row.naturalStop;
     report.results.push(row);
     await writeFile(destination, JSON.stringify(report, null, 2) + '\n');
     console.log(JSON.stringify({ id: row.id, variant: row.variant, passed: row.passed,
-      text: row.result.evidence.text, completion: row.result.evidence.completion }));
+      text: row.result.evidence.outputText, stopReason: row.result.evidence.stats.stopReason }));
   });
   await page.goto(`http://127.0.0.1:${server.address().port}/`);
   report.memory = await page.evaluate(async ({ suite, selected, generation, policy }) => {

@@ -51,6 +51,8 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
   Further evidence: [all 18 recurrent layers](https://github.com/clocksmith/doppler/blob/391b321d/artifacts/source-model-reference-20261011/all-recurrence.json) replay all 187 captured tokens against independent float64 equations. Maximum local error is 0.0000092796421356; the selected full-model discrepancy remains 0.0014121532440185547. This does not establish a recurrence defect or close numerical acceptance.
 
+  Further evidence: [feed-forward and cache-rounding controls](https://github.com/clocksmith/doppler/blob/b54c31b1/artifacts/source-model-reference-20261011/README.md) find local feed-forward errors below 0.000001328 and demonstrate F16 cache rounding amplification. The complete-model error remains 0.0014121532440185547. This does not authorize a new reference or close item 7.
+
 - [ ] **8. Doppler: resolve the reference-contract mismatch explicitly.**
   Preserve declared normalization entry points rather than restoring the historical `main_subgroup` substitution. Keep old fixtures and failed receipts unchanged. Independently assess any correction before proposing a versioned reference replacement, requiring explicit approval. Retain precision, inputs, token expectations and **0.001 tolerance**. Newly captured Doppler outputs alone cannot validate their own correctness.
 
@@ -58,6 +60,8 @@ starting R4 independent units. Callback isolation in R5 has already landed.
   Replay the failing counting request through independent source-model computation with identical deployed weights and generation settings. Its uncancelled unsplit Doppler control reproduces the distributed prefix, so cancellation is not a necessary cause. Fix runtime differences if demonstrated; otherwise evaluate model or prompt changes on fresh tasks without weakening protected correctness cases.
 
   Progress: [source-model replay](https://github.com/clocksmith/doppler/blob/02c864cf/artifacts/source-model-reference-20261010/count-generation.json) matches all 4,096 tokens and 16,821 characters, ending without EOS. Independent reproduction is complete; fresh task-quality evaluation and a qualified application correction remain open.
+
+  Further evidence: [fresh task-quality comparison](artifacts/chat-task-quality-20261011/README.md) rejects neutral repetition as a standalone application correction: both existing and candidate settings pass three of six cases, failing requested list formatting. All cases reach EOS. Production settings and protected cases remain unchanged.
 
 - [ ] **10. Reploid: explain and repair acquisition disconnects.**
   Trace the first failed peer acquisition through `self/host/work-model-files.js`, custody and transport: actual connection loss, retained inventory, requested piece, permissions and supplier replacement. Preserve the earlier failed run even when retry succeeds. Retain the already-repaired manifest binding. Completion requires a reproduced cause, targeted regression and successful selective acquisition with origins blocked.
