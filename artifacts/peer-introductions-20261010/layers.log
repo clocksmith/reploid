@@ -1,0 +1,5 @@
+
+> reploid@0.1.0 verify:layers
+> node scripts/verify-layers.js
+
+Layer, loader, cycle and canonical delivery verification passed.

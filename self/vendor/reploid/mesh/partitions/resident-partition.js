@@ -1,3 +1,5 @@
+import residentErrorCodes from './resident-error-codes.json' with { type: 'json' };
+import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 import { createPartitionReservations } from './partition-reservations.js';
 import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
 
@@ -63,6 +65,14 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
           phase = 'failed'; error = String(cause.message || cause);
           lifetime.abort(cause); notify(); await dispose();
         }
+      }
+      // The pinned 0.6.27 resident emits this exact untyped allocation error.
+      // This local compatibility allowlist never forwards exception text.
+      const code = Object.hasOwn(residentErrorCodes.codes, cause?.code) ? residentErrorCodes.codes[cause.code]
+        : !cause?.code && Object.hasOwn(residentErrorCodes.legacyMessages, cause?.message)
+          ? residentErrorCodes.legacyMessages[cause.message] : null;
+      if (code) {
+        throw Object.assign(new Error(failureMessages[code], { cause }), { code });
       }
       throw cause;
     });

@@ -9360,8 +9360,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-peer.js",
-      "byteLength": 12367,
-      "sha256": "sha256:08912f0c79000975863ecb7967e41a0802f846e49d5256617bb377d7d4b2e0e4"
+      "byteLength": 12447,
+      "sha256": "sha256:f2847f9802e7436a0f71f992c6170938ef937a282de2687b4ee214c9ec727520"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-placement.js",
@@ -9389,9 +9389,14 @@
       "sha256": "sha256:56bb695ecbfc998810ec4855f6bd10a9d2e743db2c3378a7d1ce8671dccee9d1"
     },
     {
+      "path": "vendor/reploid/mesh/partitions/resident-error-codes.json",
+      "byteLength": 235,
+      "sha256": "sha256:de8d5f6bff08621d7d0dca4c69080b43c2260a8f4b6dfec0f907dc00e22cead4"
+    },
+    {
       "path": "vendor/reploid/mesh/partitions/resident-partition.js",
-      "byteLength": 8468,
-      "sha256": "sha256:ceacc8307ab21b9587bee58b0630940596d1ffcfa3924329747e1ee38fac290e"
+      "byteLength": 9178,
+      "sha256": "sha256:0054a2cfdfe1f53861a34906cff24ccd8e39164cd28268a6e5d4f64188fbf5e1"
     },
     {
       "path": "vendor/reploid/mesh/peer-identity.js",
@@ -9415,8 +9420,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 29377,
-      "sha256": "sha256:ed55892be184702fb44408aeddef58636332a666c2643313592202cddbd6b19a"
+      "byteLength": 29552,
+      "sha256": "sha256:0ea49aff7dbad973462841bd497ec3d2a12cd967da8d54e1975865b38276590c"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -9475,8 +9480,8 @@
     },
     {
       "path": "vendor/reploid/transport/partition-errors.json",
-      "byteLength": 285,
-      "sha256": "sha256:e79f6c2add505c86d4e102303c1c8a352a6feb685913d37e338428cafc12c63f"
+      "byteLength": 421,
+      "sha256": "sha256:0d7a40ba9aa712e3dc1eb9ca72c7c4f70a7f1aa275cadc11cfebb38c76c5fa26"
     },
     {
       "path": "vendor/reploid/transport/retry-policy.js",
@@ -9504,5 +9509,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:a22c232a379ace6850b57b002f5060f179bb282b9c3ce940a072fd7dafc6e599"
+  "bundleHash": "sha256:3bc724ffabfb5829a3f89485dc8c2af01d740441b9c701690796bb94e66af44d"
 }

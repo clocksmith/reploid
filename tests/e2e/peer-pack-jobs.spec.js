@@ -194,6 +194,8 @@ test('Verification Worker accepts complete-job modules and modified execution bo
     for (const file of ['document-search.js', 'index.js', 'view.js', 'operation-sharing.js']) snapshot[`/ui/pool-home/${file}`] = await (await fetch(`/self/ui/pool-home/${file}`)).text();
     for (const file of ['peer-pack-operation.js', 'peer-pack-job-browser.js', 'peer-pack-browser.js', 'peer-pack-remote-execution.js', 'peer-pack-journal-browser.js', 'doppler-installed-peer-browser.js']) snapshot[`/tests/fixtures/${file}`] = await (await fetch(`/tests/fixtures/${file}`)).text();
     for (const file of [
+      'vendor/reploid/mesh/partitions/resident-partition.js',
+      'vendor/reploid/mesh/partitions/partition-peer.js',
       'vendor/reploid/transport/swarm.js', 'vendor/reploid/transport/room.js',
       'vendor/reploid/transport/introductions.js', 'vendor/reploid/transport/introduction-records.js',
       'vendor/reploid/transport/introduction-admission.js',
