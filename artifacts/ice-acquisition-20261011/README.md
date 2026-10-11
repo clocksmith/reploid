@@ -27,6 +27,33 @@ Library types, layers, CATSCAN and regenerated browser delivery checks pass.
 
 The initiating network interruption remains unexplained. These observations
 establish a current premature-teardown defect, not the missing triggering event
-of the older uninstrumented acquisition failure. A repeated physical acquisition
-run is still required; this receipt does not close numerical, task-quality,
-capacity or complete application acceptance.
+of the older uninstrumented acquisition failure. The subsequent physical acquisition run below completes the scoped repair;
+numerical, task-quality, full capacity lifecycle and complete application
+acceptance remain open.
+
+## Post-fix physical execution
+
+`post-fix-receipt.json` and `post-fix-physical-run.tar.gz` retain run
+`2026-10-11T03-35-55-312Z`, source `3c58613c`, standard Doppler 0.6.27.
+Linux and Mac successfully acquired 1,155,365,120 and 940,946,816 verified
+bytes respectively with origins blocked. The requester acquired no weights.
+Opening peaks were 1,223,987,856 and 1,278,272,144 bytes, below the unchanged
+1,420,000,000-byte ceiling. Both residents were ready; no acquisition error
+or observation exception occurred.
+
+The greeting, two concurrent conversations and five generated-code checks
+completed; the generated code matched the unsplit answer and token sequence.
+Submitted cancellation left the survivor completed and the other attempt
+cancelled. Both whole-model controls rejected opening within the same limit
+and settled their deferred allocations; this is scoped capacity evidence, not
+a complete larger-model lifecycle qualification.
+
+The application run still fails: the surviving counting answer ends at 120
+rather than 200. Its assertion is retained, and later document/replacement
+checks were not reached in this revision. Channel-close observations during
+teardown are distinct from the earlier premature ICE-disconnected retirements.
+The subsequent harness revision keeps this quality failure while allowing
+independent settled recovery checks to continue; it was not part of this run.
+
+The unsplit task-quality diagnostic ran on Linux during Mac acquisition.
+No performance or total physical-memory claim is made from this run.
