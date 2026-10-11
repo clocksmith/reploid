@@ -1,0 +1,46 @@
+{
+  "source": "artifacts/partition-contracts-20261010/physical/application-reverse-acquisition-state.json.gz",
+  "sourceSha256": "cd0f7c775837f3ca585329203ddc4b53a3683da295b894fe72609d9b77c820cc",
+  "historicalCauseEstablished": false,
+  "observations": [
+    {
+      "host": "mac",
+      "supplierOfferAt": 1791665827368,
+      "supplierPeer": "d58d3005-ca32-46f5-b132-dc238064be4e",
+      "connectedAtOffer": [
+        "d58d3005-ca32-46f5-b132-dc238064be4e",
+        "9e18521d-389c-43c3-8f8c-2ad83a69e65a",
+        "606f8056-18b2-484d-8fa5-45a122c4e239"
+      ],
+      "offeredArtifactCount": 21,
+      "laterMissingSources": [
+        {
+          "at": 1791665961982,
+          "path": "shard_00001.bin",
+          "connected": [
+            "606f8056-18b2-484d-8fa5-45a122c4e239"
+          ],
+          "inventories": [
+            {
+              "peer": "606f8056-18b2-484d-8fa5-45a122c4e239",
+              "artifacts": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "host": "linux-128",
+      "supplierOfferAt": 1791665827370,
+      "supplierPeer": "d58d3005-ca32-46f5-b132-dc238064be4e",
+      "connectedAtOffer": [
+        "d58d3005-ca32-46f5-b132-dc238064be4e",
+        "606f8056-18b2-484d-8fa5-45a122c4e239",
+        "affb4509-8655-45ce-bc67-c8f33e3d33f2"
+      ],
+      "offeredArtifactCount": 21,
+      "laterMissingSources": []
+    }
+  ],
+  "limitation": "The original capture records inventory loss, not the triggering socket, ICE, timeout or authorization event. New physical traces retain retirement state and callers; passing retries do not establish the historical cause."
+}

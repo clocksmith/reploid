@@ -60,6 +60,8 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 - [ ] **10. Reploid: explain and repair acquisition disconnects.**
   Trace the first failed peer acquisition through `self/host/work-model-files.js`, custody and transport: actual connection loss, retained inventory, requested piece, permissions and supplier replacement. Preserve the earlier failed run even when retry succeeds. Retain the already-repaired manifest binding. Completion requires a reproduced cause, targeted regression and successful selective acquisition with origins blocked.
 
+  Progress: [historical acquisition trace](artifacts/signaling-independence-20261011/historical-acquisition-trace.json) localizes the retained failure to loss of both remote peer entries before shard 1, while the supplier remained Sharing. The triggering socket/ICE/timeout event was not captured. New physical observations retain peer-retirement state and call sites; successful retries do not close the original cause investigation.
+
 - [ ] **11. Reploid: decouple signaling loss from healthy channels.**
   In `packages/reploid/src/transport/swarm.js`, remove indiscriminate destruction of healthy peer connections solely because signaling disappears. Preserve channels only while their own identity, authorization and liveness remain valid. Explicit disconnect or permission revocation still stops affected work. Test signaling interruption during acquisition and generation; this coupling is not yet the proven acquisition-failure cause.
 

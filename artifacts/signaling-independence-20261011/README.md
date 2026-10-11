@@ -1,0 +1,65 @@
+# Physical signaling independence
+
+Component: Peer Transport and Verification Evidence. Intent: preserved.
+Boundary effects: test-owned signaling faults and passive transport observations;
+no model arithmetic, production transport, permissions or package changes.
+
+This batch extends the existing two-host application journey with
+`node scripts/test-distributed.js --local --signaling-only`, also exercised with
+`--reverse`. It is a scoped transport diagnostic, not numerical, complete
+application or deployment acceptance. Both hosts use the standard 0.6.27 archive
+and browser bundle `sha256:892258b5366b0e82ddee4719bdab9cc99992371b5d60c02e2a6f38f474d5656d`.
+
+The diagnostic blocks the configured signaling WebSocket and its retries during
+selective acquisition, then removes remaining signaling routes during real
+generation. It requires EOS completion under the same attempt, another request
+through the surviving channels, and failure of active work after an explicit
+contributor disconnect. Model origins remain blocked for contributors; the
+requester downloads no weights. No checkpoint or transparent restart is used.
+
+## Preserved failed attempts
+
+- `initial-setup-failure.json` and `initial-setup-exception.json`: the first fault
+  injector watched `/signaling`, while the application used the configured
+  `/swarm` endpoint. No outage was injected. The failed run's teardown was
+  interrupted after its exception and state were retained.
+- `interrupted-run.json` and `interrupted-run-report.json.gz`: acquisition and
+  generation continued with signaling unavailable, but the test waited on an
+  unbounded UI action. The test was interrupted; this is not a passing result.
+- `hidden-control-failure.json`, `hidden-control-state.json.gz` and
+  `hidden-control-run.log.gz`: bounded waits localize the stalled action to the
+  hidden disconnect switch. All three conversations completed. The fixture now
+  selects the Participants section before starting the disconnect control.
+- `dialog-fixture-failure.json` and `dialog-fixture-run.log.gz`: a stale
+  `aria-expanded` assumption caused the fixture to click the opener underneath
+  an already-open dialog. It now tests actual dialog visibility. The corrected
+  interaction passes the desktop/mobile UI tests before physical repetition.
+
+These are harness corrections, not evidence of a production transport defect.
+No acceptance assertion was removed. Phase checkpoints now precede and follow
+the fault and generation actions, and UI actions have bounded waits.
+
+## Historical acquisition boundary
+
+`historical-acquisition-trace.json` is derived from the original retained failed
+capture. The Mac initially received a supplier offer with three connected peer
+entries. When shard 1 failed, only one peer with an empty inventory remained.
+The original capture lacks the triggering socket/ICE/timeout event. Successful
+retries and induced signaling loss cannot establish that historical cause.
+Checklist item 10 therefore remains open.
+
+The existing passive observer now captures peer-retirement call sites, channel
+and ICE states, signaling state, manual-stop state and heartbeat age. It retains
+neither SDP nor credentials. It does not change liveness or authorization rules.
+
+## Other validation
+
+- `focused-tests.log.gz`: 12 transport lifecycle, signaling and credential tests pass.
+- `browser-tests.log.gz`: 18 browser introduction/custody tests pass, including
+  Verification Worker coverage.
+- `ui-tests.log.gz`: 10 UI tests pass, covering dialog reopening and switching
+  from Device to Participants on desktop and mobile widths.
+- Layer/delivery verification, public declaration type checking, CATSCAN,
+  JavaScript syntax and diff checks pass.
+
+Physical result receipts are retained alongside this document as the runs complete.
