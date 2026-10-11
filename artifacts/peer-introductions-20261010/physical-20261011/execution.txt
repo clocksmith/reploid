@@ -1,0 +1,12 @@
+
+Running 3 tests using 1 worker
+
+(node:1007913) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:1007913) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/peer-introductions.spec.js:29:1 › browsers introduce peers over existing channels with all signaling servers blocked (1.4s)
+  ✓  2 [chromium] › tests/e2e/peer-introductions.spec.js:71:1 › reports connection failure when policy requires a relay and none is configured (1.7s)
+  ✓  3 [chromium] › tests/e2e/peer-introductions.spec.js:98:1 › ordinary product host uses independent bootstrap and ICE without granting compute or file sharing (2.7s)
+
+  3 passed (7.0s)

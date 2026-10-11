@@ -1,0 +1,46 @@
+{
+  "schema": "reploid.introduction-physical-check/v1",
+  "sourceCommit": "7c8224c3",
+  "browserBundle": "sha256:f91dc2c97cb8f1fdb04dcb8ddff79734d5b3e884f6f220c9d7f1bf79280f5d6a",
+  "hosts": [
+    {
+      "id": "linux-operator",
+      "sshHost": "local",
+      "platform": "Linux x86_64",
+      "browser": "Chromium headless shell 145.0.7632.6",
+      "roles": [
+        "introducer b",
+        "peer c",
+        "ordinary product host"
+      ]
+    },
+    {
+      "id": "mac-operator",
+      "sshHost": "xyz@xys-macbook-air.tail995236.ts.net",
+      "platform": "Darwin arm64",
+      "browser": "Google Chrome 155.0.8059.39",
+      "roles": [
+        "peer a",
+        "ordinary product host"
+      ]
+    }
+  ],
+  "operatorCount": 1,
+  "physicalHosts": 2,
+  "modelInference": false,
+  "publicBootstrap": false,
+  "generalNATAcceptance": false,
+  "testHelper": "tests/fixtures/physical-webgpu-browser.js#connectPhysicalBrowser",
+  "reportSha256": "32df1cd852ad1a6b782a8169b8c26f7ceaefa2d25317ac27ce1ca6b5fd6eb108",
+  "fixturePort": 37589,
+  "controlPath": "SSH forwards the fixture HTTP endpoint and owned Mac CDP endpoint; application traffic uses actual WebRTC data channels",
+  "cleanup": {
+    "ownedMacBrowserClosed": true,
+    "ownedMacProfileRemoved": true,
+    "ownedSshTunnelClosed": true
+  },
+  "setupNotes": [
+    "Initial remote launch inherited closed stdin and shut down before testing; replaced with an owned SIGTERM-managed profile. No network acceptance failed.",
+    "Normal Chromium executable was absent during version inspection; test uses the installed Chromium headless-shell executable."
+  ]
+}
