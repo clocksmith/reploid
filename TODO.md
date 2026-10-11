@@ -2,7 +2,7 @@
 
 **Goal: dependable distributed answers through the ordinary Reploid application and one standard Doppler package, with optional Doe execution.** Independent embedding/indexing work and projection research can advance without claiming that chat or Gemma W8A8 is qualified.
 
-This is the single cross-project implementation queue. Doppler and Doe link to item IDs here; evidence stays in its owning repository. Checked means the stated scope is complete, including a completed rejection. Partial acceptance stays unchecked. “Retained” means inspected existing evidence, not a new hardware run. Each open item names the next delta and its completion condition.
+This is the single cross-project implementation queue; evidence stays in its owning repository. Checked means the stated scope is complete, including a completed rejection. Partial acceptance stays unchecked. “Retained” means inspected existing evidence, not a new hardware run. Each open item names the next delta and its completion condition.
 
 **Audit: 2026-10-11.** Fetched and fast-forwarded clean checkouts to Reploid `dd4e1275`, Doppler `b7b94713`, and Doe `50f118901`. During this audit, concurrent sync also brought Reploid usability commit `47c21cf9` and Doe hosting-only changes through `e36b44c9e`; their changes are preserved. Reviewed current source and retained receipts. Fresh checks: offline projection-export test; export archive, manifest, and all 17 payload hashes; accepted Reploid archive and all 1,897 installed package members. No new GPU, remote browser, deployment, model-quality, or benchmark run occurred. No claim is made about currently running remote processes.
 
@@ -190,7 +190,7 @@ No direct Reploid–Doe dependency or new scheduling protocol. This work starts 
 ## 7. All three: canonical tracking, shared machines, releases, and evidence
 
 <a id="all-1"></a>
-- [x] **ALL-1 — One canonical queue.** This audit reorganizes the existing TODO into the seven requested sections with all 46 stable IDs. Doppler's TODO and Doe's status front door link here. Repo-local evidence remains with its owner. No duplicate active roadmap was created.
+- [x] **ALL-1 — One canonical queue.** This audit reorganizes the existing TODO into the seven requested sections with all 46 stable IDs. Doppler's TODO and the checklist pointers in Doe's status front door have been removed. Repo-local evidence remains with its owner. No duplicate active roadmap was created.
 
   The [previous checklist at dd4e1275](https://github.com/clocksmith/reploid/blob/dd4e12759128e9a38f63f16a3c02c132835eeab5/TODO.md) preserves the complete earlier chronology, rejected candidates and reference-activation reversal. It is historical, not a second work queue. Migration: W1/W2 → DOP-1/2; W3 → DOP-3/4/7/8; old 1 → DR-1; 2–5 → REP-6/REP-1; 6 → DOP-2/DR-5; 7–8 → DOP-6/ALL-4; 9 → REP-7/DR-5; 10–12 → REP-5/REP-6; 13–15 → REP-7/DR-5; 16 → DR-6; 17–18 → DOP-8/ALL-6; 19–22 → REP-1/2/3/DR-2; 23 → REP-1/DD-4; 24 → REP-5; 25 → ALL-7. Earlier completed diagnosis remains complete even where broader acceptance is open.
 
