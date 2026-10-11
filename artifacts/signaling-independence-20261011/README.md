@@ -96,3 +96,19 @@ VPN before its final result could be retrieved. The host's disappearance is not
 attributed to application signaling. Earlier two-host attempts establish scoped
 positive acquisition/generation behavior but failed their UI test controls.
 Neither final two-host passage nor reversed placement is claimed here.
+
+
+## Recovered Mac result
+
+The host is reachable again. [recovered-mac-failure.json](recovered-mac-failure.json)
+records the retrieved final result: acquisition and same-attempt EOS completion
+passed, but the next request could not start because no prepared contributor
+path remained. The explicit-disconnect assertion was not reached. Mac channels
+closed at 01:18:54 UTC; its power log records Clamshell Sleep at 01:18:59 UTC.
+This supports suspension as the interruption cause for this run. It does not
+explain the earlier item 10 acquisition failure. Compressed result, exit state
+and command output are retained under `recovered-mac-*`.
+
+Fresh two-host controls run with `caffeinate -i` around the existing runner to
+prevent idle system sleep. This does not change application liveness rules or
+promise operation while the laptop is suspended.
