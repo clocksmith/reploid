@@ -346,8 +346,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 15647,
-      "sha256": "8fb45d79df00ac1a13fb2709d0db456296edd377858bae350989167e920f4655"
+      "bytes": 15889,
+      "sha256": "e64cc5c7564939c594c0d7019fbdd4a7d0b11cd69e913c106a9eabc497c95c34"
     },
     {
       "path": "config/defaults.json",
@@ -746,8 +746,8 @@
     },
     {
       "path": "mesh/partitions/resident-error-codes.json",
-      "bytes": 235,
-      "sha256": "de8d5f6bff08621d7d0dca4c69080b43c2260a8f4b6dfec0f907dc00e22cead4"
+      "bytes": 305,
+      "sha256": "6740f7b64ef193c82e1f0d880f9993109ac2592b3dffe8752ace8c290446e506"
     },
     {
       "path": "mesh/partitions/resident-partition.d.ts",
@@ -881,8 +881,8 @@
     },
     {
       "path": "transport/partition-errors.json",
-      "bytes": 908,
-      "sha256": "97f015750d991994bb6db79144f233cff519146848eb02d5b6acad09b548759c"
+      "bytes": 1048,
+      "sha256": "00343205a631f2ef1bad9531ffbf4e0f307f1ce3117f4acef0ce97367dca0e62"
     },
     {
       "path": "transport/retry-policy.d.ts",

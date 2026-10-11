@@ -129,11 +129,15 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
         assert(matches(result) && result.modelId === request.model.id
           && result.modelIdentity === request.model.identity
           && JSON.stringify(result.adapterIdentities) === JSON.stringify((request.model.adapters || []).map(adapter => adapter.identity)), 'Response identity mismatch');
-        assert(typeof result.content === 'string' && result.content.trim()
+        assert(typeof result.content === 'string'
           && result.content.length <= limits.maxResponseCharacters, 'Invalid completed response');
         assert(!response.content || result.content === response.content, 'Completed response differs from its stream');
-        response.content = result.content; response.status = 'completed'; attempt.status = 'completed';
+        response.content = result.content;
         attempt.execution = copy(result.execution || attempt.execution);
+        assert(attempt.execution?.stopReason !== 'max-tokens',
+          'The answer reached its token limit and is incomplete. Its partial text is preserved; retry starts a new attempt.');
+        assert(result.content.trim(), 'Invalid completed response');
+        response.status = 'completed'; attempt.status = 'completed';
       } catch (error) {
         attempt.status = controller.signal.aborted ? 'cancelled' : 'failed';
         attempt.error = String((controller.signal.reason || error)?.message || error);
