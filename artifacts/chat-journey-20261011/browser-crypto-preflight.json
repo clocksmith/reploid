@@ -1,0 +1,15 @@
+[
+  {
+    "channel": "chrome",
+    "version": "136.0.7103.59",
+    "error": "page.evaluate: Error: This physical mesh browser cannot verify Ed25519 identities. Select a compatible browser; signature verification cannot be bypassed.\n    at requirePhysicalMeshCrypto (eval at evaluate (:290:30), <anonymous>:11:11)\n    at async <anonymous>:316:30"
+  },
+  {
+    "channel": "chromium",
+    "version": "145.0.7632.6",
+    "result": {
+      "algorithm": "Ed25519",
+      "verified": true
+    }
+  }
+]

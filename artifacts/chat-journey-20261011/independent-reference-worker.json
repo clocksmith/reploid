@@ -1,0 +1,119 @@
+{
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Warning in /tests/fixtures/cooperative-observer.js: Path traversal pattern detected (../) - potential security risk",
+    "Nesting depth of 6 exceeds 5 - refactor nested code",
+    "8 lines exceed 200 characters",
+    "Warning in /tests/unit/independent-numerical-reference.test.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /tests/unit/distributed-numerical-policy.test.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /tests/unit/distributed-reference-contract.test.js: Path traversal pattern detected (../) - potential security risk"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791761398233,
+      "path": "/tests/fixtures/cooperative-observer.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791761398237,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/tests/fixtures/cooperative-observer.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791761398237,
+      "metric": "line_length",
+      "value": 8,
+      "threshold": 5,
+      "message": "8 lines exceed 200 characters",
+      "path": "/tests/fixtures/cooperative-observer.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791761398242,
+      "path": "/tests/unit/independent-numerical-reference.test.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791761398243,
+      "path": "/tests/unit/distributed-numerical-policy.test.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791761398245,
+      "path": "/tests/unit/distributed-reference-contract.test.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/tests/fixtures/cooperative-observer.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/tests/unit/independent-numerical-reference.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/tests/unit/distributed-numerical-policy.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/tests/unit/distributed-reference-contract.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/tests/fixtures/cooperative-observer.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "line_length",
+        "value": 8,
+        "threshold": 5,
+        "message": "8 lines exceed 200 characters",
+        "path": "/tests/fixtures/cooperative-observer.js"
+      }
+    ],
+    "filesAnalyzed": 7
+  }
+}

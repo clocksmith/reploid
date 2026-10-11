@@ -1,4 +1,5 @@
 import { readFile } from 'node:fs/promises';
+import { decodeReferenceLogits } from './independent-numerical-reference.js';
 import { canonicalPartitionJson, partitionFingerprint } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 
 /** Passive debugger observations: never replace tensors, assign roles, or open a runtime. */
@@ -200,8 +201,7 @@ export async function compareObservedLogits(observations, history, reference, to
   });
   return bound.map(({ step, index }) => {
     const expected = reference.expected[index].steps[step.step];
-    const bytes = Buffer.from(expected.logits, 'base64');
-    const logits = new Float32Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength));
+    const logits = decodeReferenceLogits(expected);
     if (logits.length !== step.logits.length || expected.tokenId !== step.tokenId || expected.stopReason !== step.stopReason) {
       throw Error('Distributed output shape, sampled token, or stopping differs from the reference');
     }

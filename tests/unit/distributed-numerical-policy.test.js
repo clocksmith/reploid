@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { it, expect } from 'vitest';
+import contract from '../fixtures/distributed-reference-contract.json';
 import { resolveNumericalPolicy, frozenReferenceAcceptance, numericalEvidence,
   requireNumericalQualification } from '../fixtures/distributed-numerical-policy.js';
 
@@ -48,4 +49,18 @@ it('retains diagnostic and inapplicable scope without treating either as qualifi
     independentAccuracyAcceptance: 'not-applicable',
     numericalAcceptance: 'not-applicable',
   });
+});
+
+it('requires the approved independent identity and all 55 steps in both placements', () => {
+  const reference = { kind: 'independent-f64', proposalSha256: contract.independent.proposal.sha256,
+    outputIndexSha256: contract.independent.index.sha256, steps: 55 };
+  const numerical = { steps: 110, failed: 0, maxDifference: 0.0009, tolerance: 0.001,
+    directions: [{ direction: 'mac-linux', steps: 55 }, { direction: 'linux-mac', steps: 55 }] };
+  expect(numericalEvidence('required', numerical, reference).numericalAcceptance).toBe('passed');
+  expect(() => requireNumericalQualification('required', numerical, reference)).not.toThrow();
+  expect(numericalEvidence('required', { ...numerical, failed: 1 }, reference).numericalAcceptance).toBe('failed');
+  expect(numericalEvidence('required', { ...numerical, steps: 55, directions: numerical.directions.slice(0, 1) }, reference)
+    .numericalAcceptance).toBe('not-qualified');
+  expect(numericalEvidence('required', numerical, { ...reference, proposalSha256: 'capture' })
+    .numericalAcceptance).toBe('not-qualified');
 });

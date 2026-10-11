@@ -72,8 +72,7 @@ test('ordinary entry stays focused, and route navigation preserves a draft', asy
   await page.keyboard.press('Escape'); await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
   await expect(ribbon).toBeFocused();
   await page.locator('[data-composer-input]').fill('Keep my question while I inspect the network');
-  await page.locator('[data-pool-settings] summary').click();
-  await page.locator('[data-pool-settings] [data-open-network]').click();
+  await page.locator('[data-toggle-inspector]').click();
   await expect(page.locator('[data-network-workspace]')).toBeVisible();
   await page.locator('[data-close-inspector]').click();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep my question while I inspect the network');

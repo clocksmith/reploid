@@ -34,9 +34,13 @@ it('limits the reviewed reference correction to logits, preserving every frozen 
   expect(count).toBe(55);
 });
 
-it('keeps the proposed correction inactive until explicit approval', () => {
+it('keeps captured-output corrections inactive while binding the approved independent target', () => {
   expect(contract.file).toBe(contract.historical.file);
   expect(contract.sha256).toBe(contract.historical.sha256);
-  expect(contract.candidate.status).toBe('inactive-awaiting-explicit-approval');
+  expect(contract.candidate.status).toBe('inactive-runtime-capture-not-an-independent-reference');
   expect(contract.candidate.sha256).not.toBe(contract.sha256);
+  expect(contract.independent.approved).toBe(true);
+  expect(contract.independent.kind).toBe('independent-f64');
+  expect(contract.independent.proposal.sha256).toBe('138a76cff303746fe73e5307659c0aaca5a6b2c953ac44a8798c58f6ac297210');
+  expect(contract.independent.index.sha256).toBe('2c95ecd599b5007b15872c7f3b1ddc5934f5319f983375a996dab536e1021979');
 });

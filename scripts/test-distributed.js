@@ -9,8 +9,9 @@ import { readFile, mkdir, writeFile, access } from 'node:fs/promises';
 import { createWriteStream } from 'node:fs';
 import { resolve } from 'node:path';
 import { once } from 'node:events';
-import { physicalWebGpuBrowserOptions } from '../tests/fixtures/physical-webgpu-browser.js';
+import { physicalWebGpuBrowserOptions, requirePhysicalMeshCrypto } from '../tests/fixtures/physical-webgpu-browser.js';
 import { bindReferenceModel } from '../tests/fixtures/distributed-reference-model.js';
+import { assembleIndependentReference } from '../tests/fixtures/independent-numerical-reference.js';
 import referenceContract from '../tests/fixtures/distributed-reference-contract.json' with { type: 'json' };
 import { resolveNumericalPolicy, numericalEvidence, requireNumericalQualification } from '../tests/fixtures/distributed-numerical-policy.js';
 
@@ -56,6 +57,7 @@ const standaloneControls = !capacityDiagnostic && !numericalDiagnostic && !memor
   && (recoveryDiagnostic ? process.env.REPLOID_E2E_CAPACITY === '1' : !frozenWorkloads);
 const peer = process.env.REPLOID_TEST_PEER || 'x@128.tail995236.ts.net';
 const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || '/home/x/deco/reploid';
+const peerBrowserOptions = physicalWebGpuBrowserOptions('linux', process.env.REPLOID_TEST_PEER_CHROMIUM_CHANNEL || 'chrome');
 // Exercise the hosted conversation's normal authentication and renewable RTC
 // credentials. Installed-package diagnostics retain their isolated local server.
 let conversationBaseUrl = process.env.REPLOID_E2E_BASE_URL || 'https://replo.id';
@@ -133,6 +135,8 @@ let referenceBinding = null;
 let modelFixtureHost = null;
 let conversationDeployment = null;
 let browserDelivery = null;
+let numericalReference = null;
+let evaluatedReferenceSha256 = referenceContract.sha256;
 const memory = [];
 // Freeze identities before starting any browser, rather than relabeling a run
 // with files that a developer may change while diagnosing its failure.
@@ -146,7 +150,15 @@ try {
   if (createHash('sha256').update(bytes).digest('hex') !== referenceContract.sha256) {
     throw new Error('The frozen numerical reference differs; refusing to replace or weaken it');
   }
-  if (frozenWorkloads || capacityDiagnostic) await writeFile(reference, bytes);
+  if (frozenWorkloads) {
+    const oracleRoot = process.env.REPLOID_INDEPENDENT_REFERENCE_ROOT || resolve(root, '../doppler');
+    const assembled = await assembleIndependentReference(JSON.parse(bytes), referenceContract.independent,
+      path => readFile(resolve(oracleRoot, path)));
+    const evaluated = JSON.stringify(assembled);
+    numericalReference = assembled.numericalReference;
+    evaluatedReferenceSha256 = createHash('sha256').update(evaluated).digest('hex');
+    await writeFile(reference, evaluated);
+  } else if (capacityDiagnostic) await writeFile(reference, bytes);
   referenceGeneration = JSON.parse(bytes).generation;
   if (probePrompt !== null && !JSON.parse(bytes).expected[probePrompt]?.steps[probeStep]) {
     throw new Error('Selected numerical boundary is outside the unchanged frozen reference');
@@ -174,7 +186,7 @@ try {
     import { spawn } from 'node:child_process';
     import { tmpdir } from 'node:os'; import { join, resolve } from 'node:path';
     import { packageHosting } from './scripts/package-hosting.js';
-    const contexts = [], profiles = [], endpoints = [];
+    const contexts = [], profiles = [], endpoints = [], cryptoChecks = [];
     let fixture = null, application = null, snapshot = null;
     const close = async () => {
       fixture?.server.closeAllConnections(); fixture?.server.close();
@@ -218,13 +230,21 @@ try {
       } catch (error) { if (error.code !== 'ENOENT') throw error; }
       for (let index = 0; index < 3; index++) {
         const profile = await mkdtemp(join(tmpdir(), 'reploid-physical-profile-')); profiles.push(profile);
-        const context = await chromium.launchPersistentContext(profile, ${JSON.stringify({ ...physicalWebGpuBrowserOptions('linux'), args: [...physicalWebGpuBrowserOptions('linux').args, '--remote-debugging-port=0'] })});
+        const context = await chromium.launchPersistentContext(profile, ${JSON.stringify({ ...peerBrowserOptions, args: [...peerBrowserOptions.args, '--remote-debugging-port=0'] })});
         contexts.push(context);
+        const probe = context.pages()[0] || await context.newPage();
+        const probeUrl = 'http://localhost:' + ${JSON.stringify(String(port))} + '/_physical-crypto-preflight';
+        await probe.route(probeUrl, route => route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>Crypto preflight</title>' }));
+        await probe.goto(probeUrl);
+        cryptoChecks.push(await probe.evaluate(${requirePhysicalMeshCrypto.toString()}));
+        await probe.goto('about:blank');
+        await probe.unroute(probeUrl);
         const [port, path] = (await readFile(join(profile, 'DevToolsActivePort'), 'utf8')).trim().split(String.fromCharCode(10));
         endpoints.push('ws://127.0.0.1:' + port + path);
       }
       console.log(JSON.stringify({ ws: endpoints[0], seed: endpoints[1], replacement: endpoints[2], fixturePort: fixture?.server.address().port || null,
-        browserDelivery: { kind: 'verified-hosting-snapshot', bundleHash: delivery.bundleHash, fileCount: delivery.files.length } }));
+        browserDelivery: { kind: 'verified-hosting-snapshot', bundleHash: delivery.bundleHash, fileCount: delivery.files.length,
+          browserChannel: ${JSON.stringify(peerBrowserOptions.channel)}, browserVersion: contexts[0].browser().version(), cryptoChecks } }));
       let closing = false;
       const stop = async () => { if (closing) return; closing = true; await close(); process.exit(); };
       process.stdin.resume(); process.stdin.on('end', stop); process.on('SIGTERM', stop); process.on('SIGINT', stop);
@@ -279,6 +299,7 @@ try {
       REPLOID_CAPTURE_OUT: capture, REPLOID_MEMORY_PHASE: mode,
       REPLOID_TEST_MODEL: modelId,
       REPLOID_REFERENCE_FILE: reference, REPLOID_REFERENCE_REVERSE: workload.reverse ? '1' : '0',
+      REPLOID_REFERENCE_SHA256: evaluatedReferenceSha256,
       REPLOID_REFERENCE_HOST: referenceHost || '',
       REPLOID_EXECUTOR_CDP: '1', REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
       REPLOID_E2E_BASE_URL: `http://localhost:${port}`, REPLOID_MODEL_BASE_URL: `http://127.0.0.1:${localFixturePort}/`,
@@ -310,7 +331,7 @@ try {
     if (code !== 0) throw new Error(`${receipt.failure?.message || `Retained ${mode} workload failed (${code})`}; inspect ${capture}`);
   }
   if (numericalPolicy === 'required' && numerical?.failed) throw new Error('Frozen numerical tolerance exceeded');
-  if (!numericalDiagnostic) requireNumericalQualification(numericalPolicy, numerical);
+  if (!numericalDiagnostic) requireNumericalQualification(numericalPolicy, numerical, numericalReference);
   if (!capacityDiagnostic && !numericalDiagnostic && !memoryDiagnostic) {
     phase = 'conversation deployment identity';
     const applicationUrl = new URL(conversationBaseUrl);
@@ -390,9 +411,10 @@ try {
       : documentWorkload ? 'Physical cooperative conversation' : 'Physical cooperative recovery diagnostic; long document workload omitted',
     documentWorkload, reverseHosts, referenceHost, probePrompt, probeStep, standaloneControls,
     frozenReferenceApplicable: frozenWorkloads,
-    numericalPolicy, ...numericalEvidence(numericalPolicy, numerical),
+    numericalPolicy, ...numericalEvidence(numericalPolicy, numerical, numericalReference),
     numerical, memory, package: packageIdentity, browserIdentity, peer, modelDirectory, referenceSource, referenceBinding,
     generation: { ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen },
     maxGpuBufferBytes: policy.maxGpuBufferBytes, bufferPool: policy.bufferPool, referenceGeneration,
-    referenceSha256: referenceContract.sha256, referenceRevision: referenceContract.revision }, null, 2));
+    referenceSha256: evaluatedReferenceSha256, historicalReferenceSha256: referenceContract.sha256,
+    numericalReference, referenceRevision: referenceContract.revision }, null, 2));
 }
