@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { compareCountedLines } from '../fixtures/counted-lines.js';
 
 // Seed operators run separately. This fresh requester uses only the hosted UI,
 // automatic discovery, and the ordinary disclosure approval.
@@ -62,7 +63,9 @@ test('fresh public browser completes a distributed answer', async ({ browser }, 
     await Promise.all([waitFor(longId), waitFor(briefId)]);
     completed = await history();
     expect(completed.threads.find(thread => thread.id === warmId).messages.at(-1).content.trim()).toBe('4');
-    expect(completed.threads.find(thread => thread.id === longId).messages.at(-1).content).toContain('20');
+    const counting = compareCountedLines(completed.threads.find(thread => thread.id === longId).messages.at(-1).content, 20);
+    expect(counting, 'The public answer must include every requested number in order').toMatchObject({ passed: true });
+    expect(completed.threads.find(thread => thread.id === briefId).messages.at(-1).content.trim()).toBe('YES');
     expect(weights).toEqual([]);
     expect(errors).toEqual([]);
     expect(credentials.some(item => item.status === 200)).toBe(true);
