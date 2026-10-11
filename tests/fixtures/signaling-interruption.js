@@ -1,5 +1,12 @@
 import { readFile } from 'node:fs/promises';
 
+export async function openParticipantControls(page) {
+  if (!await page.locator('[data-contextual-inspector]').isVisible()) {
+    await page.locator('[data-toggle-inspector]').click();
+  }
+  await page.locator('[data-inspector-section="participants"]').click();
+}
+
 /** Test-owned signaling faults; direct RTC channels and model execution stay untouched. */
 export async function controlSignaling(context) {
   const bootstrap = JSON.parse(await readFile('self/config/swarm-bootstrap.json', 'utf8'));

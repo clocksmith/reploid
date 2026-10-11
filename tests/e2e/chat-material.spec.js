@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { openParticipantControls } from '../fixtures/signaling-interruption.js';
 
 // Explicit host-state fixtures exercise presentation, not model inference.
 async function installConversation(page, theme) {
@@ -114,8 +115,11 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     expect(await textarea.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
     await page.locator('[data-current-model]').hover();
     expect(await textarea.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
-    await page.locator('[data-toggle-inspector]').click();
+    await openParticipantControls(page);
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
+    await page.locator('[data-inspector-section="device"]').click();
+    await openParticipantControls(page);
+    await expect(page.locator('[data-mesh-connect]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     for (const control of await page.locator('.pool-button:visible').all()) {
       expect((await control.boundingBox()).height).toBeGreaterThanOrEqual(44);
