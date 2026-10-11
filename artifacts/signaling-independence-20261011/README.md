@@ -112,3 +112,21 @@ and command output are retained under `recovered-mac-*`.
 Fresh two-host controls run with `caffeinate -i` around the existing runner to
 prevent idle system sleep. This does not change application liveness rules or
 promise operation while the laptop is suspended.
+
+
+## Reversed Mac/Linux placement
+
+[reverse-receipt.json](reverse-receipt.json) passes on two physical hosts with
+Mac and Linux roles reversed. Both selective acquisitions completed, generation
+reached EOS in the same attempt after signaling loss, and a trusted pointer
+activation disconnected the contributor and failed active work. Remote cleanup
+remained explicitly unconfirmed. Each contributor loaded one resident; there
+were no requester weight requests, contributor origin requests or page errors.
+Buffer peaks stayed below the unchanged per-contributor ceiling.
+
+The earlier awake ordinary-placement run remains failed:
+[awake-click-failure.json](awake-click-failure.json). Its pointer action returned
+but the switch stayed Connected and the request completed. It captured no input
+event trace, so it does not establish whether the UI received the intended click.
+Subsequent runs retain bounded trusted-click targets and switch action snapshots.
+The reversed pass does not erase this failure or qualify full application release.
