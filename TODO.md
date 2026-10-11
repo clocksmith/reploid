@@ -4,7 +4,7 @@
 
 This is the single cross-project implementation queue. Doppler and Doe link to item IDs here; evidence stays in its owning repository. Checked means the stated scope is complete, including a completed rejection. Partial acceptance stays unchecked. “Retained” means inspected existing evidence, not a new hardware run. Each open item names the next delta and its completion condition.
 
-**Audit: 2026-10-11.** Fetched and fast-forwarded clean checkouts to Reploid `dd4e1275`, Doppler `b7b94713`, and Doe `50f118901`. Reviewed current source and retained receipts. Fresh checks: offline projection-export test; export archive, manifest, and all 17 payload hashes; accepted Reploid archive and all 1,897 installed package members. No new GPU, remote browser, deployment, model-quality, or benchmark run occurred. No claim is made about currently running remote processes.
+**Audit: 2026-10-11.** Fetched and fast-forwarded clean checkouts to Reploid `dd4e1275`, Doppler `b7b94713`, and Doe `50f118901`. During this audit, concurrent sync also brought Reploid usability commit `47c21cf9` and Doe hosting-only changes through `e36b44c9e`; their changes are preserved. Reviewed current source and retained receipts. Fresh checks: offline projection-export test; export archive, manifest, and all 17 payload hashes; accepted Reploid archive and all 1,897 installed package members. No new GPU, remote browser, deployment, model-quality, or benchmark run occurred. No claim is made about currently running remote processes.
 
 **Changes from the supplied checklist:** DOP-5 and DOP-8 are complete. DOP-4 has all four F16 cases, partial Q4, and no portable comparison. The last batch stopped on user instruction at a settled boundary, not a runtime failure. Reploid's coordinator is implemented, but ordinary document indexing still bypasses it. Doe's imported SPIR-V path exists but lacks qualified metadata; no mixed-compiler projection result is established.
 
@@ -14,7 +14,7 @@ This is the single cross-project implementation queue. Doppler and Doe link to i
 numerical disposition and application quality proceed separately. W8A8 remains
 experimental and does not gate UX. Its [retained benchmark disposition](https://github.com/clocksmith/doppler/blob/b7b94713/artifacts/w8a8-model-qualification-20261011/benchmark/results.json)
 records slower packed execution against F16, the user-stopped partial Q4 run,
-and no portable timing campaign. The agents are stopped for handoff.
+and no portable timing campaign. That retained handoff records stopped agents; this audit did not restart or verify their live sessions.
 
 ## 1. Doppler only: computation, numerical correctness, and packaging
 
