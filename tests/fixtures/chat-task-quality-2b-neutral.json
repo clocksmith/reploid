@@ -1,0 +1,20 @@
+{
+  "schema": "reploid.chat-task-quality/v1",
+  "modelId": "qwen-3-5-2b-q4k-ehaf16",
+  "hypothesis": "The neutral repetition policy transfers to the larger model without losing its exact-output quality; this is a separate model scope from the rejected small-model control.",
+  "acceptance": "Every fresh task must produce its exact expected text, ignoring whitespace differences, and end naturally. Any failure rejects the candidate. The original counting regression is tested only after these fresh cases pass.",
+  "maxGpuBufferBytes": 6000000000,
+  "scope": "Unsplit application-quality diagnostic; higher-budget control, not distributed capacity or numerical qualification.",
+  "variants": [
+    { "id": "existing-2b", "repetitionPenalty": 1.1 },
+    { "id": "neutral-2b", "repetitionPenalty": 1 }
+  ],
+  "cases": [
+    { "id": "ascending-neutral", "prompt": "List the integers from 148 through 162 inclusive in ascending order, one per line. Output only the list.", "expected": "148\n149\n150\n151\n152\n153\n154\n155\n156\n157\n158\n159\n160\n161\n162" },
+    { "id": "descending-neutral", "prompt": "List the integers from 182 down through 170 inclusive in descending order, one per line. Output only the list.", "expected": "182\n181\n180\n179\n178\n177\n176\n175\n174\n173\n172\n171\n170" },
+    { "id": "duplicates-neutral", "prompt": "Repeat these labels in order, keeping duplicates, with one label per line and no commas or extra text: cedar, oak, oak, cedar, oak, cedar.", "expected": "cedar\noak\noak\ncedar\noak\ncedar" },
+    { "id": "amount-neutral", "prompt": "The record says 'Name: Tess; amount: 82.40; paid: no'. Return only the amount exactly as written.", "expected": "82.40" },
+    { "id": "negation-neutral", "prompt": "Instruction: 'Do not open the valve until the test passes.' The test failed. Is opening the valve allowed? Output only Yes or No, without punctuation.", "expected": "No" },
+    { "id": "arithmetic-neutral", "prompt": "Compute 19 + 14. Output only the integer answer.", "expected": "33" }
+  ]
+}
