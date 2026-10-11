@@ -61,6 +61,28 @@ function approve(session, threadId, remember = true) {
 }
 
 describe('Reploid partition APIs with injected Doppler sessions', () => {
+  it.each(['DOPPLER_RESIDENT_OUTPUT_LIMIT', 'LEGACY_027_OUTPUT_LIMIT', 'UNRECOGNIZED_PRIVATE_ERROR'])
+    ('carries a sanitized %s failure through signed execution to the chat adapter', async code => {
+      const f = await fixture({ beforeStep: async (_, index) => {
+        if (index === 1) {
+          if (code === 'LEGACY_027_OUTPUT_LIMIT') throw new Error('Resident output exceeds its character allocation.');
+          throw Object.assign(new Error('private prompt and device detail'), { code });
+        }
+      } });
+      await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
+      await f.chat.refresh();
+      const session = host(f), thread = session.createThread({ model: f.chat.getModels()[0] });
+      const pending = session.send(thread, '1');
+      await vi.waitFor(() => expect(session.getState().threads.find(t => t.id === thread).attempts.at(-1)?.approval).toBeTruthy());
+      approve(session, thread);
+      await pending.catch(() => {});
+      const state = session.getState().threads.find(t => t.id === thread);
+      expect(JSON.stringify(state)).not.toContain('private prompt and device detail');
+      expect(JSON.stringify(state)).toContain(code !== 'UNRECOGNIZED_PRIVATE_ERROR'
+        ? 'exceeded the answer length allowance' : 'Partition peer declined or failed request');
+      expect(f.factory.log.settlements.some(row => row.index === 1)).toBe(true);
+    });
+
   it('keeps imports inert and requires explicit contribution before readiness', async () => {
     const f = await fixture();
     await f.chat.refresh();

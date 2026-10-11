@@ -59,7 +59,9 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
         && typeof result.delta === 'string' && result.delta.length <= request.grant.claim.limits.maxOutputCharacters,
       'Doppler partition response identity or token mismatch');
       const total = (outputCharacters.get(request.identity.attemptId) || 0) + result.delta.length;
-      assert(total <= request.grant.claim.limits.maxOutputCharacters, 'Partition output budget exhausted');
+      if (total > request.grant.claim.limits.maxOutputCharacters) {
+        throw Object.assign(new Error('Partition output budget exhausted'), { code: 'OUTPUT_LIMIT_EXCEEDED' });
+      }
       outputCharacters.set(request.identity.attemptId, total);
       // Large diagnostic logits stay at B; the peer protocol returns one token and bounded continuation.
       const { logits: _logits, ...output } = result;

@@ -1,0 +1,9 @@
+{
+  "codes": {
+    "DOPPLER_RESIDENT_OUTPUT_LIMIT": "OUTPUT_LIMIT_EXCEEDED",
+    "DOPPLER_GPU_OOM": "RESOURCE_EXHAUSTED"
+  },
+  "legacyMessages": {
+    "Resident output exceeds its character allocation.": "OUTPUT_LIMIT_EXCEEDED"
+  }
+}
