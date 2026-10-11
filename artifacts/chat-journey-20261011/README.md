@@ -100,3 +100,13 @@ The reference has been approved, but the implementation has not passed. The
 controller rejects the run; no archive or browser asset was promoted. A scoped
 regression and actual Verification Worker check also confirm that incomplete
 or missing directional evidence cannot grant independent qualification.
+
+## Survivor attribution against retained standalone execution
+
+Every one of the new survivor’s 12,269 characters matches the prefix of the
+retained same-model, same-input, same-policy unsplit control, which ran without
+a second conversation or cancellation. The [exact comparison](extended-failure/unsplit-comparison.json)
+binds that earlier raw receipt. Concurrent cancellation is therefore unnecessary
+for this observed repetitive answer. This narrows investigation to shared runtime
+or model behavior; it does not certify independent source accuracy or complete
+the physical isolation journey. No additional hardware run was needed.

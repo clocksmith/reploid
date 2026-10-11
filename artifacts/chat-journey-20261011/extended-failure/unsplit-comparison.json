@@ -1,0 +1,34 @@
+{
+  "schema": "reploid.retained-unsplit-comparison/v1",
+  "newRun": "2026-10-11T23-19-03-909Z",
+  "retainedControl": "artifacts/partition-contracts-20261010/physical/count-unsplit-control.json.gz",
+  "retainedControlUncompressedSha256": "676ba22fbddd4c0927c1cc4e8d44620648f121d04da70bf75fd45157197850a7",
+  "survivorThread": "86bfb704-2bc6-403e-8f2e-6bb57578e68d",
+  "newCharacters": 12269,
+  "retainedCharacters": 16821,
+  "commonPrefixCharacters": 12269,
+  "entireNewPrefixMatches": true,
+  "newPrompt": "Count from one to two hundred, one number per line.",
+  "retainedInput": {
+    "messages": [
+      {
+        "role": "user",
+        "content": "Count from one to two hundred, one number per line."
+      }
+    ],
+    "generation": {
+      "maxTokens": 4096,
+      "maxSeqLen": 8192,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1.1,
+      "repetitionPenaltyWindow": 0,
+      "presencePenalty": 0,
+      "useChatTemplate": true,
+      "suppressTokenIds": [],
+      "stopSequences": []
+    }
+  },
+  "conclusion": "The entire newly observed repetitive answer prefix also occurs in the retained unsplit execution without concurrent cancellation. This supports a shared model/runtime cause, not proof of source-model accuracy or full cancellation qualification."
+}
