@@ -13,10 +13,10 @@ fresh repository check. Checked items represent retained, scoped completion,
 not full release acceptance. The specification predates several completed fixes.
 Subsequent evidence is recorded beneath the relevant item without erasing failures.
 
-**Sequencing adjustment:** the latest instruction authorizes coordinated R4 work
-in parallel with distributed-chat repairs. Their acceptance remains separate;
-independent jobs do not waive unresolved chat or deployment gates. Callback
-isolation in R5 has already landed.
+**Sequencing adjustment:** the latest instruction authorizes coordinated R4 and
+connection work in parallel with distributed-chat repairs. Their acceptance
+remains separate; independent jobs and introductions do not waive unresolved
+chat or deployment gates. Callback isolation in R5 has already landed.
 
 ## A. Preserve the completed foundations
 
@@ -60,6 +60,8 @@ isolation in R5 has already landed.
   Physical storage verified: [actual K/V readback](https://github.com/clocksmith/doppler/blob/eeefd15b/artifacts/physical-cache-20261011/README.md) checks six layers across four prefixes. All 4,558,848 stored F16 values match independently rounded pre-storage inputs bit-for-bit; layouts, history lengths and allocation identities match subsequent attention reads. Instrumented logits equal baseline exactly. This closes storage/indexing/conversion at the tested boundary, not numerical acceptance. Existing all-layer attention, recurrence, feed-forward and final-projection diagnostics are complete and must not be repeated without an unanswered question. The completed focused audit below separates inherited input differences from local F32 rounding at F16 midpoints.
 
   Completed attribution: the [187-position midpoint audit](https://github.com/clocksmith/doppler/blob/d0896571/artifacts/cache-midpoint-20261011/README.md) separates inherited inputs from local rounding without substituting observed state. The [independently evolved F64 control](https://github.com/clocksmith/doppler/blob/e702bfbc/artifacts/whole-model-f64-20261011/README.md) uses exact deployed weights and explicit F16 cache boundaries. Doppler, historical output and both F32 source paths pass three selected prefixes and fail the fourth at unchanged 0.001; respective maximum errors are 0.001529, 0.001335, 0.001220 and 0.001091. All selected tokens agree. Eight focused controls pass, and one-thread/four-thread reports match exactly. This does not identify a defective storage operation or justify activating captured outputs. The independent evaluation target must be explicit before selecting further numerical repair.
+
+  Verified repair: [tiled projection accumulation](https://github.com/clocksmith/doppler/blob/dd17c76d/artifacts/accumulation-repair-20261011/README.md) shortens the executed F16-weight/F32-activation summation chain while preserving operand formats, dispatch and model semantics. Independent same-operand F64 dot products show lower local error on all 5,888 retained outputs; eight additional GPU shape controls pass. Against the frozen independent whole-model F64 equations with explicit F16 cache boundaries, the selected failing prefix improves from 0.001529 to 0.001206, with violations reduced from 148 to 11. All four selected tokens remain unchanged. This investigative accuracy target does not activate a replacement reference. Full numerical qualification, all-prefix replay and Mac acceptance remain open; the standard archive is unchanged.
 
 - [ ] **8. Doppler: resolve the reference-contract mismatch explicitly.**
   Preserve declared normalization entry points rather than restoring the historical `main_subgroup` substitution. Keep old fixtures and failed receipts unchanged. Independently assess any correction before proposing a versioned reference replacement, requiring explicit approval. Retain precision, inputs, token expectations and **0.001 tolerance**. Newly captured Doppler outputs alone cannot validate their own correctness.
@@ -163,7 +165,7 @@ isolation in R5 has already landed.
 
   Physical measurement: [13 completed attempts](artifacts/focused-recovery-20261011/stage-timings.json) include concurrent counting/YES conversations, documents and replacement retries. Concurrent lease waits total 640.2/395.7 ms, with output callbacks at 7.1/0.3 ms. Remote stages include nested transport and compute; those durations cannot be added. No useful overlap is demonstrated, so retain the bounded scheduler and callback isolation. Application-quality failure remains the priority; no throughput improvement is claimed.
 
-- [ ] **24. Reploid: peer-carried introductions.**
+- [x] **24. Reploid: peer-carried introductions.**
   After the core journey passes, add bounded peer-carried introductions behind existing connection interfaces. Use authenticated, expiring contacts and replaceable bootstrap participants; ordinary use should not require manual pairing. Keep introduction, computing and disclosure permissions separate. Test fresh discovery and inference with company signaling blocked, retaining explicit bootstrap and relay limitations.
 
   Progress: [bounded implementation and browser controls](artifacts/peer-introductions-20261010/README.md) already exist. Preserve them; do not rebuild the protocol. Full fresh-discovery inference acceptance follows the core journey.
@@ -171,6 +173,8 @@ isolation in R5 has already landed.
   Additional repair: `8d9a0a37` rechecks current grants on later introduction messages and cancels pending connections on close. `7c8224c3` exposes the existing swarm network port through ordinary product composition. Two browser product hosts discover each other with external requests blocked, independent bootstrap/ICE configuration and separate compute/file/introduction permissions. This proves configured host integration, not public bootstrap availability, cross-network inference or deployment; [validation evidence](artifacts/partition-contracts-20261010/README.md#contributor-opening-and-networking-correction-october-11).
 
   Physical transport: [Mac/Linux acceptance](artifacts/peer-introductions-20261010/physical-20261011/README.md), `64cfa31c`, passes all three introduction scenarios across the actual hosts. Direct messages and custody-channel bytes survive introducer removal; ordinary hosts discover each other without company requests; relay-required operation without a relay rejects. This does not execute a model, supply a public bootstrap participant or qualify arbitrary internet NATs. Full inference acceptance remains open.
+
+  Completion: [source-validated introduced embedding](artifacts/peer-introductions-20261010/embedding-20261011/README.md), `7e7582e6`, executes an existing signed job from a fresh weightless Mac requester on Linux/AMD after introducer removal, with company signaling and external HTTP blocked. Separate disclosure and compute denial controls pass. All 3,072 vector values match the independent reference within the unchanged 0.02 embedding tolerance; tracked allocation peaks at 1,248,138,752 bytes. Together with automatic configured bootstrap fallback and authenticated contact controls above, this closes the scoped introduction feature. Repository checks pass 3,015 tests, browser controls pass 19 scenarios, and all 17 installed-package checks pass. The diagnostic Doppler archive remains separate from the unchanged standard archive. Configured bootstrap routes and reachable peers are still required; this does not qualify arbitrary NATs, ordinary chat, public deployment or items 14–18.
 
 - [ ] **25. Later: portable checkpoints.**
   Defer portable checkpoints and expansion beyond two model partitions. Doppler must serialize every future-affecting state, including caches, recurrence, token context, sequence position, sampling and decoding. Reploid must enforce custody, compatibility, authorization and one consistent boundary across partitions. Restore into a new attempt, reject replaced-assignment output, and compare uninterrupted versus restored execution, including supported stochastic generation.
