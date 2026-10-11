@@ -19,13 +19,20 @@ const suiteBytes = await readFile(suitePath || new URL('./chat-task-quality.json
 const suite = JSON.parse(suiteBytes);
 const profile = JSON.parse(await readFile(resolve(root, 'self/config/work-profile.json')));
 const policy = JSON.parse(await readFile(resolve(root, 'self/config/partition-policy.json')));
-const selected = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json'))).find(m => m.id === suite.modelId);
+let selected = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json'))).find(m => m.id === suite.modelId);
+if (suite.diagnosticManifestIdentity !== undefined) {
+  assert(!selected, 'A diagnostic binding cannot replace an application catalog identity');
+  assert(/^sha256:[a-f0-9]{64}$/.test(suite.diagnosticManifestIdentity), 'Pin the diagnostic manifest identity');
+  selected = { id: suite.modelId, identity: suite.diagnosticManifestIdentity,
+    source: { baseUrl: 'https://reploid-model-diagnostic.invalid/' + encodeURIComponent(suite.modelId) + '/' } };
+}
 assert(selected);
 const generation = resolveGenerationOptions({ ...profile.generation, ...policy.generation, maxSeqLen: policy.maxSeqLen });
 const pin = JSON.parse(await readFile(resolve(root, 'self/config/doppler-package.json')));
 const archive = await readFile(resolve(root, pin.spec.slice(5)));
 const manifestBytes = await readFile(resolve(process.env.DOPPLER_CHAT_MODEL_DIR, 'manifest.json'));
 assert.equal('sha256:' + hash(manifestBytes), selected.identity);
+assert.equal(JSON.parse(manifestBytes).modelId, suite.modelId);
 const eosTokenIds = [JSON.parse(manifestBytes).eos_token_id].flat();
 const report = { schema: 'reploid.chat-task-quality-result/v1', scope: suite.scope, qualified: false,
   suiteSha256: hash(suiteBytes), producerSha256: hash(await readFile(new URL(import.meta.url))),
