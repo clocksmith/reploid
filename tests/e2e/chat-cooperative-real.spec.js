@@ -318,6 +318,10 @@ test('one model executes cooperatively on discovered physical peers from selecti
       expect(signalingEvidence.generation.after.execution.stopReason).toBe('eos-token');
       expect(signalingEvidence.generation.after.id).toBe(signalingEvidence.generation.before.id);
       await saveSignaling('generation-completed');
+      const inspector = contributor.locator('[data-toggle-inspector]');
+      if (await inspector.getAttribute('aria-expanded') !== 'true') await inspector.click();
+      await contributor.locator('[data-inspector-section="participants"]').click();
+      await expect(contributor.locator('[data-mesh-connect]')).toBeVisible();
       const stoppedId = await sendNew('Count from one to twenty, one number per line.');
       await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === stoppedId)
         .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
