@@ -1,0 +1,20 @@
+{
+  "schema": "reploid.chat-task-quality/v1",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "hypothesis": "Full-history repetition penalties can distort tasks requiring repeated tokens; neutral repetition preserves exact output while retaining natural completion.",
+  "acceptance": "Every fresh task must produce its exact expected text, ignoring whitespace differences, and end naturally. Any failure rejects the candidate. Protected numerical and application cases remain unchanged.",
+  "maxGpuBufferBytes": 6000000000,
+  "scope": "Unsplit application-quality diagnostic; higher-budget control, not distributed capacity or numerical qualification.",
+  "variants": [
+    { "id": "existing", "repetitionPenalty": 1.1 },
+    { "id": "neutral-repetition", "repetitionPenalty": 1 }
+  ],
+  "cases": [
+    { "id": "ascending", "prompt": "List the integers from 31 through 45 inclusive, in ascending order, one integer per line. Output only the list.", "expected": "31\n32\n33\n34\n35\n36\n37\n38\n39\n40\n41\n42\n43\n44\n45" },
+    { "id": "descending", "prompt": "List the integers from 73 down to 61 inclusive, in descending order, one integer per line. Output only the list.", "expected": "73\n72\n71\n70\n69\n68\n67\n66\n65\n64\n63\n62\n61" },
+    { "id": "duplicate-values", "prompt": "Copy these values exactly, preserving duplicates and order, one per line. Output nothing else: maple, maple, birch, maple, birch, birch.", "expected": "maple\nmaple\nbirch\nmaple\nbirch\nbirch" },
+    { "id": "literal-amount", "prompt": "The invoice says: Customer: Mira. Amount: 37.50. Status: unpaid. Output only the amount exactly as written.", "expected": "37.50" },
+    { "id": "negated-obligation", "prompt": "Read: 'Lena must not ship the parcel before approval.' Is Lena allowed to ship before approval? Answer only Yes or No.", "expected": "No" },
+    { "id": "arithmetic", "prompt": "What is 14 plus 9? Output only the integer answer.", "expected": "23" }
+  ]
+}
