@@ -82,3 +82,12 @@ export function publicResidentContract(session: ResidentPartitionSession, factor
   const ready: true = descriptor.ready;
   return { opening, digest, ready, recovery: adapted.getRecoveryCapabilities() };
 }
+
+import type { SwarmDataChannelLabel, SwarmTransport } from '../../packages/reploid/src/transport/index.js';
+const auxiliaryLabels: SwarmDataChannelLabel[] = ['reploid-custody', 'reploid-partitions',
+  'reploid-partitions-input', 'reploid-partitions-control', 'reploid-jobs'];
+export function introducedJobChannel(transport: SwarmTransport, peerId: string): RTCDataChannel {
+  // @ts-expect-error unknown work cannot acquire an auxiliary channel
+  transport.onDataChannel('arbitrary-work', () => {});
+  return transport.openDataChannel(peerId, auxiliaryLabels[4]);
+}

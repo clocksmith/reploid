@@ -1,6 +1,8 @@
 import type { IntroductionBootstrapOptions } from './introduction-bootstrap.js';
 import type { IntroductionOptions, PeerIntroductions } from './introductions.js';
 import type { ResolvedConfig } from '../config/index.js';
+export type SwarmDataChannelLabel = 'reploid-custody' | 'reploid-partitions'
+  | 'reploid-partitions-input' | 'reploid-partitions-control' | 'reploid-jobs';
 export interface SwarmTransport {
   getIntroductions(): PeerIntroductions | null;
   init(): Promise<boolean>; disconnect(): void; sendToPeer(peerId: string, type: string, payload: unknown): boolean;
@@ -8,8 +10,8 @@ export interface SwarmTransport {
   getConnectionState(): string; getConnectedPeers(): object[]; getStats(): Record<string, unknown>; getClock(): number; tick(): number;
   _getPeerId(): string | null; _getSessionId(): string | null;
   getPeerBinding?(peerId: string): { local: string; remote: string } | null;
-  onDataChannel(label: 'reploid-custody' | 'reploid-partitions', handler: (peerId: string, channel: RTCDataChannel) => void): () => void;
-  openDataChannel(peerId: string, label: 'reploid-custody' | 'reploid-partitions'): RTCDataChannel;
+  onDataChannel(label: SwarmDataChannelLabel, handler: (peerId: string, channel: RTCDataChannel) => void): () => void;
+  openDataChannel(peerId: string, label: SwarmDataChannelLabel): RTCDataChannel;
 }
 export interface SwarmOptions {
   config: ResolvedConfig; Utils: { logger: Record<'info'|'debug'|'warn'|'error', (...args: unknown[]) => void>; generateId(prefix: string): string };

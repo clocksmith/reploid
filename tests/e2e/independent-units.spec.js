@@ -3,43 +3,18 @@ import { createServer } from 'node:http';
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import { createReadStream } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { physicalEmbeddingAssets } from '../fixtures/physical-embedding-assets.js';
 
 let server, origin, physicalConfig;
 test.beforeAll(async () => {
   const root = path.resolve('.');
   const installedRoot = process.env.REPLOID_UNITS_INSTALLED_ROOT ? path.resolve(process.env.REPLOID_UNITS_INSTALLED_ROOT) : null;
-  let runtimeRoot, capsuleRoot;
-  if (process.env.REPLOID_UNITS_PHYSICAL_CONFIG) {
-    const config = JSON.parse(await readFile(process.env.REPLOID_UNITS_PHYSICAL_CONFIG, 'utf8'));
-    const receipt = JSON.parse(await readFile(path.join(config.packageBundlePath, 'receipt.json'), 'utf8'));
-    const archive = await readFile(path.join(config.packageBundlePath, receipt.package.filename));
-    expect(createHash('sha256').update(archive).digest('hex')).toBe(receipt.package.sha256);
-    expect(receipt.passed).toBe(true);
-    const reference = JSON.parse(await readFile(config.referencePath, 'utf8'));
-    const capsule = JSON.parse(await readFile(config.capsulePath, 'utf8'));
-    physicalConfig = { config: { ...config, capsuleFilename: path.basename(config.capsulePath) },
-      reference, capsule, expectedReferenceDigest: config.application.oracle.digest, runtimePackage: receipt.package };
-    runtimeRoot = path.join(config.packageBundlePath, 'consumer/node_modules/doppler-gpu');
-    capsuleRoot = path.dirname(config.capsulePath);
-  }
+  const assets = await physicalEmbeddingAssets(process.env.REPLOID_UNITS_PHYSICAL_CONFIG);
+  physicalConfig = assets.configuration;
   server = createServer(async (request, response) => {
     try {
       const pathname = new URL(request.url, 'http://localhost').pathname;
-      if (physicalConfig && pathname === '/physical/config.json') {
-        response.setHeader('Content-Type', 'application/json'); response.end(JSON.stringify(physicalConfig)); return;
-      }
-      const mounted = physicalConfig && (pathname.startsWith('/src/') ? [runtimeRoot, pathname.slice(1)]
-        : pathname.startsWith('/capsule/') ? [capsuleRoot, decodeURIComponent(pathname.slice('/capsule/'.length))] : null);
-      if (mounted) {
-        const file = path.resolve(...mounted);
-        if (!file.startsWith(mounted[0] + path.sep)) { response.writeHead(403).end(); return; }
-        response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json'
-          : file.endsWith('.js') ? 'text/javascript' : 'application/octet-stream');
-        const stream = createReadStream(file);
-        stream.on('error', () => response.destroy()); stream.pipe(response); return;
-      }
+      if (assets.serve(pathname, response)) return;
       if (pathname === '/') {
         response.setHeader('Content-Type', 'text/html');
         response.end('<!doctype html><title>Independent units</title><script type="importmap">{"imports":{"reploid/jobs":"/packages/reploid/src/mesh/jobs/index.js"}}</script>');

@@ -59,11 +59,23 @@ it('cancels a blocked contact store before opening any route', async () => {
 
 it('bounds a stalled route and attempts the next route', async () => {
   const { record, introductions } = await fixture(), close = vi.fn();
-  const result = await bootstrapIntroductions({ introductions, isConnected: () => true,
-    policy: { ...policy, messageTtlMs: 10 }, routes: [
-      { id: 'stalled', open: () => new Promise(() => {}) },
-      { id: 'next', open: async () => ({ contact: record, publish() {}, close }) }
-    ] });
-  expect(result.routeId).toBe('next'); expect(result.failures[0].routeId).toBe('stalled');
-  expect(close).toHaveBeenCalledOnce();
+  const deadlines = [], stalled = vi.fn(() => new Promise(() => {}));
+  // Drive expiry explicitly; contact signature verification need not race a real 10ms clock.
+  const timeout = vi.spyOn(AbortSignal, 'timeout').mockImplementation(() => {
+    const controller = new AbortController(); deadlines.push(controller); return controller.signal;
+  });
+  try {
+    const pending = bootstrapIntroductions({ introductions, isConnected: () => true,
+      policy: { ...policy, messageTtlMs: 10 }, routes: [
+        { id: 'stalled', open: stalled },
+        { id: 'next', open: async () => ({ contact: record, publish() {}, close }) }
+      ] });
+    await vi.waitFor(() => expect(stalled).toHaveBeenCalledOnce());
+    deadlines[1].abort(new DOMException('Route deadline expired', 'TimeoutError'));
+    const result = await pending;
+    expect(result.routeId).toBe('next');
+    expect(result.failures).toEqual([{ routeId: 'stalled', message: 'Route deadline expired' }]);
+    expect(timeout.mock.calls).toEqual([[10], [10], [10]]);
+    expect(close).toHaveBeenCalledOnce();
+  } finally { timeout.mockRestore(); }
 });

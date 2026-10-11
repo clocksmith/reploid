@@ -18,7 +18,11 @@ function fixture() {
     channel = { label: 'reploid', readyState: 'open', send: vi.fn(), close: vi.fn() };
     constructor() { connections.push(this); }
     close = vi.fn();
-    createDataChannel() { return this.channel; }
+    createDataChannel(label, options) {
+      if (label === 'reploid') return this.channel;
+      return Object.assign(new EventTarget(), { label, ...options, readyState: 'open',
+        close: vi.fn(), send: vi.fn(), maxRetransmits: null, maxPacketLifeTime: null });
+    }
     async createOffer() { return { type: 'offer', sdp: '' }; }
     async createAnswer() { return { type: 'answer', sdp: '' }; }
     async setLocalDescription() {}
@@ -154,4 +158,44 @@ it('admits through an injected introduction adapter without a WebSocket or compa
   expect(unsubscribe).toHaveBeenCalledOnce();
   await listener({ type: 'joined', peerId: 'local', roomId: 'independent', peers: ['late'] });
   expect(swarm.getConnectedPeers()).toEqual([]);
+});
+
+
+it('admits only registered bounded job channels and closes them on peer shutdown', async () => {
+  const f = fixture(), handler = vi.fn();
+  try {
+    await f.open();
+    const connection = f.connections[0];
+    const unregistered = connection.createDataChannel('reploid-jobs', { ordered: true });
+    connection.ondatachannel({ channel: unregistered });
+    expect(unregistered.close).toHaveBeenCalledOnce();
+    f.swarm.onDataChannel('reploid-jobs', handler);
+    const channel = connection.createDataChannel('reploid-jobs', { ordered: true });
+    connection.ondatachannel({ channel });
+    expect(handler).toHaveBeenCalledWith('direct', channel);
+    const duplicate = connection.createDataChannel('reploid-jobs', { ordered: true });
+    connection.ondatachannel({ channel: duplicate });
+    expect(duplicate.close).toHaveBeenCalled();
+    expect(handler).toHaveBeenCalledOnce();
+    expect(() => f.swarm.onDataChannel('arbitrary-work', handler)).toThrow('Explicit auxiliary');
+    expect(() => f.swarm.openDataChannel('direct', 'arbitrary-work')).toThrow('Connected WebRTC');
+    f.swarm.disconnect();
+    expect(connection.close).toHaveBeenCalled();
+    const late = connection.createDataChannel('reploid-jobs', { ordered: true });
+    connection.ondatachannel({ channel: late });
+    expect(late.close).toHaveBeenCalledOnce();
+    expect(handler).toHaveBeenCalledOnce();
+    expect(() => f.swarm.openDataChannel('direct', 'reploid-jobs')).toThrow('Connected WebRTC');
+  } finally { f.swarm.disconnect(); }
+});
+
+it('creates dedicated job channels with the existing reliable ordered delivery contract', async () => {
+  const f = fixture();
+  try {
+    await f.open();
+    const channel = f.swarm.openDataChannel('direct', 'reploid-jobs');
+    expect(channel).toMatchObject({ label: 'reploid-jobs', ordered: true,
+      maxRetransmits: null, maxPacketLifeTime: null });
+    expect(() => f.swarm.openDataChannel('direct', 'reploid-jobs')).toThrow('duplicate auxiliary');
+  } finally { f.swarm.disconnect(); }
 });
