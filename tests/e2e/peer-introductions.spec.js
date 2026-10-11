@@ -87,3 +87,48 @@ test('reports connection failure when policy requires a relay and none is config
     for (const context of contexts) await context.close();
   }
 });
+
+test('ordinary product host uses independent bootstrap and ICE without granting compute or file sharing', async ({ browser }, testInfo) => {
+  const contexts = [], pages = [], external = [];
+  try {
+    for (let index = 0; index < 2; index++) {
+      const context = await browser.newContext(); contexts.push(context);
+      await context.route('**/*', route => {
+        if (new URL(route.request().url()).origin === origin) return route.continue();
+        external.push(route.request().url()); return route.abort();
+      });
+      const page = await context.newPage(); pages.push(page); await page.goto(origin);
+      await page.exposeFunction('deliverIntroduction', envelope => {
+        const receiver = pages[index === 0 ? 1 : 0];
+        receiver.evaluate(envelope => window.introductions.receiveHost(envelope), envelope).catch(error => console.error(error));
+        return true;
+      });
+      await page.evaluate(async () => { window.introductions = await import('/tests/fixtures/peer-introductions-browser.js'); });
+    }
+    const contact = await pages[0].evaluate(() => window.introductions.startHost(null));
+    const hosted = await pages[1].evaluate(contact => window.introductions.startHost(contact), contact);
+    await expect.poll(() => pages[0].evaluate(() => window.introductions.hostState().peers)).toContain(hosted.body.peerId);
+    await expect.poll(() => pages[1].evaluate(() => window.introductions.hostState().peers)).toContain(contact.body.peerId);
+    expect(await pages[1].evaluate(() => window.introductions.hostState())).toMatchObject({
+      sharing: false, introductionAssistance: false, files: { sharing: false }, contributionPhase: 'idle'
+    });
+    await pages[1].evaluate(() => window.introductions.allowHostIntroductions(true));
+    expect(await pages[1].evaluate(() => window.introductions.hostState())).toMatchObject({
+      sharing: false, introductionAssistance: true, files: { sharing: false }, contributionPhase: 'idle'
+    });
+    const events = await pages[1].evaluate(() => window.introductions.events);
+    expect(events.filter(event => event.type === 'swarm:bootstrap-state').map(event => event.payload.state))
+      .toEqual(['connecting', 'unavailable', 'connecting', 'connected']);
+    expect(events.some(event => event.type === 'host:rtc-config')).toBe(true);
+    expect(external).toEqual([]);
+    await testInfo.attach('ordinary-host-bootstrap', { body: JSON.stringify({
+      executionClass: 'ordinary-product-host-two-browser-contexts-real-webrtc',
+      modelInference: false, externalNATTest: false, configuredParticipant: true, externalRequests: external,
+      state: await pages[1].evaluate(() => window.introductions.hostState()), events
+    }, null, 2), contentType: 'application/json' });
+  } finally {
+    await pages[1]?.evaluate(() => window.introductions?.closeHost()).catch(() => {});
+    await pages[0]?.evaluate(() => window.introductions?.closeHost()).catch(() => {});
+    for (const context of contexts) await context.close();
+  }
+});
