@@ -1,0 +1,72 @@
+{
+  "schema": "reploid.document-answer-review/v1",
+  "qualified": false,
+  "method": "Manual comparison against exact fictional passages retained in the request; no model self-certification",
+  "sourceRun": "2026-10-11T10-54-28-056Z",
+  "findings": [
+    {
+      "pass": 1,
+      "claim": "All three quotes exceed your $12,000 budget.",
+      "verdict": "unsupported and contradicted by stated prices; unspecified extras are unknown, not established overruns",
+      "source": [
+        "D1:P1",
+        "D2:P1",
+        "D3:P1"
+      ]
+    },
+    {
+      "pass": 1,
+      "claim": "Harbor total liability is $11,600 + tax.",
+      "verdict": "incorrect: quoted price already includes tax",
+      "source": [
+        "D2:P1"
+      ]
+    },
+    {
+      "pass": 1,
+      "claim": "Cash payment makes the tax-excluded Maple base price final.",
+      "verdict": "invented payment/tax condition",
+      "source": [
+        "D1:P1"
+      ]
+    },
+    {
+      "pass": 1,
+      "claim": "Missing passage-level citations throughout the answer.",
+      "verdict": "document headings [D1], [D2], [D3] do not satisfy requested passage IDs",
+      "source": [
+        "request"
+      ]
+    },
+    {
+      "pass": 2,
+      "claim": "Harbor is over budget by approximately $400.",
+      "verdict": "incorrect: $12,000 minus $11,600 leaves $400 before excluded extras",
+      "source": [
+        "D2:P1",
+        "D2:P2"
+      ]
+    },
+    {
+      "pass": 2,
+      "claim": "None of the contracts promise completion before June 1.",
+      "verdict": "incorrect: Harbor promises May 28 conditional on deposit by April 10; Cedar differs",
+      "source": [
+        "D2:P3",
+        "D3:P3"
+      ]
+    },
+    {
+      "pass": 2,
+      "claim": "Cash totals for tax-excluded quotes are complete out-of-pocket amounts.",
+      "verdict": "unsupported: taxes and excluded scope remain unresolved",
+      "source": [
+        "D1:P1",
+        "D1:P2",
+        "D3:P1",
+        "D3:P2"
+      ]
+    }
+  ],
+  "conclusion": "Both generations finish, but the source-grounded application-quality requirement fails. The second model pass does not reliably correct the first."
+}

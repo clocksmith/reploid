@@ -57,6 +57,18 @@ test('one model executes cooperatively on discovered physical peers from selecti
     for (const context of contexts) await context.addInitScript(config => { globalThis.REPLOID_POOL_RTC_CONFIG = config; }, rtc);
   }
   const [requester, contributor, seed, second] = await Promise.all(contexts.map(context => context.newPage()));
+  const browserLifecycle = { events: [], dropped: 0 };
+  const observePageLifecycle = (page, role) => {
+    const record = kind => {
+      if (browserLifecycle.events.length >= 256) { browserLifecycle.dropped++; return; }
+      browserLifecycle.events.push({ kind, role, observedAt: Date.now(), url: page.url() });
+    };
+    page.on('framenavigated', frame => { if (frame === page.mainFrame()) record('main-frame-navigation'); });
+    page.on('crash', () => record('page-crash'));
+    page.on('close', () => record('page-close'));
+  };
+  [requester, contributor, seed, second].forEach((page, index) =>
+    observePageLifecycle(page, ['requester', 'contributor-a', 'seed', 'contributor-b'][index]));
   const signalingOnly = process.env.REPLOID_E2E_SIGNALING === '1';
   const signaling = signalingOnly ? await Promise.all(contexts.map(controlSignaling)) : null;
   const signalingEvidence = { acquisition: null, generation: null, explicitDisconnect: null };
@@ -461,6 +473,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       }
       await context.route('https://huggingface.co/**', route => route.abort('internetdisconnected'));
       const page = await context.newPage(); allPages.push(page);
+      observePageLifecycle(page, 'replacement');
       page.on('request', request => { if (modelRequest(request.url())) contributorOrigins.push(request.url()); });
       page.on('pageerror', error => errors.push(error.message));
       const observation = { physicalHost: observations[bIndex].physicalHost, loads: [], steps: [], errors: [] };
@@ -813,6 +826,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       await info.attach('numerical-at-exit.json', { contentType: 'application/json', body: JSON.stringify(evidence, null, 2) });
     }
     const stateAtExit = JSON.stringify({
+      browserLifecycle,
       signalingEvidence, signalingEvents: signaling?.map(control => control.events) || null,
       executorQuotaMiB, seedObservation,
       physicalDevices: remote ? 2 : 1, browserContexts: contexts.length,
