@@ -67,6 +67,8 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
   Remaining quality failure: the 2B replay of the original count-to-200 request stops at 120 with EOS. The [retained result](artifacts/chat-task-quality-20261011/README.md) rejects it. The application cancellation test now verifies the full ordered count, so natural stopping alone cannot qualify an incomplete answer.
 
+  Independent attribution: the [2B source replay](https://github.com/clocksmith/doppler/blob/c45daac1/artifacts/source-model-reference-20261011/model-2b-counting-source.json) matches all 372 tokens, including EOS after 120. A neutral repetition candidate also fails the unchanged request. No production policy changed. The application test retains a failing quality verdict while continuing independent recovery checks after settlement.
+
 - [ ] **10. Reploid: explain and repair acquisition disconnects.**
   Trace the first failed peer acquisition through `self/host/work-model-files.js`, custody and transport: actual connection loss, retained inventory, requested piece, permissions and supplier replacement. Preserve the earlier failed run even when retry succeeds. Retain the already-repaired manifest binding. Completion requires a reproduced cause, targeted regression and successful selective acquisition with origins blocked.
 
