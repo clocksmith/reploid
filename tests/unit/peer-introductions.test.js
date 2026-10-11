@@ -151,3 +151,36 @@ it('invalidates an exchange while the transport is obtaining connection configur
     expect(b.controller.getState().pending).toBe(0);
   } finally { a.controller.close(); b.controller.close(); }
 });
+
+it('rechecks connection permission before accepting later signals for an admitted attempt', async () => {
+  let exchange, allowConnection = true;
+  const a = await endpoint('a', { transport: { connectIntroducedPeer: async (_, value) => {
+    exchange = value; await exchange.publish({ type: 'offer', offer: sdp });
+  } } });
+  const b = await endpoint('b', { authorize: ({ action }) => action !== 'connect' || allowConnection });
+  const packets = [];
+  try {
+    await a.controller.connect(b.controller.exportContact(), value => { packets.push(value); return true; });
+    await b.controller.receive('a', INTRODUCTION_SIGNAL, packets.shift());
+    expect(b.transport.acceptIntroductionSignal).toHaveBeenCalledTimes(1);
+    allowConnection = false;
+    await exchange.publish({ type: 'ice-candidate', candidate: { candidate: 'candidate:blocked' } });
+    await expect(b.controller.receive('a', INTRODUCTION_SIGNAL, packets.shift())).rejects.toThrow('connect denied');
+    expect(b.transport.acceptIntroductionSignal).toHaveBeenCalledTimes(1);
+  } finally { a.controller.close(); b.controller.close(); }
+});
+
+it('closes owned pending introductions while preserving established channels', async () => {
+  const a = await endpoint('a'), b = await endpoint('b'), c = await endpoint('c');
+  try {
+    await a.controller.connect(b.controller.exportContact(), () => true);
+    await a.controller.connect(c.controller.exportContact(), () => true);
+    a.controller.settled('b');
+    a.controller.close();
+    expect(a.transport.cancelIntroduction).toHaveBeenCalledTimes(1);
+    expect(a.transport.cancelIntroduction).toHaveBeenCalledWith('c', expect.any(String));
+    expect(a.controller.getState()).toEqual({ contacts: 0, pending: 0, closed: true });
+    a.controller.close();
+    expect(a.transport.cancelIntroduction).toHaveBeenCalledTimes(1);
+  } finally { a.controller.close(); b.controller.close(); c.controller.close(); }
+});

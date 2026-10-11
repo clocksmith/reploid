@@ -131,6 +131,8 @@ export async function createPeerIntroductions({ transport, identity, roomId, aut
     assert(typeof payload.attemptId === 'string' && /^[a-f0-9-]{36}$/.test(payload.attemptId)
       && ['offer', 'answer', 'ice-candidate'].includes(payload.type), 'Invalid introduction negotiation');
     if (payload.type !== 'ice-candidate') assert(fingerprint(payload[payload.type]), 'Missing unique WebRTC certificate fingerprint');
+    // Admission of a contact does not preserve a revoked connection grant.
+    await permitted('connect', { contact: body.contact });
     let attempt = attempts.get(remote);
     if (attempt && attempt.id !== payload.attemptId) {
       // One deterministic initiator survives simultaneous introductions.
@@ -140,7 +142,6 @@ export async function createPeerIntroductions({ transport, identity, roomId, aut
     if (!attempt) {
       assert(payload.type === 'offer' || payload.type === 'ice-candidate', 'Unsolicited introduction answer');
       assert(transport.getConnectedPeers().length < policy.maxContacts, 'Connected peer allocation exhausted');
-      await permitted('connect', { contact: body.contact });
       attempt = allocate(remote, payload.attemptId, route);
     }
     assert(attempt.expiresAt > now(), 'Introduction attempt expired');
@@ -201,6 +202,12 @@ export async function createPeerIntroductions({ transport, identity, roomId, aut
     },
     settled(remote) { const attempt = attempts.get(remote); if (attempt) attempt.established = true; },
     getState: () => ({ contacts: contacts.size, pending: attempts.size, closed }),
-    close() { closed = true; contacts.clear(); attempts.clear(); seen.clear(); }
+    close() {
+      closed = true;
+      for (const [remote, attempt] of attempts) {
+        if (!attempt.established) transport.cancelIntroduction?.(remote, attempt.id);
+      }
+      contacts.clear(); attempts.clear(); seen.clear();
+    }
   });
 }
