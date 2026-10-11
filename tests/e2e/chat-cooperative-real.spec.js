@@ -9,6 +9,7 @@ import { observeCooperativePage, compareObservedLogits } from '../fixtures/coope
 import { inspectExecutorMemory, measureStandaloneDenial, measureStandaloneGeneration, routeDiagnosticModel, inspectConnections } from '../fixtures/capacity-observer.js';
 import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from '../fixtures/physical-webgpu-browser.js';
 import { controlSignaling, openParticipantControls } from '../fixtures/signaling-interruption.js';
+import { compareCountedLines } from '../fixtures/counted-lines.js';
 
 // Exact catalog bytes may be supplied by a local seed. The requester/executor
 // still use the normal page, real WebRTC, signed custody and installed WebGPU.
@@ -419,9 +420,12 @@ test('one model executes cooperatively on discovered physical peers from selecti
         await expect.poll(async () => (await lastAttempt(cancelledId)).status).toBe('cancelled');
         await waitCompleted(survivorId, 600000);
         receipt.afterCancellation = { survivor: await lastAttempt(survivorId), cancelled: await lastAttempt(cancelledId) };
+        const survivor = (await history(requester)).threads.find(thread => thread.id === survivorId);
+        receipt.survivorQuality = compareCountedLines(survivor.messages.at(-1).content, 200);
         await save();
         expect(receipt.afterCancellation.survivor.id).toBe(receipt.beforeCancellation.survivor.id);
         expect(receipt.afterCancellation.survivor.execution.stopReason).toBe('eos-token');
+        expect(receipt.survivorQuality.passed, 'EOS must include every requested number through 200').toBe(true);
         expect(receipt.afterCancellation.cancelled.status).toBe('cancelled');
         await requester.locator(`[data-thread-item-id="${firstThreadId}"]`).click();
         await requester.locator('[data-composer-input]').fill('Say goodbye briefly.');
