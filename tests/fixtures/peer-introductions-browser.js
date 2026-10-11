@@ -41,3 +41,36 @@ export async function echo(remote) {
   });
 }
 export const close = () => swarm.disconnect();
+
+let host;
+export async function startHost(bootstrapContact) {
+  const { createProductSession } = await import('../../self/host/product-session.js');
+  host = createProductSession({ storage: localStorage,
+    networkOptions: () => { throw new Error('Signed job networking must remain separate'); },
+    swarmNetworkOptions: deps => ({ ...deps,
+      config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'introduction-browser' },
+        webrtc: { signalingUrl: null, sessionId: 'ordinary-host', transportOrder: ['webrtc'], heartbeatIntervalMs: 1000 } } }),
+      autoConnect: true, discoveryScope: 'public',
+      getInviteUrl: () => location.href,
+      getRtcConfig: async () => { events.push({ type: 'host:rtc-config' }); return { iceServers: [] }; },
+      ...(bootstrapContact ? { introductionBootstrap: { routes: [
+        { id: 'unreachable', open: async () => { throw new Error('Entry point unavailable'); } },
+        { id: 'independent-participant', open: async () => ({ contact: bootstrapContact,
+          publish: envelope => globalThis.deliverIntroduction(envelope), close() {} }) }
+      ] } } : {}),
+      EventBus: { ...deps.EventBus, emit(type, payload) { events.push({ type, payload }); deps.EventBus.emit(type, payload); } },
+      WebSocket: class { constructor() { throw new Error('Company signaling is blocked'); } }
+    }) });
+  await host.swarm.connect();
+  return host.swarm.getIntroductions().exportContact();
+}
+export const receiveHost = envelope => host.swarm.getIntroductions().receive(null, 'reploid:introduction-signal', envelope,
+  answer => globalThis.deliverIntroduction(answer));
+export function hostState() {
+  const state = host.swarm.getState();
+  return { peers: state.consumer?.peers.map(peer => peer.peerId) || [], sharing: state.sharing,
+    introductionAssistance: state.introductionAssistance, files: host.swarm.getFileState(),
+    contributionPhase: state.contribution.phase };
+}
+export const allowHostIntroductions = value => host.swarm.allowIntroductions(value);
+export const closeHost = () => host?.close();

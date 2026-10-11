@@ -1695,8 +1695,8 @@
     },
     {
       "path": "host/product-session.js",
-      "byteLength": 4243,
-      "sha256": "sha256:2e2f56fd61042d8c0a6be8858c28ba96905b69064b8f4d59866d2f00b8ec66ff"
+      "byteLength": 4391,
+      "sha256": "sha256:8e3f4818dfc2c6ada9e4d2563fa10338ce15158180450a515e3090532cb23523"
     },
     {
       "path": "host/readonly-view.js",
@@ -9514,5 +9514,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:2584827a4a2e3965a269285ced244491857ed5b9bfe4cd43aae39935ecaab2a9"
+  "bundleHash": "sha256:f91dc2c97cb8f1fdb04dcb8ddff79734d5b3e884f6f220c9d7f1bf79280f5d6a"
 }
