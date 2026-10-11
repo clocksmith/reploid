@@ -205,6 +205,8 @@ Doe remains an optional provider.
 
 ## E. Measured improvements and explicitly deferred capabilities
 
+Contribution lifecycle follow-up: [sharing stop repair](artifacts/operation-participation-lifecycle-20261011/receipt.json) makes overlapping Stop calls share settlement, waits for pending startup, revokes admission immediately, and retains failed provider/executor cleanup for explicit retry. Three failing-before regressions reproduce the prior premature-idle and skipped-cleanup paths; six final lifecycle checks, 52 focused tests, 3,081 repository tests (29 existing skips), four browser checks and Verification Worker acceptance pass. The standard Doppler 0.6.27 pin is unchanged. This closes that control boundary only; ordinary indexing integration, foreground-impact measurements and the chat/application gates remain open. [Parallel Doppler handoff](artifacts/operation-participation-lifecycle-20261011/doppler-handoff.txt).
+
 - [x] **23. Reploid R5: measure before overlapping stages.**
   Measure local execution, remote execution, transport, callbacks and stage waiting separately. Introduce bounded stage scheduling only when useful overlap is demonstrated against the existing scheduler. Preserve per-attempt token order and Doppler’s mutable-state protections. Compare correctness, cancellation, progress, queued activation bytes and memory. Never obtain throughput gains through unbounded buffering or hidden budget increases.
 

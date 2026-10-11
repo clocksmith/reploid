@@ -22,18 +22,35 @@ export function createOperationParticipation({ networkOptions, onChange = () => 
     && Number.isSafeInteger(policy.maxConfigurationBytes) && policy.maxConfigurationBytes > 0
     && Number.isSafeInteger(policy.maxModelArtifactBytes) && policy.maxModelArtifactBytes > 0
     && Array.isArray(policy.inputClasses) && policy.inputClasses.length > 0, 'Sharing policy is missing');
-  let provider = null, executor = null, state = { phase: 'idle', modelId: null, error: null }, epoch = 0;
+  let provider = null, executor = null, starting = null, stopping = null;
+  let state = { phase: 'idle', modelId: null, error: null }, epoch = 0;
   const notify = patch => { state = { ...state, ...patch }; onChange({ ...state, provider: provider?.getState() ?? null }); };
-  const stop = async () => {
-    epoch++; const active = provider; provider = null;
-    if (state.phase !== 'idle') notify({ phase: 'stopping' });
-    try { await active?.close(); await executor?.close(); }
-    finally { executor = null; notify({ phase: 'idle', modelId: null }); }
+  const stop = () => {
+    if (stopping) return stopping;
+    // Revoke admission before waiting, and retain this generation's owners.
+    epoch++;
+    const active = provider, ownedExecutor = executor, opening = starting;
+    stopping = Promise.resolve().then(async () => {
+      const errors = [];
+      try { await active?.close(); } catch (error) { errors.push(error); }
+      try { await ownedExecutor?.close(); } catch (error) { errors.push(error); }
+      // A late start must observe the revoked epoch before stop reports idle.
+      await opening?.catch(() => {});
+      if (errors.length) {
+        const error = new AggregateError(errors, 'Sharing cleanup failed; stop again to retry');
+        notify({ phase: 'failed', error: error.message });
+        throw error;
+      }
+      provider = null; executor = null;
+      notify({ phase: 'idle', modelId: null, error: null });
+    }).finally(() => { stopping = null; });
+    notify({ phase: 'stopping' });
+    return stopping;
   };
   return {
     getState: () => ({ ...state, provider: provider?.getState() ?? null }),
     async start({ configuration, model: suppliedModel, executionAdapters, approved }) {
-      assert(state.phase === 'idle', 'Stop sharing before changing models');
+      assert(state.phase === 'idle' && !stopping, 'Stop sharing before changing models');
       assert(approved === true, 'Confirm the model publisher and sharing first');
       assert((configuration !== undefined) !== (suppliedModel !== undefined), 'Choose one explicit model configuration');
       const selected = configuration !== undefined ? snapshot(configuration)
@@ -54,8 +71,8 @@ export function createOperationParticipation({ networkOptions, onChange = () => 
         'This model exceeds the configured download allowance');
       const token = ++epoch;
       const current = () => assert(token === epoch, 'Sharing cancelled');
-      notify({ phase: 'starting', modelId: model.modelId, error: null });
-      try {
+      const opening = Promise.resolve().then(async () => {
+        current();
         const approvedAdapters = await normalizeExecutionAdapterSet(
           selected.executionAdapters === undefined ? config.peerJobs.execution.adapters.defaultAdapterSet : selected.executionAdapters,
           { model: packPeerModel(model), policy: config.peerJobs.execution.adapters }); current();
@@ -77,9 +94,16 @@ export function createOperationParticipation({ networkOptions, onChange = () => 
             inputClasses, resources: { ...policy.resources, activeJobs: execution.active ? 1 : 0, queuedJobs: execution.queued } }),
           onError: error => { if (token === epoch) notify({ error: error.message }); } });
         await provider.start(); current(); notify({ phase: 'sharing' });
+      });
+      starting = opening;
+      notify({ phase: 'starting', modelId: model.modelId, error: null });
+      try {
+        await opening;
       } catch (error) {
         if (token === epoch) { await stop(); notify({ error: error.message }); }
         throw error;
+      } finally {
+        if (starting === opening) starting = null;
       }
     },
     stop,

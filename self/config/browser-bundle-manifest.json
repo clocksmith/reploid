@@ -2275,8 +2275,8 @@
     },
     {
       "path": "pool/operation-participation.js",
-      "byteLength": 6505,
-      "sha256": "sha256:5a2da868dbf8f81ebcd4cd9edc10bc5deabc316d2f83edb8b40c330618efc0c5"
+      "byteLength": 7469,
+      "sha256": "sha256:56c542f0ba38376bfcdc6a01cb896edffea55f816338477e9ce3201f25af0aad"
     },
     {
       "path": "pool/operation-room-network.js",
@@ -9529,5 +9529,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:c3a085c31e0727842b958107bab3b017bada6c88e8dd98094721651faf4cb446"
+  "bundleHash": "sha256:bd4991e6737b6927153321ad7dc333d6048702bf40ee303850bb12cf4d207569"
 }
