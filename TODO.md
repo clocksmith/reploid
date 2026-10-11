@@ -13,8 +13,10 @@ fresh repository check. Checked items represent retained, scoped completion,
 not full release acceptance. The specification predates several completed fixes.
 Subsequent evidence is recorded beneath the relevant item without erasing failures.
 
-**Sequencing adjustment:** finish unresolved distributed-chat acceptance before
-starting R4 independent units. Callback isolation in R5 has already landed.
+**Sequencing adjustment:** the latest instruction authorizes coordinated R4 work
+in parallel with distributed-chat repairs. Their acceptance remains separate;
+independent jobs do not waive unresolved chat or deployment gates. Callback
+isolation in R5 has already landed.
 
 ## A. Preserve the completed foundations
 
@@ -55,14 +57,14 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
   Further isolation: [cache intervention](https://github.com/clocksmith/doppler/blob/a953b0a4/artifacts/source-model-reference-20261011/observed-cache-control.json) reduces the selected logit difference from 0.0014121532440185547 to 0.000026464462280273438 when only the offline source model’s F16 cache values are replaced with captured values. This establishes sensitivity to stored-cache differences, not independent acceptance. A separate normalization-order control remains above 0.001. No runtime arithmetic or precision changed.
 
-  Next focused experiment: read actual physical K/V allocations at the failing decode boundary; compare stored F16 values, positions, layout, history length and subsequent reads with independently rounded pre-storage captures. Require unchanged instrumented logits. Existing all-layer attention, recurrence, feed-forward and final-projection checks are complete diagnostics and must not be repeated without an unanswered question.
+  Physical storage verified: [actual K/V readback](https://github.com/clocksmith/doppler/blob/eeefd15b/artifacts/physical-cache-20261011/README.md) checks six layers across four prefixes. All 4,558,848 stored F16 values match independently rounded pre-storage inputs bit-for-bit; layouts, history lengths and allocation identities match subsequent attention reads. Instrumented logits equal baseline exactly. This closes storage/indexing/conversion at the tested boundary, not numerical acceptance. Existing all-layer attention, recurrence, feed-forward and final-projection diagnostics are complete and must not be repeated without an unanswered question. The remaining focused audit separates inherited input differences from local F32 rounding at F16 midpoints.
 
 - [ ] **8. Doppler: resolve the reference-contract mismatch explicitly.**
   Preserve declared normalization entry points rather than restoring the historical `main_subgroup` substitution. Keep old fixtures and failed receipts unchanged. Independently assess any correction before proposing a versioned reference replacement, requiring explicit approval. Retain precision, inputs, token expectations and **0.001 tolerance**. Newly captured Doppler outputs alone cannot validate their own correctness.
 
   Historical evidence: the [revision-2 correction](artifacts/reference-correction-20261011/README.md) was activated under an overly broad interpretation of the instruction to finish the rest. That activation is now superseded; the candidate remains inactive pending the specific approval required by this item. Nine focused checks preserve all frozen inputs, expected tokens and 0.001. The original fixture and failures remain unchanged. Independent source-equation qualification remains failed in item 7; this correction does not approve deployment.
 
-  Current disposition: the earlier regression-only activation is retained as historical evidence, but the candidate is now inactive under reference contract revision 3. The latest user instruction requires specific, independently justified approval. Historical reference bytes, failed receipts, declared shader and 0.001 remain unchanged. Physical-cache verification and source evaluation/rounding disposition are pending; broad completion authorization does not establish that approval.
+  Current disposition: the earlier regression-only activation is retained as historical evidence, but the candidate is now inactive under reference contract revision 3. The latest user instruction requires specific, independently justified approval. Historical reference bytes, failed receipts, declared shader and 0.001 remain unchanged. Physical-cache verification passes; source evaluation/rounding disposition remains open. Broad completion authorization does not establish reference approval.
 
 - [x] **9. Doppler and application: diagnose repetitive answers.**
   Replay the failing counting request through independent source-model computation with identical deployed weights and generation settings. Its uncancelled unsplit Doppler control reproduces the distributed prefix, so cancellation is not a necessary cause. Fix runtime differences if demonstrated; otherwise evaluate model or prompt changes on fresh tasks without weakening protected correctness cases.
@@ -109,8 +111,12 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 - [ ] **15. Both: finish interruption, replacement and settlement.**
   Cancel submitted work while another conversation continues to a valid completion. Stop and rejoin each contributor, replace an unavailable executor, and explicitly retry using a new authorized attempt. Preserve unaffected weights and histories. Await owned cleanup rather than arbitrary sleeps. Complete document and extended-retry checks previously skipped when earlier application assertions failed.
 
+  Further execution: the [fixed-delivery reversed run](artifacts/focused-recovery-20261011/README.md) completes both contributor stop/rejoin/retry sequences and executor replacement. Each fresh retry returns the complete 1–20 answer, unaffected resident weights and histories persist, replacement acquires verified pieces after the seed stops, and all 13 completed attempts settle both participants. The unaffected count-to-200 answer still stops at 120; document answers remain inaccurate. Those quality failures keep items 14–15 open.
+
 - [ ] **16. Both: prove useful combined capacity separately.**
   Qualify the larger model’s complete lifecycle under identical per-contributor limits, precision and context requirements. Show that neither executor can run the same workload alone within those limits while combined placement succeeds. Distinguish allocation ceilings from physical memory. Higher-budget unsplit diagnostics remain numerical controls, not evidence of capacity equivalence or production performance.
+
+  Further evidence: the [focused recovery run](artifacts/focused-recovery-20261011/review.json) peaks at 1,320,233,832 allocated bytes on Mac, 1,400,055,944 on Linux and 1,278,272,144 on the replacement. All remain below the unchanged ceiling. Incomplete counting and inaccurate documents prevent useful-capacity acceptance; these are allocation measurements, not physical-memory claims.
 
 - [ ] **17. Both: qualify one exact deliverable.**
   Build one standard archive from the reviewed source, regenerate its browser delivery, and run full repository, installed-consumer and affected physical checks against those exact bytes. Preserve failed invocations and historical packages. Update support documentation to the accepted scope. Synchronize with `rdpush`/`rdpull` without overwriting unrelated work; version changes do not create separate development tracks.
@@ -120,24 +126,30 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
 ## D. Add durable independent work units: R4
 
-- [ ] **19. Reploid R4: qualify separable embeddings.**
+- [x] **19. Reploid R4: qualify separable embeddings.**
   Make durable independent units the next functional extension, not a substitute for finishing distributed chat. Start with one `embed.v1` application whose per-input semantics explicitly permit batch subdivision. Compare split and unsplit results under its declared numerical policy and preserve original ordering. Do not apply this assumption to list-dependent reranking or autoregressive generation.
 
-- [ ] **20. Reploid R4: add the thin unit coordinator.**
+  Evidence: [signed embedding application qualification](https://github.com/clocksmith/doppler/blob/4f2c745b/artifacts/embedding-subdivision-20261011/README.md) explicitly permits subdivision of complete texts for the retained Qwen document-embedding application. Linux browser execution of 18 frozen inputs, whole and in reordered nine-input units, matches reference tokens exactly and vectors within the unchanged 0.02 policy (maximum error 0.000072956). Reassembled split/whole vectors match exactly. Current signed eligibility and cleanup pass. This qualifies this application and configuration, not every embedding model or item 22's durable job path.
+
+- [x] **20. Reploid R4: add the thin unit coordinator.**
   Implement the coordinator under `packages/reploid/src/mesh/jobs/`, executing every unit through existing signed jobs. Persist its aggregate manifest under `packages/reploid/src/artifacts/`. Bind parent request, stable unit identity, input and execution configuration, original positions, assignment/attempt references and committed outcome location. Preserve `provider.js`, `requester.js` and `job-journal.js`; do not invent another wire retry protocol.
 
-- [ ] **21. Reploid R4: commit aggregate outcomes atomically.**
+- [x] **21. Reploid R4: commit aggregate outcomes atomically.**
   Guarantee **one committed outcome per unit, not exactly-once execution**. Preserve provider-side commit-before-send behavior; requester commits reject superseded attempts and duplicate inclusion. Reconstruct pending work from durable records after restart, not saved percentages. Keep requester aggregation separate from the provider journal, preserving existing schemas, bounded retention and authorization over stored results.
+
+  Evidence for 20–21: [coordinator and requester journal](artifacts/independent-units-20261011/README.md), committed in `cd3e03a1`, preserve existing signed jobs and provider records. Four native-browser scenarios pass against source and an isolated installed package, including restart, superseded writers, duplicate delivery, cancellation, authorization revocation and atomic storage failure. All 17 installed-package checks and 3,001 repository tests pass. These orchestration checks use synthetic vectors; actual model-backed job interruption acceptance remains item 22.
 
 - [ ] **22. Reploid R4: qualify interrupted multi-unit execution.**
   Exercise coordinator restart, provider replacement, lost acknowledgments, duplicate delivery, out-of-order completion and cancellation around actual durable commits. Completed units must remain attributable and appear exactly once in the aggregate; unfinished units may receive eligible new attempts. Validate final vectors against the operation’s independent reference, because matching hashes establish identity rather than numerical correctness.
 
 ## E. Measured improvements and explicitly deferred capabilities
 
-- [ ] **23. Reploid R5: measure before overlapping stages.**
+- [x] **23. Reploid R5: measure before overlapping stages.**
   Measure local execution, remote execution, transport, callbacks and stage waiting separately. Introduce bounded stage scheduling only when useful overlap is demonstrated against the existing scheduler. Preserve per-attempt token order and Doppler’s mutable-state protections. Compare correctness, cancellation, progress, queued activation bytes and memory. Never obtain throughput gains through unbounded buffering or hidden budget increases.
 
-  Progress: [existing-runner stage measurements](artifacts/partition-stage-timing-20261011/README.md) now separate shared-lease waiting and awaited output delivery from compute and transport. Focused, full repository, installed-consumer and browser checks pass. No overlapping scheduler was introduced; physical measurement and any resulting decision remain open.
+  Evidence: [existing-runner stage measurements](artifacts/partition-stage-timing-20261011/README.md) separate shared-lease waiting and awaited output delivery from compute and transport. Focused, full repository, installed-consumer and browser checks pass. The physical measurement below completes this bounded investigation; overlapping stages remain conditional on demonstrated benefit.
+
+  Physical measurement: [13 completed attempts](artifacts/focused-recovery-20261011/stage-timings.json) include concurrent counting/YES conversations, documents and replacement retries. Concurrent lease waits total 640.2/395.7 ms, with output callbacks at 7.1/0.3 ms. Remote stages include nested transport and compute; those durations cannot be added. No useful overlap is demonstrated, so retain the bounded scheduler and callback isolation. Application-quality failure remains the priority; no throughput improvement is claimed.
 
 - [ ] **24. Reploid: peer-carried introductions.**
   After the core journey passes, add bounded peer-carried introductions behind existing connection interfaces. Use authenticated, expiring contacts and replaceable bootstrap participants; ordinary use should not require manual pairing. Keep introduction, computing and disclosure permissions separate. Test fresh discovery and inference with company signaling blocked, retaining explicit bootstrap and relay limitations.
