@@ -22,7 +22,7 @@ Subtree.
 Inputs: Doppler plans/codecs, authenticated executors, grants and bounded resources.
 Outputs: deltas, tokens, costs and settlement receipts.
 Every token traverses both partitions; B returns one selected token.
-Session: [Doppler handoff](../../../../../docs/doppler-partition-handoff.md).
+Session: [resident integration contract](../../../../../docs/chat-mvp.md#resident-integration-contract).
 
 ## Invariants
 

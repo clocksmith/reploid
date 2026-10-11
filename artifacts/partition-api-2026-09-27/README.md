@@ -20,7 +20,7 @@ partition service in the chat host. No Doppler source, deployment or publication
   cancellation settlement, history restoration and peer-loss handling. Repeated
   network shutdown waits for the same cleanup, including disconnected endpoints.
 - A typed Doppler factory contract and executable per-token/logit comparison
-  harness: [handoff](../../docs/doppler-partition-handoff.md).
+  harness: [retained handoff](https://github.com/clocksmith/reploid/blob/f4580f5b41492cdf551f9a15d426f8f963778bc4/docs/doppler-partition-handoff.md).
 
 ## Acceptance evidence
 

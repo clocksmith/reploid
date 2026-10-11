@@ -1,6 +1,6 @@
 > Historical checkpoint. Package, deployment and next-work statements below
 > apply only to this dated observation. Follow the [current integration closure
-> sequence](../doppler-partition-handoff.md#combined-closure-sequence) for active work.
+> sequence](../../TODO.md) for active work.
 
 Reploid product closure handoff: September 7, 2026
 

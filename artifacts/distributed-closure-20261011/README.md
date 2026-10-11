@@ -38,7 +38,7 @@ progress followed by missing suppliers; no first connection-close reason was
 recorded. Healthy direct-channel survival after signaling loss is independently
 repaired/tested, without claiming it explains that incident.
 
-Remaining work follows the [combined closure sequence](../../docs/doppler-partition-handoff.md#combined-closure-sequence):
+Remaining work at this checkpoint follows the [retained closure sequence](https://github.com/clocksmith/reploid/blob/f4580f5b41492cdf551f9a15d426f8f963778bc4/docs/doppler-partition-handoff.md#combined-closure-sequence):
 numerical and task-quality closure, acquisition diagnosis, physical signed-Capsule
 opening, both-placement ordinary application acceptance including document reuse
 and contributor retry, then deployment and served-identity/fresh-browser checks.
