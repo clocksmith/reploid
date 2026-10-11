@@ -126,3 +126,26 @@ ordered-list requirements. `completion-2b-linux.json.gz` retains every output
 and exact input. The candidate is rejected without replaying the protected
 counting request. Production instructions remain unchanged. This closes the
 shorter numeric-bound test-coverage gap without weakening the application gate.
+
+## Existing Gemma 1B artifact control
+
+Item 9 authorizes model evaluation after independently reproduced quality
+failures. Suite `bc7172bd` freezes five fresh tasks for the existing Gemma 1B
+artifact; no application catalog entry is added. The installed package rejects
+the older manifest for missing explicit inference fields before generation.
+`gemma1b-legacy-manifest-rejection.json.gz` retains this failure.
+
+An existing prepared manifest supplies those explicit fields. Its directory is
+metadata-only, so an isolated diagnostic fixture links the original declared
+shards and tokenizer. `gemma1b-prepared-binding.json` records both manifest
+identities, file hashes and the original missing-shard preparation failure.
+Tensor layout and execution graph match the original; production artifacts
+and runtime defaults remain unchanged. This is a separately identified input,
+not an in-place manifest repair.
+
+`gemma1b-prepared-linux.json.gz` passes only one of five cases. Both complete
+counting tasks, duplicate preservation and the negated-permission answer fail.
+This artifact is rejected before any protected-request replay or partition
+integration. These failures do not establish whether its preparation, numerical
+execution or original model is responsible. No claim about the source model's
+inherent quality follows from this deployed-artifact diagnostic.
