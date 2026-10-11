@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/execution-ribbon.test.js (10 tests) 23ms
+ ✓ tests/unit/pool-home-nav.test.js (24 tests) 45ms
+ ✓ tests/unit/conversation-workspace.test.js (16 tests) 770ms
+
+ Test Files  3 passed (3)
+      Tests  50 passed (50)
+   Start at  16:41:47
+   Duration  1.35s (transform 677ms, setup 0ms, import 948ms, tests 838ms, environment 686ms)
+
