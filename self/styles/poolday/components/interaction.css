@@ -127,7 +127,6 @@
   .execution-ribbon-route { flex-basis: 100%; }
   .execution-ribbon-node { font-size: var(--pool-text-xs); }
   .execution-ribbon-status { min-height: 0; padding-bottom: 0; }
-  .chat-composer-submit { flex-basis: 100%; justify-content: space-between; }
   .execution-inspector-facts dl { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) {

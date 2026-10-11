@@ -1,0 +1,49 @@
+{
+  "scope": "Local presentation fixtures and repository checks; no distributed inference or deployment",
+  "browserBundleHash": "sha256:f99260044a90f747e7211732bc581c0c4e37cdef48eaee8c4b7b60062e72a1bc",
+  "acceptedDopplerArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "reproduction": {
+    "viewportWidth": 320,
+    "guidanceWidthBefore": 12.375,
+    "requiredWidthMinimum": 253
+  },
+  "checks": {
+    "browser": 12,
+    "focusedUnit": 50,
+    "repositoryPassed": 3082,
+    "repositorySkipped": 29,
+    "css": "passed",
+    "browserManifest": "passed",
+    "verificationWorker": "passed"
+  },
+  "files": {
+    "after-320.png": {
+      "sha256": "8f1ea2912c9e13c802c5d9ff9c8c663dd4d4fceddc6b4a2d8d6f95868abb998f",
+      "bytes": 39300
+    },
+    "before-320.png": {
+      "sha256": "baac42151c9b124423e4518707de405a0f8056ef2e3c514bc0218e40e83850f7",
+      "bytes": 33474
+    },
+    "browser.log": {
+      "sha256": "fda6308d0ddac9bb013e647eb35aa6ef980b06d4a52bebc329413d3b1587379b",
+      "bytes": 3062
+    },
+    "focused-tests.log": {
+      "sha256": "4c6ddd22e674e2d25b74bf7cf847c54e2e7f7b1bb81a6ba1e70055b1583d4cbb",
+      "bytes": 387
+    },
+    "repository-summary.txt": {
+      "sha256": "3a5e3ba471771cae90ed16c24ff22e4a462769d0393436bcb64f0b0c8a641be3",
+      "bytes": 355
+    },
+    "streaming-390.png": {
+      "sha256": "f75b5645f7dc3b8a398f5b452145da5f74caf7b18760e126d05147f7979eff5b",
+      "bytes": 44239
+    },
+    "worker-harness-failure.log": {
+      "sha256": "a40a64970467646f05901dc7f09f2cd0aaba2ff19a7eb4d9e39d17b01df08b2b",
+      "bytes": 4409
+    }
+  }
+}
