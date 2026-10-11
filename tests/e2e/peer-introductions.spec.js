@@ -2,16 +2,20 @@ import { test, expect, chromium } from '@playwright/test';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { physicalEmbeddingAssets } from '../fixtures/physical-embedding-assets.js';
 import { connectPhysicalBrowser } from '../fixtures/physical-webgpu-browser.js';
-let server, origin, remoteBrowser;
+let server, origin, remoteBrowser, physicalConfig;
 const hostScope = process.env.REPLOID_EXECUTOR_WS ? 'two-physical-hosts' : 'one-host';
 const createContext = (browser, index) => (index === 1 && remoteBrowser ? remoteBrowser : browser).newContext();
 test.beforeAll(async () => {
   const root = path.resolve('.');
+  const assets = await physicalEmbeddingAssets(process.env.REPLOID_UNITS_PHYSICAL_CONFIG);
+  physicalConfig = assets.configuration;
   server = createServer(async (request, response) => {
     try {
       const pathname = new URL(request.url, 'http://localhost').pathname;
-      if (pathname === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html><title>Introductions</title>'); return; }
+      if (assets.serve(pathname, response)) return;
+      if (pathname === '/') { response.setHeader('Content-Type', 'text/html'); response.end('<!doctype html><title>Introductions</title><script type="importmap">{"imports":{"reploid/jobs":"/self/vendor/reploid/mesh/jobs/index.js"}}</script>'); return; }
       const file = path.resolve(root, pathname.slice(1));
       if (![path.join(root, 'self') + path.sep, path.join(root, 'tests/fixtures') + path.sep].some(prefix => file.startsWith(prefix))) { response.writeHead(403).end(); return; }
       response.setHeader('Content-Type', file.endsWith('.json') ? 'application/json' : 'text/javascript'); response.end(await readFile(file));
@@ -137,5 +141,89 @@ test('ordinary product host uses independent bootstrap and ICE without granting 
     await pages[1]?.evaluate(() => window.introductions?.closeHost()).catch(() => {});
     await pages[0]?.evaluate(() => window.introductions?.closeHost()).catch(() => {});
     for (const context of contexts) await context.close();
+  }
+});
+
+test('source-validated embedding job crosses introduced peers after the introducer leaves', async ({}, testInfo) => {
+  test.skip(!physicalConfig || !remoteBrowser, 'Requires the accepted embedding configuration and an explicit remote requester browser.');
+  test.setTimeout(physicalConfig.config.timeoutMs);
+  const local = await chromium.launch({ headless: true, args: physicalConfig.config.launchArgs });
+  const contexts = [], pages = [], contacts = [], external = [], requesterWeights = [];
+  try {
+    for (const id of ['b', 'a', 'c']) {
+      const context = await createContext(local, contexts.length); contexts.push(context);
+      await context.route('**/*', route => {
+        const url = new URL(route.request().url());
+        if (url.origin !== origin) { external.push(url.href); return route.abort(); }
+        if (id === 'a' && url.pathname.startsWith('/capsule/')) {
+          requesterWeights.push(url.pathname); return route.abort();
+        }
+        return route.continue();
+      });
+      const page = await context.newPage(); pages.push(page); await page.goto(origin);
+      await page.exposeFunction('deliverIntroduction', envelope => {
+        const destination = pages[['b', 'a', 'c'].indexOf(envelope.record.body.to)];
+        destination.evaluate(value => window.introductions.receive(value), envelope).catch(error => console.error(error));
+        return true;
+      });
+      contacts.push(await page.evaluate(async ({ id, bootstrapContact }) => {
+        window.introductions = await import('/tests/fixtures/peer-introductions-browser.js');
+        return window.introductions.start(id, bootstrapContact);
+      }, { id, bootstrapContact: id === 'c' ? contacts[0] : null }));
+    }
+    await pages[1].evaluate(contact => window.introductions.connect(contact), contacts[0]);
+    await expect.poll(() => pages[1].evaluate(() => window.introductions.peers())).toContain('c');
+    await expect.poll(() => pages[2].evaluate(() => window.introductions.peers())).toContain('a');
+    await pages[0].evaluate(() => window.introductions.close());
+    await expect.poll(() => pages[1].evaluate(() => window.introductions.peers())).not.toContain('b');
+    const requester = await pages[1].evaluate(async () => {
+      window.job = await import('/tests/fixtures/introduced-embedding-job.js'); return window.job.prepareRequester();
+    });
+    const descriptor = await pages[2].evaluate(async requesterId => {
+      window.job = await import('/tests/fixtures/introduced-embedding-job.js');
+      return window.job.prepareProvider({ requesterId, remotePeerId: 'a', approveModelOpening: true });
+    }, requester.keyId);
+    await pages[1].evaluate(model => window.job.connectRequester({ remotePeerId: 'c', model }), descriptor.model);
+    await expect.poll(() => pages[2].evaluate(() => window.job.ready())).toBe(true);
+    const advert = await pages[2].evaluate(() => window.job.advert());
+    const denied = await pages[1].evaluate(async ({ advert, descriptor }) => {
+      try { await window.job.run(advert, descriptor, false); return null; } catch (error) { return error.message; }
+    }, { advert, descriptor });
+    expect(denied).toMatch(/consent|public/i);
+    await pages[1].evaluate(({ advert, descriptor }) => {
+      window.deniedController = new AbortController();
+      window.deniedOutcome = window.job.run(advert, descriptor, true, window.deniedController.signal)
+        .then(() => null, error => error.message);
+    }, { advert, descriptor });
+    await expect.poll(() => pages[2].evaluate(() => window.job.status().errors
+      .some(error => error.includes('did not authorize public delegation')))).toBe(true);
+    const noCompute = await pages[1].evaluate(async () => {
+      window.deniedController.abort(new Error('Denied computation control settled'));
+      return window.deniedOutcome;
+    });
+    expect(noCompute).toBe('Denied computation control settled');
+    expect(await pages[2].evaluate(() => window.job.status().calls)).toBe(0);
+    await pages[2].evaluate(() => window.job.allowComputation(true));
+    const result = await pages[1].evaluate(({ advert, descriptor }) => window.job.run(advert, descriptor, true), { advert, descriptor });
+    expect(result.comparison.passed).toBe(true);
+    expect(result.result.execution.request.assignment).not.toBeNull();
+    const provider = await pages[2].evaluate(() => window.job.status());
+    expect(provider.calls).toBe(1);
+    expect(provider.buffers.peakBytesAllocated).toBeLessThanOrEqual(1420000000);
+    expect(external).toEqual([]); expect(requesterWeights).toEqual([]);
+    await testInfo.attach('introduced-physical-embedding', { body: JSON.stringify({ hostScope,
+      executionClass: 'signed-source-validated-embedding-over-introduced-webrtc', modelInference: true,
+      chatAcceptance: false, publicBootstrap: false, descriptor, denied, noCompute, result, provider,
+      runtimePackage: physicalConfig.runtimePackage, externalRequests: external, requesterWeightRequests: requesterWeights
+    }, null, 2), contentType: 'application/json' });
+  } catch (error) {
+    await testInfo.attach('introduced-embedding-failure', { body: JSON.stringify({ error: error.message,
+      provider: await pages[2]?.evaluate(() => window.job?.status()).catch(() => null), external, requesterWeights }), contentType: 'application/json' });
+    throw error;
+  } finally {
+    for (const page of pages) await page.evaluate(() => window.job?.close()).catch(() => {});
+    for (const page of pages) await page.evaluate(() => window.introductions?.close()).catch(() => {});
+    for (const context of contexts) await context.close();
+    await local.close();
   }
 });

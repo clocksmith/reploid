@@ -821,8 +821,8 @@
     },
     {
       "path": "transport/index.d.ts",
-      "bytes": 470,
-      "sha256": "7219c182a4341e079771cb11bf53e1a0939474f1e9dfbb19196782a80924e193"
+      "bytes": 557,
+      "sha256": "daacf058c677f54da39226fbc922e9894e62b42442f1d76b72a5909c2d675648"
     },
     {
       "path": "transport/index.js",
@@ -916,13 +916,13 @@
     },
     {
       "path": "transport/swarm.d.ts",
-      "bytes": 2222,
-      "sha256": "a92a20eaae22f66049c6af9fe1a0b35e89aa5e349b5f81ef829fdb9f159b00d5"
+      "bytes": 2341,
+      "sha256": "a96db905fee4d1a453ab004c3f66d46f75fc6dd74a172b6427dc4f70c9e3fbd5"
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 45770,
-      "sha256": "60c78ab38dfd5518c08cc2d82c973e88fab68dbe1fd0e098e8901085ff5ef1fd"
+      "bytes": 45689,
+      "sha256": "45d359a0af3186143cce7a2555628f0f6a8e1068b44caaf718a3fb0ffc2836a4"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

@@ -1,0 +1,89 @@
+{
+  "schema": "reploid.introduced-embedding-evidence/v1",
+  "sourceBaseCommit": "e319a305af91668442c247795549bbefbefae05e",
+  "sourceState": "base plus accompanying committed implementation; exact file hashes below",
+  "sourceFiles": {
+    "packages/reploid/src/transport/swarm.js": "45d359a0af3186143cce7a2555628f0f6a8e1068b44caaf718a3fb0ffc2836a4",
+    "packages/reploid/src/transport/swarm.d.ts": "a96db905fee4d1a453ab004c3f66d46f75fc6dd74a172b6427dc4f70c9e3fbd5",
+    "packages/reploid/src/transport/index.d.ts": "daacf058c677f54da39226fbc922e9894e62b42442f1d76b72a5909c2d675648",
+    "tests/e2e/peer-introductions.spec.js": "c28d72c66e8bace55bee36bc86d72430e878bd0e1f70a478e556435b3831572d",
+    "tests/fixtures/introduced-embedding-job.js": "8cd3e2980798894c1b18a4866451a297a1a9986f7d224a4f0e6137e228f2ac8f",
+    "tests/fixtures/physical-embedding-assets.js": "2405cb81a05efb9dc40e0454324b73b9c38b0488ac1bb0aefb28ef565c60e184",
+    "tests/fixtures/independent-units-physical.js": "ede50c055e56ac9e96b82b6d48f09dd3d93182bdb5ad80f59fdc87a1cdfcaf1d"
+  },
+  "browserBundle": "sha256:e683fbc5c7c9ec4a01e961f2c6a740f62f4b8512a24ceef4d420f149bd64a675",
+  "diagnosticDopplerArchiveSha256": "414f61c37e21c07e481c5685afacd24eb93ae98d02e1c0c5a7fdd4010c820e13",
+  "standardDopplerArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "standardArchiveUnchanged": true,
+  "installedReploidArchiveSha256": "eb62696ceb7cd28ff41f096884d861b1456cab4c9f59cedc58125e1448d0dc8f",
+  "sourceReferenceDigest": "sha256:be4ed910a95a6e7ed26cfe7ce39d539760187698d7f8703a106afbabcdc46772",
+  "sourceInputPositions": [
+    0,
+    1,
+    2
+  ],
+  "comparison": {
+    "exactTokens": true,
+    "embeddingMaxAbs": 0.02,
+    "observedMaxAbs": 6.299838423728943e-05
+  },
+  "physicalHosts": [
+    {
+      "id": "mac-requester",
+      "sshHost": "xyz@xys-macbook-air.tail995236.ts.net",
+      "platform": "Darwin arm64",
+      "browser": "Google Chrome 155.0.8059.39",
+      "modelWeightsDownloaded": false
+    },
+    {
+      "id": "linux-provider",
+      "platform": "Linux x86_64",
+      "browser": "Chromium headless shell 145.0.7632.6",
+      "gpu": "AMD Radeon 8060S Graphics (RADV STRIX_HALO)",
+      "roles": [
+        "provider c",
+        "introducer b (removed before job)"
+      ]
+    }
+  ],
+  "operatorCount": 1,
+  "trackedPeakAllocationBytes": 1248138752,
+  "checkedAllocationCeilingBytes": 1420000000,
+  "allocatorConfiguredGlobalBudget": false,
+  "standardReleaseAcceptance": false,
+  "signedResidentAcceptance": false,
+  "chatAcceptance": false,
+  "publicBootstrapAcceptance": false,
+  "generalNATAcceptance": false,
+  "cleanup": {
+    "ownedMacBrowserClosed": true,
+    "ownedMacProfileRemoved": true,
+    "ownedSshTunnelClosed": true,
+    "providerSessionClosed": true,
+    "linuxBrowserClosed": true
+  },
+  "validation": {
+    "repositoryPassed": 3015,
+    "repositorySkipped": 29,
+    "browserPassed": 19,
+    "browserConditionalPhysicalSkipped": 1,
+    "physicalEmbeddingPassed": 1,
+    "installedPackagePassed": 17,
+    "publicTypeCheckPassed": true,
+    "browserManifestCheckPassed": true
+  },
+  "evidenceFiles": {
+    "browser-checks.log.gz": "8f054ad1a728f3df6de5a0291e2e24ae95d3321b67eefe651012a5450416cd46",
+    "embedding-accepted.json.gz": "8af6f783b5289b0d64e21ba75949efd9b97dfa819b8ea60ad7943fdb6ddd87e4",
+    "embedding-attempt-1.json.gz": "9a24f5c2fa34bd3112ea8a1b9b0796368e4d26263137fd47260b069ff8b1b876",
+    "embedding-attempt-1.log.gz": "656553db48876652b0e8e3eaafa6f014a2bac59c0aa84a3e903575ad03355c57",
+    "embedding-attempt-2.log.gz": "5df6f094b562bcad3b7bce46509bde282d4194d819e64d7636efce0fcffba99d",
+    "embedding-observation.json.gz": "f96f5640742e5a8d985d03414fb4c009ff60c774c267367930e436483bfa06fe",
+    "installed-package-checks.log.gz": "4936737b4f3e2376c05a8c3dd5835a502fcc9b7aa9fcc30d70c886b7a9cb8a92",
+    "installed-package-evidence.tar.gz": "942d2278d758ce8b5a7afe2c02ed6648f9347c71239308ce7672be1c847e1cdb",
+    "installed-package-report.json": "7b8d7ca8d206ac68dd07010a086c2e09b919e46e604fb9c3f9e8cbb4d18c3363",
+    "repository-checks-bounded.log.gz": "c1345d7ac5cb06bb05a1089bce1fa1dd9e7e011c972b3e68c9eac660f0334baf",
+    "repository-checks-final.log.gz": "175f563b113d1d7720b35bd3559b5ccdb54f136e5db334e239a8d759bbf44fc1",
+    "repository-checks.log.gz": "d6cda77bfa3447c7806d385bfa8e745ecc40a213f685abe050327b796cf072cf"
+  }
+}

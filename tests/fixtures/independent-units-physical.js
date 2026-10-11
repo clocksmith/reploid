@@ -11,7 +11,7 @@ import { DOPPLER_VERSION } from '/src/version.js';
 import { evaluateEmbeddingReference } from '/src/config/embedding-reference.js';
 import { getBufferPool } from '/src/memory/buffer-pool.js';
 
-export async function startPhysical(saved = null) {
+export async function startPhysical(saved = null, createFixture = start) {
   const configuration = await (await fetch('/physical/config.json')).json();
   const { config, reference, capsule, expectedReferenceDigest } = configuration;
   if (await hashDopplerEvidence(reference) !== expectedReferenceDigest
@@ -47,7 +47,7 @@ export async function startPhysical(saved = null) {
       return stats;
     };
     buffers();
-    const fixture = await start(saved, {
+    const fixture = await createFixture(saved, {
       model, texts: reference.input.texts, reference: { embeddings: reference.outputs.map(row => ({ embedding: row.embedding, tokens: row.tokenIds })) },
       inputApplication: config.application, application: approved, absoluteTolerance: reference.tolerances.embeddingMaxAbs, unitSize: 3,
       storagePolicy: { ...storagePolicy, maxBytes: 16777216 },
