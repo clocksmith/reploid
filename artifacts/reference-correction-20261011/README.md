@@ -1,7 +1,14 @@
 # Versioned declared-main reference correction
 
-Component: verification evidence. Intent: preserved. Boundary effects: active
-implementation-regression fixture selection; no model/runtime change.
+Component: verification evidence. Intent: preserved. Boundary effects: reference
+classification and acceptance reporting; no model/runtime change.
+
+The historical fixture is active under revision 3. The declared-main candidate
+is inactive pending specific approval. Both contain runtime-captured logits;
+neither alone establishes independent model accuracy. The following revision-2
+account is retained history, superseded by the disposition below.
+
+## Historical revision 2
 
 The user instructed “finish the rest” after the prepared correction and item
 8 approval requirement were presented. The reviewed correction is now selected
@@ -37,6 +44,24 @@ broad to establish that approval. Contract revision 3 restores the untouched
 historical fixture as active; the declared-main candidate remains retained and
 inactive. `activation.json` preserves the earlier action as historical evidence.
 The current disposition does not restore the undeclared shader dispatch.
-Physical-cache verification and evaluation/rounding justification remain open,
-with 0.001 and all failed receipts unchanged. Thirteen focused contract, model
+Physical-cache verification now passes; evaluation/rounding justification remains
+open, with 0.001 and all failed receipts unchanged. Thirteen focused contract, model
 binding and numerical-policy tests pass, including explicit candidate inactivity.
+
+## Separate regression and independent accuracy mechanically
+
+The distributed runner now reports `frozenReferenceAcceptance` separately from
+`independentAccuracyAcceptance`. It runs no independent source oracle, so the
+latter remains `not-run` for applicable workloads. Passing captured logits yields
+`numericalAcceptance: not-qualified`, and cannot authorize ordinary application
+acceptance. A failed frozen comparison retains `failed`; diagnostics and
+inapplicable workloads retain their separate scopes. This closes the possibility
+that a future regression-only fixture activation silently turns independent
+accuracy green. It does not activate either candidate or implement a source gate
+that has not passed.
+
+Fifteen focused policy, reference-contract and model-binding tests pass, including
+passing-capture rejection, missing comparisons, failed comparisons, diagnostic
+tracking, unchanged fixture bytes and candidate inactivity. JavaScript syntax and
+diff checks pass. No new GPU run or production delivery change accompanies this
+reporting correction.
