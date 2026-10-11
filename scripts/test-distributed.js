@@ -20,8 +20,9 @@ const capacityDiagnostic = process.argv.includes('--capacity');
 const recoveryDiagnostic = process.argv.includes('--recovery');
 const numericalDiagnostic = process.argv.includes('--numerical-only');
 const memoryDiagnostic = process.argv.includes('--memory-only');
-if ([capacityDiagnostic, recoveryDiagnostic, numericalDiagnostic, memoryDiagnostic].filter(Boolean).length > 1) {
-  throw new Error('Choose one diagnostic: --capacity, --recovery, --numerical-only, or --memory-only');
+const signalingDiagnostic = process.argv.includes('--signaling-only');
+if ([capacityDiagnostic, recoveryDiagnostic, numericalDiagnostic, memoryDiagnostic, signalingDiagnostic].filter(Boolean).length > 1) {
+  throw new Error('Choose one diagnostic: --capacity, --recovery, --numerical-only, --memory-only, or --signaling-only');
 }
 if (memoryDiagnostic && modelId !== 'qwen-3-5-0-8b-q4k-ehaf16') {
   throw new Error('--memory-only requires the retained long-prompt model');
@@ -45,11 +46,11 @@ const localConversation = process.argv.includes('--local');
 if (localConversation && process.env.REPLOID_E2E_BASE_URL) {
   throw new Error('--local owns its isolated application endpoint; omit REPLOID_E2E_BASE_URL');
 }
-const documentWorkload = memoryDiagnostic || numericalDiagnostic || capacityDiagnostic ? false
+const documentWorkload = memoryDiagnostic || numericalDiagnostic || capacityDiagnostic || signalingDiagnostic ? false
   : recoveryDiagnostic ? process.env.REPLOID_E2E_DOCUMENTS === '1'
   : process.env.REPLOID_E2E_DOCUMENTS !== '0';
-const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic && !recoveryDiagnostic && !memoryDiagnostic;
-const standaloneControls = !capacityDiagnostic && !numericalDiagnostic && !memoryDiagnostic
+const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic && !recoveryDiagnostic && !memoryDiagnostic && !signalingDiagnostic;
+const standaloneControls = !capacityDiagnostic && !numericalDiagnostic && !memoryDiagnostic && !signalingDiagnostic
   && (recoveryDiagnostic ? process.env.REPLOID_E2E_CAPACITY === '1' : !frozenWorkloads);
 const peer = process.env.REPLOID_TEST_PEER || 'x@128.tail995236.ts.net';
 const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || '/home/x/deco/reploid';
@@ -317,13 +318,15 @@ try {
       conversationDeployment = { sourceRevision: deployedRelease.release?.sourceRevision,
         platformRevision: deployedRelease.release?.platformRevision, browserIdentity, packageVersion: deployedPackage.version };
     }
-    phase = recoveryDiagnostic ? 'contributor restart diagnostic' : 'conversation acceptance';
+    phase = signalingDiagnostic ? 'physical signaling interruption diagnostic'
+      : recoveryDiagnostic ? 'contributor restart diagnostic' : 'conversation acceptance';
     console.log(`[distributed] ${phase}; evidence: ${output}`);
     const test = start(process.execPath, ['node_modules/@playwright/test/cli.js', 'test', '--config', 'tests/playwright.config.js',
       'tests/e2e/chat-cooperative-real.spec.js', '--project=chromium', `--output=${resolve(output, 'conversation')}`], { env: {
         ...process.env, DOPPLER_CHAT_MODEL_DIR: modelDirectory, DOPPLER_PARTITION_REFERENCE_OUT: '',
         REPLOID_TEST_MODEL: modelId, REPLOID_E2E_CAPACITY: standaloneControls ? '1' : '0',
         REPLOID_E2E_RECOVERY: recoveryDiagnostic ? '1' : '0',
+        REPLOID_E2E_SIGNALING: signalingDiagnostic ? '1' : '0',
         REPLOID_E2E_REVERSE_HOSTS: reverseHosts ? '1' : '0',
         PLAYWRIGHT_JSON_OUTPUT_FILE: resolve(output, 'playwright.json'),
         REPLOID_EXECUTOR_CDP: '1', REPLOID_EXECUTOR_WS: `ws://127.0.0.1:${socketPort}${remoteUrl.pathname}`,
@@ -366,6 +369,7 @@ try {
       : referenceHost
       ? 'Same-device partition versus unsplit fixed-token diagnostic; frozen failures retained, not release qualification'
       : 'Installed-package numerical diagnostic in both physical placements; application acceptance not exercised'
+      : signalingDiagnostic ? 'Physical selective acquisition and generation during signaling loss; numerical and full application acceptance not exercised'
       : memoryDiagnostic ? 'Installed-package long-prompt memory, reuse and cancellation diagnostic; numerical and application acceptance not exercised'
       : recoveryDiagnostic ? standaloneControls
         ? 'Physical contributor restart and standalone capacity diagnostics; remaining application and numerical acceptance not exercised'

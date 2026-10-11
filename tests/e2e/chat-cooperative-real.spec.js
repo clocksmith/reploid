@@ -8,6 +8,7 @@ import { createLayerPartitionPlan } from 'doppler-gpu/partitions';
 import { observeCooperativePage, compareObservedLogits } from '../fixtures/cooperative-observer.js';
 import { inspectExecutorMemory, measureStandaloneDenial, measureStandaloneGeneration, routeDiagnosticModel, inspectConnections } from '../fixtures/capacity-observer.js';
 import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from '../fixtures/physical-webgpu-browser.js';
+import { controlSignaling } from '../fixtures/signaling-interruption.js';
 
 // Exact catalog bytes may be supplied by a local seed. The requester/executor
 // still use the normal page, real WebRTC, signed custody and installed WebGPU.
@@ -55,6 +56,9 @@ test('one model executes cooperatively on discovered physical peers from selecti
     for (const context of contexts) await context.addInitScript(config => { globalThis.REPLOID_POOL_RTC_CONFIG = config; }, rtc);
   }
   const [requester, contributor, seed, second] = await Promise.all(contexts.map(context => context.newPage()));
+  const signalingOnly = process.env.REPLOID_E2E_SIGNALING === '1';
+  const signaling = signalingOnly ? await Promise.all(contexts.map(controlSignaling)) : null;
+  const signalingEvidence = { acquisition: null, generation: null, explicitDisconnect: null };
   const localHost = process.platform === 'darwin' ? 'mac' : process.platform;
   const observations = [1, 3].map(index => ({ physicalHost: isRemote(hosts[index]) ? 'linux-128' : localHost, loads: [], steps: [], errors: [] }));
   const reference = process.env.DOPPLER_PARTITION_REFERENCE_OUT
@@ -237,12 +241,22 @@ test('one model executes cooperatively on discovered physical peers from selecti
           console.log('Contributor acquisition', observations[index].physicalHost, state); lastProgress = state.progress;
         }
         if (state.error || state.phase === 'Failed') throw Error('Contributor preparation failed: ' + state.error);
+        if (signaling && index === 0 && !signalingEvidence.acquisition
+          && state.phase !== 'Ready' && state.storage.usage > 16 * 1024 * 1024) {
+          signalingEvidence.acquisition = { before: state, connections: await inspectConnections(page) };
+          await signaling[1].interrupt();
+        }
         return state.phase;
       }, { timeout: 1800000 }).toBe('Ready');
     }));
     if (remote) expect(observations[0].loads[0].descriptor.index).toBe(0);
     await seedObserver?.armFileProbes();
     console.log('Real contributor ready from peer files with its origin unavailable');
+    if (signaling) {
+      expect(signalingEvidence.acquisition, 'Signaling must fail during actual selective acquisition').toBeTruthy();
+      signalingEvidence.acquisition.after = await inspectConnections(contributor);
+      expect(signalingEvidence.acquisition.after.some(item => item.connectionState === 'connected')).toBe(true);
+    }
     await expect(requester.locator('[data-active-model-select]')).toHaveValue(new RegExp(model.id), { timeout: 60000 });
     await expect(requester.locator('[data-composer-send]')).toBeEnabled();
     await requester.locator('[data-composer-input]').fill(reference ? 'Reply with only the word Hello.' : 'Greet me briefly.');
@@ -281,6 +295,39 @@ test('one model executes cooperatively on discovered physical peers from selecti
       if (['failed', 'cancelled', 'interrupted'].includes(attempt.status)) throw new Error(attempt.error || attempt.status);
       return attempt.status;
     }, { timeout }).toBe('completed');
+    if (signaling) {
+      const id = await sendNew('Count from one to twenty, one number per line.');
+      await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === id)
+        .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
+      signalingEvidence.generation = { before: await lastAttempt(id) };
+      expect(signalingEvidence.generation.before.status).toBe('executing');
+      await Promise.all([0, 2, 3].map(index => signaling[index].interrupt()));
+      await waitCompleted(id);
+      signalingEvidence.generation.after = await lastAttempt(id);
+      expect(signalingEvidence.generation.after.execution.stopReason).toBe('eos-token');
+      expect(signalingEvidence.generation.after.id).toBe(signalingEvidence.generation.before.id);
+      const stoppedId = await sendNew('Count from one to twenty, one number per line.');
+      await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === stoppedId)
+        .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
+      expect((await lastAttempt(stoppedId)).status).toBe('executing');
+      await contributor.locator('[data-mesh-connect]').click();
+      await expect(contributor.locator('[data-connection-label]')).toHaveText('Disconnected');
+      await expect.poll(async () => (await lastAttempt(stoppedId)).status, { timeout: 30000 }).toBe('failed');
+      signalingEvidence.explicitDisconnect = await lastAttempt(stoppedId);
+      expect(requesterWeights).toEqual([]);
+      expect(contributorOrigins).toEqual([]);
+      expect(observations.map(device => device.loads.length)).toEqual([1, 1]);
+      const memory = await Promise.all([contributor, second].map(inspectExecutorMemory));
+      for (const item of memory) expect(item.peakBytes).toBeLessThanOrEqual(item.maxBytes);
+      await writeFile(info.outputPath('signaling-interruption.json'), JSON.stringify({
+        scope: 'Physical signaling independence; not numerical or full application acceptance',
+        physicalDevices: remote ? 2 : 1, modelIdentity: model.identity, memory,
+        ...signalingEvidence, signaling: signaling.map(control => control.events),
+        requesterWeights, contributorOrigins,
+        acquisitions: observations.map(device => device.loads[0].acquisition),
+      }, null, 2));
+      return;
+    }
     const returningPages = observations[0].physicalHost === 'mac' ? [contributor, second] : [second, contributor];
     const downloadConversation = async () => {
       const actions = requester.locator('[data-conversation-actions]');
@@ -729,6 +776,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
       await info.attach('numerical-at-exit.json', { contentType: 'application/json', body: JSON.stringify(evidence, null, 2) });
     }
     const stateAtExit = JSON.stringify({
+      signalingEvidence, signalingEvents: signaling?.map(control => control.events) || null,
       executorQuotaMiB, seedObservation,
       physicalDevices: remote ? 2 : 1, browserContexts: contexts.length,
       applicationProfiles: { [localHost]: process.platform === 'darwin' ? 'ordinary' : 'private',
