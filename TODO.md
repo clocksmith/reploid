@@ -1,79 +1,14 @@
-# Doppler–Reploid implementation checklist
+# Reploid, Doppler, and Doe implementation checklist
 
-**One track: finish dependable distributed chat, then add durable independent jobs through the same libraries.**
+**Goal: dependable distributed answers through the ordinary Reploid application and one standard Doppler package, with optional Doe execution.** Independent embedding/indexing work and projection research can advance without claiming that chat or Gemma W8A8 is qualified.
 
-This is the canonical implementation checklist for both repositories. Doppler's
-`TODO.md` links here; other plans describe contracts or historical evidence and
-must not select a competing work queue. Check off an item only when its complete
-acceptance passes, with an evidence link. Partial implementation stays unchecked.
+This is the single cross-project implementation queue. Doppler and Doe link to item IDs here; evidence stays in its owning repository. Checked means the stated scope is complete, including a completed rejection. Partial acceptance stays unchecked. “Retained” means inspected existing evidence, not a new hardware run. Each open item names the next delta and its completion condition.
 
-The supplied checklist combines the specification with the review of **Doppler
-`4fba3766` and Reploid `1326720d`, using Doppler 0.6.27**. That review was not a
-fresh repository check. Checked items represent retained, scoped completion,
-not full release acceptance. The specification predates several completed fixes.
-Subsequent evidence is recorded beneath the relevant item without erasing failures.
+**Audit: 2026-10-11.** Fetched and fast-forwarded clean checkouts to Reploid `dd4e1275`, Doppler `b7b94713`, and Doe `50f118901`. Reviewed current source and retained receipts. Fresh checks: offline projection-export test; export archive, manifest, and all 17 payload hashes; accepted Reploid archive and all 1,897 installed package members. No new GPU, remote browser, deployment, model-quality, or benchmark run occurred. No claim is made about currently running remote processes.
 
-**Sequencing adjustment:** the latest instruction authorizes coordinated R4 and
-connection work in parallel with distributed-chat repairs. Their acceptance
-remains separate; independent jobs and introductions do not waive unresolved
-chat or deployment gates. Callback isolation in R5 has already landed.
+**Changes from the supplied checklist:** DOP-5 and DOP-8 are complete. DOP-4 has all four F16 cases, partial Q4, and no portable comparison. The last batch stopped on user instruction at a settled boundary, not a runtime failure. Reploid's coordinator is implemented, but ordinary document indexing still bypasses it. Doe's imported SPIR-V path exists but lacks qualified metadata; no mixed-compiler projection result is established.
 
-**Additional authorized batch: W8A8 linear projections.** Implement one complete
-Gemma 3 270M path in Doppler alongside the remaining chat work. This does not
-replace items 7–8, change their 0.001 tolerance, qualify distributed W8A8, or
-activate another model catalog campaign. Reploid's application APIs stay unchanged;
-Doe remains an optional provider.
-
-- [x] **W1. Define and implement one numerical scheme.** Symmetric signed INT8
-  weights with per-output-channel scales and activations with per-token scales;
-  I32 accumulation and ordered F32 rescaling. Declare rounding, clipping, zero,
-  nonfinite, padding, byte order and overflow behavior. Preserve other tensor
-  precision. Conversion owns emitted bytes, JSON owns policy and kernel identity,
-  JavaScript owns orchestration, and WGSL computes and packs activations.
-
-  Evidence: Doppler [explicit numerical and storage contract](https://github.com/clocksmith/doppler/blob/42e57a5d/docs/conversion-runtime-contract.md#w8a8-linear-projections)
-  and [Gemma conversion](https://github.com/clocksmith/doppler/blob/42e57a5d/artifacts/w8a8-conversion-20261011/README.md).
-  All 126 projection matrices and seven shards validate; other tensor precision
-  is preserved. This is implementation evidence, not complete model acceptance.
-
-- [x] **W2. Qualify both projection implementations.** Compare portable signed-byte
-  multiplication and `dot4I8Packed` on identical operands with exact integer
-  accumulators, then compare packing/scales/reconstruction with an independent
-  reference. Gate the packed variant on the host WGSL language feature; preserve
-  explicit execution identities and reject unsupported contracts.
-
-  Evidence: Doppler [Linux AMD operator qualification](https://github.com/clocksmith/doppler/blob/1168be7c/artifacts/w8a8-kernels-20261011/README.md)
-  covers all 15 frozen Gemma projection shapes, irregular shapes, boundary values,
-  rejection and cleanup. Both implementations match independently calculated
-  packed bytes, I32 accumulators and ordered F32 outputs exactly. This scope does
-  not establish model quality, speed, another device, or distributed execution.
-
-- [ ] **W3. Qualify one installable model.** Freeze model-quality criteria before
-  tuning. Exercise representative projection shapes, complete Gemma 3 270M
-  generation, repeated requests, cancellation and resident reuse. Measure complete
-  prefill and decode including activation quantization, packing, allocation and
-  rescaling against the actual Q4 and F16 controls. Retain failures and exact
-  package/model identities. No speed, quality, capacity or distribution claim
-  follows merely from eight-bit support or language-feature availability.
-
-  Installed progress: [final portable/packed model controls](https://github.com/clocksmith/doppler/blob/13e985cd/artifacts/w8a8-model-qualification-20261011/README.md#final-completion-metadata-control)
-  bind candidate `7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d`.
-  All twelve token sequences and 200 teacher-forced observations match between
-  variants; complete execution, valid stopping metadata, actual submitted
-  cancellation, deterministic reuse and settled unload pass. Peak owned buffer
-  allocation is 668,488,920 bytes under the unchanged 1,420,000,000-byte ceiling.
-  Model qualification remains failed: 4/12 tasks pass against the frozen 10/12
-  requirement, and mean NLL 4.76907409 exceeds the F16 +0.10 allowance. Independent
-  source W8 also fails task quality at 5/12. Actual-operand checks explain
-  quantization-threshold amplification without establishing a local arithmetic
-  defect. These failures must not be removed by changing the reference.
-
-  [Embedding and scoring on the same candidate](https://github.com/clocksmith/doppler/blob/292be9e8/artifacts/w8-runtime-core-completion-20261011/README.md)
-  retain all 18 complete-text vectors and all 24 choice logits, original order,
-  repetition, submitted cancellation and settled reuse against their independent
-  references. This preserves existing operation scope, not W8 embedding or
-  distributed qualification. The accepted 0.6.27 archive remains `9280ead5...`;
-  no Reploid dependency, deployment, Mac run or captured reference is replaced.
+**Next independent work:** Reploid REP-2 → REP-3; Doe DOE-2/DOE-3 → DD-1 → DD-2; Doppler finish only the missing DOP-4 comparisons in an assigned window, then select one DOP-6 numerical question. Do not repeat DOP-5 or rebuild DOP-8. Their completed handoff already lets Doe proceed. ALL-2 governs physical windows, not ordinary source work.
 
 **Current release priority:** finish the usable conversation experience while
 numerical disposition and application quality proceed separately. W8A8 remains
@@ -81,145 +16,92 @@ experimental and does not gate UX. Its [retained benchmark disposition](https://
 records slower packed execution against F16, the user-stopped partial Q4 run,
 and no portable timing campaign. The agents are stopped for handoff.
 
-## A. Preserve the completed foundations
+## 1. Doppler only: computation, numerical correctness, and packaging
 
-- [x] **1. Both: keep one implementation and explicit ownership.**
-  Use one ordinary Doppler package and matching browser delivery, identified by archive digests rather than version names alone. Doppler owns computation and state; Reploid owns coordination, permissions, assignments and history; transport owns delivery. Keep existing layers and wire protocols. Record contract, physical execution, application quality and deployment acceptance separately.
+Doppler owns preparation, executable packages, tensor contracts, sampling, and generation state. It remains usable without Doe or Reploid.
 
-  Evidence: both checked-out consumers retain the identical standard 0.6.27 archive, SHA-256 `9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc`; generated delivery and installed-consumer checks pass in the [failure-category receipt](artifacts/partition-failure-categories-20261011/README.md). Ownership and separately scoped acceptance remain unchanged.
+<a id="dop-1"></a>
+- [x] **DOP-1 — W8A8 projection foundation.** Retain symmetric signed quantization, per-channel weight scales, per-token activation scales, bounded I32 accumulation, and ordered F32 rescaling. JSON declares policy; conversion emits weights; JavaScript orchestrates; WGSL packs activations and computes. This qualifies linear projections, not an entire model. Evidence: [conversion][dop-conversion], [operator controls][dop-operators], and `src/gpu/kernels/w8a8.js` in Doppler.
 
-- [x] **2. Reploid R1: preserve canonical identity validation.**
-  Retain the shared binding in `partition-contract.js` and its use by `partition-step-receiver.js`. Validate all nine identity fields, requiring requester and placement fields together when supplied. Reject changed bindings during execution, duplicate handling, cancellation and settlement. Matching duplicates reuse retained results; changed inputs reject. Contributor replacement creates a new attempt.
+<a id="dop-2"></a>
+- [x] **DOP-2 — Independent projection and scoped lifecycle acceptance.** Retained portable/packed controls cover quantization, packing, integer accumulators, output bits, boundaries, padding, invalid inputs, cancellation, resident reuse, and settled cleanup. The final candidate's 668,488,920-byte accounted peak is neither process RAM nor physical GPU residency. Preserve completion versus cancellation distinctions and the 1,420,000,000-byte ceiling. Evidence: [operators][dop-operators], [installed lifecycle and quality][dop-quality], [candidate record][dop-package].
 
-- [x] **3. Doppler D1 / Reploid R2: preserve public contract authority.**
-  Keep resident types authoritative through `doppler-gpu/partitions`; derive Reploid’s runtime-facing declarations from installed public exports. Preserve separate coordination types. Validate `generationDigest`, readiness, model, plan, index, layer range and required methods before admission. Keep `tests/contracts/doppler-partition-signed-opening.js` covering incompatible versions and rejected-program cleanup. Synthetic opening remains distinct from physical inference.
+<a id="dop-3"></a>
+- [x] **DOP-3 — Complete the Gemma quality rejection.** Installed variants agree but pass only 4/12 frozen tasks against the 10/12 requirement and fail the F16-relative likelihood allowance. Independent source W8 passes 5/12 and also fails. This experiment is complete; Gemma W8A8 remains rejected. Evidence: [quality disposition][dop-quality]. Do not turn implementation agreement into model acceptance.
 
-- [x] **4. Doppler D2 / Reploid R3: preserve honest recovery.**
-  Retain `getRecoveryCapabilities()` with `inputReplay`, `checkpointExport` and `checkpointImport` false. Distinguish resuming artifact acquisition, replaying committed outcomes and starting a fresh attempt. None restores lost generation state. Recheck disclosure authorization before replay or restart; preserve previous partial output. A disconnected channel does not establish that remote GPU cleanup completed.
+<a id="dop-4"></a>
+- [ ] **DOP-4 — Finish missing frozen measurements. Partial; physical window required.** All four F16-versus-packed cases completed with ten pairs each. Packed complete-operation median paired ratios are approximately 2.16–2.39 times F16: slower, on these unqualified fixed-prefix workloads. Q4 stopped after five complete pairs in its first case; portable was not started. [Batch disposition][dop-benchmark] retains the controlled stop, all samples, and the failed both-resident attempt.
 
-- [x] **5. Reploid R5: preserve callback isolation.**
-  Keep awaited output delivery outside the shared execution lease in `partition-runner.js`. Each attempt retains ordered delivery and bounded backpressure, while a stalled consumer cannot hold another conversation’s GPU lease. Test delayed callbacks, rejection and cancellation together. This completed isolation change does not authorize concurrent mutation or establish faster stage overlap.
+  Next: use `tools/w8a8-benchmark-scenario.js` with the retained benchmark contracts; record a continuation identity, complete remaining Q4 coverage and portable comparisons without silently pooling incompatible sessions. Keep serialized residency and equal reuse; include quantization, packing, rescaling, submission, required completion/readback in the declared operation. Report loading/warmup separately. Completion requires all planned cases and adverse results retained, not a speed win or model promotion. No native provider claim follows from these quantization comparisons.
 
-- [x] **6. Both: preserve scoped memory and lifecycle acceptance.**
-  Retain the passing 494-token and repeated 1,588-token controls, submitted cancellation, allocation rejection, resident reuse and settled cleanup. Preserve the **1,420,000,000-byte per-device ceiling**. Distinguish resident weights, reusable pools, active attempt state and deferred destruction. These results cover the tested archive and placement; rerun affected controls after numerical or integration changes.
+<a id="dop-5"></a>
+- [x] **DOP-5 — Freeze and validate the projection exporter.** Already implemented in `tools/export-w8a8-projection.js`. [Projection handoff][dop-export] contains deterministic F32 operands, scales, packed bytes, expected I32 intermediates, intermediate/final F32 bits, exact installed WGSL, layouts, constants, bindings, dispatches, and identities. Synthetic query shape is M=1, N=1024, K=640; seed 7331. Fresh offline test and all payload hashes pass in this audit. No new GPU evidence is implied. Hand to DD-1 now; whole-model W8 quality does not block it.
 
-  Evidence for 2–6: [0.6.27 contracts and physical controls](artifacts/partition-contracts-20261010/README.md). These checks do not close sections B or C.
+<a id="dop-6"></a>
+- [ ] **DOP-6 — Resolve distributed numerical accuracy. Failed gate; next hypothesis must be explicit.** [Complete 55-prefix comparison][dop-numerical] rejects all retained candidates at unchanged 0.001. Local F16 projection accuracy improved, but the Q4 addition worsened maximum full-model error; neither qualifies. Physical cache readback, attention, recurrence, normalization, and projection investigations already exist—do not rerun them without a new question.
 
-## B. Close the remaining execution and integration blockers
+  Next: use the retained failed-prefix and midpoint evidence to specify one unresolved upstream boundary and an independent same-operand test. Separate F64 mathematical accuracy from conformance to a specified F32 evaluation, including materialization, reduction order, fusion, and F16 cache boundaries. Keep manifest normalization enforced. Test a single correction locally, then the unchanged complete comparison. Historical captures cannot become their own oracle. A changed acceptance reference requires independent justification and explicit approval (ALL-4); Mac/directional acceptance belongs to DR-4.
 
-- [ ] **7. Doppler: isolate remaining numerical error.**
-  The retained independent source control fails 34 of 55 Doppler comparisons; matching GPUs therefore cannot certify accuracy. Extend `tools/qwen35-deployed-reference.py` and existing probes to a failing decode prefix. Use identical deployed weights, input tokens and state, separating inherited differences from local operation error. Test one justified correction against complete comparisons.
+<a id="dop-7"></a>
+- [ ] **DOP-7 — Require a cause before another W8 quality candidate. Not selected.** After DOP-4, identify a specific quantization or quality mechanism from [actual-operand/source comparisons][dop-quality], rather than adjusting policy until old tasks pass. Freeze a new hypothesis, identity, independent checks, and fresh quality cases. Preserve model constants and the rejected candidate. No new model family, quantization policy, or numerical substitution is authorized by an operator speed result.
 
-  Progress: [independent deployed-weight controls](https://github.com/clocksmith/doppler/blob/02c864cf/artifacts/source-model-reference-20261010/README.md) include request 2 / decode step 3. The logit difference is 0.0014121532440185547. Actual-operand normalization and projection checks separate local rounding from inherited state; no sufficient correction is established.
+<a id="dop-8"></a>
+- [x] **DOP-8 — Exact candidate record and repository checks.** [Candidate record][dop-package] binds archive SHA-256 `7c240dad…`, version 0.6.27, installed receipts and package inventory. [Frozen-source repository sweep][dop-checks] passed, including 917 unit files. Subsequent exporter controls pass separately. [Core-operation checks][dop-core] retain successful embedding/scoring apart from failed generation qualification. These are archive hash prefixes, not Git commits. No archive promotion, publication, or Reploid pin change follows. Keep the record current only when owned bytes change.
 
-  Further evidence: [captured attention and recurrence histories](https://github.com/clocksmith/doppler/blob/2454e30a/artifacts/source-model-reference-20261011/README.md) match independent float64 attention within 0.000000397 across all six full-attention layers; layer 0's 187-token recurrent replay differs by at most 0.000000812. Independently evolved F16 caches differ. Using the source sequential recurrence for prefill reduces the selected logit difference to 0.0011813640594482422, still failing 0.001. No runtime or reference change is justified by these controls alone.
+## 2. Doe only: compiler completeness and attributable Vulkan improvements
 
-  Further evidence: [all 18 recurrent layers](https://github.com/clocksmith/doppler/blob/391b321d/artifacts/source-model-reference-20261011/all-recurrence.json) replay all 187 captured tokens against independent float64 equations. Maximum local error is 0.0000092796421356; the selected full-model discrepancy remains 0.0014121532440185547. This does not establish a recurrence defect or close numerical acceptance.
+Doe owns general WGSL compilation, native execution, resources, synchronization, and diagnostics. Gemma quantization policy stays in Doppler.
 
-  Further evidence: [feed-forward and cache-rounding controls](https://github.com/clocksmith/doppler/blob/b54c31b1/artifacts/source-model-reference-20261011/README.md) find local feed-forward errors below 0.000001328 and demonstrate F16 cache rounding amplification. The complete-model error remains 0.0014121532440185547. This does not authorize a new reference or close item 7.
+<a id="doe-1"></a>
+- [x] **DOE-1 — Packed-operation correctness.** [Retained compiler and AMD/Vulkan controls][doe-packed] cover signed/unsigned packing, clamping, unpacking, dot products, constant expressions, and single argument evaluation. Preserve normalized-packing repairs and failed Dawn tie controls separately. Portable integer lowering remains the baseline; hardware acceleration and physical Metal/D3D12 support are not established by it.
 
-  Further isolation: [cache intervention](https://github.com/clocksmith/doppler/blob/a953b0a4/artifacts/source-model-reference-20261011/observed-cache-control.json) reduces the selected logit difference from 0.0014121532440185547 to 0.000026464462280273438 when only the offline source model’s F16 cache values are replaced with captured values. This establishes sensitivity to stored-cache differences, not independent acceptance. A separate normalization-order control remains above 0.001. No runtime arithmetic or precision changed.
+<a id="doe-2"></a>
+- [ ] **DOE-2 — Smallest qualified mixed-compiler boundary. Source gap identified.** `runtime/zig/src/native/shader/doe_shader_native.zig:createFromSPIRVOwned` stores imported words but initializes binding metadata empty and workgroup dimensions to one. The ordinary JavaScript shader path is WGSL; imported C-ABI support alone does not qualify the matrix.
 
-  Physical storage verified: [actual K/V readback](https://github.com/clocksmith/doppler/blob/eeefd15b/artifacts/physical-cache-20261011/README.md) checks six layers across four prefixes. All 4,558,848 stored F16 values match independently rounded pre-storage inputs bit-for-bit; layouts, history lengths and allocation identities match subsequent attention reads. Instrumented logits equal baseline exactly. This closes storage/indexing/conversion at the tested boundary, not numerical acceptance. Existing all-layer attention, recurrence, feed-forward and final-projection diagnostics are complete and must not be repeated without an unanswered question. The completed focused audit below separates inherited input differences from local F32 rounding at F16 midpoints.
+  Next: map the frozen fixture's entry points, explicit binding layouts/ranges, workgroup dimensions, specialization constants, validation and safety requirements to native admission. Repair only the metadata path needed to execute this fixture; add rejection checks for mismatches and unsupported requirements. Account for Dawn's validation/reflection/retranslation when testing its import path. Completion is a reconstructable, validated import contract, not merely SPIR-V emission. Source/interface work needs no benchmark GPU.
 
-  Completed attribution: the [187-position midpoint audit](https://github.com/clocksmith/doppler/blob/d0896571/artifacts/cache-midpoint-20261011/README.md) separates inherited inputs from local rounding without substituting observed state. The [independently evolved F64 control](https://github.com/clocksmith/doppler/blob/e702bfbc/artifacts/whole-model-f64-20261011/README.md) uses exact deployed weights and explicit F16 cache boundaries. Doppler, historical output and both F32 source paths pass three selected prefixes and fail the fourth at unchanged 0.001; respective maximum errors are 0.001529, 0.001335, 0.001220 and 0.001091. All selected tokens agree. Eight focused controls pass, and one-thread/four-thread reports match exactly. This does not identify a defective storage operation or justify activating captured outputs. The independent evaluation target must be explicit before selecting further numerical repair.
+<a id="doe-3"></a>
+- [ ] **DOE-3 — Record actual Vulkan integer-dot capabilities. Not established.** The existing [device discovery][doe-device] identifies the tested AMD adapter/driver but does not establish signed/unsigned packed-dot acceleration properties. Next: retain the relevant feature and property query values, enabled device features, exact GPU/driver/configuration, and unsupported disposition. Query availability separately from accelerated signed/unsigned behavior. This lightweight discovery must not interrupt an occupied measurement window; never infer acceleration from WGSL feature exposure.
 
-  Verified repair: [tiled projection accumulation](https://github.com/clocksmith/doppler/blob/dd17c76d/artifacts/accumulation-repair-20261011/README.md) shortens the executed F16-weight/F32-activation summation chain while preserving operand formats, dispatch and model semantics. Independent same-operand F64 dot products show lower local error on all 5,888 retained outputs; eight additional GPU shape controls pass. Against the frozen independent whole-model F64 equations with explicit F16 cache boundaries, the selected failing prefix improves from 0.001529 to 0.001206, with violations reduced from 148 to 11. All four selected tokens remain unchanged. This investigative accuracy target does not activate a replacement reference. Full numerical qualification, all-prefix replay and Mac acceptance remain open; the standard archive is unchanged.
+<a id="doe-4"></a>
+- [ ] **DOE-4 — One accelerated-lowering candidate. Waits for DD-2 and DOE-3.** Target a supported packed integer-dot instruction while preserving signedness, exact integer semantics, and single argument evaluation. Keep model names/scales/application policy outside `runtime/zig/src/compiler/wgsl/emit/emit_integer_dot.zig`. Preserve the portable path explicitly when acceleration is unavailable. Record emitted binary identity before qualification.
 
-  Further repair and disposition: [Q4 block accumulation](https://github.com/clocksmith/doppler/blob/1e0b8be8/artifacts/q4-accumulation-repair-20261011/README.md) improves independent actual-operand accuracy across 65,536 values and passes five varied GPU shape controls. The selected full-model failure falls to two out-of-tolerance logits, but maximum error increases slightly to 0.001222; this adverse result is retained. A focused final-normalization capture reproduces all unmasked diagnostic logits exactly. Independent same-operand final-projection errors are below 0.0000004, locating the material residual upstream without identifying its precise boundary. Both existing independent F32 evaluations also fail. Items 7–8 remain open; no additional kernel patch or fixture activation follows from these observations alone.
+<a id="doe-5"></a>
+- [ ] **DOE-5 — Qualify accelerated execution before timing. Waits for DOE-4.** Validate SPIR-V; run exact outputs against the independent projection reference, boundary operands, applicable allocation/failure and cleanup controls. Observe the actual loaded library and executed shader, not just generated bytes. Completion applies to the tested Vulkan device; translations do not grant physical Metal/D3D12 acceptance.
 
-  Complete comparison: [all 55 independent prefixes and exact archive controls](https://github.com/clocksmith/doppler/blob/815ed6cf/artifacts/whole-model-f64-complete-20261011/README.md) supersede the narrower candidate comparison above. At unchanged 0.001, standard / F16-only / combined candidates respectively fail 22 / 21 / 27 prefixes against independently evolved F64 with F16 caches; 28 / 30 / 20 against the historical fixture; and 34 / 39 / 38 against the independent F32 source. All selected tokens agree. Exact single-shader archive comparisons reproduce the current combined output and original baseline byte-for-byte. The Q4 addition worsens maximum error against every target, despite some improved failure counts. No candidate qualifies; local accuracy and reference-dependent rankings do not authorize promotion. Eight independent equation checks pass. Full vectors remain locally retained with committed hashes, and neither the active reference nor standard archive changed. An explicit numerical evaluation contract remains necessary; this evidence does not select one merely because it is easier to pass.
+<a id="doe-6"></a>
+- [ ] **DOE-6 — Select the next general correction from measurements. Waits for DD-4.** If generated code limits the workload, repair lowering. If execution costs dominate, fix the measured preparation/allocation/synchronization/readback owner. Retain unfavorable results and readable ownership/failure paths. Do not launch an unrelated optimizer campaign before the matrix identifies a useful target.
 
-- [ ] **8. Doppler: resolve the reference-contract mismatch explicitly.**
-  Preserve declared normalization entry points rather than restoring the historical `main_subgroup` substitution. Keep old fixtures and failed receipts unchanged. Independently assess any correction before proposing a versioned reference replacement, requiring explicit approval. Retain precision, inputs, token expectations and **0.001 tolerance**. Newly captured Doppler outputs alone cannot validate their own correctness.
+## 3. Reploid only: application integration and dependable participation
 
-  Historical evidence: the [revision-2 correction](artifacts/reference-correction-20261011/README.md) was activated under an overly broad interpretation of the instruction to finish the rest. That activation is now superseded; the candidate remains inactive pending the specific approval required by this item. Nine focused checks preserve all frozen inputs, expected tokens and 0.001. The original fixture and failures remain unchanged. Independent source-equation qualification remains failed in item 7; this correction does not approve deployment.
+Reploid owns conversations, authorized participation, placement, connectivity, and evaluated coordination. It does not implement model mathematics or compiler policy.
 
-  Current disposition: the earlier regression-only activation is retained as historical evidence, but the candidate is now inactive under reference contract revision 3. The latest user instruction requires specific, independently justified approval. Historical reference bytes, failed receipts, declared shader and 0.001 remain unchanged. Physical-cache verification passes; source evaluation/rounding disposition remains open. Broad completion authorization does not establish reference approval.
+<a id="rep-1"></a>
+- [x] **REP-1 — Preserve completed foundations.** The [independent-unit coordinator and aggregate journal](artifacts/independent-units-20261011/README.md), [installed interrupted-job controls](artifacts/independent-units-20261011/physical/README.md), and [contribution-stop repair](artifacts/operation-participation-lifecycle-20261011/receipt.json) exist. Actual embedding interruption evidence is one AMD machine with logical providers; the sharing-control repair uses synthetic model results. Do not rebuild these as another scheduler or journal. Retain callback isolation and the [completed stage-overlap investigation](artifacts/partition-stage-timing-20261011/README.md), which established no useful overlap gain.
 
-  Enforcement: the [acceptance reporting correction](artifacts/reference-correction-20261011/README.md) separates frozen-runtime regression from independent accuracy. A passing captured fixture cannot produce a qualified numerical verdict or unblock ordinary application acceptance. Fifteen focused checks pass; neither fixture nor runtime arithmetic changes.
+<a id="rep-2"></a>
+- [ ] **REP-2 — Connect ordinary indexing. Confirmed integration gap; ready for source work.** `self/host/product-session.js` constructs the document assistant with a local executor. `self/pool/document-search.js:search` sends corpus passages plus query directly to `executor.run` and retains its index in memory. It does not invoke `createIndependentUnitCoordinator`.
 
-  Contract clarification: the [independent evaluator](https://github.com/clocksmith/doppler/blob/815ed6cf/tools/qwen35-f64-reference.py) widens deployed weights and keeps intermediate arithmetic/state in F64, narrowing only stored K/V to F16. It does not round intermediate operations to the manifest's declared F32 policy. Its results are mathematical-accuracy diagnostics, not independent simulation of that F32 execution. A proposed accuracy contract may explicitly use this target; an F32 conformance contract must instead specify materialization, rounding, reduction/recurrence order and fused-operation policy. Neither choice qualifies the currently failing candidates or authorizes activating captured output.
+  Next: compose the existing coordinator and `openIndependentUnitJournal` in the host, with existing signed-job preparation, placement and per-operation disclosure. Feed stable complete passage texts and original positions into the qualified embedding operation; subdivision must not retokenize arbitrary fragments or change input semantics. Separate durable corpus indexing from query embedding, reranking and generation. Project existing progress/stop/retry through `self/ui/pool-home/document-search.js`; keep local-only operation deliberate. Verify accepted-pin eligibility before a physical job; diagnostic-package evidence does not transfer automatically. Done when normal document controls create and consume a durable signed aggregate through public interfaces.
 
-- [x] **9. Doppler and application: diagnose repetitive answers.**
-  Replay the failing counting request through independent source-model computation with identical deployed weights and generation settings. Its uncancelled unsplit Doppler control reproduces the distributed prefix, so cancellation is not a necessary cause. Fix runtime differences if demonstrated; otherwise evaluate model or prompt changes on fresh tasks without weakening protected correctness cases.
+<a id="rep-3"></a>
+- [ ] **REP-3 — Prove durable indexing in the application. Waits for REP-2.** Extend existing `tests/e2e/independent-units.spec.js` and document-search journeys instead of adding a new protocol. Stop admission, retain committed units across reload, replace/retry unfinished units, reject duplicate inclusion and superseded attempts, restore original ordering, and preserve unrelated conversations. Include storage failure and revoked read permission. Guarantee one accepted outcome per unit, not exactly-once remote execution. Library interruption proofs already exist; the missing proof is the ordinary host/UI path and its output vectors.
 
-  Progress: [source-model replay](https://github.com/clocksmith/doppler/blob/02c864cf/artifacts/source-model-reference-20261010/count-generation.json) matches all 4,096 tokens and 16,821 characters, ending without EOS. Independent reproduction is complete. The subsequent fresh task-quality evaluations below complete this diagnostic item; the application-quality acceptance in item 14 remains failed.
+<a id="rep-4"></a>
+- [ ] **REP-4 — Complete contribution lifecycle integration. Partial.** The [settlement repair](artifacts/operation-participation-lifecycle-20261011/receipt.json) already revokes admission, coalesces overlapping stops, waits for startup, attempts both cleanups and retains failed ownership for retry. Next: run existing acquisition/execution controls with replacement sessions and another active conversation, including failed cleanup and explicit retry. Assert that an old stop cannot close a newer session and that “idle” follows settlement. Keep focused regressions; do not repeat the entire repository sweep solely for this checklist edit.
 
-  Further evidence: [fresh task-quality comparison](artifacts/chat-task-quality-20261011/README.md) rejects neutral repetition as a standalone application correction: both existing and candidate settings pass three of six cases, failing requested list formatting. All cases reach EOS. Production settings and protected cases remain unchanged.
+<a id="rep-5"></a>
+- [ ] **REP-5 — Verify integrated acquisition and introductions. Scoped mechanisms complete; ordinary journey open.** [ICE teardown reproduction and repair](artifacts/ice-acquisition-20261011/README.md) closes a reproduced acquisition defect. The earlier uninstrumented missing-piece trigger remains unknown. [Signaling independence](artifacts/signaling-independence-20261011/README.md) and [introduced embedding across Mac/Linux](artifacts/peer-introductions-20261010/embedding-20261011/README.md) pass their recorded controls; the latter used diagnostic archive `414f61c3…`.
 
-  Further evidence: the same [quality receipt](artifacts/chat-task-quality-20261011/README.md) rejects a general formatting instruction on a separate holdout. The existing 2B model passes six additional fresh exact-output/EOS cases with unchanged application settings. Its complete distributed application journey remains required; these unsplit results do not establish capacity or application acceptance.
+  Next: reuse these mechanisms in the accepted-pin journey with authenticated introductions, configured bootstrap alternatives, supplier replacement and reconnect. Preserve manifest/grant binding, separate introduction/file/compute permissions, and bounded error categories. Record the missing piece, advertisements, verified retention, grants, cancellation and replacement if acquisition fails. A healthy data channel must survive signaling loss; bootstrap availability is not execution readiness. No claim of arbitrary NAT traversal or public discovery follows from configured fixture routes.
 
-  Remaining quality failure: the 2B replay of the original count-to-200 request stops at 120 with EOS. The [retained result](artifacts/chat-task-quality-20261011/README.md) rejects it. The application cancellation test now verifies the full ordered count, so natural stopping alone cannot qualify an incomplete answer.
+<a id="rep-6"></a>
+- [x] **REP-6 — Preserve honest recovery contracts.** [Contract controls](artifacts/partition-contracts-20261010/README.md) and [bounded failure categories](artifacts/partition-failure-categories-20261011/README.md) retain canonical attempt identities, paired requester/placement fields, explicit readiness, and unavailable replay/checkpoint capabilities. Changed bindings reject; authorized restart creates a new attempt and keeps prior partial text separately. Transport loss never proves remote GPU cleanup. This checked contract does not close physical recovery/quality acceptance in DR-5.
 
-  Independent attribution: the [2B source replay](https://github.com/clocksmith/doppler/blob/c45daac1/artifacts/source-model-reference-20261011/model-2b-counting-source.json) matches all 372 tokens, including EOS after 120. A neutral repetition candidate also fails the unchanged request. No production policy changed. The application test retains a failing quality verdict while continuing independent recovery checks after settlement.
+<a id="rep-7"></a>
+- [ ] **REP-7 — Complete ordinary use on the accepted pin. Partial and failed quality evidence retained.** Exercise signed-Capsule opening, selective acquisition, zero requester weight downloads, automatic configured discovery, concurrent conversations, repeated long prompts, document reuse, citations and copying. [Signed resident integration](artifacts/partition-contracts-20261010/signed-pieces-20261011/README.md) is implemented but its proof is synthetic. [Focused physical recovery](artifacts/focused-recovery-20261011/README.md) passes several interruption/replacement boundaries but retains incomplete counting and inaccurate document answers. [Source quality attribution](artifacts/chat-task-quality-20261011/README.md) separates model failures from coordination defects.
 
-  Completion scope: diagnosis and fresh-task evaluation only. The independent source reproduces the original repetition and the larger-model incomplete answer; no runtime difference requiring correction was found. Both evaluated policy candidates remain inactive after failing the unchanged counting request. Complete, useful distributed answers are still required by item 14.
-
-  Additional attribution: [original pretrained 2B weights](https://github.com/clocksmith/doppler/blob/3f1cd762/artifacts/original-qwen35-2b-counting-20261011/README.md), including the original tied head, reproduce all 372 tokens and EOS after 120 with the same prompt, F32 source equations, F16 cache and generation policy. Quantization is therefore unnecessary for this particular failure. This does not qualify other generation policies or change the protected answer requirement.
-
-  Further bounded source screens: the [existing LFM artifact](https://github.com/clocksmith/doppler/blob/978cb15a/artifacts/lfm25-task-quality-20261011/README.md) fails three of six fresh tasks; its legacy artifact lineage remains unestablished. The [original Qwen3-1.7B checkpoint](https://github.com/clocksmith/doppler/blob/e66f7b56/artifacts/qwen3-17b-task-quality-20261011/README.md) passes four of six short tasks and none of four separately frozen long-list/document tasks under the tested policy. Both candidates are rejected before protected-case replay or runtime integration. These results do not establish failure under every possible policy; no tested replacement currently closes item 14. Model weights, application catalog, standard archive and protected requirements remain unchanged.
-
-- [x] **10. Reploid: explain and repair acquisition disconnects.**
-  Trace the first failed peer acquisition through `self/host/work-model-files.js`, custody and transport: actual connection loss, retained inventory, requested piece, permissions and supplier replacement. Preserve the earlier failed run even when retry succeeds. Retain the already-repaired manifest binding. Completion requires a reproduced cause, targeted regression and successful selective acquisition with origins blocked.
-
-  Progress: [historical acquisition trace](artifacts/signaling-independence-20261011/historical-acquisition-trace.json) localizes the retained failure to loss of both remote peer entries before shard 1, while the supplier remained Sharing. The triggering socket/ICE/timeout event was not captured. New physical observations retain peer-retirement state and call sites; successful retries do not close the original cause investigation.
-
-  New evidence: [reproduced ICE teardown](artifacts/ice-acquisition-20261011/README.md) captures open channels being destroyed at a recoverable disconnected transition with signaling connected. Incoming/outgoing paths now retain them within the existing heartbeat deadline. Seven regressions reproduce the old defect; focused, repository and browser checks pass. The [post-fix Mac/Linux run](artifacts/ice-acquisition-20261011/post-fix-receipt.json) now passes selective acquisition with origins blocked and no requester weights. Both residents open below the unchanged device ceiling. This closes the reproduced acquisition defect; the older uninstrumented trigger remains unknown, and the application still fails answer quality.
-
-- [x] **11. Reploid: decouple signaling loss from healthy channels.**
-  In `packages/reploid/src/transport/swarm.js`, remove indiscriminate destruction of healthy peer connections solely because signaling disappears. Preserve channels only while their own identity, authorization and liveness remain valid. Explicit disconnect or permission revocation still stops affected work. Test signaling interruption during acquisition and generation; this coupling is not yet the proven acquisition-failure cause.
-
-  Evidence: channel lifetime repair and authenticated RTC/custody controls remain in the [introduction receipt](artifacts/peer-introductions-20261010/README.md). The [physical signaling receipt](artifacts/signaling-independence-20261011/README.md) passes selective acquisition, same-attempt EOS completion with signaling unavailable, and explicit-disconnect failure using two isolated contributors on one Linux/AMD GPU. Twelve focused, eighteen browser and ten UI tests pass. The [ordinary](artifacts/signaling-independence-20261011/normal-receipt.json) and [reversed](artifacts/signaling-independence-20261011/reverse-receipt.json) Mac/Linux controls now both pass the same transport checks with trusted disconnect input captured. Full application acceptance remains open. The recovered suspension failure and one unexplained pointer-activation failure remain retained. Unconfirmed remote cleanup remains explicitly unavailable capacity.
-
-- [x] **12. Both: deliver useful, bounded failure information.**
-  Carry sanitized error categories through the resident interface, `partition-peer.js` and chat adapter instead of flattening failures into “Partition peer declined or failed request.” Distinguish output allowance, unavailable capacity, authorization, connection and cleanup failures. Preserve partial output and actual stop reasons. Do not expose private prompts or unrestricted remote exception details.
-
-  Evidence: [complete bounded failure categories](artifacts/partition-failure-categories-20261011/README.md), 81 focused tests, 2,983 repository tests, 17 browser tests and installed-consumer checks. Signed chat retains partial output and charged capacity after failed cleanup. This closes the reporting contract; physical application acceptance remains in 14–15.
-
-- [ ] **13. Both: connect signed contracts to physical execution.**
-  The last review found physical manifest-based execution but only synthetic signed-Capsule opening coverage. After numerical qualification, connect the existing Capsule-backed resident path in `self/host/work-partitions.js` to real selective piece acquisition. Verify partition-specific qualification and rejected-opening cleanup. Do not claim signed physical acceptance from manifest execution or introduce another release framework.
-
-  Implementation: [signed resident host integration](artifacts/partition-contracts-20261010/signed-pieces-20261011/README.md), Reploid `293509b4` and Doppler `a3ea1fed`, connects the existing signed factory to bounded custody acquisition. The signed piece index authenticates complete acquired pieces without requiring unrelated model shards. Admission binds the actual session, model, target, partition qualification and current release authorization; cleanup settles owned read wrappers and preserves failures. All 36 focused host tests, three browser checks and 3,043 repository tests pass. Doppler's exact diagnostic archive `307104de5f55e120280cccb4ed84b53170339250c60c3ceee8682ffe3149ed25` passes detached public-package checks. These remain synthetic contract results: no real model receives qualification, the standard archive stays unchanged, and signed physical inference remains open.
-
-## C. Qualify and deliver the complete product
-
-- [ ] **14. Both: complete ordinary distributed conversations.**
-  Run the existing application journey in both physical placements using identical accepted bytes. A fresh requester downloads no weights; contributors obtain verified assigned pieces with origins blocked, then cooperatively stream complete answers. Exercise repeated prompts, concurrent conversations, document reuse, citations and output copying through the ordinary interface, not only resident test APIs.
-
-  Further execution (delivery-contaminated; browser assets changed during the test): the [reversed application run](artifacts/reverse-recovery-20261011/README.md) completes selective acquisition, concurrency, cancellation, resident reuse and both document generations. Source-grounded document review fails despite EOS, and counting remains incomplete. The Mac contributor retry passes; Linux rejoin loses its browser execution context and replacement is not reached.
-
-  Separate runtime repair: [seeded generation sequencing](https://github.com/clocksmith/doppler/blob/7e9cb892/artifacts/seeded-generation-sequence-20261011/README.md) fixes reuse of the same random draw across output tokens. Capsule, resident and direct-pipeline owners derive draws from the immutable request seed and generated-token index; retry, cancellation, interleaved attempts, greedy and installed-package controls pass, along with 901 unit files. These synthetic-logit controls do not qualify physical inference or explain the historical greedy counting failures. The standard archive remains unchanged; seeded behavior requires qualification with the eventual candidate.
-
-  Batch completion: Doppler `b0354ba4` applies the same token-indexed seed to recorded GPU batches and the PLE fallback. Whole versus split batches, same-index retry, seed validation, greedy execution and immutable request options pass focused control-loop tests. The [physical output-boundary check](https://github.com/clocksmith/doppler/blob/1228dcab/artifacts/seeded-batch-cancellation-20261011/README.md) then reproduces and repairs post-cancellation buffered delivery and consumer errors incorrectly triggering GPU fallback. Five seeded whole/split/retry controls match independent draws on AMD; partial cancellation, a fresh attempt and callback-error propagation pass with zero active/deferred allocations after settlement. These fixed-logit GPU controls qualify the tested boundary, not full-model generation or a new standard archive.
-
-  Application candidate: [Qwen3-1.7B source-policy evaluation](https://github.com/clocksmith/doppler/blob/d2993d2f/artifacts/qwen3-17b-application-policy-20261011/README.md) passes all 14 frozen fresh tasks with natural reasoning closure and EOS under unchanged token, context and raw-character limits. A 48-case template audit identifies the existing ChatML formatter as exact for the supported thinking-enabled, user-ended, final-answer-only histories. These results qualify neither converted weights nor Doppler execution. The [independently decoded deployed-weight screen](https://github.com/clocksmith/doppler/blob/7c2b6554/artifacts/qwen3-17b-deployed-quality-20261011/README.md) passes three cases, then rejects `No.` where the frozen requirement is `No`. A general formatting instruction also fails its first fresh case; interrupted and unrun cases remain explicit. Same-operand head attribution reproduces the retained token/RNG sequence and selects punctuation with both the Q4 and original higher-precision head, so no head-specific repair follows. Neither configuration is promoted; no catalog, standard archive or protected requirement changed.
-
-  Subsequent source disposition: [literal-policy and versioned citation comparison](https://github.com/clocksmith/doppler/blob/6a5656fb/artifacts/qwen3-17b-deployed-quality-20261011/README.md) retains an authored fixture defect: the citation prompts never required a separator, although the old comparator required whitespace. An independently reviewed prospective rule permits horizontal whitespace only between exact value/citation fields; old receipts and strict verdicts remain unchanged. The corrected sixteen-case rerun passes nine cases, then rejects `No.` instead of required `No` under seed 89; one subsequent case is interrupted and five are unstarted. Both long lists pass under seed 37, but the complete gate fails. Prior-case regressions, numerical observers, the derived reasoning-enabled manifest and model GPU qualification remain unexecuted/inactive. This is a source-model quality failure, not evidence of broken distribution; no further model or deployment is activated.
-
-  Completion repair: [whole-request completion and bounded output failures](artifacts/generation-completion-20261011/README.md), Reploid `850ad7c5`, preserves Doppler's declared stopping reason and raw token counts through local and peer whole requests. Token-limit results retain partial text and an explicit incomplete verdict; retry creates a new attempt. Missing legacy metadata remains unknown. The new malformed-output code uses the existing sanitized error contract, and signed resident loading now has its required delivery declaration. All 3,050 repository tests, 131 focused tests, seven browser controls and 17 installed checks pass. These contract checks do not establish natural completion or numerical correctness for a released model.
-
-  Integration repair: [policy and reference binding](artifacts/reference-policy-binding-20261011/README.md), Reploid `dcade318`, requires matching model, plan, resolved generation and the complete retained attempt messages before comparing logits. Explicit application/model generation now reaches admission through the pinned public contract; current catalog behavior is preserved, and the existing thread purpose carries any declared system instruction. The full repository sweep passes 3,072 tests with 29 skips before the final fixture-only prompt checks; all 58 final affected tests and four Chromium controls pass. The historical fixture has different generation settings and is prospectively rejected as a mismatched reference; its old results remain unchanged. No model, reference or deployment is activated. Doppler `dc0f2af3` also parameterizes the existing resident harness for explicit candidate inputs and separates independent forced-prefix accuracy from same-runtime partition parity; focused checks pass without a model run. Follow-up `008b9190` rejects explicit null/undefined candidate fields and JSON-null config files before GPU setup, preventing silent fallback to legacy defaults; the reproduced regression and focused checks pass.
-
-- [ ] **15. Both: finish interruption, replacement and settlement.**
-  Cancel submitted work while another conversation continues to a valid completion. Stop and rejoin each contributor, replace an unavailable executor, and explicitly retry using a new authorized attempt. Preserve unaffected weights and histories. Await owned cleanup rather than arbitrary sleeps. Complete document and extended-retry checks previously skipped when earlier application assertions failed.
-
-  Further execution: the [fixed-delivery reversed run](artifacts/focused-recovery-20261011/README.md) completes both contributor stop/rejoin/retry sequences and executor replacement. Each fresh retry returns the complete 1–20 answer, unaffected resident weights and histories persist, replacement acquires verified pieces after the seed stops, and all 13 completed attempts settle both participants. The unaffected count-to-200 answer still stops at 120; document answers remain inaccurate. Those quality failures keep items 14–15 open.
-
-  Additional repair: [contributor-opening cleanup](artifacts/partition-contracts-20261010/README.md#contributor-opening-and-networking-correction-october-11), `b1b2b34f`, closes acquired storage across pre-resident failures, cancellation and failed cleanup. Eight focused tests and two browser admission/delivery checks pass; 3,013 repository tests and all 17 installed-package checks pass. These failure-path checks do not close application-quality acceptance.
-
-- [ ] **16. Both: prove useful combined capacity separately.**
-  Qualify the larger model’s complete lifecycle under identical per-contributor limits, precision and context requirements. Show that neither executor can run the same workload alone within those limits while combined placement succeeds. Distinguish allocation ceilings from physical memory. Higher-budget unsplit diagnostics remain numerical controls, not evidence of capacity equivalence or production performance.
-
-  Further evidence: the [focused recovery run](artifacts/focused-recovery-20261011/review.json) peaks at 1,320,233,832 allocated bytes on Mac, 1,400,055,944 on Linux and 1,278,272,144 on the replacement. All remain below the unchanged ceiling. Incomplete counting and inaccurate documents prevent useful-capacity acceptance; these are allocation measurements, not physical-memory claims.
-
-- [ ] **17. Both: qualify one exact deliverable.**
-  Build one standard archive from the reviewed source, regenerate its browser delivery, and run full repository, installed-consumer and affected physical checks against those exact bytes. Preserve failed invocations and historical packages. Update support documentation to the accepted scope. Synchronize with `rdpush`/`rdpull` without overwriting unrelated work; version changes do not create separate development tracks.
-
-  Further implementation: [model-owned output and authoritative completion](https://github.com/clocksmith/doppler/blob/d7db1a35/artifacts/generation-completion-20261011/README.md), Doppler `d7db1a35`, and Reploid `850ad7c5` preserve final-answer boundaries, raw usage, explicit truncation and bounded failures. The combined broad sweep exposed one admission-reset regression (908 of 909 files passed); its correction passes all seven affected files. The final detached diagnostic archive `34eb0ecec9408e0382133b9a0b4eb7432273711d2875e3304eb206428f531e5c` passes public declarations, signed opening and installed implementation controls, plus types, style and architecture checks. These synthetic checks do not qualify a model, physical placement or release. No accepted model enables the optional decoder; the standard archive and active reference remain unchanged. The [committed-source GPU rerun](https://github.com/clocksmith/doppler/blob/193b898c/artifacts/seeded-batch-cancellation-20261011/combined-runtime/README.md) also passes all five seeded controls, cancellation, callback-error propagation, fresh reuse and zero active/deferred allocations against exact `d7db1a35`, without source overlays. Its fixed-logit scope does not establish full-model acceptance.
-
-- [ ] **18. Reploid: deploy the usable product.**
-  Deploy only the configuration whose applicable acceptance gates pass, then verify served package and browser identities. Test a fresh phone and an existing installation: automatic discovery, readable sharing approval, complete answers, persistent drafts and history, cancellation and explicit retry. Keep contribution optional, local download secondary, and technical details out of the primary conversation.
+  Next: integrate REP-2/REP-3, keep DR-1 identities fixed, then execute one serial ordinary journey with honest operation eligibility. Do not silently install a candidate to make it run. Keep product-quality failures even when output reaches EOS. Deploy only under ALL-6.
 
   UI checkpoint: [usability handoff](artifacts/chat-usability-handoff-20261011/README.md)
   retains simplified navigation, compact availability, readable transcript width,
@@ -230,51 +112,118 @@ and no portable timing campaign. The agents are stopped for handoff.
   repository checks and deployment remain open. No numerical or release gate is
   closed by these presentation fixtures.
 
-## D. Add durable independent work units: R4
+## 4. Doppler + Doe: projection handoff, compiler/runtime matrix, and performance
 
-- [x] **19. Reploid R4: qualify separable embeddings.**
-  Make durable independent units the next functional extension, not a substitute for finishing distributed chat. Start with one `embed.v1` application whose per-input semantics explicitly permit batch subdivision. Compare split and unsplit results under its declared numerical policy and preserve original ordering. Do not apply this assumption to list-dependent reranking or autoregressive generation.
+Doppler supplies reproducible computations; Doe provides optional execution. Attribute compiler, runtime and lowering effects separately.
 
-  Evidence: [signed embedding application qualification](https://github.com/clocksmith/doppler/blob/4f2c745b/artifacts/embedding-subdivision-20261011/README.md) explicitly permits subdivision of complete texts for the retained Qwen document-embedding application. Linux browser execution of 18 frozen inputs, whole and in reordered nine-input units, matches reference tokens exactly and vectors within the unchanged 0.02 policy (maximum error 0.000072956). Reassembled split/whole vectors match exactly. Current signed eligibility and cleanup pass. This qualifies this application and configuration, not every embedding model or item 22's durable job path.
+<a id="dd-1"></a>
+- [ ] **DD-1 — Doe accepts the frozen projection. Ready now; DOP-5 complete.** Use [projection.tar.gz and manifest][dop-export]. The producer's export test/hash audit passes; a Doe-owned consumer has not yet demonstrated reconstruction. Extend the existing native benchmark ownership to load every declared buffer, stage, constant and expected result. Verify activation bytes, I32 accumulators, both F32 scaling stages and zero status. Keep the oracle external to Doe's compiler. Record fixture/package/library identities and explicit rejection of incomplete metadata.
 
-- [x] **20. Reploid R4: add the thin unit coordinator.**
-  Implement the coordinator under `packages/reploid/src/mesh/jobs/`, executing every unit through existing signed jobs. Persist its aggregate manifest under `packages/reploid/src/artifacts/`. Bind parent request, stable unit identity, input and execution configuration, original positions, assignment/attempt references and committed outcome location. Preserve `provider.js`, `requester.js` and `job-journal.js`; do not invent another wire retry protocol.
+<a id="dd-2"></a>
+- [ ] **DD-2 — Ordinary-provider projection controls. Waits for DD-1 and ALL-2.** Extend `bench/executors/run-packed-integer-controls.mjs` or a focused runner in that existing surface. Execute the same full projection through ordinary Dawn and Doe WebGPU on the same AMD/Vulkan host, observing compilation, submission, readback and cleanup. Existing packed-integer microcontrols are not this projection. Separate normalized-packing halfway failures. Correctness must pass before timing or DOE-4 promotion.
 
-- [x] **21. Reploid R4: commit aggregate outcomes atomically.**
-  Guarantee **one committed outcome per unit, not exactly-once execution**. Preserve provider-side commit-before-send behavior; requester commits reject superseded attempts and duplicate inclusion. Reconstruct pending work from durable records after restart, not saved percentages. Keep requester aggregation separate from the provider journal, preserving existing schemas, bounded retention and authorization over stored results.
+<a id="dd-3"></a>
+- [ ] **DD-3 — Incremental compiler/runtime matrix. Waits for qualified DOE-2 metadata.** Record Tint+Dawn, Tint+Doe, Doe-compiler+Dawn and Doe-compiler+Doe separately. Start from ordinary-provider controls; mark unavailable arms unsupported with a concrete reason. Observe compiled and executed bytes. Disclose Tint validation, reflection or retransformation; WGSL preprocessing is not direct SPIR-V execution. Useful ordinary-provider findings need not wait for every experimental arm.
 
-  Evidence for 20–21: [coordinator and requester journal](artifacts/independent-units-20261011/README.md), committed in `cd3e03a1`, preserve existing signed jobs and provider records. Four native-browser scenarios pass against source and an isolated installed package, including restart, superseded writers, duplicate delivery, cancellation, authorization revocation and atomic storage failure. All 17 installed-package checks and 3,001 repository tests pass. These orchestration checks use synthetic vectors; actual model-backed job interruption acceptance remains item 22.
+<a id="dd-4"></a>
+- [ ] **DD-4 — Attribute measured effects. Waits for qualified comparable arms.** Compare compilers within one runtime and runtimes using the same compiled artifact where supported. Compare portable/accelerated lowering separately after DOE-5. Freeze adapter/preparation/cache/reuse/timing boundaries; include CPU, memory and complete execution costs, with loading/warmup reported separately. Confirm results without instrumentation. Failed/unsupported arms and interference remain visible; no causal attribution from an unseparated provider swap.
 
-- [x] **22. Reploid R4: qualify interrupted multi-unit execution.**
-  Exercise coordinator restart, provider replacement, lost acknowledgments, duplicate delivery, out-of-order completion and cancellation around actual durable commits. Completed units must remain attributable and appear exactly once in the aggregate; unfinished units may receive eligible new attempts. Validate final vectors against the operation’s independent reference, because matching hashes establish identity rather than numerical correctness.
+<a id="dd-5"></a>
+- [ ] **DD-5 — Transfer an eligible gain through Doppler. Waits for DD-4 and applicable model acceptance.** Measure the admitted mechanism through Doppler's unchanged public operation with identical application requirements. Gemma W8A8's quality rejection blocks promoting that model configuration, not projection correctness research. Q4/F16 versus W8 comparisons are quantization experiments, not provider comparisons. A Node path must qualify opening, repeated invocation, cancellation and settlement before ER-1.
 
-  Evidence: [installed signed-job physical acceptance](artifacts/independent-units-20261011/physical/README.md), commits `7dd4ae2c` and `68c737dd`, passes native IndexedDB/browser restart, provider identity replacement, loss after durable provider commit, replay without recomputation, out-of-order completion and duplicate inclusion rejection. Actual GPU cancellation after an earlier unit commits preserves that unit, rejects late aggregate output, settles the provider and permits a fresh authorized request. All 18 token comparisons pass; source vector error is at most 0.0000729561 under unchanged 0.02. GPU allocation peaks at 1,251,218,944 bytes below the unchanged ceiling. Saved results require separate read authorization on every completed-output path. All 17 installed checks, six installed browser scenarios and 3,003 repository tests pass. Scope: one AMD machine and two logical providers, not cross-device execution or deployment; standard Doppler archive unchanged.
+<a id="dd-6"></a>
+- [ ] **DD-6 — Confirm generality outside Doppler. Waits for an accepted mechanism.** Reuse an unrelated computation or Doe's existing ONNX workload with its own independent outputs and lifecycle. Compatibility is not transferred performance; measure any claimed benefit separately. This is not a gate for Reploid's accepted provider.
 
-## E. Measured improvements and explicitly deferred capabilities
+## 5. Doppler + Reploid: exact-package integration and distributed acceptance
 
-Contribution lifecycle follow-up: [sharing stop repair](artifacts/operation-participation-lifecycle-20261011/receipt.json) makes overlapping Stop calls share settlement, waits for pending startup, revokes admission immediately, and retains failed provider/executor cleanup for explicit retry. Three failing-before regressions reproduce the prior premature-idle and skipped-cleanup paths; six final lifecycle checks, 52 focused tests, 3,081 repository tests (29 existing skips), four browser checks and Verification Worker acceptance pass. The standard Doppler 0.6.27 pin is unchanged. This closes that control boundary only; ordinary indexing integration, foreground-impact measurements and the chat/application gates remain open. [Parallel Doppler handoff](artifacts/operation-participation-lifecycle-20261011/doppler-handoff.txt).
+This boundary owns public operation identities, signed requests, permissions, execution events and recovery, without duplicating either library's internals.
 
-- [x] **23. Reploid R5: measure before overlapping stages.**
-  Measure local execution, remote execution, transport, callbacks and stage waiting separately. Introduce bounded stage scheduling only when useful overlap is demonstrated against the existing scheduler. Preserve per-attempt token order and Doppler’s mutable-state protections. Compare correctness, cancellation, progress, queued activation bytes and memory. Never obtain throughput gains through unbounded buffering or hidden budget increases.
+<a id="dr-1"></a>
+- [x] **DR-1 — Keep accepted and candidate identities separate.** Both archives call themselves 0.6.27; their bytes differ. [Reploid pin](self/config/doppler-package.json) still selects the standard archive. This audit freshly hashed that archive and compared every installed archive member without mismatches. Candidate installed identity is retained in [DOP-8][dop-package], not freshly installed on this Mac. Candidate testing is not an upgrade.
 
-  Evidence: [existing-runner stage measurements](artifacts/partition-stage-timing-20261011/README.md) separate shared-lease waiting and awaited output delivery from compute and transport. Focused, full repository, installed-consumer and browser checks pass. The physical measurement below completes this bounded investigation; overlapping stages remain conditional on demonstrated benefit.
+  | Identity | SHA-256 / location |
+  | --- | --- |
+  | Accepted archive | `9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc`; `deploy/artifacts/doppler-gpu-0.6.27.tgz` |
+  | Accepted package member inventory | `45754d29df6b280431fae0806a1872cf694841dbdffe05acab38e4864aa82572`; sorted UTF-8 `path TAB sha256 LF` over regular archive members; all matched `node_modules/doppler-gpu/` |
+  | Candidate archive | `7c240dad4d1ae98e204e9727e687b9bc4379abd758b16af0fd857a99d7adac8d`; retained Linux installed receipt/inventory in DOP-8 |
+  | Projection archive | `128bbc084593483c2f4e4c532f8b118e2c25b68d7f7f1b0dd3ee73adec8911af`; DOP-5 |
 
-  Physical measurement: [13 completed attempts](artifacts/focused-recovery-20261011/stage-timings.json) include concurrent counting/YES conversations, documents and replacement retries. Concurrent lease waits total 640.2/395.7 ms, with output callbacks at 7.1/0.3 ms. Remote stages include nested transport and compute; those durations cannot be added. No useful overlap is demonstrated, so retain the bounded scheduler and callback isolation. Application-quality failure remains the priority; no throughput improvement is claimed.
+<a id="dr-2"></a>
+- [ ] **DR-2 — Replay embedding and scoring through Reploid. Partial.** [Candidate public-library controls][dop-core] pass eighteen complete-text embeddings, ordering/subdivision/repetition/cancellation/reuse, twenty-four choice logits and twelve selections. Independent jobs and introduced embedding have their own scoped Reploid evidence (REP-1/REP-5). These do not establish ordinary application acceptance with `7c240dad…`.
 
-- [x] **24. Reploid: peer-carried introductions.**
-  After the core journey passes, add bounded peer-carried introductions behind existing connection interfaces. Use authenticated, expiring contacts and replaceable bootstrap participants; ordinary use should not require manual pairing. Keep introduction, computing and disclosure permissions separate. Test fresh discovery and inference with company signaling blocked, retaining explicit bootstrap and relay limitations.
+  Next: bind the exact tested installation to existing signed operation adapters, replay all outputs against independent references, and test UI/host reuse/cancellation. Preserve operation-specific tolerances and uncalibrated score semantics; neither 0.02 embedding nor 0.05 scoring changes chat's 0.001. Reject model/application identity or eligibility mismatches before work.
 
-  Progress: [bounded implementation and browser controls](artifacts/peer-introductions-20261010/README.md) already exist. Preserve them; do not rebuild the protocol. Full fresh-discovery inference acceptance follows the core journey.
+<a id="dr-3"></a>
+- [ ] **DR-3 — Verify permissions on the integrated operation paths. Partial contracts; waits for REP-2 wiring.** Bind operation, complete input scope, model identity and placement in each signed request. Test disclosure denial, changed input, wrong operation, expiration and revocation before execution and when reading durable outputs. Embedding permission does not authorize generation, reranking or extra disclosure. Reuse current signed-job and permission controls rather than a new grant system.
 
-  Additional repair: `8d9a0a37` rechecks current grants on later introduction messages and cancels pending connections on close. `7c8224c3` exposes the existing swarm network port through ordinary product composition. Two browser product hosts discover each other with external requests blocked, independent bootstrap/ICE configuration and separate compute/file/introduction permissions. This proves configured host integration, not public bootstrap availability, cross-network inference or deployment; [validation evidence](artifacts/partition-contracts-20261010/README.md#contributor-opening-and-networking-correction-october-11).
+<a id="dr-4"></a>
+- [ ] **DR-4 — Coordinated distributed numerical acceptance. Failed/unqualified.** After one DOP-6 correction earns retesting, use matching installed package and application identities on both hosts and placements at unchanged 0.001 and precision. Mac runs require the agreed session owner. Retain every failed prefix and invalid/truncated observation. Operation controls, matching tokens and cross-GPU agreement alone do not replace independent numerical acceptance.
 
-  Physical transport: [Mac/Linux acceptance](artifacts/peer-introductions-20261010/physical-20261011/README.md), `64cfa31c`, passes all three introduction scenarios across the actual hosts. Direct messages and custody-channel bytes survive introducer removal; ordinary hosts discover each other without company requests; relay-required operation without a relay rejects. This does not execute a model, supply a public bootstrap participant or qualify arbitrary internet NATs. Full inference acceptance remains open.
+<a id="dr-5"></a>
+- [ ] **DR-5 — Exact integrated chat journey and lifecycle revalidation. Waits for applicable package/numerical/model-quality gates.** Use one immutable candidate archive, signed physical opening and real selective acquisition. Test both placements, complete useful answers, concurrent conversations, isolated cancellation, contributor stop/loss/replacement, explicit authorized retry, and settlement. Repeat the previously passed successive 1,588-token workload, allocation rejection and reuse within 1,420,000,000 allocated bytes without reopening weights. Keep earlier partial answers separate and distinguish model counting/grounding defects from distribution. REP-7 accepted-provider work continues independently.
 
-  Completion: [source-validated introduced embedding](artifacts/peer-introductions-20261010/embedding-20261011/README.md), `7e7582e6`, executes an existing signed job from a fresh weightless Mac requester on Linux/AMD after introducer removal, with company signaling and external HTTP blocked. Separate disclosure and compute denial controls pass. All 3,072 vector values match the independent reference within the unchanged 0.02 embedding tolerance; tracked allocation peaks at 1,248,138,752 bytes. Together with automatic configured bootstrap fallback and authenticated contact controls above, this closes the scoped introduction feature. Repository checks pass 3,015 tests, browser controls pass 19 scenarios, and all 17 installed-package checks pass. The diagnostic Doppler archive remains separate from the unchanged standard archive. Configured bootstrap routes and reachable peers are still required; this does not qualify arbitrary NATs, ordinary chat, public deployment or items 14–18.
+<a id="dr-6"></a>
+- [ ] **DR-6 — Useful combined capacity. Unqualified.** Compare cooperative execution with constrained standalone controls using fixed per-contributor budgets, precision, context and useful-answer requirements. Retained recovery allocations are below budget but do not establish successful larger-model capacity. Multiple participants/routing alone is insufficient. Do this through the same interface after DR-5, not by increasing budgets or trimming prompts.
 
-- [ ] **25. Later: portable checkpoints.**
-  Defer portable checkpoints and expansion beyond two model partitions. Doppler must serialize every future-affecting state, including caches, recurrence, token context, sequence position, sampling and decoding. Reploid must enforce custody, compatibility, authorization and one consistent boundary across partitions. Restore into a new attempt, reject replaced-assignment output, and compare uninterrupted versus restored execution, including supported stochastic generation.
+**Upgrade rule:** adopt one standard archive only after its applicable numerical, lifecycle, model-quality and application gates pass. Successful embedding does not qualify generation or W8A8; unrelated Doe performance research is not a release gate.
 
-**No second scheduler framework, new WebRTC transport, model-runtime rewrite, or arbitrary remote shader execution. Independent jobs are not independent tokens, and saved outcomes are not saved model state.**
+## 6. Doe + Reploid: optional native participation through Doppler
 
-*Last updated: October 2026*
+No direct Reploid–Doe dependency or new scheduling protocol. This work starts only when a supported native executor is ready and must not delay accepted-provider work.
+
+<a id="er-1"></a>
+- [ ] **ER-1 — Expose a qualified Node executor through Doppler. Waits for eligible local qualification.** Reploid calls existing supported model operations. Doe selection is explicit inside the executor; browser requesters need no native replacement. Verify installed exports and the actual provider library at startup; reject unsupported operations.
+
+<a id="er-2"></a>
+- [ ] **ER-2 — Preserve reservation/admission ownership. Waits for ER-1.** Reploid enforces grants, budgets and conversation reservations; Doppler owns residency/invocation; Doe owns GPU resources. Test budget rejection and unrelated conversation isolation. Do not expose compiler internals through the job protocol.
+
+<a id="er-3"></a>
+- [ ] **ER-3 — Remote interruption with observed settlement. Waits for ER-1/ER-2.** Interrupt delivery, stop contribution and replace a participant during outstanding work. Observe cleanup via Doppler's existing lifecycle and keep unknown ownership charged/unavailable. Neither disconnect nor deadline expiration proves GPU release. Retain partial output and use a fresh authorized attempt.
+
+<a id="er-4"></a>
+- [ ] **ER-4 — Requester-level provider benefit. Waits for DD-5 and ER-3.** Compare Node+Doppler+Dawn with Node+Doppler+Doe for the same authorized operation, model, placements, budgets, history and comparable network conditions. Include total request cost and failures, not just isolated kernel time.
+
+<a id="er-5"></a>
+- [ ] **ER-5 — Useful optional contribution. Waits for an eligible executor.** Record foreground responsiveness, energy where measurable, transfers, useful completed work and failures with providers disabled/enabled. Report unavailable measurements. Keep admission opt-in, queues bounded and stop responsive. No spare-capacity benefit claim without the contributor's cost; no obligation to fill idle cycles.
+
+## 7. All three: canonical tracking, shared machines, releases, and evidence
+
+<a id="all-1"></a>
+- [x] **ALL-1 — One canonical queue.** This audit reorganizes the existing TODO into the seven requested sections with all 46 stable IDs. Doppler's TODO and Doe's status front door link here. Repo-local evidence remains with its owner. No duplicate active roadmap was created.
+
+  The [previous checklist at dd4e1275](https://github.com/clocksmith/reploid/blob/dd4e12759128e9a38f63f16a3c02c132835eeab5/TODO.md) preserves the complete earlier chronology, rejected candidates and reference-activation reversal. It is historical, not a second work queue. Migration: W1/W2 → DOP-1/2; W3 → DOP-3/4/7/8; old 1 → DR-1; 2–5 → REP-6/REP-1; 6 → DOP-2/DR-5; 7–8 → DOP-6/ALL-4; 9 → REP-7/DR-5; 10–12 → REP-5/REP-6; 13–15 → REP-7/DR-5; 16 → DR-6; 17–18 → DOP-8/ALL-6; 19–22 → REP-1/2/3/DR-2; 23 → REP-1/DD-4; 24 → REP-5; 25 → ALL-7. Earlier completed diagnosis remains complete even where broader acceptance is open.
+
+<a id="all-2"></a>
+- [ ] **ALL-2 — Assign physical windows. Unassigned in this audit.** Before any physical run, record the controlling person/session, host/GPU, browser/profile/debug endpoint, exact task IDs and workload, other GPU consumers, start and release/settlement. Mac remains paused pending its controller's agreement. The Linux benchmark was last recorded stopped; this audit did not inspect live processes or reserve it. Do not treat these historical records as a free-machine signal. Retain interference with affected observations instead of silently discarding it. Source work, offline export validation and metadata preparation can proceed now.
+
+<a id="all-3"></a>
+- [ ] **ALL-3 — Freeze and verify each handoff. Ongoing.** Record application bundle, archive and installed files, model, tokenizer, shader, independent reference, provider library, GPU and driver. Verify actual served/loaded bytes and execution path, not just advertised hashes. DR-1 and DOP-5 are audited starting points; native and physical candidate handoffs remain open. Refresh generated artifacts from their source, never patch browser copies independently.
+
+<a id="all-4"></a>
+- [ ] **ALL-4 — Preserve reference authority. Ongoing; unresolved numerical contract.** Separate F64 mathematics, explicitly specified F32 evaluation, source-model checks and historical runtime captures. Retain the historical reference correction/reversal in [reference disposition](artifacts/reference-correction-20261011/README.md). A replacement requires independent justification and explicit approval. Never activate captured results merely because they match. Keep frozen inputs, precision and tolerances unchanged.
+
+<a id="all-5"></a>
+- [ ] **ALL-5 — Commit owned deltas and report identity. Ongoing.** Work directly on each owning main branch; preserve concurrent edits; stage only this task, check relevant links/anchors and diffs, then commit/push without force. Existing source sweeps remain retained; focused checks accompany subsequent tooling changes. This audit changes tracking only, not runtime or generated delivery. Each implementing agent updates its canonical item with evidence and pushed revision rather than adding a separate queue.
+
+<a id="all-6"></a>
+- [ ] **ALL-6 — Promote and deploy only applicable qualified configurations. Not ready for candidate chat.** After applicable package/numerical/lifecycle/quality/application gates and deployment authorization, verify served app/package identities, fresh-browser use, saved history/drafts and successful requests after interruption. Contribution remains optional. Do not invent Doe performance, optional mesh capacity or external adoption as gates for an otherwise qualified feature. Do not deploy failed Gemma W8A8 or silently replace the standard archive.
+
+<a id="all-7"></a>
+- [ ] **ALL-7 — Maintain scope. Ongoing.** Defer Metal/D3D12 campaigns, browser replacement, portable checkpoints, language rewrites, new schedulers, transport platforms and publication frameworks. Preserve completed strategy synchronization/evaluation publication; do not reopen them. Keep hygiene findings separate from runtime acceptance. No new dashboard, model catalog or architecture campaign is needed for the next deltas.
+
+<a id="all-8"></a>
+- [ ] **ALL-8 — Evaluate learning after dependable execution. Deferred.** Bayesian placement and reversible policy adoption need independent future evidence and unfamiliar tasks. External adoption matters but is not an engineering gate. Retries, journals and multiple agents are not demonstrated self-improvement. Resume only after dependable application execution and a specific measurable improvement hypothesis.
+
+**Finish conditions:** useful complete distributed conversations with explicit recovery and budgets; durable ordinary indexing with authorized one-outcome aggregation; a qualified reproducible projection and honestly attributed optional provider findings. No project must pretend another project's failed gate passed.
+
+[dop-conversion]: https://github.com/clocksmith/doppler/blob/b7b9471330e7cacf3bb842105adc993b986cb7a6/artifacts/w8a8-conversion-20261011/README.md
+[dop-operators]: https://github.com/clocksmith/doppler/blob/b7b9471330e7cacf3bb842105adc993b986cb7a6/artifacts/w8a8-kernels-20261011/README.md
+[dop-quality]: https://github.com/clocksmith/doppler/blob/b7b9471330e7cacf3bb842105adc993b986cb7a6/artifacts/w8a8-model-qualification-20261011/README.md
+[dop-benchmark]: https://github.com/clocksmith/doppler/blob/b7b9471330e7cacf3bb842105adc993b986cb7a6/artifacts/w8a8-model-qualification-20261011/benchmark/results.json
+[dop-export]: https://github.com/clocksmith/doppler/blob/b7b9471330e7cacf3bb842105adc993b986cb7a6/artifacts/w8a8-native-projection-20261011/README.md
+[dop-package]: https://github.com/clocksmith/doppler/blob/b7b9471330e7cacf3bb842105adc993b986cb7a6/artifacts/w8a8-package-20261011/README.md
+[dop-checks]: https://github.com/clocksmith/doppler/blob/b7b9471330e7cacf3bb842105adc993b986cb7a6/artifacts/w8a8-repository-checks-20261011/README.md
+[dop-core]: https://github.com/clocksmith/doppler/blob/b7b9471330e7cacf3bb842105adc993b986cb7a6/artifacts/w8-runtime-core-completion-20261011/README.md
+[dop-numerical]: https://github.com/clocksmith/doppler/blob/b7b9471330e7cacf3bb842105adc993b986cb7a6/artifacts/whole-model-f64-complete-20261011/README.md
+[doe-packed]: https://github.com/doerun/doe/blob/50f1189012d1952772a67ae7b846314cdfc49b62/reports/maintenance/20261011-wgsl-packed-integers/README.md
+[doe-device]: https://github.com/doerun/doe/blob/50f1189012d1952772a67ae7b846314cdfc49b62/reports/maintenance/20261011-wgsl-packed-integers/vulkan-summary.txt
