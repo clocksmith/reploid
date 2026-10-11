@@ -18,6 +18,31 @@ connection work in parallel with distributed-chat repairs. Their acceptance
 remains separate; independent jobs and introductions do not waive unresolved
 chat or deployment gates. Callback isolation in R5 has already landed.
 
+**Additional authorized batch: W8A8 linear projections.** Implement one complete
+Gemma 3 270M path in Doppler alongside the remaining chat work. This does not
+replace items 7–8, change their 0.001 tolerance, qualify distributed W8A8, or
+activate another model catalog campaign. Reploid's application APIs stay unchanged;
+Doe remains an optional provider.
+
+- [ ] **W1. Define and implement one numerical scheme.** Symmetric signed INT8
+  weights with per-output-channel scales and activations with per-token scales;
+  I32 accumulation and ordered F32 rescaling. Declare rounding, clipping, zero,
+  nonfinite, padding, byte order and overflow behavior. Preserve other tensor
+  precision. Conversion owns emitted bytes, JSON owns policy and kernel identity,
+  JavaScript owns orchestration, and WGSL computes and packs activations.
+- [ ] **W2. Qualify both projection implementations.** Compare portable signed-byte
+  multiplication and `dot4I8Packed` on identical operands with exact integer
+  accumulators, then compare packing/scales/reconstruction with an independent
+  reference. Gate the packed variant on the host WGSL language feature; preserve
+  explicit execution identities and reject unsupported contracts.
+- [ ] **W3. Qualify one installable model.** Freeze model-quality criteria before
+  tuning. Exercise representative projection shapes, complete Gemma 3 270M
+  generation, repeated requests, cancellation and resident reuse. Measure complete
+  prefill and decode including activation quantization, packing, allocation and
+  rescaling against the actual Q4 and F16 controls. Retain failures and exact
+  package/model identities. No speed, quality, capacity or distribution claim
+  follows merely from eight-bit support or language-feature availability.
+
 ## A. Preserve the completed foundations
 
 - [x] **1. Both: keep one implementation and explicit ownership.**
