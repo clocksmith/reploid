@@ -53,6 +53,8 @@ starting R4 independent units. Callback isolation in R5 has already landed.
 
   Further evidence: [feed-forward and cache-rounding controls](https://github.com/clocksmith/doppler/blob/b54c31b1/artifacts/source-model-reference-20261011/README.md) find local feed-forward errors below 0.000001328 and demonstrate F16 cache rounding amplification. The complete-model error remains 0.0014121532440185547. This does not authorize a new reference or close item 7.
 
+  Further isolation: [cache intervention](https://github.com/clocksmith/doppler/blob/a953b0a4/artifacts/source-model-reference-20261011/observed-cache-control.json) reduces the selected logit difference from 0.0014121532440185547 to 0.000026464462280273438 when only the offline source model’s F16 cache values are replaced with captured values. This establishes sensitivity to stored-cache differences, not independent acceptance. A separate normalization-order control remains above 0.001. No runtime arithmetic or precision changed.
+
 - [x] **8. Doppler: resolve the reference-contract mismatch explicitly.**
   Preserve declared normalization entry points rather than restoring the historical `main_subgroup` substitution. Keep old fixtures and failed receipts unchanged. Independently assess any correction before proposing a versioned reference replacement, requiring explicit approval. Retain precision, inputs, token expectations and **0.001 tolerance**. Newly captured Doppler outputs alone cannot validate their own correctness.
 
