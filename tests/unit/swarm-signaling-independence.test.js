@@ -15,12 +15,14 @@ function fixture() {
     receive(message) { return this.onmessage({ data: JSON.stringify(message) }); }
   }
   class Connection {
-    channel = { readyState: 'open', send: vi.fn(), close: vi.fn() };
+    channel = { label: 'reploid', readyState: 'open', send: vi.fn(), close: vi.fn() };
     constructor() { connections.push(this); }
     close = vi.fn();
     createDataChannel() { return this.channel; }
     async createOffer() { return { type: 'offer', sdp: '' }; }
+    async createAnswer() { return { type: 'answer', sdp: '' }; }
     async setLocalDescription() {}
+    async setRemoteDescription() {}
   }
   const config = resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'test' },
     webrtc: { signalingUrl: 'wss://fixture.invalid', heartbeatIntervalMs: 100, peerTimeoutMs: 500,
@@ -30,9 +32,13 @@ function fixture() {
     WebSocket: Socket, RTCPeerConnection: Connection,
     Utils: { generateId: () => 'local', logger: { info() {}, debug() {}, warn() {}, error() {} } },
     EventBus: { emit: (...args) => events.push(args) } });
-  async function open() {
+  async function open(incoming = false) {
     const pending = swarm.init(); sockets[0].onopen();
-    await sockets[0].receive({ type: 'joined', peerId: 'local', roomId: 'test', peers: ['direct'] });
+    await sockets[0].receive({ type: 'joined', peerId: 'local', roomId: 'test', peers: incoming ? [] : ['direct'] });
+    if (incoming) {
+      await sockets[0].receive({ type: 'offer', peerId: 'direct', offer: { type: 'offer', sdp: '' } });
+      connections[0].ondatachannel({ channel: connections[0].channel });
+    }
     connections[0].channel.onopen();
     expect(await pending).toBe(true);
     await sockets[0].receive({ type: 'peer-joined', peerId: 'relay', metadata: { transport: 'signaling-relay' } });
@@ -58,6 +64,55 @@ it.each(['close', 'error'])('keeps direct traffic and heartbeats after signaling
   } finally { f.swarm.disconnect(); }
   await vi.advanceTimersByTimeAsync(2000);
   expect(f.sockets).toHaveLength(1);
+});
+
+it.each([false, true])('allows transient ICE recovery within the liveness deadline (incoming=%s)', async incoming => {
+  vi.useFakeTimers();
+  const f = fixture();
+  try {
+    await f.open(incoming);
+    const connection = f.connections[0];
+    connection.connectionState = 'disconnected'; connection.onconnectionstatechange();
+    await vi.advanceTimersByTimeAsync(300);
+    expect(connection.close).not.toHaveBeenCalled();
+    expect(connection.channel.close).not.toHaveBeenCalled();
+    connection.connectionState = 'connected'; connection.onconnectionstatechange();
+    connection.channel.onmessage({ data: JSON.stringify({ protocolVersion: 1, type: 'pong',
+      peerId: 'direct', timestamp: 1, payload: { ts: Date.now() }, payloadSize: 0 }) });
+    await vi.advanceTimersByTimeAsync(300);
+    expect(f.swarm.sendToPeer('direct', 'sync-request', {})).toBe(true);
+    expect(connection.close).not.toHaveBeenCalled();
+  } finally { f.swarm.disconnect(); }
+});
+
+it.each([false, true])('still retires an unresponsive disconnected peer at the existing deadline (incoming=%s)', async incoming => {
+  vi.useFakeTimers();
+  const f = fixture();
+  try {
+    await f.open(incoming);
+    const connection = f.connections[0];
+    connection.connectionState = 'disconnected'; connection.onconnectionstatechange();
+    expect(connection.close).not.toHaveBeenCalled();
+    await vi.advanceTimersByTimeAsync(600);
+    expect(connection.close).toHaveBeenCalledOnce();
+    expect(f.swarm.sendToPeer('direct', 'sync-request', {})).toBe(false);
+    expect(f.events).toContainEqual(['swarm:peer-timeout', { peerId: 'direct' }]);
+  } finally { f.swarm.disconnect(); }
+});
+
+it.each(['failed', 'closed', 'manual'])('retires a peer immediately on %s during ICE interruption', async reason => {
+  vi.useFakeTimers();
+  const f = fixture();
+  try {
+    await f.open();
+    const connection = f.connections[0];
+    connection.connectionState = 'disconnected'; connection.onconnectionstatechange();
+    expect(connection.close).not.toHaveBeenCalled();
+    if (reason === 'manual') f.swarm.disconnect();
+    else { connection.connectionState = reason; connection.onconnectionstatechange(); }
+    expect(connection.close).toHaveBeenCalledOnce();
+    expect(f.swarm.sendToPeer('direct', 'sync-request', {})).toBe(false);
+  } finally { f.swarm.disconnect(); }
 });
 
 it('retains direct peers across directory departure and rejoin without replacing their channels', async () => {

@@ -616,7 +616,9 @@ const WebRTCSwarm = {
       connection.onconnectionstatechange = () => {
         if (_peers.get(remotePeerId) !== peer) return;
         logger.debug(`[WebRTCSwarm] Connection state with ${remotePeerId}: ${connection.connectionState}`);
-        if (connection.connectionState === 'failed' || connection.connectionState === 'disconnected') {
+        // ICE disconnected can recover. The existing heartbeat deadline bounds
+        // liveness; do not destroy open custody/partition channels prematurely.
+        if (connection.connectionState === 'failed' || connection.connectionState === 'closed') {
           removePeer(remotePeerId);
         }
       };
@@ -684,7 +686,9 @@ const WebRTCSwarm = {
       };
       connection.onconnectionstatechange = () => {
         if (_peers.get(remotePeerId) !== peer) return;
-        if (connection.connectionState === 'failed' || connection.connectionState === 'disconnected') {
+        // Preserve transient ICE recovery under the same heartbeat deadline as
+        // outgoing connections. Terminal states still retire the peer now.
+        if (connection.connectionState === 'failed' || connection.connectionState === 'closed') {
           removePeer(remotePeerId);
         }
       };
