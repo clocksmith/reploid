@@ -8,7 +8,7 @@ no application asset, Doppler archive or deployment changed.
 
 22 Chromium checks pass across desktop/phone widths, both themes, permission,
 attachments/citations/Copy, stable streaming, drafts, navigation, cancellation,
-retry and keyboard viewport simulation. `interaction-checks.log` retains output.
+retry and keyboard viewport simulation. `interaction-checks.log.gz` retains output.
 The actual application phone inspector is in `actual-phone-device.png`.
 
 Three stale fixture assumptions were repaired: the fixture left a second shell
@@ -75,3 +75,28 @@ accepts changed browser-compatible code. Its whole-file scan rejects the native
 controller's pre-existing `process.env`, `child_process` and `process.exit` uses;
 the unchanged HEAD control produces the same four errors. Both reports are
 retained. No Worker policy was relaxed to make a native tool appear sandboxable.
+
+## Extended conversation failure retained
+
+The `2026-10-11T23-19-03-909Z` Mac/Suby run fails. Concurrent short requests
+complete with exact 1–20 and YES answers. Stopping a second long request leaves
+its partial `1\n2` answer cancelled, while the survivor continues generating
+incorrect repetitive text and remains executing after the 600-second wait.
+The final state capture retains every message and attempt; cancellation did
+not erase the history. See [summary](extended-failure/summary.json) and compressed
+raw receipts. Zero requester-weight and contributor-origin requests are retained.
+Document, active contribution-stop and replacement phases were not reached.
+This does not establish whether the survivor defect originates in source-model
+behavior, runtime computation or concurrent execution. No numerical claim follows.
+
+## Approved-target physical comparison
+
+All 55 frozen prefixes ran on Mac/AMD in each placement using the unchanged
+standard archive. Both directions fail 22/55 steps at 0.001; maximum absolute
+error is 0.002666609627555161. The first failure is request 0, decode step 1,
+vocabulary index 9072: 0.0010009163826676937.
+[Exact identities and raw receipts](approved-reference/summary.json) are retained.
+The reference has been approved, but the implementation has not passed. The
+controller rejects the run; no archive or browser asset was promoted. A scoped
+regression and actual Verification Worker check also confirm that incomplete
+or missing directional evidence cannot grant independent qualification.

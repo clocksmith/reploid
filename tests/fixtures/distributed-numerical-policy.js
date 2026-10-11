@@ -32,7 +32,10 @@ export function numericalEvidence(policy, numerical, reference = null) {
   const directions = numerical?.directions || [];
   const complete = reference?.steps === 55 && numerical?.steps === 110
     && numerical.tolerance === 0.001 && Number.isFinite(numerical.maxDifference)
-    && ['mac-linux', 'linux-mac'].every(name => directions.some(row => row.direction === name && row.steps === 55));
+    && directions.length === 2
+    && ['mac-linux', 'linux-mac'].every(name => directions.some(row => row.direction === name
+      && row.steps === 55 && row.failed === 0 && row.tolerance === 0.001
+      && Number.isFinite(row.maxDifference) && row.maxDifference <= 0.001));
   const accuracy = policy === 'not-applicable' ? 'not-applicable'
     : !independent || !numerical?.steps ? 'not-run'
     : frozen === 'failed' || numerical.maxDifference > 0.001 ? 'failed'

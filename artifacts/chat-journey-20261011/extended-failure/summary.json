@@ -1,0 +1,55 @@
+{
+  "accepted": false,
+  "run": "2026-10-11T23-19-03-909Z",
+  "failure": "Uncancelled conversation remained executing with repetitive incorrect text after the 600000 ms completion wait.",
+  "concurrentShortAnswers": [
+    "1 through 20, exact",
+    "YES, exact"
+  ],
+  "survivor": {
+    "threadId": "86bfb704-2bc6-403e-8f2e-6bb57578e68d",
+    "status": "executing",
+    "textCharacters": 12269
+  },
+  "cancelled": {
+    "threadId": "8eb4774d-bdd4-440d-bb55-95b7e326556a",
+    "status": "cancelled",
+    "partialText": "1\n2"
+  },
+  "requesterWeightRequests": 0,
+  "contributorOriginRequests": 0,
+  "notReached": [
+    "document comparison",
+    "active contribution stop",
+    "replacement",
+    "explicit retry"
+  ],
+  "inspection": "Read-only Node inspector inspection of the owned Playwright worker confirmed continued output; no performance claim. Owned worker, controller and browsers have exited.",
+  "files": [
+    {
+      "source": "artifacts/distributed/2026-10-11T23-19-03-909Z/result.json",
+      "retained": "result.json.gz",
+      "sha256": "6703ba0a5c3ca0a26241995f5afb9e85f8f7521d4655a4a58e9ad426e7253052"
+    },
+    {
+      "source": "artifacts/distributed/2026-10-11T23-19-03-909Z/conversation/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/state-at-exit.json",
+      "retained": "state-at-exit.json.gz",
+      "sha256": "936e1ee24daf5f8f6ffeee726c7ff0cec6aad6dd6ff8bb1725da2a84f616cb6d"
+    },
+    {
+      "source": "artifacts/distributed/2026-10-11T23-19-03-909Z/conversation/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/conversation-isolation.json",
+      "retained": "conversation-isolation.json.gz",
+      "sha256": "7f05db770e96d76cd553e2bb0ae9db50c390282b4aee2218e1112017e6e32da0"
+    },
+    {
+      "source": "artifacts/distributed/2026-10-11T23-19-03-909Z/conversation/chat-cooperative-real-one--c0dc6-selectively-acquired-pieces-chromium/failure.json",
+      "retained": "failure.json.gz",
+      "sha256": "95ac34d841ea73f037fcf31a01694e0969f4507bf531dd26b101a93266973f33"
+    },
+    {
+      "source": "/tmp/reploid-long-recovery-20261011.log",
+      "retained": "reploid-long-recovery-20261011.log.gz",
+      "sha256": "fd9953a912a7fe4ad98b0603bb390e679ecaa10a6f55626d7a73509181b22136"
+    }
+  ]
+}

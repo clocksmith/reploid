@@ -1,0 +1,81 @@
+{
+  "qualified": false,
+  "run": "2026-10-11T23-42-29-580Z",
+  "archiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "browserIdentity": "sha256:f99260044a90f747e7211732bc581c0c4e37cdef48eaee8c4b7b60062e72a1bc",
+  "referenceSha256": "ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "numericalReference": {
+    "kind": "independent-f64",
+    "proposalSha256": "138a76cff303746fe73e5307659c0aaca5a6b2c953ac44a8798c58f6ac297210",
+    "outputIndexSha256": "2c95ecd599b5007b15872c7f3b1ddc5934f5319f983375a996dab536e1021979",
+    "evaluatorSha256": "90376ddec6e6bf997425ee0e1ecf1d98533434ebbe3f934ff00a878dd49e8bc7",
+    "tolerance": 0.001,
+    "steps": 55
+  },
+  "numerical": {
+    "policy": "required",
+    "steps": 110,
+    "failed": 44,
+    "maxDifference": 0.002666609627555161,
+    "tolerance": 0.001,
+    "directions": [
+      {
+        "direction": "mac-linux",
+        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-11T23-42-29-580Z/reference-mac-linux.json",
+        "partitionHosts": [
+          {
+            "index": 0,
+            "host": "mac"
+          },
+          {
+            "index": 1,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 22,
+        "maxDifference": 0.002666609627555161,
+        "tolerance": 0.001
+      },
+      {
+        "direction": "linux-mac",
+        "capture": "/Users/xyz/deco/reploid/artifacts/distributed/2026-10-11T23-42-29-580Z/reference-linux-mac.json",
+        "partitionHosts": [
+          {
+            "index": 1,
+            "host": "mac"
+          },
+          {
+            "index": 0,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 22,
+        "maxDifference": 0.002666609627555161,
+        "tolerance": 0.001
+      }
+    ]
+  },
+  "peer": "x@128.tail995236.ts.net",
+  "controllingSession": "Mac primary agent; owned profiles and tunnel, existing public contributor preserved",
+  "interference": "CPU source-model control ran concurrently on 128. GPU busy was zero before launch. No performance claim.",
+  "files": [
+    {
+      "path": "result.json.gz",
+      "uncompressedSha256": "968d6c9b990f1b8382b30349965b15273b36bbe5faf97503e55ca8fceba83ea4"
+    },
+    {
+      "path": "reference-mac-linux.json.gz",
+      "uncompressedSha256": "2f6fd6bfaa0175a6bcfbe6dbf435d2d6bd7c4db569e700db34fafc9fc15636e4"
+    },
+    {
+      "path": "reference-linux-mac.json.gz",
+      "uncompressedSha256": "df3acfe7f7472b53a1995e19b5336a0b22c63ba9b92b597e84d3938bc17ac9fe"
+    },
+    {
+      "path": "reploid-approved-f64-20261011.log.gz",
+      "uncompressedSha256": "4b32ca9f7b30ea348e0911b3b58cf40f13518fa3ab5ff4be07824af42e663813"
+    }
+  ]
+}

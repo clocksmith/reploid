@@ -55,12 +55,15 @@ it('requires the approved independent identity and all 55 steps in both placemen
   const reference = { kind: 'independent-f64', proposalSha256: contract.independent.proposal.sha256,
     outputIndexSha256: contract.independent.index.sha256, steps: 55 };
   const numerical = { steps: 110, failed: 0, maxDifference: 0.0009, tolerance: 0.001,
-    directions: [{ direction: 'mac-linux', steps: 55 }, { direction: 'linux-mac', steps: 55 }] };
+    directions: ['mac-linux', 'linux-mac'].map(direction => ({ direction, steps: 55, failed: 0,
+      tolerance: 0.001, maxDifference: 0.0009 })) };
   expect(numericalEvidence('required', numerical, reference).numericalAcceptance).toBe('passed');
   expect(() => requireNumericalQualification('required', numerical, reference)).not.toThrow();
   expect(numericalEvidence('required', { ...numerical, failed: 1 }, reference).numericalAcceptance).toBe('failed');
   expect(numericalEvidence('required', { ...numerical, steps: 55, directions: numerical.directions.slice(0, 1) }, reference)
     .numericalAcceptance).toBe('not-qualified');
   expect(numericalEvidence('required', numerical, { ...reference, proposalSha256: 'capture' })
+    .numericalAcceptance).toBe('not-qualified');
+  expect(numericalEvidence('required', { ...numerical, directions: numerical.directions.map(row => ({ ...row, failed: 1 })) }, reference)
     .numericalAcceptance).toBe('not-qualified');
 });
