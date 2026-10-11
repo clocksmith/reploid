@@ -2,6 +2,8 @@
 
 Guide to all documentation in the REPLOID project.
 
+Active implementation: [canonical Doppler–Reploid checklist](../TODO.md).
+
 Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md).
 
 ---

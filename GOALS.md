@@ -56,6 +56,12 @@ Model capabilities include generation, retrieval and decision/scoring operations
 through Doppler. A semantic score or model judgment cannot grant permission,
 qualify execution or authorize adoption; those remain application/operator controls.
 
+## Current implementation sequence
+
+[TODO.md](TODO.md) owns the active cross-repository checklist: dependable
+distributed chat, qualification and delivery, then durable independent jobs.
+Other plans retain design contracts and historical evidence, not parallel queues.
+
 ## Operating Loops
 
 Problem solving establishes success criteria and grants, plans subtasks, selects
