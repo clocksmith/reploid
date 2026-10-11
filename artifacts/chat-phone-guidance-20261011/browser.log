@@ -1,0 +1,32 @@
+[2m[WebServer] [22m(node:88322) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:88355) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:88356) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m(node:88356) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+[2m[WebServer] [22m(node:88417) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 12 tests using 1 worker
+
+(node:88433) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:88433) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/chat-material.spec.js:59:1 › compact ribbon keeps availability and attempt status visible (1.3s)
+  ✓   2 [chromium] › tests/e2e/chat-material.spec.js:85:3 › light conversation materials at 1440px (2.0s)
+  ✓   3 [chromium] › tests/e2e/chat-material.spec.js:85:3 › light conversation materials at 390px (2.1s)
+  ✓   4 [chromium] › tests/e2e/chat-material.spec.js:85:3 › light conversation materials at 320px (1.7s)
+  ✓   5 [chromium] › tests/e2e/chat-material.spec.js:85:3 › dark conversation materials at 1440px (1.8s)
+  ✓   6 [chromium] › tests/e2e/chat-material.spec.js:85:3 › dark conversation materials at 390px (916ms)
+  ✓   7 [chromium] › tests/e2e/chat-material.spec.js:85:3 › dark conversation materials at 320px (898ms)
+  ✓   8 [chromium] › tests/e2e/chat-material.spec.js:156:1 › activity settles, stops on cancel and respects accessibility settings (388ms)
+  ✓   9 [chromium] › tests/e2e/chat-material.spec.js:178:1 › reading and phone controls retain long answers, code, sources and a saved draft (590ms)
+  ✓  10 [chromium] › tests/e2e/chat-material.spec.js:214:1 › bounded inspector and reduced viewport preserve a long conversation and composer (647ms)
+  ✓  11 [chromium] › tests/e2e/chat-material.spec.js:241:1 › keyboard-sized visual viewport compacts the workspace without resizing the layout viewport (376ms)
+  ✓  12 [chromium] › tests/e2e/chat-material.spec.js:264:1 › Verification Worker accepts the conversation presentation module (294ms)
+
+  12 passed (16.6s)
