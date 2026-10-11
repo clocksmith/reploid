@@ -2,12 +2,19 @@
 
 Component: `reploid.tests`. Intent: preserved. Boundary effects: none.
 
-The full retained run uses Reploid `3113f50e`, standard Doppler 0.6.27 and
+The full retained run starts with Reploid `3113f50e`, standard Doppler 0.6.27 and
 Mac partition 0 / Linux partition 1 under the unchanged 1,420,000,000-byte
 per-executor budget. Both acquire only assigned verified pieces with origins
 blocked; the requester obtains no weights. Greeting, executable quote code,
 concurrent conversations, submitted cancellation and subsequent resident reuse
 complete. The surviving count-to-200 answer stops at 120 and fails quality.
+
+**Delivery contamination:** the assistant regenerated the Linux server’s browser
+assets during this run. That server served the mutable checkout, so the run
+cannot qualify one unchanged deliverable. Both initial and later bundle hashes
+are recorded in `review.json`. The lost browser context could be related, but
+that cause has not been established. The observations below remain retained;
+they are not acceptance of a fixed browser package.
 
 Both document generations finish naturally (2,248 and 1,874 token steps), and
 the conversation download check passes. Manual passage-based review nevertheless
@@ -27,5 +34,5 @@ claimed for this failure.
 
 `physical-run.tar.gz` preserves the complete run, screenshots, states, failed
 assertions and standalone controls. `review.json` summarizes scoped results and
-identifies the tested bytes. This does not qualify the newer browser timing
+identifies the initial and subsequently served browser bytes. This does not qualify the newer browser timing
 fields or approve deployment.

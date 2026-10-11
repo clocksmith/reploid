@@ -1,0 +1,12 @@
+{
+  "schema": "reploid.browser-snapshot-check/v1",
+  "bundleHash": "sha256:58995833e517b623d337755695c36bd644109eae687b0cf0eb38a5bdc3e2c3e7",
+  "fileCount": 1900,
+  "packagedFilesVerified": true,
+  "repositoryTests": {
+    "passed": 3000,
+    "skipped": 29
+  },
+  "initialTestFailure": "The HTTP test expected 404 for a missing /pool asset; the existing service correctly returned 401 after its static miss. The assertion now preserves that authorization behavior.",
+  "physicalQualification": false
+}

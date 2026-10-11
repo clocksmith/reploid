@@ -43,16 +43,19 @@ export async function packageHosting({ selfDir = path.join(root, 'self'), output
     || path.resolve(selfDir).startsWith(path.resolve(outputDir) + path.sep)) throw new Error('Hosting output cannot replace source');
   const files = await buildHostingFileSet({ selfDir });
   await verifyArchiveProjection(selfDir, files);
-  const manifest = JSON.parse(await fs.readFile(path.join(selfDir, BROWSER_BUNDLE_DESCRIPTOR_PATH), 'utf8'));
+  const descriptor = await fs.readFile(path.join(selfDir, BROWSER_BUNDLE_DESCRIPTOR_PATH));
+  const manifest = JSON.parse(descriptor);
   const entries = await Promise.all(files.filter(name => name !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
     .map(async name => ({ path: name, bytes: new Uint8Array(await fs.readFile(path.join(selfDir, name))) })));
   const validation = await validateBrowserBundleManifest(manifest, { entries });
   if (!validation.ok) throw new Error(`Hosting manifest is stale: ${validation.reasons.join('; ')}`);
   await fs.rm(outputDir, { recursive: true, force: true });
-  for (const name of files) {
+  // Write the bytes we validated. Rereading the checkout here could silently
+  // mix revisions when another process edits it during packaging.
+  for (const { path: name, bytes } of [...entries, { path: BROWSER_BUNDLE_DESCRIPTOR_PATH, bytes: descriptor }]) {
     const target = path.join(outputDir, name);
     await fs.mkdir(path.dirname(target), { recursive: true });
-    await fs.copyFile(path.join(selfDir, name), target);
+    await fs.writeFile(target, bytes);
   }
   const copied = await walkFiles(outputDir);
   if (JSON.stringify(copied) !== JSON.stringify(files)) throw new Error('Hosting output file set differs');

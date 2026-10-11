@@ -3,7 +3,6 @@
   "qualified": false,
   "runId": "2026-10-11T10-54-28-056Z",
   "sourceRevision": "3113f50e",
-  "browserIdentity": "sha256:f4d77481427ceced750dad25833cbb9fa08269046691d6355f6223a0c6eaa963",
   "package": {
     "name": "doppler-gpu",
     "version": "0.6.27",
@@ -504,5 +503,13 @@
     "message": "page.evaluate: Execution context was destroyed, most likely because of a navigation.",
     "stack": "page.evaluate: Execution context was destroyed, most likely because of a navigation.\n    at Object.expect.poll.timeout (/Users/xyz/deco/reploid/tests/e2e/chat-cooperative-real.spec.js:699:39)"
   },
-  "inspection": "Read-only secondary CDP inspection of the Linux executor occurred during this run. Its effect is not established; the focused reproduction must omit it."
+  "inspection": "Read-only secondary CDP inspection of the Linux executor occurred during this run. Its effect is not established; the focused reproduction must omit it.",
+  "initialBrowserIdentity": "sha256:f4d77481427ceced750dad25833cbb9fa08269046691d6355f6223a0c6eaa963",
+  "deliveryContamination": {
+    "fixedDeliverable": false,
+    "initialBundle": "sha256:f4d77481427ceced750dad25833cbb9fa08269046691d6355f6223a0c6eaa963",
+    "laterServedBundle": "sha256:58995833e517b623d337755695c36bd644109eae687b0cf0eb38a5bdc3e2c3e7",
+    "cause": "The assistant regenerated the Linux application server self/ assets during the run; the proxy served the mutable checkout.",
+    "effect": "Individual observations remain retained, but this run cannot qualify one unchanged deliverable. A connection between asset replacement and the lost browser context is unproven."
+  }
 }
