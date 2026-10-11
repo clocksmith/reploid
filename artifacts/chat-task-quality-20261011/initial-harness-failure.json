@@ -1,0 +1,23 @@
+{
+  "schema": "reploid.chat-task-quality-result/v1",
+  "scope": "Unsplit application-quality diagnostic; higher-budget control, not distributed capacity or numerical qualification.",
+  "qualified": false,
+  "suiteSha256": "3c362772ac96b4e0a1606da45596215270cc2e3c8b04e1c4fd0242a6f8ce0598",
+  "producerSha256": "45115440ce0ee1eda91e32e30ce698160fdf7c1281e03966aa1e45e3846b782a",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "archiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "results": [],
+  "browser": "146.0.7680.177",
+  "platform": "linux",
+  "failure": {
+    "name": "Error",
+    "message": "page.evaluate: TypeError: Cannot read properties of undefined (reading 'trim')\n    at normalize (file:///home/x/deco/reploid/tests/fixtures/chat-task-quality-control.js:53:38)\n    at file:///home/x/deco/reploid/tests/fixtures/chat-task-quality-control.js:54:21\n    at binding (/home/x/deco/reploid/node_modules/playwright-core/lib/client/page.js:256:42)\n    at BindingCall.call (/home/x/deco/reploid/node_modules/playwright-core/lib/client/page.js:726:24)\n    at Page._onBinding (/home/x/deco/reploid/node_modules/playwright-core/lib/client/page.js:165:25)\n    at Proxy.<anonymous> (/home/x/deco/reploid/node_modules/playwright-core/lib/client/page.js:80:59)\n    at Proxy._callHandler (/home/x/deco/reploid/node_modules/playwright-core/lib/client/eventEmitter.js:66:29)\n    at Proxy.emit (/home/x/deco/reploid/node_modules/playwright-core/lib/client/eventEmitter.js:56:12)\n    at Connection.dispatch (/home/x/deco/reploid/node_modules/playwright-core/lib/client/connection.js:176:21)\n    at Immediate.<anonymous> (/home/x/deco/reploid/node_modules/playwright-core/lib/inProcessFactory.js:46:85)"
+  }
+}
