@@ -130,3 +130,19 @@ but the switch stayed Connected and the request completed. It captured no input
 event trace, so it does not establish whether the UI received the intended click.
 Subsequent runs retain bounded trusted-click targets and switch action snapshots.
 The reversed pass does not erase this failure or qualify full application release.
+
+
+## Both physical placements now pass the transport control
+
+[normal-receipt.json](normal-receipt.json) retains the passing ordinary-placement
+repeat with trusted input capture. Acquisition and same-attempt EOS generation
+survive the signaling outages; explicit disconnect receives a trusted click,
+switches the control off, and fails the next active request. Each contributor
+loads one resident and stays below its GPU buffer ceiling. No page errors,
+requester weight requests or contributor origin requests were observed.
+
+Together with the reversed receipt, this qualifies the scoped signaling control
+in both Mac/Linux placements. The earlier awake pointer failure remains retained
+and unexplained; this repeat does not retroactively establish why that activation
+did not take effect. Full application, numerical and deployment acceptance remain
+separate and open.
