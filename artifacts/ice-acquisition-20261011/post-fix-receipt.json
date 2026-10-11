@@ -1,0 +1,105 @@
+{
+  "scope": "Post-fix two-device selective acquisition passes; overall application acceptance fails task quality",
+  "runId": "2026-10-11T03-35-55-312Z",
+  "sourceRevision": "3c58613c",
+  "browserIdentity": "sha256:f4d77481427ceced750dad25833cbb9fa08269046691d6355f6223a0c6eaa963",
+  "package": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+  "physicalDevices": 2,
+  "maxGpuBufferBytes": 1420000000,
+  "acquisitionPassed": true,
+  "applicationPassed": false,
+  "requesterWeights": [],
+  "contributorOrigins": [],
+  "errors": [],
+  "contributors": [
+    {
+      "host": "linux-128",
+      "descriptor": {
+        "schema": "doppler.resident-partition/v1",
+        "ready": true,
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+        "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+        "index": 0,
+        "layerRange": [
+          0,
+          3
+        ],
+        "residentWeightBytes": 1146343424,
+        "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+      },
+      "verifiedBytes": 1155365120,
+      "openingPeakBytes": 1223987856
+    },
+    {
+      "host": "mac",
+      "descriptor": {
+        "schema": "doppler.resident-partition/v1",
+        "ready": true,
+        "modelId": "qwen-3-5-2b-q4k-ehaf16",
+        "modelIdentity": "sha256:83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028",
+        "planId": "sha256:4bdef6b590ec52d743ad2e88bca3d243bec552ac7de625d07551ce95cd1448a2",
+        "index": 1,
+        "layerRange": [
+          4,
+          23
+        ],
+        "residentWeightBytes": 932192256,
+        "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+      },
+      "verifiedBytes": 940946816,
+      "openingPeakBytes": 1278272144
+    }
+  ],
+  "concurrentStatuses": {
+    "long": "completed",
+    "brief": "completed"
+  },
+  "afterCancellationStatuses": {
+    "survivor": "completed",
+    "cancelled": "cancelled"
+  },
+  "answerQuality": {
+    "passed": false,
+    "expectedLines": 200,
+    "actualLines": 120,
+    "firstMismatch": {
+      "line": 121,
+      "actual": null,
+      "expected": "121"
+    }
+  },
+  "codeUnsplitComparison": {
+    "sameAnswer": true,
+    "sameGeneratedTokens": true
+  },
+  "wholeModelControls": [
+    {
+      "stage": "opening",
+      "maxGpuBufferBytes": 1420000000,
+      "error": "Pipeline load phase \"loadWeights\" failed: GPU memory budget exceeded: q4k_model.language_model.layers.0.linear_attn.out_proj.weight_2359296 requires 2359296 bytes; 1419981824 live, 1420000000 allowed.",
+      "cleanupBarriers": 1
+    },
+    {
+      "stage": "opening",
+      "maxGpuBufferBytes": 1420000000,
+      "error": "Pipeline load phase \"loadWeights\" failed: GPU memory budget exceeded: q4k_model.language_model.layers.0.linear_attn.in_proj_qkv.weight_7077888 requires 7077888 bytes; 1419771904 live, 1420000000 allowed.",
+      "cleanupBarriers": 1
+    }
+  ],
+  "notExercised": [
+    "extended document reuse",
+    "contributor replacement and explicit retry",
+    "signed Capsule physical opening",
+    "numerical qualification",
+    "deployment"
+  ],
+  "rawArchiveSha256": "f02f2abce8526d1ac1eb8a8791e5bd093eabf22207025c127d160894180c70c3"
+}
