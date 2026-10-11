@@ -1,0 +1,1304 @@
+{
+  "scope": "Two physical hosts, exact installed package and frozen tokens; numerical failure retained. Not a full application/acquisition journey.",
+  "sourceRun": "artifacts/distributed/2026-10-11T20-57-44-372Z",
+  "acceptedArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "browserIdentity": "sha256:f99260044a90f747e7211732bc581c0c4e37cdef48eaee8c4b7b60062e72a1bc",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "referenceSha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd",
+  "maxGpuBufferBytes": 1420000000,
+  "physicalProviders": {
+    "local": "Mac Metal, owned isolated Chrome session",
+    "remote": {
+      "vendor": "intel",
+      "architecture": "gen-12lp",
+      "isFallbackAdapter": false,
+      "featuresChecked": [
+        "shader-f16",
+        "subgroups"
+      ],
+      "browser": "136.0.7103.59",
+      "vendorId": 32902,
+      "deviceId": 39544,
+      "renderer": "ANGLE (Intel, Vulkan 1.3.289 (Intel(R) UHD Graphics (TGL GT2) (0x00009A78)), Intel open-source Mesa driver-24.2.8)",
+      "driverObservation": "Read-only Chrome SystemInfo probe immediately after run; no driver update or browser replacement."
+    }
+  },
+  "numerical": {
+    "policy": "required",
+    "steps": 110,
+    "failed": 51,
+    "maxDifference": 0.001850128173828125,
+    "tolerance": 0.001,
+    "directions": [
+      {
+        "direction": "mac-linux",
+        "capture": "artifacts/distributed/2026-10-11T20-57-44-372Z/reference-mac-linux.json",
+        "partitionHosts": [
+          {
+            "index": 0,
+            "host": "mac"
+          },
+          {
+            "index": 1,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 28,
+        "maxDifference": 0.0018434524536132812,
+        "tolerance": 0.001
+      },
+      {
+        "direction": "linux-mac",
+        "capture": "artifacts/distributed/2026-10-11T20-57-44-372Z/reference-linux-mac.json",
+        "partitionHosts": [
+          {
+            "index": 1,
+            "host": "mac"
+          },
+          {
+            "index": 0,
+            "host": "linux"
+          }
+        ],
+        "steps": 55,
+        "failed": 23,
+        "maxDifference": 0.001850128173828125,
+        "tolerance": 0.001
+      }
+    ]
+  },
+  "failure": {
+    "phase": "frozen reference linux-mac",
+    "message": "Frozen numerical tolerance exceeded"
+  },
+  "directions": [
+    {
+      "direction": "mac-linux",
+      "partitionHosts": [
+        {
+          "index": 0,
+          "host": "mac"
+        },
+        {
+          "index": 1,
+          "host": "linux"
+        }
+      ],
+      "browsers": [
+        "155.0.8059.39",
+        "136.0.7103.59"
+      ],
+      "comparisons": [
+        {
+          "attempt": 0,
+          "steps": [
+            {
+              "step": 0,
+              "tokenId": 9419,
+              "stopReason": null,
+              "maxDifference": 0.0011718273162841797,
+              "maxDifferenceIndex": 108790,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 1,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.0018434524536132812,
+              "maxDifferenceIndex": 220,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ],
+          "completed": true,
+          "stopReason": "eos-token",
+          "inputTokens": 19
+        },
+        {
+          "attempt": 1,
+          "steps": [
+            {
+              "step": 0,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.0009822845458984375,
+              "maxDifferenceIndex": 42821,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 1,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.0011949539184570312,
+              "maxDifferenceIndex": 373,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ],
+          "completed": true,
+          "stopReason": "eos-token",
+          "inputTokens": 21
+        },
+        {
+          "attempt": 2,
+          "steps": [
+            {
+              "step": 0,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0007703304290771484,
+              "maxDifferenceIndex": 423,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 1,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007367134094238281,
+              "maxDifferenceIndex": 164877,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 2,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0010957717895507812,
+              "maxDifferenceIndex": 48427,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 3,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.001338958740234375,
+              "maxDifferenceIndex": 5437,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 4,
+              "tokenId": 18,
+              "stopReason": null,
+              "maxDifference": 0.0012316703796386719,
+              "maxDifferenceIndex": 84904,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 5,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0013097524642944336,
+              "maxDifferenceIndex": 82575,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 6,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.001603841781616211,
+              "maxDifferenceIndex": 26631,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 7,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0012732148170471191,
+              "maxDifferenceIndex": 2632,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 8,
+              "tokenId": 20,
+              "stopReason": null,
+              "maxDifference": 0.0012230873107910156,
+              "maxDifferenceIndex": 26631,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 9,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.001316070556640625,
+              "maxDifferenceIndex": 220,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 10,
+              "tokenId": 21,
+              "stopReason": null,
+              "maxDifference": 0.0010156631469726562,
+              "maxDifferenceIndex": 109435,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 11,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0010752677917480469,
+              "maxDifferenceIndex": 20,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 12,
+              "tokenId": 22,
+              "stopReason": null,
+              "maxDifference": 0.0009412765502929688,
+              "maxDifferenceIndex": 128018,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 13,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007777214050292969,
+              "maxDifferenceIndex": 134101,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 14,
+              "tokenId": 23,
+              "stopReason": null,
+              "maxDifference": 0.000720977783203125,
+              "maxDifferenceIndex": 158,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 15,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0009875297546386719,
+              "maxDifferenceIndex": 23,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 16,
+              "tokenId": 24,
+              "stopReason": null,
+              "maxDifference": 0.0009822845458984375,
+              "maxDifferenceIndex": 114639,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 17,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0011768341064453125,
+              "maxDifferenceIndex": 86616,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 18,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0009181499481201172,
+              "maxDifferenceIndex": 1654,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 19,
+              "tokenId": 15,
+              "stopReason": null,
+              "maxDifference": 0.0014677047729492188,
+              "maxDifferenceIndex": 428,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 20,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0011080503463745117,
+              "maxDifferenceIndex": 40617,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 21,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0010790824890136719,
+              "maxDifferenceIndex": 75599,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 22,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.000896453857421875,
+              "maxDifferenceIndex": 222825,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 23,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008603334426879883,
+              "maxDifferenceIndex": 50779,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 24,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0010085105895996094,
+              "maxDifferenceIndex": 4904,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 25,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0010166168212890625,
+              "maxDifferenceIndex": 12442,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 26,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007337331771850586,
+              "maxDifferenceIndex": 37135,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 27,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008020401000976562,
+              "maxDifferenceIndex": 244480,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 28,
+              "tokenId": 18,
+              "stopReason": null,
+              "maxDifference": 0.0008487701416015625,
+              "maxDifferenceIndex": 116736,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 29,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0009671449661254883,
+              "maxDifferenceIndex": 25114,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 30,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0010881423950195312,
+              "maxDifferenceIndex": 190616,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 31,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.0014295578002929688,
+              "maxDifferenceIndex": 134145,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 32,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008540153503417969,
+              "maxDifferenceIndex": 17,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 33,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.001216888427734375,
+              "maxDifferenceIndex": 98523,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 34,
+              "tokenId": 20,
+              "stopReason": null,
+              "maxDifference": 0.0012195110321044922,
+              "maxDifferenceIndex": 116736,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 35,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007238388061523438,
+              "maxDifferenceIndex": 94858,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 36,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008454322814941406,
+              "maxDifferenceIndex": 55078,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 37,
+              "tokenId": 21,
+              "stopReason": null,
+              "maxDifference": 0.0008814334869384766,
+              "maxDifferenceIndex": 16361,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 38,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008034706115722656,
+              "maxDifferenceIndex": 10878,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 39,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.000881195068359375,
+              "maxDifferenceIndex": 64009,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 40,
+              "tokenId": 22,
+              "stopReason": null,
+              "maxDifference": 0.0009706020355224609,
+              "maxDifferenceIndex": 118445,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 41,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008687973022460938,
+              "maxDifferenceIndex": 10878,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 42,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0011137723922729492,
+              "maxDifferenceIndex": 51561,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 43,
+              "tokenId": 23,
+              "stopReason": null,
+              "maxDifference": 0.0013988018035888672,
+              "maxDifferenceIndex": 29817,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 44,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0009229183197021484,
+              "maxDifferenceIndex": 100453,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 45,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0007758140563964844,
+              "maxDifferenceIndex": 492,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 46,
+              "tokenId": 24,
+              "stopReason": null,
+              "maxDifference": 0.0009317398071289062,
+              "maxDifferenceIndex": 1981,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 47,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0011608600616455078,
+              "maxDifferenceIndex": 208835,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 48,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0011930465698242188,
+              "maxDifferenceIndex": 99190,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 49,
+              "tokenId": 15,
+              "stopReason": null,
+              "maxDifference": 0.0008394718170166016,
+              "maxDifferenceIndex": 3285,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 50,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.001332998275756836,
+              "maxDifferenceIndex": 1378,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ],
+          "completed": true,
+          "stopReason": "eos-token",
+          "inputTokens": 184
+        }
+      ],
+      "sampledTokensMatchFrozen": true,
+      "settlement": [
+        {
+          "peakBytes": 756922768,
+          "weightsBytes": 0,
+          "liveBytes": 35213816,
+          "poolResources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 35204864,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "validationErrors": []
+        },
+        {
+          "peakBytes": 391430544,
+          "weightsBytes": 0,
+          "liveBytes": 37964920,
+          "poolResources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 37956096,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "validationErrors": []
+        }
+      ]
+    },
+    {
+      "direction": "linux-mac",
+      "partitionHosts": [
+        {
+          "index": 1,
+          "host": "mac"
+        },
+        {
+          "index": 0,
+          "host": "linux"
+        }
+      ],
+      "browsers": [
+        "155.0.8059.39",
+        "136.0.7103.59"
+      ],
+      "comparisons": [
+        {
+          "attempt": 0,
+          "steps": [
+            {
+              "step": 0,
+              "tokenId": 9419,
+              "stopReason": null,
+              "maxDifference": 0.0011718273162841797,
+              "maxDifferenceIndex": 108790,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 1,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.001850128173828125,
+              "maxDifferenceIndex": 220,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ],
+          "completed": true,
+          "stopReason": "eos-token",
+          "inputTokens": 19
+        },
+        {
+          "attempt": 1,
+          "steps": [
+            {
+              "step": 0,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.0009822845458984375,
+              "maxDifferenceIndex": 42821,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 1,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.0012006759643554688,
+              "maxDifferenceIndex": 373,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ],
+          "completed": true,
+          "stopReason": "eos-token",
+          "inputTokens": 21
+        },
+        {
+          "attempt": 2,
+          "steps": [
+            {
+              "step": 0,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0007703304290771484,
+              "maxDifferenceIndex": 423,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 1,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007357597351074219,
+              "maxDifferenceIndex": 152168,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 2,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0009920597076416016,
+              "maxDifferenceIndex": 171827,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 3,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.001418471336364746,
+              "maxDifferenceIndex": 22167,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 4,
+              "tokenId": 18,
+              "stopReason": null,
+              "maxDifference": 0.0011491775512695312,
+              "maxDifferenceIndex": 59233,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 5,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0009512901306152344,
+              "maxDifferenceIndex": 237584,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 6,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.0010421276092529297,
+              "maxDifferenceIndex": 74536,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 7,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0011184215545654297,
+              "maxDifferenceIndex": 225487,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 8,
+              "tokenId": 20,
+              "stopReason": null,
+              "maxDifference": 0.0007357597351074219,
+              "maxDifferenceIndex": 109975,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 9,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.001232147216796875,
+              "maxDifferenceIndex": 220,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 10,
+              "tokenId": 21,
+              "stopReason": null,
+              "maxDifference": 0.0007830262184143066,
+              "maxDifferenceIndex": 2460,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 11,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0014488697052001953,
+              "maxDifferenceIndex": 126994,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 12,
+              "tokenId": 22,
+              "stopReason": null,
+              "maxDifference": 0.0011286735534667969,
+              "maxDifferenceIndex": 49531,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 13,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0011935234069824219,
+              "maxDifferenceIndex": 22,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 14,
+              "tokenId": 23,
+              "stopReason": null,
+              "maxDifference": 0.0008647441864013672,
+              "maxDifferenceIndex": 132153,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 15,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008261203765869141,
+              "maxDifferenceIndex": 239890,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 16,
+              "tokenId": 24,
+              "stopReason": null,
+              "maxDifference": 0.0007691383361816406,
+              "maxDifferenceIndex": 8265,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 17,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0011639595031738281,
+              "maxDifferenceIndex": 100965,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 18,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008883476257324219,
+              "maxDifferenceIndex": 100625,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 19,
+              "tokenId": 15,
+              "stopReason": null,
+              "maxDifference": 0.0013828277587890625,
+              "maxDifferenceIndex": 428,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 20,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.001013040542602539,
+              "maxDifferenceIndex": 12888,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 21,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0010623931884765625,
+              "maxDifferenceIndex": 22628,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 22,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.00091552734375,
+              "maxDifferenceIndex": 17,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 23,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007953643798828125,
+              "maxDifferenceIndex": 108009,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 24,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0010929107666015625,
+              "maxDifferenceIndex": 2436,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 25,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.000965118408203125,
+              "maxDifferenceIndex": 6581,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 26,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0009660720825195312,
+              "maxDifferenceIndex": 286,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 27,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008060932159423828,
+              "maxDifferenceIndex": 14000,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 28,
+              "tokenId": 18,
+              "stopReason": null,
+              "maxDifference": 0.0007339119911193848,
+              "maxDifferenceIndex": 119620,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 29,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008029937744140625,
+              "maxDifferenceIndex": 128018,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 30,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0009565353393554688,
+              "maxDifferenceIndex": 80233,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 31,
+              "tokenId": 19,
+              "stopReason": null,
+              "maxDifference": 0.0014338493347167969,
+              "maxDifferenceIndex": 1023,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 32,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0013670921325683594,
+              "maxDifferenceIndex": 12948,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 33,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0009864568710327148,
+              "maxDifferenceIndex": 19320,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 34,
+              "tokenId": 20,
+              "stopReason": null,
+              "maxDifference": 0.0013382434844970703,
+              "maxDifferenceIndex": 32897,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 35,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0006029605865478516,
+              "maxDifferenceIndex": 21813,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 36,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0007777214050292969,
+              "maxDifferenceIndex": 98841,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 37,
+              "tokenId": 21,
+              "stopReason": null,
+              "maxDifference": 0.0008802413940429688,
+              "maxDifferenceIndex": 19,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 38,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0007276535034179688,
+              "maxDifferenceIndex": 78035,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 39,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0007708072662353516,
+              "maxDifferenceIndex": 44588,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 40,
+              "tokenId": 22,
+              "stopReason": null,
+              "maxDifference": 0.0008573532104492188,
+              "maxDifferenceIndex": 19,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 41,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0008118152618408203,
+              "maxDifferenceIndex": 126101,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 42,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0009518861770629883,
+              "maxDifferenceIndex": 51561,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 43,
+              "tokenId": 23,
+              "stopReason": null,
+              "maxDifference": 0.0013346076011657715,
+              "maxDifferenceIndex": 5589,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 44,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.000759124755859375,
+              "maxDifferenceIndex": 84790,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 45,
+              "tokenId": 16,
+              "stopReason": null,
+              "maxDifference": 0.0008261203765869141,
+              "maxDifferenceIndex": 37688,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 46,
+              "tokenId": 24,
+              "stopReason": null,
+              "maxDifference": 0.0009467601776123047,
+              "maxDifferenceIndex": 18606,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 47,
+              "tokenId": 198,
+              "stopReason": null,
+              "maxDifference": 0.0011566877365112305,
+              "maxDifferenceIndex": 65081,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 48,
+              "tokenId": 17,
+              "stopReason": null,
+              "maxDifference": 0.0011606216430664062,
+              "maxDifferenceIndex": 99190,
+              "tolerance": 0.001,
+              "matches": false
+            },
+            {
+              "step": 49,
+              "tokenId": 15,
+              "stopReason": null,
+              "maxDifference": 0.0007710456848144531,
+              "maxDifferenceIndex": 134027,
+              "tolerance": 0.001,
+              "matches": true
+            },
+            {
+              "step": 50,
+              "tokenId": 248046,
+              "stopReason": "eos-token",
+              "maxDifference": 0.0011262297630310059,
+              "maxDifferenceIndex": 116700,
+              "tolerance": 0.001,
+              "matches": false
+            }
+          ],
+          "completed": true,
+          "stopReason": "eos-token",
+          "inputTokens": 184
+        }
+      ],
+      "sampledTokensMatchFrozen": true,
+      "settlement": [
+        {
+          "peakBytes": 391430544,
+          "weightsBytes": 0,
+          "liveBytes": 37964920,
+          "poolResources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 37956096,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "validationErrors": []
+        },
+        {
+          "peakBytes": 756922768,
+          "weightsBytes": 0,
+          "liveBytes": 35213816,
+          "poolResources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 35204864,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "validationErrors": []
+        }
+      ]
+    }
+  ],
+  "files": [
+    {
+      "path": "artifacts/distributed/2026-10-11T20-57-44-372Z/1-ssh.log",
+      "bytes": 3253,
+      "sha256": "60304492cff403cf0db5368e42868fb68f3a51cbcaabce6b6a02dfe997c4be8a"
+    },
+    {
+      "path": "artifacts/distributed/2026-10-11T20-57-44-372Z/reference-linux-mac.json",
+      "bytes": 22644273,
+      "sha256": "d8ee39bb6c43ab9209f175da11c0cd0ffd0beca261b6b1c0854e258e2510bee6"
+    },
+    {
+      "path": "artifacts/distributed/2026-10-11T20-57-44-372Z/result.json",
+      "bytes": 6975,
+      "sha256": "9711261b160c34b4c40dcf0b85c33b87e1769b2517acb190d2c647769b1d670c"
+    },
+    {
+      "path": "artifacts/distributed/2026-10-11T20-57-44-372Z/5-node.log",
+      "bytes": 384,
+      "sha256": "21e3e95f8140c990df718265c709af2df2b94150ef5b11d349b3f77a53f605ce"
+    },
+    {
+      "path": "artifacts/distributed/2026-10-11T20-57-44-372Z/4-node.log",
+      "bytes": 384,
+      "sha256": "9f4119ce730437a7966e29b356efa9fd61d4e64033e524d8524f7d096f0c6ea4"
+    },
+    {
+      "path": "artifacts/distributed/2026-10-11T20-57-44-372Z/2-node.log",
+      "bytes": 47,
+      "sha256": "4a0ea27db433de8577ba1598637ccc19a454074db869ced3ba6ded1b10097081"
+    },
+    {
+      "path": "artifacts/distributed/2026-10-11T20-57-44-372Z/3-ssh.log",
+      "bytes": 24,
+      "sha256": "b08ee214841188ea60e6d9459ec7c366a9993ff83b17186560961412cef41eae"
+    },
+    {
+      "path": "artifacts/distributed/2026-10-11T20-57-44-372Z/reference.json",
+      "bytes": 72844873,
+      "sha256": "9444f0d632de4b51624752a8c3d05a1e7cd7aea4b4ebaef71d96663bb650b6bd"
+    },
+    {
+      "path": "artifacts/distributed/2026-10-11T20-57-44-372Z/reference-mac-linux.json",
+      "bytes": 22642741,
+      "sha256": "96fe789ec297a768f910cd28aea90f79ecf4bd8d00f3cdd2e8571e82a744ed6c"
+    }
+  ],
+  "referenceActivated": false,
+  "deployed": false
+}
