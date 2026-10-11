@@ -324,7 +324,24 @@ test('one model executes cooperatively on discovered physical peers from selecti
       await expect.poll(async () => (await history(requester)).threads.find(thread => thread.id === stoppedId)
         .messages.at(-1).content, { timeout: 120000 }).not.toBe('');
       expect((await lastAttempt(stoppedId)).status).toBe('executing');
+      await contributor.evaluate(() => {
+        globalThis.reploidTestNetworkClicks = [];
+        document.addEventListener('click', event => {
+          const target = event.target.closest('button');
+          globalThis.reploidTestNetworkClicks.push({ trusted: event.isTrusted,
+            networkSwitch: target?.hasAttribute('data-mesh-connect') || false,
+            disconnect: target?.dataset.disconnect ?? null,
+            inspectorSection: target?.dataset.inspectorSection ?? null });
+          if (globalThis.reploidTestNetworkClicks.length > 8) globalThis.reploidTestNetworkClicks.shift();
+        }, { capture: true });
+      });
       await contributor.locator('[data-mesh-connect]').click();
+      signalingEvidence.disconnectInput = await contributor.evaluate(() => ({
+        clicks: globalThis.reploidTestNetworkClicks,
+        control: { disconnect: document.querySelector('[data-mesh-connect]').dataset.disconnect,
+          checked: document.querySelector('[data-mesh-connect]').getAttribute('aria-checked') },
+      }));
+      await saveSignaling('disconnect-clicked');
       await expect(contributor.locator('[data-connection-label]')).toHaveText('Disconnected');
       await expect.poll(async () => (await lastAttempt(stoppedId)).status, { timeout: 30000 }).toBe('failed');
       signalingEvidence.explicitDisconnect = await lastAttempt(stoppedId);
