@@ -1,0 +1,107 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "Calculate",
+      "description": "Verify quoted operands against supplied original passages/user questions and calculate known arithmetic or calendar results. Exact quotes do not prove semantic attribution. Do not add an included allowance or invent unknown charges. Keep conflicts and conditions unresolved. One call only.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "facts",
+          "operations"
+        ],
+        "properties": {
+          "facts": {
+            "type": "array",
+            "maxItems": 40,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "kind",
+                "source",
+                "quote",
+                "value"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "money",
+                    "number",
+                    "percent",
+                    "date",
+                    "days",
+                    "weeks"
+                  ]
+                },
+                "source": {
+                  "type": "string",
+                  "pattern": "^(D[1-8]:P[1-9][0-9]*|U[0-9]+)$",
+                  "description": "Exact passage ID, never a document ID; U0 is original user question, U2 next user question."
+                },
+                "quote": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 600,
+                  "description": "Exact original substring; prior assistant replies are not evidence."
+                },
+                "value": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64,
+                  "description": "Exact full numeric or date lexeme in quote, preserving currency sign, thousands commas and percent sign; words one through twelve supported. Dates spelled month day, optional original year."
+                }
+              }
+            }
+          },
+          "operations": {
+            "type": "array",
+            "maxItems": 30,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "op",
+                "args"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                },
+                "op": {
+                  "type": "string",
+                  "enum": [
+                    "add",
+                    "subtract",
+                    "multiply",
+                    "percent",
+                    "addCalendarDuration"
+                  ]
+                },
+                "args": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                  },
+                  "description": "Earlier fact/result IDs only; no literal amounts. Numeric add/subtract need matching kinds. multiply requires second kind number; percent requires second kind percent; calendar addition requires date then days/weeks."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,36 @@
+{
+  "schema": "reploid.official-tool-protocol-freeze/v1",
+  "status": "pre-output independent review pending",
+  "parentFrozenRevision": "82603086",
+  "hypothesis": "Use retained official tool-call format instead of improvised free-form JSON. No output repair.",
+  "sameSevenCasesAndFullCriteria": true,
+  "seenModelOutputCases": [
+    "fresh-bathroom-comparison",
+    "fresh-bathroom-correction"
+  ],
+  "remainingCasesUnrunAtSelection": [
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "files": {
+    "protocol.py": "a8ffa4f5aea3e166b5065ac7f081ec6f75b1943ed7c62f4be824e1655405e6e9",
+    "protocol_test.py": "3abaa5a725061f5aec8129ee654f196bd0aea164b62e17ccc9af8d35c5aa2182",
+    "run.py": "4693b432960603eab12504b2024925606bbc6aaea4d374986d01b2f211679aaa",
+    "suite.json": "ab558f117234300f8d44c73cd9f13653796a089520d3517ecbf37992c041f74c",
+    "tools.json": "783acf4522e955fae74aa176b45d58ca4b7da3dca647c32cb4172ecb01062c66",
+    "template-binding.json": "22cc56128a81ed47b1d51901183b62a4c71d69d8007f1902d8b756db5684dacd"
+  },
+  "unchangedCalculatorSha256": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+  "sourceLoaderSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
+  "sourceEvaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "aggregateBudgets": {
+    "generatedTokens": 4096,
+    "promptPlusGeneratedTokens": 8192,
+    "rawOutputUtf16": 16000,
+    "extractionMaxTokens": 1536
+  },
+  "preserved": "Source checkpoint/precision/tokenizer/nonthinking/greedy/repetition1.0, original ordered messages, criteria, tool operations and aggregate budgets. No production adoption."
+}
