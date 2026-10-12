@@ -1,0 +1,14 @@
+Debugger listening on ws://127.0.0.1:9229/b622487b-940b-48fe-ae06-a25c474d35fa
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger attached.
+Waiting for the debugger to disconnect...
+node:internal/process/promises:394
+    triggerUncaughtException(err, true /* fromPromise */);
+    ^
+
+cdpSession.send: Protocol error (Debugger.resume): Can only perform operation while paused.
+    at CDPSession.<anonymous> (<anonymous>:16:28) {
+  name: 'Error'
+}
+
+Node.js v22.21.0
