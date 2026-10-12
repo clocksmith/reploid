@@ -20,16 +20,16 @@ try {
   ]) {
     await page.locator('[data-composer-input]').fill(question);
     await page.locator('[data-composer-send]').click();
-    await page.locator('[data-approval-consent]').waitFor({ timeout: 30000 });
-    report.approvals.push(JSON.parse(await page.locator('[data-permission-technical]').textContent()));
-    await page.locator('[data-approval-consent]').check();
-    await page.locator('[data-approval-send]').click();
     await expect.poll(async () => {
       const attempt = (await threads()).at(-1).attempts.at(-1);
       if (['failed', 'interrupted'].includes(attempt.status)) throw Error(JSON.stringify(attempt));
       return attempt.status;
     }, { timeout: 180000, intervals: [1000] }).toBe('completed');
     report.thread = (await threads()).at(-1);
+    const attempt = report.thread.attempts.at(-1), authorization = attempt.authorization;
+    expect(authorization).toMatchObject({ kind: 'once', source: 'send', modelIdentity: attempt.execution.modelIdentity,
+      peerId: attempt.execution.participantA, recipientIdentity: attempt.execution.participantB, planId: attempt.execution.planId });
+    report.approvals.push(authorization);
     expect(report.thread.messages.at(-1).content).toMatch(new RegExp(`\\b${amount}\\b`));
   }
   expect(report.weightRequests).toEqual([]);

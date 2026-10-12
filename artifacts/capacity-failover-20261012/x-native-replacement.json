@@ -1,0 +1,10 @@
+{
+  "oldPid": 803750,
+  "oldDirectory": "/var/tmp/reploid-native-path-delivery-20261012/installed/reploid",
+  "newDirectory": "/var/tmp/reploid-native-recovery-20261012/reploid",
+  "log": "/home/x/.local/state/reploid/public-native-recovery-20261012.log",
+  "startedAt": 1791820069.96466,
+  "oldExitedAt": 1791820070.1652422,
+  "newPid": 1535668,
+  "launchedAt": 1791820070.1659303
+}

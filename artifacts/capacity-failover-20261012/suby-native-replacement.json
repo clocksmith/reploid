@@ -1,0 +1,10 @@
+{
+  "oldPid": 4031894,
+  "oldDirectory": "/home/clocksmith/.local/share/reploid/native-public-app/reploid",
+  "newDirectory": "/home/clocksmith/.local/share/reploid/native-recovery-20261012/reploid",
+  "log": "/home/clocksmith/.local/state/reploid/public-native-recovery-20261012.log",
+  "startedAt": 1791820098.1783352,
+  "oldExitedAt": 1791820098.7796466,
+  "newPid": 4086709,
+  "launchedAt": 1791820098.7801182
+}

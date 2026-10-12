@@ -1,4 +1,4 @@
-import { writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 
 // Operator-only physical test controller. Inspector stays on the host loopback.
 const operation = process.argv[2];
@@ -43,8 +43,11 @@ const receipt = { startedAt: new Date().toISOString(), operation, targetUrl: tar
 try {
   if (!await evaluate('Boolean(globalThis.__reploidNativeControl)')) {
     await call('Debugger.enable');
+    const source = (await readFile(new URL(target.url), 'utf8')).split('\n');
+    const lineNumber = source.findIndex(line => line.includes('const timer = setInterval('));
+    if (lineNumber < 0) throw Error('Native polling closure absent from installed source');
     breakpoint = (await call('Debugger.setBreakpointByUrl', {
-      url: target.url, lineNumber: 323, columnNumber: 44
+      url: target.url, lineNumber, columnNumber: source[lineNumber].indexOf('participant.announceFiles()')
     })).breakpointId;
     const event = await Promise.race([
       new Promise(resolve => paused ? resolve(paused) : pausedWaiters.push(resolve)),
