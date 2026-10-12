@@ -40,6 +40,8 @@ numerical/model-quality qualification.
 | Human review exceeds readiness TTL | [delayed-approval.json](delayed-approval.json), 15,000 ms review then completed $36 with the same approved pair |
 | Close actual requester RTC input-owner connection | [rtc-recovery.json](rtc-recovery.json), new connection observed; all three other connections remain connected |
 | Follow-up after RTC reconnection | [after-rtc-recovery.json](after-rtc-recovery.json), same history yields correct $48 for four tickets |
+| Terminate input contributor during streaming | [input-owner-loss.json](input-owner-loss.json), 306-character partial retained; unknown remote cleanup remains explicit |
+| Restart input contributor with a new identity | [input-owner-retry.json](input-owner-retry.json), separately approved fresh attempt completes; old attempt and messages remain byte-for-byte unchanged |
 | Return to saved conversation | [return.json](return.json), messages and thread draft retained; source disclosure, Copy and phone drawer work |
 
 The phone check uses a 390 × 844 browser viewport. It is not a physical phone or
@@ -50,6 +52,15 @@ Native resident weights were 285,497,344 bytes; its observed accounted peak was
 497,336,720 bytes. These short-request results do **not** replace the frozen
 1,588-token memory sequence or measure total process RAM. Native requests settled
 and weights remained resident between them; provider receipts retain the details.
+
+The replacement checklist completes ten items, but contains questionable backup advice
+(for example reinstalling the backup app as a routine step). This qualifies recovery,
+not useful-answer quality. Suby was restarted on `29f4b223`; its new input identity is
+`peer:39b36f733c5fe9229a0331ee`. The Mac output stayed resident.
+
+Full Linux repository validation at `5a1f6e27` passed 287 test files and 3,100 tests,
+with 3 files / 29 tests explicitly skipped. Raw output: `full-unit-linux.log.gz`.
+This sweep predates the subsequent native file-sharing implementation.
 
 ## Broken boundaries repaired
 
