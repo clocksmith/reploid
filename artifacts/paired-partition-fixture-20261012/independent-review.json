@@ -1,0 +1,18 @@
+{
+  "reviewer": "native_participation",
+  "scope": "Independent source and contract review, no GPU run or signed qualification",
+  "sourceHashes": {
+    "scripts/test-distributed.js": "82d331ba5840d33e462415f0c5b3cf03cc6d693edee1d343e7fa887ae934255b",
+    "tests/fixtures/browser-partition-memory-completion.js": "bcae7eb1577812efcc110b37f2cef75734d1cebcc5c69d5aa3e53d1deab60b18",
+    "tests/fixtures/paired-partition-binding.js": "e0b7c8bfb112178a21cad5b305342870d01dc37c2e0777e0ddea60ee74bb1b01",
+    "tests/unit/paired-partition-binding.test.js": "b0fc2d0295687cba915641abee1b81998e49ab150641aebcb86c8fd06f85a9db"
+  },
+  "findings": [
+    "Exact archive/manifest/graph digest checks and unchanged source-fact comparison preserve authority.",
+    "Only a comparison clone uses the historical graph; runtime executes original candidate manifest.",
+    "Legacy plan hash and full projected-v2 equality retain traversal, partition bounds, tensor shapes and embedding/head roles.",
+    "Initial non-reference authority bug repaired: use hash-bound original request identity captured before catalog substitution.",
+    "Observed adapter info and host endpoints replace assumed Mac/Linux labels.",
+    "Manifest opening/local verified bytes and Node forwarding are not signed opening or P2P acquisition."
+  ]
+}

@@ -1,0 +1,317 @@
+{
+  "scope": "Actual Verification Worker static analysis under its existing /testing/ capability. These are Node-only test controllers, not deployed browser modules. No GPU/model execution.",
+  "sources": [
+    {
+      "path": "scripts/test-distributed.js",
+      "workerPath": "/testing/scripts/test-distributed.js",
+      "sha256": "82d331ba5840d33e462415f0c5b3cf03cc6d693edee1d343e7fa887ae934255b"
+    },
+    {
+      "path": "tests/fixtures/browser-partition-memory-completion.js",
+      "workerPath": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+      "sha256": "bcae7eb1577812efcc110b37f2cef75734d1cebcc5c69d5aa3e53d1deab60b18"
+    },
+    {
+      "path": "tests/fixtures/paired-partition-binding.js",
+      "workerPath": "/testing/tests/fixtures/paired-partition-binding.js",
+      "sha256": "e0b7c8bfb112178a21cad5b305342870d01dc37c2e0777e0ddea60ee74bb1b01"
+    },
+    {
+      "path": "tests/unit/paired-partition-binding.test.js",
+      "workerPath": "/testing/tests/unit/paired-partition-binding.test.js",
+      "sha256": "b0fc2d0295687cba915641abee1b81998e49ab150641aebcb86c8fd06f85a9db"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/scripts/test-distributed.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/scripts/test-distributed.js:145: Dynamic property write detected: [packageIdentity, bundle, profile, policy] - verify input sanitization",
+      "Warning in /testing/scripts/test-distributed.js:246: Dynamic property write detected: [port, path] - verify input sanitization",
+      "Warning in /testing/scripts/test-distributed.js:313: Dynamic property write detected: [code] - verify input sanitization",
+      "Warning in /testing/scripts/test-distributed.js:343: Dynamic property write detected: [deployedPackage, deployedBundle, deployedRelease] - verify input sanitization",
+      "Warning in /testing/scripts/test-distributed.js:380: Dynamic property write detected: [exitCode] - verify input sanitization",
+      "Warning in /testing/scripts/test-distributed.js:141: Suspicious variable name: evaluatedReferenceSha256 - may indicate code execution",
+      "Warning in /testing/scripts/test-distributed.js:159: Suspicious variable name: evaluated - may indicate code execution",
+      "File has 26 functions (max 20) - consider modularizing",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js:184: Dynamic property write detected: [attempt] - verify input sanitization",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js:522: Dynamic property write detected: [index] - verify input sanitization",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js:529: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js:567: Dynamic property write detected: [localRun, remoteRun] - verify input sanitization",
+      "File exceeds 500 lines (594) - consider splitting",
+      "File has 31 functions (max 20) - consider modularizing",
+      "Nesting depth of 11 exceeds 5 - refactor nested code",
+      "Warning in /testing/tests/fixtures/paired-partition-binding.js:46: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/tests/fixtures/paired-partition-binding.js:62: Dynamic property write detected: [bindingBytes, graphBytes, modelBytes, archiveBytes] - verify input sanitization",
+      "Warning in /testing/tests/unit/paired-partition-binding.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/tests/unit/paired-partition-binding.test.js:58: Dynamic property write detected: [key] - verify input sanitization"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127680,
+        "path": "/testing/scripts/test-distributed.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127681,
+        "path": "/testing/scripts/test-distributed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [packageIdentity, bundle, profile, policy] - verify input sanitization",
+        "line": 145,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127681,
+        "path": "/testing/scripts/test-distributed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [port, path] - verify input sanitization",
+        "line": 246,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127681,
+        "path": "/testing/scripts/test-distributed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [code] - verify input sanitization",
+        "line": 313,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127681,
+        "path": "/testing/scripts/test-distributed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [deployedPackage, deployedBundle, deployedRelease] - verify input sanitization",
+        "line": 343,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127681,
+        "path": "/testing/scripts/test-distributed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [exitCode] - verify input sanitization",
+        "line": 380,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127681,
+        "path": "/testing/scripts/test-distributed.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: evaluatedReferenceSha256 - may indicate code execution",
+        "line": 141,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127681,
+        "path": "/testing/scripts/test-distributed.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: evaluated - may indicate code execution",
+        "line": 159,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791837127682,
+        "metric": "functions",
+        "value": 26,
+        "threshold": 20,
+        "message": "File has 26 functions (max 20) - consider modularizing",
+        "path": "/testing/scripts/test-distributed.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127688,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127689,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [attempt] - verify input sanitization",
+        "line": 184,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127689,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index] - verify input sanitization",
+        "line": 522,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127689,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 529,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127689,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [localRun, remoteRun] - verify input sanitization",
+        "line": 567,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791837127690,
+        "metric": "lines",
+        "value": 594,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (594) - consider splitting",
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791837127690,
+        "metric": "functions",
+        "value": 31,
+        "threshold": 20,
+        "message": "File has 31 functions (max 20) - consider modularizing",
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791837127690,
+        "metric": "nesting",
+        "value": 11,
+        "threshold": 5,
+        "message": "Nesting depth of 11 exceeds 5 - refactor nested code",
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127691,
+        "path": "/testing/tests/fixtures/paired-partition-binding.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 46,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127691,
+        "path": "/testing/tests/fixtures/paired-partition-binding.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [bindingBytes, graphBytes, modelBytes, archiveBytes] - verify input sanitization",
+        "line": 62,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127692,
+        "path": "/testing/tests/unit/paired-partition-binding.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837127692,
+        "path": "/testing/tests/unit/paired-partition-binding.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 58,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/scripts/test-distributed.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/tests/unit/paired-partition-binding.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 26,
+          "threshold": 20,
+          "message": "File has 26 functions (max 20) - consider modularizing",
+          "path": "/testing/scripts/test-distributed.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 594,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (594) - consider splitting",
+          "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 31,
+          "threshold": 20,
+          "message": "File has 31 functions (max 20) - consider modularizing",
+          "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 11,
+          "threshold": 5,
+          "message": "Nesting depth of 11 exceeds 5 - refactor nested code",
+          "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}

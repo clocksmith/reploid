@@ -10,6 +10,8 @@ import { createWriteStream } from 'node:fs';
 import { resolve } from 'node:path';
 import { once } from 'node:events';
 import { physicalWebGpuBrowserOptions, requirePhysicalMeshCrypto } from '../tests/fixtures/physical-webgpu-browser.js';
+import { hostname } from 'node:os';
+import { loadPairedPartitionFixture } from '../tests/fixtures/paired-partition-binding.js';
 import { bindReferenceModel } from '../tests/fixtures/distributed-reference-model.js';
 import { assembleIndependentReference } from '../tests/fixtures/independent-numerical-reference.js';
 import referenceContract from '../tests/fixtures/distributed-reference-contract.json' with { type: 'json' };
@@ -164,7 +166,9 @@ try {
     throw new Error('Selected numerical boundary is outside the unchanged frozen reference');
   }
   const model = JSON.parse(await readFile(resolve(modelDirectory, 'manifest.json')));
-  if (frozenWorkloads) referenceBinding = await bindReferenceModel(model, JSON.parse(bytes).modelIdentity);
+  if (frozenWorkloads) referenceBinding = await loadPairedPartitionFixture({ modelDirectory,
+    archivePath: resolve(root, packageIdentity.spec.replace(/^file:/, '')), referenceIdentity: JSON.parse(bytes).modelIdentity })
+      || await bindReferenceModel(model, JSON.parse(bytes).modelIdentity);
   const catalog = JSON.parse(await readFile(resolve(root, 'self/config/chat-models.json'))).find(model => model.id === modelId);
   if (!catalog) throw new Error('Selected model is not in the application catalog');
   if (numericalPolicy === 'required' && !frozenWorkloads) throw new Error('This workload has no applicable frozen numerical comparison');
@@ -282,7 +286,7 @@ try {
   await waitForLine(tunnel, line => line === 'REPLoid_TRANSPORT_READY');
   let workloads = memoryDiagnostic ? [{ mode: 'repetition', reverse: reverseHosts }, { mode: 'cancellation', reverse: reverseHosts }]
     : capacityDiagnostic ? [{ mode: 'capacity' }] : frozenWorkloads
-    ? [{ mode: 'reference', direction: 'mac-linux' }, { mode: 'reference', direction: 'linux-mac', reverse: true },
+    ? [{ mode: 'reference', direction: `${hostname()}-to-${peer.replaceAll('@', '_')}` }, { mode: 'reference', direction: `${peer.replaceAll('@', '_')}-to-${hostname()}`, reverse: true },
       { mode: 'repetition' }, { mode: 'cancellation' }] : [];
   if (numericalDiagnostic) {
     workloads = referenceHost ? [{ mode: 'reference', direction: `${referenceHost}-${referenceHost}` }]

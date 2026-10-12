@@ -3,6 +3,9 @@
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
+import { hostname } from 'node:os';
+import { resolve } from 'node:path';
+import { loadPairedPartitionFixture, assertPartitionTraversal } from './paired-partition-binding.js';
 import { chromium } from 'playwright';
 import referenceContract from './distributed-reference-contract.json' with { type: 'json' };
 import { decodeReferenceLogits } from './independent-numerical-reference.js';
@@ -10,6 +13,7 @@ import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from './physical
 const raw = await readFile(process.env.REPLOID_DIAGNOSTIC_REQUESTS);
 assert.equal(createHash('sha256').update(raw).digest('hex'), '794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e');
 const requests = JSON.parse(raw), output = process.env.REPLOID_CAPTURE_OUT;
+const retainedModelIdentity = requests[0].model.identity;
 // The fixture freezes prompts and generation. Artifact and runtime identities
 // come from the same ordinary application package under test.
 const catalog = JSON.parse(await readFile(new URL('../../self/config/chat-models.json', import.meta.url)));
@@ -31,6 +35,11 @@ if (reference) {
   assert.equal(reference.numericalReference?.proposalSha256, referenceContract.independent.proposal.sha256);
   assert.equal(reference.numericalReference?.outputIndexSha256, referenceContract.independent.index.sha256);
 }
+const pairedBinding = await loadPairedPartitionFixture({
+  modelDirectory: process.env.DOPPLER_CHAT_MODEL_DIR || resolve(import.meta.dirname, '../../../doppler/models/local', requests[0].model.id),
+  archivePath: resolve(import.meta.dirname, '../..', packageIdentity.spec.replace(/^file:/, '')),
+  referenceIdentity: reference?.modelIdentity || retainedModelIdentity
+});
 const probePrompt = process.env.REPLOID_DIAGNOSTIC_PROMPT === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_PROMPT);
 const probeStep = process.env.REPLOID_DIAGNOSTIC_STEP === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_STEP);
 if (probePrompt !== null || probeStep !== null) {
@@ -64,7 +73,8 @@ const distributedControls = [];
 let cleanupFailure = null;
 const hostBrowsers = referenceHost === 'mac' ? [local, local]
   : referenceHost === 'linux' ? [remote, remote] : [local, remote];
-const hostNames = referenceHost ? [referenceHost, referenceHost] : ['mac', 'linux'];
+const hostNames = referenceHost ? [referenceHost, referenceHost]
+  : [hostname(), process.env.REPLOID_TEST_PEER || 'remote executor (endpoint-bound)'];
 const evidence = { scope: reference
   ? referenceHost ? 'Same-device partition versus unsplit execution on shared frozen tokens; not mixed-device or application acceptance'
     : 'Installed package, frozen generation options, exact model bytes and logits on two physical GPUs; not P2P acquisition proof'
@@ -73,19 +83,19 @@ const evidence = { scope: reference
   tokenSequence: reference ? 'Frozen reference token IDs, with sampled tokens checked separately' : null,
   observationTarget: probePrompt === null ? null : { prompt: probePrompt, step: probeStep,
     scope: 'Selected from the retained four-control comparison; not necessarily the first frozen-reference failure' },
-  requestFixtureSha256: createHash('sha256').update(raw).digest('hex'), phase, runs, descriptors };
+  pairedBinding, requestFixtureSha256: createHash('sha256').update(raw).digest('hex'), phase, runs, descriptors };
 try {
   for (const [slot, browser] of hostBrowsers.entries()) {
     const index = reverse ? 1 - slot : slot;
     const context = await browser.newContext(); contexts.push(context);
     const page = await context.newPage(); pages.push(page);
     await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000').href);
-    const prepared = await page.evaluate(async ({ model, index, modelSource }) => {
+    const prepared = await page.evaluate(async ({ model, index, modelSource, pairedBinding }) => {
       const config = await import('/config/doppler-local-models.js');
       const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
       globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
       const runtime = await import(config.DOPPLER_PARTITIONS_MODULE_URL);
-      const { getDevice } = await import(new URL('./gpu/device.js', base));
+      const { getDevice, getKernelCapabilities } = await import(new URL('./gpu/device.js', base));
       const { getBufferPool } = await import(new URL('./memory/buffer-pool.js', base));
       const { createHttpArtifactStorageContext } = await import(new URL('./storage/artifact-storage-context.js', base));
       const policy = await (await fetch('/config/partition-policy.json')).json();
@@ -94,11 +104,16 @@ try {
       const bytes = await (await fetch(source + 'manifest.json')).arrayBuffer();
       const identity = 'sha256:' + Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes)), b => b.toString(16).padStart(2, '0')).join('');
       if (identity !== model.identity) throw Error('Model identity changed');
+      if (pairedBinding && identity !== pairedBinding.manifestIdentity) throw Error('Paired bound model differs');
       const manifest = JSON.parse(new TextDecoder().decode(bytes));
-      const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
+      const legacyPlan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
         splitLayer: model.partitionSplitLayer,
         activationDtype: manifest.inference.session.compute.defaults.activationDtype });
+      const plan = pairedBinding ? runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
+        splitLayer: model.partitionSplitLayer, activationDtype: manifest.inference.session.compute.defaults.activationDtype,
+        ...pairedBinding.activation }) : legacyPlan;
       const planId = runtime.hashLayerPartitionPlan(plan);
+      const legacyPlanId = runtime.hashLayerPartitionPlan(legacyPlan);
       await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
       globalThis.gpuValidationErrors = [];
       getDevice().addEventListener('uncapturederror', event => gpuValidationErrors.push(event.error.message));
@@ -121,7 +136,7 @@ try {
       const beforePreparation = { device: runtime.inspectDeviceMemory() };
       const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: identity,
         runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: false } } }, inference: { session: {
-          kvcache: { maxSeqLen: model.generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
+          ...pairedBinding?.session, kvcache: { maxSeqLen: model.generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
           prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
         createStorage: () => createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) });
       globalThis.resident = await factory.openResidentPartition({ model, plan, planId, index,
@@ -140,14 +155,20 @@ try {
         return btoa(text);
       };
       return { descriptor: resident.getDescriptor(), packageVersion: config.DOPPLER_PACKAGE_VERSION,
-        beforePreparation, afterPreparation: await settleMemory(), planId };
-    }, { model: { ...(capacityModel || requests[0].model), generation }, index,
+        beforePreparation, afterPreparation: await settleMemory(), planId, legacyPlanId, plan, legacyPlan,
+        observedProvider: { userAgent: navigator.userAgent, platform: navigator.platform,
+          adapter: (() => { const info = getKernelCapabilities().adapterInfo; return info ? { vendor: info.vendor, architecture: info.architecture, device: info.device, description: info.description } : null; })() } };
+    }, { model: { ...(capacityModel || requests[0].model), generation }, index, pairedBinding,
       modelSource: (browser === remote ? process.env.REPLOID_PEER_MODEL_BASE_URL : null)
         || process.env.REPLOID_MODEL_BASE_URL || 'http://127.0.0.1:9230/' });
     descriptors.push({ ...prepared, platform: hostNames[slot], browser: browser.version() });
     console.log(JSON.stringify({ prepared: index, bytes: prepared.afterPreparation.device.liveBytes }));
   }
-  if (reference) assert.equal(descriptors[0].planId, reference.planId, 'Frozen partition traversal must remain unchanged');
+  assert.equal(descriptors[0].planId, descriptors[1].planId, 'Both executors must use the exact same plan');
+  for (const prepared of descriptors) {
+    if (reference) assert.equal(prepared.legacyPlanId, reference.planId, 'Frozen partition traversal must remain unchanged');
+    if (pairedBinding) assertPartitionTraversal(prepared.legacyPlan, prepared.plan);
+  }
   const pageA = pages[reverse ? 1 : 0], pageB = pages[reverse ? 0 : 1];
   for (const [attempt, testCase] of cases.entries()) {
     const { request } = testCase;
@@ -208,7 +229,7 @@ try {
           }
           row.numerical.push({ step, tokenId: b.tokenId, stopReason: b.stopReason,
             maxDifference, maxDifferenceIndex, tolerance: 0.001, matches: maxDifference <= 0.001,
-            ...(referenceHost ? { logits: b.logits } : {}) });
+            ...(referenceHost || pairedBinding ? { logits: b.logits, inputTokenIds: ids } : {}) });
           assert.equal(b.tokenId, expected.tokenId, 'Sampled token differs from the frozen reference');
           assert.equal(b.stopReason, expected.stopReason, 'Stopping differs from the frozen reference');
         }
@@ -337,7 +358,7 @@ try {
         console.log(JSON.stringify({ unsplit: diagnostic.host, phase: 'loading' }));
         await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL).href);
         const source = slot ? process.env.REPLOID_PEER_MODEL_BASE_URL : process.env.REPLOID_MODEL_BASE_URL;
-        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy, controls, captureLinear, probeLayer, referenceHost }) => {
+        Object.assign(diagnostic, await page.evaluate(async ({ model, source, first, generation, policy, controls, captureLinear, probeLayer, referenceHost, pairedBinding }) => {
           const config = await import('/config/doppler-local-models.js');
           const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
           globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
@@ -347,7 +368,7 @@ try {
           const manifestText = await (await fetch(source + 'manifest.json')).text();
           const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(manifestText))), b => b.toString(16).padStart(2, '0')).join('');
           if ('sha256:' + hash !== model.identity) throw Error('Unsplit diagnostic model identity mismatch');
-          const manifest = JSON.parse(manifestText), maxGpuBufferBytes = 6000000000;
+          const manifest = JSON.parse(manifestText), maxGpuBufferBytes = pairedBinding ? policy.maxGpuBufferBytes : 6000000000;
           if (probeLayer >= manifest.architecture.numLayers) throw Error('Diagnostic layer exceeds model');
           await runtime.configureDeviceMemoryBudget({ maxBytes: maxGpuBufferBytes });
           let handle;
@@ -356,7 +377,7 @@ try {
               storage: createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) },
             { onProgress: progress => console.log('numerical-diagnostic:' + JSON.stringify(progress)),
               runtimeConfig: { shared: { bufferPool: policy.bufferPool }, inference: { session: {
-              kvcache: { maxSeqLen: generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
+              ...pairedBinding?.session, kvcache: { maxSeqLen: generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
               prefillTokenChunkSize: policy.prefillTokenChunkSize } } } });
             const tokenIds = handle.advanced.tokenizePrompt(first.messages, generation);
             if (JSON.stringify(tokenIds) !== JSON.stringify(first.prefillTokenIds)) throw Error('Unsplit diagnostic tokenization differs');
@@ -472,7 +493,7 @@ try {
               tokenIds, generation, maxGpuBufferBytes, logits, stats, probe, probeLayer, captureReplay,
               resolvedRuntimeSession: handle.advanced.getResolvedRuntimeSession(), memory: runtime.inspectDeviceMemory() };
           } finally { await handle?.unload(); }
-        }, { model: requests[0].model, source, first, generation, policy, captureLinear: captureAttention, probeLayer, referenceHost,
+        }, { model: requests[0].model, source, first, generation, policy, captureLinear: captureAttention, probeLayer, referenceHost, pairedBinding,
           controls: distributedControls.map(({ messages, tokenIds }, attempt) => ({ messages, tokenIds,
             tokenIdsByStep: cases[attempt].expected.steps.map(step => step.tokenId) })) }));
         if (referenceHost) {
@@ -543,12 +564,12 @@ try {
         await writeFile(output, JSON.stringify(evidence));
       }
     }
-    const [mac, linux] = evidence.unsplitFirstDivergence.runs;
-    if (mac?.probe?.timeline && linux?.probe?.timeline) {
-      evidence.unsplitFirstDivergence.operatorComparison = mac.probe.timeline
+    const [localRun, remoteRun] = evidence.unsplitFirstDivergence.runs;
+    if (localRun?.probe?.timeline && remoteRun?.probe?.timeline) {
+      evidence.unsplitFirstDivergence.operatorComparison = localRun.probe.timeline
         .filter(record => record.capture?.data).map(record => {
-          const counterpart = linux.probe.timeline.find(item => item.opId === record.opId && item.capture?.data);
-          assert(counterpart, `Linux capture missing ${record.opId}`);
+          const counterpart = remoteRun.probe.timeline.find(item => item.opId === record.opId && item.capture?.data);
+          assert(counterpart, `Remote capture missing ${record.opId}`);
           const actual = record.capture.data, expected = counterpart.capture.data;
           assert.equal(actual.length, expected.length);
           let maxDifference = 0, maxDifferenceIndex = null;
