@@ -1,0 +1,28 @@
+{
+  "schema": "reploid.official-tool-protocol-independent-review/v1",
+  "reviewer": "native_participation",
+  "phase": "before candidate model outputs",
+  "files": {
+    "protocol.py": "a8ffa4f5aea3e166b5065ac7f081ec6f75b1943ed7c62f4be824e1655405e6e9",
+    "protocol_test.py": "3abaa5a725061f5aec8129ee654f196bd0aea164b62e17ccc9af8d35c5aa2182",
+    "run.py": "4693b432960603eab12504b2024925606bbc6aaea4d374986d01b2f211679aaa",
+    "suite.json": "ab558f117234300f8d44c73cd9f13653796a089520d3517ecbf37992c041f74c",
+    "tools.json": "783acf4522e955fae74aa176b45d58ca4b7da3dca647c32cb4172ecb01062c66",
+    "template-binding.json": "22cc56128a81ed47b1d51901183b62a4c71d69d8007f1902d8b756db5684dacd"
+  },
+  "caseCriteriaEquality": true,
+  "budgetEquality": true,
+  "findings": [
+    "Strict one-call Calculate wrapper, required unique facts/operations JSON arrays, duplicate keys/nonfinite constants/suffix/multiple calls rejected. Parser does not repair model output.",
+    "Original seven cases and complete criteria exactly match prior freeze. Prior two observed failures are identified; remaining five cases were unrun at protocol selection.",
+    "Actual loaded source tokenizer config and chat template must match frozen official hashes before generation; precomputed prompt IDs must match executed input IDs.",
+    "Generated IDs excluding only terminal EOS must decode exactly to parsed text with special-token skipping disabled; parsing cannot silently benefit from special-token removal.",
+    "Both prompt token counts and both generated counts/raw UTF16 are charged against shared limits; tools use exact official tool-role rendering, no system-level elevation of result text.",
+    "Calculation handler unchanged and still owns exact quote/value/source/unit/calendar validation. Semantic operand attribution, conditions, contradictions and final citations require manual review; completion or tool success alone cannot pass."
+  ],
+  "checks": [
+    "python3 official-tool-protocol/protocol_test.py: 4 tests passed",
+    "Exact fixture equality and every frozen file hash verified with Node assert"
+  ],
+  "disposition": "No additional blocking pre-output issue found after source-template and prompt-ID binding repairs. No model output read or qualification granted."
+}
