@@ -1,0 +1,26 @@
+{
+  "schema": "reploid.lexical-catalog-pre-output-review/v1",
+  "reviewer": "parent /root",
+  "scope": [
+    "catalog.js",
+    "GRAMMAR.md",
+    "protocol.py",
+    "run.py",
+    "freeze.json",
+    "catalog.test.js",
+    "protocol_test.py"
+  ],
+  "files": {
+    "catalog.js": "bd2fcf11e685b9368b65fa7dcdba213d82172a824040a1d82e8349b25a83421b",
+    "GRAMMAR.md": "e04d0b8cd8e514612b2893a90e57f37f400e0aaf57dc58c3911e09fe6a4b2636",
+    "protocol.py": "a9efb2cba8a900cc6bbbabb41e53c7d598b49a5359e614185fc7c6c3bac27079",
+    "run.py": "a89e9c5b84a84be006bdfeaedcdbd143c8d6c663c27116beb3e6abe34d04c213",
+    "freeze.json": "d94e23926c760968cc5d966c18778402033ab8b2fb80c00a80ec16a13af84222",
+    "catalog.test.js": "8557ff140568d69258ba927cba687cca902502a9316a9eb3e179bcfb622c3d34",
+    "protocol_test.py": "970644da3ae278a34b32aef1481f8f402f8017c40a3a6e5cb915d4336a97c630"
+  },
+  "disposition": "Approved bounded artifact-only CPU experiment, not extraction/model qualification. All freeze.files hashes plus loader/evaluator/reused identities must be verified on executing host before launch. Original seven require full factual review before locked holdouts.",
+  "limitations": "Unicode/unsupported formats outside frozen grammar remain limitations; no general extraction claim. No semantic defaults, relaxed criteria, retries or output repair.",
+  "outputsAtReview": "none",
+  "frozenRevision": "d2ee4d54"
+}
