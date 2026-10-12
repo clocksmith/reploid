@@ -61,13 +61,13 @@
   "files": [
     {
       "path": "adapters/browser.d.ts",
-      "bytes": 491,
-      "sha256": "f4de9a519a0565b57935d9bcd25002700c86eb04d5d6d941637a1250b72facda"
+      "bytes": 678,
+      "sha256": "9e41fd5d38dd634254463b8ce92d0f31fadd20b04798c221b9df82fabcc716aa"
     },
     {
       "path": "adapters/browser.js",
-      "bytes": 4135,
-      "sha256": "ae5adc1bd33343a2c2c9ff8779d42d3a1308f26274d56cd5d631caecd5ed5fd4"
+      "bytes": 6554,
+      "sha256": "84b27408dc84eafd97153b78969f76eecfedd82682c051cb07c6f6ce52c096bc"
     },
     {
       "path": "adapters/doppler-choice.json",
@@ -331,13 +331,18 @@
     },
     {
       "path": "chat/index.js",
-      "bytes": 108,
-      "sha256": "4e5272eb50e3a8f7cb2fbf50cda40e770833d7dc80e23bc208a831ea63e06f6a"
+      "bytes": 184,
+      "sha256": "079a972df23033009dd83e88a68912b5c43128c45c217fbb9beef2d73bfc5e17"
     },
     {
       "path": "chat/policy.json",
       "bytes": 388,
       "sha256": "a6b0281191c5d753fd6c5471f7f265fbc4d342d86322c8fecd3854c04b0994d4"
+    },
+    {
+      "path": "chat/publication-policy.json",
+      "bytes": 51,
+      "sha256": "5344a9a0bb9147e1cf7d1dd5e0c36149ae69c1f3c8658a7ca40a2c667bf0137c"
     },
     {
       "path": "chat/scheduler.js",
@@ -348,6 +353,11 @@
       "path": "chat/thread-grants.js",
       "bytes": 3583,
       "sha256": "47d498fb68d4747b93c6014af9dcc8f4c36b0dc0bbf9374799b719fcb7248d46"
+    },
+    {
+      "path": "chat/workspace-publication.js",
+      "bytes": 9876,
+      "sha256": "97cec0d1be5b297d24b711a516607549525d61caceb9e51e0e50fa887123f77a"
     },
     {
       "path": "chat/workspace.js",

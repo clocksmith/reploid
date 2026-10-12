@@ -13,6 +13,7 @@ import { attachmentInput, comparisonInput, comparisonSources, comparisonExport, 
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
+export { openChatHistory } from './chat-history.js';
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
