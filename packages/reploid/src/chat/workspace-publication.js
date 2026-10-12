@@ -157,6 +157,8 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
       permission('read');
       const history = historyFor(await read());
       permission('read'); writer(history);
+      for (const record of history.records) permission('replay', findAttempt(history,
+        record.publication.attemptId, record.publication.coordinatorEpoch).identity);
       fenced = false;
       return copy(history);
     },

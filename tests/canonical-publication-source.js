@@ -95,6 +95,13 @@ for (const failure of ['before', 'after']) {
   assert.equal((await f.owner.readPublished(-1)).length, 1, 'reconciliation never regenerates or duplicates');
 }
 {
+  let replay = true;
+  const f = fixture({ authorize: ({ action }) => action !== 'replay' || replay }); await f.start();
+  await f.owner.publish(publication()); replay = false;
+  await assert.rejects(f.owner.readPublished(-1), /revoked/);
+  await assert.rejects(f.owner.reconcile(), /revoked/, 'reconciliation cannot bypass output replay permission');
+}
+{
   const f = fixture({ authenticateCommit: async () => false }); await f.start();
   await assert.rejects(f.owner.publish(publication()), /Unauthenticated/);
   assert.equal((await f.owner.reconcile()).records.length, 0);
