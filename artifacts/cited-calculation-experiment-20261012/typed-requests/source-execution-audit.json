@@ -1,0 +1,48 @@
+{
+  "schema": "reploid.typed-source-execution-audit/v1",
+  "weightsLoaded": false,
+  "realModelRerun": false,
+  "scope": "Actual retained evaluator/tokenizers/cache classes with a sentinel forward; proves host forwarding, not full original model internal states.",
+  "evaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "observed": [
+    {
+      "inputTokens": 1148,
+      "forwardTensorEqualsRetainedPrompt": true,
+      "initialAttentionLength": 0,
+      "freshRecurrentStates": true,
+      "distinctCacheObject": true,
+      "useCache": true,
+      "logitsToKeep": 1
+    },
+    {
+      "inputTokens": 1491,
+      "forwardTensorEqualsRetainedPrompt": true,
+      "initialAttentionLength": 0,
+      "freshRecurrentStates": true,
+      "distinctCacheObject": true,
+      "useCache": true,
+      "logitsToKeep": 1
+    }
+  ],
+  "inputIdsDiffer": true,
+  "firstStepTopLogitsDiffer": true,
+  "actualFirstToolLogits": [
+    27.589157104492188,
+    25.51761245727539
+  ],
+  "outputPrefixEqual": true,
+  "officialCorrectionFramePresent": true,
+  "correctionInstructionPresent": true,
+  "sourceInspection": {
+    "observedAfterRun": true,
+    "modelingFile": "/home/x/.local/lib/python3.14/site-packages/transformers/models/qwen3_5/modeling_qwen3_5.py",
+    "modelingSha256": "3e2b6239e4b2c3e512d4f9836a1dba12e975ae652407e84f2d3c2beebf0c9528",
+    "cacheFile": "/home/x/.local/lib/python3.14/site-packages/transformers/cache_utils.py",
+    "cacheSha256": "a51d2cd525f4458941a20cb5b3b8a8d989d8ca5bcd451855a27bb41743fed586",
+    "textForward": "embed_tokens(input_ids); positions span full sequence; causal mask uses full inputs and fresh cache; all hidden rows enter decoder layers.",
+    "recurrenceForward": "Prefill with sequence length greater than one does not use precomputed recurrent state; chunk_gated_delta_rule receives initial_state=None.",
+    "cacheConstructor": "Each DynamicCache constructs a fresh list of full/linear attention cache layer instances."
+  },
+  "conclusion": "No concrete evaluator forwarding, official tool framing, or stale cache ownership defect established. Distinct actual logits show computations differed, not that every correction token influenced all states.",
+  "remainingUncertainty": "Original model attention/recurrent activations at every position were not captured; this audit cannot prove that no deeper implementation defect exists."
+}
