@@ -20,9 +20,9 @@ export function resolveSwarmJoin({ location, storage, policy }) {
 
 export function resolveSwarmSignalingUrl({ location, policy, join, privateOverride }) {
   const page = new URL(location.href);
-  const local = ['localhost', '127.0.0.1'].includes(page.hostname);
+  const local = ['localhost', '127.0.0.1', '[::1]'].includes(page.hostname);
   const endpoint = join.scope === 'private' && privateOverride ? privateOverride
-    : local ? `${page.protocol === 'https:' ? 'wss:' : 'ws:'}//${page.host}${policy.path}` : policy.signalingUrl;
+    : join.scope === 'private' && local ? `${page.protocol === 'https:' ? 'wss:' : 'ws:'}//${page.host}${policy.path}` : policy.signalingUrl;
   const url = new URL(endpoint, page);
   if (url.protocol === 'https:') url.protocol = 'wss:';
   if (url.protocol === 'http:') url.protocol = 'ws:';

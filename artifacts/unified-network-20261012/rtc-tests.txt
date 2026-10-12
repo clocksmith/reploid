@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/swarm-rtc-config.test.js (4 tests) 5ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  10:09:46
+   Duration  283ms (transform 97ms, setup 0ms, import 134ms, tests 5ms, environment 88ms)
+

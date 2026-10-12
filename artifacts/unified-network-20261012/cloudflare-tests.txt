@@ -1,0 +1,13 @@
+
+> reploid@0.1.0 verify:swarm-cloudflare
+> vitest run --config tests/cloudflare/vitest.config.js
+
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+
+ Test Files  1 passed (1)
+      Tests  15 passed (15)
+   Start at  10:04:04
+   Duration  2.57s (transform 59ms, setup 0ms, import 123ms, tests 1.80s, environment 0ms)
+

@@ -21,10 +21,11 @@ export function createLegacyNetworkOptions(deps = {}, { enabled } = {}) {
   return {
     ...deps, config, rtcConfig: deps.rtcConfig || resolveRtcConfig(),
     // Fetch expiring credentials at negotiation, not import or discovery time.
-    // Explicit host configuration and loopback development remain independent.
+    // Public localhost nodes use the same credential service as hosted nodes.
+    // Explicit RTC configuration and private local test networks remain independent.
     getRtcConfig: deps.getRtcConfig || (() => {
       if (deps.rtcConfig || globalThis.REPLOID_POOL_RTC_CONFIG
-        || ['localhost', '127.0.0.1', '[::1]'].includes(new URL(location.href).hostname)) {
+        || join.scope === 'private' && ['localhost', '127.0.0.1', '[::1]'].includes(new URL(signalingUrl).hostname)) {
         return deps.rtcConfig || resolveRtcConfig();
       }
       return getPoolRtcConfig();

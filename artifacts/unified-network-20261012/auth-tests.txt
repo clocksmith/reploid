@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/pool-firebase-auth.test.js (2 tests) 14ms
+ ✓ tests/unit/pool-identity.test.js (2 tests) 7ms
+ ✓ tests/unit/swarm-rtc-config.test.js (4 tests) 5ms
+
+ Test Files  3 passed (3)
+      Tests  8 passed (8)
+   Start at  10:16:01
+   Duration  328ms (transform 179ms, setup 0ms, import 266ms, tests 26ms, environment 384ms)
+

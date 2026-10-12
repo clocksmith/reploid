@@ -1,0 +1,14 @@
+{
+  "worker": "reploid-swarm",
+  "url": "https://reploid-swarm.reploid.workers.dev",
+  "release": "cloudflare-swarm-20261012-loopback",
+  "versionId": "b086a567-bee7-47cb-950c-c54c7df41661",
+  "sourceCommit": "383c3a53",
+  "dryRunBundleSha256": "d2210c537469af7b9fc0e846b5c8745bed66691a0d047815ebfb9d46bbf4fc45",
+  "observed": {
+    "beforeLocalhost5173Options": 403,
+    "afterLocalhost5173Options": 204,
+    "afterIPv6Options": 204,
+    "lookalikeOptions": 403
+  }
+}

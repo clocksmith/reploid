@@ -12,16 +12,22 @@ describe('Pool Firebase Auth bootstrap', () => {
     delete globalThis.REPLOID_POOL_FIREBASE_CONFIG;
     delete globalThis.REPLOID_FIREBASE_APP_MODULE_URL;
     delete globalThis.REPLOID_FIREBASE_AUTH_MODULE_URL;
+    delete globalThis.REPLOID_POOL_FIREBASE_AUTH;
+    delete globalThis.REPLOID_POOL_FIREBASE_APP;
+    delete globalThis.REPLOID_FIREBASE_SIGN_IN_ANONYMOUSLY;
   });
 
-  it('does not probe the Firebase Hosting config endpoint on loopback', async () => {
+  it('uses public auth metadata on loopback without a Firebase Hosting endpoint', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('location', { hostname: 'localhost' });
     vi.stubGlobal('fetch', fetchMock);
 
+    globalThis.REPLOID_FIREBASE_APP_MODULE_URL = 'data:text/javascript,export const getApps=()=>[];export const initializeApp=(config)=>({config});';
+    globalThis.REPLOID_FIREBASE_AUTH_MODULE_URL = 'data:text/javascript,export const getAuth=(app)=>({app});';
     const bootstrap = await loadBootstrap();
-
-    await expect(bootstrap()).resolves.toBeNull();
+    const auth = await bootstrap();
+    expect(auth.app.config.projectId).toBe('reploid');
+    expect(auth.app.config.authDomain).toBe('reploid.firebaseapp.com');
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/swarm-origin-policy.test.js (2 tests) 2ms
+ ✓ tests/integration/public-swarm-server.test.js (6 tests) 807ms
+     ✓ isolates private capabilities and denies public/private cross-scope joins and offers  321ms
+
+ Test Files  2 passed (2)
+      Tests  8 passed (8)
+   Start at  10:03:51
+   Duration  1.00s (transform 38ms, setup 0ms, import 54ms, tests 809ms, environment 205ms)
+
