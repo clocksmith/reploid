@@ -1,0 +1,42 @@
+{
+  "schema": "reploid.native-installed-delivery-check/v1",
+  "sourceRevision": "342f0760",
+  "node": "v22.22.1",
+  "installed": "/var/tmp/reploid-native-path-delivery-20261012/installed/reploid",
+  "build": {
+    "directory": "/var/tmp/reploid-native-path-delivery-20261012/reploid-native-l9Yt6n/reploid",
+    "archive": "/var/tmp/reploid-native-path-delivery-20261012/reploid-native-l9Yt6n/reploid-native-0.1.0.tgz",
+    "fileCount": 86,
+    "manifestSha256": "7411c883f5248aa9af5eca065b7e804dd932ce21c3990e5adfa7aa634749912f",
+    "archiveSha256": "a2ce789a270963d3bd03de049ee974ed8022463fc145415ec579aabb478e125c"
+  },
+  "deliveryEntries": 86,
+  "helper": {
+    "path": "self/host/work-partition-artifact-source.js",
+    "bytes": 2030,
+    "sha256": "1839c94b05e61b879267624d37bc92d91b29a7aedd2bf126f5fe2ef45b937e08"
+  },
+  "helperImported": true,
+  "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "runtimeFilesVerified": 1897,
+  "dependencies": {
+    "doppler-gpu": {
+      "version": "0.6.27",
+      "path": "/var/tmp/reploid-native-path-delivery-20261012/installed/reploid/node_modules/doppler-gpu/package.json"
+    },
+    "@roamhq/wrtc": {
+      "version": "0.10.0",
+      "path": "/var/tmp/reploid-native-path-delivery-20261012/installed/reploid/node_modules/@roamhq/wrtc/package.json"
+    },
+    "ws": {
+      "version": "8.21.0",
+      "path": "/var/tmp/reploid-native-path-delivery-20261012/installed/reploid/node_modules/ws/package.json"
+    },
+    "webgpu": {
+      "version": "0.4.0",
+      "path": "/var/tmp/reploid-native-path-delivery-20261012/installed/reploid/node_modules/webgpu/package.json"
+    }
+  },
+  "generatedStateDirectoryPresent": false,
+  "scope": "Extracted standard generated artifact; ordinary npm ci, exact source/runtime inventory verification and CLI help. No participant connection, acquisition, inference or GPU initialization performed."
+}
