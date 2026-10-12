@@ -36,3 +36,22 @@ Boundary effects: optional provider contract helpers, exact frame metadata and
 byte accounting. The accepted Doppler pin is unchanged. The regenerated source
 bundle is not a deployment or paired-runtime qualification. The public deployment
 for the preparation/budget repairs remains separately recorded as `68b3997b…`.
+
+## Installed candidate codec replay
+
+The opt-in `DOPPLER_TEST_PACKAGE_ROOT` replay now runs the same eight controls
+with actual public partition codecs from an extracted standard archive, alongside
+the eight injected controls. All 16 pass for archive `ed2669a6…`; every installed
+archive file was compared byte-for-byte before recording
+[the receipt](installed-codec-receipt.json). The Node ESM loader imports the
+external package without Vite rewriting its files; the test runner currently
+emits an experimental-loader warning.
+
+This confirms high/low bit preservation, complete byte charging, malformed layout
+rejection and legacy-frame rejection through the actual codec and Reploid RPC.
+The tensor and peer channels remain synthetic. It does not establish network,
+GPU, signed-opening or numerical acceptance; this candidate still failed whole-model
+loading. No application dependency or browser artifact changed.
+
+Run with `DOPPLER_TEST_PACKAGE_ROOT=/absolute/extracted/package npx vitest run
+--config tests/vitest.config.js tests/unit/partition-paired-boundary.test.js`.
