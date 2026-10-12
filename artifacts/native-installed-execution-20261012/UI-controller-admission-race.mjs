@@ -1,0 +1,76 @@
+import { chromium, expect } from '@playwright/test';
+import { writeFile } from 'node:fs/promises';
+const browser = await chromium.connectOverCDP('http://127.0.0.1:54307');
+const page = browser.contexts()[0].pages().find(p => p.url().startsWith('http://localhost:8000/'));
+if (!page) throw new Error('Existing ordinary requester page required');
+const nativePeer = 'peer:edd5c926ab3390d22f9274bc';
+const inputPeer = 'peer:39b36f733c5fe9229a0331ee';
+const history = () => page.evaluate(() => JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')).threads);
+const drafts = () => page.evaluate(() => localStorage.getItem('reploid.chat-workspace:v1:drafts'));
+const getThread = async id => (await history()).find(t => t.id === id);
+const latestStatus = async id => (await getThread(id)).attempts.at(-1).status;
+const receipt = { startedAt: new Date().toISOString(), scope: 'Installed native artifact; ordinary manifest-path requester, no signed Capsule claim', nativePeer, inputPeer, weightRequests: [], approvals: [], threads: {} };
+page.on('request', request => { if (/\.(?:safetensors|gguf|bin)(?:$|\?)/i.test(request.url())) receipt.weightRequests.push(request.url()); });
+const approve = async () => {
+  await page.locator('[data-approval-consent]').waitFor();
+  const details = JSON.parse(await page.locator('[data-permission-technical]').textContent());
+  const serialized = JSON.stringify(details);
+  expect(serialized).toContain(nativePeer); expect(serialized).toContain(inputPeer);
+  receipt.approvals.push(details);
+  await page.locator('[data-approval-consent]').check();
+  await page.locator('[data-approval-send]').click();
+};
+const sendNew = async text => {
+  await page.locator('[data-new-thread]').click();
+  await expect(page.locator('[data-model-control]')).toHaveAttribute('data-activity', 'ready', { timeout: 180000 });
+  await page.locator('[data-composer-input]').fill(text);
+  await page.locator('[data-composer-send]').click(); await approve();
+  return (await history()).at(-1).id;
+};
+const complete = async id => {
+  await expect.poll(async () => { const t = await getThread(id); const a = t.attempts.at(-1); if (a.status === 'failed') throw new Error(JSON.stringify(a)); return a.status; }, { timeout: 240000 }).toBe('completed');
+  return getThread(id);
+};
+try {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  receipt.before = await history(); receipt.draftsBefore = await drafts();
+  const first = await sendNew('Tickets cost $12 each. What do three tickets cost? Answer briefly.');
+  receipt.threads.first = await complete(first);
+  expect(receipt.threads.first.messages.at(-1).content).toMatch(/\$?36/);
+  await page.locator('[data-composer-input]').fill('And four tickets at that same price?');
+  await page.locator('[data-composer-send]').click(); await approve();
+  receipt.threads.followup = await complete(first);
+  expect(receipt.threads.followup.messages.at(-1).content).toMatch(/\$?48/);
+  const cancelled = await sendNew('List the integers from 1 through 100, one per line.');
+  await expect.poll(async () => (await getThread(cancelled)).messages.at(-1).content.length, { timeout: 180000 }).toBeGreaterThan(24);
+  const survivor = await sendNew('Tickets cost $12 each. What do five tickets cost? Answer briefly.');
+  receipt.beforeCancel = { cancelled: await getThread(cancelled), survivor: await getThread(survivor) };
+  expect(receipt.beforeCancel.cancelled.attempts.at(-1).status).toBe('executing');
+  expect(receipt.beforeCancel.survivor.attempts.at(-1).status).toBe('executing');
+  await page.locator(`[data-thread-item-id="${cancelled}"]`).click();
+  await page.locator('[data-composer-stop]').click();
+  await expect.poll(() => latestStatus(cancelled), { timeout: 60000 }).toBe('cancelled');
+  receipt.threads.cancelled = await getThread(cancelled);
+  receipt.threads.survivor = await complete(survivor);
+  expect(receipt.threads.survivor.messages.at(-1).content).toMatch(/\$?60/);
+  const reused = await sendNew('Tickets cost $12 each. What do six tickets cost? Answer briefly.');
+  receipt.threads.reused = await complete(reused);
+  expect(receipt.threads.reused.messages.at(-1).content).toMatch(/\$?72/);
+  const oldIds = new Set(receipt.before.map(t => t.id));
+  receipt.afterExisting = (await history()).filter(t => oldIds.has(t.id));
+  expect(receipt.afterExisting).toEqual(receipt.before);
+  receipt.draftsAfter = await drafts();
+  const oldDrafts = JSON.parse(receipt.draftsBefore || '{}'), newDrafts = JSON.parse(receipt.draftsAfter || '{}');
+  for (const id of oldIds) expect(newDrafts[id]).toEqual(oldDrafts[id]);
+  receipt.requesterStorage = await page.evaluate(async () => {
+    const found = []; const walk = async (dir, prefix = '') => { for await (const [name, entry] of dir.entries()) { const path = prefix + name; if (entry.kind === 'directory') await walk(entry, path + '/'); else found.push({ path, bytes: (await entry.getFile()).size }); } };
+    await walk(await navigator.storage.getDirectory()); return found;
+  });
+  expect(receipt.weightRequests).toEqual([]);
+  expect(receipt.requesterStorage.filter(f => /(?:safetensors|gguf|\.bin$|weight|shard|piece)/i.test(f.path))).toEqual([]);
+  receipt.ok = true;
+} catch (error) { receipt.ok = false; receipt.error = error.stack; receipt.finalHistory = await history(); }
+receipt.finishedAt = new Date().toISOString();
+await writeFile(new URL('./UI-conversation.json', import.meta.url), JSON.stringify(receipt, null, 2) + '\n');
+console.log(JSON.stringify({ ok: receipt.ok, error: receipt.error, answers: Object.fromEntries(Object.entries(receipt.threads).map(([k,t]) => [k, t.messages.at(-1).content])), requesterStorage: receipt.requesterStorage }));
+process.exit(receipt.ok ? 0 : 1);

@@ -1,0 +1,27 @@
+{
+  "schema": "reploid.native-installed-ui-verification/v1",
+  "ok": true,
+  "at": "2026-10-12T11:44:04.363Z",
+  "priorReceipt": "UI-draft-materialization.json",
+  "scope": "Postconditions checked after retained controller draft-shape assertion failure; no repeated inference or rewritten observation",
+  "answers": [
+    "$36",
+    "$48",
+    "$60",
+    "$72"
+  ],
+  "bothExecutingBeforeCancellation": true,
+  "cancelledThread": "ac111e81-47b0-4c73-af2f-c40d6f076d7c",
+  "survivorThread": "accaec64-88f6-4347-9797-cf2c0b5a7fb6",
+  "materializedEmptyDrafts": [
+    "f48fab32-1b32-45ae-a6c0-4045b61e3880"
+  ],
+  "requesterStorage": [
+    {
+      "path": "reploid-chat-checkpoints-v1/index.json",
+      "bytes": 2
+    }
+  ],
+  "oldThreadsRetained": 23,
+  "oldDraftsRetained": true
+}
