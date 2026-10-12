@@ -1,0 +1,20 @@
+[
+  {
+    "path": "result.json.gz",
+    "sha256": "cd9d565e1a5a8ee3cc7284d8e3692b98f36e68ae1988144149bb52e50fb5546b",
+    "uncompressedSha256": "b74c6c19bfd06f1ed33c634e6a95e519b7f08d242ead552cc6f373cd5be89bd3",
+    "uncompressedBytes": 57589
+  },
+  {
+    "path": "result-fresh-bathroom-comparison-extract-D1.json.gz",
+    "sha256": "28ab9ac3cc0dfeff464ca1dbb203976a41a7445eae9c07e95066db6c54f8c634",
+    "uncompressedSha256": "253ab4f3ac4e7e971597e0fbf644b2c8f408fbd08664b4d8c7128cdfb888dce7",
+    "uncompressedBytes": 20570
+  },
+  {
+    "path": "run.log.gz",
+    "sha256": "f88edb71ca9e64b3ac15fadfdcffbe912b9970e463fde69c48d30381439fda80",
+    "uncompressedSha256": "47f42cb02c6c78e7d1df389e229eb747caac19f7b886ff5b262360d5c291a5d5",
+    "uncompressedBytes": 2613
+  }
+]
