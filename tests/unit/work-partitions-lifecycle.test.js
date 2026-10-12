@@ -1,3 +1,5 @@
+// @vitest-environment node
+// Both host adapters are exercised through injected ports; no DOM is required.
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const ports = vi.hoisted(() => ({
