@@ -81,7 +81,7 @@ replication claims require the declared independence evidence. A signed record
 is eligible to change a projection; it does not change the projection merely by
 existing.
 
-### 6. Verification Checklist
+### 6. Verification requirements
 - [x] Signed records fail verification after content mutation
 - [x] Result and claim edges remain inspectable
 - [x] Similarity excludes incompatible embeddings
@@ -95,9 +95,9 @@ existing.
 - [x] Signed v1 history remains inspectable but cannot inherit v2 execution or approval claims
 - [x] Coordinator publication is authenticated and public discovery is read-only
 - [x] Advisory next-action ranking binds its heuristic policy, version, input records, and separate scientific-cost components without allocating work or claiming calibration
-- [ ] Calibrated action-value estimates bind replayable methods, inputs, cost assumptions, and frozen evaluation evidence
-- [ ] Candidate actions compare uncertainty reduction against declared scientific cost
-- [ ] Replication and closure use predeclared independent evidence criteria
-- [ ] Scientific-policy promotion measures prospective performance against a frozen baseline
+- Calibrated action-value estimates bind replayable methods, inputs, cost assumptions, and frozen evaluation evidence
+- Candidate actions compare uncertainty reduction against declared scientific cost
+- Replication and closure use predeclared independent evidence criteria
+- Scientific-policy promotion measures prospective performance against a frozen baseline
 
 *Last updated: August 2026*

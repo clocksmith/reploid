@@ -521,7 +521,7 @@ const health = ModuleProto.getSystemHealth();
 
 ---
 
-## Future Enhancements
+## Optional contract extensions
 
 1. **Smart layouts** - AI-driven proto organization based on usage
 2. **Widget presets** - Save/restore proto configurations

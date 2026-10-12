@@ -407,12 +407,12 @@ The `WebRTCCoordinatorWidget` provides comprehensive swarm monitoring and contro
 
 ---
 
-### 4. Verification Checklist
-- [ ] Initialization registers handlers exactly once (no duplicates).
-- [ ] Delegated tasks execute and respond with correlation IDs.
-- [ ] Reflection sharing results in stored entries tagged with `shared_from_<peer>`.
-- [ ] Consensus fallback to `consensus: true` only when swarm unavailable (documented reason).
-- [ ] `getStats()` reflects real-time peer counts and capability list.
+### 4. Verification requirements
+- Initialization registers handlers exactly once (no duplicates).
+- Delegated tasks execute and respond with correlation IDs.
+- Reflection sharing results in stored entries tagged with `shared_from_<peer>`.
+- Consensus fallback to `consensus: true` only when swarm unavailable (documented reason).
+- `getStats()` reflects real-time peer counts and capability list.
 
 ---
 

@@ -42,7 +42,7 @@ Clockwork-tagged Shadow.
 - Ordinary Zero candidates do not consult this registry.
 - Doppler reasoning receipts and M3T4 advisory receipts never appear here.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] The accepted Gamma receipt is pinned to challenge and candidate identity.
 - [x] Gamma source and Git revisions are recorded.
 - [x] Promotion tests cover trusted, untrusted, advisory-only, and tampered

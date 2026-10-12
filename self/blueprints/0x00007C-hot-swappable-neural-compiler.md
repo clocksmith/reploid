@@ -10,7 +10,7 @@
 
 **Owned Source Files:** `experimental/intelligence/neural-compiler.js`
 
-**Former Blueprint Paths:** `self/blueprints/0x00007C-hot-swappable-neural-compiler.md`, `self/blueprints/0x00007C-hot-swappable-neural-compiler.md`
+**Former Blueprint Paths:** `self/blueprints/0x00007C-hot-swappable-neural-compiler.md`
 **Objective:** Define an architecture that treats a small LLM (FunctionGemma 270M) as a dynamic instruction set with hot-swappable LoRA adapters, enabling specialized code generation without full model reloading.
 
 **Target Upgrade:** HSNC (`neural-compiler.js`)
@@ -619,7 +619,7 @@ const widget = {
 
 ---
 
-## 7. Implementation Phases
+## 7. Integration requirements
 
 ### Phase 1: No LoRA (Use Existing Infrastructure)
 - [x] Task scheduling with embedding-based routing (SemanticMemory)
@@ -628,23 +628,23 @@ const widget = {
 - [x] Pattern RAG (ReflectionStore + SemanticMemory.enrich)
 
 ### Phase 2: UI Validation
-- [ ] Create `/capabilities/validation/ui-validator.js`
-- [ ] Sandboxed iframe renderer
-- [ ] WCAG contrast checks
-- [ ] Overflow detection
-- [ ] Wire into Arena scoring
+- Create `/capabilities/validation/ui-validator.js`
+- Sandboxed iframe renderer
+- WCAG contrast checks
+- Overflow detection
+- Wire into Arena scoring
 
 ### Phase 3: LoRA Infrastructure
-- [ ] LoRA adapter manifest format
-- [ ] IndexedDB LoRA cache
-- [ ] LLMClient.loadLoRAAdapter() / unloadLoRAAdapter()
-- [ ] Doppler kernel: weight merging support
+- LoRA adapter manifest format
+- IndexedDB LoRA cache
+- LLMClient.loadLoRAAdapter() / unloadLoRAAdapter()
+- Doppler kernel: weight merging support
 
 ### Phase 4: Full Integration
-- [ ] NeuralCompiler module with batched scheduling
-- [ ] Adapter auto-download from registry
-- [ ] Performance benchmarks (swap latency, task throughput)
-- [ ] Proto widget
+- NeuralCompiler module with batched scheduling
+- Adapter auto-download from registry
+- Performance benchmarks (swap latency, task throughput)
+- Proto widget
 
 ---
 
@@ -669,7 +669,7 @@ const widget = {
 
 ---
 
-## 10. Future Evolution
+## 10. Optional contract extensions
 
 1. **Adapter Fine-Tuning**: In-browser LoRA training on user patterns
 2. **Adapter Composition**: Merge multiple LoRAs for multi-domain tasks

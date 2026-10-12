@@ -934,12 +934,12 @@ class WebRTCSwarmWidget extends HTMLElement {
    - Emit events for connection status, peer counts, tasks delegated
    - Provide UI surfaces to inspect peer metadata and capabilities
 
-### 4. Verification Checklist
-- [ ] New peer join triggers offer/answer exchange and data channel open.
-- [ ] Broadcast sends to all connected peers; sendToPeer returns false when channel closed.
-- [ ] Heartbeat removes stale peers and attempts reconnection when signaling drops.
-- [ ] `delegateTask` resolves or times out; message handlers clean up after completion.
-- [ ] `configureSignaling` updates config and reconnects without page reload.
+### 4. Verification requirements
+- New peer join triggers offer/answer exchange and data channel open.
+- Broadcast sends to all connected peers; sendToPeer returns false when channel closed.
+- Heartbeat removes stale peers and attempts reconnection when signaling drops.
+- `delegateTask` resolves or times out; message handlers clean up after completion.
+- `configureSignaling` updates config and reconnects without page reload.
 
 ### 5. Extension Opportunities
 - Add TURN configuration UI for NAT traversal.

@@ -28,7 +28,7 @@ The DataChannel adapter adds and validates only the bus envelope version. The in
 ### 3. Implementation Notes
 Transport does not verify message signatures or interpret bodies; those responsibilities remain in the control plane and protocol.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Both transports expose the same frozen interface
 - [x] Invalid wire envelopes are ignored
 - [x] Peer room and control-plane tests pass

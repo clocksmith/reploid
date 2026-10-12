@@ -37,7 +37,7 @@ Signed delivery URLs are assignment-bound and transient. Receipts retain the
 stable origin identity, artifact digest, and acquisition source instead of the
 credential-bearing URL.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Immutable public and private origins have distinct validation
 - [x] Path injection and mutable revisions fail closed
 - [x] Private delivery retains generation identity

@@ -229,11 +229,11 @@ const widget = {
      - `{ element: 'viz-data-adapter-widget', displayName, icon, category, order }`
      - No `updateInterval` in widget object (handled internally in connectedCallback)
 
-### 4. Verification Checklist
-- [ ] Cache prevents duplicate fetches within 1 second while still responding to updates.
-- [ ] Graph nodes align with manifest-defined dependencies.
-- [ ] Cognitive flow highlights the correct stage per cycle.
-- [ ] Tool usage metrics match `PerformanceMonitor` counts.
-- [ ] Missing data falls back to empty but well-formed structures.
+### 4. Verification requirements
+- Cache prevents duplicate fetches within 1 second while still responding to updates.
+- Graph nodes align with manifest-defined dependencies.
+- Cognitive flow highlights the correct stage per cycle.
+- Tool usage metrics match `PerformanceMonitor` counts.
+- Missing data falls back to empty but well-formed structures.
 
 Keep this adapter pure and side-effect free so visual layers remain thin. When adding new metrics, update both the adapter and its consumer blueprints.

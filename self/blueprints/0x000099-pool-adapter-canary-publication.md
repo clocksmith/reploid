@@ -54,7 +54,7 @@ Chromium, captures base logits, activates the exact NER adapter, proves changed
 finite logits and valid structured output, unloads the adapter, unloads the
 model, and writes a receipt. This proves runtime interoperability only.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 
 - [x] Contract rejects routable fields and quality promotion
 - [x] Store and routes remain separate from AdapterPack routing

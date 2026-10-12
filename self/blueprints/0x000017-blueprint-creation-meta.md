@@ -162,17 +162,17 @@ const createBlueprint = async (capability) => {
 };
 ```
 
-### 6. Blueprint Quality Checklist
+### 6. Blueprint quality requirements
 
-- [ ] **Clear Objective:** States what will be built
-- [ ] **Complete Prerequisites:** Lists all dependencies
-- [ ] **Widget Protocol Reference:** References 0x000048 if creating upgrade
-- [ ] **Widget Implementation:** Describes web component widget (REQUIRED for upgrades)
-- [ ] **Step-by-Step Instructions:** Could a new agent follow?
-- [ ] **Code Examples:** Shows key implementations including widget
-- [ ] **Error Handling:** Describes edge cases
-- [ ] **Testing Strategy:** How to verify it works (including widget tests)
-- [ ] **Extension Points:** Where to add features
+- **Clear Objective:** States what will be built
+- **Complete Prerequisites:** Lists all dependencies
+- **Widget Protocol Reference:** References 0x000048 if creating upgrade
+- **Widget Implementation:** Describes web component widget (REQUIRED for upgrades)
+- **Step-by-Step Instructions:** Could a new agent follow?
+- **Code Examples:** Shows key implementations including widget
+- **Error Handling:** Describes edge cases
+- **Testing Strategy:** How to verify it works (including widget tests)
+- **Extension Points:** Where to add features
 
 ### 7. Learning from Existing Blueprints
 

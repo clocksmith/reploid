@@ -252,3 +252,17 @@ Public copy must use terms such as:
 Public copy must not imply hardware-backed or tamper-proof execution.
 
 *Last updated: August 2026*
+
+## Network-value rejection conditions
+
+A network-value claim remains unsupported when:
+
+- authorized peer delivery is less reliable or economical than ordinary
+  mirrors and supplies no distinct availability value;
+- more providers improve neither capacity, recovery, economics, result
+  comparison, nor later selection;
+- retained evidence does not change or improve later work;
+- useful workloads cannot tolerate duplicated whole-model execution;
+- participants will not contribute lawful artifact custody or bounded compute;
+- the network requires claims of physical independence or honest hardware that
+  its evidence cannot establish.

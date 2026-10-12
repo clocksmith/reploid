@@ -28,7 +28,7 @@ The module depends only on Pool payload, receipt hash, model workload, sequence,
 ### 3. Implementation Notes
 Sequence normalization occurs before hashing. Validation returns all discovered reasons so callers can expose actionable failures.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Prompt and sequence hashes bind to assignments
 - [x] Workload dispatch is explicit
 - [x] Payload and sequence regression tests pass

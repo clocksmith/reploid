@@ -133,16 +133,16 @@ Responsibilities:
 10. **Cleanup**
     - Provide `destroy()` to cancel animation, remove canvas, detach listeners.
 
-### 4. Extension Ideas
+### 4. Optional contract extensions
 - **Mini-map** preview enabling quick navigation in dense graphs.
 - **Event Replay** mode that scrubs through recorded cycles for postmortems.
 - **Anomaly Highlighting** by integrating performance thresholds from `PerformanceMonitor`.
 
-### 5. Verification Checklist
-- [ ] Canvas attaches/detaches without leaving orphaned listeners.
-- [ ] Interaction latency stays under 16ms/frame at 60 FPS.
-- [ ] Hover/selection tooltips update as nodes move.
-- [ ] Works alongside dark/light UI themes (respect CSS variables).
-- [ ] Gracefully handles missing `VizDataAdapter` output (fallback skeleton view).
+### 5. Verification requirements
+- Canvas attaches/detaches without leaving orphaned listeners.
+- Interaction latency stays under 16ms/frame at 60 FPS.
+- Hover/selection tooltips update as nodes move.
+- Works alongside dark/light UI themes (respect CSS variables).
+- Gracefully handles missing `VizDataAdapter` output (fallback skeleton view).
 
 Reference this blueprint when tuning visuals, wiring new data sources, or debugging interaction regressions.

@@ -34,7 +34,7 @@ Reject missing promotion, mismatched adapter hashes, or a human approval that
 does not bind the Doppler and Gamma receipts. Signed network publication belongs
 to `adapter-publication.js`.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Shadow entries cannot be packed
 - [x] Human approval and evidence hashes are revalidated
 - [x] Pack construction and network publication remain separate

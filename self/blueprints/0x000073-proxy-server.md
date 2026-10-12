@@ -10,7 +10,7 @@
 
 **Owned Source Files:** None
 
-**Former Blueprint Paths:** `self/blueprints/0x000073-proxy-server.md`, `self/blueprints/0x000073-proxy-server.md`
+**Former Blueprint Paths:** `self/blueprints/0x000073-proxy-server.md`
 **Objective:** Define the Reploid HTTP and WebSocket host that serves product surfaces, enforces access policy, proxies approved model requests, and attaches signaling and agent-coordination services without becoming the browser-inference authority.
 
 **Target Module:** `server/proxy.js`
@@ -79,13 +79,13 @@ Signaling carries rendezvous metadata. It must not be described as the model-exe
 
 Graceful shutdown stops GPU monitoring, closes signaling and Agent Bridge resources, and closes the HTTP server. New long-lived resources must join this shutdown path.
 
-## 8. Verification checklist
+## 8. Verification requirements
 
 - [x] Product and lab routes remain separate.
 - [x] Provider proxy, VFS compatibility, diagnostics, Poolday router, static assets, and WebSocket services share one explicit host.
 - [x] Signaling and Agent Bridge use one upgrade dispatcher and unknown paths fail closed.
 - [x] Local-only/origin/token policy is delegated to the owning WebSocket service.
 - [x] Route families reflect the current source rather than deprecated shell endpoints.
-- [ ] Add a focused route inventory test that fails when public documentation drifts from source.
+- Add a focused route inventory test that fails when public documentation drifts from source.
 
 *Last updated: August 2026*

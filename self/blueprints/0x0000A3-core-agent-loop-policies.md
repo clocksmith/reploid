@@ -28,7 +28,7 @@ This dependency-free policy module accepts resolved values and returns data. Age
 ### 3. Implementation Notes
 Explicit sources use last-wins precedence before defaults. Context compaction retains system, goal, prior compaction, and recent-message anchors.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Legacy and canonical throttle keys resolve correctly
 - [x] Managed context and iteration caps fail within declared bounds
 - [x] AgentLoop integration and policy tests pass

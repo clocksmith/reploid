@@ -581,18 +581,18 @@ Add to `/config.json`:
 
 ---
 
-## 4. Verification Checklist
+## 4. Verification requirements
 
-- [ ] Module exports `api` with `init()`, `cleanup()`, utility methods
-- [ ] Event listeners tracked in `eventHandlers` array for cleanup
-- [ ] `cleanup()` properly unsubscribes all EventBus listeners
-- [ ] Web Component implements all lifecycle methods (connected/disconnected)
-- [ ] `getStatus()` returns all 5 required fields
-- [ ] Feature flag checked before rendering and event handling
-- [ ] Event history auto-trims to 50 events (prevents memory leak)
-- [ ] Unit tests cover initialization, event handling, cleanup, widget protocol
-- [ ] Custom element registered with duplicate check
-- [ ] UIManager integration uses feature flag to choose implementation
+- Module exports `api` with `init()`, `cleanup()`, utility methods
+- Event listeners tracked in `eventHandlers` array for cleanup
+- `cleanup()` properly unsubscribes all EventBus listeners
+- Web Component implements all lifecycle methods (connected/disconnected)
+- `getStatus()` returns all 5 required fields
+- Feature flag checked before rendering and event handling
+- Event history auto-trims to 50 events (prevents memory leak)
+- Unit tests cover initialization, event handling, cleanup, widget protocol
+- Custom element registered with duplicate check
+- UIManager integration uses feature flag to choose implementation
 
 ---
 

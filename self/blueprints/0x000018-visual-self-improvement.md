@@ -351,7 +351,7 @@ async function visualRSICycle() {
 - **User Engagement**: Interaction with visual system
 - **Emergent Behaviors**: Unexpected visual patterns
 
-## Future Enhancements
+## Optional contract extensions
 
 ### 3D Visualization
 - Extend to WebGL for 3D graphs

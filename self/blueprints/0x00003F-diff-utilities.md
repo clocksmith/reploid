@@ -268,7 +268,7 @@ await ToolRunner.execute('diff_artifacts', {
 
 ---
 
-## Future Enhancements
+## Optional contract extensions
 
 1. **Word/character-level diff** - Show granular changes within lines
 2. **Syntax-aware diff** - Understand code structure for better diffs

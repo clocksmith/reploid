@@ -626,27 +626,27 @@ EventBus.on('curator:report:saved', (event) => {
 
 ## 9. Testing & Validation
 
-### 9.1 Manual Testing Checklist
+### 9.1 Manual test requirements
 
 **Basic Functionality:**
-- [ ] Start Curator Mode with 3 goals, 7 proposals per goal
-- [ ] Verify context is auto-approved (no UI prompt)
-- [ ] Verify proposals stop at AWAITING_PROPOSAL_APPROVAL
-- [ ] Check iteration delay is respected (5 seconds)
-- [ ] Confirm all 21 proposals are generated
-- [ ] Verify HTML report is saved to VFS
-- [ ] Open HTML report and check all sections render
-- [ ] Verify JSON report has correct structure
+- Start Curator Mode with 3 goals, 7 proposals per goal
+- Verify context is auto-approved (no UI prompt)
+- Verify proposals stop at AWAITING_PROPOSAL_APPROVAL
+- Check iteration delay is respected (5 seconds)
+- Confirm all 21 proposals are generated
+- Verify HTML report is saved to VFS
+- Open HTML report and check all sections render
+- Verify JSON report has correct structure
 
 **Error Handling:**
-- [ ] Test with invalid API key (should record error, continue)
-- [ ] Test with rate limit exceeded (should delay, retry)
-- [ ] Test stopping mid-session (should generate partial report)
+- Test with invalid API key (should record error, continue)
+- Test with rate limit exceeded (should delay, retry)
+- Test stopping mid-session (should generate partial report)
 
 **Safety:**
-- [ ] Verify proposals are NEVER auto-applied
-- [ ] Confirm context auto-approval only happens in Curator Mode
-- [ ] Test that normal mode still requires human context approval
+- Verify proposals are NEVER auto-applied
+- Confirm context auto-approval only happens in Curator Mode
+- Test that normal mode still requires human context approval
 
 ### 9.2 Integration Testing
 
@@ -685,9 +685,9 @@ describe('AutonomousOrchestrator', () => {
 
 ---
 
-## 10. Future Enhancements
+## 10. Optional contract extensions
 
-### 10.1 Planned Features (Not Yet Implemented)
+### 10.1 Unimplemented contract extensions
 
 **1. Proposal Quality Scoring:**
 - Auto-analyze proposals with introspector

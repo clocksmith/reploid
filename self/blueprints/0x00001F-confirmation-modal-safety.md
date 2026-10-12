@@ -147,11 +147,11 @@ Key mechanics:
 - **Privilege Escalation**: enabling WebRTC swarm, switching to hypervisor personas.
 - **Billing/Risk**: executing high-cost API calls.
 
-### 5. Verification Checklist
-- [ ] Modal blocks background scrolling (overlay intercepts events).
-- [ ] Screen readers describe title/message.
-- [ ] Danger mode visually distinct.
-- [ ] Multiple rapid invocations do not leak elements or listeners.
-- [ ] Confirm resolves within 200ms on user action.
+### 5. Verification requirements
+- Modal blocks background scrolling (overlay intercepts events).
+- Screen readers describe title/message.
+- Danger mode visually distinct.
+- Multiple rapid invocations do not leak elements or listeners.
+- Confirm resolves within 200ms on user action.
 
 The confirmation modal is a safety net. Treat modifications to its behavior as security-impacting changes and update this blueprint alongside UX adjustments.

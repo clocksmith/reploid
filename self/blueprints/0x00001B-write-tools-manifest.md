@@ -29,7 +29,7 @@ Without the ability to modify its own source code, an agent is fundamentally lim
 
 - ✎ **modify_artifact** - edit existing code files
 - ☩ **create_artifact** - Add new modules/tools
-- [ ] **delete_artifact** - Remove obsolete code
+- **delete_artifact** - Remove obsolete code
 - ☷ **rename_artifact** - Refactor file structure
 - ⚿ **checkpoint** - Save state before risky changes
 - ⏮️ **rollback** - Undo failed modifications
@@ -428,7 +428,7 @@ Test the full Sentinel Agent flow:
 
 ---
 
-### 8. Future Enhancements
+### 8. Optional contract extensions
 
 #### 8.1 Advanced Write Operations
 

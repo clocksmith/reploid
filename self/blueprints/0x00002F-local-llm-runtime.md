@@ -270,12 +270,12 @@ The widget provides complete runtime visibility and control for local LLM operat
 - Monitor GPU memory via widget's real-time display
 - Warn when near limits via `PerformanceMonitor`
 
-### 4. Verification Checklist
-- [ ] Initialization gracefully fails when WebGPU unavailable.
-- [ ] Progress events fire during model download (>0 to 1.0).
-- [ ] Streaming responses yield tokens in order and final usage summary.
-- [ ] Switching models unloads previous engine (no double GPU allocation).
-- [ ] Status object used by UI stays in sync with actual runtime state.
+### 4. Verification requirements
+- Initialization gracefully fails when WebGPU unavailable.
+- Progress events fire during model download (>0 to 1.0).
+- Streaming responses yield tokens in order and final usage summary.
+- Switching models unloads previous engine (no double GPU allocation).
+- Status object used by UI stays in sync with actual runtime state.
 
 ### 5. Extension Opportunities
 - Add CPU fallback (WASM) for devices without WebGPU.

@@ -474,14 +474,14 @@ Agent now has improved capability!
 - [x] Generates actionable suggestions
 
 **Integration:**
-- [ ] MetaCognitiveLayer responds to high-confidence patterns
-- [ ] Autonomous mode triggers improvements based on patterns
-- [ ] UI shows pattern visualizations
+- MetaCognitiveLayer responds to high-confidence patterns
+- Autonomous mode triggers improvements based on patterns
+- UI shows pattern visualizations
 
 **Long-term (Learning):**
-- [ ] Pattern detection improves over time
-- [ ] Thresholds auto-adjust based on outcomes
-- [ ] Agent proactively avoids inefficient patterns
+- Pattern detection improves over time
+- Thresholds auto-adjust based on outcomes
+- Agent proactively avoids inefficient patterns
 
 ---
 
@@ -494,7 +494,7 @@ Agent now has improved capability!
 
 ---
 
-## Future Enhancements
+## Optional contract extensions
 
 1. **Semantic pattern matching** - Use embeddings to detect conceptually similar actions
 2. **Context-aware detection** - Distinguish deliberate repetition from inefficiency

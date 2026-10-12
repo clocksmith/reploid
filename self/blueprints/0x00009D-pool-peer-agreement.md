@@ -28,7 +28,7 @@ The module consumes model, signature-domain, sequence, and adapter contracts. Th
 ### 3. Implementation Notes
 Agreement compares exact model and adapter identity, requires acquisition evidence, and applies workload-specific hash fields without transport or UI dependencies.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Assignment identity mismatches are explicit
 - [x] Text and sequence agreement fields remain workload-specific
 - [x] Peer control-plane regression tests pass

@@ -120,15 +120,15 @@ Core behaviour:
 - Add tooltips summarising values on hover, using Chart.js defaults.
 - Keep DOM modifications minimal to avoid layout thrash.
 
-### 5. Verification Checklist
+### 5. Verification requirements
 - [x] **Web Component Implementation**: Widget uses Shadow DOM with `MetricsProtoWidget` class.
 - [x] **Chart Lifecycle**: All Chart.js instances destroyed in `disconnectedCallback()`.
 - [x] **Chart Cleanup on Re-render**: Charts destroyed before each `render()` call to prevent duplicates.
 - [x] **Interactive Controls**: Pause, Export, and Refresh buttons with event listeners.
 - [x] **Shadow DOM Isolation**: Styles fully encapsulated, no CSS leaks.
-- [ ] Charts render even when metric arrays are empty (fallback to placeholder).
-- [ ] No console errors when Chart.js missing—widget gracefully skips chart init.
-- [ ] Auto refresh does not spawn multiple intervals (cleared in `disconnectedCallback`).
+- Charts render even when metric arrays are empty (fallback to placeholder).
+- No console errors when Chart.js missing—widget gracefully skips chart init.
+- Auto refresh does not spawn multiple intervals (cleared in `disconnectedCallback`).
 - [x] Tool usage chart reflects new tool events within 5 seconds (5s update interval).
 - [x] Memory units (MB) remain consistent across charts and logs.
 - [x] **ModuleWidgetProtocol Compatibility**: Widget returns `{ element, displayName, icon, category, updateInterval }`.

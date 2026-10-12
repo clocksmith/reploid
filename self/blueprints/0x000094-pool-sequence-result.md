@@ -35,7 +35,7 @@ The requester may receive explicitly requested vectors over its selected peer
 channel. Signed receipts contain hashes and dimensions, not raw sequences,
 full vectors, or full logits.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Alphabet, token, and tensor shapes fail closed
 - [x] Float32 hashing is deterministic
 - [x] Masked-logit selection stays bounded by top-K

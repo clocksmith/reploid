@@ -32,7 +32,7 @@ Contribution does not grant publisher or adapter-creation authority. Numeric
 limits are bounded before signing. Capability escalation invalidates the
 profile.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Three modes map to explicit role capabilities
 - [x] Preferences persist locally and normalize deterministically
 - [x] Signature and hash verification fail closed

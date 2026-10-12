@@ -207,12 +207,12 @@ const widget = {
    - Avoid logging secrets (mask API keys, tokens).
    - Include `userAgent` for traceability, but allow anonymisation for privacy requirements.
 
-### 4. Verification Checklist
-- [ ] Log files rotate daily and remain parseable JSONL.
-- [ ] Failures to persist logs issue warnings but do not crash flows.
-- [ ] Typed helpers set appropriate severity (e.g., VFS delete ⇒ warn).
-- [ ] Query filters respect limit and event/severity selectors.
-- [ ] Export sorts entries chronologically.
+### 4. Verification requirements
+- Log files rotate daily and remain parseable JSONL.
+- Failures to persist logs issue warnings but do not crash flows.
+- Typed helpers set appropriate severity (e.g., VFS delete ⇒ warn).
+- Query filters respect limit and event/severity selectors.
+- Export sorts entries chronologically.
 
 ### 5. Extension Opportunities
 - Stream logs to external SIEM via WebSocket or HTTP.

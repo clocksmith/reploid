@@ -771,7 +771,7 @@ useModularPanels: {
 5. **Widget Protocol Compliance:** All panels expose `getStatus()` and `getControls()` for external monitoring
 6. **Event-Driven Architecture:** Panels communicate via EventBus, not direct calls
 
-### Next Steps (Phase 10)
+### Additional panel requirements
 
 1. **Integration Tests:** Multi-panel coordination scenarios
 2. **Performance Testing:** Measure overhead of 6 panels vs monolithic

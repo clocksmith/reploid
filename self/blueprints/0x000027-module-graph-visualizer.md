@@ -147,12 +147,12 @@ Key features:
     - `getStats()` returns: totalModules, totalDependencies, categories count, avgDependencies.
     - Statistics computed from `graphData.statistics`.
 
-### 4. Verification Checklist
-- [ ] Graph renders within 2 seconds for 60+ modules.
-- [ ] Zoom/pan works with scroll wheel and touchpad.
-- [ ] Dragging nodes maintains link connectivity.
-- [ ] Colour coding matches categories returned by Introspector.
-- [ ] Duplicate markers are not appended on successive renders.
+### 4. Verification requirements
+- Graph renders within 2 seconds for 60+ modules.
+- Zoom/pan works with scroll wheel and touchpad.
+- Dragging nodes maintains link connectivity.
+- Colour coding matches categories returned by Introspector.
+- Duplicate markers are not appended on successive renders.
 
 ### 5. Extension Opportunities
 - Overlay heatmap (edge thickness) from `PerformanceMonitor` usage data.
