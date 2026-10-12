@@ -1,0 +1,35 @@
+{
+  "schema": "reploid.worked-tool-contract-freeze/v1",
+  "status": "frozen before model outputs; independent review pending",
+  "parentFrozenRevision": "3d8a7362",
+  "hypothesis": "Single unrelated typed tool-contract demonstration. No source serializer bug established.",
+  "files": {
+    "example-instruction.txt": "7af59098d7bab47bf34c7d80ea43aada7e7624e4af8e496d42ba6abd3abf1096",
+    "example-validation.json": "785947c46656c5388f3a6e68a8ae9583439b1fdb263b23b430c0887c7857e4ac",
+    "example.json": "d0ad18b0cf57d6f7b249aa0242f38942d3a167ead8972a97b367ed4ad2143790",
+    "protocol.py": "a8ffa4f5aea3e166b5065ac7f081ec6f75b1943ed7c62f4be824e1655405e6e9",
+    "protocol_test.py": "3abaa5a725061f5aec8129ee654f196bd0aea164b62e17ccc9af8d35c5aa2182",
+    "run.py": "e8f5bc2f2d1e1963cd0b5745b389d3d47fc4ea7d54704e37551a9e32bd35cf3a",
+    "source-api-audit.json": "473f2a4eb0771300fab40e01f747aea2a0942386c2363431ef48a7ddd94e95e2",
+    "source_api_audit.py": "461ac60347642d39446bf10746f2521aa9a5709a4a96c011ba888aa9ab2c6d51",
+    "suite.json": "e50d24eda699011343fac9dde848cab7d8dd67cb2932d17f807a1f0ebcf4c8f1",
+    "template-binding.json": "22cc56128a81ed47b1d51901183b62a4c71d69d8007f1902d8b756db5684dacd",
+    "tools.json": "783acf4522e955fae74aa176b45d58ca4b7da3dca647c32cb4172ecb01062c66",
+    "validate_example.py": "a17db116fe17739d17ee1b0d6214bbc73c06562cbbe439203e47a8008462c103",
+    "README.md": "04161f6548df7d2dd56413f991acb028ee43c4b0e8a5873d612ff2bf90badad1"
+  },
+  "model": "Qwen/Qwen3.5-2B",
+  "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "calculatorSha256": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+  "sourceLoaderSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
+  "sourceEvaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "cases": "Exact same seven, including ordered correction followups; factual/citation criteria unchanged.",
+  "budget": "4096 generated,8192 prompt+generated,16000 UTF16 across two calls; all example tokens count in executed prompts.",
+  "stopping": "After complete first case with failed extraction/tool/natural-completion or final tool-call response, stop at case boundary and mark all remaining cases unrun. Otherwise complete seven and independently review factual criteria.",
+  "acceptance": "Both natural completions, successful exact cited Calculate plan, all full factual/citation/conditional requirements including followups, no retries, same aggregate limits. Parser or calculator pass alone is insufficient.",
+  "priorSeenCases": [
+    "fresh-bathroom-comparison",
+    "fresh-bathroom-correction"
+  ],
+  "noPromotion": "Source-only experiment; no production/model/precision/pin change."
+}

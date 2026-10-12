@@ -1,0 +1,57 @@
+{
+  "exampleStrictParserPassed": true,
+  "exampleRealCalculatorPassed": true,
+  "evaluationFactsAbsentFromDemonstration": true,
+  "frozenCasesCriteriaAndBudgetsUnchanged": true,
+  "semanticModelAcceptanceEstablished": false,
+  "results": [
+    {
+      "id": "demo_total",
+      "kind": "money",
+      "value": "95.9",
+      "sources": [
+        "D4:P1"
+      ],
+      "operation": {
+        "id": "demo_total",
+        "op": "multiply",
+        "args": [
+          "demo_price",
+          "demo_count"
+        ]
+      }
+    },
+    {
+      "id": "demo_left",
+      "kind": "money",
+      "value": "317.1",
+      "sources": [
+        "D4:P1"
+      ],
+      "operation": {
+        "id": "demo_left",
+        "op": "subtract",
+        "args": [
+          "demo_limit",
+          "demo_total"
+        ]
+      }
+    },
+    {
+      "id": "demo_finish",
+      "kind": "date",
+      "value": "february 10 (year unspecified)",
+      "sources": [
+        "D4:P1"
+      ],
+      "operation": {
+        "id": "demo_finish",
+        "op": "addCalendarDuration",
+        "args": [
+          "demo_start",
+          "demo_duration"
+        ]
+      }
+    }
+  ]
+}
