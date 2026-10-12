@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import * as runtime from 'doppler-gpu/partitions';
-import { normalizeNativeDataChannel, openNativeModelSource, createNativeGpuHost, createNativeShutdown } from '../../server/native-participant.js';
+import { normalizeNativeDataChannel, openNativeModelSource, openNativePartition, createNativeGpuHost, createNativeShutdown } from '../../server/native-participant.js';
 
 const gpu = vi.hoisted(() => ({ device: null, order: [] }));
 vi.mock('doppler-gpu/tooling', () => ({ getDevice: () => gpu.device, destroyBufferPool: () => gpu.order.push('pool') }));
@@ -35,6 +35,15 @@ async function fixture() {
 }
 
 describe('native host boundary', () => {
+  it('does not substitute manifest opening for an explicitly requested signed Capsule', async () => {
+    const nativeGpu = vi.fn(async () => {});
+    const files = { preparePartitionSource: vi.fn() };
+    await expect(openNativePartition({ model: { id: 'signed', capsule: {} }, nativeGpu, files,
+      signal: new AbortController().signal, index: 0, participantId: 'native' }))
+      .rejects.toThrow('Native signed Capsule opening is not configured');
+    expect(nativeGpu).not.toHaveBeenCalled();
+    expect(files.preparePartitionSource).not.toHaveBeenCalled();
+  });
   it('retries provider initialization and restores owned globals only after queue settlement', async () => {
     const navigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
     const marker = Object.getOwnPropertyDescriptor(globalThis, '__nativeGpuTestBinding');

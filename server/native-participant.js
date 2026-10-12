@@ -127,6 +127,7 @@ export function createNativeGpuHost(loadProvider) {
 }
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId, files, onProgress = () => {} }) {
+  requireValue(selected.capsule === undefined, 'Native signed Capsule opening is not configured');
   const runtime = await import('doppler-gpu/partitions');
   await nativeGpu(); signal.throwIfAborted();
   await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
