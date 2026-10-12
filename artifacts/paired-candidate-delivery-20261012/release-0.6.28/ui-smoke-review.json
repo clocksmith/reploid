@@ -1,0 +1,20 @@
+{
+  "scope": "Offline fresh-context browser loading and viewport smoke only",
+  "bundleHash": "sha256:48707c0f94c4ef853b6c359a4fd3dd55e48079113a4c78931587c24eb96a3683",
+  "pageErrors": 0,
+  "viewports": [
+    [
+      1280,
+      800
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "composerVisible": true,
+  "horizontalOverflow": false,
+  "externalTrafficBlocked": true,
+  "disableFlagsEstablishWebgpuAbsence": false,
+  "limitation": "Both runs exposed navigator.gpu despite requested disable flags. Their raw scope labels describe intended disablement, not established absence of the API. No inference was requested. GPU calls were not instrumented; no GPU-absence, physical-phone, network-conversation or visual-acceptance claim follows."
+}
