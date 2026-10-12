@@ -1,0 +1,126 @@
+{
+  "schema": "reploid.typed-request-review/v1",
+  "disposition": "rejected",
+  "qualified": false,
+  "attemptedCases": 1,
+  "passedCases": 0,
+  "caseId": "fresh-bathroom-comparison",
+  "phase": "extract-D1",
+  "calls": [
+    {
+      "attempt": 0,
+      "promptTokens": 1148,
+      "generatedTokens": 275,
+      "stopReason": "eos"
+    },
+    {
+      "attempt": 1,
+      "promptTokens": 1491,
+      "generatedTokens": 237,
+      "stopReason": "max-tokens"
+    }
+  ],
+  "promptTokens": 2639,
+  "generatedTokens": 512,
+  "totalChargedTokens": 3151,
+  "rawOutputUtf16": 1445,
+  "withinAggregateBudgets": true,
+  "calculatorExecuted": false,
+  "finalAnswerGenerated": false,
+  "correctionCount": 1,
+  "correctionPrefixIdenticalTokenCount": 237,
+  "elapsedSeconds": 182.627844,
+  "timingScope": "Observed CPU process duration; not a controlled performance comparison.",
+  "failure": "extract-D1 did not naturally complete within budget",
+  "actualValidatorError": "Request count exceeds bounds",
+  "observations": [
+    "First call used literal amounts/dates/percentage where the schema enumerates exact money aliases.",
+    "Six date requests exceed the frozen three-request bound; each supplies null duration, and one start alias is percent rather than date.",
+    "The first validation failure is count overflow; the host did not patch or execute the plan.",
+    "The correction repeats the first 237 token IDs exactly and ends at max-tokens without a closed call."
+  ],
+  "inputAudit": {
+    "promptTokenEqualityAssertionsPassed": true,
+    "correctionPromptIncludesActualError": true,
+    "correctionPromptIncludesFixedInstruction": true,
+    "distinctInputTokenArrays": true,
+    "correctSourceTemplateIdentity": "273d8e0e683b885071fb17e08d71e5f2a5ddfb5309756181681de4f5a1822d80",
+    "modelCache": "Existing evaluator constructs a new StoredHalfCache for each call. Source inspection establishes no reused-cache explanation.",
+    "serializationDefectEstablished": false,
+    "postResultInstrumentation": "source-execution-audit.json: actual evaluator forwards exact full1148/1491 token tensors with distinct initially empty caches to sentinel; no model weights loaded.",
+    "actualFirstStepToolLogits": [
+      27.589157104492188,
+      25.51761245727539
+    ],
+    "uncertainty": "No original full attention/recurrent state capture; absence of a deeper model implementation defect is not proved."
+  },
+  "semanticReview": [
+    {
+      "criterion": "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+      "established": false,
+      "reason": "No final answer was generated; required factual/citation evidence is absent, not a generated factual claim."
+    },
+    {
+      "criterion": "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+      "established": false,
+      "reason": "No final answer was generated; required factual/citation evidence is absent, not a generated factual claim."
+    },
+    {
+      "criterion": "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+      "established": false,
+      "reason": "No final answer was generated; required factual/citation evidence is absent, not a generated factual claim."
+    },
+    {
+      "criterion": "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+      "established": false,
+      "reason": "No final answer was generated; required factual/citation evidence is absent, not a generated factual claim."
+    },
+    {
+      "criterion": "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges.",
+      "established": false,
+      "reason": "No final answer was generated; required factual/citation evidence is absent, not a generated factual claim."
+    }
+  ],
+  "unrunSourceDocuments": [
+    "D2",
+    "D3"
+  ],
+  "unrunCases": [
+    "fresh-bathroom-correction",
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "holdouts": "Two existing independent holdouts remain locked and unrun.",
+  "outputRepair": false,
+  "productionAdoption": false,
+  "scope": "Typed admission protects the tool boundary but does not qualify this source model document workflow. Basic chat and distributed runtime correctness are separate.",
+  "rawEvidence": [
+    {
+      "path": "result.json.gz",
+      "sha256": "5ba4742507cfa1fb151f110e8ec4aef48d8445e5719b7f06e3fb67d267d695ee",
+      "uncompressedSha256": "4b2ccafe46151b69f7b545aaa8d03f793266a8a4a3971d89e8ca3bdb29334225",
+      "uncompressedBytes": 120503
+    },
+    {
+      "path": "result-fresh-bathroom-comparison-extract-D1-0.json.gz",
+      "sha256": "7c60653506f3a3102736f9e1fa4973c53ba61ce35283d6b5c6ffa64118a2ae47",
+      "uncompressedSha256": "59f5f07227ceda7e4de3f838157834c2978b6bc071cfd3719415c55ac8109663",
+      "uncompressedBytes": 18950
+    },
+    {
+      "path": "result-fresh-bathroom-comparison-extract-D1-1.json.gz",
+      "sha256": "a53e9123d183069937ebcd24458bca149814c07fdfc0a84d3ec779440af81d5a",
+      "uncompressedSha256": "f61605772b8596acab13fd8b9a0c1f58995b0b2982a3a6cfe80042c730bc96d4",
+      "uncompressedBytes": 23022
+    },
+    {
+      "path": "run.log.gz",
+      "sha256": "fca3540bde9c9c1768cb726d6f3bc3991e9cc9657dc418dcb691a1445e113c8e",
+      "uncompressedSha256": "3cf6cb9cddc993251731d7f18f2c8f6b761a76d3da884632a19368beb0945e58",
+      "uncompressedBytes": 2892
+    }
+  ]
+}
