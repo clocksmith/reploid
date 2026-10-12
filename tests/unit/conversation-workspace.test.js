@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
 import { createChatSession, CANONICAL_CHAT_MODELS } from '../../self/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
+import { updateModelSelect } from '../../self/ui/components/model-select.js';
 
 describe('Conversation workspace', () => {
   let root, session, dispose, service;
@@ -19,7 +20,7 @@ describe('Conversation workspace', () => {
   it('keeps the composer and draft while network capacity is unavailable', () => {
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-active-model-select]').textContent).toBe('No models available');
-    expect(find('[data-model-status]').textContent).toBe('No model available. Your draft stays here.');
+    expect(find('[data-model-status]').hidden).toBe(true);
     expect(find('[data-model-control]').hidden).toBe(true);
     expect(find('[data-model-setup]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(false);
@@ -30,6 +31,19 @@ describe('Conversation workspace', () => {
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
 
+  it('labels an adapted model once without merging distinct selections', () => {
+    const select = find('[data-active-model-select]');
+    updateModelSelect(select, [
+      { id: 'base', name: 'Base model' },
+      { id: 'base', selectionId: 'adapted', name: 'Named adapter', adapters: [{ name: 'Named adapter' }] },
+      { id: 'base', selectionId: 'other', name: 'Base model', adapters: [{ name: 'Other adapter' }] }
+    ], { value: 'adapted' });
+    expect([...select.options].map(option => [option.value, option.textContent])).toEqual([
+      ['base', 'Base model'], ['adapted', 'Named adapter'], ['other', 'Base model + Other adapter']
+    ]);
+    expect(select.value).toBe('adapted');
+  });
+
   it('shows observed remote preparation without claiming readiness or asking to reconnect', async () => {
     dispose(); await session.close();
     const peer = { available: true, description: { phase: 'loading',
@@ -38,12 +52,12 @@ describe('Conversation workspace', () => {
       swarm: { getState: () => ({ partitionPeers: [peer], consumer: { peers: [] } }) } });
     dispose = bindConversationWorkspace(root, session);
     find('[data-composer-input]').value = 'Keep my question';
-    expect(find('[data-model-status]').textContent).toBe('A peer is preparing a model. Your draft stays here.');
+    expect(find('[data-model-status]').hidden).toBe(true);
     expect(find('[data-retry-connection]').hidden).toBe(true);
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(service.calls).toHaveLength(0);
     peer.available = false; session.refreshNetwork();
-    expect(find('[data-model-status]').textContent).toBe('No model available. Your draft stays here.');
+    expect(find('[data-model-status]').hidden).toBe(true);
     expect(find('[data-retry-connection]').hidden).toBe(false);
     expect(find('[data-composer-input]').value).toBe('Keep my question');
   });
@@ -161,7 +175,7 @@ describe('Conversation workspace', () => {
     find('[data-new-thread]').click();
     expect(find('[data-composer-input]').placeholder).toBe(previous);
     expect(session.getState().threads).toHaveLength(0);
-    expect(find('[data-message-stream]').textContent).toBe('');
+    expect(find('[data-message-stream]').childElementCount).toBe(0);
     expect(find('[data-conversation-actions] [data-show-archived]')).not.toBeNull();
     expect(find('[data-thread-sidebar] [data-show-archived]')).toBeNull();
   });

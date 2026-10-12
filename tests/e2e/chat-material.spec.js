@@ -56,7 +56,7 @@ async function installConversation(page, theme) {
 
 const animation = (locator, pseudo = '::after') => locator.evaluate((node, pseudo) => getComputedStyle(node, pseudo).animationName, pseudo);
 
-test('compact workspace presents availability once and keeps attempt status visible', async ({ page }, info) => {
+test('compact ribbon keeps availability and attempt status visible', async ({ page }, info) => {
   await page.setViewportSize({ width: 320, height: 460 });
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
@@ -66,13 +66,12 @@ test('compact workspace presents availability once and keeps attempt status visi
     await page.evaluate(mode => window.setVisualState(mode), mode);
     const status = page.locator('[data-ribbon-status]');
     await expect(status).toHaveText(label);
+    await expect(status).toBeVisible();
+    await expect(status).toBeInViewport();
     if (mode === 'empty') {
-      await expect(status).toBeHidden();
-      await expect(page.locator('[data-model-status]')).toBeVisible();
+      await expect(page.locator('[data-model-status]')).toBeHidden();
       await expect(page.locator('[data-message-stream]')).toBeEmpty();
-    } else {
-      await expect(status).toBeVisible();
-      await expect(status).toBeInViewport();
+      await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Ask a question…');
     }
     await expect(page.locator('[data-composer-input]')).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -150,6 +149,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await openParticipantControls(page);
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     await page.locator('[data-inspector-section="device"]').click();
+    await expect(page.locator('[data-contextual-inspector]').getByText('This device', { exact: true })).toHaveCount(1);
     await openParticipantControls(page);
     await expect(page.locator('[data-mesh-connect]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);

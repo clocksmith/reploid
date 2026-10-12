@@ -152,7 +152,7 @@ test('Verification Worker accepts repaired application modules', async ({ page }
   const paths = [
     ...['attachments', 'dialog', 'disclosure', 'model-select', 'permission-card'].map(name => `ui/components/${name}.js`),
     ...['conversation-list', 'conversation-workspace', 'document-search', 'execution-ribbon', 'index', 'message-list',
-      'navigation', 'network-controls', 'shell-view', 'specialist-routes', 'theme', 'view', 'work', 'work-approval-panel']
+      'navigation', 'network-controls', 'network-inspector', 'shell-view', 'specialist-routes', 'theme', 'view', 'work', 'work-approval-panel']
       .map(name => `ui/pool-home/${name}.js`),
     ...['chat-session', 'document-comparison', 'product-context', 'product-session', 'work-model-files', 'work-swarm'].map(name => `host/${name}.js`)
   ];

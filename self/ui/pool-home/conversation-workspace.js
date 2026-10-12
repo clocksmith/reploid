@@ -58,7 +58,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       </dialog>
       <dialog class="chat-model-setup pool-surface" data-model-picker aria-labelledby="chat-model-picker-title">
         <h2 id="chat-model-picker-title">Conversation model</h2><p data-current-model-description></p>
-        <p>This thread keeps its model. Choose a model for a new thread.</p>
+        <p>A new model starts a new thread.</p>
         <label>Model<select class="pool-input" data-next-model></select></label>
         <p data-next-model-status role="status" hidden></p>
         <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>New thread with this model</button></div>
@@ -165,19 +165,19 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       && (!requestedModel || requestedModel.id === peer.description.offer?.id
         && requestedModel.identity === peer.description.offer?.identity));
     const preparing = localPreparing || remotePreparing;
-    modelStatus.textContent = thread?.closed ? 'Archived thread. Restore it to continue.' : localPreparing ? 'Downloading model…' + (Number.isFinite(state.localModel.progress?.progress) ? ' ' + Math.round(state.localModel.progress.progress * 100) + '%' : '')
+    const attempt = thread?.attempts.at(-1);
+    // Availability belongs to the header. Keep only errors and actions specific
+    // to this composer, rather than repeating the same network state here.
+    modelStatus.textContent = thread?.closed ? 'Restore this thread to continue.'
       : state.localModel?.error && !usable ? 'Download failed: ' + state.localModel.error
-      : usable ? '' : state.network?.paused ? 'Disconnected. Reconnect to find a model.'
-      : remotePreparing ? 'A peer is preparing a model. Your draft stays here.'
-      : ['loading', 'preparing'].includes(models.find(model => keyFor(model) === current)?.availability) ? 'This model is preparing…'
-      : current ? 'This model is unavailable. Your draft stays here.'
-        : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding models…'
-          : 'No model available. Your draft stays here.';
+      : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy'].includes(model.availability))
+        ? 'Choose an available model.'
+      : !usable && attempt ? preparing ? 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.' : 'Model unavailable.' : '';
     modelStatus.hidden = !modelStatus.textContent;
     find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
     threads.update(state.threads, state.selectedId, { archived });
-    const attempt = thread?.attempts.at(-1), busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
+    const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
     find('[data-composer-send]').hidden = busy;
     find('[data-retry-connection]').hidden = busy || usable || preparing || state.network?.connecting || ['connecting', 'retrying'].includes(networkState); find('[data-composer-send]').disabled = reading || !usable || !!thread?.closed || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;

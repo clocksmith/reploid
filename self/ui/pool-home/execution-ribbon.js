@@ -23,8 +23,13 @@ export function projectExecutionRibbon(state) {
   // Discovery reports availability, never the health of an assigned execution channel.
   if (active && attempt.retryOf && ['queued', 'loading'].includes(status)) status = 'recovering';
   const ready = (state.models || []).filter(model => model.availability === 'ready');
-  const preparing = state.localModel?.phase === 'loading' || (state.models || []).some(model => ['loading', 'preparing'].includes(model.availability));
+  const downloading = state.localModel?.phase === 'loading';
+  const progress = state.localModel?.progress?.progress;
+  const preparing = downloading || (state.models || []).some(model => ['loading', 'preparing'].includes(model.availability))
+    || (state.network?.partitionPeers || []).some(peer => peer.available && peer.description?.phase === 'loading'
+      && (state.models || []).some(model => model.id === peer.description.offer?.id && model.identity === peer.description.offer?.identity));
   const availability = ready.length ? `${ready.length} model${ready.length === 1 ? '' : 's'} ready`
+    : downloading ? 'Downloading model' + (measured(progress) ? ` ${Math.round(progress * 100)}%` : '')
     : preparing ? 'Preparing model' : state.network?.paused ? 'Disconnected' : state.network?.connecting || ['connecting', 'retrying'].includes(state.network?.consumer?.connectionState) ? 'Finding capacity' : 'No model ready';
   const labels = { idle: availability, queued: 'Queued', loading: 'Loading', executing: 'Executing', approval: 'Awaiting approval',
     completed: 'Complete', failed: 'Failed', cancelled: 'Stopped', cancelling: 'Stopping', interrupted: 'Interrupted', disconnected: 'Disconnected', recovering: 'Recovering' };
@@ -37,7 +42,7 @@ export function projectExecutionRibbon(state) {
 }
 
 export function renderExecutionRibbon() {
-  return `<div class="execution-ribbon" data-execution-ribbon hidden>
+  return `<div class="execution-ribbon" data-execution-ribbon>
     <button class="execution-ribbon-trigger" type="button" aria-label="Inspect execution" aria-haspopup="dialog" data-ribbon-trigger>
       <span class="execution-ribbon-status" data-ribbon-status role="status"></span>
     </button>
@@ -57,7 +62,7 @@ export function routeMarkup(view) {
 
 export function detailMarkup(view) {
   const { attempt, execution, executors } = view;
-  return `<p>${escape(view.statusLabel)}${attempt?.error ? ': ' + escape(attempt.error) : ''}</p>
+  return `${attempt?.error ? `<p role="alert">${escape(attempt.error)}</p>` : ''}
     <dl><dt>Requester / output recipient</dt><dd>${escape(view.requester)}</dd>
     <dt>Model</dt><dd>${escape(view.model || 'No executor assigned')}</dd>
     <dt>Attempt duration</dt><dd>${ms(view.totalMs)}${view.totalMs === null && view.active ? ' · in progress' : ''}</dd>
@@ -90,8 +95,6 @@ export function bindExecutionRibbon(root, { onInspect = () => {} } = {}) {
   return {
     update(state) {
       const view = projectExecutionRibbon(state), changed = view.key !== key;
-      // Availability belongs beside the composer; this control describes an attempt.
-      ribbon.hidden = !view.attempt;
       if (changed) { key = view.key; lastResponse = view.response; stopPulse(); }
       find('[data-ribbon-status]').textContent = view.statusLabel;
       trigger.setAttribute('aria-label', `${view.statusLabel}. ${view.model ? view.model + ' on ' + view.executors.map(node => node.label).join(' and ') : 'No executor assigned'}. Execution details`);
