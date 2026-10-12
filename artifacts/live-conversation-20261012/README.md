@@ -231,3 +231,34 @@ Document usefulness/citations remain unqualified. Opening here uses verified
 pinned manifests, not signed Capsule physical opening. Both-placement release
 acceptance, the exact long-prompt lifecycle sequence on a replacement archive,
 and deployment remain open in the [canonical TODO](../../TODO.md).
+
+## Phone-sized attachments and revoked sharing
+
+At `067bc73d`, ordinary Chrome at 390 × 844 used the actual Suby input and Mac
+output partitions. This is a desktop browser viewport, not a physical phone.
+`phone-permissions.json` preserves a failed useful-answer test: the approved
+request included both the question asking the cost of three tickets and the
+complete attached $12-per-ticket passage. The completed answer only repeated
+$12 each, without the requested $36 total or passage citation. No input loss is
+visible at the requester approval boundary; downstream model attribution still
+requires a matching standalone replay. Missing citations prevented testing a
+real generated citation link in this run.
+
+The continuation verified Copy against the Mac clipboard, revoked the thread
+grant through Network, observed a renewed approval, declined it (settled as
+cancelled), and explicitly approved a separate new request. The new attempt
+completed, but again repeated $12 rather than answering the four-ticket
+follow-up. Its full ordered request contains the earlier question, answer and
+follow-up. These two factual failures remain failures, not UI acceptance.
+
+`phone-permissions-continuation.json` records passing permission/interaction
+checks, preserved unrelated conversation messages, saved draft and history after
+reload, and zero weight-file HTTP requests. The requester had no model opening.
+The controllers are retained alongside the receipts.
+
+Two diagnostic mistakes remain retained: a CDP clipboard read stalled after Copy
+had successfully written the real OS clipboard (verified with bounded `pbpaste`),
+and the controller initially expected transient approval state to be written to
+localStorage. The workspace intentionally notifies that state without persisting
+its pending approval. The corrected control observes the live approval panel and
+persisted cancellation/completion. Neither issue required a production change.

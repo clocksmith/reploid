@@ -1,0 +1,5 @@
+{
+  "controllerPid": 41754,
+  "failure": "navigator.clipboard.readText did not settle under CDP. Controller terminated before revocation; request/browser left alive. Copy button showed Copied; independent pbpaste read exact displayed answer.",
+  "disposition": "Use bounded OS clipboard observation for this Mac diagnostic; no product clipboard change."
+}
