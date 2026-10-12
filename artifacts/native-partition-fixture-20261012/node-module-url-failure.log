@@ -1,0 +1,42 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/native-partition-endpoint.test.js (4 tests | 1 failed) 94ms
+   ✓ rejects a non-loopback inspector before connecting 3ms
+   ✓ real Node inspector evaluates fixture operations and preserves thrown errors without any GPU 27ms
+   ✓ rejects an inspector lacking the owned fixture marker 22ms
+   × same resident observer captures actual Node lexical identity from exact module bytes 41ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-partition-endpoint.test.js > same resident observer captures actual Node lexical identity from exact module bytes
+AssertionError: Exactly one actual resident opening observation required
+
+0 !== 1
+
+
+- Expected
++ Received
+
+- 1
++ 0
+
+ ❯ Object.finish tests/fixtures/resident-opening-observer.js:51:14
+     49|       await pausedWork;
+     50|       if (errors.length) throw new AggregateError(errors, 'Resident op…
+     51|       assert.equal(observations.length, 1, 'Exactly one actual residen…
+       |              ^
+     52|       const observation = observations[0];
+     53|       // Derive from the observed resolved object with the installed h…
+ ❯ tests/unit/native-partition-endpoint.test.js:61:17
+ ❯ withInspector tests/unit/native-partition-endpoint.test.js:20:22
+ ❯ tests/unit/native-partition-endpoint.test.js:51:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  17:08:20
+   Duration  182ms (transform 15ms, setup 0ms, import 30ms, tests 94ms, environment 0ms)
+

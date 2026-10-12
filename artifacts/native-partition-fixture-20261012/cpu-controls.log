@@ -1,0 +1,17 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/concurrent-partition-memory.test.js (4 tests) 28ms
+ ✓ tests/unit/resident-opening-observer.test.js (7 tests) 9ms
+ ✓ tests/unit/partition-memory-observation.test.js (1 test) 14ms
+ ✓ tests/unit/partition-attempt-cleanup.test.js (2 tests) 4ms
+ ✓ tests/unit/paired-partition-binding.test.js (19 tests) 115ms
+ ✓ tests/unit/numerical-test-delivery.test.js (7 tests) 142ms
+ ✓ tests/unit/native-partition-endpoint.test.js (5 tests) 155ms
+ ✓ tests/unit/partition-diagnostic-selection.test.js (3 tests) 4ms
+
+ Test Files  8 passed (8)
+      Tests  48 passed (48)
+   Start at  17:16:23
+   Duration  338ms (transform 145ms, setup 0ms, import 259ms, tests 471ms, environment 220ms)
+

@@ -1,0 +1,34 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/native-partition-endpoint.test.js (4 tests | 1 failed) 96ms
+   ✓ rejects a non-loopback inspector before connecting 3ms
+   ✓ real Node inspector evaluates fixture operations and preserves thrown errors without any GPU 29ms
+   ✓ rejects an inspector lacking the owned fixture marker 24ms
+   × same resident observer captures actual Node lexical identity from exact module bytes 40ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-partition-endpoint.test.js > same resident observer captures actual Node lexical identity from exact module bytes
+Error: ReferenceError: __vite_ssr_dynamic_import__ is not defined
+    at <anonymous>:1:58
+    at <anonymous>:1:65
+ ❯ Object.evaluate tests/fixtures/native-partition-endpoint.js:57:40
+     55|     const result = await cdp.send('Runtime.evaluate', { expression: `(…
+     56|       awaitPromise: true, returnByValue: true });
+     57|     if (result.exceptionDetails) throw new Error(result.exceptionDetai…
+       |                                        ^
+     58|     assert(!result.result?.unserializableValue, 'Non-JSON fixture resu…
+     59|     return result.result?.value;
+ ❯ tests/unit/native-partition-endpoint.test.js:56:9
+ ❯ withInspector tests/unit/native-partition-endpoint.test.js:20:22
+ ❯ tests/unit/native-partition-endpoint.test.js:51:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  17:07:18
+   Duration  191ms (transform 16ms, setup 0ms, import 32ms, tests 96ms, environment 0ms)
+

@@ -55,7 +55,7 @@ export async function observeResidentOpening(page, { runtimeBaseUrl, factorySour
       // Use the same CDP session so scriptParsed precedes this response; another
       // Playwright session can otherwise finish before our Debugger event arrives.
       const derived = await cdp.send('Runtime.evaluate', { awaitPromise: true, returnByValue: true,
-        expression: `(async () => { const { observeInitialExecutionIdentity } = await import(${JSON.stringify(identityUrl)}); return observeInitialExecutionIdentity(${JSON.stringify(observation.resolvedRuntimeSession)}); })()` });
+        expression: `(async () => { const { observeInitialExecutionIdentity } = await ${page.native ? '__nativePartitionFixture.importModule' : 'import'}(${JSON.stringify(identityUrl)}); return observeInitialExecutionIdentity(${JSON.stringify(observation.resolvedRuntimeSession)}); })()` });
       assert(!derived.exceptionDetails, JSON.stringify(derived.exceptionDetails));
       const initialExecutionIdentity = derived.result.value;
       assert(initialExecutionIdentity, 'Observed session did not produce an execution identity');
