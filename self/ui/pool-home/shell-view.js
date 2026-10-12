@@ -3,7 +3,21 @@ import { renderSettings } from './theme.js';
 import { renderExecutionRibbon } from './execution-ribbon.js';
 import { escapeHtml } from '../components/attachments.js';
 import { getPeerRoomId } from '../../host/product-context.js';
-const roomHref = (path, room) => { const url = new URL(path, 'https://reploid.invalid'); if (room) url.searchParams.set('room', room); return url.pathname + url.search; };
+import { DEFAULT_PEER_ROOM_ID } from '../../pool/peer-room.js';
+
+export const omitDefaultRoom = (url) => {
+  const implicitRoom = window.REPLOID_POOL_ROOM_ID || DEFAULT_PEER_ROOM_ID;
+  if (implicitRoom === DEFAULT_PEER_ROOM_ID && url.searchParams.get('room') === DEFAULT_PEER_ROOM_ID) {
+    url.searchParams.delete('room');
+  }
+  return url;
+};
+const roomHref = (path, room) => {
+  const url = new URL(path, 'https://reploid.invalid');
+  if (room) url.searchParams.set('room', room);
+  omitDefaultRoom(url);
+  return url.pathname + url.search;
+};
 
 export const normalizeProductPath = (path = window.location.pathname) => {
   try {

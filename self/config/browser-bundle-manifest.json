@@ -3120,8 +3120,8 @@
     },
     {
       "path": "ui/pool-home/navigation.js",
-      "byteLength": 3463,
-      "sha256": "sha256:98e4874a4447e083726ec1847f7f2fe4b6f40a24892741147c8aa49739b98bc5"
+      "byteLength": 3747,
+      "sha256": "sha256:5ce4ed8fe057bdba359ca6bf18df48acedc9762cea3fb1d4048a0a0140bedc20"
     },
     {
       "path": "ui/pool-home/network-controls.js",
@@ -3205,8 +3205,8 @@
     },
     {
       "path": "ui/pool-home/shell-view.js",
-      "byteLength": 3605,
-      "sha256": "sha256:3ca18594cd82ecb0642d01593bbc44c75c9348d271e372ee25c0fb63cb746e78"
+      "byteLength": 3980,
+      "sha256": "sha256:2244c08928770f0b83388db443895b1a2d154bd4467bba510d0687bba21ec205"
     },
     {
       "path": "ui/pool-home/simulation-batches.js",
@@ -9554,5 +9554,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:6f7a4f88f15f62bae7d1a68b89d3fe450267de4732c0c5d016250ef1ed9c34c1"
+  "bundleHash": "sha256:baaaa699e6738a968c500e060993a3139f8b7f79016d10b0b0f998f97066d4bf"
 }

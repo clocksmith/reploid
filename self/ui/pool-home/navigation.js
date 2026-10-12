@@ -1,4 +1,4 @@
-import { isProductPath } from './shell-view.js';
+import { isProductPath, omitDefaultRoom } from './shell-view.js';
 const applyPoolNavOpenState = (nav, navToggle, isOpen) => {
   const openLabel = 'Close navigation';
   const closedLabel = 'Open navigation';
@@ -15,6 +15,10 @@ export const bindPoolRouteControls = (mount, render, {
   onLeave = () => {},
   onNavOpenChange = () => {}
 } = {}) => {
+  const current = omitDefaultRoom(new URL(window.location.href));
+  if (current.href !== window.location.href) {
+    window.history.replaceState(window.history.state, '', `${current.pathname}${current.search}${current.hash}`);
+  }
   const nav = mount.querySelector('.pool-nav-rail');
   const navToggle = mount.querySelector('.pool-nav-toggle');
   const navMenu = mount.querySelector('.pool-nav-menu');
@@ -48,6 +52,7 @@ export const bindPoolRouteControls = (mount, render, {
           destination.searchParams.set(key, currentUrl.searchParams.get(key));
         }
       }
+      omitDefaultRoom(destination);
       return `${destination.pathname}${destination.search}${destination.hash}`;
     };
     // Native new-tab navigation must retain the same context as an ordinary click.

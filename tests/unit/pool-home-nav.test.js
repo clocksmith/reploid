@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { LAB_SURFACE_IDS, SURFACE_INTENTS } from '../../self/config/surface-intents.js';
+import { bindPoolRouteControls } from '../../self/ui/pool-home/navigation.js';
 
 import {
   POOLDAY_NAV_ROUTES,
@@ -25,6 +26,23 @@ import {
 } from '../../self/ui/pool-home/view.js';
 
 describe('poolday home navigation', () => {
+  it('keeps the default room implicit while preserving custom rooms and URL context', () => {
+    const original = window.location.href;
+    try {
+      window.history.replaceState({ retained: true }, '', '/?room=reploid-default&relay=local#answer');
+      const mount = document.createElement('div');
+      mount.innerHTML = renderNav('improve');
+      bindPoolRouteControls(mount, () => {});
+      expect(window.location.pathname + window.location.search + window.location.hash).toBe('/?relay=local#answer');
+      expect(window.history.state).toEqual({ retained: true });
+      expect(mount.querySelector('[aria-label="Reploid home"]').getAttribute('href')).toBe('/?relay=local');
+      window.history.replaceState({}, '', '/?room=custom-room');
+      mount.innerHTML = renderNav('improve');
+      bindPoolRouteControls(mount, () => {});
+      expect(window.location.search).toBe('?room=custom-room');
+      expect(mount.querySelector('[aria-label="Reploid home"]').getAttribute('href')).toBe('/?room=custom-room');
+    } finally { window.history.replaceState({}, '', original); }
+  });
   it('owns the execution ribbon in the app bar, outside the conversation', () => {
     const host = document.createElement('div');
     host.innerHTML = renderNav('home') + renderRoutePanel('home');
