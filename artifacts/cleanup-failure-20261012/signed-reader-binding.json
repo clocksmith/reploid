@@ -1,0 +1,23 @@
+{
+  "scope": "Actual Reploid host artifact source with candidate signed reader; synthetic two-byte peer transport. No GPU, signatures, or physical qualification.",
+  "packagePath": "/Users/xyz/deco/doppler/reports/local/paired-intermediates-20261012/model-3/package",
+  "candidateFiles": {
+    "src/client/runtime/capsule-piece-reader.js": "eecafa00489c76d36ec5f4e3b808e3d531c0d076731845c1c67a0b18165abff8",
+    "src/client/runtime/composition-root.js": "1697d50b8efe8282c04690c2101280d3384badf3223b889ce9aaa7b2049acfc7",
+    "src/storage/verified-piece-reader.js": "d8a72192c6f63272dda2beb483ffbdbfab67bc5248f1352a38582bb12783ee72",
+    "src/client/runtime/verified-capsule-artifact-store.js": "6a102c8638ebed10c761fef020636ca870997509263924512066409d2998c949"
+  },
+  "observations": {
+    "manifestStorageVerifiedBytes": 0,
+    "signedReaderVerifiedBytes": 2,
+    "custodyPeerBytes": 2,
+    "custodyTransfers": 1,
+    "readRange": {
+      "offset": 0,
+      "requestedBytes": 1,
+      "acquiredBytes": 2
+    },
+    "beforeReadRanges": []
+  },
+  "snapshotMeaning": "composition-root captures getPieceVerification after programFactory and identity checks. observation resident-opening is an opening-time snapshot, not live later reads. Ranges are appended only after actual acquired piece hash verification and copying."
+}

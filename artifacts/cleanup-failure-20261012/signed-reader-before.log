@@ -1,0 +1,37 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/work-partition-capsule-source.test.js (5 tests | 1 failed) 451ms
+   ✓ provides pinned metadata and complete cached pieces without requiring an external signal 6ms
+   ✓ rejects changed artifact identities, undeclared files and non-piece ranges before acquisition 1ms
+   ✓ propagates cancellation before retained piece reads 1ms
+   ✓ maps Rig model artifacts through the signed manifest directory, without basename fallback 1ms
+   × uses actual signed-reader counters after host artifactStore acquisition bypasses manifest storage 441ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/work-partition-capsule-source.test.js > uses actual signed-reader counters after host artifactStore acquisition bypasses manifest storage
+AssertionError: expected [Function] to not throw an error but 'AssertionError [ERR_ASSERTION]: Fresh…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"AssertionError [ERR_ASSERTION]: Fresh verified selective acquisition required"
+
+ ❯ tests/unit/work-partition-capsule-source.test.js:135:62
+    133|       identity: 'sha256:' + hash(weight.slice(0, 2)) }]);
+    134|     expect(acquire).toHaveBeenCalledOnce();
+    135|     expect(() => assertSignedPreparation(actual, model)).not.toThrow();
+       |                                                              ^
+    136|     expect(() => assertSignedPreparation({ ...actual, acquisition: { .…
+    137|       custody: { peerBytes: 0, transfers: 0, cacheBytes: 2 } } }, mode…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  16:21:42
+   Duration  741ms (transform 448ms, setup 0ms, import 214ms, tests 451ms, environment 0ms)
+

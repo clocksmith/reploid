@@ -113,3 +113,37 @@ rejects the existing trusted packaging tool's `node:child_process` use and its
 `process.exitCode` assignment (matched as `process.exit`). This existing scope
 limitation remains recorded in `signed-runner-worker.json`; the validator and
 subprocess ownership were not changed. No blanket Worker pass is claimed.
+
+### Corrected signed acquisition observation
+
+The first controller assertion incorrectly required `source.getReceipt().verifiedBytes`
+to increase. The signed host calls `artifactStore.readArtifactRange`, which goes
+directly through custody acquisition; its separately created manifest storage is
+unused and that counter legitimately remains zero. `signed-reader-before.log`
+reproduces the rejection through the actual browser host source and archive3's
+actual signed reader (only peer transport and OPFS are synthetic).
+
+The corrected assertion uses `capsuleVerification.pieceVerification`:
+`observation: "resident-opening"`, actual nonzero `verifiedBytes`, `pieces` and
+`ranges`. `composition-root.js` captures this after `programFactory` finishes
+opening, not at initial scope selection. `verified-piece-reader.js` appends ranges
+only after acquiring the complete piece, checking its hash, and copying requested
+bytes. This is a fixed opening observation, not a live counter for later reads.
+Fresh remote acquisition additionally requires `source.getReceipt().custody.peerBytes`
+and `transfers` to be positive; a cache-only reopen cannot satisfy this control.
+
+The actual storage regression requests one byte, acquires/verifies its full
+two-byte piece, observes manifest storage zero, signed verified bytes two and one
+peer transfer; it rejects cache-only and zero-verification variants. Five host
+checks pass with:
+
+```sh
+DOPPLER_SIGNED_READER_PACKAGE=../doppler/reports/local/paired-intermediates-20261012/model-3/package \
+  npx vitest run --config tests/vitest.config.js tests/unit/work-partition-capsule-source.test.js
+```
+
+The candidate-dependent case is explicitly skipped if that environment variable
+is absent; the logged run above executed it. `signed-reader-binding.json` binds
+the actual candidate reader/composition source. The separate existing Doppler
+`tests/runtime/resident-piece-acquisition.test.js` exercises signed runtime opening
+and its honest post-read receipt. Neither check supplies real-model qualification.
