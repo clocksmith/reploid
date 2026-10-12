@@ -652,20 +652,20 @@ Do not start with a public mesh. Start with your own devices.
 
 ---
 
-### 16. Verification Checklist
+### 16. Verification requirements
 
-- [ ] Peer identity persists across page reloads
-- [ ] Shamir split/reconstruct round-trips correctly for t-of-n
-- [ ] Shares are AES-GCM wrapped at rest in IndexedDB
-- [ ] Witness refuses share release when receipt log diverges
-- [ ] Witness refuses share release when requester quota exhausted
-- [ ] Executor reconstructs key, calls Gemini, zeroizes
-- [ ] 16KB chunks stay under 64KB transport limit (with envelope overhead)
-- [ ] Receipt log merges correctly (G-Counter: max per peer)
-- [ ] Lease batches amortize quorum (no per-call ceremony)
-- [ ] BYOK prompt at 80%, hard stop at 100%
-- [ ] Minimal boot shows goal + go only
-- [ ] `?deal=true` triggers key deal ceremony for MVP setup
+- Peer identity persists across page reloads
+- Shamir split/reconstruct round-trips correctly for t-of-n
+- Shares are AES-GCM wrapped at rest in IndexedDB
+- Witness refuses share release when receipt log diverges
+- Witness refuses share release when requester quota exhausted
+- Executor reconstructs key, calls Gemini, zeroizes
+- 16KB chunks stay under 64KB transport limit (with envelope overhead)
+- Receipt log merges correctly (G-Counter: max per peer)
+- Lease batches amortize quorum (no per-call ceremony)
+- BYOK prompt at 80%, hard stop at 100%
+- Minimal boot shows goal + go only
+- `?deal=true` triggers key deal ceremony for MVP setup
 
 ---
 

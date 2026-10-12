@@ -310,7 +310,7 @@ describe('StreamingResponseHandler', () => {
 });
 ```
 
-## Future Enhancements
+## Optional contract extensions
 
 1. **Adaptive Buffering:** Adjust chunk size based on network speed
 2. **Progress Estimation:** Estimate completion percentage

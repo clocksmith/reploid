@@ -32,7 +32,7 @@ artifacts before evidence, transfer time, latency, cost, and deterministic tie.
 Only fully promoted and published adapters are routable. Every provider still
 runs the full model. Base-model peer shard relay is not part of the live path.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Rejected candidates retain stable reason codes
 - [x] Candidate order does not change the decision hash
 - [x] Assignment, acquisition, transfer, and receipt bind the route hash

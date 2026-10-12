@@ -31,7 +31,7 @@ assertion may bind the root to a passkey.
 The exportable fallback is labeled. Passkeys do not prevent Sybil identities.
 Delegations expire and bind an exact participation-profile hash.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] One root delegates distinct role keys
 - [x] Delegations verify role, key, capability, profile, and expiry
 - [x] Protection level remains visible

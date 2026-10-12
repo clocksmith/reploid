@@ -28,7 +28,7 @@ The adapter owns storage keys, room transitions, limits, legacy peer-ledger migr
 ### 3. Implementation Notes
 Storage failures degrade to empty/no-op behavior for hardened browser contexts. Records never leak between room-scoped keys.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Receipt and peer ledgers remain room-isolated
 - [x] Legacy local events migrate only for the default room
 - [x] Pool record tests pass

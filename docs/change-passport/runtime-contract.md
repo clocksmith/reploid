@@ -1,5 +1,10 @@
 # Change Passport Runtime Contract
 
+Change Passport remains an inactive commercial alternative. This page defines
+its implemented interfaces and required evidence; it does not select work.
+[Product intent](product-intent.md) and the [pilot charter](pilot-charter.md)
+own their separate product and external-adoption boundaries.
+
 ## Local start
 
 The Change Control API is mounted at `/change-control` and the operator surface
@@ -143,3 +148,56 @@ Cloud Run revision, branch-protection rule, deployment target, or external
 operator outcome. Those remain blocked in the
 [surface claim index](../status/surface-claim-index.json) until matching live
 evidence is retained.
+
+## Component ownership
+
+| Path | Responsibility |
+|------|----------------|
+| `self/shared/change-passport/` | Browser-safe event contract, policy, canonicalization, verification, deterministic projection, and Zero/X adapter |
+| `self/core/change-passport*.js` | Browser/VFS compatibility exports for the shared contract |
+| `server/change-control/` | Hosted store, authorization, API, GitHub App, effect adapters, and trigger ingestion |
+| `self/ui/change-passport/` | Operator review, evidence, dissent, approval, effect, and reopening views |
+| `packages/change-passport/` | Standalone TypeScript client, package-local declarations, and bundled offline verifier |
+| `.github/actions/change-passport/` | Reusable CI action for candidate freeze, evidence upload, and required-check polling |
+| `tests/fixtures/change-passport/` | Canonical valid and adversarial conformance fixtures |
+| `tests/unit/change-passport*.test.js` | Contract, projection, policy, and adapter unit evidence |
+| `tests/integration/change-passport*.test.js` | Hosted API, store, auth, GitHub, and effect integration evidence |
+| `tests/e2e/change-passport.spec.js` | Browser review and complete governed-change journey |
+| `scripts/verify-change-passport.js` | Offline export and signature verifier |
+| `scripts/build-change-passport-sdk.js` | Deterministic standalone SDK bundle, declaration build, and stale-distribution check |
+| `server/change-control/visual-workflow.js` | Bridge receipt ingestion, independent evaluation, human acceptance, CI activation, render outcome, reversal, and reopening orchestration |
+| `scripts/verify-visual-change-passport-dogfood.js` | Physical-browser local proof using the canonical Bridge patch implementation |
+
+Each new component receives a CATSCAN before implementation. The generic
+change-control service must not be placed under `self/pool/` or `server/pool/`.
+
+## Release and claim gates
+
+Do not claim Change Passport is implemented, secure, live, or commercially
+validated from this contract. Update the surface claim index only when matching
+evidence exists.
+
+Before a supported release:
+
+```bash
+npm run verify:catscan
+npm run verify:surface-claims
+npm run verify:browser-bundle:local
+npm run verify:change-passport:sdk
+npm run verify:change-passport:pilot
+npm exec -- tsc -p tests/tsconfig.change-passport.json --noEmit
+npm run verify:change-passport:visual
+npm run test:unit
+npm run test:integration
+npm run test:e2e
+node scripts/verify-change-passport.js <export-path>
+```
+
+The release record must bind clean Git source, server revision, browser bundle,
+schema version, policy version, SDK and action versions, GitHub App identity,
+durable-store migration, verifier bytes, and matching live sandbox evidence.
+
+The [prior implementation record](https://github.com/clocksmith/reploid/blob/342f0760f80f66d851ef33ffaa9b83b482dc2572/docs/change-passport/implementation-plan.md)
+retains milestone chronology, local and live observations, and unresolved
+external installability/pilot acceptance. Removing that duplicate plan does not
+change support status, operator authority, or any blocked external claim.

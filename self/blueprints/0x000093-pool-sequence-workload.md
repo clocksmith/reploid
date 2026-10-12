@@ -36,7 +36,7 @@ sequence bytes travel through the selected provider's WebRTC DataChannel. A
 different governed contract is required for private, medical, or proprietary
 sequence data.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Normalization and alphabet validation fail closed
 - [x] Sequence requests contain no raw input
 - [x] Masked-logit output is bounded

@@ -192,12 +192,12 @@ const widget = {
     - `{ element: 'pyodide-runtime-widget', displayName: 'Pyodide Runtime', icon: '⚯', category: 'runtime' }`
 12. **Test** Shadow DOM rendering, lifecycle cleanup, and closure access to runtime state
 
-### 4. Verification Checklist
-- [ ] Double init doesn’t spawn duplicate workers (guard via `isReady`).
-- [ ] Timeouts reject promises with descriptive errors.
-- [ ] stdout/stderr events arrive in order and include original payload.
-- [ ] Packages install inside worker without blocking UI thread.
-- [ ] Worker termination frees resources (no zombie workers).
+### 4. Verification requirements
+- Double init doesn’t spawn duplicate workers (guard via `isReady`).
+- Timeouts reject promises with descriptive errors.
+- stdout/stderr events arrive in order and include original payload.
+- Packages install inside worker without blocking UI thread.
+- Worker termination frees resources (no zombie workers).
 
 ### 5. Extension Opportunities
 - Support multiple named runtimes (parallel sandboxes).

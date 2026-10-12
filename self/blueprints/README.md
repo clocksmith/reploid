@@ -20,6 +20,14 @@
 | Summary Stub / Shell | Generated boilerplate with no unique architecture. These were removed and are forbidden by the verifier. |
 | Index & Meta Contract | Unnumbered runtime, promotion, tool, index, audit, and navigation contracts. |
 
+## Verification and work selection
+
+Numbered blueprints define unique mechanics and verification conditions. These
+conditions remain requirements until their scoped evidence exists; removing an
+unchecked marker does not mark them verified. Declared artifact/status metadata
+and its generated registry remain unchanged. Actual implementation selection
+belongs only to [TODO.md](../../TODO.md), not a blueprint work order.
+
 ## Status
 
 Every canonical numbered specification declares exactly one status:

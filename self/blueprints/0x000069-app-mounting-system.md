@@ -435,7 +435,7 @@ if (AuditLogger) {
 
 ---
 
-## 6. Implementation Phases
+## 6. Integration requirements
 
 ### Phase 1: Static App Loading
 1. Create manifest schema and validation
@@ -627,27 +627,27 @@ const AppBridge = {
 ## 10. Success Criteria
 
 **Functionality:**
-- [ ] Apps discoverable from `/apps/` directory
-- [ ] Apps mount in sandboxed iframes
-- [ ] API bridge enables VFS read/write
-- [ ] API bridge enables EventBus subscribe/emit
-- [ ] Permission model enforced
+- Apps discoverable from `/apps/` directory
+- Apps mount in sandboxed iframes
+- API bridge enables VFS read/write
+- API bridge enables EventBus subscribe/emit
+- Permission model enforced
 
 **Security:**
-- [ ] Apps cannot access host DOM
-- [ ] Apps cannot read unauthorized VFS paths
-- [ ] All API calls audit logged
-- [ ] CSP prevents external resource loading
+- Apps cannot access host DOM
+- Apps cannot read unauthorized VFS paths
+- All API calls audit logged
+- CSP prevents external resource loading
 
 **Integration:**
-- [ ] Apps panel in proto UI
-- [ ] CreateApp tool for agent use
-- [ ] Auto-mount on boot works
-- [ ] HITL approval for app creation
+- Apps panel in proto UI
+- CreateApp tool for agent use
+- Auto-mount on boot works
+- HITL approval for app creation
 
 ---
 
 **See Also:**
-- [Blueprint 0x000041: Module Widget Protocol](0x000048-module-widget-protocol.md)
-- [Blueprint 0x000040: Verification Manager](0x000047-verification-manager.md)
-- [docs/security.md](../docs/security.md)
+- [Blueprint 0x000041: Module Widget Protocol](0x000041-module-widget-protocol.md)
+- [Blueprint 0x000040: Verification Manager](0x000040-verification-manager.md)
+- [Authority and permissions](../../docs/GOVERNANCE_DETAILS.md)

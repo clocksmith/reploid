@@ -42,3 +42,8 @@ model, provider, cycles, mutations, visible result, and final verdict.
 
 Remaining work belongs only in the registry's `openWork` collection. Narrative
 docs and blueprint checklists do not own current journey status.
+
+`openWork` records describe journey acceptance gaps, not a second execution
+queue. [TODO.md](../../TODO.md) selects implementation; a selected item links
+back to the existing journey and evidence IDs. Unselected gaps remain visible
+without authorizing another campaign.

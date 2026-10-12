@@ -35,7 +35,7 @@ history, participants, proposals, memory, and provenance remain inspectable
 under one collapsed disclosure. Home links to the room instead of rendering its
 governance surface ahead of the primary protein task.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Records remain room-isolated
 - [x] Publication persists locally before remote I/O
 - [x] Duplicate hashes are idempotent

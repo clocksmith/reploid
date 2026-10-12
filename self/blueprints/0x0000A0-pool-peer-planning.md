@@ -55,7 +55,7 @@ delivers that exact job through `runPrepared`. Connection cancellation and late
 resource cleanup use the declared deadline. No new transport implementation or
 model-specific room scheduler is introduced.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Runtime grouping preserves deterministic precedence
 - [x] Ring quorum and layout hashes derive from policy
 - [x] Multi-provider and ring tests pass

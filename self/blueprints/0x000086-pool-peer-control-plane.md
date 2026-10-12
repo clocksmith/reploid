@@ -91,7 +91,7 @@ at-least-once, without exactly-once execution or immediate GPU termination claim
 See [complete Pack jobs](../../docs/poolday/complete-pack-jobs.md) for API,
 limits, admission and evidence boundaries.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Prompt remains outside discovery messages
 - [x] Assignment binds route, advert, profile, and limits
 - [x] Agreement rejects receipts from a different route

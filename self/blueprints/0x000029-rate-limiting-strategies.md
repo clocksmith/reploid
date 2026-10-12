@@ -67,12 +67,12 @@ if (!globalLimiter.tryConsume()) {
    - On limit breach, queue deferred tasks with exponential backoff or degrade to cached responses.
    - Offer `Estimate` version that returns wait time to user (`getTimeUntilNextToken`).
 
-### 4. Verification Checklist
-- [ ] Token bucket accurately refills proportional to elapsed time (unit tests across intervals).
-- [ ] Sliding window purges timestamps older than window.
-- [ ] Limiters remain deterministic regardless of clock skew (use Date.now).
-- [ ] Logging levels appropriate (info on creation, warn on limit).
-- [ ] Works in offline/browser contexts without Node globals.
+### 4. Verification requirements
+- Token bucket accurately refills proportional to elapsed time (unit tests across intervals).
+- Sliding window purges timestamps older than window.
+- Limiters remain deterministic regardless of clock skew (use Date.now).
+- Logging levels appropriate (info on creation, warn on limit).
+- Works in offline/browser contexts without Node globals.
 
 ### 5. Web Component Widget
 
@@ -232,7 +232,7 @@ const widget = {
 - Uses closure access to module state (limiters)
 - Shadow DOM encapsulation for styling
 
-### 6. Extension Ideas
+### 6. Optional contract extensions
 - Persist rate limiter state in `StateManager` to survive reloads.
 - Support distributed coordination (share counts across tabs via `TabCoordinator`, 0x000040).
 - Provide policy DSL (e.g., "3 requests per 10s and 60 requests per hour").

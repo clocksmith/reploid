@@ -137,7 +137,7 @@ The following were removed from DOPPLER and must be implemented here:
 
 ---
 
-## 4. Verification Checklist
+## 4. Verification requirements
 
 - [x] Behavior matches blueprint intent
 - [x] Dependencies are declared and available
@@ -145,8 +145,8 @@ The following were removed from DOPPLER and must be implemented here:
 - [x] UCB1 selection implemented
 - [x] Temporal ring implemented
 - [x] Evolution implemented
-- [ ] Tests for orchestrator logic
-- [ ] Integration test with real DOPPLER pipeline
+- Tests for orchestrator logic
+- Integration test with real DOPPLER pipeline
 
 ---
 

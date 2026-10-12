@@ -210,12 +210,12 @@ const widget = {
     - `{ element: 'reflection-store-widget', displayName: 'Reflection Store', icon: '☁', category: 'learning' }`
 12. **Test** Shadow DOM rendering, lifecycle cleanup, outcome tracking, and closure access to store state
 
-### 4. Verification Checklist
-- [ ] Database upgrades preserve existing data (version bump migration path).
-- [ ] `addReflection` rejects missing required fields.
-- [ ] Index-based queries return results matching filters.
-- [ ] Report generation includes summary, patterns, recent reflections.
-- [ ] Export/import round-trip preserves count and metadata.
+### 4. Verification requirements
+- Database upgrades preserve existing data (version bump migration path).
+- `addReflection` rejects missing required fields.
+- Index-based queries return results matching filters.
+- Report generation includes summary, patterns, recent reflections.
+- Export/import round-trip preserves count and metadata.
 
 ### 5. Extension Opportunities
 - Add sentiment/score fields to reflections for richer analytics.

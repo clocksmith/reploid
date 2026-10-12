@@ -205,14 +205,14 @@ const widget = {
 7. **Data Access**
    - Downstream modules (e.g., Metrics Proto) call `PerformanceMonitor.getMetrics()` to render charts. Avoid mutating returned objects.
 
-### 4. Verification Checklist
-- [ ] Missing events degrade gracefully (no `undefined` timers).
-- [ ] Memory sampler stops when module `destroy()` invoked.
-- [ ] Metrics reset when persona/session restarts.
-- [ ] Tool duration accuracy within ±5ms for operations <1s.
-- [ ] LLM token counts align with provider responses.
+### 4. Verification requirements
+- Missing events degrade gracefully (no `undefined` timers).
+- Memory sampler stops when module `destroy()` invoked.
+- Metrics reset when persona/session restarts.
+- Tool duration accuracy within ±5ms for operations <1s.
+- LLM token counts align with provider responses.
 
-### 5. Extension Ideas
+### 5. Optional contract extensions
 - Export metrics to `paxos-analytics.json` for offline analysis.
 - Introduce configurable thresholds that trigger toast warnings when latency spikes.
 - Feed tool performance into self-tuning heuristics (e.g., auto-disable slow experimental tools).

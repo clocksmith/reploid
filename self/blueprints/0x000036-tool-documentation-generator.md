@@ -476,12 +476,12 @@ const getStats = async () => {
    - Tracks success/failure status for each generation
    - Displays error feedback in widget UI
 
-### 4. Verification Checklist
-- [ ] Generated markdown includes correct tool counts and table of contents.
-- [ ] Parameter tables reflect required vs optional fields accurately.
-- [ ] Output schema (if present) renders property tables.
-- [ ] Examples display JSON blocks with both input and output when provided.
-- [ ] Files saved to VFS and accessible from `docs/tools/`.
+### 4. Verification requirements
+- Generated markdown includes correct tool counts and table of contents.
+- Parameter tables reflect required vs optional fields accurately.
+- Output schema (if present) renders property tables.
+- Examples display JSON blocks with both input and output when provided.
+- Files saved to VFS and accessible from `docs/tools/`.
 
 ### 5. Extension Opportunities
 - Generate HTML or interactive docs (e.g., Swagger-like UI).

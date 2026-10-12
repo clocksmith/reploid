@@ -266,12 +266,12 @@ The widget provides complete visibility into the hybrid orchestration system's b
 - Support multi-modal messages (images) when both providers handle them
 - Widget can display additional metrics as features expand
 
-### 4. Verification Checklist
-- [ ] Switching to local fails gracefully if runtime not ready (returns false and logs warning).
-- [ ] Fallback triggers only once per failure and notifies UI.
-- [ ] Streaming generator terminates with `done: true` and usage data.
-- [ ] `getStatus()` accurately reflects runtime state immediately after events.
-- [ ] Cloud client absence surfaces helpful error message.
+### 4. Verification requirements
+- Switching to local fails gracefully if runtime not ready (returns false and logs warning).
+- Fallback triggers only once per failure and notifies UI.
+- Streaming generator terminates with `done: true` and usage data.
+- `getStatus()` accurately reflects runtime state immediately after events.
+- Cloud client absence surfaces helpful error message.
 
 ### 5. Extension Opportunities
 - Integrate with persona definitions (some personas default to local/local-first).

@@ -371,9 +371,9 @@ EventBus.on('hitl:approval-rejected', onApprovalRejected);         // Re-render 
 - [x] Event listeners cleaned up on disconnect
 
 **User Experience:**
-- [ ] Keyboard shortcuts for faster approval workflow
-- [ ] Persisted HITL configuration across sessions
-- [ ] Export/import of module mode configurations
+- Keyboard shortcuts for faster approval workflow
+- Persisted HITL configuration across sessions
+- Export/import of module mode configurations
 
 ---
 
@@ -386,7 +386,7 @@ EventBus.on('hitl:approval-rejected', onApprovalRejected);         // Re-render 
 
 ---
 
-## Future Enhancements
+## Optional contract extensions
 
 1. **Persistent Configuration** - Store HITL modes in StateManager/Storage
 2. **Approval History** - Keep log of all approval decisions

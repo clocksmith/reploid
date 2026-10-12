@@ -376,18 +376,18 @@ Add feature flag check in UIManager to choose between monolithic and modular Sta
 
 ---
 
-## 4. Verification Checklist
+## 4. Verification requirements
 
-- [ ] Aggregates status from all module widgets
-- [ ] Displays current FSM state in real-time
-- [ ] Shows module counts (total, active, error)
-- [ ] Expands/collapses detailed view on click
-- [ ] Updates every 1 second (real-time)
-- [ ] Feature flag controls visibility
-- [ ] Handles missing modules gracefully
-- [ ] Cleanup removes all EventBus listeners
-- [ ] Unit tests cover aggregation logic
-- [ ] Performance remains smooth with 81+ modules
+- Aggregates status from all module widgets
+- Displays current FSM state in real-time
+- Shows module counts (total, active, error)
+- Expands/collapses detailed view on click
+- Updates every 1 second (real-time)
+- Feature flag controls visibility
+- Handles missing modules gracefully
+- Cleanup removes all EventBus listeners
+- Unit tests cover aggregation logic
+- Performance remains smooth with 81+ modules
 
 ---
 

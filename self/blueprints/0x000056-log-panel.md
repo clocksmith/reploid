@@ -353,18 +353,18 @@ Add feature flag check in UIManager to switch between monolithic and modular Log
 
 ---
 
-## 4. Verification Checklist
+## 4. Verification requirements
 
-- [ ] Circular buffer limits logs to MAX_LOGS (default 1000)
-- [ ] All log levels (DEBUG, INFO, WARN, ERROR) supported
-- [ ] Filtering by level, source, text works correctly
-- [ ] Auto-scroll enabled by default, disables on manual scroll
-- [ ] Export to JSON and TXT formats
-- [ ] HTML escaping prevents XSS in log messages
-- [ ] Feature flag controls visibility
-- [ ] EventBus cleanup in `disconnectedCallback()`
-- [ ] Unit tests cover all filtering scenarios
-- [ ] Performance remains smooth with 1000+ logs
+- Circular buffer limits logs to MAX_LOGS (default 1000)
+- All log levels (DEBUG, INFO, WARN, ERROR) supported
+- Filtering by level, source, text works correctly
+- Auto-scroll enabled by default, disables on manual scroll
+- Export to JSON and TXT formats
+- HTML escaping prevents XSS in log messages
+- Feature flag controls visibility
+- EventBus cleanup in `disconnectedCallback()`
+- Unit tests cover all filtering scenarios
+- Performance remains smooth with 1000+ logs
 
 ---
 

@@ -73,7 +73,7 @@ Primary navigation remains a compact horizontal shell on desktop and mobile.
 It contains exactly Run a model, Share compute, Recent jobs, and a subordinate
 network-availability indicator.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Adapter selection reaches peer job model requirements
 - [x] Requester approval remains prompt- and model-bound
 - [x] Base-model-only providers cannot capture adapter work

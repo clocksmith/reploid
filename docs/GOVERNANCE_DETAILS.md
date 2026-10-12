@@ -535,7 +535,7 @@ explicit permissions and isolation requirements. A route or profile never
 establishes evaluator independence. Candidates cannot control protected tests,
 their evaluator, permission ceilings, approval, or activation.
 
-The named [scientific-policy promotion workflow](poolday/product-intent.md#scientific-policy-promotion-boundary)
+The named [scientific-policy promotion workflow](poolday/product-intent-checkpoint-2026-10-09.md#scientific-policy-promotion-boundary)
 assigns a Zero proposer, a distinct X evaluator, a human approver, and a Poolday
 policy owner. Those are that protocol's role assignments, not definitions of
 Zero and X. Its frozen cohorts, protected evaluation, review, revocation and
@@ -598,7 +598,7 @@ object design, current status, and executable policy live in:
 - [`docs/poolday/claims-and-nonclaims.md`](poolday/claims-and-nonclaims.md)
 - [`docs/poolday/discovery-contract.md`](poolday/discovery-contract.md)
 - [`docs/change-passport/product-intent.md`](change-passport/product-intent.md)
-- [`docs/change-passport/implementation-plan.md`](change-passport/implementation-plan.md)
+- [`docs/change-passport/implementation-plan.md`](change-passport/runtime-contract.md)
 - [`docs/rsi-improvement-episodes.md`](rsi-improvement-episodes.md)
 - [`docs/status/surface-claim-index.json`](status/surface-claim-index.json)
 - [`self/pool/pool-config.json`](../self/pool/pool-config.json)

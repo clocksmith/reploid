@@ -4,8 +4,8 @@
 
 These views trace the ordinary distributed conversation through the implementation
 at `1c8860f4`. They describe ownership and message flow, not a qualification result.
-The README contains component and recovery diagrams; the generation sequence,
-source owners and contracts remain here.
+The README contains the graphical system overview and component map. Recovery
+diagrams, the generation sequence, source owners, and contracts remain here.
 The dated design and its original gap ledger remain below. Solid arrows in the
 component view are calls or data flow; dotted arrows supply observations.
 
@@ -78,10 +78,26 @@ Sequence owners: [partition-chat.js](../packages/reploid/src/mesh/partitions/par
 
 ### Attempt failure and recovery
 
-The linked diagram shows selected transitions from the chat workspace. A retry
+The diagram shows selected transitions from the chat workspace. A retry
 constructs a new attempt; it does not revive missing generation state.
 
-[View this diagram in the README.](../README.md#attempt-failure-and-recovery)
+```mermaid
+flowchart TB
+    ADMIT["Authorize and admit attempt"] --> RUN["Prepare and execute"]
+    RUN -->|complete| DONE["Retain answer<br/>and outcome"]
+    RUN -->|Stop| CANCEL["Cancel identified work<br/>await owned cleanup"]
+    CANCEL --> STOPPED["Keep partial answer<br/>and stop reason"]
+    RUN -->|error or peer loss| PARTIAL["Keep partial answer<br/>and error"]
+    PARTIAL -->|explicit Retry| NEW["New authorized attempt"]
+    STOPPED -->|explicit Retry| NEW
+    NEW --> ADMIT
+    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
+    classDef resource fill:#edf3ff,stroke:#2563eb,color:#111827
+    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
+    class ADMIT,NEW contract
+    class DONE,STOPPED,PARTIAL resource
+    class RUN,CANCEL compute
+```
 
 Reload marks unfinished saved attempts interrupted; the user can explicitly retry.
 UI navigation detaches a view rather than closing the application session.
@@ -98,7 +114,7 @@ This is the implementation design for the requested open mesh experience. It is
 not a release claim. The acceptance ledger below separates existing mechanisms,
 missing integration, and required proof. The governing boundaries remain
 [GOALS](../GOALS.md), [CATSCAN](../CATSCAN.md), and the
-[network plan](poolday/executable-intelligence-network-plan.md).
+[network plan](open-mesh-architecture.md).
 
 ## 1. Product contract
 
@@ -549,30 +565,12 @@ evaluation/adoption purpose.
 These are interaction requirements, not final marketing copy. The user's promise
 “access intelligence beyond your device” requires the combined-capacity proof.
 
-## 13. Implementation order and exit evidence
+## 13. Work selection
 
-Each row produces a reviewable runtime change and an executable check. Parallel
-work is possible only where dependencies permit; no gate is replaced by copy.
-
-| Step | Concrete delta and owner | Exit evidence |
-| --- | --- | --- |
-| 1 | Freeze exact catalog artifacts, runtime identity, limits and failing normal-page reproduction | Retained baseline failure, hardware/browser IDs and origin-access trace |
-| 2 | Repair bounded artifact/staging accounting and interrupted-file index recovery | Same-quota real model load; corruption/eviction/reopen tests; no increased supply limit hiding repeated reads |
-| 3 | Deliver one compatible Doppler package with public residents, dependency descriptions and verified piece storage | Installed-package and browser export parity; exact artifact rejection; public API numerical conformance |
-| 4 | Replace whole-shard range acquisition with stable authenticated pieces; add complementary inventories and retention leases | Origin-off acquisition of only required ranges; per-source byte ledger; restart/corruption/cancellation tests |
-| 5 | Extend discovery from public bootstrap to bounded sampling, directory leases and queries | Join/leave/churn test with per-device connection, state, bandwidth and query caps unchanged as network size grows |
-| 6 | Add provider-owned resource reservations and deterministic automatic partition placement | Simultaneous-request admission, expiry, partial reservation rollback, stale advertisement and consent tests |
-| 7 | Compose residents, custody, placement and partition entry into normal chat startup | Three ordinary clients: requester without weights, A/B with distinct partitions, actual streamed Doppler output |
-| 8 | Qualify isolated multi-thread execution, stop, delivery replay and valid reconstruction/retry | Two live conversations, one cancelled, one completes; no shared KV/adapters; retained partial output and bounded cleanup |
-| 9 | Add granted replication and bounded repair on contributor loss | Complementary sources plus a replica; origin disabled; one supplier lost; verified reconstruction and bounded duplicate work |
-| 10 | Execute the full physical-device matrix and combined-capacity case | Identified machines and limits; unsplit infeasible under each individual ceiling; split answer within every ceiling |
-| 11 | Qualify the UX and dependable launch capacity | Fresh-user first answer, clear consent, contribution stop, accessibility, network outage and repeat-use checks |
-| 12 | Evaluate routing from measured results | Frozen deterministic baseline versus learned routing on unseen work; correctness, full costs, uncertainty and regressions retained |
-
-Steps 3, 5 and the reservation contract can be developed independently of the
-whole-request loading repair. Their integration still depends on verified public
-runtime and custody boundaries. The existing network plan's scientific and
-improvement experiments retain their own acceptance gates.
+[TODO.md](../TODO.md) owns implementation selection and dependencies. This
+architecture defines mechanics and acceptance, not a second ordered campaign.
+A selected change retains its failure reproduction, public contract identities,
+regression checks, resource limits, and failed outcomes.
 
 ## 14. End-to-end acceptance matrix
 
@@ -607,12 +605,78 @@ Seed a small admitted model set with dependable capacity; expand only after
 reliability measurements support it. Learned routing cannot relax verification,
 resource or disclosure constraints and is introduced after this baseline works.
 
-## 15. Implementation checkpoint
+## 15. Evidence routing
 
-The [retained checkpoint](../artifacts/open-mesh/20261001/README.md) records the
-storage-accounting repair and four passing browser guard tests, including the
-Verification Worker. The real normal-page test now reaches Doppler `Ready` from
-peer files with the executor origin blocked and the same 320 MiB storage quota.
-It then fails generation with the CPU-resident embedding/preloaded-row error.
-That runtime boundary remains unresolved; this architecture is not a claim that
-the product now works end to end.
+[Chat acceptance](chat-mvp.md), the [surface claim index](status/surface-claim-index.json),
+and [TODO.md](../TODO.md) own current qualification and selected work. The
+[storage checkpoint](../artifacts/open-mesh/20261001/README.md) retains the original
+loading repair and subsequent generation failure; its scope is historical.
+Architecture diagrams and specifications do not establish current deployment.
+
+## Network comparison acceptance
+
+N0-N7 below define a separate bounded experiment. Its frozen history comparison
+tests a benefit claim; it does not gate authorized runtime belief updates,
+participation, partition experiments or adoption under an existing operator grant.
+
+Retain ESM-2 as a bounded systems control while adding the assistant operations. It
+does not establish biological truth or the separate Research Room scientific
+success gate.
+
+| Gate | Required work | Exit evidence | Does not prove |
+| --- | --- | --- | --- |
+| N0: freeze | Pin the Doppler Pack, application contract, public inputs, provider policy, baseline routing policy, later-job cohort, corruption cases, source topology, and comparison metrics. | Signed or content-addressed experiment manifest fixed before execution. | Network behavior. |
+| N1: artifact source contract | Let Poolday advertise and select authorized Pack sources while Doppler remains authority for Pack and shard verification. | Exact Pack root, shard hashes, source identities, authorization policy, and source-selection receipts. | Multi-peer recovery. |
+| N2: origin-loss reconstruction | Three independently operated machines supply complementary model pieces to a clean fourth machine. Disable origin and mirrors, reject corruption, recover from a disappearing supplier, and execute the reconstructed Pack. | Complete Pack verification, source ledger, independent-operation evidence, failure records, unchanged acceptance result, and no origin or mirror access. | Honest hardware or useful inference demand. |
+| N3: revision reuse | Publish a second authorized Pack or adapter revision with shared content. | Exact accounting of reused and newly transferred bytes without weakening identity or revocation. | A network effect. |
+| N4: complete-job execution | Assign bounded generation, embedding, reranking, and ESM-2 jobs. Exercise streaming, cancellation, deadlines, retry attempts, deduplication, backpressure, resource limits, and participant loss. Compare with a conventional centralized queue on the same computers. | Assignment, transport, provider, result, comparison, full cost, failure, and requester acceptance records. | Model partitioning, honest hardware, or scientific correctness. |
+| N5: governed memory | Admit only independently reviewed, active evidence; preserve rejected, disputed, corrected, and revoked records outside reusable decision memory. | Deterministic archive and decision-memory projections with review identities. | Improved later work. |
+| N6a: participation test | Run the frozen later-job cohort with the baseline provider set and with an expanded eligible-provider set under the same memory and routing policy. | Paired results showing a predeclared improvement attributable to added eligible providers. | Evidence-driven learning. |
+| N6b: memory test | Freeze 1,000 historical jobs, then evaluate unseen jobs with random no-history, competent reliability/load, and admitted-history schedulers at fixed capacity and correctness. | A predeclared meaningful improvement against both controls, with uncertainty and all resource costs. | General network value. |
+| N7: external reliance | An unrelated requester and separately operated declared providers repeat the bounded workflow and return for another job. | External identities, authorization, retained outcomes, and repeat demand. | Physical or organizational independence unless separately established. |
+
+### Feedback controls
+
+N6a and N6b must isolate the two claimed network effects.
+
+- For N6a, freeze memory, routing policy, job order, workload identities,
+  failure injection, retry limits, and resource budget. Change only the
+  eligible provider set.
+- For N6b, freeze the available provider set, job order, workload identities,
+  failure injection, retry limits, and resource budget. Change only whether
+  the routing policy may consume N5 memory.
+- The random no-history control uses current compatibility, availability, load,
+  locality, and declared costs to establish eligibility. The competent
+  reliability/load control additionally uses measured completion, latency,
+  failures, and workload/environment conditioning. Both are frozen before the
+  unseen cohort. Only the history arm consumes reviewed explanations,
+  corrections, and scoped admitted knowledge from N5.
+- Candidate routing may use only evidence admitted under the named policy.
+- Select the primary outcome before execution: completion, accepted-result
+  rate, recovery cost, bytes transferred, time to accepted result, or another
+  requester-valued measure.
+- Retain regressions and inconclusive outcomes. Do not select a different metric
+  after observing results.
+- Trace every changed assignment to the exact admitted records that influenced
+  it.
+
+If memory changes no assignment, investigation, replication decision, or
+outcome, the intelligence-sharing claim fails even when the archive grows.
+
+### Placement evidence
+
+Compatibility, permission, and reservation checks precede ranking. Historical
+observations bind workload cohort, exact model/adapter/operation, limits, and
+reported environment. The host owns admission, revocation, and persistence;
+environment labels are not hardware attestation.
+
+Copies with the same dependency count once. Conflicting dependent reports
+require a joint model and are rejected; expired, unrelated, and censored samples
+do not become independent counts or automatic failures. Replay reconstructs the
+projection from the admissible window so removed evidence leaves no hidden score.
+Synthetic posterior tests do not establish calibration or useful physical gains.
+
+The [original network design and checkpoints](https://github.com/clocksmith/reploid/blob/342f0760f80f66d851ef33ffaa9b83b482dc2572/docs/poolday/executable-intelligence-network-plan.md) preserve prior whole-job,
+partition, placement, and improvement sequencing. Their historical order cannot
+start another campaign. Transferable improvement and causal recursion retain the
+protected evaluation and adoption rules in [improvement episodes](rsi-improvement-episodes.md).

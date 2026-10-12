@@ -525,21 +525,21 @@ class TelemetryTimelineWidget extends HTMLElement {
 customElements.define('telemetry-timeline-widget', TelemetryTimelineWidget);
 ```
 
-### 9. Verification Checklist
+### 9. Verification requirements
 
-- [ ] `record()` creates entry with ID, timestamp, type, payload, metadata
-- [ ] `record()` adds to in-memory buffer (max 500 entries)
-- [ ] `record()` persists to VFS in JSONL format
-- [ ] `record()` emits `telemetry:recorded` event
-- [ ] `getRecent()` returns entries from buffer
-- [ ] `getEntries()` reads from VFS for date range
-- [ ] `getEntries()` handles missing log files gracefully
-- [ ] `queryByType()` filters entries by event type
-- [ ] `exportRun()` creates replay-compatible format
-- [ ] EventBus listeners capture `agent:*` events
-- [ ] EventBus listeners capture `tool:*` events
-- [ ] Date path format is `YYYY-MM-DD`
-- [ ] JSONL format is valid (one JSON per line)
+- `record()` creates entry with ID, timestamp, type, payload, metadata
+- `record()` adds to in-memory buffer (max 500 entries)
+- `record()` persists to VFS in JSONL format
+- `record()` emits `telemetry:recorded` event
+- `getRecent()` returns entries from buffer
+- `getEntries()` reads from VFS for date range
+- `getEntries()` handles missing log files gracefully
+- `queryByType()` filters entries by event type
+- `exportRun()` creates replay-compatible format
+- EventBus listeners capture `agent:*` events
+- EventBus listeners capture `tool:*` events
+- Date path format is `YYYY-MM-DD`
+- JSONL format is valid (one JSON per line)
 
 ### 10. Extension Opportunities
 

@@ -39,7 +39,7 @@ Quorum selects its agreement field from the workload. Raw prompts, sequences,
 embedding vectors, token vectors, and logits are not signed receipt fields.
 Requester acceptance binds the compact agreement, receipt set, and point split.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Receipt construction recomputes sequence-result identity
 - [x] Browser and server verification require matching sequence evidence
 - [x] Commit-reveal binds the workload-specific result hash
