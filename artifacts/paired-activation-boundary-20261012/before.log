@@ -1,0 +1,65 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/partition-paired-boundary.test.js (5 tests | 5 failed) 5ms
+   × forwards every high/low bit with the provider-declared paired contract 4ms
+   × rejects a missing precision before remote disclosure 0ms
+   × rejects a missing components before remote disclosure 0ms
+   × rejects a missing elementStrideBytes before remote disclosure 0ms
+   × charges both components to the unchanged transfer allowance 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 5 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/partition-paired-boundary.test.js > forwards every high/low bit with the provider-declared paired contract
+Error: Valid Doppler layer partition plan required
+ ❯ assert packages/reploid/src/mesh/partitions/partition-runner.js:4:50
+      2| /** Coordinates one Doppler token step through both partitions. No mod…
+      3| import { partitionFingerprint } from './partition-contract.js';
+      4| const assert = (ok, message) => { if (!ok) throw new Error(message); };
+       |                                                  ^
+      5| const identifier = value => typeof value === 'string' && value.length …
+      6| const positive = value => Number.isSafeInteger(value) && value > 0;
+ ❯ createLayerPartitionRunner packages/reploid/src/mesh/partitions/partition-runner.js:38:3
+ ❯ Object.execute tests/unit/partition-paired-boundary.test.js:32:51
+ ❯ tests/unit/partition-paired-boundary.test.js:40:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/5]⎯
+
+ FAIL  tests/unit/partition-paired-boundary.test.js > rejects a missing precision before remote disclosure
+ FAIL  tests/unit/partition-paired-boundary.test.js > rejects a missing components before remote disclosure
+ FAIL  tests/unit/partition-paired-boundary.test.js > rejects a missing elementStrideBytes before remote disclosure
+Error: Valid Doppler layer partition plan required
+ ❯ assert packages/reploid/src/mesh/partitions/partition-runner.js:4:50
+      2| /** Coordinates one Doppler token step through both partitions. No mod…
+      3| import { partitionFingerprint } from './partition-contract.js';
+      4| const assert = (ok, message) => { if (!ok) throw new Error(message); };
+       |                                                  ^
+      5| const identifier = value => typeof value === 'string' && value.length …
+      6| const positive = value => Number.isSafeInteger(value) && value > 0;
+ ❯ createLayerPartitionRunner packages/reploid/src/mesh/partitions/partition-runner.js:38:3
+ ❯ Object.execute tests/unit/partition-paired-boundary.test.js:32:51
+ ❯ tests/unit/partition-paired-boundary.test.js:47:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/5]⎯
+
+ FAIL  tests/unit/partition-paired-boundary.test.js > charges both components to the unchanged transfer allowance
+Error: Valid Doppler layer partition plan required
+ ❯ assert packages/reploid/src/mesh/partitions/partition-runner.js:4:50
+      2| /** Coordinates one Doppler token step through both partitions. No mod…
+      3| import { partitionFingerprint } from './partition-contract.js';
+      4| const assert = (ok, message) => { if (!ok) throw new Error(message); };
+       |                                                  ^
+      5| const identifier = value => typeof value === 'string' && value.length …
+      6| const positive = value => Number.isSafeInteger(value) && value > 0;
+ ❯ createLayerPartitionRunner packages/reploid/src/mesh/partitions/partition-runner.js:38:3
+ ❯ Object.execute tests/unit/partition-paired-boundary.test.js:32:51
+ ❯ tests/unit/partition-paired-boundary.test.js:50:48
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/5]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  5 failed (5)
+   Start at  14:34:26
+   Duration  379ms (transform 25ms, setup 0ms, import 121ms, tests 5ms, environment 172ms)
+

@@ -13,6 +13,9 @@ export type ActivationFrame = DopplerActivationFrame;
 export interface PartitionRuntime {
   LAYER_PARTITION_SCHEMA: string;
   ACTIVATION_TENSOR_SCHEMA: string;
+  getPartitionActivationContract?(plan: PartitionPlan): { schema: string; dtype: string;
+    precision: string; components: number; elementStrideBytes: number; hiddenSize: number };
+  validateActivationFrameForPlan?(frame: unknown, plan: PartitionPlan): unknown;
   serializeActivationFrame(options: ActivationTensor & { metadata: Record<string, unknown> }): ActivationFrame;
   deserializeActivationFrame(frame: ActivationFrame): unknown;
 }
