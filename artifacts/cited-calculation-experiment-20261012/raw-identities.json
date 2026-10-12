@@ -1,0 +1,22 @@
+{
+  "result.json": {
+    "sha256": "cfd57ca342d01d83bce25a2407a45714b50f9544db6c39d334890666ac19839c",
+    "bytes": 46779
+  },
+  "result-fresh-bathroom-comparison-extract.json": {
+    "sha256": "2fe4deaab6826432b839e0ce6913fd58ed5f558a9d59f0099061d8b102978a5d",
+    "bytes": 16528
+  },
+  "result-fresh-bathroom-comparison-answer.json": {
+    "sha256": "2f5a413ad04ebfce4443553742760f51ba8cdf773ab630951cc0a0185a3a7a9e",
+    "bytes": 21867
+  },
+  "result-fresh-bathroom-correction-extract.json": {
+    "sha256": "e44c21d0ad5b4554890e6b6a33218b22e3a3796de18d50de13428bd2eb15951d",
+    "bytes": 30634
+  },
+  "run.log": {
+    "sha256": "97c8f482138ba615f3c9db410b9d780b9d1985235a046eaf88306eaa3e4a1312",
+    "bytes": 12266
+  }
+}

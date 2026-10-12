@@ -1,0 +1,45 @@
+{
+  "schema": "reploid.cited-calculation-manual-review/v1",
+  "status": "rejected; stopped at second case boundary",
+  "modelOutputRepaired": false,
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "status": "rejected",
+      "naturalCompletion": true,
+      "generatedTokens": 1335,
+      "totalChargedTokens": 2762,
+      "rawOutputUtf16": 4926,
+      "toolAccepted": false,
+      "factualFailures": [
+        "Linden September12 plus three weeks wrongly called September24.",
+        "Falsely concludes all three documents exclude tax; Quarry includes it.",
+        "Resolves contradictory plumbing clauses by claiming likely exclusion.",
+        "Invents two successful calculation receipts although actual tool only rejected malformed JSON.",
+        "No exact passage citations and no successful tool-backed derivations."
+      ],
+      "extractionFailure": "Comma-separated facts without facts/operations root; JSON Extra data at char90. Missing operations, wrong source IDs and nonverbatim operands also observed."
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "status": "rejected",
+      "naturalCompletion": false,
+      "generatedTokens": 1536,
+      "totalChargedTokens": 2449,
+      "rawOutputUtf16": 5404,
+      "stopReason": "max-tokens",
+      "toolAccepted": false,
+      "answerRun": false,
+      "failure": "Repeated date records until1536 extraction cap; no naturally completed tool plan."
+    }
+  ],
+  "unrunCaseIds": [
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "unrunDisposition": "Neither failures nor passes; no candidate output read for these five cases.",
+  "rawRootReportCaveat": "Boundary stop occurred after terminal second-extraction phase receipt but before wrapper copied it into root result.json. The separate phase receipt is authoritative for that failure."
+}
