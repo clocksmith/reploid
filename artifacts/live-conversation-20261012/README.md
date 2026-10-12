@@ -206,6 +206,24 @@ The same committed source packaged and verified all 1,904 served assets at
 `settlement-hosting.log.gz` and `settlement-served.log.gz` retain local delivery
 checks. Later readiness changes receive their own generated bundle identity.
 
+## Readiness after a physical restart
+
+`readiness-recovery-physical.json` and its controller repeat Mac contribution
+stop during the actual Suby/Mac answer with requester source `83c7b690`.
+The immediate explicit retry meets an unavailable prepared path and sends no
+approved input. Its fresh rejection now changes the model control from Ready
+to Unavailable (observed within 76 ms), rather than leaving the rejected offer
+visible. Newly observed readiness returns after preparation; a separately
+approved retry completes and preserves every preceding partial message.
+The answer repeats the retained offline-backup factual error. Lifecycle success
+does not grant answer-quality acceptance. No automatic retry or resumed state
+was introduced. The original readiness failure remains retained above.
+
+At `9e031fff`, x@128 also passes **27 integration files / 392 tests**, with three
+files and 11 tests explicitly skipped. The bounded command was
+`npx vitest run --config tests/vitest.config.js tests/integration --maxWorkers=2`;
+`settlement-integration-pass.log.gz` retains its output.
+
 ## Still open
 
 Numerical acceptance remains failed against the approved F64 target at 0.001.
