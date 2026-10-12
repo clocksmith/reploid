@@ -1,0 +1,295 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/work-partitions-lifecycle.test.js (61 tests | 8 failed) 26ms
+   ✓ requires a session cleanup owner before constructing a signed factory 1ms
+     × preserves an explicit provider-produced paired plan instead of rebuilding a scalar plan 4ms
+     × rejects unrelated declared plan before acquisition 3ms
+     × rejects unrelated declared plan before acquisition 1ms
+     × settles acquired storage when provider rejects the declared plan geometry 1ms
+     ✓ closes acquired storage when plan setup rejects 0ms
+     ✓ closes acquired storage when hash setup rejects 1ms
+     ✓ closes acquired storage when factory setup rejects 0ms
+     ✓ closes acquired storage when resident setup rejects 0ms
+     ✓ preserves missing-supplier failure when tokenizer loader masks it (fallback=false) 1ms
+     ✓ preserves missing-supplier failure when tokenizer loader masks it (fallback=true) 0ms
+     ✓ retains tokenizer acquisition and cleanup failures without claiming settlement 1ms
+     ✓ keeps unrelated execution failure when tokenizer acquisition succeeds 0ms
+     ✓ settles storage even when resident cleanup fails and retains both failures 0ms
+     ✓ retains storage cleanup failure alongside the original opening failure 0ms
+     ✓ honors cancellation after source acquisition before opening a resident 0ms
+     ✓ transfers successful storage ownership to the resident factory 0ms
+     ✓ uses signed opening only when explicitly configured and passes pinned custody without changing trust 1ms
+     ✓ never falls back to manifest execution for incomplete signed configuration 0ms
+     ✓ rejects changed release authorization before resident computation 0ms
+     ✓ closes a signed session rejected by current release admission 0ms
+     ✓ settles signed source and release owners even when GPU session cleanup fails 0ms
+     ✓ preserves operation failure and post-operation revocation together 0ms
+     ✓ settles signed source and release exactly once after failed preparation cleanup 0ms
+     ✓ concurrent signed close callers await the same settled cleanup 0ms
+     ✓ retries failed session cleanup without reclosing settled owners 0ms
+     ✓ retries failed source cleanup without reclosing settled owners 0ms
+     ✓ retries failed release cleanup without reclosing settled owners 0ms
+     ✓ hands failed admission cleanup to the preparation owner until the unreturned session settles 0ms
+     ✓ passes explicit generation to admission and uses its context for owned cache allocation 0ms
+     ✓ rejects unsupported explicit generation before acquiring model files or GPU resources 0ms
+     × preserves an explicit provider-produced paired plan instead of rebuilding a scalar plan 1ms
+     × rejects unrelated declared plan before acquisition 1ms
+     × rejects unrelated declared plan before acquisition 1ms
+     × settles acquired storage when provider rejects the declared plan geometry 0ms
+     ✓ closes acquired storage when plan setup rejects 0ms
+     ✓ closes acquired storage when hash setup rejects 0ms
+     ✓ closes acquired storage when factory setup rejects 0ms
+     ✓ closes acquired storage when resident setup rejects 0ms
+     ✓ preserves missing-supplier failure when tokenizer loader masks it (fallback=false) 0ms
+     ✓ preserves missing-supplier failure when tokenizer loader masks it (fallback=true) 0ms
+     ✓ retains tokenizer acquisition and cleanup failures without claiming settlement 0ms
+     ✓ keeps unrelated execution failure when tokenizer acquisition succeeds 0ms
+     ✓ settles storage even when resident cleanup fails and retains both failures 0ms
+     ✓ retains storage cleanup failure alongside the original opening failure 0ms
+     ✓ honors cancellation after source acquisition before opening a resident 0ms
+     ✓ transfers successful storage ownership to the resident factory 0ms
+     ✓ uses signed opening only when explicitly configured and passes pinned custody without changing trust 0ms
+     ✓ never falls back to manifest execution for incomplete signed configuration 0ms
+     ✓ rejects changed release authorization before resident computation 0ms
+     ✓ closes a signed session rejected by current release admission 0ms
+     ✓ settles signed source and release owners even when GPU session cleanup fails 0ms
+     ✓ preserves operation failure and post-operation revocation together 0ms
+     ✓ settles signed source and release exactly once after failed preparation cleanup 0ms
+     ✓ concurrent signed close callers await the same settled cleanup 0ms
+     ✓ retries failed session cleanup without reclosing settled owners 0ms
+     ✓ retries failed source cleanup without reclosing settled owners 0ms
+     ✓ retries failed release cleanup without reclosing settled owners 0ms
+     ✓ hands failed admission cleanup to the preparation owner until the unreturned session settles 0ms
+     ✓ passes explicit generation to admission and uses its context for owned cache allocation 0ms
+     ✓ rejects unsupported explicit generation before acquiring model files or GPU resources 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 8 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > browser resident opening > preserves an explicit provider-produced paired plan instead of rebuilding a scalar plan
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > native resident opening > preserves an explicit provider-produced paired plan instead of rebuilding a scalar plan
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "activationDtype": "f32",
+        "modelId": "fixture",
+        "splitLayer": 2,
+      },
+    ]
+
+
+Number of calls: 1
+
+ ❯ tests/unit/work-partitions-lifecycle.test.js:70:26
+     68|   ports.activationContract.mockReturnValue({ dtype: 'f32', precision: …
+     69|   const result = await loadWorkPartition(files, { ...selected, partiti…
+     70|   expect(ports.plan).not.toHaveBeenCalled();
+       |                          ^
+     71|   expect(ports.validatePlan).toHaveBeenCalledWith(source.manifest, { p…
+     72|   expect(ports.hash).toHaveBeenCalledWith(plan);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/8]⎯
+
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > browser resident opening > rejects unrelated declared plan before acquisition
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > native resident opening > rejects unrelated declared plan before acquisition
+AssertionError: promise resolved "{ runtime: { …(9) }, …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "getReceipt": [Function getReceipt],
++   "model": {
++     "generation": {
++       "maxSeqLen": 8192,
++       "maxTokens": 4096,
++       "presencePenalty": 0,
++       "repetitionPenalty": 1.1,
++       "repetitionPenaltyWindow": 0,
++       "stopSequences": [],
++       "suppressTokenIds": [],
++       "temperature": 0,
++       "topK": 1,
++       "topP": 1,
++       "useChatTemplate": true,
++     },
++     "id": "fixture",
++     "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "partitionPlan": {
++       "modelId": "different",
++       "splitLayer": 2,
++     },
++     "partitionSplitLayer": 2,
++   },
++   "plan": {
++     "partitions": [],
++   },
++   "planId": "plan",
++   "resident": {
++     "close": [Function Mock],
++     "prepare": [Function Mock],
++   },
++   "runtime": {
++     "configureDeviceMemoryBudget": [Function Mock],
++     "createLayerPartitionPlan": [Function Mock],
++     "createManifestResidentPartitionFactory": [Function Mock],
++     "createResidentPartitionFactory": [Function Mock],
++     "getPartitionActivationContract": [Function Mock],
++     "hashLayerPartitionPlan": [Function Mock],
++     "inspectDeviceMemory": [Function Mock],
++     "resolveLayerPartition": [Function Mock],
++     "validateActivationFrameForPlan": [Function Mock],
++   },
+  }
+
+ ❯ tests/unit/work-partitions-lifecycle.test.js:79:92
+     77|
+     78| it.each([{ modelId: 'different', splitLayer: 2 }, { modelId: 'fixture'…
+     79|   await expect(loadWorkPartition(files, { ...selected, partitionPlan: …
+       |                                                                                            ^
+     80|   expect(files.preparePartitionSource).not.toHaveBeenCalled();
+     81| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/8]⎯
+
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > browser resident opening > rejects unrelated declared plan before acquisition
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > native resident opening > rejects unrelated declared plan before acquisition
+AssertionError: promise resolved "{ runtime: { …(9) }, …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "getReceipt": [Function getReceipt],
++   "model": {
++     "generation": {
++       "maxSeqLen": 8192,
++       "maxTokens": 4096,
++       "presencePenalty": 0,
++       "repetitionPenalty": 1.1,
++       "repetitionPenaltyWindow": 0,
++       "stopSequences": [],
++       "suppressTokenIds": [],
++       "temperature": 0,
++       "topK": 1,
++       "topP": 1,
++       "useChatTemplate": true,
++     },
++     "id": "fixture",
++     "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "partitionPlan": {
++       "modelId": "fixture",
++       "splitLayer": 1,
++     },
++     "partitionSplitLayer": 2,
++   },
++   "plan": {
++     "partitions": [],
++   },
++   "planId": "plan",
++   "resident": {
++     "close": [Function Mock],
++     "prepare": [Function Mock],
++   },
++   "runtime": {
++     "configureDeviceMemoryBudget": [Function Mock],
++     "createLayerPartitionPlan": [Function Mock],
++     "createManifestResidentPartitionFactory": [Function Mock],
++     "createResidentPartitionFactory": [Function Mock],
++     "getPartitionActivationContract": [Function Mock],
++     "hashLayerPartitionPlan": [Function Mock],
++     "inspectDeviceMemory": [Function Mock],
++     "resolveLayerPartition": [Function Mock],
++     "validateActivationFrameForPlan": [Function Mock],
++   },
+  }
+
+ ❯ tests/unit/work-partitions-lifecycle.test.js:79:92
+     77|
+     78| it.each([{ modelId: 'different', splitLayer: 2 }, { modelId: 'fixture'…
+     79|   await expect(loadWorkPartition(files, { ...selected, partitionPlan: …
+       |                                                                                            ^
+     80|   expect(files.preparePartitionSource).not.toHaveBeenCalled();
+     81| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/8]⎯
+
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > browser resident opening > settles acquired storage when provider rejects the declared plan geometry
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > native resident opening > settles acquired storage when provider rejects the declared plan geometry
+AssertionError: promise resolved "{ runtime: { …(9) }, …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "getReceipt": [Function getReceipt],
++   "model": {
++     "generation": {
++       "maxSeqLen": 8192,
++       "maxTokens": 4096,
++       "presencePenalty": 0,
++       "repetitionPenalty": 1.1,
++       "repetitionPenaltyWindow": 0,
++       "stopSequences": [],
++       "suppressTokenIds": [],
++       "temperature": 0,
++       "topK": 1,
++       "topP": 1,
++       "useChatTemplate": true,
++     },
++     "id": "fixture",
++     "identity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "partitionPlan": {
++       "modelId": "fixture",
++       "splitLayer": 2,
++     },
++     "partitionSplitLayer": 2,
++   },
++   "plan": {
++     "partitions": [],
++   },
++   "planId": "plan",
++   "resident": {
++     "close": [Function Mock],
++     "prepare": [Function Mock],
++   },
++   "runtime": {
++     "configureDeviceMemoryBudget": [Function Mock],
++     "createLayerPartitionPlan": [Function Mock],
++     "createManifestResidentPartitionFactory": [Function Mock],
++     "createResidentPartitionFactory": [Function Mock],
++     "getPartitionActivationContract": [Function Mock],
++     "hashLayerPartitionPlan": [Function Mock],
++     "inspectDeviceMemory": [Function Mock],
++     "resolveLayerPartition": [Function Mock],
++     "validateActivationFrameForPlan": [Function Mock],
++   },
+  }
+
+ ❯ tests/unit/work-partitions-lifecycle.test.js:85:125
+     83| it('settles acquired storage when provider rejects the declared plan g…
+     84|   ports.validatePlan.mockImplementation(() => { throw new Error('Parti…
+     85|   await expect(loadWorkPartition(files, { ...selected, partitionPlan: …
+       |                                                                                                                             ^
+     86|   expect(source.storage.close).toHaveBeenCalledOnce();
+     87|   expect(ports.resident).not.toHaveBeenCalled();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/8]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  8 failed | 53 passed (61)
+   Start at  15:55:12
+   Duration  298ms (transform 150ms, setup 0ms, import 196ms, tests 26ms, environment 0ms)
+

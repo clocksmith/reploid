@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/native-participant.test.js (8 tests) 12ms
+ ✓ tests/unit/catscan.test.js (5 tests) 181ms
+
+ Test Files  2 passed (2)
+      Tests  13 passed (13)
+   Start at  16:00:21
+   Duration  427ms (transform 164ms, setup 0ms, import 293ms, tests 193ms, environment 172ms)
+

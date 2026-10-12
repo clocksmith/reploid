@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/work-partition-plan.test.js (4 tests) 3ms
+ ✓ tests/unit/work-partitions-lifecycle.test.js (61 tests) 20ms
+
+ Test Files  2 passed (2)
+      Tests  65 passed (65)
+   Start at  15:56:01
+   Duration  290ms (transform 171ms, setup 0ms, import 342ms, tests 22ms, environment 0ms)
+

@@ -1789,14 +1789,19 @@
       "sha256": "sha256:73419939ca3a843efd8f5ec1d02ad7c179425dc10d8ff6848d3db75f30eda4b9"
     },
     {
+      "path": "host/work-partition-plan.js",
+      "byteLength": 1519,
+      "sha256": "sha256:49aa4dbcb13d79e50aa2fa8e3457de8241c3acc86afbfcd2d1e0fb4cf3ccfa26"
+    },
+    {
       "path": "host/work-partition-tokenizer-guard.js",
       "byteLength": 863,
       "sha256": "sha256:a5c2ea8c6d89fdfd0c39177c19ff4570fe69407d83ef99d9ea38e7fb9fb39fe1"
     },
     {
       "path": "host/work-partitions.js",
-      "byteLength": 5422,
-      "sha256": "sha256:1fd948f32d5c914b73aee7f9c2200e1534e30ae168a0743840bf234d4156107f"
+      "byteLength": 5408,
+      "sha256": "sha256:35536937b4607b0916d720d273368efc0d5dbd1719ef653936f8f74ba298f76f"
     },
     {
       "path": "host/work-peer-jobs.js",
@@ -9579,5 +9584,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:55978b55aff381dbfc7b8f65399c93367c681cb1ecb8a129061d457cddfe6f75"
+  "bundleHash": "sha256:4591784924154b593b14066e6712c75bc64480c13c08373a3fa4763d26fdf305"
 }

@@ -20,6 +20,7 @@ import profile from '../self/config/reploid-library.json' with { type: 'json' };
 import bootstrap from '../self/config/swarm-bootstrap.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../self/config/partition-generation.js';
 import { prepareLocalPackRelease } from '../self/pool/pack-release-policy.js';
+import { snapshotWorkPartitionSelection, createWorkPartitionPlan } from '../self/host/work-partition-plan.js';
 import { assertWorkResidentCapsule } from '../self/host/work-partition-capsule.js';
 import { createPartitionTokenizerGuard } from '../self/host/work-partition-tokenizer-guard.js';
 
@@ -133,6 +134,7 @@ export function createNativeGpuHost(loadProvider) {
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
   files, releaseDirectory, registerCleanup, onProgress = () => {} }) {
+  selected = snapshotWorkPartitionSelection(selected);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
     'Signed native resident requires release policy, checkpoint directory and pinned artifact source');
   const configured = { ...selected, generation: resolvePartitionGeneration(selected) };
@@ -170,8 +172,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
   try {
     signal.throwIfAborted();
     const manifest = source.manifest;
-    const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
-      splitLayer: selected.partitionSplitLayer, activationDtype: manifest.inference.session.compute.defaults.activationDtype });
+    const plan = createWorkPartitionPlan(runtime, manifest, selected);
     const planId = runtime.hashLayerPartitionPlan(plan);
     let factory;
     if (selected.capsule !== undefined) {
