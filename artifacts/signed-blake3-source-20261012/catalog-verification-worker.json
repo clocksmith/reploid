@@ -1,0 +1,60 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/self/host/work-partition-artifact-source.js": "0471d1367a3847025dd80d6a9d0f0116e2bcb2e46b4bcf0d7f9bbc6861f2e706",
+    "/testing/artifacts/signed-blake3-source-20261012/prepare-catalog.js": "f70b784b5b7b26e4111b9af62f43f12f20b27619249d8dfa061e24dc078e7526"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/artifacts/signed-blake3-source-20261012/prepare-catalog.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/artifacts/signed-blake3-source-20261012/prepare-catalog.js:9: Dynamic property write detected: [capsuleRoot, runtimeRoot, reportPath, referencePath, baseUrl, outputPath] - verify input sanitization",
+      "Warning in /testing/artifacts/signed-blake3-source-20261012/prepare-catalog.js:41: Suspicious variable name: executablePack - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791845420161,
+        "path": "/testing/artifacts/signed-blake3-source-20261012/prepare-catalog.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791845420161,
+        "path": "/testing/artifacts/signed-blake3-source-20261012/prepare-catalog.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [capsuleRoot, runtimeRoot, reportPath, referencePath, baseUrl, outputPath] - verify input sanitization",
+        "line": 9,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791845420161,
+        "path": "/testing/artifacts/signed-blake3-source-20261012/prepare-catalog.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executablePack - may indicate code execution",
+        "line": 41,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/artifacts/signed-blake3-source-20261012/prepare-catalog.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [],
+      "filesAnalyzed": 2
+    }
+  }
+}
