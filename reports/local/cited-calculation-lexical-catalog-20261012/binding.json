@@ -1,0 +1,38 @@
+{
+  "schema": "reploid.lexical-catalog-run/v1",
+  "frozenRevision": "d2ee4d54",
+  "host": "x@128.tail995236.ts.net",
+  "command": [
+    "nice",
+    "-n",
+    "10",
+    "python3",
+    "-u",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/run.py",
+    "--doppler",
+    "/home/x/deco/doppler",
+    "--source",
+    "/var/tmp/doppler-qwen35-2b-source-20261011",
+    "--deployed",
+    "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+    "--suite",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/suite.json",
+    "--out",
+    "/home/x/deco/reploid/reports/local/cited-calculation-lexical-catalog-20261012/result.json",
+    "--threads",
+    "4"
+  ],
+  "environment": {
+    "PYTHONPATH": "/tmp/doppler-reference-deps",
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4"
+  },
+  "status": "completed",
+  "startedAtUtc": "2026-10-12T18:46:31.604055+00:00",
+  "remoteReploidRevision": "ba1ca4e200396746b7aab5bf44af0e606d0bb57f",
+  "remoteDopplerRevision": "f02579de07dd69cdfd891f08c2c4996c6bbaaf42",
+  "pid": 3456366,
+  "exitCode": 0,
+  "elapsedSeconds": 496.63207334652543,
+  "finishedAtUtc": "2026-10-12T18:54:48.236129+00:00"
+}
