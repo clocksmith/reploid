@@ -63,12 +63,15 @@ export interface ChatAttempt {
     participantA?: string; planId?: string; sharingScope?: string; disclosure?: string } | null;
   execution: Record<string, unknown> | null;
   request: ChatRequest;
+  systemContext?: ChatSystemContext | null;
 }
 export interface ChatThread {
   id: string; model: ChatModel; purpose: string; title?: string; members: string[];
   permissions: Record<string, unknown>; grants: ChatThreadGrant[]; messages: ChatMessage[];
   attempts: ChatAttempt[]; closed: boolean; createdAt: number;
+  systemContext?: ChatSystemContext | null;
 }
+export interface ChatSystemContext { content: string; metadata: Record<string, unknown> }
 export interface ChatState {
   schema: 'reploid.chat-workspace/v1'; meshId: string; participantId: string;
   threads: ChatThread[]; selectedId: string | null; runningIds: string[]; storageError: string | null;
@@ -93,7 +96,8 @@ export function createChatWorkspace(options: {
 }): {
   getState(): ChatState;
   subscribe(listener: (state: ChatState) => void): () => void;
-  createThread(options: { model: ChatModel; purpose?: string; members?: string[]; permissions?: Record<string, unknown> }): string;
+  createThread(options: { model: ChatModel; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;
+  setSystemContext(threadId: string, value: ChatSystemContext | null): void;
   select(threadId: string | null): void;
   renameThread(threadId: string, title: string): void;
   closeThread(threadId: string): void;

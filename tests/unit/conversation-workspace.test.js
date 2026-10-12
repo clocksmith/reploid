@@ -31,6 +31,42 @@ describe('Conversation workspace', () => {
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
 
+  it('previews optional capped context and retains each conversation setting', async () => {
+    await session.prepareLocalModel(CANONICAL_CHAT_MODELS[1].id);
+    expect(find('[data-context-enabled]').checked).toBe(false);
+    expect(find('[data-context-cap]').value).toBe('16');
+    expect(find('[data-context-cap]').disabled).toBe(true);
+    find('[data-context-enabled]').checked = true;
+    find('[data-context-enabled]').dispatchEvent(new Event('change', { bubbles: true }));
+    find('[data-context-cap]').value = '32';
+    find('[data-context-cap]').dispatchEvent(new Event('change', { bubbles: true }));
+    const preview = find('[data-context-preview]').textContent;
+    expect(preview).toContain('Reploid');
+    expect(preview.split(/\s+/u).length).toBeLessThanOrEqual(32);
+    expect(find('[data-context-count]').textContent).toContain('Replies are not limited');
+    let disabledWhileRunning = false;
+    const unsubscribe = session.subscribe(state => {
+      if (state.runningIds.length) disabledWhileRunning ||= find('[data-context-enabled]').disabled;
+    });
+    find('[data-composer-input]').value = 'First question';
+    find('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    await vi.waitFor(() => expect(session.getState().activeThread.attempts[0].status).toBe('completed'));
+    unsubscribe();
+    expect(disabledWhileRunning).toBe(true);
+    const first = session.getState().activeThread;
+    expect(first.systemContext.content).toBe(preview);
+    expect(first.attempts[0].request.messages[0]).toEqual({ role: 'system', content: preview });
+    const other = session.createThread({ sharingScope: 'local' });
+    expect(find('[data-context-enabled]').checked).toBe(false);
+    session.select(first.id);
+    expect(find('[data-context-enabled]').checked).toBe(true);
+    expect(find('[data-context-cap]').value).toBe('32');
+    find('[data-context-enabled]').checked = false;
+    find('[data-context-enabled]').dispatchEvent(new Event('change', { bubbles: true }));
+    expect(session.getState().activeThread.systemContext.content).toBe('');
+    expect(session.getState().threads.find(item => item.id === other).systemContext.content).toBe('');
+  });
+
   it('labels an adapted model once without merging distinct selections', () => {
     const select = find('[data-active-model-select]');
     updateModelSelect(select, [

@@ -28,6 +28,11 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button" aria-label="Conversation actions" title="Conversation actions">${interfaceIcon('more')}</summary><div class="pool-surface">
           <button class="pool-button" type="button" data-show-archived aria-pressed="false">Archived threads</button>
           <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
+          <fieldset data-context-controls><legend>Context prompt</legend>
+            <label><input type="checkbox" data-context-enabled> Include app context</label>
+            <label>Word cap <select class="pool-input" data-context-cap aria-label="Context prompt word cap"><option value="16">16</option><option value="32">32</option><option value="64">64</option></select></label>
+            <p class="chat-setup-hint" data-context-count></p><p class="chat-setup-hint" data-context-preview></p>
+          </fieldset>
         </div></details>
       </header>
       <div class="chat-transcript" data-chat-transcript><div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div></div>
@@ -72,6 +77,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
   let files = [], fileRevision = 0, reading = false;
+  let contextPrompt = viewState.contextPrompt || null;
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
   const threads = createConversationList(find('[data-thread-list]'), viewState.seen, { getSources: session.getDocumentSources });
   const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions, scrollContainer: find('[data-chat-transcript]') });
@@ -191,6 +197,17 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
     threads.update(state.threads, state.selectedId, { archived });
     const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
+    const contextControls = find('[data-context-controls]');
+    contextControls.hidden = !session.previewContextPrompt;
+    if (session.previewContextPrompt) {
+      const context = thread?.systemContext || session.previewContextPrompt(thread ? {} : contextPrompt || {}, thread?.model || requestedModel);
+      find('[data-context-enabled]').checked = context.metadata.enabled;
+      find('[data-context-cap]').value = String(context.metadata.maxWords);
+      find('[data-context-enabled]').disabled = busy || !!thread?.closed;
+      find('[data-context-cap]').disabled = busy || !!thread?.closed || !context.metadata.enabled;
+      find('[data-context-count]').textContent = `${context.metadata.wordCount}/${context.metadata.maxWords} context words. Replies are not limited by this setting.`;
+      find('[data-context-preview]').textContent = context.content || 'Off. No app context is added.';
+    }
     find('[data-composer-send]').hidden = busy;
     find('[data-retry-connection]').hidden = busy || usable || preparing || state.network?.connecting || ['connecting', 'retrying'].includes(networkState); find('[data-composer-send]').disabled = reading || !usable || !!thread?.closed || !!state.storageError;
     find('[data-composer-stop]').hidden = !busy;
@@ -202,6 +219,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
 
   };
   const unsubscribe = session.subscribe(render);
+  const changeContext = () => {
+    const selection = { enabled: find('[data-context-enabled]').checked, maxWords: Number(find('[data-context-cap]').value) };
+    try {
+      const threadId = session.getState().selectedId;
+      if (threadId) session.setContextPrompt(threadId, selection);
+      else { contextPrompt = selection; viewState.contextPrompt = selection; render(session.getState()); }
+    } catch (failure) { error(failure.message); }
+  };
+  find('[data-context-enabled]').addEventListener('change', changeContext, options);
+  find('[data-context-cap]').addEventListener('change', changeContext, options);
   showFiles();
   const renameDialog = bindDialog(find('[data-rename-dialog]'));
   const picker = bindDialog(find('[data-model-picker]'));
@@ -265,7 +292,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     if (find('[data-composer-send]').disabled) return;
     act(async () => {
       const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value), attachments = files.map(file => ({ ...file }));
-      const threadId = state.selectedId || session.createThread({ model, sharingScope: model?.localReady ? 'local' : 'mesh' });
+      const threadId = state.selectedId || session.createThread({ model, sharingScope: model?.localReady ? 'local' : 'mesh', contextPrompt: contextPrompt || undefined });
       input.value = content; files = attachments; showFiles();
       const completion = session.send(threadId, content, attachments, { allowPeerExecution: true });
       session.saveDraft?.(null, null); session.saveDraft?.(threadId, null);

@@ -15,6 +15,14 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
   }
   assert(policy.attemptTimeoutMs <= 2147483647, 'Attempt timeout exceeds timer range');
   const limits = copy(policy);
+  const validateSystemContext = value => {
+    if (value == null) return null;
+    assert(typeof value === 'object' && !Array.isArray(value)
+      && typeof value.content === 'string' && value.content.length <= limits.maxMessageCharacters
+      && value.metadata && typeof value.metadata === 'object' && !Array.isArray(value.metadata), 'Invalid system context');
+    assert(JSON.stringify(value).length <= limits.maxMessageCharacters, 'System context exceeds conversation allowance');
+    return copy(value);
+  };
   let closed = false, selectedId = null, storageError = null;
   const listeners = new Set(), runs = new Map();
   const loaded = store.load();
@@ -26,6 +34,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     assert(typeof thread.id === 'string' && Array.isArray(thread.messages) && Array.isArray(thread.attempts)
       && Array.isArray(thread.members) && thread.messages.length <= limits.maxMessagesPerThread, 'Invalid stored conversation');
     thread.grants ??= [];
+    thread.systemContext = validateSystemContext(thread.systemContext);
     validateThreadGrants(thread.grants, thread.id, meshId, limits.maxThreadGrants);
     for (const attempt of thread.attempts) if (activeStatuses.has(attempt.status)) {
       attempt.status = 'interrupted'; attempt.error = 'Connection interrupted. Retry starts a new attempt.';
@@ -67,7 +76,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     const controller = new AbortController();
     const attempt = { id: id(), threadId: thread.id, userMessageId, responseId: id(), retryOf,
       status: 'queued', createdAt: now(), finishedAt: null, error: null, approval: null,
-      execution: null, authorization: null, request: copy(request) };
+      execution: null, authorization: null, request: copy(request),
+      systemContext: copy(retryOf ? thread.attempts.find(item => item.id === retryOf)?.systemContext ?? null : thread.systemContext) };
     const response = { id: attempt.responseId, attemptId: attempt.id, role: 'assistant', content: '', status: 'queued' };
     thread.attempts.push(attempt); thread.messages.push(response);
     const run = { controller, approval: null, completion: null, nextSequence: 0 };
@@ -171,15 +181,22 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
   return Object.freeze({
     getState: snapshot,
     subscribe(listener) { listeners.add(listener); listener(snapshot()); return () => listeners.delete(listener); },
-    createThread({ model, purpose = '', members = [], permissions = {} }) {
+    createThread({ model, purpose = '', members = [], permissions = {}, systemContext = null }) {
       current(); assert(threads.length < limits.maxThreads, 'Conversation limit reached');
       assert(typeof purpose === 'string' && purpose.length <= limits.maxMessageCharacters, 'Invalid conversation purpose');
       assert(Array.isArray(members) && members.every(member => typeof member === 'string' && member), 'Invalid conversation members');
-      const thread = { id: id(), model: modelIdentity(model), purpose, members: [...new Set([participantId, ...members])],
+      const thread = { id: id(), model: modelIdentity(model), purpose, systemContext: validateSystemContext(systemContext), members: [...new Set([participantId, ...members])],
         permissions: copy(permissions), grants: [], messages: [], attempts: [], closed: false, createdAt: now() };
       threads.push(thread); selectedId = thread.id; persist(); return thread.id;
     },
     select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; notify(); },
+    setSystemContext(threadId, value) {
+      current(); const thread = find(threadId);
+      assert(!thread.closed && !runs.has(threadId), 'Change context only in an open idle conversation');
+      const previous = thread.systemContext;
+      thread.systemContext = validateSystemContext(value);
+      try { persist(); } catch (error) { thread.systemContext = previous; notify(); throw error; }
+    },
     renameThread(threadId, title) { current(); assert(typeof title === 'string' && title.trim() && title.length <= limits.maxMessageCharacters, 'Invalid conversation title'); find(threadId).title = title.trim(); persist(); },
     closeThread(threadId) { current(); find(threadId).closed = true; if (selectedId === threadId) selectedId = null; persist(); },
     reopenThread(threadId) { current(); find(threadId).closed = false; selectedId = threadId; persist(); },
@@ -193,7 +210,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       const messages = thread.messages.filter(item => item.status === 'completed'
         && (item.role === 'assistant' || completedUsers.has(item.id) || item.id === message.id))
         .map(({ role, content }) => ({ role, content }));
-      if (thread.purpose) messages.unshift({ role: 'system', content: thread.purpose });
+      const system = [thread.systemContext?.content, thread.purpose].filter(Boolean).join('\n\n');
+      if (system) messages.unshift({ role: 'system', content: system });
       try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages }, message.id, null, select, authorizeDisclosure); }
       catch (error) { thread.messages.pop(); throw error; }
     },

@@ -153,8 +153,11 @@
 .chat-model-change { justify-self: start; text-align: start; white-space: normal; }
 .chat-attachment-help { color: var(--pool-surface-muted); margin: 0; }
 .chat-conversation-actions { position: relative; }
-.chat-conversation-actions > div { position: absolute; top: 100%; right: 0; z-index: 5; display: grid; padding: var(--pool-space-sm); width: min(70vw, var(--pool-px-r15)); }
+.chat-conversation-actions > div { position: absolute; top: 100%; right: 0; z-index: 5; display: grid; padding: var(--pool-space-sm); width: min(70vw, var(--pool-px-r15)); max-height: 60dvh; overflow-y: auto; }
 .chat-conversation-actions > div button { white-space: normal; text-align: start; }
+.chat-conversation-actions [data-context-controls] { min-width: 0; margin: 0; display: grid; gap: var(--pool-space-sm); }
+.chat-conversation-actions [data-context-controls] label { display: flex; align-items: center; gap: var(--pool-space-sm); }
+.chat-conversation-actions [data-context-preview] { overflow-wrap: anywhere; }
 .chat-message-content pre { overflow-x: auto; white-space: pre; max-width: 100%; padding: var(--pool-space-sm); background: var(--pool-surface-inset); }
 .chat-message-content pre button { display: block; }
 .chat-message-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pool-space-sm); }
