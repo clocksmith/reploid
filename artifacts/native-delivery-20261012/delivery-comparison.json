@@ -1,0 +1,10 @@
+{
+  "changedFiles": [
+    "docs/native-participant.md",
+    "self/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
+    "self/config/model-manifests/83e5a01a21e234d238ea3ed5b0b234cc52781ddfce51861abd0fdf0ae3199028.json"
+  ],
+  "unchangedExecutableSources": true,
+  "finalManifestSha256": "6c5909998a97b27aa8f2355e2081bfe99942a4d9507e18ba54105fcf33a8b8b4",
+  "finalArchiveSha256": "f032431dc4416eeaa2d167d8e079c534aa45784dd42e532302aa0970e979a123"
+}

@@ -12,7 +12,8 @@
   "homepage": "https://github.com/clocksmith/reploid",
   "bin": {
     "reploid": "./scripts/reploid-cli.ts",
-    "reploid-config": "./bin/reploid-config"
+    "reploid-config": "./bin/reploid-config",
+    "reploid-participant": "./server/native-participant.js"
   },
   "scripts": {
     "package:hosting": "node scripts/package-hosting.js",
@@ -89,7 +90,9 @@
     "verify:library-types": "tsc -p tests/tsconfig.library.json",
     "verify:library-delivery": "node scripts/verify-layers.js",
     "verify:showcase-privacy": "node scripts/curate-showcase.js --check",
-    "verify:retained-artifacts": "node scripts/restore-doppler-evidence.js --check"
+    "verify:retained-artifacts": "node scripts/restore-doppler-evidence.js --check",
+    "package:native": "node scripts/package-native.js",
+    "start:native": "node server/native-participant.js"
   },
   "keywords": [
     "reploid",
@@ -113,8 +116,10 @@
   "optionalDependencies": {
     "@anthropic-ai/sdk": "^0.16.1",
     "@google/generative-ai": "^0.1.3",
+    "@roamhq/wrtc": "0.10.0",
     "firebase-admin": "^14.1.0",
-    "openai": "^4.20.1"
+    "openai": "^4.20.1",
+    "webgpu": "0.4.0"
   },
   "overrides": {
     "uuid": "^11.1.1",

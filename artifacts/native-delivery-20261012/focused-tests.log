@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/native-delivery.test.js (2 tests) 422ms
+   ✓ delivers the same native source and all catalog metadata outside the checkout without loading providers  417ms
+ ✓ tests/unit/native-participant.test.js (8 tests) 20ms
+
+ Test Files  2 passed (2)
+      Tests  10 passed (10)
+   Start at  00:49:54
+   Duration  888ms (transform 450ms, setup 0ms, import 859ms, tests 443ms, environment 0ms)
+
