@@ -30,6 +30,24 @@ describe('Conversation workspace', () => {
     expect(root.textContent).not.toMatch(/Mesh Active|Distributed Intelligence|Contributing|Scope:|Recent Improvements|LoRA/);
   });
 
+  it('shows observed remote preparation without claiming readiness or asking to reconnect', async () => {
+    dispose(); await session.close();
+    const peer = { available: true, description: { phase: 'loading',
+      offer: { id: CANONICAL_CHAT_MODELS[1].id, identity: CANONICAL_CHAT_MODELS[1].identity } } };
+    session = createChatSession({ storage: null, service, models: [CANONICAL_CHAT_MODELS[1]],
+      swarm: { getState: () => ({ partitionPeers: [peer], consumer: { peers: [] } }) } });
+    dispose = bindConversationWorkspace(root, session);
+    find('[data-composer-input]').value = 'Keep my question';
+    expect(find('[data-model-status]').textContent).toBe('A connected computer is preparing a model. Your draft stays here.');
+    expect(find('[data-retry-connection]').hidden).toBe(true);
+    expect(find('[data-composer-send]').disabled).toBe(true);
+    expect(service.calls).toHaveLength(0);
+    peer.available = false; session.refreshNetwork();
+    expect(find('[data-model-status]').textContent).toBe('No model is available right now. Your draft stays here.');
+    expect(find('[data-retry-connection]').hidden).toBe(false);
+    expect(find('[data-composer-input]').value).toBe('Keep my question');
+  });
+
   it('shows download size, preserves the draft, and enables local chat without sharing', async () => {
     find('[data-composer-input]').value = 'Keep this question';
     find('[data-model-setup]').click();

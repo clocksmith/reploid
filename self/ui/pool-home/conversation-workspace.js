@@ -157,10 +157,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       || models.some(model => keyFor(model) === current && ['ready', 'busy'].includes(model.availability));
     const modelStatus = find('[data-model-status]');
     const networkState = state.network?.consumer?.connectionState;
-    const preparing = state.localModel?.phase === 'loading';
-    modelStatus.textContent = thread?.closed ? 'Archived thread. Restore it to continue.' : preparing ? 'Downloading model…' + (Number.isFinite(state.localModel.progress?.progress) ? ' ' + Math.round(state.localModel.progress.progress * 100) + '%' : '')
+    const localPreparing = state.localModel?.phase === 'loading';
+    const requestedModel = thread?.model || chosenModel || models.find(model => keyFor(model) === current);
+    const remotePreparing = (state.network?.partitionPeers || []).some(peer => peer.available
+      && peer.description?.phase === 'loading' && catalogModels.some(model => model.id === peer.description.offer?.id
+        && model.identity === peer.description.offer?.identity)
+      && (!requestedModel || requestedModel.id === peer.description.offer?.id
+        && requestedModel.identity === peer.description.offer?.identity));
+    const preparing = localPreparing || remotePreparing;
+    modelStatus.textContent = thread?.closed ? 'Archived thread. Restore it to continue.' : localPreparing ? 'Downloading model…' + (Number.isFinite(state.localModel.progress?.progress) ? ' ' + Math.round(state.localModel.progress.progress * 100) + '%' : '')
       : state.localModel?.error && !usable ? 'Download failed: ' + state.localModel.error
       : usable ? '' : state.network?.paused ? 'Disconnected. Reconnect to find available models.'
+      : remotePreparing ? 'A connected computer is preparing a model. Your draft stays here.'
       : ['loading', 'preparing'].includes(models.find(model => keyFor(model) === current)?.availability) ? 'This model is preparing…'
       : current ? 'This model is unavailable. Your draft stays here.'
         : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding available models…'
