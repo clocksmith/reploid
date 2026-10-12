@@ -1,0 +1,6 @@
+{
+  "scope": "Actual CDP observer plumbing with synthetic JS modules; Chromium --disable-gpu, no model, no physical qualification",
+  "passed": false,
+  "error": "AssertionError [ERR_ASSERTION]: Executed identity helper was not observed\n    at Object.finish (file:///Users/xyz/deco/reploid/tests/fixtures/resident-opening-observer.js:60:7)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processImmediate (node:internal/timers:453:9)\n    at process.callbackTrampoline (node:internal/async_hooks:130:17)\n    at async file:///Users/xyz/deco/reploid/[eval1]:7:408",
+  "observerSha256": "58ce20e74deda12bc122c9e23340aa9f7180a035935be5f46279b257b3d67660"
+}
