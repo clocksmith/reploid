@@ -1,9 +1,87 @@
 import assert from 'node:assert/strict';
 
+// Fixture deadlines do not change the application's 300-second execution policy.
+export const CONCURRENT_DEADLINES = Object.freeze({ operationMs: 300000,
+  cleanupMs: 10000, observationMs: 2000, sampleMs: 1000 });
+
+export function createConcurrentOperationObserver({ evidence, persist,
+  deadlines = CONCURRENT_DEADLINES }) {
+  for (const key of Object.keys(CONCURRENT_DEADLINES)) {
+    assert(Number.isSafeInteger(deadlines[key]) && deadlines[key] > 0, `Invalid ${key}`);
+  }
+  assert(deadlines.operationMs <= CONCURRENT_DEADLINES.operationMs, 'Application deadline cannot expand');
+  evidence.deadlines = { ...deadlines };
+  evidence.operations ||= [];
+  const bounded = (promise, milliseconds, label) => {
+    let timer;
+    return Promise.race([promise, new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        const error = new Error(`${label} exceeded ${milliseconds}ms; completion and ownership unknown`);
+        error.name = 'DiagnosticDeadlineError';
+        reject(error);
+      }, milliseconds);
+    })]).finally(() => clearTimeout(timer));
+  };
+  return async (page, label, callback, argument, cleanup = false, observe = true) => {
+    const row = { label, startedAt: new Date().toISOString(), status: 'pending', samples: [], droppedSamples: 0 };
+    evidence.operations.push(row);
+    // Retain bounded recent history; failed operations are never dropped.
+    if (evidence.operations.length > 128) {
+      const index = evidence.operations.findIndex(item => item.status === 'completed');
+      if (index >= 0) { evidence.operations.splice(index, 1); evidence.droppedOperations = (evidence.droppedOperations || 0) + 1; }
+    }
+    let stopped = false, timer, primaryFailure, sampling = Promise.resolve();
+    const persistenceFailure = (phase, error) => {
+      (row.persistenceFailures ||= []).push({ phase, message: error.message });
+    };
+    const sample = async () => {
+      try {
+        const snapshot = await bounded(page.evaluate(() => globalThis.memorySnapshot?.()),
+          deadlines.observationMs, `${label} observation`);
+        if (!stopped) row.samples.push({ at: new Date().toISOString(), snapshot });
+      } catch (error) {
+        if (!stopped) row.samples.push({ at: new Date().toISOString(), error: error.message });
+      }
+      if (!stopped) {
+        if (row.samples.length > 32) { row.samples.shift(); row.droppedSamples++; }
+        try { await persist(); }
+        catch (error) { persistenceFailure('sample', error); }
+        timer = setTimeout(() => { sampling = sample(); }, deadlines.sampleMs);
+      }
+    };
+    await persist();
+    sampling = observe ? sample() : Promise.resolve();
+    try {
+      const result = await bounded(Promise.resolve().then(() => page.evaluate(callback, argument)),
+        cleanup ? deadlines.cleanupMs : deadlines.operationMs, label);
+      row.status = 'completed';
+      return result;
+    } catch (error) {
+      primaryFailure = error;
+      row.status = error.name === 'DiagnosticDeadlineError' ? 'timed-out' : 'rejected';
+      row.error = { name: error.name, message: error.message };
+      row.ownership = 'unknown';
+      throw error;
+    } finally {
+      stopped = true;
+      clearTimeout(timer);
+      await sampling;
+      row.finishedAt = new Date().toISOString();
+      try { await persist(); }
+      catch (error) { persistenceFailure('final', error); }
+      if (!primaryFailure && row.persistenceFailures?.length) {
+        row.status = 'observation-failed';
+        throw new Error(`Observation persistence failed: ${row.persistenceFailures[0].message}`);
+      }
+    }
+  };
+}
+
 /** Interleave real resident attempts; never imply simultaneous GPU kernels. */
 export async function runConcurrentPartitionMemory({ pages, pageA, pageB, request,
-  generation, planId, runs, persist, onProgress = () => {} }) {
-  const snapshot = () => Promise.all(pages.map(page => page.evaluate(() => settleMemory())));
+  generation, planId, runs, persist, onProgress = () => {}, operation }) {
+  const evaluate = operation || createConcurrentOperationObserver({ evidence: {}, persist });
+  const snapshot = () => Promise.all(pages.map((page, index) => evaluate(page, `settle-memory-${index}`, () => settleMemory(), undefined, true)));
   const checkMemory = snapshots => {
     for (const item of snapshots) {
       assert.deepEqual(item.gpuValidationErrors, [], 'Rejected GPU submission');
@@ -21,7 +99,7 @@ export async function runConcurrentPartitionMemory({ pages, pageA, pageB, reques
     const row = { name, identity, generation, text: '', tokenIds: [], steps: 0,
       before: await snapshot(), inputTokens: null, completed: false, closed: false };
     runs.push(row);
-    const tokenized = await pageA.evaluate(({ identity, messages }) => resident.tokenize({
+    const tokenized = await evaluate(pageA, `${name}:tokenize`, ({ identity, messages }) => resident.tokenize({
       identity, messages, signal: new AbortController().signal }), { identity, messages: request.messages });
     row.inputTokens = tokenized.tokenIds.length;
     assert.equal(row.inputTokens, 1588, 'Frozen long prompt changed');
@@ -29,8 +107,8 @@ export async function runConcurrentPartitionMemory({ pages, pageA, pageB, reques
   };
   const close = async state => {
     if (state.row.closed) return;
-    const results = await Promise.allSettled(pages.map(page => page.evaluate(
-      identity => resident.closeAttempt({ identity }), state.row.identity)));
+    const results = await Promise.allSettled(pages.map((page, index) => evaluate(page, `${state.row.name}:close-${index}`,
+      identity => resident.closeAttempt({ identity }), state.row.identity, true)));
     state.row.closeResults = results.map(result => result.status === 'fulfilled'
       ? { settled: true } : { settled: false, error: String(result.reason) });
     state.row.after = await snapshot();
@@ -44,7 +122,7 @@ export async function runConcurrentPartitionMemory({ pages, pageA, pageB, reques
     assert(!row.completed && !row.closed && row.steps < generation.maxTokens);
     const parameters = { identity: row.identity, step: row.steps, tokenPosition: state.position,
       inputTokenCount: state.ids.length, generation, maxTokens: generation.maxTokens };
-    const a = await pageA.evaluate(async ({ parameters, ids, continuation, cancel }) => {
+    const a = await evaluate(pageA, `${row.name}:step-${row.steps}:group-0`, async ({ parameters, ids, continuation, cancel }) => {
       observePrefill = parameters.step === 0;
       const controller = new AbortController();
       if (cancel) abortOnSubmit = controller;
@@ -69,7 +147,7 @@ export async function runConcurrentPartitionMemory({ pages, pageA, pageB, reques
       await persist();
       return;
     }
-    const b = await pageB.evaluate(async ({ parameters, ids, activation, continuation }) => {
+    const b = await evaluate(pageB, `${row.name}:step-${row.steps}:group-1`, async ({ parameters, ids, activation, continuation }) => {
       observePrefill = parameters.step === 0;
       const value = await resident.executeGroup1({ ...parameters, inputTokenIds: ids,
         activation: { ...activation, tensorData: Uint8Array.from(atob(activation.data), c => c.charCodeAt(0)).buffer },
@@ -115,7 +193,7 @@ export async function runConcurrentPartitionMemory({ pages, pageA, pageB, reques
     checkMemory(survivor.row.duringOverlap);
     survivor.row.allocationRejections = [];
     for (const page of pages) survivor.row.allocationRejections.push(
-      await page.evaluate(() => rejectOversizedAllocation()));
+      await evaluate(page, 'allocation-rejection', () => rejectOversizedAllocation()));
     const partial = cancelled.row.text;
     await step(cancelled, true);
     await close(cancelled);

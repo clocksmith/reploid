@@ -1,0 +1,71 @@
+{
+  "scope": "Operator-stopped incomplete physical concurrent baseline; no concurrency acceptance",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "deliverySha256": "f1e63d3e5b6f958e6748c1ac3ce6b6da716170b07c551c505828b6ae1243b68e",
+  "inputTokens": 1588,
+  "generatedSteps": 0,
+  "originalFailure": {
+    "message": "page.evaluate: Target page, context or browser has been closed"
+  },
+  "cleanupFailure": {
+    "message": "Resident cleanup observation failed"
+  },
+  "declaredElapsedDeadline": null,
+  "mac": {
+    "controllerPid": 77137,
+    "controllerExitCode": 1,
+    "browserPid": 77148,
+    "browserGpuPid": 77154,
+    "rendererPid": 77161,
+    "ownedProcessesObservedAbsent": true,
+    "queueSettlement": "unknown",
+    "bufferOwnership": "unknown"
+  },
+  "amd": {
+    "browserLauncherPid": 1903617,
+    "launcherExitCode": 0,
+    "queueSettlement": "confirmed",
+    "retainedModel": 0,
+    "active": 0,
+    "deferredCleanup": 0,
+    "reusableBytes": 51468288
+  },
+  "limits": "Process termination is not evidence of completed GPU queue or buffer retirement. No root cause inferred from CPU/RSS sample.",
+  "files": [
+    {
+      "path": "concurrent-direction-0.json.gz",
+      "rawBytes": 342706,
+      "rawSha256": "fb23f06a769d3eae7077458f26820815b5ae8e11029c2598ac9589bcbc6ba8a8"
+    },
+    {
+      "path": "concurrent-direction-0.log",
+      "rawBytes": 732,
+      "rawSha256": "a74bd2558fabc4ce4b710efcebd6f837b77c811febae03995c4cc91c38439408"
+    },
+    {
+      "path": "concurrent-direction-0-cdp-setup-failure.log",
+      "rawBytes": 497,
+      "rawSha256": "65e051c27a6c89025da2ff850d1320bbd5b7c3bb06e982c71aa7a6d9fe134362"
+    },
+    {
+      "path": "amd-operator-close.json.gz",
+      "rawBytes": 86631,
+      "rawSha256": "7f5f88a09412fd67e4821e55b5a9f603157202a65d840d1e9a2f83a746983c79"
+    },
+    {
+      "path": "mac-input-gpu-process-sample.txt",
+      "rawBytes": 221036,
+      "rawSha256": "26ee820083187683527dc25b1bc366bca4f1f7280b17ce24e30ccb235361d81b"
+    },
+    {
+      "path": "mac-input-sample-command.log",
+      "rawBytes": 201,
+      "rawSha256": "230dff04ec5d9a364e5d9f8c6fc894ead7083245c2b648a983b2aa2a953e59aa"
+    },
+    {
+      "path": "mac-input-system-sample-command.log",
+      "rawBytes": 253,
+      "rawSha256": "c27f8f3b76b5ff62795eb545181c8ad6aa0318217fe900db5d98bd78de084540"
+    }
+  ]
+}
