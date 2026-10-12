@@ -1,8 +1,8 @@
 {
   "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
   "sources": {
-    "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js": "2bd0a951840efc8aa0c22890f82e0e9ca74d58ca0f3a12fbd0726366eb931107",
-    "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.test.js": "b8f28e665c4a8368ad9daf4122330168902c6b93aeba19cc2953f4444d024cbf"
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js": "e76b0f7756bd9c0a7062f3c742d5b671257c768be42ac18c7126582564f75c5f",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.test.js": "f6e74f11cbf1cacbdc4f5673053602193ee1d8580265298c7f4258246a71f73f"
   },
   "result": {
     "passed": true,
@@ -15,7 +15,7 @@
     "events": [
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791841631899,
+        "timestamp": 1791841747627,
         "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js",
         "patternId": "path_traversal",
         "category": "filesystem",
@@ -24,7 +24,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791841631900,
+        "timestamp": 1791841747628,
         "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -34,7 +34,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791841631901,
+        "timestamp": 1791841747629,
         "metric": "nesting",
         "value": 8,
         "threshold": 5,

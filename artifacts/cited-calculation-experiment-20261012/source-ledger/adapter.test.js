@@ -76,6 +76,21 @@ test('explicitly included non-counted allowance preserves the known subtotal', a
   assert.equal(result.documents[0].values.subtotal.value, '740');
 });
 
+test('deposit and stated/derived dates retain exact selected conditions', async () => {
+  const selection = selected();
+  selection.documents[0].completion = id('D1:P3', 'November 9');
+  selection.documents[0].relations.push({ relation: 'condition', passages: ['D1:P3'],
+    affectedFacts: [id('D1:P3', '$720'), id('D1:P3', 'November 9')] });
+  const result = await calculateLedger(selection, messages);
+  for (const key of ['deposit', 'statedCompletion', 'derivedCompletion']) {
+    const value = result.documents[0].values[key];
+    assert.equal(value.conditional, true);
+    assert.equal(value.conditions[0].passages[0].text, documents[0].passages[2].text);
+  }
+  assert.equal(result.computed.find(value => value.value === '144').conditional, true);
+  assert.equal(result.documents[0].values.subtotal.conditional, null);
+});
+
 test('null inputs remain unknown and do not borrow prior assistant claims', async () => {
   const selection = selected(); selection.budget = null;
   Object.assign(selection.documents[0], { base: null, depositBase: null, depositPercent: null, start: null, duration: null });

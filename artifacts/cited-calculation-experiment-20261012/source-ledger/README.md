@@ -29,11 +29,14 @@ literal spans, including the original user's budget and deadline.
   allowances retain their source provenance without inflating the price.
 - Relations retain complete selected source passages. Exact quotation establishes
   provenance, not semantic entailment or completeness.
+- Selected conditions propagate through deposit/date dependencies and remain
+  attached to exact quoted passages. No selected condition means unknown
+  unconditionality, not an unconditional promise.
 
 `adapter.test.js` uses an unrelated studio estimate. It checks arithmetic,
 provenance, included-charge handling, unresolved inputs, unit/scope rejection,
 assistant exclusion, duplicate/unknown references and existing authorization.
-All 12 controls pass. The actual Verification Worker passes with three warnings
+All 13 controls pass. The actual Verification Worker passes with three warnings
 and no errors. Passing these controls does not establish that a model chooses
 correct relations.
 
