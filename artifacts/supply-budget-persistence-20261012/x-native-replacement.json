@@ -1,0 +1,12 @@
+{
+  "oldCache": "/home/x/.local/share/reploid/public-native/cache",
+  "newCache": "/home/x/.local/share/reploid/public-native/cache-budget-20261012",
+  "oldPid": 1535668,
+  "oldDirectory": "/var/tmp/reploid-native-recovery-20261012/reploid",
+  "newDirectory": "/var/tmp/reploid-budget-persistence-installed/reploid",
+  "log": "/home/x/.local/state/reploid/public-native-budget-20261012.log",
+  "startedAt": 1791829537.311922,
+  "oldExitedAt": 1791829537.6126573,
+  "newPid": 3220061,
+  "launchedAt": 1791829537.6131864
+}

@@ -11,3 +11,38 @@ The first browser run (`browser-public-namespace-failure.log`) joined the existi
 `worker-verification.json` is the actual Verification Worker result for all six production sources, with exact source hashes and warnings. All six hashes were rechecked unchanged after testing. Parent owns the combined full-suite log and browser-manifest regeneration.
 
 `native-delivery.json` binds the standard 89-file native artifact, accepted Doppler dependency unchanged. `installed-processes.json` and `installed-processes-amd.json` verify its shipped SQLite adapter outside the checkout on Mac and x128: separate processes reserve 7 of 10 fixture bytes, reject 4, then accept 3. `check-installed.mjs [delivery.json]` reproduces this bounded control; the supplied receipt must name the extracted artifact directory. No GPU or inference ran. The actual deployment allowance remains 4 GiB. No release, pin promotion, or public deployment is claimed.
+
+## Subsequent authorized migration and physical execution
+
+The user approved one fresh persistent 4 GiB allowance on x; exact scope is in
+`migration-approval.json`. Its old cache remains intact. The new directory is
+`/home/x/.local/share/reploid/public-native/cache-budget-20261012` and future
+restarts reuse its ledger. Suby's separate file-sharing permission stays off.
+
+Both native contributors now run the same installed artifact outside checkout.
+The `*-installed-identity.json` receipts verify all 89 source files and identical
+1,897-file runtime trees. `runtime-archive-content.json` additionally compares
+every installed runtime file byte-for-byte with accepted archive `9280ead5…`.
+No replacement numerical archive was adopted.
+
+After real model-piece supply, x reserved 637,534,208 bytes. The actual contributor
+process was stopped and restarted with the same cache. `x-before-restart.json`
+and `x-after-restart.json` report the identical cumulative charge. It did not
+renew its allowance. Native/native automatic public chat and follow-up then
+completed ($36/$48) with zero requester weights in
+`native-after-restart-conversation.json`. Both browser contributors were paused
+for that native-only control and restored using their original profiles/consent;
+the operator scripts and process records are retained. Their earlier steady
+browser/browser conversation is in `steady-conversation.json`.
+
+One request attempted during rolling preparation was rejected because the
+approved placement changed; `deployed-native-conversation.json` retains it.
+The old Suby browser launcher also exited on missing supply during the first
+native restart; its explicit replacement is recorded. These observations prevent
+claiming uninterrupted public availability from this upgrade. Later successful
+requests do not erase them.
+
+The browser repair is deployed as `68b3997b…`, with all 1,912 files verified in
+the adjacent preparation-errors receipt. Native/browser opening still uses the
+accepted verified-manifest path. These checks do not qualify signed Capsules,
+simultaneous long prompts, complex document quality or the numerical candidate.

@@ -1,0 +1,12 @@
+{
+  "oldCache": null,
+  "newCache": null,
+  "oldPid": 3220061,
+  "oldDirectory": "/var/tmp/reploid-budget-persistence-installed/reploid",
+  "newDirectory": "/var/tmp/reploid-budget-persistence-installed/reploid",
+  "log": "/home/x/.local/state/reploid/public-native-budget-restart-20261012.log",
+  "startedAt": 1791830377.5611944,
+  "oldExitedAt": 1791830377.8623714,
+  "newPid": 3379363,
+  "launchedAt": 1791830377.8630762
+}

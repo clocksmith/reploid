@@ -1,0 +1,10 @@
+{
+  "at": "2026-10-12",
+  "answer": "Approve fresh persistent 4 GiB allowance",
+  "scope": "Upgrade x@128 native contributor to tested artifact; fresh persistent allowance for the same pinned Qwen model, old cache retained; future restarts reuse this ledger without renewal",
+  "maxBytes": 4294967296,
+  "legacyUsage": "unknown; not reconstructed from process counter",
+  "oldCache": "/home/x/.local/share/reploid/public-native/cache",
+  "newCache": "/home/x/.local/share/reploid/public-native/cache-budget-20261012",
+  "artifactSha256": "69a27ef81e093ec614be40670ef13d7e206113bd3fd54596fa092899cd7e4af8"
+}
