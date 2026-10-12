@@ -1,0 +1,11 @@
+{
+  "startedAt": "2026-10-12T22:21:46.941247+00:00",
+  "startedUnixSeconds": 1791843706.941371,
+  "command": [
+    "sh",
+    "/var/tmp/reploid-native-private-cache-0.6.28-20261012/run-native-reference.sh"
+  ],
+  "finishedAt": "2026-10-12T22:37:13.264476+00:00",
+  "finishedUnixSeconds": 1791844633.264524,
+  "exitCode": 0
+}

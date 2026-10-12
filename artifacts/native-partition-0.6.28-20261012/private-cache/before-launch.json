@@ -1,0 +1,9 @@
+{
+  "observedAtUnixSeconds": 1791843669.3849828,
+  "cacheEntries": [],
+  "privateCachePath": "/var/tmp/reploid-native-private-mesa-0.6.28-8m5y91ze",
+  "driverFile": {
+    "path": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+    "sha256": "0949baaa43f5ea34fc785f28f31863ca5ea4949478fae96b37c37675a489f830"
+  }
+}

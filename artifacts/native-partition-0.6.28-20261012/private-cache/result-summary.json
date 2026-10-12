@@ -1,0 +1,585 @@
+{
+  "scope": "Private initially empty Mesa disk-cache control: original19token/two-prefix Mac input, AMD Node output; no full55/native lifecycle/application qualification",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "contractSha256": "8b7267926380ec589fc7ee1d8ea41031355fe1c6fb391dd422eb8f3b0a3befff",
+  "captureSha256": "abbd92a61ca758efb62154604be792cb05c5f4fa3d1ce04d95f1c6b9d9349d21",
+  "nativeDeliverySha256": "32fa4e3f1e2ad3c7a1c6624078310255a2fa4c9d8d43a0ff457637dcc47bd04d",
+  "observedProvider": {
+    "adapter": {
+      "vendor": "amd",
+      "architecture": "rdna-3",
+      "device": "radeon-8060s-graphics-radv-strix-halo-",
+      "description": "radv: Mesa 26.0.3-1ubuntu1"
+    }
+  },
+  "driver": {
+    "path": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+    "bytes": 18162752,
+    "sha256": "0949baaa43f5ea34fc785f28f31863ca5ea4949478fae96b37c37675a489f830"
+  },
+  "dawn": {
+    "path": "/var/tmp/reploid-native-canonical-0.6.28-20261012/reploid/node_modules/webgpu/dist/linux-x64.dawn.node",
+    "bytes": 18617336,
+    "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1"
+  },
+  "prefixMaximumErrors": [
+    8.399647413170896e-07,
+    6.15752007604442e-07
+  ],
+  "stopReason": "eos-token",
+  "firstOutputSeconds": 917.9626650810242,
+  "firstOutputLogMtimeSeconds": 917.8022303581238,
+  "bothReadySeconds": 80.75114297866821,
+  "firstOutputAfterReadySeconds": 838.010685738,
+  "controllerSeconds": 926.3231530189514,
+  "maximumObservedProcessRssBytes": 9789652992,
+  "maximumObservedProcessHighWaterBytes": 9902841856,
+  "stagePairs": [
+    {
+      "id": 0,
+      "operation": "createShaderModule",
+      "label": "rope_precompute_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:21:58.469Z",
+      "finishedAt": "2026-10-12T22:21:58.471Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2.0
+    },
+    {
+      "id": 1,
+      "operation": "getCompilationInfo",
+      "label": "rope_precompute_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:21:58.471Z",
+      "finishedAt": "2026-10-12T22:21:58.471Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 2,
+      "operation": "createComputePipelineAsync",
+      "label": "rope_precompute_paired_pipeline",
+      "entryPoint": "main",
+      "constants": {},
+      "startedAt": "2026-10-12T22:21:58.471Z",
+      "finishedAt": "2026-10-12T22:22:45.852Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 47381.0
+    },
+    {
+      "id": 3,
+      "operation": "createShaderModule",
+      "label": "rmsnorm_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:23:14.217Z",
+      "finishedAt": "2026-10-12T22:23:14.219Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2.0
+    },
+    {
+      "id": 4,
+      "operation": "getCompilationInfo",
+      "label": "rmsnorm_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:23:14.219Z",
+      "finishedAt": "2026-10-12T22:23:14.219Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 5,
+      "operation": "createComputePipelineAsync",
+      "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+      "entryPoint": "main",
+      "constants": {
+        "WORKGROUP_SIZE": 64,
+        "WEIGHT_F16": 1,
+        "WEIGHT_OFFSET": 1,
+        "PRE_RESIDUAL": 0,
+        "POST_RESIDUAL": 0,
+        "OUTPUT_PRENORM": 0
+      },
+      "startedAt": "2026-10-12T22:23:14.219Z",
+      "finishedAt": "2026-10-12T22:23:23.845Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 9626.0
+    },
+    {
+      "id": 6,
+      "operation": "createShaderModule",
+      "label": "matmul_paired_q4k",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:23:23.850Z",
+      "finishedAt": "2026-10-12T22:23:23.852Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2.0
+    },
+    {
+      "id": 7,
+      "operation": "getCompilationInfo",
+      "label": "matmul_paired_q4k",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:23:23.852Z",
+      "finishedAt": "2026-10-12T22:23:23.853Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 1.0
+    },
+    {
+      "id": 8,
+      "operation": "createComputePipelineAsync",
+      "label": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+      "entryPoint": "main",
+      "constants": {
+        "WORKGROUP_SIZE": 64,
+        "WEIGHT_F16": 0,
+        "WEIGHT_Q4K": 1,
+        "TRANSPOSE_B": 1,
+        "SCALAR_OUTPUT": 0
+      },
+      "startedAt": "2026-10-12T22:23:23.853Z",
+      "finishedAt": "2026-10-12T22:23:24.190Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 337.0
+    },
+    {
+      "id": 9,
+      "operation": "createComputePipelineAsync",
+      "label": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+      "entryPoint": "main",
+      "constants": {
+        "WORKGROUP_SIZE": 64,
+        "WEIGHT_F16": 1,
+        "WEIGHT_Q4K": 0,
+        "TRANSPOSE_B": 1,
+        "SCALAR_OUTPUT": 0
+      },
+      "startedAt": "2026-10-12T22:23:24.193Z",
+      "finishedAt": "2026-10-12T22:23:24.541Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 348.0
+    },
+    {
+      "id": 10,
+      "operation": "createShaderModule",
+      "label": "gated_delta_conv_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:23:24.544Z",
+      "finishedAt": "2026-10-12T22:23:24.546Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2.0
+    },
+    {
+      "id": 11,
+      "operation": "getCompilationInfo",
+      "label": "gated_delta_conv_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:23:24.546Z",
+      "finishedAt": "2026-10-12T22:23:24.546Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 12,
+      "operation": "createComputePipelineAsync",
+      "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+      "entryPoint": "main",
+      "constants": {
+        "WORKGROUP_SIZE": 64
+      },
+      "startedAt": "2026-10-12T22:23:24.546Z",
+      "finishedAt": "2026-10-12T22:23:36.854Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 12308.0
+    },
+    {
+      "id": 13,
+      "operation": "createShaderModule",
+      "label": "gated_delta_recurrent_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:23:36.857Z",
+      "finishedAt": "2026-10-12T22:23:36.859Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2.0
+    },
+    {
+      "id": 14,
+      "operation": "getCompilationInfo",
+      "label": "gated_delta_recurrent_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:23:36.859Z",
+      "finishedAt": "2026-10-12T22:23:36.859Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 15,
+      "operation": "createComputePipelineAsync",
+      "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+      "entryPoint": "main",
+      "constants": {
+        "WORKGROUP_SIZE": 128
+      },
+      "startedAt": "2026-10-12T22:23:36.859Z",
+      "finishedAt": "2026-10-12T22:36:03.282Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 746423.0
+    },
+    {
+      "id": 16,
+      "operation": "createComputePipelineAsync",
+      "label": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+      "entryPoint": "main",
+      "constants": {
+        "WORKGROUP_SIZE": 64,
+        "WEIGHT_F16": 1,
+        "WEIGHT_OFFSET": 1,
+        "PRE_RESIDUAL": 1,
+        "POST_RESIDUAL": 0,
+        "OUTPUT_PRENORM": 1
+      },
+      "startedAt": "2026-10-12T22:36:03.285Z",
+      "finishedAt": "2026-10-12T22:36:13.418Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 10133.0
+    },
+    {
+      "id": 17,
+      "operation": "createShaderModule",
+      "label": "paired_pointwise_silu",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:13.424Z",
+      "finishedAt": "2026-10-12T22:36:13.426Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2.0
+    },
+    {
+      "id": 18,
+      "operation": "getCompilationInfo",
+      "label": "paired_pointwise_silu",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:13.426Z",
+      "finishedAt": "2026-10-12T22:36:13.426Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 19,
+      "operation": "createComputePipelineAsync",
+      "label": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+      "entryPoint": "main",
+      "constants": {
+        "HAS_GATE": 1,
+        "INPUT_USE_IDENTITY": 1
+      },
+      "startedAt": "2026-10-12T22:36:13.426Z",
+      "finishedAt": "2026-10-12T22:36:25.889Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 12463.0
+    },
+    {
+      "id": 20,
+      "operation": "createShaderModule",
+      "label": "paired_pointwise_add",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:25.894Z",
+      "finishedAt": "2026-10-12T22:36:25.896Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2.0
+    },
+    {
+      "id": 21,
+      "operation": "getCompilationInfo",
+      "label": "paired_pointwise_add",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:25.896Z",
+      "finishedAt": "2026-10-12T22:36:25.897Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 1.0
+    },
+    {
+      "id": 22,
+      "operation": "createComputePipelineAsync",
+      "label": "paired_pointwise_add_pipeline",
+      "entryPoint": "main",
+      "constants": {},
+      "startedAt": "2026-10-12T22:36:25.897Z",
+      "finishedAt": "2026-10-12T22:36:26.095Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 198.0
+    },
+    {
+      "id": 23,
+      "operation": "createShaderModule",
+      "label": "split_qg_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:26.707Z",
+      "finishedAt": "2026-10-12T22:36:26.708Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 1.0
+    },
+    {
+      "id": 24,
+      "operation": "getCompilationInfo",
+      "label": "split_qg_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:26.708Z",
+      "finishedAt": "2026-10-12T22:36:26.708Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 25,
+      "operation": "createComputePipelineAsync",
+      "label": "split_qg_paired_pipeline",
+      "entryPoint": "main",
+      "constants": {},
+      "startedAt": "2026-10-12T22:36:26.708Z",
+      "finishedAt": "2026-10-12T22:36:26.710Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2.0
+    },
+    {
+      "id": 26,
+      "operation": "createShaderModule",
+      "label": "rope_qk_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:26.713Z",
+      "finishedAt": "2026-10-12T22:36:26.714Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 1.0
+    },
+    {
+      "id": 27,
+      "operation": "getCompilationInfo",
+      "label": "rope_qk_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:26.714Z",
+      "finishedAt": "2026-10-12T22:36:26.714Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 28,
+      "operation": "createComputePipelineAsync",
+      "label": "rope_qk_paired_pipeline",
+      "entryPoint": "main",
+      "constants": {},
+      "startedAt": "2026-10-12T22:36:26.714Z",
+      "finishedAt": "2026-10-12T22:36:30.460Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 3746.0
+    },
+    {
+      "id": 29,
+      "operation": "createShaderModule",
+      "label": "cast_two_f32_to_f16",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:30.462Z",
+      "finishedAt": "2026-10-12T22:36:30.463Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 1.0
+    },
+    {
+      "id": 30,
+      "operation": "getCompilationInfo",
+      "label": "cast_two_f32_to_f16",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:30.463Z",
+      "finishedAt": "2026-10-12T22:36:30.463Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 31,
+      "operation": "createComputePipelineAsync",
+      "label": "cast_two_f32_to_f16_pipeline",
+      "entryPoint": "main",
+      "constants": {},
+      "startedAt": "2026-10-12T22:36:30.463Z",
+      "finishedAt": "2026-10-12T22:36:30.467Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 4.0
+    },
+    {
+      "id": 32,
+      "operation": "createShaderModule",
+      "label": "attention_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:30.472Z",
+      "finishedAt": "2026-10-12T22:36:30.474Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2.0
+    },
+    {
+      "id": 33,
+      "operation": "getCompilationInfo",
+      "label": "attention_paired",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:30.474Z",
+      "finishedAt": "2026-10-12T22:36:30.474Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 34,
+      "operation": "createComputePipelineAsync",
+      "label": "attention_paired_pipeline",
+      "entryPoint": "main",
+      "constants": {},
+      "startedAt": "2026-10-12T22:36:30.474Z",
+      "finishedAt": "2026-10-12T22:36:46.308Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 15834.0
+    },
+    {
+      "id": 35,
+      "operation": "createShaderModule",
+      "label": "paired_pointwise_sigmoid",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:46.311Z",
+      "finishedAt": "2026-10-12T22:36:46.313Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 2.0
+    },
+    {
+      "id": 36,
+      "operation": "getCompilationInfo",
+      "label": "paired_pointwise_sigmoid",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:36:46.313Z",
+      "finishedAt": "2026-10-12T22:36:46.313Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 37,
+      "operation": "createComputePipelineAsync",
+      "label": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+      "entryPoint": "main",
+      "constants": {
+        "HAS_GATE": 1,
+        "INPUT_USE_IDENTITY": 1
+      },
+      "startedAt": "2026-10-12T22:36:46.313Z",
+      "finishedAt": "2026-10-12T22:36:58.235Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 11922.0
+    },
+    {
+      "id": 38,
+      "operation": "createComputePipelineAsync",
+      "label": "matmul_paired_q4k_scalar_pipeline_SCALAR_OUTPUT=1|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+      "entryPoint": "main",
+      "constants": {
+        "WORKGROUP_SIZE": 64,
+        "WEIGHT_F16": 0,
+        "WEIGHT_Q4K": 1,
+        "TRANSPOSE_B": 1,
+        "SCALAR_OUTPUT": 1
+      },
+      "startedAt": "2026-10-12T22:37:00.557Z",
+      "finishedAt": "2026-10-12T22:37:01.123Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 566.0
+    },
+    {
+      "id": 39,
+      "operation": "createShaderModule",
+      "label": "logit_finalize_f32",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:37:01.126Z",
+      "finishedAt": "2026-10-12T22:37:01.126Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 40,
+      "operation": "getCompilationInfo",
+      "label": "logit_finalize_f32",
+      "entryPoint": null,
+      "constants": null,
+      "startedAt": "2026-10-12T22:37:01.127Z",
+      "finishedAt": "2026-10-12T22:37:01.127Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 0.0
+    },
+    {
+      "id": 41,
+      "operation": "createComputePipelineAsync",
+      "label": "logit_finalize_f32_pipeline",
+      "entryPoint": "main",
+      "constants": {},
+      "startedAt": "2026-10-12T22:37:01.127Z",
+      "finishedAt": "2026-10-12T22:37:01.130Z",
+      "outcome": "completed",
+      "elapsedMilliseconds": 3.0
+    }
+  ],
+  "residentSettlement": [
+    {
+      "barriers": 1,
+      "activeBuffers": 0,
+      "pooledBuffers": 64,
+      "deferredCleanupCount": 0,
+      "devicePeakAllocatedBytes": 693112784,
+      "remainingWeightBytes": 0
+    },
+    {
+      "barriers": 1,
+      "activeBuffers": 0,
+      "pooledBuffers": 64,
+      "deferredCleanupCount": 0,
+      "devicePeakAllocatedBytes": 330557184,
+      "remainingWeightBytes": 0
+    }
+  ],
+  "nativeHostSettlement": {
+    "closed": true,
+    "providerOpened": true,
+    "ownedProviderReleased": true,
+    "pid": 1714510
+  },
+  "nativeExit": {
+    "pid": 1714510,
+    "exitCode": 0
+  },
+  "observationErrors": [
+    {
+      "observedAt": "2026-10-12T22:37:13.301Z",
+      "observationError": "fetch failed"
+    }
+  ],
+  "limitations": [
+    "Only Mesa disk-cache directory changed; other caches are not asserted cold. Shared caches untouched.",
+    "Existing document-quality CPU workload on cores4-7 continued; no exclusive performance benchmark.",
+    "API-boundary timing does not separate Dawn pipeline translation from driver compiler work.",
+    "Original916.5s failure retained. Ordinary300s execution deadline unchanged; diagnostic20min operation bound unchanged.",
+    "First output timestamps are external log observations; mtime and arrival are retained separately.",
+    "No new runtime code was used in this run; readiness correction0ac64fa2 needs separate candidate qualification."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "observedAt": "2026-10-12T22:38:41.964640+00:00",
+  "processExited": true,
+  "cachePath": "/var/tmp/reploid-native-private-mesa-0.6.28-8m5y91ze",
+  "cacheFileCount": 136,
+  "cacheBytes": 6416940,
+  "topLevel": [
+    "mesa_shader_cache",
+    "radv_builtin_shaders"
+  ],
+  "cachePreserved": true
+}
