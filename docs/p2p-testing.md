@@ -86,6 +86,12 @@ node scripts/run-mesh-contributor.js \
   --model-directory /path/to/exact/catalog-model-files
 ```
 
+The launcher opens Network → This device and enables only the explicitly chosen
+compute or file-sharing switch. It runs inference in a browser, not in Node.
+Use `--browser chromium` to select installed Playwright Chromium when system
+Chrome lacks the required WebGPU or Ed25519 support; the default is `chrome`.
+Keep the launcher running while contributing and use Ctrl-C to close its browser.
+
 On the requester, open the application in a fresh browser, approve input
 disclosure, and ask a question. Discovery and partition placement are automatic.
 For the automated hosted journey, run from its Reploid checkout:
