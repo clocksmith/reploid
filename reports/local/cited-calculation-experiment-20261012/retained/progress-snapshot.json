@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-10-12T11:56:22.050031+00:00",
+  "elapsedSeconds": 458,
+  "generatedTokensCaptured": 1336,
+  "endToEndCapturedTokensPerSecondIncludingLoadPrefillAndTools": 2.9170305676855897,
+  "phases": [
+    {
+      "file": "result-fresh-bathroom-comparison-answer.json",
+      "id": "fresh-bathroom-comparison",
+      "promptTokens": 629,
+      "generatedTokens": 1088,
+      "stop": "eos"
+    },
+    {
+      "file": "result-fresh-bathroom-comparison-extract.json",
+      "id": "fresh-bathroom-comparison",
+      "promptTokens": 798,
+      "generatedTokens": 247,
+      "stop": "eos"
+    },
+    {
+      "file": "result-fresh-bathroom-correction-extract.json",
+      "id": "fresh-bathroom-correction",
+      "promptTokens": 913,
+      "generatedTokens": 1,
+      "stop": null
+    }
+  ],
+  "scope": "Incremental64tokenreport snapshots, not isolated benchmark throughput"
+}

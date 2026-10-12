@@ -1,0 +1,32 @@
+{
+  "schema": "reploid.cited-calculation-run/v1",
+  "host": "x@128.tail995236.ts.net",
+  "revision": "f7757a818ae24ba61519c6f13d848f64e4d019de",
+  "frozenRevision": "82603086",
+  "command": [
+    "python3",
+    "-u",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/run.py",
+    "--doppler",
+    "/home/x/deco/doppler",
+    "--source",
+    "/var/tmp/doppler-qwen35-2b-source-20261011",
+    "--deployed",
+    "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+    "--suite",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/suite.json",
+    "--out",
+    "/home/x/deco/reploid/reports/local/cited-calculation-experiment-20261012/result.json",
+    "--threads",
+    "4"
+  ],
+  "output": "/home/x/deco/reploid/reports/local/cited-calculation-experiment-20261012/result.json",
+  "status": "completed",
+  "environment": {
+    "PYTHONPATH": "/tmp/doppler-reference-deps",
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4"
+  },
+  "pid": 3125077,
+  "exitCode": -15
+}
