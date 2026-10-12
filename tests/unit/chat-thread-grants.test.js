@@ -84,7 +84,10 @@ it('does not authorize when persisting a new grant fails', async () => {
   expect(() => f.approve(f.app, a, true)).toThrow('Storage full');
   await rejected;
   expect(f.app.getState().threads[0].grants).toEqual([]);
-  expect(f.app.getState().threads[0].attempts.at(-1).status).toBe('failed');
+  // Even the failure disposition could not be saved. Project the last durable
+  // attempt and the storage fence, never the unsaved grant or its successor.
+  expect(f.app.getState().threads[0].attempts.at(-1).status).toBe('queued');
+  expect(f.app.getState().storageError).toBe('Storage full');
   await f.app.close();
 });
 

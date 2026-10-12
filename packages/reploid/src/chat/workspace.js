@@ -29,6 +29,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
   assert(!loaded || loaded.schema === 'reploid.chat-workspace/v1'
     && loaded.meshId === meshId && loaded.participantId === participantId && Array.isArray(loaded.threads), 'Stored workspace identity mismatch');
   const threads = copy(loaded?.threads || []);
+  let durableThreads = copy(threads);
   assert(threads.length <= limits.maxThreads && new Set(threads.map(thread => thread.id)).size === threads.length, 'Invalid stored threads');
   for (const thread of threads) {
     assert(typeof thread.id === 'string' && Array.isArray(thread.messages) && Array.isArray(thread.attempts)
@@ -44,14 +45,29 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     }
   }
   const snapshot = () => copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId,
-    selectedId, threads, runningIds: [...runs.keys()], storageError,
+    selectedId, threads: storageError ? durableThreads : threads, runningIds: [...runs.keys()], storageError,
     limits: { maxThreads: limits.maxThreads, maxMessageCharacters: limits.maxMessageCharacters } });
   const notify = () => { for (const listener of listeners) {
     try { listener(snapshot()); } catch (error) { console.error('[ChatWorkspace] listener failed', error); }
   } };
   const persist = () => {
-    try { store.save(copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId, threads })); storageError = null; }
-    catch (error) { storageError = String(error.message || error); throw error; }
+    assert(!storageError, `History storage failed: ${storageError}`);
+    try {
+      const saved = copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId, threads });
+      const result = store.save(saved);
+      if (result && typeof result.then === 'function') {
+        Promise.resolve(result).catch(() => {});
+        throw new Error('Legacy history store must complete synchronously');
+      }
+      durableThreads = copy(saved.threads);
+    } catch (error) {
+      storageError = String(error.message || error);
+      // Unknown storage outcomes fence every writer until the host reloads and
+      // reconciles storage. Cancellation retains execution ownership until its
+      // normal settlement; it cannot make the failed candidate visible.
+      for (const run of runs.values()) run.controller.abort(error);
+      throw error;
+    }
     finally { notify(); }
   };
   const current = () => { assert(!closed, 'Workspace is closed'); assert(!storageError, `History storage failed: ${storageError}`); };
