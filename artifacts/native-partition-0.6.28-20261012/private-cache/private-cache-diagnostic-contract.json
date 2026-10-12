@@ -1,0 +1,73 @@
+{
+  "schema": "reploid.native-private-cache-diagnostic/v1",
+  "scope": "Single-variable private initially empty Mesa disk-cache diagnostic; same19token/two-prefix direction0",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "testDeliveryHash": "sha256:ca3ba85660efbf9a35ae98e8e70e8ef87e3fe34e6ef07fea6605578246cd81ba",
+  "nativeDeliverySha256": "32fa4e3f1e2ad3c7a1c6624078310255a2fa4c9d8d43a0ff457637dcc47bd04d",
+  "nativeArtifactSha256": "46af2517eedad71819ba796a3444347db8baf176d8a34c63a08ddeab3ed2aec5",
+  "referenceSha256": "ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "promptIndex": 0,
+  "expectedPrefixCount": 2,
+  "inputTokens": 19,
+  "tolerance": 0.001,
+  "maxAllocatedBytes": 1420000000,
+  "placement": "Mac browser input / AMD Node output",
+  "nativeOperationTimeoutMs": 1200000,
+  "outputDirectory": "/var/tmp/reploid-native-private-cache-0.6.28-output-20261012",
+  "cachePolicy": "Set only native MESA_SHADER_CACHE_DIR to the new private empty directory. Do not remove, clear or modify shared caches; other cache mechanisms not asserted cold.",
+  "observations": [
+    "Existing pendingPipelinePreparation and pipelinePreparationEvents snapshots",
+    "Read-only process RSS/HWM",
+    "External output-log arrival timestamps"
+  ],
+  "priorResultDisposition": "Earlier916.5s firstoutput remains failed ordinary responsiveness; no deadline widening",
+  "files": {
+    "snapshot-binding.json": "ca3ba85660efbf9a35ae98e8e70e8ef87e3fe34e6ef07fea6605578246cd81ba",
+    "config.json": "663e783aecd5d5e8cd6c629d1242f4381d899ace44b3f9704deb913cb9f0d7eb",
+    "run-native-reference.sh": "2a56bbf2d68bb9c6e074131511c6ec03b1bf516d930bf8f5832d88123cad6965",
+    "tests/fixtures/prepare-partition-memory.js": "8975cec83efccf9b7dd78b4d4da9aca463146ab716145cf268b30d6604815573",
+    "supervise-native.sh": "20a663fe9f9ae7cb75f120917b0e1bebf7a9929c64509e14b706828786a97c46",
+    "cache-preflight.json": "82bb85b019d240570e48eb0a570aa6f0f029f033e9ca3da7249c8f7c1528bb8b",
+    "driver-owner.json": "994487dc9588361706defdf13a1f06b34b41f76ebb1243d1945d02987b2cef82"
+  },
+  "observationExpression": "JSON.stringify({observedAt:new Date().toISOString(),pid:process.pid,uptimeSeconds:process.uptime(),rssBytes:process.memoryUsage().rss,maxRssKiB:process.resourceUsage().maxRSS,preparation:(()=>{const s=globalThis.memorySnapshot?.();return s?{events:s.pipelinePreparationEvents,pending:s.pendingPipelinePreparation,deviceEvents:s.deviceEvents,observationErrors:s.observationErrors}:null})()})",
+  "nativeEnvironmentOverride": {
+    "MESA_SHADER_CACHE_DIR": "/var/tmp/reploid-native-private-mesa-0.6.28-8m5y91ze"
+  },
+  "inheritedEnvironmentPreflight": {
+    "MESA_SHADER_CACHE_DIR": null,
+    "MESA_SHADER_CACHE_DISABLE": null,
+    "MESA_SHADER_CACHE_SHOW_STATS": null,
+    "MESA_DISK_CACHE_SINGLE_FILE": null,
+    "MESA_DISK_CACHE_MULTI_FILE": null,
+    "MESA_DISK_CACHE_DATABASE": null,
+    "MESA_DISK_CACHE_READ_ONLY_FOZ_DBS": null,
+    "MESA_DISK_CACHE_READ_ONLY_FOZ_DBS_DYNAMIC_LIST": null,
+    "MESA_DISK_CACHE_COMBINE_RW_WITH_RO_FOZ": null,
+    "XDG_CACHE_HOME": null,
+    "RADV_DEBUG": null,
+    "VK_DRIVER_FILES": null,
+    "VK_ICD_FILENAMES": null,
+    "AMD_VULKAN_ICD": null
+  },
+  "privateCachePreflight": {
+    "path": "/var/tmp/reploid-native-private-mesa-0.6.28-8m5y91ze",
+    "entries": [],
+    "device": 64513,
+    "inode": 76973708,
+    "mode": "0o700",
+    "uid": 1000
+  },
+  "actualEnvironmentRequiredBeforeProviderOpen": true,
+  "driverRecheckRequired": {
+    "path": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+    "sha256": "0949baaa43f5ea34fc785f28f31863ca5ea4949478fae96b37c37675a489f830"
+  },
+  "primaryDocumentation": {
+    "url": "https://docs.mesa3d.org/envvars.html#envvar-MESA_SHADER_CACHE_DIR",
+    "accessedDate": "2026-10-12",
+    "rule": "MESA_SHADER_CACHE_DIR selects the directory for Mesa on-disk compiled-shader caches. Other cache flags remain unchanged."
+  },
+  "comparisonBaselineContractSha256": "774e7b40daab45adf79be624aa2db31425eca562d2ebf80fe749d7baf624fac4",
+  "startCondition": "Root reviews this freeze; original-source CPU control releases cores0-3; exclusive Mac/AMD GPU window agreed. Existing document CPU4-7 continues and must be recorded."
+}

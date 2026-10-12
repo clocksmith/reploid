@@ -1,0 +1,32 @@
+{
+  "observedAtUnixSeconds": 1791843457.3208258,
+  "scope": "Read-only inherited environment observation and creation of a new private empty cache directory; no GPU/provider",
+  "inheritedEnvironment": {
+    "MESA_SHADER_CACHE_DIR": null,
+    "MESA_SHADER_CACHE_DISABLE": null,
+    "MESA_SHADER_CACHE_SHOW_STATS": null,
+    "MESA_DISK_CACHE_SINGLE_FILE": null,
+    "MESA_DISK_CACHE_MULTI_FILE": null,
+    "MESA_DISK_CACHE_DATABASE": null,
+    "MESA_DISK_CACHE_READ_ONLY_FOZ_DBS": null,
+    "MESA_DISK_CACHE_READ_ONLY_FOZ_DBS_DYNAMIC_LIST": null,
+    "MESA_DISK_CACHE_COMBINE_RW_WITH_RO_FOZ": null,
+    "XDG_CACHE_HOME": null,
+    "RADV_DEBUG": null,
+    "VK_DRIVER_FILES": null,
+    "VK_ICD_FILENAMES": null,
+    "AMD_VULKAN_ICD": null
+  },
+  "privateCache": {
+    "path": "/var/tmp/reploid-native-private-mesa-0.6.28-8m5y91ze",
+    "entries": [],
+    "device": 64513,
+    "inode": 76973708,
+    "mode": "0o700",
+    "uid": 1000
+  },
+  "driverFile": {
+    "path": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+    "sha256": "0949baaa43f5ea34fc785f28f31863ca5ea4949478fae96b37c37675a489f830"
+  }
+}
