@@ -1,0 +1,10 @@
+{
+  "scope": "Isolated candidate preparation; not accepted application or deployment",
+  "applicationSource": "37c7bc9f",
+  "archiveSha256": "8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5",
+  "archiveSource": "/var/tmp/doppler-paired-archive9-20261012/archive-9.tgz",
+  "mutations": [
+    "candidate archive replacement",
+    "remove stale runtime lock record before normal npm resolution"
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "schema": "reploid.candidate-native-install/v1",
+  "sourceCommit": "37c7bc9f",
+  "nativeDeliverySha256": "cc1badba877e148654c9ffcb0f51715dac2427547f68000be6a9f67b6fa2bcb9",
+  "archiveSha256": "8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5",
+  "sourceFiles": 95,
+  "runtimeFiles": 1974,
+  "gpuStarted": false,
+  "scope": "Outside-checkout candidate installation and CLI help only; no inference, signed opening or deployment"
+}
