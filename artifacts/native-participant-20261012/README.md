@@ -114,7 +114,7 @@ document quality, signed opening or public deployment.
 The native opener previously ignored `model.capsule` and selected manifest
 opening unconditionally. A focused regression first failed, then passed after
 rejecting unsupported signed selection before GPU startup or file acquisition.
-Nine native boundary tests pass; the actual Verification Worker reports no
+Eight native boundary tests pass; the actual Verification Worker reports no
 errors. The `signed-opening-*` receipts retain these results. This prevents
 silent downgrade; it does not implement or qualify the native signed opener.
 That integration must share signed admission, durable release checkpoints, and

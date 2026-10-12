@@ -191,6 +191,21 @@ offline backup. That remains a model-quality failure. Controllers are retained.
 and correct $72 follow-up after contributor reload. These runs use the accepted
 pin and pinned-manifest opening; they are not a frozen signed release sequence.
 
+## Full unit sweep on x@128
+
+At `61c2290f`, all **258 unit files / 2,697 tests** pass with 18 declared skips:
+`npx vitest run --config tests/vitest.config.js tests/unit --maxWorkers=2`.
+`settlement-unit-pass.log.gz` retains the run. The first unrestricted run hit
+its unchanged five-second timeout importing the pinned package; its failure is
+retained in `settlement-unit-timeout.log.gz`. Limiting test concurrency resolved
+that observation; no assertion or timeout was weakened. The CLI rejects Vitest's
+`--maxWorkers` argument, so the successful bounded invocation used Vitest directly.
+
+The same committed source packaged and verified all 1,904 served assets at
+`70caf8f9efd3bba10b6c3611247dc40046a7882c85b9cb0b47ee752900dc2e1a`.
+`settlement-hosting.log.gz` and `settlement-served.log.gz` retain local delivery
+checks. Later readiness changes receive their own generated bundle identity.
+
 ## Still open
 
 Numerical acceptance remains failed against the approved F64 target at 0.001.
