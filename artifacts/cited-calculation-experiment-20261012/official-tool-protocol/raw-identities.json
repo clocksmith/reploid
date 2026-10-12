@@ -1,0 +1,10 @@
+{
+  "schema": "reploid.retained-source-evidence/v1",
+  "status": "partial run, first completed extraction only",
+  "files": {
+    "result-fresh-bathroom-comparison-extract.json.gz": {
+      "uncompressedSha256": "993270a0bd54eafd82168f7c682b73d949c744a0527c86eb607a0ec950a08224",
+      "compressedSha256": "64ca4f032b6afeeba59fbf0ee339211473c6fe485712c248c097b57c02b215e9"
+    }
+  }
+}
