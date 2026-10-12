@@ -531,7 +531,7 @@ describe('automatic cooperative placement', () => {
       identity: 'sha256:' + 'a'.repeat(64), generation, adapters: [] };
     const plan = runtime.createLayerPartitionPlan({ modelId: model.id, numLayers: 4, hiddenSize: 8, vocabSize: 128 });
     const planId = runtime.hashLayerPartitionPlan(plan);
-    const config = { pollMs: 10, maxPeers: 4, connectTimeoutMs: 1000, grantMs: 10000, limits: policy,
+    const config = { pollMs: 50, maxPeers: 4, connectTimeoutMs: 1000, grantMs: 10000, limits: policy,
       inputChannel: channelPolicy, executionChannel: channelPolicy, controlChannel: channelPolicy,
       receiver: { maxAttempts: 32, maxSteps: 8 },
       inputLimits: { maxInputCharacters: 1000, maxOutputCharacters: 1024, maxAttempts: 16,
@@ -589,6 +589,26 @@ describe('automatic cooperative placement', () => {
     expect(result.execution.activationBytes).toBeGreaterThan(0);
     expect((await run('reuse')).content).toBe(result.content);
     expect(loaded).toHaveLength(2);
+    // Human review may outlive discovery readiness without expiring consent.
+    const normalApproval = controls.requestApproval;
+    controls.requestApproval = async preview => {
+      await new Promise(resolve => setTimeout(resolve, config.inputLimits.descriptorTtlMs + 1));
+      return normalApproval(preview);
+    };
+    try { expect((await run('human-review')).content).toBe(result.content); }
+    finally { controls.requestApproval = normalApproval; }
+    const reviewedRequest = { model, threadId: 'reviewed-input', attemptId: 'reviewed-input',
+      messages: [{ role: 'user', content: '10' }] };
+    controls.requestApproval = async preview => {
+      expect(preview.input.messages[0].content).toBe('10');
+      reviewedRequest.messages[0].content = '100'; return true;
+    };
+    try { expect((await meshes[0].generate(reviewedRequest, controls)).content).toBe(result.content); }
+    finally { controls.requestApproval = normalApproval; }
+    const expiryClock = vi.spyOn(Date, 'now');
+    controls.requestApproval = async preview => { expiryClock.mockReturnValue(preview.expiresAt); return true; };
+    try { await expect(run('expired-consent')).rejects.toThrow('Partition input disclosure expired'); }
+    finally { expiryClock.mockRestore(); controls.requestApproval = normalApproval; }
     const clock = vi.spyOn(Date, 'now').mockReturnValue(Date.now() + config.inputLimits.descriptorTtlMs + 1);
     expect(meshes[0].getModels()).toEqual([]);
     const expired = run('expired-availability');
@@ -603,7 +623,9 @@ describe('automatic cooperative placement', () => {
       expect(loaded).toHaveLength(3);
       expect(loaded.at(-1).partition).toBe(1);
       const lost = identities.findIndex(identity => identity.peerId === result.execution.participantB);
-      await meshes[lost].stop();
+      controls.requestApproval = async () => { await meshes[lost].stop(); return true; };
+      try { await expect(run('changed-during-review')).rejects.toThrow('Approved partition placement changed'); }
+      finally { controls.requestApproval = normalApproval; }
       // Retry immediately, before the requester's next capability poll. The
       // input owner reconciles loss and the requester approves the fresh pair.
       const recovered = await run('replacement');

@@ -1,0 +1,83 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/partition-api.test.js (40 tests | 2 failed) 2899ms
+     ✓ carries a sanitized DOPPLER_RESIDENT_OUTPUT_LIMIT failure through signed execution to the chat adapter 73ms
+     ✓ carries a sanitized LEGACY_027_OUTPUT_LIMIT failure through signed execution to the chat adapter 64ms
+     ✓ carries a sanitized DOPPLER_GENERATION_OUTPUT_INVALID failure through signed execution to the chat adapter 66ms
+     ✓ carries a sanitized UNRECOGNIZED_PRIVATE_ERROR failure through signed execution to the chat adapter 66ms
+     ✓ retains partial output and charged capacity when remote cleanup fails 79ms
+     ✓ keeps imports inert and requires explicit contribution before readiness 2ms
+     ✓ rejects a mismatched resident schema before readiness 1ms
+     ✓ rejects a mismatched resident ready before readiness 1ms
+     ✓ rejects a mismatched resident modelId before readiness 1ms
+     ✓ rejects a mismatched resident modelIdentity before readiness 1ms
+     ✓ rejects a mismatched resident planId before readiness 1ms
+     ✓ rejects a mismatched resident index before readiness 1ms
+     ✓ rejects a mismatched resident layerRange before readiness 1ms
+     ✓ rejects a mismatched resident generationDigest before readiness 1ms
+     ✓ declares live continuation unsupported after the session is closed 1ms
+     ✓ verifies signatures, exact attempt/recipient/plan binding, expiry, revocation and cleanup authority 2ms
+     ✓ admits immediate reservations within explicit clock skew without extending expiry 1ms
+     ✓ streams two conversations through the host, reuses resident weights and remembers scoped disclosure 111ms
+     ✓ forwards a lower request limit through authenticated binary transfer to the resident executor 12ms
+     ✓ refuses an activation-only grant before sending prompt token context or computing a step 1ms
+     ✓ rejects a missing remote token limit before computation 1ms
+     ✓ rejects a over-budget remote token limit before computation 1ms
+     ✓ rejects a mismatched remote token limit before computation 1ms
+     ✓ revokes a live conversation and waits for remote settlement without mixing another attempt 135ms
+     ✓ shares admission across independent channels and holds capacity until cleanup settles 7ms
+     ✓ does not release a reservation on failed cleanup, and records full-owner settlement 1ms
+     ✓ prevents a delayed reservation from reopening an already cancelled attempt 1ms
+     ✓ rejects unavailable split selection without loading a whole model 2ms
+     ✓ settles a model that finishes opening after contribution is stopped 1ms
+     ✓ retires a session whose loaded identity changes without calling its executor 1ms
+     ✓ does not reuse activation disclosure for another plan, recipient or whole-prompt request 1ms
+     ✓ rejects certificate replacement during network authentication and settles connection cancellation 1ms
+     ✓ shares pending endpoint settlement across repeated shutdowns, peer loss: false 0ms
+     ✓ shares pending endpoint settlement across repeated shutdowns, peer loss: true 0ms
+     ✓ runs A and B without any requester runtime, retaining requester and generation binding 17ms
+     ✓ drains a resident without cancelling an already admitted generation 16ms
+     ✓ keeps shared weights available after a single malformed input fails 15ms
+     ✓ restarts using a new identity on a separately approved replacement 0ms
+     × discovers cooperative executors with replica coverage=false 1104ms
+     × discovers cooperative executors with replica coverage=true 1109ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/partition-api.test.js > automatic cooperative placement > discovers cooperative executors with replica coverage=false
+Error: Refresh an available entry before requesting execution
+ ❯ assertPartition packages/reploid/src/mesh/partitions/partition-contract.js:5:72
+      3| export const partitionActions = Object.freeze(['mesh.execute_partition…
+      4|   'mesh.transfer_intermediate_activation', 'mesh.transfer_token_contex…
+      5| export const assertPartition = (value, message) => { if (!value) throw…
+       |                                                                        ^
+      6| export const samePartitionIdentity = (actual, expected) => actual && […
+      7| export function validatePartitionIdentity(identity) {
+ ❯ Object.generate packages/reploid/src/mesh/partitions/partition-entry.js:102:13
+ ❯ Object.generate packages/reploid/src/mesh/partitions/automatic-partitions.js:172:36
+ ❯ tests/unit/partition-api.test.js:598:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/partition-api.test.js > automatic cooperative placement > discovers cooperative executors with replica coverage=true
+Error: Refresh an available entry before requesting execution
+ ❯ assertPartition packages/reploid/src/mesh/partitions/partition-contract.js:5:72
+      3| export const partitionActions = Object.freeze(['mesh.execute_partition…
+      4|   'mesh.transfer_intermediate_activation', 'mesh.transfer_token_contex…
+      5| export const assertPartition = (value, message) => { if (!value) throw…
+       |                                                                        ^
+      6| export const samePartitionIdentity = (actual, expected) => actual && […
+      7| export function validatePartitionIdentity(identity) {
+ ❯ Object.generate packages/reploid/src/mesh/partitions/partition-entry.js:102:13
+ ❯ Object.generate packages/reploid/src/mesh/partitions/automatic-partitions.js:172:36
+ ❯ tests/unit/partition-api.test.js:598:19
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 38 passed (40)
+   Start at  23:01:33
+   Duration  3.25s (transform 102ms, setup 0ms, import 195ms, tests 2.90s, environment 90ms)
+
