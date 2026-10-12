@@ -1,0 +1,35 @@
+{
+  "scope": "Actual CDP observer plumbing with synthetic JS modules; Chromium --disable-gpu, no model, no physical qualification",
+  "observation": {
+    "resolvedRuntimeSession": {
+      "observed": 42
+    },
+    "partitionIndex": 1,
+    "planId": "synthetic-plan",
+    "modelIdentity": "synthetic-model",
+    "initialExecutionIdentity": {
+      "observed": 42,
+      "synthetic": true
+    },
+    "observation": "CDP actual loaded resident handle, before resident session creation",
+    "sources": {
+      "factory": {
+        "url": "http://127.0.0.1:54316/client/resident-partitions.js",
+        "sha256": "1eef863ccef9c077b712e4b3f5c560c22a2f285af3fff03388e349b6bbfab257"
+      },
+      "identity": {
+        "url": "http://127.0.0.1:54316/config/initial-execution-identity.js",
+        "sha256": "bd0d17c8120211cf2434d901f50e090e51dfe64516b22eb18a54b81f65ccda1e"
+      }
+    }
+  },
+  "passed": true,
+  "browser": "145.0.7632.6",
+  "archiveFactoryBoundary": {
+    "scope": "No execution; exact archive8 factory has unique observation boundary",
+    "archiveSha256": "8ea1767fb61d9009dd257c4065a6acfdbaaf80fa733145898307ed35da0e7f20",
+    "line": 72,
+    "sha256": "7ad99bc4b2f83dab0bde118a5f2c4207ee3ab88f0d8052435bc7ac60431c21bc"
+  },
+  "observerSha256": "8d8e48e14412acd55dc0fd1c0bb49078ec5b1ddf88c17d218c1a0cf705bd0e95"
+}
