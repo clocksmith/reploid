@@ -1,0 +1,380 @@
+{
+  "scope": "Original long-prompt allocation and lifecycle control; no release promotion",
+  "archiveSha256": "7449618b1e3cf2b96ec18a2f30aa14ddf56c787ce9b871e535df7a9b107b367a",
+  "allocationCap": 1420000000,
+  "controllersExitCode": [
+    0,
+    0
+  ],
+  "repeatedAndReverseLongOutputIdentical": true,
+  "phases": [
+    {
+      "phase": "repetition",
+      "partitionHosts": [
+        {
+          "index": 0,
+          "host": "mac"
+        },
+        {
+          "index": 1,
+          "host": "linux"
+        }
+      ],
+      "browsers": [
+        {
+          "host": "mac",
+          "browser": "155.0.8059.39",
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 0,
+            "layerRange": [
+              0,
+              11
+            ],
+            "residentWeightBytes": 650989568,
+            "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+          }
+        },
+        {
+          "host": "linux",
+          "browser": "146.0.7680.177",
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+          }
+        }
+      ],
+      "runs": [
+        {
+          "attempt": 0,
+          "inputTokens": 494,
+          "steps": 1348,
+          "stopReason": "eos-token",
+          "cancelled": false,
+          "allocationRejections": [],
+          "textSha256": "4ca8c4f1bb8ca4eda90067c895f06d473386e27862b76c0f8e9d11c005b3c10a",
+          "after": [
+            {
+              "peakAllocatedBytes": 788747320,
+              "liveAllocatedBytes": 747458104,
+              "weightBytes": 650989568,
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            {
+              "peakAllocatedBytes": 422257672,
+              "liveAllocatedBytes": 375812904,
+              "weightBytes": 285497344,
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          ]
+        },
+        {
+          "attempt": 1,
+          "inputTokens": 1588,
+          "steps": 1627,
+          "stopReason": "eos-token",
+          "cancelled": false,
+          "allocationRejections": [],
+          "textSha256": "f249ef80c8ac978705b388da0c8b3d9d70a06fed6aae0265abc3828b4a52fa7e",
+          "after": [
+            {
+              "peakAllocatedBytes": 809459080,
+              "liveAllocatedBytes": 752188728,
+              "weightBytes": 650989568,
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            {
+              "peakAllocatedBytes": 446967976,
+              "liveAllocatedBytes": 378700072,
+              "weightBytes": 285497344,
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          ]
+        },
+        {
+          "attempt": 2,
+          "inputTokens": 1588,
+          "steps": 1627,
+          "stopReason": "eos-token",
+          "cancelled": false,
+          "allocationRejections": [],
+          "textSha256": "f249ef80c8ac978705b388da0c8b3d9d70a06fed6aae0265abc3828b4a52fa7e",
+          "after": [
+            {
+              "peakAllocatedBytes": 809459080,
+              "liveAllocatedBytes": 752188728,
+              "weightBytes": 650989568,
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            {
+              "peakAllocatedBytes": 446967976,
+              "liveAllocatedBytes": 378700072,
+              "weightBytes": 285497344,
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          ]
+        }
+      ],
+      "settlement": [
+        {
+          "barriers": 1,
+          "peakAllocatedBytes": 809459080,
+          "liveReusableAndCachedBytes": 99075368,
+          "weightBytes": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 99064576,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        },
+        {
+          "barriers": 1,
+          "peakAllocatedBytes": 446967976,
+          "liveReusableAndCachedBytes": 91078936,
+          "weightBytes": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 91068160,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        }
+      ]
+    },
+    {
+      "phase": "cancellation",
+      "partitionHosts": [
+        {
+          "index": 1,
+          "host": "mac"
+        },
+        {
+          "index": 0,
+          "host": "linux"
+        }
+      ],
+      "browsers": [
+        {
+          "host": "mac",
+          "browser": "155.0.8059.39",
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+          }
+        },
+        {
+          "host": "linux",
+          "browser": "146.0.7680.177",
+          "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 0,
+            "layerRange": [
+              0,
+              11
+            ],
+            "residentWeightBytes": 650989568,
+            "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+          }
+        }
+      ],
+      "runs": [
+        {
+          "attempt": 0,
+          "inputTokens": 1588,
+          "steps": 0,
+          "stopReason": null,
+          "cancelled": true,
+          "allocationRejections": [
+            {
+              "code": "RESOURCE_EXHAUSTED",
+              "scope": "Direct allocation-guard rejection, not an injected model-operation failure"
+            },
+            {
+              "code": "RESOURCE_EXHAUSTED",
+              "scope": "Direct allocation-guard rejection, not an injected model-operation failure"
+            }
+          ],
+          "textSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "after": [
+            {
+              "peakAllocatedBytes": 337953104,
+              "liveAllocatedBytes": 287621392,
+              "weightBytes": 285497344,
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            {
+              "peakAllocatedBytes": 725624176,
+              "liveAllocatedBytes": 689653104,
+              "weightBytes": 650989568,
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          ]
+        },
+        {
+          "attempt": 1,
+          "inputTokens": 1588,
+          "steps": 1627,
+          "stopReason": "eos-token",
+          "cancelled": false,
+          "allocationRejections": [],
+          "textSha256": "f249ef80c8ac978705b388da0c8b3d9d70a06fed6aae0265abc3828b4a52fa7e",
+          "after": [
+            {
+              "peakAllocatedBytes": 395753096,
+              "liveAllocatedBytes": 340484904,
+              "weightBytes": 285497344,
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            },
+            {
+              "peakAllocatedBytes": 761521208,
+              "liveAllocatedBytes": 713473336,
+              "weightBytes": 650989568,
+              "deferredCleanup": {
+                "bytes": 0,
+                "count": 0
+              }
+            }
+          ]
+        }
+      ],
+      "settlement": [
+        {
+          "barriers": 1,
+          "peakAllocatedBytes": 395753096,
+          "liveReusableAndCachedBytes": 52863768,
+          "weightBytes": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 52852992,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        },
+        {
+          "barriers": 1,
+          "peakAllocatedBytes": 761521208,
+          "liveReusableAndCachedBytes": 60359976,
+          "weightBytes": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 60349184,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "gpuValidationErrors": []
+        }
+      ]
+    }
+  ]
+}

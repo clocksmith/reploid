@@ -1,0 +1,51 @@
+{
+  "scope": "Owned test process shutdown after both controller settlement receipts",
+  "controllers": {
+    "repetitionExitCode": 0,
+    "reverseCancellationExitCode": 0
+  },
+  "remoteBrowser": {
+    "pid": 3575971,
+    "signal": "SIGTERM",
+    "awaitedBrowserClose": true,
+    "exitCode": 0
+  },
+  "ownedServers": [
+    {
+      "host": "mac",
+      "pid": 56932,
+      "port": 28780,
+      "exitCode": 143
+    },
+    {
+      "host": "mac",
+      "pid": 56933,
+      "port": 28781,
+      "exitCode": 0
+    },
+    {
+      "host": "linux",
+      "pid": 3572209,
+      "port": 28780,
+      "sshWrapperExitCode": 255,
+      "absentAfter": true
+    },
+    {
+      "host": "linux",
+      "pid": 3572208,
+      "port": 28781,
+      "exitCode": 0
+    }
+  ],
+  "ownedTunnel": {
+    "pid": 56975,
+    "port": 28782,
+    "exitCode": 0
+  },
+  "postShutdownPs": {
+    "ownedProcessesAbsent": true,
+    "unrelatedPublicContributorPid": 3094599,
+    "unrelatedPublicContributorStillRunning": true
+  },
+  "scopeLimits": "Controller receipts establish resident settlement before browser closure. HTTP server SIGTERM and SSH wrapper exit are not runtime cleanup failures. Parent live8000 and existing browser contexts were not stopped."
+}
