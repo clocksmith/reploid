@@ -15,7 +15,8 @@ export const renderSharingControls = () => `<div class="network-sharing-row">
         <div class="network-sharing-row">
           <div><strong>Help answer requests <span data-contrib-label>Not sharing</span></strong>
             <p>Run peers’ public prompts on this device.</p><p data-contribution-limits></p>
-            <p data-contribution-progress role="status" hidden></p></div>
+            <p data-contribution-progress role="status" hidden></p>
+            <button type="button" class="pool-button" data-retry-contribution-stop hidden>Retry stopping</button></div>
           <button class="network-switch" type="button" role="switch" aria-label="Help answer requests" aria-checked="false" data-toggle-contribution><span></span></button>
         </div>
         <div class="network-sharing-row">
@@ -86,10 +87,13 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
       : discoveryState === 'retrying' ? 'Reconnecting…' : activeDiscovery ? 'Connected' : 'Disconnected';
     const message = find('[data-network-message]');
     message.textContent = network.error || actionError || (network.connecting ? 'Connecting…' : ''); message.hidden = !message.textContent;
-    find('[data-contrib-label]').textContent = network.stopping ? 'Stopping' : network.sharing
+    const cleanupPending = network.contribution?.unsettledOwners > 0;
+    find('[data-contrib-label]').textContent = network.stopping ? 'Stopping' : cleanupPending ? 'Cleanup not confirmed' : network.sharing
       ? ({ loading: 'Loading', ready: 'Ready', executing: 'Executing', failed: 'Failed' }[network.contribution?.phase] || 'Sharing') : 'Not sharing';
     find('[data-toggle-contribution]').setAttribute('aria-checked', String(!!network.sharing));
-    find('[data-toggle-contribution]').disabled = !!network.stopping;
+    find('[data-toggle-contribution]').disabled = !!network.stopping || cleanupPending;
+    find('[data-retry-contribution-stop]').hidden = !cleanupPending;
+    find('[data-retry-contribution-stop]').disabled = !!network.stopping;
     find('[data-contribution-limits]').textContent = network.limits ? network.limits.maxInboundJobs + (network.limits.maxInboundJobs === 1 ? ' request' : ' requests') + ' at a time · ' + network.limits.maxOutputTokens + ' output tokens per request' : '';
     const progress = network.contribution?.progress;
     const progressText = typeof progress === 'string' ? progress : progress?.message || progress?.stage || progress?.phase || '';
@@ -132,6 +136,8 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
     // Switching on explicitly grants this resource; render and discovery never do.
     return session.setSharing(enable, contributionSelect.value, enable);
   }));
+  on('[data-retry-contribution-stop]', 'click', () => act(() =>
+    session.setSharing(false, contributionSelect.value, false)));
   on('[data-toggle-file-contribution]', 'click', () => act(async () => {
     const network = session.getState().network, files = network?.files;
     const enable = !(files?.sharing || files?.preparing);

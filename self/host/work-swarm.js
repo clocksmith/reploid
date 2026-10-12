@@ -150,8 +150,10 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           onChange(state) {
             if (state.offering || contribution.partition) {
               sharing = state.offering;
+              const previousError = contribution.error;
               contribution = { ...state, partition: true, completed: 0, modelIdentity: state.descriptor?.modelIdentity };
               if (state.error) error = state.error;
+              else if (previousError && error === previousError) error = '';
             }
             for (const listener of partitionListeners) listener(partitionMesh?.getModels() || []);
             notify();

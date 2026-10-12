@@ -23,6 +23,10 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
   const notify = () => { for (const listener of listeners) { try { listener(state()); } catch {} } };
   const dispose = () => disposal ||= Promise.resolve().then(() => session?.close()).then(() => {
     reservations.close(); reservations.settleAll(); attempts.clear(); finishDrain?.();
+  }).catch(cause => {
+    // A rejection is not settlement. Retain the session and charged attempts,
+    // but allow the owner to explicitly retry a transient cleanup failure.
+    disposal = null; throw cause;
   });
   const check = () => {
     const actual = session?.getDescriptor();
@@ -150,9 +154,9 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       closing = (async () => {
         await preparing?.catch(() => {});
         await Promise.allSettled([...operations]);
-        try { await dispose(); phase = 'closed'; } catch (cause) { phase = 'failed'; error = String(cause.message || cause); throw cause; }
+        try { await dispose(); phase = 'closed'; error = null; } catch (cause) { phase = 'failed'; error = String(cause.message || cause); throw cause; }
         finally { finishDrain?.(); notify(); }
-      })();
+      })().catch(cause => { closing = null; throw cause; });
       return closing;
     }
   });

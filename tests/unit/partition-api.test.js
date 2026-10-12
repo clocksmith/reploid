@@ -367,6 +367,32 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     expect(f.local.getState().reservations.active).toBe(0);
   });
 
+  it('retries rejected resident disposal without releasing its charged reservation early', async () => {
+    const f = await fixture(), open = f.factory.openResidentPartition;
+    let rejectCleanup = true, closes = 0;
+    cleanup.push(() => { rejectCleanup = false; });
+    f.factory.openResidentPartition = async options => {
+      const session = await open(options);
+      return { ...session, async close() {
+        closes++;
+        if (rejectCleanup) throw Error('resident cleanup refused');
+        await session.close();
+      } };
+    };
+    await f.local.prepare({ approved: true });
+    f.local.reserve(f.binding);
+    await expect(f.local.close()).rejects.toThrow('resident cleanup refused');
+    expect(f.local.getState()).toMatchObject({ ready: false, phase: 'failed',
+      reservations: { active: 1, closed: true } });
+    expect(f.local.getState().reservations.records[0].settledAt).toBeNull();
+    rejectCleanup = false;
+    await Promise.all([f.local.close(), f.local.close()]);
+    expect(closes).toBe(2);
+    expect(f.local.getState()).toMatchObject({ ready: false, phase: 'closed',
+      reservations: { active: 0, closed: true } });
+    expect(f.factory.log.opens).toEqual([0]);
+  });
+
   it('rejects unavailable split selection without loading a whole model', async () => {
     const f = await fixture(), session = host(f);
     const id = session.createThread({ model: f.chat.getModels()[0] });
