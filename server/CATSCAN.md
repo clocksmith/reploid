@@ -4,11 +4,11 @@ Parent: [Reploid](../CATSCAN.md)
 
 ## Target
 
-Provide bounded authentication, rendezvous, relay, proxy, and compatibility services without becoming authority for browser-local claims.
+Bounded authentication, discovery, relay, proxy and native participation without authority over browser claims.
 
 ## Authority
-- Owns hosted request handling, server-side validation, signaling, relay, external-service adapters, and native participant host composition.
-- Does not own claimed browser execution, exactly-once delivery, scientific validity, or Research Room decisions.
+- Owns server validation, signaling, relay, external adapters and native composition.
+- Excludes browser execution claims, exactly-once delivery, scientific validity and Research Room decisions.
 
 ## Scope
 
@@ -24,23 +24,23 @@ Outputs:
 - Authenticated, bounded server responses and delivery records.
 
 ## Invariants
-- Relay acknowledgement proves receipt of that relay record, not final acceptance.
-- Authentication and transport success cannot be represented as model or scientific validity.
+- Relay acknowledgement proves receipt, not acceptance.
+- Authentication and transport do not establish model/scientific validity.
 - Hosted failures remain explicit.
-- Native hosts reuse browser participant contracts. Doppler owns computation; native adapters own provider lifetime, authorized files and observed settlement.
-- Native file supply requires separate consent from compute. Acquisition uses existing signed custody grants and Doppler's verified piece reader; only requested pieces are acquired. Complete verified files persist in a bounded cache; corrupt bytes are quarantined, never served. Interrupted partial pieces restart.
-- Native receipts retain opening mode and runtime/provider identities; support is separately qualified.
+- Native hosts reuse participant contracts. Doppler owns computation; adapters own provider lifetime, authorized files and settlement.
+- File supply needs separate consent. Signed custody and Doppler verification acquire requested pieces only. Bounded caches retain verified complete files; quarantine corruption; restart partial pieces.
+- Receipts retain opening/runtime/provider identities; native support qualifies separately.
 - `/swarm` is bounded discovery only: exact origins, namespace admission, destination membership, heartbeat and unjoined expiry. No application relay or virtual inference peers; origin is not authentication.
 
 ## Acceptance
-- Signaling and public-inference admission preserve their declared boundaries.
-- Native host selection, verified local pieces and provider settlement: [native host tests](../tests/unit/native-participant.test.js).
-- Native cache, signed acquisition, supply revocation, corruption, cancellation and cleanup: [native file tests](../tests/unit/native-model-files.test.js).
-- Evidence: [public discovery tests](../tests/integration/public-swarm-server.test.js).
-- Evidence: [signaling integration tests](../tests/integration/signaling-server.test.js) and [public inference admission tests](../tests/integration/public-inference-admission.test.js).
+- Preserve admission boundaries.
+- Evidence: native lifecycle: [native host tests](../tests/unit/native-participant.test.js).
+- Native custody: [native file tests](../tests/unit/native-model-files.test.js).
+- [public discovery tests](../tests/integration/public-swarm-server.test.js).
+- [signaling integration tests](../tests/integration/signaling-server.test.js) and [public inference admission tests](../tests/integration/public-inference-admission.test.js).
 
 ## Non-goals
 - Operating a trustless compute marketplace or centralizing browser evidence authority.
 
 ## Freedom
-Any mechanism is permitted if it preserves these boundaries and passes the acceptance evidence.
+Implementations must preserve boundaries and pass acceptance.

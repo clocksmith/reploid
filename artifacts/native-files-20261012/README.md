@@ -6,9 +6,9 @@ Component: native participant file ports. Intent: preserved. Native hosts use th
 
 ## Physical custody check
 
-An actual Node host on x@128 began with an empty model directory and empty cache. It obtained one 4,194,304-byte piece from the Mac browser file supplier, verified it through installed Doppler 0.6.27, and returned the requested first eight bytes. Only the pinned manifest, piece index and that piece were retained. No GPU provider was created. See `node-receive.json` and `node.log`.
+An actual Node host on x@128 began with an empty model directory and empty cache. It obtained one 4,194,304-byte piece from the Mac browser file supplier, verified it through installed Doppler 0.6.27, and returned the requested first eight bytes. Only the pinned manifest, piece index and that piece were retained. No GPU provider was created. See `node-receive.json` and `node.log.gz`.
 
-After explicit file-supply approval, that same Node host offered its retained inventory. A fresh Mac Chrome context used the real browser `createWorkModelFiles` implementation and restricted custody to the Node transport identity. It acquired the same piece from Node: 4,194,304 peer bytes, zero cached piece bytes and one transfer. The receipt records metadata delivered by that Node too. See `browser-receive.json`, `browser.log` and the two harnesses.
+After explicit file-supply approval, that same Node host offered its retained inventory. A fresh Mac Chrome context used the real browser `createWorkModelFiles` implementation and restricted custody to the Node transport identity. It acquired the same piece from Node: 4,194,304 peer bytes, zero cached piece bytes and one transfer. The receipt records metadata delivered by that Node too. See `browser-receive.json`, `browser.log.gz` and the two harnesses.
 
 The first reverse harness used a synthetically fulfilled local document. Chrome blocked its local signaling request with `ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS`, so it found no supplier. That failed observation is retained. Navigating a real local resource supplied the actual local address context; no browser security feature was disabled. The corrected run succeeded.
 
@@ -22,6 +22,6 @@ Use a separate cache per running host. Filesystem admission is serialized within
 
 ## Checks
 
-`focused-tests.log`: 32 passing tests across native host, native file ports and custody exchange. These cover missing-piece acquisition, retained reuse, supply approval/revocation, corrupt supplier replacement, corrupt cache quarantine, grant mismatch, cancellation, cache budget, symlinks, failed cleanup and overlapping host stops. Layer/loader/cycle verification and `git diff --check` pass. The actual Verification Worker passes both native sources with warnings and no errors (`worker.json`). Its earlier process.exitCode false positive is retained; the CLI now awaits signal-driven cleanup and propagates errors through its top-level promise for natural failure exit. Physical receipts are separate from fake-channel regression tests.
+`focused-tests.log.gz`: 32 passing tests across native host, native file ports and custody exchange. These cover missing-piece acquisition, retained reuse, supply approval/revocation, corrupt supplier replacement, corrupt cache quarantine, grant mismatch, cancellation, cache budget, symlinks, failed cleanup and overlapping host stops. Layer/loader/cycle verification and `git diff --check` pass. The actual Verification Worker passes both native sources with warnings and no errors (`worker.json`). Its earlier process.exitCode false positive is retained; the CLI now awaits signal-driven cleanup and propagates errors through its top-level promise for natural failure exit. Physical receipts are separate from fake-channel regression tests.
 
 The accepted Doppler archive and public APIs are unchanged. These results do not qualify signed Capsule opening, model accuracy, document quality or public deployment.
