@@ -40,6 +40,18 @@ describe('Execution ribbon evidence projection', () => {
     const view = projectExecutionRibbon(snapshot({ ...split, steps: [{ transferMs: 4 }, {}] }));
     expect(view.transferMs).toBeNull();
   });
+  it('keeps remote preparation and local download progress in the header', () => {
+    const model = { id: 'model', identity: 'verified', availability: 'unavailable' };
+    const state = { models: [model], network: { partitionPeers: [{ available: true,
+      description: { phase: 'loading', offer: { id: model.id, identity: model.identity } } }] } };
+    expect(projectExecutionRibbon(state).statusLabel).toBe('Preparing model');
+    state.network.partitionPeers[0].available = false;
+    expect(projectExecutionRibbon(state).statusLabel).toBe('No model ready');
+    state.localModel = { phase: 'loading', progress: { progress: 0.42 } };
+    expect(projectExecutionRibbon(state).statusLabel).toBe('Downloading model 42%');
+    state.activeThread = snapshot(null, 'executing').activeThread;
+    expect(projectExecutionRibbon(state).statusLabel).toBe('Executing');
+  });
   it('distinguishes local execution from whole-request peer execution', () => {
     expect(projectExecutionRibbon(snapshot({ placement: 'local-webgpu' })).executors[0].id).toBe('requester');
     expect(projectExecutionRibbon(snapshot({ placement: 'peer-whole-request', peerId: 'executor' })).executors[0].id).toBe('executor');
@@ -63,18 +75,6 @@ describe('Execution ribbon interactions', () => {
     root = document.createElement('div'); root.innerHTML = renderExecutionRibbon(); document.body.append(root);
     binding = bindExecutionRibbon(root, { onInspect });
   }
-  it('shows attempts while leaving idle availability to the composer', () => {
-    mount();
-    const ribbon = root.querySelector('[data-execution-ribbon]');
-    const state = snapshot(split);
-    state.activeThread = null;
-    binding.update(state);
-    expect(ribbon.hidden).toBe(true);
-    binding.update(snapshot(split));
-    expect(ribbon.hidden).toBe(false);
-    binding.update(state);
-    expect(ribbon.hidden).toBe(true);
-  });
   it('keeps one quiet status and opens assigned execution details only on activation', () => {
     const inspect = vi.fn(); mount(inspect); binding.update(snapshot(split));
     const trigger = root.querySelector('[data-ribbon-trigger]');

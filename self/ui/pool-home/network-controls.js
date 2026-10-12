@@ -21,7 +21,7 @@ export const renderSharingControls = () => `<div class="network-sharing-row">
         </div>
         <div class="network-sharing-row">
           <div><strong>Store and share model files <span data-file-contribution-label>Not sharing</span></strong>
-            <p>Download and send model files to peers. Conversations stay private.</p><p data-file-limits></p>
+            <p>Download and send model files to peers. This shares no conversations.</p><p data-file-limits></p>
             <p data-file-progress role="status" hidden></p></div>
           <button class="network-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
         </div>`;
