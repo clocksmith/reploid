@@ -1,0 +1,68 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js": "2bd0a951840efc8aa0c22890f82e0e9ca74d58ca0f3a12fbd0726366eb931107",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.test.js": "b8f28e665c4a8368ad9daf4122330168902c6b93aeba19cc2953f4444d024cbf"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js:95: Dynamic property write detected: [role] - verify input sanitization",
+      "Nesting depth of 8 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791841631899,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791841631900,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [role] - verify input sanitization",
+        "line": 95,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791841631901,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}
