@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/partition-paired-boundary.test.js (8 tests) 59ms
+ ✓ tests/unit/partition-api.test.js (41 tests) 3605ms
+     ✓ discovers cooperative executors with replica coverage=false  1622ms
+     ✓ discovers cooperative executors with replica coverage=true  1307ms
+
+ Test Files  2 passed (2)
+      Tests  49 passed (49)
+   Start at  14:39:38
+   Duration  3.99s (transform 154ms, setup 0ms, import 343ms, tests 3.66s, environment 224ms)
+

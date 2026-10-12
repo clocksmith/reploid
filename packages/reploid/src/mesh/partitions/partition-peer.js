@@ -1,13 +1,15 @@
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
 import { createPartitionStepReceiver } from './partition-step-receiver.js';
-import { assertPartition as assert, samePartitionIdentity, partitionFingerprint } from './partition-contract.js';
+import { assertPartition as assert, samePartitionIdentity, partitionFingerprint,
+  partitionActivationContract, matchingPartitionActivation } from './partition-contract.js';
 
 /** Authenticated A-to-B partition RPC. Hosts establish channel identities before constructing it. */
 export function createPartitionPeer({ channel, localParticipantId, remoteParticipantId, runtime, plan, planId,
   modelIdentity, authority, contributor = null, limits, receiverLimits }) {
   plan = structuredClone(plan); receiverLimits = structuredClone(receiverLimits);
   assert(runtime?.deserializeActivationFrame && authority?.verify, 'Partition codecs and grant verifier required');
+  const activationContract = partitionActivationContract(runtime, plan);
   assert(!contributor || contributor.index === 1 && contributor.id === localParticipantId, 'Remote serving requires the local B contributor');
   const active = new Map(), outputCharacters = new Map(), listeners = new Set();
   const reservations = new Map();
@@ -18,12 +20,12 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
     const frame = metadata.frame;
     return Number.isSafeInteger(metadata.maxTokens) && metadata.maxTokens > 0
       && metadata.maxTokens <= metadata.grant?.claim?.limits?.maxTokens && metadata.step < metadata.maxTokens
-      && frame?.schema === runtime.ACTIVATION_TENSOR_SCHEMA && frame.dtype === plan.activationDtype
+      && frame?.schema === activationContract.schema && matchingPartitionActivation(frame, activationContract, true)
       && frame.step === metadata.step && frame.seqOffset === metadata.tokenPosition
       && Array.isArray(frame.shape) && frame.shape.length === 3 && frame.shape[0] === 1
       && frame.shape[1] === metadata.inputTokenCount && frame.shape[2] === plan.hiddenSize
       && Number.isSafeInteger(frame.byteLength) && frame.byteLength > 0
-      && frame.byteLength === frame.shape[1] * frame.shape[2] * (frame.dtype === 'f16' ? 2 : 4)
+      && frame.byteLength === frame.shape[1] * frame.shape[2] * activationContract.elementStrideBytes
       && samePartitionIdentity(frame.metadata, metadata.identity)
       && frame.metadata.maxTokens === metadata.maxTokens
       && frame.metadata.generationDigest === metadata.generationDigest
@@ -48,11 +50,13 @@ export function createPartitionPeer({ channel, localParticipantId, remotePartici
     executeStep: async (request, { signal }) => {
       assert(contributor?.canAccept ? contributor.canAccept(request.identity) : contributor?.getState().ready, 'Partition B is not ready');
       const frame = { ...request.frame, buffer: request.payload.slice().buffer };
+      const activation = runtime.validateActivationFrameForPlan
+        ? runtime.validateActivationFrameForPlan(frame, plan) : runtime.deserializeActivationFrame(frame);
       const result = await contributor.executeGroup1({ identity: request.identity,
         step: request.step, tokenPosition: request.tokenPosition, inputTokenCount: request.inputTokenCount,
         maxTokens: request.maxTokens,
         generation: request.generation, inputTokenIds: request.inputTokenIds,
-        activation: runtime.deserializeActivationFrame(frame), continuation: request.continuation, signal,
+        activation, continuation: request.continuation, signal,
         executionGrant: request.grant, outputGrant: request.grant });
       assert(samePartitionIdentity(result?.identity, request.identity) && result.step === request.step
         && result.tokenPosition === request.tokenPosition && Number.isSafeInteger(result.tokenId)

@@ -1,6 +1,6 @@
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 /** Coordinates one Doppler token step through both partitions. No model math lives here. */
-import { partitionFingerprint } from './partition-contract.js';
+import { partitionFingerprint, partitionActivationContract, matchingPartitionActivation } from './partition-contract.js';
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const identifier = value => typeof value === 'string' && value.length > 0 && value.length <= 256;
 const positive = value => Number.isSafeInteger(value) && value > 0;
@@ -35,8 +35,9 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
     && typeof runtime.ACTIVATION_TENSOR_SCHEMA === 'string'
     && typeof runtime.serializeActivationFrame === 'function'
     && typeof runtime.deserializeActivationFrame === 'function', 'Doppler partition runtime required');
-  assert(suppliedPlan?.schema === runtime.LAYER_PARTITION_SCHEMA, 'Valid Doppler layer partition plan required');
+  assert(suppliedPlan && typeof suppliedPlan === 'object', 'Valid Doppler layer partition plan required');
   const plan = freezeRecord(snapshot(suppliedPlan));
+  const activationContract = partitionActivationContract(runtime, plan);
   assert(identifier(plan.modelId) && positive(plan.vocabSize) && positive(plan.hiddenSize) && positive(plan.totalLayers)
     && positive(plan.splitLayer) && plan.splitLayer < plan.totalLayers
     && ['f16', 'f32'].includes(plan.activationDtype), 'Invalid Doppler partition dimensions');
@@ -144,13 +145,16 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
           const localStepMs = performance.now() - localStarted;
           combined.throwIfAborted();
           const tensor = resultA?.activationTensor;
-          assert(tensor && tensor.dtype === plan.activationDtype && tensor.shape?.length === 3
+          assert(matchingPartitionActivation(tensor, activationContract) && tensor.shape?.length === 3
             && tensor.shape[0] === 1 && tensor.shape[1] === input.length && tensor.shape[2] === plan.hiddenSize
             && tensor.seqOffset === position && tensor.step === index, 'Partition A activation contract mismatch');
           assert(tensor.data?.byteLength <= policy.maxActivationBytes, 'Activation exceeds transfer allocation');
           const metadata = { ...binding, ...step, from: participants[0], to: participants[1] };
           const serializationStarted = performance.now();
           const frame = runtime.serializeActivationFrame({ ...tensor, metadata });
+          assert(frame.schema === activationContract.schema && matchingPartitionActivation(frame, activationContract, true),
+            'Serialized activation contract mismatch');
+          runtime.validateActivationFrameForPlan?.(frame, plan);
           assert(frame.byteLength <= policy.maxActivationBytes, 'Activation exceeds transfer allocation');
           // Retain bytes separately: a transport cannot mutate the comparison baseline.
           const sent = snapshot(frame);
@@ -170,7 +174,7 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
             const received = snapshot(await transport.transferActivation(frame, { identity: binding, ...step, signal: combined }));
             combined.throwIfAborted();
             transferMs = performance.now() - transferStarted;
-            assert(received?.schema === runtime.ACTIVATION_TENSOR_SCHEMA
+            assert(received?.schema === activationContract.schema && matchingPartitionActivation(received, activationContract, true)
               && sameBinding(received.metadata, metadata) && received.seqOffset === position
               && received.step === index && received.dtype === sent.dtype
               && JSON.stringify(received.shape) === JSON.stringify(sent.shape)
@@ -179,7 +183,9 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
             const before = new Uint8Array(sent.buffer), after = new Uint8Array(received.buffer);
             assert(before.every((byte, offset) => byte === after[offset]), 'Received activation bytes differ');
             await permit('mesh.execute_partition_b', authority.executionB, step);
-            resultB = snapshot(await deviceB.executeGroup1({ activation: runtime.deserializeActivationFrame(received),
+            const activation = runtime.validateActivationFrameForPlan
+              ? runtime.validateActivationFrameForPlan(received, plan) : runtime.deserializeActivationFrame(received);
+            resultB = snapshot(await deviceB.executeGroup1({ activation,
               inputTokenIds: [...input], generation: settings, continuation: continuationB,
               identity: binding, executionGrant: authority.executionB,
               outputGrant: authority.output, ...step, signal: combined }));

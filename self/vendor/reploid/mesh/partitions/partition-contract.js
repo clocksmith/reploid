@@ -4,6 +4,27 @@ export const partitionActions = Object.freeze(['mesh.execute_partition_a', 'mesh
   'mesh.transfer_intermediate_activation', 'mesh.transfer_token_context', 'mesh.transfer_partition_output']);
 export const assertPartition = (value, message) => { if (!value) throw new Error(message); };
 export const samePartitionIdentity = (actual, expected) => actual && [...partitionIdentityKeys, 'requesterId', 'placementGeneration'].every(key => actual[key] === expected[key]);
+/** Ask the injected provider for tensor layout; retain the accepted v1 adapter. */
+export function partitionActivationContract(runtime, plan) {
+  if (runtime.getPartitionActivationContract) {
+    assertPartition(typeof runtime.validateActivationFrameForPlan === 'function', 'Doppler activation validator required');
+    return Object.freeze({ ...runtime.getPartitionActivationContract(plan) });
+  }
+  assertPartition(plan?.schema === runtime.LAYER_PARTITION_SCHEMA
+    && plan.activationPrecision === undefined && plan.activationComponents === undefined
+    && plan.activationElementStrideBytes === undefined, 'Unsupported Doppler partition activation contract');
+  return Object.freeze({ schema: runtime.ACTIVATION_TENSOR_SCHEMA, dtype: plan.activationDtype,
+    hiddenSize: plan.hiddenSize, precision: plan.activationDtype, components: 1,
+    elementStrideBytes: plan.activationDtype === 'f16' ? 2 : 4 });
+}
+export function matchingPartitionActivation(value, contract, frame = false) {
+  if (frame && contract.components === 1) {
+    return value?.dtype === contract.dtype && ['precision', 'components', 'elementStrideBytes']
+      .every(key => value[key] === undefined);
+  }
+  return value?.dtype === contract.dtype && ['precision', 'components', 'elementStrideBytes']
+    .every(key => value[key] === contract[key] || contract.components === 1 && value[key] === undefined);
+}
 export function validatePartitionIdentity(identity) {
   assertPartition(identity && typeof identity === 'object' && !Array.isArray(identity) && partitionIdentityKeys.every(key => typeof identity[key] === 'string'
     && identity[key].length > 0 && identity[key].length <= 256)
