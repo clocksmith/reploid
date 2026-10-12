@@ -1,6 +1,6 @@
 import { bindDisclosure } from '../components/disclosure.js';
 /** Retain controls and keyboard focus when background conversations change. */
-export function createConversationList(list, seen = new Map()) {
+export function createConversationList(list, seen = new Map(), { getSources } = {}) {
   const rows = new Map(), menus = new Map();
   return {
     update(threads, selectedId, { archived = false } = {}) {
@@ -22,7 +22,9 @@ export function createConversationList(list, seen = new Map()) {
         const completion = `${attempt?.id || ''}:${status}`;
         if (thread.id === selectedId) seen.set(thread.id, completion);
         const label = status === 'completed' ? seen.get(thread.id) === completion ? 'Complete' : 'New answer' : status;
-        const title = thread.title || thread.purpose || thread.messages.find(message => message.role === 'user')?.content || 'New thread';
+        const firstInput = thread.messages.find(message => message.role === 'user')?.content;
+        const sources = firstInput && getSources?.(firstInput);
+        const title = thread.title || thread.purpose || (sources ? sources.question.split('\n')[0] : firstInput) || 'New thread';
         if (button.firstElementChild.textContent !== title) button.firstElementChild.textContent = title;
         if (button.lastElementChild.textContent !== label) button.lastElementChild.textContent = label;
         button.lastElementChild.hidden = !label;

@@ -78,7 +78,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
   let files = [], fileRevision = 0, reading = false, approvalKey = '';
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
-  const threads = createConversationList(find('[data-thread-list]'), viewState.seen);
+  const threads = createConversationList(find('[data-thread-list]'), viewState.seen, { getSources: session.getDocumentSources });
   const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions });
   const actions = find('[data-conversation-actions]');
   const actionsPanel = bindDisclosure({ root: actions, trigger: actions.querySelector('summary'), panel: actions.querySelector('div'), native: true });

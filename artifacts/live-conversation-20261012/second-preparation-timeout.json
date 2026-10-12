@@ -1,0 +1,10 @@
+{
+  "url": "http://localhost:8000/",
+  "requests": [],
+  "startedAt": "2026-10-12T02:39:55.521Z",
+  "prompts": [],
+  "ok": false,
+  "error": "expect(locator).toHaveAttribute(expected) failed\n\nLocator:  locator('[data-model-control]')\nExpected: \"ready\"\nReceived: \"idle\"\nTimeout:  300000ms\n\nCall log:\n  - Expect \"to.have.attribute.value\" with timeout 300000ms\n  - waiting for locator('[data-model-control]')\n    302 × locator resolved to <span hidden=\"\" data-activity=\"idle\" data-model-control=\"\" class=\"chat-model-control pool-activity-edge\">…</span>\n        - unexpected value \"idle\"\n",
+  "history": null,
+  "finishedAt": "2026-10-12T02:44:55.537Z"
+}
