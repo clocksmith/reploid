@@ -1,8 +1,10 @@
 {
   "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
   "sources": {
-    "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js": "e76b0f7756bd9c0a7062f3c742d5b671257c768be42ac18c7126582564f75c5f",
-    "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.test.js": "f6e74f11cbf1cacbdc4f5673053602193ee1d8580265298c7f4258246a71f73f"
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js": "a0b165ab304e2bb6160d20590dca647ac998191acc279b69bd9262ff19d299d2",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.test.js": "f6e74f11cbf1cacbdc4f5673053602193ee1d8580265298c7f4258246a71f73f",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/render.js": "71f179d4aad098f30cc39dcb15bcaa90ab359ce250935fa6707f2b2502f6b9ee",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/render.test.js": "edaca5ec407697ee8ade978e8d2c58754cd57f8deda6beb19b13e4dde8059ff7"
   },
   "result": {
     "passed": true,
@@ -15,7 +17,7 @@
     "events": [
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791841747627,
+        "timestamp": 1791842927227,
         "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js",
         "patternId": "path_traversal",
         "category": "filesystem",
@@ -24,7 +26,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791841747628,
+        "timestamp": 1791842927228,
         "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -34,7 +36,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791841747629,
+        "timestamp": 1791842927229,
         "metric": "nesting",
         "value": 8,
         "threshold": 5,
@@ -62,7 +64,7 @@
           "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js"
         }
       ],
-      "filesAnalyzed": 2
+      "filesAnalyzed": 4
     }
   }
 }

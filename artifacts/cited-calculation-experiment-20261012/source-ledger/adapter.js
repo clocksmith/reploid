@@ -158,6 +158,7 @@ export async function calculateLedger(input, messages, options = {}) {
   for (const fact of catalog.facts) values.set(fact.id, annotate({ ...fact, sources: [fact.source], derived: false }));
   for (const ledger of ledgers) ledger.values = Object.fromEntries(Object.entries(ledger.values)
     .map(([key, id]) => [key, id === null ? null : values.get(id)]));
-  return { budget, deadline, documents: ledgers, operations, computed,
+  return { budget, deadline, documents: ledgers, operations, computed, sourceFacts: catalog.facts,
+    priorAssistantClaimsPresent: messages.some(message => message.role === 'assistant'),
     semanticAcceptance: 'unqualified', scope: 'Calculations and source spans are checked; selected meanings, completeness and final answer remain subject to the unchanged independent factual review.' };
 }
