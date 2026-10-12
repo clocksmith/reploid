@@ -1,0 +1,55 @@
+{
+  "scope": "Actual Verification Worker static/AST analysis in isolated Node VM; candidate modules not executed",
+  "sources": {
+    "/artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.js": "bd2fcf11e685b9368b65fa7dcdba213d82172a824040a1d82e8349b25a83421b",
+    "/artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.test.js": "8557ff140568d69258ba927cba687cca902502a9316a9eb3e179bcfb622c3d34"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.test.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791830674882,
+        "path": "/artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791830674886,
+        "path": "/artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [],
+      "filesAnalyzed": 2
+    }
+  }
+}

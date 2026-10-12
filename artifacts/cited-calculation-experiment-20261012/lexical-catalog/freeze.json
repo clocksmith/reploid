@@ -1,0 +1,42 @@
+{
+  "schema": "reploid.lexical-catalog-freeze/v1",
+  "status": "frozen before outputs; parent independent review pending",
+  "parentRejectedRevision": "bdd99240",
+  "files": {
+    "GRAMMAR.md": "e04d0b8cd8e514612b2893a90e57f37f400e0aaf57dc58c3911e09fe6a4b2636",
+    "README.md": "6cc589cd811193d1352daebed7093432b5c0148b88214de15367a22d5d55a964",
+    "catalog.js": "bd2fcf11e685b9368b65fa7dcdba213d82172a824040a1d82e8349b25a83421b",
+    "catalog.test.js": "8557ff140568d69258ba927cba687cca902502a9316a9eb3e179bcfb622c3d34",
+    "holdouts.json": "ec98d50af54ea835f5971946f7238651f2183c0e43ab22077167da459c654b37",
+    "preflight.py": "37eaf27cc772394cea675c6556b896bf8f27a9a8526b9cddb61554afb296efa5",
+    "protocol.py": "a9efb2cba8a900cc6bbbabb41e53c7d598b49a5359e614185fc7c6c3bac27079",
+    "protocol_test.py": "970644da3ae278a34b32aef1481f8f402f8017c40a3a6e5cb915d4336a97c630",
+    "run.py": "a89e9c5b84a84be006bdfeaedcdbd143c8d6c663c27116beb3e6abe34d04c213",
+    "suite.json": "4ce9c2ec0db57cfb3b81e6666cce8cce02f21dac10f2d2dd90415aa3ac84b589",
+    "template-binding.json": "22cc56128a81ed47b1d51901183b62a4c71d69d8007f1902d8b756db5684dacd",
+    "token-preflight.json": "519c9b8f25d2144bc874b67509e60f3eeaa40aa4b8523bf2ef073e761a703d5d",
+    "tools.json": "4c2482fb9d09f9873fe8b6024adb257bc8f7224bddbdaafc2ad57641111ec1b5",
+    "verification-worker.json": "441e227a2de401cf564ec14d35c42aeb76ad1b01a4041f1d51fdb9e3ac0d0839"
+  },
+  "reusedSources": {
+    "artifacts/cited-calculation-experiment-20261012/calculate.js": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+    "self/host/document-comparison.js": "7d80ae3314b2be989b74a3eecc54d0ebfe4d1f190d7f3bad263f4a80c58c3e42",
+    "packages/reploid/src/agent/tool-runner.js": "f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a"
+  },
+  "sourceLoaderSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
+  "sourceEvaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "model": "Qwen/Qwen3.5-2B",
+  "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "policy": "Original source equations/F16KV, nonthinking, greedy, repetition1.0; no model/precision change.",
+  "cases": "Original seven messages and all factual/citation criteria unchanged; two new independent holdouts frozen and locked until full original manual acceptance.",
+  "inputChange": "Append deterministic lexical catalog data to latest original user message in both executed prompts. Fixture messages unchanged. Model chooses operations only; source bytes/aliases never model-generated.",
+  "noEntailment": "Lexical kind/source equality establishes no meaning, truth, inclusion, exclusion, deadline or semantic relationship. Model plan and final answer retain unchanged full review.",
+  "budgets": {
+    "generatedTokens": 4096,
+    "promptPlusGeneratedTokens": 8192,
+    "rawOutputUtf16": 16000,
+    "extractionMaxTokens": 1536
+  },
+  "stopping": "Finish first case attempt then stop at structural/tool/natural-completion/budget failure or final extra-tool attempt; remaining cases unrun. Otherwise complete seven and require full manual review. No retry or output repair.",
+  "launch": "x128 CPU four threads nice10 after parent review; no GPU."
+}

@@ -1,0 +1,2135 @@
+{
+  "schema": "reploid.lexical-catalog-token-preflight/v1",
+  "weightsLoaded": false,
+  "modelGenerated": false,
+  "originalSevenHistoriesCriteriaAndPolicyIdentical": true,
+  "cases": [
+    {
+      "fixture": "suite.json",
+      "id": "fresh-bathroom-comparison",
+      "catalog": {
+        "facts": [
+          {
+            "id": "f000",
+            "kind": "money",
+            "source": "U0",
+            "quote": "Compare these fictional bathroom quotes. My budget is $10,000 and I need completion before September 25. Explain costs, exclusions, conflicting clauses, sche",
+            "value": "$10,000"
+          },
+          {
+            "id": "f001",
+            "kind": "date",
+            "source": "U0",
+            "quote": "Compare these fictional bathroom quotes. My budget is $10,000 and I need completion before September 25. Explain costs, exclusions, conflicting clauses, schedule risks and questions, citing the exact",
+            "value": "September 25"
+          },
+          {
+            "id": "f002",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "Bathroom work: $8,400 including installation and disposal. Sales tax is excluded.",
+            "value": "$8,400"
+          },
+          {
+            "id": "f003",
+            "kind": "date",
+            "source": "D1:P3",
+            "quote": "Estimated completion September 18, subject to permit approval. Deposit: 25% of $8,400.",
+            "value": "September 18"
+          },
+          {
+            "id": "f004",
+            "kind": "percent",
+            "source": "D1:P3",
+            "quote": "Estimated completion September 18, subject to permit approval. Deposit: 25% of $8,400.",
+            "value": "25%"
+          },
+          {
+            "id": "f005",
+            "kind": "money",
+            "source": "D1:P3",
+            "quote": "Estimated completion September 18, subject to permit approval. Deposit: 25% of $8,400.",
+            "value": "$8,400"
+          },
+          {
+            "id": "f006",
+            "kind": "money",
+            "source": "D2:P1",
+            "quote": "Bathroom work: $9,100 including installation, disposal, sales tax and plumbing.",
+            "value": "$9,100"
+          },
+          {
+            "id": "f007",
+            "kind": "money",
+            "source": "D2:P2",
+            "quote": "Includes up to $500 of electrical work. Additional electrical work requires written approval and an extra charge.",
+            "value": "$500"
+          },
+          {
+            "id": "f008",
+            "kind": "date",
+            "source": "D2:P3",
+            "quote": "Completion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.",
+            "value": "September 20"
+          },
+          {
+            "id": "f009",
+            "kind": "date",
+            "source": "D2:P3",
+            "quote": "Completion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.",
+            "value": "August 15"
+          },
+          {
+            "id": "f010",
+            "kind": "percent",
+            "source": "D2:P3",
+            "quote": "Completion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.",
+            "value": "30%"
+          },
+          {
+            "id": "f011",
+            "kind": "money",
+            "source": "D2:P3",
+            "quote": "ompletion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.",
+            "value": "$9,100"
+          },
+          {
+            "id": "f012",
+            "kind": "money",
+            "source": "D3:P1",
+            "quote": "Bathroom work: installation price $7,900. Disposal costs another $450. Sales tax is excluded.",
+            "value": "$7,900"
+          },
+          {
+            "id": "f013",
+            "kind": "money",
+            "source": "D3:P1",
+            "quote": "Bathroom work: installation price $7,900. Disposal costs another $450. Sales tax is excluded.",
+            "value": "$450"
+          },
+          {
+            "id": "f014",
+            "kind": "date",
+            "source": "D3:P3",
+            "quote": "Estimated start September 12 followed by three weeks of work. Deposit: 40% of the installation price, excluding disposal.",
+            "value": "September 12"
+          },
+          {
+            "id": "f015",
+            "kind": "weeks",
+            "source": "D3:P3",
+            "quote": "Estimated start September 12 followed by three weeks of work. Deposit: 40% of the installation price, excluding disposal.",
+            "value": "three"
+          },
+          {
+            "id": "f016",
+            "kind": "percent",
+            "source": "D3:P3",
+            "quote": "Estimated start September 12 followed by three weeks of work. Deposit: 40% of the installation price, excluding disposal.",
+            "value": "40%"
+          }
+        ],
+        "spans": [
+          {
+            "id": "f000",
+            "source": "U0",
+            "start": 54,
+            "end": 61,
+            "quoteStart": 0,
+            "quoteEnd": 157
+          },
+          {
+            "id": "f001",
+            "source": "U0",
+            "start": 91,
+            "end": 103,
+            "quoteStart": 0,
+            "quoteEnd": 199
+          },
+          {
+            "id": "f002",
+            "source": "D1:P1",
+            "start": 15,
+            "end": 21,
+            "quoteStart": 0,
+            "quoteEnd": 81
+          },
+          {
+            "id": "f003",
+            "source": "D1:P3",
+            "start": 21,
+            "end": 33,
+            "quoteStart": 0,
+            "quoteEnd": 86
+          },
+          {
+            "id": "f004",
+            "source": "D1:P3",
+            "start": 72,
+            "end": 75,
+            "quoteStart": 0,
+            "quoteEnd": 86
+          },
+          {
+            "id": "f005",
+            "source": "D1:P3",
+            "start": 79,
+            "end": 85,
+            "quoteStart": 0,
+            "quoteEnd": 86
+          },
+          {
+            "id": "f006",
+            "source": "D2:P1",
+            "start": 15,
+            "end": 21,
+            "quoteStart": 0,
+            "quoteEnd": 79
+          },
+          {
+            "id": "f007",
+            "source": "D2:P2",
+            "start": 15,
+            "end": 19,
+            "quoteStart": 0,
+            "quoteEnd": 113
+          },
+          {
+            "id": "f008",
+            "source": "D2:P3",
+            "start": 14,
+            "end": 26,
+            "quoteStart": 0,
+            "quoteEnd": 104
+          },
+          {
+            "id": "f009",
+            "source": "D2:P3",
+            "start": 70,
+            "end": 79,
+            "quoteStart": 0,
+            "quoteEnd": 104
+          },
+          {
+            "id": "f010",
+            "source": "D2:P3",
+            "start": 90,
+            "end": 93,
+            "quoteStart": 0,
+            "quoteEnd": 104
+          },
+          {
+            "id": "f011",
+            "source": "D2:P3",
+            "start": 97,
+            "end": 103,
+            "quoteStart": 1,
+            "quoteEnd": 104
+          },
+          {
+            "id": "f012",
+            "source": "D3:P1",
+            "start": 34,
+            "end": 40,
+            "quoteStart": 0,
+            "quoteEnd": 93
+          },
+          {
+            "id": "f013",
+            "source": "D3:P1",
+            "start": 65,
+            "end": 69,
+            "quoteStart": 0,
+            "quoteEnd": 93
+          },
+          {
+            "id": "f014",
+            "source": "D3:P3",
+            "start": 16,
+            "end": 28,
+            "quoteStart": 0,
+            "quoteEnd": 121
+          },
+          {
+            "id": "f015",
+            "source": "D3:P3",
+            "start": 41,
+            "end": 46,
+            "quoteStart": 0,
+            "quoteEnd": 121
+          },
+          {
+            "id": "f016",
+            "source": "D3:P3",
+            "start": 71,
+            "end": 74,
+            "quoteStart": 0,
+            "quoteEnd": 121
+          }
+        ],
+        "entries": [
+          {
+            "id": "f000",
+            "kind": "money",
+            "source": "U0",
+            "value": "$10,000"
+          },
+          {
+            "id": "f001",
+            "kind": "date",
+            "source": "U0",
+            "value": "September 25"
+          },
+          {
+            "id": "f002",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$8,400"
+          },
+          {
+            "id": "f003",
+            "kind": "date",
+            "source": "D1:P3",
+            "value": "September 18"
+          },
+          {
+            "id": "f004",
+            "kind": "percent",
+            "source": "D1:P3",
+            "value": "25%"
+          },
+          {
+            "id": "f005",
+            "kind": "money",
+            "source": "D1:P3",
+            "value": "$8,400"
+          },
+          {
+            "id": "f006",
+            "kind": "money",
+            "source": "D2:P1",
+            "value": "$9,100"
+          },
+          {
+            "id": "f007",
+            "kind": "money",
+            "source": "D2:P2",
+            "value": "$500"
+          },
+          {
+            "id": "f008",
+            "kind": "date",
+            "source": "D2:P3",
+            "value": "September 20"
+          },
+          {
+            "id": "f009",
+            "kind": "date",
+            "source": "D2:P3",
+            "value": "August 15"
+          },
+          {
+            "id": "f010",
+            "kind": "percent",
+            "source": "D2:P3",
+            "value": "30%"
+          },
+          {
+            "id": "f011",
+            "kind": "money",
+            "source": "D2:P3",
+            "value": "$9,100"
+          },
+          {
+            "id": "f012",
+            "kind": "money",
+            "source": "D3:P1",
+            "value": "$7,900"
+          },
+          {
+            "id": "f013",
+            "kind": "money",
+            "source": "D3:P1",
+            "value": "$450"
+          },
+          {
+            "id": "f014",
+            "kind": "date",
+            "source": "D3:P3",
+            "value": "September 12"
+          },
+          {
+            "id": "f015",
+            "kind": "weeks",
+            "source": "D3:P3",
+            "value": "three"
+          },
+          {
+            "id": "f016",
+            "kind": "percent",
+            "source": "D3:P3",
+            "value": "40%"
+          }
+        ],
+        "scope": "Exact source literals only. No semantic attribution, conditions, contradictions or truth are established."
+      },
+      "extractionPromptTokens": 1705,
+      "extractionCap": 1536,
+      "finalPromptTokensWithEmptyToolProbe": 1762,
+      "caveat": "Empty probe is only a prompt-sizing diagnostic, never a task answer or acceptance. Actual generated call/tool response are charged at runtime."
+    },
+    {
+      "fixture": "suite.json",
+      "id": "fresh-bathroom-correction",
+      "catalog": {
+        "facts": [
+          {
+            "id": "f000",
+            "kind": "money",
+            "source": "U0",
+            "quote": "Compare these fictional bathroom quotes. My budget is $10,000 and I need completion before September 25. Explain costs, exclusions, conflicting clauses, sche",
+            "value": "$10,000"
+          },
+          {
+            "id": "f001",
+            "kind": "date",
+            "source": "U0",
+            "quote": "Compare these fictional bathroom quotes. My budget is $10,000 and I need completion before September 25. Explain costs, exclusions, conflicting clauses, schedule risks and questions, citing the exact",
+            "value": "September 25"
+          },
+          {
+            "id": "f002",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "Bathroom work: $8,400 including installation and disposal. Sales tax is excluded.",
+            "value": "$8,400"
+          },
+          {
+            "id": "f003",
+            "kind": "date",
+            "source": "D1:P3",
+            "quote": "Estimated completion September 18, subject to permit approval. Deposit: 25% of $8,400.",
+            "value": "September 18"
+          },
+          {
+            "id": "f004",
+            "kind": "percent",
+            "source": "D1:P3",
+            "quote": "Estimated completion September 18, subject to permit approval. Deposit: 25% of $8,400.",
+            "value": "25%"
+          },
+          {
+            "id": "f005",
+            "kind": "money",
+            "source": "D1:P3",
+            "quote": "Estimated completion September 18, subject to permit approval. Deposit: 25% of $8,400.",
+            "value": "$8,400"
+          },
+          {
+            "id": "f006",
+            "kind": "money",
+            "source": "D2:P1",
+            "quote": "Bathroom work: $9,100 including installation, disposal, sales tax and plumbing.",
+            "value": "$9,100"
+          },
+          {
+            "id": "f007",
+            "kind": "money",
+            "source": "D2:P2",
+            "quote": "Includes up to $500 of electrical work. Additional electrical work requires written approval and an extra charge.",
+            "value": "$500"
+          },
+          {
+            "id": "f008",
+            "kind": "date",
+            "source": "D2:P3",
+            "quote": "Completion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.",
+            "value": "September 20"
+          },
+          {
+            "id": "f009",
+            "kind": "date",
+            "source": "D2:P3",
+            "quote": "Completion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.",
+            "value": "August 15"
+          },
+          {
+            "id": "f010",
+            "kind": "percent",
+            "source": "D2:P3",
+            "quote": "Completion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.",
+            "value": "30%"
+          },
+          {
+            "id": "f011",
+            "kind": "money",
+            "source": "D2:P3",
+            "quote": "ompletion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.",
+            "value": "$9,100"
+          },
+          {
+            "id": "f012",
+            "kind": "money",
+            "source": "D3:P1",
+            "quote": "Bathroom work: installation price $7,900. Disposal costs another $450. Sales tax is excluded.",
+            "value": "$7,900"
+          },
+          {
+            "id": "f013",
+            "kind": "money",
+            "source": "D3:P1",
+            "quote": "Bathroom work: installation price $7,900. Disposal costs another $450. Sales tax is excluded.",
+            "value": "$450"
+          },
+          {
+            "id": "f014",
+            "kind": "date",
+            "source": "D3:P3",
+            "quote": "Estimated start September 12 followed by three weeks of work. Deposit: 40% of the installation price, excluding disposal.",
+            "value": "September 12"
+          },
+          {
+            "id": "f015",
+            "kind": "weeks",
+            "source": "D3:P3",
+            "quote": "Estimated start September 12 followed by three weeks of work. Deposit: 40% of the installation price, excluding disposal.",
+            "value": "three"
+          },
+          {
+            "id": "f016",
+            "kind": "percent",
+            "source": "D3:P3",
+            "quote": "Estimated start September 12 followed by three weeks of work. Deposit: 40% of the installation price, excluding disposal.",
+            "value": "40%"
+          }
+        ],
+        "spans": [
+          {
+            "id": "f000",
+            "source": "U0",
+            "start": 54,
+            "end": 61,
+            "quoteStart": 0,
+            "quoteEnd": 157
+          },
+          {
+            "id": "f001",
+            "source": "U0",
+            "start": 91,
+            "end": 103,
+            "quoteStart": 0,
+            "quoteEnd": 199
+          },
+          {
+            "id": "f002",
+            "source": "D1:P1",
+            "start": 15,
+            "end": 21,
+            "quoteStart": 0,
+            "quoteEnd": 81
+          },
+          {
+            "id": "f003",
+            "source": "D1:P3",
+            "start": 21,
+            "end": 33,
+            "quoteStart": 0,
+            "quoteEnd": 86
+          },
+          {
+            "id": "f004",
+            "source": "D1:P3",
+            "start": 72,
+            "end": 75,
+            "quoteStart": 0,
+            "quoteEnd": 86
+          },
+          {
+            "id": "f005",
+            "source": "D1:P3",
+            "start": 79,
+            "end": 85,
+            "quoteStart": 0,
+            "quoteEnd": 86
+          },
+          {
+            "id": "f006",
+            "source": "D2:P1",
+            "start": 15,
+            "end": 21,
+            "quoteStart": 0,
+            "quoteEnd": 79
+          },
+          {
+            "id": "f007",
+            "source": "D2:P2",
+            "start": 15,
+            "end": 19,
+            "quoteStart": 0,
+            "quoteEnd": 113
+          },
+          {
+            "id": "f008",
+            "source": "D2:P3",
+            "start": 14,
+            "end": 26,
+            "quoteStart": 0,
+            "quoteEnd": 104
+          },
+          {
+            "id": "f009",
+            "source": "D2:P3",
+            "start": 70,
+            "end": 79,
+            "quoteStart": 0,
+            "quoteEnd": 104
+          },
+          {
+            "id": "f010",
+            "source": "D2:P3",
+            "start": 90,
+            "end": 93,
+            "quoteStart": 0,
+            "quoteEnd": 104
+          },
+          {
+            "id": "f011",
+            "source": "D2:P3",
+            "start": 97,
+            "end": 103,
+            "quoteStart": 1,
+            "quoteEnd": 104
+          },
+          {
+            "id": "f012",
+            "source": "D3:P1",
+            "start": 34,
+            "end": 40,
+            "quoteStart": 0,
+            "quoteEnd": 93
+          },
+          {
+            "id": "f013",
+            "source": "D3:P1",
+            "start": 65,
+            "end": 69,
+            "quoteStart": 0,
+            "quoteEnd": 93
+          },
+          {
+            "id": "f014",
+            "source": "D3:P3",
+            "start": 16,
+            "end": 28,
+            "quoteStart": 0,
+            "quoteEnd": 121
+          },
+          {
+            "id": "f015",
+            "source": "D3:P3",
+            "start": 41,
+            "end": 46,
+            "quoteStart": 0,
+            "quoteEnd": 121
+          },
+          {
+            "id": "f016",
+            "source": "D3:P3",
+            "start": 71,
+            "end": 74,
+            "quoteStart": 0,
+            "quoteEnd": 121
+          }
+        ],
+        "entries": [
+          {
+            "id": "f000",
+            "kind": "money",
+            "source": "U0",
+            "value": "$10,000"
+          },
+          {
+            "id": "f001",
+            "kind": "date",
+            "source": "U0",
+            "value": "September 25"
+          },
+          {
+            "id": "f002",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$8,400"
+          },
+          {
+            "id": "f003",
+            "kind": "date",
+            "source": "D1:P3",
+            "value": "September 18"
+          },
+          {
+            "id": "f004",
+            "kind": "percent",
+            "source": "D1:P3",
+            "value": "25%"
+          },
+          {
+            "id": "f005",
+            "kind": "money",
+            "source": "D1:P3",
+            "value": "$8,400"
+          },
+          {
+            "id": "f006",
+            "kind": "money",
+            "source": "D2:P1",
+            "value": "$9,100"
+          },
+          {
+            "id": "f007",
+            "kind": "money",
+            "source": "D2:P2",
+            "value": "$500"
+          },
+          {
+            "id": "f008",
+            "kind": "date",
+            "source": "D2:P3",
+            "value": "September 20"
+          },
+          {
+            "id": "f009",
+            "kind": "date",
+            "source": "D2:P3",
+            "value": "August 15"
+          },
+          {
+            "id": "f010",
+            "kind": "percent",
+            "source": "D2:P3",
+            "value": "30%"
+          },
+          {
+            "id": "f011",
+            "kind": "money",
+            "source": "D2:P3",
+            "value": "$9,100"
+          },
+          {
+            "id": "f012",
+            "kind": "money",
+            "source": "D3:P1",
+            "value": "$7,900"
+          },
+          {
+            "id": "f013",
+            "kind": "money",
+            "source": "D3:P1",
+            "value": "$450"
+          },
+          {
+            "id": "f014",
+            "kind": "date",
+            "source": "D3:P3",
+            "value": "September 12"
+          },
+          {
+            "id": "f015",
+            "kind": "weeks",
+            "source": "D3:P3",
+            "value": "three"
+          },
+          {
+            "id": "f016",
+            "kind": "percent",
+            "source": "D3:P3",
+            "value": "40%"
+          }
+        ],
+        "scope": "Exact source literals only. No semantic attribution, conditions, contradictions or truth are established."
+      },
+      "extractionPromptTokens": 1820,
+      "extractionCap": 1536,
+      "finalPromptTokensWithEmptyToolProbe": 1877,
+      "caveat": "Empty probe is only a prompt-sizing diagnostic, never a task answer or acceptance. Actual generated call/tool response are charged at runtime."
+    },
+    {
+      "fixture": "suite.json",
+      "id": "contractor-comparison",
+      "catalog": {
+        "facts": [
+          {
+            "id": "f000",
+            "kind": "number",
+            "source": "U0",
+            "quote": "Compare these three fictional contractor quotes. My budget is $12,000 and completion before June 1 matters. Explain",
+            "value": "three"
+          },
+          {
+            "id": "f001",
+            "kind": "money",
+            "source": "U0",
+            "quote": "Compare these three fictional contractor quotes. My budget is $12,000 and completion before June 1 matters. Explain tradeoffs, missing costs, and questions to send b",
+            "value": "$12,000"
+          },
+          {
+            "id": "f002",
+            "kind": "date",
+            "source": "U0",
+            "quote": "Compare these three fictional contractor quotes. My budget is $12,000 and completion before June 1 matters. Explain tradeoffs, missing costs, and questions to send back, citing the passages.",
+            "value": "June 1"
+          },
+          {
+            "id": "f003",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "Kitchen work: base price $10,800. Includes cabinets, installation, and removal of old cabinets. Sales tax is excluded.",
+            "value": "$10,800"
+          },
+          {
+            "id": "f004",
+            "kind": "date",
+            "source": "D1:P3",
+            "quote": "Estimated completion May 25. Schedule is subject to material availability. Deposit: 30%.",
+            "value": "May 25"
+          },
+          {
+            "id": "f005",
+            "kind": "percent",
+            "source": "D1:P3",
+            "quote": "Estimated completion May 25. Schedule is subject to material availability. Deposit: 30%.",
+            "value": "30%"
+          },
+          {
+            "id": "f006",
+            "kind": "money",
+            "source": "D2:P1",
+            "quote": "Kitchen work: fixed price $11,600 including cabinets, installation, removal, and sales tax.",
+            "value": "$11,600"
+          },
+          {
+            "id": "f007",
+            "kind": "money",
+            "source": "D2:P2",
+            "quote": "Includes up to $800 of electrical work. Plumbing is excluded. Changes above the allowance require written approval.",
+            "value": "$800"
+          },
+          {
+            "id": "f008",
+            "kind": "date",
+            "source": "D2:P3",
+            "quote": "Completion promised by May 28 if the deposit is received by April 10. Deposit: 40%.",
+            "value": "May 28"
+          },
+          {
+            "id": "f009",
+            "kind": "date",
+            "source": "D2:P3",
+            "quote": "Completion promised by May 28 if the deposit is received by April 10. Deposit: 40%.",
+            "value": "April 10"
+          },
+          {
+            "id": "f010",
+            "kind": "percent",
+            "source": "D2:P3",
+            "quote": "Completion promised by May 28 if the deposit is received by April 10. Deposit: 40%.",
+            "value": "40%"
+          },
+          {
+            "id": "f011",
+            "kind": "money",
+            "source": "D3:P1",
+            "quote": "Kitchen work: $9,900 for cabinets and installation. Removal is an additional $650. Sales tax and electrical work are",
+            "value": "$9,900"
+          },
+          {
+            "id": "f012",
+            "kind": "money",
+            "source": "D3:P1",
+            "quote": "Kitchen work: $9,900 for cabinets and installation. Removal is an additional $650. Sales tax and electrical work are excluded.",
+            "value": "$650"
+          },
+          {
+            "id": "f013",
+            "kind": "number",
+            "source": "D3:P2",
+            "quote": "Page 1 states plumbing reconnection is included. Page 2 states all plumbing work is excluded.",
+            "value": "1"
+          },
+          {
+            "id": "f014",
+            "kind": "number",
+            "source": "D3:P2",
+            "quote": "Page 1 states plumbing reconnection is included. Page 2 states all plumbing work is excluded.",
+            "value": "2"
+          },
+          {
+            "id": "f015",
+            "kind": "date",
+            "source": "D3:P3",
+            "quote": "Estimated start May 20, with three weeks of work. Deposit: 50%.",
+            "value": "May 20"
+          },
+          {
+            "id": "f016",
+            "kind": "weeks",
+            "source": "D3:P3",
+            "quote": "Estimated start May 20, with three weeks of work. Deposit: 50%.",
+            "value": "three"
+          },
+          {
+            "id": "f017",
+            "kind": "percent",
+            "source": "D3:P3",
+            "quote": "Estimated start May 20, with three weeks of work. Deposit: 50%.",
+            "value": "50%"
+          }
+        ],
+        "spans": [
+          {
+            "id": "f000",
+            "source": "U0",
+            "start": 14,
+            "end": 19,
+            "quoteStart": 0,
+            "quoteEnd": 115
+          },
+          {
+            "id": "f001",
+            "source": "U0",
+            "start": 62,
+            "end": 69,
+            "quoteStart": 0,
+            "quoteEnd": 165
+          },
+          {
+            "id": "f002",
+            "source": "U0",
+            "start": 92,
+            "end": 98,
+            "quoteStart": 0,
+            "quoteEnd": 190
+          },
+          {
+            "id": "f003",
+            "source": "D1:P1",
+            "start": 25,
+            "end": 32,
+            "quoteStart": 0,
+            "quoteEnd": 118
+          },
+          {
+            "id": "f004",
+            "source": "D1:P3",
+            "start": 21,
+            "end": 27,
+            "quoteStart": 0,
+            "quoteEnd": 88
+          },
+          {
+            "id": "f005",
+            "source": "D1:P3",
+            "start": 84,
+            "end": 87,
+            "quoteStart": 0,
+            "quoteEnd": 88
+          },
+          {
+            "id": "f006",
+            "source": "D2:P1",
+            "start": 26,
+            "end": 33,
+            "quoteStart": 0,
+            "quoteEnd": 91
+          },
+          {
+            "id": "f007",
+            "source": "D2:P2",
+            "start": 15,
+            "end": 19,
+            "quoteStart": 0,
+            "quoteEnd": 115
+          },
+          {
+            "id": "f008",
+            "source": "D2:P3",
+            "start": 23,
+            "end": 29,
+            "quoteStart": 0,
+            "quoteEnd": 83
+          },
+          {
+            "id": "f009",
+            "source": "D2:P3",
+            "start": 60,
+            "end": 68,
+            "quoteStart": 0,
+            "quoteEnd": 83
+          },
+          {
+            "id": "f010",
+            "source": "D2:P3",
+            "start": 79,
+            "end": 82,
+            "quoteStart": 0,
+            "quoteEnd": 83
+          },
+          {
+            "id": "f011",
+            "source": "D3:P1",
+            "start": 14,
+            "end": 20,
+            "quoteStart": 0,
+            "quoteEnd": 116
+          },
+          {
+            "id": "f012",
+            "source": "D3:P1",
+            "start": 77,
+            "end": 81,
+            "quoteStart": 0,
+            "quoteEnd": 126
+          },
+          {
+            "id": "f013",
+            "source": "D3:P2",
+            "start": 5,
+            "end": 6,
+            "quoteStart": 0,
+            "quoteEnd": 93
+          },
+          {
+            "id": "f014",
+            "source": "D3:P2",
+            "start": 54,
+            "end": 55,
+            "quoteStart": 0,
+            "quoteEnd": 93
+          },
+          {
+            "id": "f015",
+            "source": "D3:P3",
+            "start": 16,
+            "end": 22,
+            "quoteStart": 0,
+            "quoteEnd": 63
+          },
+          {
+            "id": "f016",
+            "source": "D3:P3",
+            "start": 29,
+            "end": 34,
+            "quoteStart": 0,
+            "quoteEnd": 63
+          },
+          {
+            "id": "f017",
+            "source": "D3:P3",
+            "start": 59,
+            "end": 62,
+            "quoteStart": 0,
+            "quoteEnd": 63
+          }
+        ],
+        "entries": [
+          {
+            "id": "f000",
+            "kind": "number",
+            "source": "U0",
+            "value": "three"
+          },
+          {
+            "id": "f001",
+            "kind": "money",
+            "source": "U0",
+            "value": "$12,000"
+          },
+          {
+            "id": "f002",
+            "kind": "date",
+            "source": "U0",
+            "value": "June 1"
+          },
+          {
+            "id": "f003",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$10,800"
+          },
+          {
+            "id": "f004",
+            "kind": "date",
+            "source": "D1:P3",
+            "value": "May 25"
+          },
+          {
+            "id": "f005",
+            "kind": "percent",
+            "source": "D1:P3",
+            "value": "30%"
+          },
+          {
+            "id": "f006",
+            "kind": "money",
+            "source": "D2:P1",
+            "value": "$11,600"
+          },
+          {
+            "id": "f007",
+            "kind": "money",
+            "source": "D2:P2",
+            "value": "$800"
+          },
+          {
+            "id": "f008",
+            "kind": "date",
+            "source": "D2:P3",
+            "value": "May 28"
+          },
+          {
+            "id": "f009",
+            "kind": "date",
+            "source": "D2:P3",
+            "value": "April 10"
+          },
+          {
+            "id": "f010",
+            "kind": "percent",
+            "source": "D2:P3",
+            "value": "40%"
+          },
+          {
+            "id": "f011",
+            "kind": "money",
+            "source": "D3:P1",
+            "value": "$9,900"
+          },
+          {
+            "id": "f012",
+            "kind": "money",
+            "source": "D3:P1",
+            "value": "$650"
+          },
+          {
+            "id": "f013",
+            "kind": "number",
+            "source": "D3:P2",
+            "value": "1"
+          },
+          {
+            "id": "f014",
+            "kind": "number",
+            "source": "D3:P2",
+            "value": "2"
+          },
+          {
+            "id": "f015",
+            "kind": "date",
+            "source": "D3:P3",
+            "value": "May 20"
+          },
+          {
+            "id": "f016",
+            "kind": "weeks",
+            "source": "D3:P3",
+            "value": "three"
+          },
+          {
+            "id": "f017",
+            "kind": "percent",
+            "source": "D3:P3",
+            "value": "50%"
+          }
+        ],
+        "scope": "Exact source literals only. No semantic attribution, conditions, contradictions or truth are established."
+      },
+      "extractionPromptTokens": 1732,
+      "extractionCap": 1536,
+      "finalPromptTokensWithEmptyToolProbe": 1789,
+      "caveat": "Empty probe is only a prompt-sizing diagnostic, never a task answer or acceptance. Actual generated call/tool response are charged at runtime."
+    },
+    {
+      "fixture": "suite.json",
+      "id": "contractor-retained-correction",
+      "catalog": {
+        "facts": [
+          {
+            "id": "f000",
+            "kind": "number",
+            "source": "U0",
+            "quote": "Compare these three fictional contractor quotes. My budget is $12,000 and completion before June 1 matters. Explain",
+            "value": "three"
+          },
+          {
+            "id": "f001",
+            "kind": "money",
+            "source": "U0",
+            "quote": "Compare these three fictional contractor quotes. My budget is $12,000 and completion before June 1 matters. Explain tradeoffs, missing costs, and questions to send b",
+            "value": "$12,000"
+          },
+          {
+            "id": "f002",
+            "kind": "date",
+            "source": "U0",
+            "quote": "Compare these three fictional contractor quotes. My budget is $12,000 and completion before June 1 matters. Explain tradeoffs, missing costs, and questions to send back, citing the passages.",
+            "value": "June 1"
+          },
+          {
+            "id": "f003",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "Kitchen work: base price $10,800. Includes cabinets, installation, and removal of old cabinets. Sales tax is excluded.",
+            "value": "$10,800"
+          },
+          {
+            "id": "f004",
+            "kind": "date",
+            "source": "D1:P3",
+            "quote": "Estimated completion May 25. Schedule is subject to material availability. Deposit: 30%.",
+            "value": "May 25"
+          },
+          {
+            "id": "f005",
+            "kind": "percent",
+            "source": "D1:P3",
+            "quote": "Estimated completion May 25. Schedule is subject to material availability. Deposit: 30%.",
+            "value": "30%"
+          },
+          {
+            "id": "f006",
+            "kind": "money",
+            "source": "D2:P1",
+            "quote": "Kitchen work: fixed price $11,600 including cabinets, installation, removal, and sales tax.",
+            "value": "$11,600"
+          },
+          {
+            "id": "f007",
+            "kind": "money",
+            "source": "D2:P2",
+            "quote": "Includes up to $800 of electrical work. Plumbing is excluded. Changes above the allowance require written approval.",
+            "value": "$800"
+          },
+          {
+            "id": "f008",
+            "kind": "date",
+            "source": "D2:P3",
+            "quote": "Completion promised by May 28 if the deposit is received by April 10. Deposit: 40%.",
+            "value": "May 28"
+          },
+          {
+            "id": "f009",
+            "kind": "date",
+            "source": "D2:P3",
+            "quote": "Completion promised by May 28 if the deposit is received by April 10. Deposit: 40%.",
+            "value": "April 10"
+          },
+          {
+            "id": "f010",
+            "kind": "percent",
+            "source": "D2:P3",
+            "quote": "Completion promised by May 28 if the deposit is received by April 10. Deposit: 40%.",
+            "value": "40%"
+          },
+          {
+            "id": "f011",
+            "kind": "money",
+            "source": "D3:P1",
+            "quote": "Kitchen work: $9,900 for cabinets and installation. Removal is an additional $650. Sales tax and electrical work are",
+            "value": "$9,900"
+          },
+          {
+            "id": "f012",
+            "kind": "money",
+            "source": "D3:P1",
+            "quote": "Kitchen work: $9,900 for cabinets and installation. Removal is an additional $650. Sales tax and electrical work are excluded.",
+            "value": "$650"
+          },
+          {
+            "id": "f013",
+            "kind": "number",
+            "source": "D3:P2",
+            "quote": "Page 1 states plumbing reconnection is included. Page 2 states all plumbing work is excluded.",
+            "value": "1"
+          },
+          {
+            "id": "f014",
+            "kind": "number",
+            "source": "D3:P2",
+            "quote": "Page 1 states plumbing reconnection is included. Page 2 states all plumbing work is excluded.",
+            "value": "2"
+          },
+          {
+            "id": "f015",
+            "kind": "date",
+            "source": "D3:P3",
+            "quote": "Estimated start May 20, with three weeks of work. Deposit: 50%.",
+            "value": "May 20"
+          },
+          {
+            "id": "f016",
+            "kind": "weeks",
+            "source": "D3:P3",
+            "quote": "Estimated start May 20, with three weeks of work. Deposit: 50%.",
+            "value": "three"
+          },
+          {
+            "id": "f017",
+            "kind": "percent",
+            "source": "D3:P3",
+            "quote": "Estimated start May 20, with three weeks of work. Deposit: 50%.",
+            "value": "50%"
+          }
+        ],
+        "spans": [
+          {
+            "id": "f000",
+            "source": "U0",
+            "start": 14,
+            "end": 19,
+            "quoteStart": 0,
+            "quoteEnd": 115
+          },
+          {
+            "id": "f001",
+            "source": "U0",
+            "start": 62,
+            "end": 69,
+            "quoteStart": 0,
+            "quoteEnd": 165
+          },
+          {
+            "id": "f002",
+            "source": "U0",
+            "start": 92,
+            "end": 98,
+            "quoteStart": 0,
+            "quoteEnd": 190
+          },
+          {
+            "id": "f003",
+            "source": "D1:P1",
+            "start": 25,
+            "end": 32,
+            "quoteStart": 0,
+            "quoteEnd": 118
+          },
+          {
+            "id": "f004",
+            "source": "D1:P3",
+            "start": 21,
+            "end": 27,
+            "quoteStart": 0,
+            "quoteEnd": 88
+          },
+          {
+            "id": "f005",
+            "source": "D1:P3",
+            "start": 84,
+            "end": 87,
+            "quoteStart": 0,
+            "quoteEnd": 88
+          },
+          {
+            "id": "f006",
+            "source": "D2:P1",
+            "start": 26,
+            "end": 33,
+            "quoteStart": 0,
+            "quoteEnd": 91
+          },
+          {
+            "id": "f007",
+            "source": "D2:P2",
+            "start": 15,
+            "end": 19,
+            "quoteStart": 0,
+            "quoteEnd": 115
+          },
+          {
+            "id": "f008",
+            "source": "D2:P3",
+            "start": 23,
+            "end": 29,
+            "quoteStart": 0,
+            "quoteEnd": 83
+          },
+          {
+            "id": "f009",
+            "source": "D2:P3",
+            "start": 60,
+            "end": 68,
+            "quoteStart": 0,
+            "quoteEnd": 83
+          },
+          {
+            "id": "f010",
+            "source": "D2:P3",
+            "start": 79,
+            "end": 82,
+            "quoteStart": 0,
+            "quoteEnd": 83
+          },
+          {
+            "id": "f011",
+            "source": "D3:P1",
+            "start": 14,
+            "end": 20,
+            "quoteStart": 0,
+            "quoteEnd": 116
+          },
+          {
+            "id": "f012",
+            "source": "D3:P1",
+            "start": 77,
+            "end": 81,
+            "quoteStart": 0,
+            "quoteEnd": 126
+          },
+          {
+            "id": "f013",
+            "source": "D3:P2",
+            "start": 5,
+            "end": 6,
+            "quoteStart": 0,
+            "quoteEnd": 93
+          },
+          {
+            "id": "f014",
+            "source": "D3:P2",
+            "start": 54,
+            "end": 55,
+            "quoteStart": 0,
+            "quoteEnd": 93
+          },
+          {
+            "id": "f015",
+            "source": "D3:P3",
+            "start": 16,
+            "end": 22,
+            "quoteStart": 0,
+            "quoteEnd": 63
+          },
+          {
+            "id": "f016",
+            "source": "D3:P3",
+            "start": 29,
+            "end": 34,
+            "quoteStart": 0,
+            "quoteEnd": 63
+          },
+          {
+            "id": "f017",
+            "source": "D3:P3",
+            "start": 59,
+            "end": 62,
+            "quoteStart": 0,
+            "quoteEnd": 63
+          }
+        ],
+        "entries": [
+          {
+            "id": "f000",
+            "kind": "number",
+            "source": "U0",
+            "value": "three"
+          },
+          {
+            "id": "f001",
+            "kind": "money",
+            "source": "U0",
+            "value": "$12,000"
+          },
+          {
+            "id": "f002",
+            "kind": "date",
+            "source": "U0",
+            "value": "June 1"
+          },
+          {
+            "id": "f003",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$10,800"
+          },
+          {
+            "id": "f004",
+            "kind": "date",
+            "source": "D1:P3",
+            "value": "May 25"
+          },
+          {
+            "id": "f005",
+            "kind": "percent",
+            "source": "D1:P3",
+            "value": "30%"
+          },
+          {
+            "id": "f006",
+            "kind": "money",
+            "source": "D2:P1",
+            "value": "$11,600"
+          },
+          {
+            "id": "f007",
+            "kind": "money",
+            "source": "D2:P2",
+            "value": "$800"
+          },
+          {
+            "id": "f008",
+            "kind": "date",
+            "source": "D2:P3",
+            "value": "May 28"
+          },
+          {
+            "id": "f009",
+            "kind": "date",
+            "source": "D2:P3",
+            "value": "April 10"
+          },
+          {
+            "id": "f010",
+            "kind": "percent",
+            "source": "D2:P3",
+            "value": "40%"
+          },
+          {
+            "id": "f011",
+            "kind": "money",
+            "source": "D3:P1",
+            "value": "$9,900"
+          },
+          {
+            "id": "f012",
+            "kind": "money",
+            "source": "D3:P1",
+            "value": "$650"
+          },
+          {
+            "id": "f013",
+            "kind": "number",
+            "source": "D3:P2",
+            "value": "1"
+          },
+          {
+            "id": "f014",
+            "kind": "number",
+            "source": "D3:P2",
+            "value": "2"
+          },
+          {
+            "id": "f015",
+            "kind": "date",
+            "source": "D3:P3",
+            "value": "May 20"
+          },
+          {
+            "id": "f016",
+            "kind": "weeks",
+            "source": "D3:P3",
+            "value": "three"
+          },
+          {
+            "id": "f017",
+            "kind": "percent",
+            "source": "D3:P3",
+            "value": "50%"
+          }
+        ],
+        "scope": "Exact source literals only. No semantic attribution, conditions, contradictions or truth are established."
+      },
+      "extractionPromptTokens": 2826,
+      "extractionCap": 1536,
+      "finalPromptTokensWithEmptyToolProbe": 2883,
+      "caveat": "Empty probe is only a prompt-sizing diagnostic, never a task answer or acceptance. Actual generated call/tool response are charged at runtime."
+    },
+    {
+      "fixture": "suite.json",
+      "id": "fresh-printing-balance",
+      "catalog": {
+        "facts": [
+          {
+            "id": "f000",
+            "kind": "number",
+            "source": "U0",
+            "quote": "What remains due for four posters, after the payment? Explain whether the final bill is known and cite the supplied terms",
+            "value": "four"
+          },
+          {
+            "id": "f001",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "Each poster costs $18.75. One delivery fee of $7.50 applies to the entire order.",
+            "value": "$18.75"
+          },
+          {
+            "id": "f002",
+            "kind": "number",
+            "source": "D1:P1",
+            "quote": "Each poster costs $18.75. One delivery fee of $7.50 applies to the entire order.",
+            "value": "One"
+          },
+          {
+            "id": "f003",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "Each poster costs $18.75. One delivery fee of $7.50 applies to the entire order.",
+            "value": "$7.50"
+          },
+          {
+            "id": "f004",
+            "kind": "money",
+            "source": "D1:P2",
+            "quote": "A payment of $30 has been received. Tax has not been calculated.",
+            "value": "$30"
+          }
+        ],
+        "spans": [
+          {
+            "id": "f000",
+            "source": "U0",
+            "start": 21,
+            "end": 25,
+            "quoteStart": 0,
+            "quoteEnd": 121
+          },
+          {
+            "id": "f001",
+            "source": "D1:P1",
+            "start": 18,
+            "end": 24,
+            "quoteStart": 0,
+            "quoteEnd": 80
+          },
+          {
+            "id": "f002",
+            "source": "D1:P1",
+            "start": 26,
+            "end": 29,
+            "quoteStart": 0,
+            "quoteEnd": 80
+          },
+          {
+            "id": "f003",
+            "source": "D1:P1",
+            "start": 46,
+            "end": 51,
+            "quoteStart": 0,
+            "quoteEnd": 80
+          },
+          {
+            "id": "f004",
+            "source": "D1:P2",
+            "start": 13,
+            "end": 16,
+            "quoteStart": 0,
+            "quoteEnd": 64
+          }
+        ],
+        "entries": [
+          {
+            "id": "f000",
+            "kind": "number",
+            "source": "U0",
+            "value": "four"
+          },
+          {
+            "id": "f001",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$18.75"
+          },
+          {
+            "id": "f002",
+            "kind": "number",
+            "source": "D1:P1",
+            "value": "One"
+          },
+          {
+            "id": "f003",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$7.50"
+          },
+          {
+            "id": "f004",
+            "kind": "money",
+            "source": "D1:P2",
+            "value": "$30"
+          }
+        ],
+        "scope": "Exact source literals only. No semantic attribution, conditions, contradictions or truth are established."
+      },
+      "extractionPromptTokens": 968,
+      "extractionCap": 1536,
+      "finalPromptTokensWithEmptyToolProbe": 1025,
+      "caveat": "Empty probe is only a prompt-sizing diagnostic, never a task answer or acceptance. Actual generated call/tool response are charged at runtime."
+    },
+    {
+      "fixture": "suite.json",
+      "id": "fresh-schedule-condition",
+      "catalog": {
+        "facts": [
+          {
+            "id": "f000",
+            "kind": "date",
+            "source": "U0",
+            "quote": "Can this finish before April 9? Explain the projected date and its condition, with citations.",
+            "value": "April 9"
+          },
+          {
+            "id": "f001",
+            "kind": "date",
+            "source": "D1:P1",
+            "quote": "Work starts March 28 and takes two weeks if inspection passes on the start date.",
+            "value": "March 28"
+          },
+          {
+            "id": "f002",
+            "kind": "weeks",
+            "source": "D1:P1",
+            "quote": "Work starts March 28 and takes two weeks if inspection passes on the start date.",
+            "value": "two"
+          }
+        ],
+        "spans": [
+          {
+            "id": "f000",
+            "source": "U0",
+            "start": 23,
+            "end": 30,
+            "quoteStart": 0,
+            "quoteEnd": 93
+          },
+          {
+            "id": "f001",
+            "source": "D1:P1",
+            "start": 12,
+            "end": 20,
+            "quoteStart": 0,
+            "quoteEnd": 80
+          },
+          {
+            "id": "f002",
+            "source": "D1:P1",
+            "start": 31,
+            "end": 34,
+            "quoteStart": 0,
+            "quoteEnd": 80
+          }
+        ],
+        "entries": [
+          {
+            "id": "f000",
+            "kind": "date",
+            "source": "U0",
+            "value": "April 9"
+          },
+          {
+            "id": "f001",
+            "kind": "date",
+            "source": "D1:P1",
+            "value": "March 28"
+          },
+          {
+            "id": "f002",
+            "kind": "weeks",
+            "source": "D1:P1",
+            "value": "two"
+          }
+        ],
+        "scope": "Exact source literals only. No semantic attribution, conditions, contradictions or truth are established."
+      },
+      "extractionPromptTokens": 892,
+      "extractionCap": 1536,
+      "finalPromptTokensWithEmptyToolProbe": 949,
+      "caveat": "Empty probe is only a prompt-sizing diagnostic, never a task answer or acceptance. Actual generated call/tool response are charged at runtime."
+    },
+    {
+      "fixture": "suite.json",
+      "id": "fresh-included-credit-conflict",
+      "catalog": {
+        "facts": [
+          {
+            "id": "f000",
+            "kind": "money",
+            "source": "U0",
+            "quote": "My budget is $2,500. What known charges and headroom should I use, and what needs clarification? Cite each claim.",
+            "value": "$2,500"
+          },
+          {
+            "id": "f001",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "The base price is $2,180 including an allowance of up to $120 for wiring. Delivery costs another $85.",
+            "value": "$2,180"
+          },
+          {
+            "id": "f002",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "The base price is $2,180 including an allowance of up to $120 for wiring. Delivery costs another $85.",
+            "value": "$120"
+          },
+          {
+            "id": "f003",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "he base price is $2,180 including an allowance of up to $120 for wiring. Delivery costs another $85.",
+            "value": "$85"
+          },
+          {
+            "id": "f004",
+            "kind": "number",
+            "source": "D1:P2",
+            "quote": "Page one says removal is included; page two says removal is excluded. No separate removal price is state",
+            "value": "one"
+          },
+          {
+            "id": "f005",
+            "kind": "number",
+            "source": "D1:P2",
+            "quote": "Page one says removal is included; page two says removal is excluded. No separate removal price is stated. Tax is excluded.",
+            "value": "two"
+          }
+        ],
+        "spans": [
+          {
+            "id": "f000",
+            "source": "U0",
+            "start": 13,
+            "end": 19,
+            "quoteStart": 0,
+            "quoteEnd": 113
+          },
+          {
+            "id": "f001",
+            "source": "D1:P1",
+            "start": 18,
+            "end": 24,
+            "quoteStart": 0,
+            "quoteEnd": 101
+          },
+          {
+            "id": "f002",
+            "source": "D1:P1",
+            "start": 57,
+            "end": 61,
+            "quoteStart": 0,
+            "quoteEnd": 101
+          },
+          {
+            "id": "f003",
+            "source": "D1:P1",
+            "start": 97,
+            "end": 100,
+            "quoteStart": 1,
+            "quoteEnd": 101
+          },
+          {
+            "id": "f004",
+            "source": "D1:P2",
+            "start": 5,
+            "end": 8,
+            "quoteStart": 0,
+            "quoteEnd": 104
+          },
+          {
+            "id": "f005",
+            "source": "D1:P2",
+            "start": 40,
+            "end": 43,
+            "quoteStart": 0,
+            "quoteEnd": 123
+          }
+        ],
+        "entries": [
+          {
+            "id": "f000",
+            "kind": "money",
+            "source": "U0",
+            "value": "$2,500"
+          },
+          {
+            "id": "f001",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$2,180"
+          },
+          {
+            "id": "f002",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$120"
+          },
+          {
+            "id": "f003",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$85"
+          },
+          {
+            "id": "f004",
+            "kind": "number",
+            "source": "D1:P2",
+            "value": "one"
+          },
+          {
+            "id": "f005",
+            "kind": "number",
+            "source": "D1:P2",
+            "value": "two"
+          }
+        ],
+        "scope": "Exact source literals only. No semantic attribution, conditions, contradictions or truth are established."
+      },
+      "extractionPromptTokens": 1023,
+      "extractionCap": 1536,
+      "finalPromptTokensWithEmptyToolProbe": 1080,
+      "caveat": "Empty probe is only a prompt-sizing diagnostic, never a task answer or acceptance. Actual generated call/tool response are charged at runtime."
+    },
+    {
+      "fixture": "holdouts.json",
+      "id": "holdout-workshop-known-balance",
+      "catalog": {
+        "facts": [
+          {
+            "id": "f000",
+            "kind": "number",
+            "source": "U0",
+            "quote": "For eight workshop seats, what known balance remains after my advance, and what costs or cancellation con",
+            "value": "eight"
+          },
+          {
+            "id": "f001",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "Workshop seats cost $37 each. Delivery costs another $22. The seat price already includes supplies worth $45. An advanc",
+            "value": "$37"
+          },
+          {
+            "id": "f002",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "Workshop seats cost $37 each. Delivery costs another $22. The seat price already includes supplies worth $45. An advance of $80 has been paid. Sales tax",
+            "value": "$22"
+          },
+          {
+            "id": "f003",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": "seats cost $37 each. Delivery costs another $22. The seat price already includes supplies worth $45. An advance of $80 has been paid. Sales tax is not stated.",
+            "value": "$45"
+          },
+          {
+            "id": "f004",
+            "kind": "money",
+            "source": "D1:P1",
+            "quote": ". Delivery costs another $22. The seat price already includes supplies worth $45. An advance of $80 has been paid. Sales tax is not stated.",
+            "value": "$80"
+          },
+          {
+            "id": "f005",
+            "kind": "date",
+            "source": "D1:P2",
+            "quote": "Cancellation is refundable only before July 9. After that date the advance is nonrefundable.",
+            "value": "July 9"
+          }
+        ],
+        "spans": [
+          {
+            "id": "f000",
+            "source": "U0",
+            "start": 4,
+            "end": 9,
+            "quoteStart": 0,
+            "quoteEnd": 105
+          },
+          {
+            "id": "f001",
+            "source": "D1:P1",
+            "start": 20,
+            "end": 23,
+            "quoteStart": 0,
+            "quoteEnd": 119
+          },
+          {
+            "id": "f002",
+            "source": "D1:P1",
+            "start": 53,
+            "end": 56,
+            "quoteStart": 0,
+            "quoteEnd": 152
+          },
+          {
+            "id": "f003",
+            "source": "D1:P1",
+            "start": 105,
+            "end": 108,
+            "quoteStart": 9,
+            "quoteEnd": 167
+          },
+          {
+            "id": "f004",
+            "source": "D1:P1",
+            "start": 124,
+            "end": 127,
+            "quoteStart": 28,
+            "quoteEnd": 167
+          },
+          {
+            "id": "f005",
+            "source": "D1:P2",
+            "start": 39,
+            "end": 45,
+            "quoteStart": 0,
+            "quoteEnd": 92
+          }
+        ],
+        "entries": [
+          {
+            "id": "f000",
+            "kind": "number",
+            "source": "U0",
+            "value": "eight"
+          },
+          {
+            "id": "f001",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$37"
+          },
+          {
+            "id": "f002",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$22"
+          },
+          {
+            "id": "f003",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$45"
+          },
+          {
+            "id": "f004",
+            "kind": "money",
+            "source": "D1:P1",
+            "value": "$80"
+          },
+          {
+            "id": "f005",
+            "kind": "date",
+            "source": "D1:P2",
+            "value": "July 9"
+          }
+        ],
+        "scope": "Exact source literals only. No semantic attribution, conditions, contradictions or truth are established."
+      },
+      "extractionPromptTokens": 1038,
+      "extractionCap": 1536,
+      "finalPromptTokensWithEmptyToolProbe": 1095,
+      "caveat": "Empty probe is only a prompt-sizing diagnostic, never a task answer or acceptance. Actual generated call/tool response are charged at runtime."
+    },
+    {
+      "fixture": "holdouts.json",
+      "id": "holdout-service-correction",
+      "catalog": {
+        "facts": [
+          {
+            "id": "f000",
+            "kind": "date",
+            "source": "U0",
+            "quote": "Can this service be guaranteed finished before December 1? Cite the source and calculate any conditional projected finish.",
+            "value": "December 1"
+          },
+          {
+            "id": "f001",
+            "kind": "date",
+            "source": "D1:P1",
+            "quote": "Arrival is planned for November 27. Work then takes five days.",
+            "value": "November 27"
+          },
+          {
+            "id": "f002",
+            "kind": "days",
+            "source": "D1:P1",
+            "quote": "Arrival is planned for November 27. Work then takes five days.",
+            "value": "five"
+          },
+          {
+            "id": "f003",
+            "kind": "date",
+            "source": "D1:P2",
+            "quote": "The arrival date applies only if the deposit is received by November 20. Receipt of the deposit has not been confirmed.",
+            "value": "November 20"
+          }
+        ],
+        "spans": [
+          {
+            "id": "f000",
+            "source": "U0",
+            "start": 47,
+            "end": 57,
+            "quoteStart": 0,
+            "quoteEnd": 122
+          },
+          {
+            "id": "f001",
+            "source": "D1:P1",
+            "start": 23,
+            "end": 34,
+            "quoteStart": 0,
+            "quoteEnd": 62
+          },
+          {
+            "id": "f002",
+            "source": "D1:P1",
+            "start": 52,
+            "end": 56,
+            "quoteStart": 0,
+            "quoteEnd": 62
+          },
+          {
+            "id": "f003",
+            "source": "D1:P2",
+            "start": 60,
+            "end": 71,
+            "quoteStart": 0,
+            "quoteEnd": 119
+          }
+        ],
+        "entries": [
+          {
+            "id": "f000",
+            "kind": "date",
+            "source": "U0",
+            "value": "December 1"
+          },
+          {
+            "id": "f001",
+            "kind": "date",
+            "source": "D1:P1",
+            "value": "November 27"
+          },
+          {
+            "id": "f002",
+            "kind": "days",
+            "source": "D1:P1",
+            "value": "five"
+          },
+          {
+            "id": "f003",
+            "kind": "date",
+            "source": "D1:P2",
+            "value": "November 20"
+          }
+        ],
+        "scope": "Exact source literals only. No semantic attribution, conditions, contradictions or truth are established."
+      },
+      "extractionPromptTokens": 999,
+      "extractionCap": 1536,
+      "finalPromptTokensWithEmptyToolProbe": 1056,
+      "caveat": "Empty probe is only a prompt-sizing diagnostic, never a task answer or acceptance. Actual generated call/tool response are charged at runtime."
+    }
+  ]
+}
