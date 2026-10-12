@@ -46,3 +46,21 @@ preserves the original execution error even when later cleanup also fails.
 A future physical run must freeze this fixture's delivery, archive, provider and
 reference identities before output. The former immutable browser snapshot and
 its failed GPU-reset run remain unchanged. Native GPU acceptance is pending.
+
+## Actual installed no-GPU preflight
+
+`installed-preflight.json` records the x128 outside-checkout run using source
+37c7bc9f native delivery `cc1badba877e148654c9ffcb0f51715dac2427547f68000be6a9f67b6fa2bcb9`
+and archive9 `8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5`.
+The process checked all 95 native application members and all 1,974 runtime
+members, exposed its actual Node inspector identity, and exited naturally with
+code 0 after close. `residentPresent` and `gpuPresent` were false;
+`providerOpened` and `ownedProviderReleased` were false. No GPU qualification is
+claimed. The retained controller runs from the frozen remote fixture directory
+`/var/tmp/reploid-native-fixture-archive9-preflight-20261012` with `node
+installed-preflight.mjs`; its runtime helper delivery is bound separately.
+
+`public-health-readonly.json` is separate read-only log evidence following the
+unrelated physical split reset. It records connected native file supply and
+advertised readiness, plus a browser relay heartbeat. Neither establishes that
+the public GPU remains usable. Public processes were not signaled or restarted.
