@@ -1,0 +1,85 @@
+{
+  "schema": "reploid.native-readiness-qualification/v1",
+  "scope": "Exact installed native/browser resident full55 numerics and cold first-request readiness; not signed acquisition or ordinary mesh advertisement",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "testDeliverySha256": "397f4efbf47a8300660fa2e8b11761a3586c0d537044037d904aef255097ed3e",
+  "nativeDeliverySha256": "0c15e450a9f86d6093b18de629fb6a005c3bc780c9cf8fc2dfebaa3b0b0abce1",
+  "nativeArtifactSha256": "9cf98652d366452f803373802256051759a29a5bb26eef494ee4fa2f033e7289",
+  "referenceSha256": "ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "sourceOverlayBinding": "doppler/artifacts/resident-pipeline-preparation-20261012/combined-candidate/package-binding.json",
+  "inputs": {
+    "requests": 3,
+    "prefixes": 55,
+    "firstRequestTokens": 19,
+    "firstRequestPrefixes": 2,
+    "tolerance": 0.001,
+    "maxAllocatedBytes": 1420000000,
+    "traversalAndTokens": "unchanged complete approved reference"
+  },
+  "placements": [
+    "Mac browser input / AMD Node output",
+    "AMD Node input / Mac browser output"
+  ],
+  "coldControl": {
+    "direction": 0,
+    "firstRequestOfFull55": true,
+    "nativeEnvironmentOverride": {
+      "MESA_SHADER_CACHE_DIR": "/var/tmp/reploid-readiness-private-mesa-pflfOW"
+    },
+    "privateCachePreflight": {
+      "path": "/var/tmp/reploid-readiness-private-mesa-pflfOW",
+      "entries": [],
+      "device": 64513,
+      "inode": 75927419,
+      "mode": 448,
+      "uid": 1000,
+      "driver": {
+        "path": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+        "sha256": "0949baaa43f5ea34fc785f28f31863ca5ea4949478fae96b37c37675a489f830"
+      }
+    },
+    "sharedCaches": "unchanged; other caches not asserted cold",
+    "requiredPipelines": [
+      "gated_delta_conv/paired WORKGROUP_SIZE64",
+      "gated_delta_recurrent/paired WORKGROUP_SIZE128"
+    ],
+    "acceptance": "Required pipeline preparations complete before resident descriptor ready. No ready resident sampled while required preparation is pending. No additional creation of those exact cached pipelines during first execution.",
+    "advertisementLimit": "This direct resident fixture observes readiness boundary, not ordinary mesh/UI advertisement; application readiness still requires its physical journey.",
+    "ordinaryStageDeadlineMs": 300000,
+    "deadlineDisposition": "Any observed group0/group1 execution stage exceeding300000ms fails responsiveness independently of numerical correctness. No ordinary timeout change.",
+    "nativeDiagnosticOperationCeilingMs": 1200000,
+    "operationBoundScope": "Existing owned inspector Runtime.evaluate ceiling, not a promised ordinary deadline.",
+    "observationExpression": "JSON.stringify({observedAt:new Date().toISOString(),pid:process.pid,uptimeSeconds:process.uptime(),rssBytes:process.memoryUsage().rss,maxRssKiB:process.resourceUsage().maxRSS,residentPresent:!!globalThis.resident,residentDescriptor:globalThis.resident?.getDescriptor(),preparation:(()=>{const s=globalThis.memorySnapshot?.();return s?{events:s.pipelinePreparationEvents,pending:s.pendingPipelinePreparation,deviceEvents:s.deviceEvents,observationErrors:s.observationErrors}:null})()})",
+    "sampling": "Existing passive non-pausing inspector evaluation once persecond; bounded samples do not prove continuous UI state.",
+    "latencyLimitations": [
+      "document CPU4–7 may overlap; record actual process state",
+      "other host/cache activity uncontrolled",
+      "prior102fd Mac queue/buffer settlement unknown after owner termination; process exit alone is not a queue barrier"
+    ]
+  },
+  "settlement": "Each resident close and captured-device queue barrier must confirm; owned native PID must exit naturally after provider release. Retain failed/unknown owner settlement as failure.",
+  "commands": {
+    "remoteServer": "DOPPLER_CHAT_MODEL_DIR=/var/tmp/doppler-paired-first-20261012/model node delivery-server.js",
+    "localServer": "DOPPLER_CHAT_MODEL_DIR=/Users/xyz/deco/doppler/reports/local/paired-intermediates-20261012/model-0.6.28/model node delivery-server.js",
+    "tunnel": "ssh -N -L127.0.0.1:29429:127.0.0.1:29429 x@128.tail995236.ts.net",
+    "nativeDirection0": "sh supervise-native.sh 0 cold-readiness",
+    "controllerDirection0": "sh run-native-reference.sh 0",
+    "nativeDirection1": "sh supervise-native.sh 1 reference",
+    "controllerDirection1": "sh run-native-reference.sh 1"
+  },
+  "startCondition": "Root reviews this frozen contract and bothGPU windows released; reverify input/archive/nativefiles/privatecacheempty/environment/driver before opening. Never touch public participants.",
+  "outputDirectory": "/var/tmp/reploid-readiness-numerical-output-20261012",
+  "files": {
+    "snapshot-binding.json": "397f4efbf47a8300660fa2e8b11761a3586c0d537044037d904aef255097ed3e",
+    "config.json": "7f8bb1f36a9c28f6eb6cab3686b08b86b4aefe7dee19912299633c218e29a6a7",
+    "run-native-reference.sh": "0adf7ce7e88408a026b0f79cc77bcb5c6fb4b30ff4989ae7382ac72a3276dfce",
+    "supervise-native.sh": "60528a51c59f8d4ef35e6a7cc7a73d9fd2e849a1f00ff5ed814f8f9afa063184",
+    "cache-preflight.json": "30b05fad7aed82b72f542e662e1c2c1dd93e003bd67b1669fd27069ad352e335",
+    "browser-direction-0-expectations.json": "96971cbb9e56b5e905205dc7bbebcab4a6195bfac1f6fd2ae771b4b7152ee5b6",
+    "browser-direction-1-expectations.json": "71ba29f5cd8fe53a7d755935768855e631cb3cb2fa3982e8767d9009547a2f26",
+    "native-direction-0-expectations.json": "33ed62af9496d128c8008d629789fccb6f71782b33d35f9859de2c5a5fdd06fa",
+    "native-direction-1-expectations.json": "889450443ea4b5f83d9f326a373314aea8da912b71ce5587afdc61e34f118ef2",
+    "worker-verification.json": "50a01831ac9947788bddf0c0c5f4161594557857ac604cc60a2f2a734c1e525e"
+  },
+  "fixtureScope": "Prior frozen private-cache fixture plus only12added timing lines,2changedlines; concurrent owner uncommitted changes excluded. Canonical combined commit may include separate concurrent observation improvements, but this delivery does not."
+}

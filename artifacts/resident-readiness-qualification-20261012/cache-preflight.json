@@ -1,0 +1,12 @@
+{
+  "path": "/var/tmp/reploid-readiness-private-mesa-pflfOW",
+  "entries": [],
+  "device": 64513,
+  "inode": 75927419,
+  "mode": 448,
+  "uid": 1000,
+  "driver": {
+    "path": "/usr/lib/x86_64-linux-gnu/libvulkan_radeon.so",
+    "sha256": "0949baaa43f5ea34fc785f28f31863ca5ea4949478fae96b37c37675a489f830"
+  }
+}

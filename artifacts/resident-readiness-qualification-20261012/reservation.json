@@ -1,0 +1,19 @@
+{
+  "schema": "deco.physical-execution-reservation/v1",
+  "owner": "/root/native_participation",
+  "recordedAt": "2026-10-12T23:00:07.060Z",
+  "state": "reserved-preflight",
+  "hosts": [
+    "x@128.tail995236.ts.net AMD",
+    "Mac Apple WebGPU"
+  ],
+  "notReserved": [
+    "Suby"
+  ],
+  "contractSha256": "d71aeee4232b0aa39b2d088337ccc65cd4f1542385b9d04630b7784aebcefd88",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "approval": "Root reviewed finalfreeze; numerical explicitly released and has no queuedGPUjob before ourrelease",
+  "scope": "Combined cold-first native/browser full55 direction0, thenreverse; onlyownedtestcontexts. Publicconsumers untouched, existing CPU/publicactivity interference recorded.",
+  "priorRunLimitation": "102fd concurrent Macownerterminated/processgone; GPUqueue andbuffer settlement remainedunknown. Thisreservationdoesnotrewrite thatfailure.",
+  "release": "Ownerwillrecordconfirmedcleanuporunknownsettlementandnotifyroot/numerical explicitly"
+}
