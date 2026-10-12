@@ -61,3 +61,18 @@ provider preflight and profiling limitations are retained beside them.
 Component: physical resident fixture. Intent: preserved. Boundary effects:
 installed Node/Dawn and Mac browser public runtime execution; no accepted pin,
 production catalog, permission, or deployment change.
+
+## Canonically synchronized native installation
+
+`canonical-install/verification.json` separately verifies the ordinary native
+artifact packaged by the main application owner: TGZ `46af2517…`, delivery
+`32fa4e3f…`, same standard runtime archive `102fd0c4…`. A fresh outside-checkout
+installation on x128 passed `npm ci --omit=dev --no-audit --no-fund` and CLI help;
+all 95 application files and 1,976 installed runtime files match their bound
+bytes. This check opened no GPU and performed no acquisition or inference.
+
+The frozen application's existing launch model is ESM2, with runtime 0.6.28.
+Its Qwen 0.8B entry remains disabled and refers to the earlier manifest. Thus a
+new, genuinely qualified signed Qwen catalog and corresponding delivery identity
+are still required for the ordinary application journey. This install check
+neither changes that catalog nor substitutes it into the preceding direct tests.
