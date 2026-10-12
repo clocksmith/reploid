@@ -153,17 +153,27 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       const model = refreshed.descriptor.models.find(model => model.id === request.model.id
         && model.identity === request.model.identity && model.availability === 'ready');
       assert(refreshed.ready && model, 'No prepared cooperative partition path is available');
+      const messages = structuredClone(request.messages), expiresAt = Date.now() + config.grantMs;
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId,
         attemptId: request.attemptId, operation: 'generate-partition',
         peerId: model.partition.participantA, recipientIdentity: model.partition.participantA,
         ...model.partition, modelId: model.id, modelIdentity: model.identity,
-        disclosure: 'partition-activations-and-tokens', adapterIdentities: [], expiresAt: Date.now() + config.grantMs,
-        input: { messages: structuredClone(request.messages), recipients: [model.partition.participantA, model.partition.participantB] } });
+        disclosure: 'partition-activations-and-tokens', adapterIdentities: [], expiresAt,
+        input: { messages: structuredClone(messages), recipients: [model.partition.participantA, model.partition.participantB] } });
       assert(approved === true, 'Partition input disclosure declined'); controls.signal.throwIfAborted();
+      assert(Date.now() < expiresAt, 'Partition input disclosure expired');
+      // Human review can outlive an availability descriptor. Refresh liveness,
+      // but never transfer reviewed input to a newly selected recipient or plan.
+      const current = await entry.refresh({ signal: controls.signal });
+      const same = current.descriptor.models.find(candidate => candidate.id === model.id
+        && candidate.identity === model.identity && candidate.availability === 'ready'
+        && canonicalPartitionJson(candidate.partition) === canonicalPartitionJson(model.partition));
+      assert(current.ready && same, 'Approved partition placement changed; review a new attempt');
+      assert(Date.now() < expiresAt, 'Partition input disclosure expired'); controls.signal.throwIfAborted();
       const input = { schema: 'reploid.partition-input/v1', operation: 'generate', meshId,
         requesterId: identity.peerId, ...model.partition, modelId: model.id, modelIdentity: model.identity,
         threadId: request.threadId, attemptId: request.attemptId, placementGeneration: 0,
-        messages: structuredClone(request.messages) };
+        messages };
       admissions.set(request.attemptId, input);
       let sequence = 0;
       controls.onState({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing',

@@ -626,8 +626,8 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 12692,
-      "sha256": "0226a59421507561dffc15e5e4c74ca923c908ceac8e3767713482154b259d23"
+      "bytes": 13515,
+      "sha256": "70e2c9a34790a8024c76b27f17a8210f1150d2f1728e7a2d4d1fe344df859a5a"
     },
     {
       "path": "mesh/partitions/partition-chat.d.ts",
