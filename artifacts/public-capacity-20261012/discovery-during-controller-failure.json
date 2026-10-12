@@ -1,0 +1,6 @@
+{
+  "at": "2026-10-12T14:50:32.960Z",
+  "weightRequests": [],
+  "passed": false,
+  "error": "page.waitForFunction: Timeout 60000ms exceeded."
+}

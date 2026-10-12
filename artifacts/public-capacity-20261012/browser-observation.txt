@@ -1,0 +1,3 @@
+frame  105
+{ result: { type: 'boolean', value: true } }
+{"result":{"type":"object","value":{"state":{"result":{"type":"string","value":"{\"title\":\"Reploid\",\"phase\":\"Ready\",\"progress\":\"\",\"error\":\"Peer connection unavailable; check the invitation route and ICE/relay configuration\"}"}},"pauses":[]}}}

@@ -1,0 +1,94 @@
+{
+  "host": "128",
+  "logPath": "/home/x/.local/state/reploid/public-native-sharing.log",
+  "state": {
+    "phase": "ready",
+    "error": null,
+    "placement": [
+      "peer:688e732256ab83155c54f72e",
+      "peer:57adcc49bae5ed5eefe8fbf1"
+    ],
+    "descriptor": {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+      "index": 0,
+      "layerRange": [
+        0,
+        11
+      ],
+      "residentWeightBytes": 650989568,
+      "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+    },
+    "reservations": {
+      "closed": false,
+      "active": 0,
+      "availableSlots": 2,
+      "records": [
+        {
+          "identity": {
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "participantA": "peer:688e732256ab83155c54f72e",
+            "participantB": "peer:57adcc49bae5ed5eefe8fbf1",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "threadId": "6c35842d-e9ed-4440-8589-4ecbdcb0a2f9",
+            "attemptId": "e3d66383-5bcb-46f1-b159-5f901843ad6f",
+            "requesterId": "peer:443a73e96b6ef58815bdfe67",
+            "placementGeneration": 0
+          },
+          "participantId": "peer:688e732256ab83155c54f72e",
+          "index": 0,
+          "phase": "settled",
+          "reservedAt": 1791816352978,
+          "settlingAt": 1791816358025,
+          "settledAt": 1791816358026,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 4096,
+            "maxTokens": 4096,
+            "maxActivationBytes": 33554432,
+            "scope": "application-attempt-limits"
+          }
+        },
+        {
+          "identity": {
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "participantA": "peer:688e732256ab83155c54f72e",
+            "participantB": "peer:57adcc49bae5ed5eefe8fbf1",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "threadId": "6c35842d-e9ed-4440-8589-4ecbdcb0a2f9",
+            "attemptId": "0c08f2c4-12ca-4e15-9a2a-d8691c6a3bed",
+            "requesterId": "peer:443a73e96b6ef58815bdfe67",
+            "placementGeneration": 0
+          },
+          "participantId": "peer:688e732256ab83155c54f72e",
+          "index": 0,
+          "phase": "settled",
+          "reservedAt": 1791816359300,
+          "settlingAt": 1791816361525,
+          "settledAt": 1791816361526,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 4096,
+            "maxTokens": 4096,
+            "maxActivationBytes": 33554432,
+            "scope": "application-attempt-limits"
+          }
+        }
+      ]
+    },
+    "unsettledOwners": 0
+  },
+  "files": {
+    "sharing": true,
+    "suppliedBytes": 1244221280,
+    "pending": 0
+  },
+  "sourceSha256": "c6712fa82f0635fee1806da9cffe8eaa4692de61a8b96d9197249268562e6e30"
+}

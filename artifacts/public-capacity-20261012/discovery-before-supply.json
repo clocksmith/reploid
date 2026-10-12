@@ -1,0 +1,29 @@
+{
+  "url": "https://replo.id/",
+  "connection": "Connected",
+  "peers": [
+    {
+      "identity": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+      "text": "Contributor 1No model offered\n      DetailsConnected2d390fa2-0fd1-4668-af83-25b0d5baa8bfConnected"
+    },
+    {
+      "identity": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+      "text": "Contributor 2Qwen 3.5 0.8B\n      DetailsPartition 1 · failede907c78d-ab06-42e1-af07-b6955d8c6036Unavailable"
+    },
+    {
+      "identity": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+      "text": "Contributor 3Qwen 3.5 0.8B\n      DetailsPartition 2 · ready3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907cReady"
+    },
+    {
+      "identity": "b7ffda2d-529e-442c-b50a-f97b5966d3b1",
+      "text": "Contributor 4Qwen 3.5 0.8B\n      DetailsPartition 1 · failedb7ffda2d-529e-442c-b50a-f97b5966d3b1Unavailable"
+    },
+    {
+      "identity": "0762c10f-8537-4476-ab7c-230922ebb6a9",
+      "text": "Contributor 5Qwen 3.5 0.8B\n      DetailsPartition 1 · ready0762c10f-8537-4476-ab7c-230922ebb6a9Ready"
+    }
+  ],
+  "at": "2026-10-12T14:41:18.685Z",
+  "weightRequests": [],
+  "readinessError": null
+}
