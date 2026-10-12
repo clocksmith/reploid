@@ -42,6 +42,7 @@ numerical/model-quality qualification.
 | Follow-up after RTC reconnection | [after-rtc-recovery.json](after-rtc-recovery.json), same history yields correct $48 for four tickets |
 | Terminate input contributor during streaming | [input-owner-loss.json](input-owner-loss.json), 306-character partial retained; unknown remote cleanup remains explicit |
 | Restart input contributor with a new identity | [input-owner-retry.json](input-owner-retry.json), separately approved fresh attempt completes; old attempt and messages remain byte-for-byte unchanged |
+| Reuse and revoke disclosure permission | [permission-revocation.json](permission-revocation.json), approved answer, follow-up reuse, revoke while streaming, fresh approval required, declined input never executes |
 | Return to saved conversation | [return.json](return.json), messages and thread draft retained; source disclosure, Copy and phone drawer work |
 
 The phone check uses a 390 × 844 browser viewport. It is not a physical phone or
@@ -84,8 +85,20 @@ receipt. The preparation observer also now resumes only its own breakpoint; an
 initial conflicting diagnostic attachment terminated its owned Mac launcher.
 That diagnostic failure is not classified as a runtime or GPU failure.
 
+6. Ordinary partition previews identified the input contributor, while reusable
+   grant matching expected the output contributor. The existing persisted pair
+   now binds both explicitly reviewed identities, preserving legacy grants and
+   requiring new approval for either replacement. Declining disclosure cancels
+   before dispatch and displays “Not sent” rather than a network failure.
+   The regression failed before correction; 64 focused tests and the actual
+   Verification Worker pass. The physical reuse/revoke/decline sequence passes.
+
 ## Failed and invalid observations
 
+- [permission-revocation-unavailable.json](permission-revocation-unavailable.json)
+  retains the hidden reusable-approval control.
+- [permission-decline-failure.json](permission-decline-failure.json) retains the
+  successful revocation but incorrect failure classification after Decline.
 - [preparation-timeout.json](preparation-timeout.json) and
   [second-preparation-timeout.json](second-preparation-timeout.json) retain the
   unavailable-model runs before connection recovery. Restart/reload restored the

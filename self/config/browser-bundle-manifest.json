@@ -3070,8 +3070,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 26646,
-      "sha256": "sha256:307478418a431e818b8b2ac5859e1fb36bc286d1bd309a4c5b7ca4dff92f6778"
+      "byteLength": 27021,
+      "sha256": "sha256:d732d7b2d1ab1eb8eb966ca91125134def9bda34fa4ad24095819f761acc1241"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -3095,8 +3095,8 @@
     },
     {
       "path": "ui/pool-home/message-list.js",
-      "byteLength": 4991,
-      "sha256": "sha256:cfdbeb915a8c9b5e44d91081493fe3d8a75913d635a6a8ca197e6f83391f9c73"
+      "byteLength": 5093,
+      "sha256": "sha256:666300dfc8ebe6323fc9ad9bb6b512712ccc4ad61eceb838502c277214eea52c"
     },
     {
       "path": "ui/pool-home/navigation.js",
@@ -9225,13 +9225,13 @@
     },
     {
       "path": "vendor/reploid/chat/thread-grants.js",
-      "byteLength": 2977,
-      "sha256": "sha256:3b0846b0fc4d5e5c1531aaaf3a5a8ade226f71ba72a71fe6b66f9a78181c8c93"
+      "byteLength": 3583,
+      "sha256": "sha256:47d498fb68d4747b93c6014af9dcc8f4c36b0dc0bbf9374799b719fcb7248d46"
     },
     {
       "path": "vendor/reploid/chat/workspace.js",
-      "byteLength": 15889,
-      "sha256": "sha256:e64cc5c7564939c594c0d7019fbdd4a7d0b11cd69e913c106a9eabc497c95c34"
+      "byteLength": 15986,
+      "sha256": "sha256:975c279fa2a2bdca6e31ddb68a8ffd3cc7bb32312afe10102d29a2f422e02a7c"
     },
     {
       "path": "vendor/reploid/config/defaults.json",
@@ -9441,7 +9441,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 30232,
-      "sha256": "sha256:947a6c3d834119812771628629ca4328edfb730f4693c5af937c6300845e950f"
+      "sha256": "sha256:971b454ac539895dce7410443f440a49ccaaa28e06022ac36fdd0b0d17cbd85b"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -9529,5 +9529,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:4715180537328cad94623d85eef6f70855f4c0675b269cde289fd8b9a21d4c92"
+  "bundleHash": "sha256:62dc78ee77b5a9632c78901baf7f133cbaad8171b6b61c1893d37f9eb4ceba92"
 }

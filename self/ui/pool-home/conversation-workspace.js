@@ -34,7 +34,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
         <h2>Review before sending</h2><p>Other people’s computers will process what you share.</p>${renderPermissionSummary()}
         <label><input type="checkbox" data-approval-consent> <span data-approval-description>Share this exact input with this peer as public data</span></label>
-        <label data-approval-remember-label hidden><input type="checkbox" data-approval-remember> Also allow future messages and attached text in this thread to this recipient, using this model, until revoked</label>
+        <label data-approval-remember-label hidden><input type="checkbox" data-approval-remember> <span data-approval-remember-description>Also allow future messages and attached text in this thread to this recipient, using this model, until revoked</span></label>
         <div class="chat-network-actions"><button class="btn pool-button btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn pool-button btn-ghost" type="button" data-approval-decline>Decline</button></div>
       </section>
       <p class="chat-error" role="alert" data-chat-error hidden></p>
@@ -190,6 +190,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       ? 'Share model activations derived from this input with this peer as public data'
       : 'Share this exact input with this peer as public data';
     find('[data-approval-remember-label]').hidden = !pending?.reusable;
+    find('[data-approval-remember-description]').textContent = partitionRecipients
+      ? 'Also allow future messages and attached text in this thread to these computers, using this model, until revoked'
+      : 'Also allow future messages and attached text in this thread to this recipient, using this model, until revoked';
     find('[data-chat-approval]').hidden = !pending;
     if (pending) {
       updatePermissionSummary(find('[data-chat-approval]'), {

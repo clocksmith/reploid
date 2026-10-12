@@ -3,6 +3,7 @@ import { escapeHtml as escape } from '../components/attachments.js';
 import { updateMessageMarkdown } from '../components/message-markdown.js';
 
 function failureLabel(attempt) {
+  if (attempt.error === 'Disclosure declined') return 'Not sent. You declined sharing this request.';
   if (attempt.status === 'cancelled') return 'Stopped. Your partial answer is saved.';
   if (/disconnect|peer.*lost|contributor.*lost/i.test(attempt.error || '')) return 'A computer disconnected. Retry this answer.';
   if (/memory|allocation|resource.*exhaust|budget/i.test(attempt.error || '')) return 'This answer exceeded the available resources.';

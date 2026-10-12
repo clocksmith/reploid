@@ -18,6 +18,7 @@ describe('Conversation disclosure review', () => {
     expect(recipientText).toContain('0b4018c8'); expect(recipientText).toContain('6fef3a61');
     expect(root.querySelector('[data-permission-scope]').textContent).toContain('model data and tokens');
     expect(root.querySelector('[data-approval-description]').textContent).toContain('these computers');
+    expect(root.querySelector('[data-approval-remember-description]').textContent).toContain('these computers');
     const details = JSON.parse(root.querySelector('[data-permission-technical]').textContent);
     expect(details.recipients).toEqual(recipients); expect(details.modelIdentity).toBe(model.identity);
     expect(approve).not.toHaveBeenCalled(); dispose();
