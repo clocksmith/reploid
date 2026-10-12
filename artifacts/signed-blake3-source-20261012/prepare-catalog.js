@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { createHash } from 'node:crypto';
 import { hashDopplerEvidence, validateExecutablePack } from '../../self/pool/executable-pack.js';
 import { resolvePartitionArtifactSource } from '../../self/host/work-partition-artifact-source.js';
 
@@ -11,6 +12,7 @@ assert([capsuleRoot, runtimeRoot, reportPath, referencePath, baseUrl, outputPath
   'Provide Capsule directory, runtime directory, resident report, reference, HTTP closure URL and output path');
 assert(['http:', 'https:'].includes(new URL(baseUrl).protocol));
 const read = async file => JSON.parse(await readFile(file, 'utf8'));
+const fileHash = async file => 'sha256:' + createHash('sha256').update(await readFile(file)).digest('hex');
 const load = name => import(pathToFileURL(resolve(runtimeRoot, 'src/config', name)).href);
 const { getCapsuleIdentity, verifyCapsuleMetadata } = await load('capsule.js');
 const { hashTargetPlan } = await load('target-plan.js');
@@ -28,8 +30,15 @@ for (const target of capsule.targetPlans) {
   if (await hashDopplerEvidence(target.initialExecutionIdentity) === reportIdentity) matching.push(target);
 }
 assert.equal(matching.length, 1);
+const reportHash = await fileHash(reportPath);
+const { hashLayerPartitionPlan } = await import(pathToFileURL(resolve(runtimeRoot, 'src/partitions.js')).href);
+assert.equal(hashLayerPartitionPlan(report.partitionPlan), report.partitionPlanHash);
+assert(matching[0].qualification.some(row => row.status === 'passed' && row.operation === 'residentPartition'
+  && row.evidenceHash === reportHash && row.partitionPlanHash === report.partitionPlanHash
+  && row.partitionIndex === report.partitionIndex && row.surface === report.surface), 'Report is outside signed qualification');
 const targetDigest = hashTargetPlan(matching[0]);
 const manifestArtifact = capsule.artifacts.find(row => row.artifactId === capsule.program.manifestArtifactId);
+assert.equal(await fileHash(resolve(capsuleRoot, manifestArtifact.path)), manifestArtifact.hash);
 const manifest = await read(resolve(capsuleRoot, manifestArtifact.path));
 const directory = manifestArtifact.path.slice(0, manifestArtifact.path.lastIndexOf('/') + 1);
 const files = capsule.artifacts.filter(row => row.role !== 'weight-shard').map(row => ({
