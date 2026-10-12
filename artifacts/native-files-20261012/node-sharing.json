@@ -1,0 +1,600 @@
+{
+  "transportId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+  "files": {
+    "sharing": true,
+    "suppliedBytes": 0,
+    "pending": 0,
+    "peers": [
+      "17f0f985-6806-4f65-9966-b69a1d41638e",
+      "570f90df-d0b0-40a6-ba5f-0548735e34ef",
+      "8faa5d43-9892-4d89-b3cd-08ce938be971",
+      "59332ca9-b4b7-4bb0-881b-58accf211f65"
+    ],
+    "cache": {
+      "quarantined": []
+    },
+    "retainedFiles": 3,
+    "receipts": [
+      {
+        "schema": "reploid.pool.pack-custody-receipt/v1",
+        "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+        "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+        "attempt": 1,
+        "artifactSetIdentity": "sha256:a423eb23e0ae8d9f04981681c2f17b4123f7b9f209ddde14292d86a406d2a2a6",
+        "indexDigest": "sha256:a68cfd9c319d981a3adcef9616d6ce4e13fadb0f72a4325c3c70ddbbb390de2b",
+        "source": "peer",
+        "reservedBytes": 4194304,
+        "receivedBytes": 4194304,
+        "verificationBytes": 8388608,
+        "attempts": [
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 0,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:a2b22444f596ce745a7a9e21dcd5fc83afa4faba35b2e140bbc9a68def7c3e9a",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 0,
+              "offset": 0,
+              "sizeBytes": 262144,
+              "nonce": "0ce2e0ad-b6a5-4e32-99da-92c17b92b228",
+              "signature": "o1tFf0OgiUHqrPd1zWmt7TmfTHVd0MtdnQfN3XCWX1aSR0wnimMON9okzfqHFW4yLyt3R99mufTZkXZBc/4QAw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:a2b22444f596ce745a7a9e21dcd5fc83afa4faba35b2e140bbc9a68def7c3e9a",
+              "bytesHash": "sha256:0fa37d1c02a3da6194ab5cbd23cc91f0ba3a36980704ff0cac2bb81bd71fa9b3",
+              "signature": "Masp1Y1jttlG1rQEDpJPVPFxtwsXLfZ1cf/B67MQKtwEjZcRYGWjS6kZwAqjV8dzBgLfBnnSSQLYUvsK9IhLOQ=="
+            },
+            "observedBytesHash": "sha256:0fa37d1c02a3da6194ab5cbd23cc91f0ba3a36980704ff0cac2bb81bd71fa9b3"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 1,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:cf646d7cedfcc75b14999525bfc9f70a2ed76fb85d01afc68cc26b626a018c09",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 1,
+              "offset": 262144,
+              "sizeBytes": 262144,
+              "nonce": "6b0969c4-c866-4db4-988c-464fab920b79",
+              "signature": "Fh09AUzGNJuJ1zs7RMFhPFsRUZuTsdWrZLu5R4k8b429vNYAjBw8Z4TsDxbTAaOCDl5g05mktBLZdwQYDSy3sw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:cf646d7cedfcc75b14999525bfc9f70a2ed76fb85d01afc68cc26b626a018c09",
+              "bytesHash": "sha256:bc75935cdff59d32e55844cb14e708812b7ed0e64a745aad803db6c1d1856dc9",
+              "signature": "nkd5I93JgC+nON/wirsWZOUvJbp5L8RGfW1jp4kBAibTSBVktQXdqGFes5Xf7e80Q7ROm9bRnNemohOqqrkwag=="
+            },
+            "observedBytesHash": "sha256:bc75935cdff59d32e55844cb14e708812b7ed0e64a745aad803db6c1d1856dc9"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 2,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:da63aa094482ce9a467152f70a94f7abf9d40ed9599df73faac9bd133b584953",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 2,
+              "offset": 524288,
+              "sizeBytes": 262144,
+              "nonce": "88964ba2-98da-43e1-af58-2fcfd13729da",
+              "signature": "j966F584LU93BYTot3t177q18uHwhHqABkxiQOuq8ks9Pm/jWjiDbHR9kkCY6s8NgxmrLndkT+UPkS3h1cHYOg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:da63aa094482ce9a467152f70a94f7abf9d40ed9599df73faac9bd133b584953",
+              "bytesHash": "sha256:46c82e509ae51bea4fdf8df8721ca22bda9ff289f1dca52e64b1391bb245a383",
+              "signature": "y3+GGceOnFMPhfrwnFonAF+vw/KKXcQeSgJvk95PP91/fv24NcZ8Z8ZQPEtEcNxFnC/CFVneNsaL2bHHVeAb5A=="
+            },
+            "observedBytesHash": "sha256:46c82e509ae51bea4fdf8df8721ca22bda9ff289f1dca52e64b1391bb245a383"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 3,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:49f76fbbb9624de151a2968d49d8e5fb59284f60a2e5e90dbea372bcebd2306a",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 3,
+              "offset": 786432,
+              "sizeBytes": 262144,
+              "nonce": "d7a3b6f3-479f-48a2-becb-7e3bbf1d3479",
+              "signature": "SFQLx9qyP1KRWHQEBXIMnXbYexpHDeGajT/kk4tIynx2t/3FIVhJG4TCssJffYZS4+I1Ok7qK0rUqz+NTt/eFQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:49f76fbbb9624de151a2968d49d8e5fb59284f60a2e5e90dbea372bcebd2306a",
+              "bytesHash": "sha256:0a5e58a42b5c878b805910c95c21a0cc843f176bc3f8ee4970a645f901268007",
+              "signature": "7H7hxo0zbYbWv0wSF4XS6hy0jrSISgpXtnTBGre3HrMTctgzQhmyAR5vy+ykYOL65bnZz84ggO2mTu1G/lKWVg=="
+            },
+            "observedBytesHash": "sha256:0a5e58a42b5c878b805910c95c21a0cc843f176bc3f8ee4970a645f901268007"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 4,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:f5e3e77ec2df83850fe068b63eb4301448efbe63fa255788c35979574b331fa7",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 4,
+              "offset": 1048576,
+              "sizeBytes": 262144,
+              "nonce": "90d2f525-e86f-412b-97ca-ceaf65f6d85e",
+              "signature": "gpm9tSLaZrMcnDMfayBuijmnKVDrtg8b3dG9kPZT2JKfcMAEaQ6iW93RMz9FAo+8MhT1OFDSMuM207hrw2aJLg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:f5e3e77ec2df83850fe068b63eb4301448efbe63fa255788c35979574b331fa7",
+              "bytesHash": "sha256:5c438aa4e926deece2fcb8a1845558b83a1294695ada16ae37eec3cafcb66054",
+              "signature": "vDBP2BRE0XoH1gYug7T/ASPGHj7/jOhuMmj4RkqEXo8kII5Nbuyw0DgjGqnOrj+sx8FepkrIgdFuCv/DeloPQQ=="
+            },
+            "observedBytesHash": "sha256:5c438aa4e926deece2fcb8a1845558b83a1294695ada16ae37eec3cafcb66054"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 5,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:874119b7a170a497d0f21c63d0f23734a8da002a10b18639becbab5abcc3477d",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 5,
+              "offset": 1310720,
+              "sizeBytes": 262144,
+              "nonce": "10e8e1cf-12ef-4c7a-a412-5de53306dd77",
+              "signature": "gAqdts/IGYwzitigdxjdpiB6Dpa8vB05JxPguViRN25DbhQqgQ00vn2W5YhPdui+6F2ZmoIcU0rE63ZuETeWLQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:874119b7a170a497d0f21c63d0f23734a8da002a10b18639becbab5abcc3477d",
+              "bytesHash": "sha256:10b2816d9b41e5a229d9e2424c9c5727d72b1467e29452e0a6cfd53de5696f70",
+              "signature": "Ni3EugmSM8oy1VVsb7KDFpNUXEPiMSU8+aFndvKVdwbwgvJML6FKM4ZeSd8sAsAYDidX06W7VPaZPxZP3LntlA=="
+            },
+            "observedBytesHash": "sha256:10b2816d9b41e5a229d9e2424c9c5727d72b1467e29452e0a6cfd53de5696f70"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 6,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:a516372f437fa42a84a2d663f94f544919ac06c20975466f1d4fb46e32db659a",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 6,
+              "offset": 1572864,
+              "sizeBytes": 262144,
+              "nonce": "a3190ba3-92ec-461a-9d63-45956df63f7c",
+              "signature": "Xhn2CHRBv60+5vKTEngCIs1CtbAeDdrNbARwQHZruic3z+Dr0EHvkmtu//ZeLfEwejeB5KuOUjLXRxC1/Ddkdw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:a516372f437fa42a84a2d663f94f544919ac06c20975466f1d4fb46e32db659a",
+              "bytesHash": "sha256:70f30b3ff7cc32f4d1fcad884ed8df33eb0af07e1b91a40d3e35f8b1d9e10578",
+              "signature": "b1+EVryZ5jAdgzbg2sADeG66YtouHs/coYN9gLV+7mBcUglMVJ9/1o6Y1vkWTSHqHfKqLufY9s2Fq9dnEWjseg=="
+            },
+            "observedBytesHash": "sha256:70f30b3ff7cc32f4d1fcad884ed8df33eb0af07e1b91a40d3e35f8b1d9e10578"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 7,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:ec8bd91825faf90f3ce448aedd424f9cee63007229d7db1aab1da701769f9419",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 7,
+              "offset": 1835008,
+              "sizeBytes": 262144,
+              "nonce": "e70e9fdb-c1b0-47fe-b4a7-c0662b76e66c",
+              "signature": "SF9goPgP/m6vItt100OaLSf2Yc8YtSpH+F84AfRTqJPXgnUgE950n8w/G+VzYfpbMZfaUhp1VZrOyfTqVAKNiQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:ec8bd91825faf90f3ce448aedd424f9cee63007229d7db1aab1da701769f9419",
+              "bytesHash": "sha256:160933e9e4c2ab703efe40a4f492669efa46d49af71d05d8d53cf5e152428f70",
+              "signature": "tNPMDuC8/uNYFXd1s1Gi8QT2H+6ywIYYKXbGT126PPcECyHWtaYZLJd3FzApuULzGTgahFLD79cRVg3TyzdVWg=="
+            },
+            "observedBytesHash": "sha256:160933e9e4c2ab703efe40a4f492669efa46d49af71d05d8d53cf5e152428f70"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 8,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:c2db7992ae6d66361ddd94c01501360dfae17664f5ca477b102e5f6e1b7d8283",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 8,
+              "offset": 2097152,
+              "sizeBytes": 262144,
+              "nonce": "85bbef96-f50f-4077-b66c-aaffd433566d",
+              "signature": "EdNDJpAm3mTCY/lW0sNYL1WFwqBxxRW1k4MZheGz0EZIWfjaZXXenHDPP9rRWvrgq+LcwjqkJ7KBn0oO4Rw/Nw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:c2db7992ae6d66361ddd94c01501360dfae17664f5ca477b102e5f6e1b7d8283",
+              "bytesHash": "sha256:bacf1eeab0bbd6e83d174c4525f0f3da2d0deb45b4b585f134dfc909e4e0a432",
+              "signature": "g/ao6wRM/CVnmyCWc9F0Ea4qUkB6A4WK+B71SaKd0Y5uSgFz3QNn4UNo8+GcHNcb1U0vGUGJ6tl1I7kcnrpYSQ=="
+            },
+            "observedBytesHash": "sha256:bacf1eeab0bbd6e83d174c4525f0f3da2d0deb45b4b585f134dfc909e4e0a432"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 9,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:c87bf0d42caf8cf2ed6fb7b40889d46c781f46034d22396adb41b2507a695c57",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 9,
+              "offset": 2359296,
+              "sizeBytes": 262144,
+              "nonce": "ff37c6da-438b-418f-b8a7-bb41cf5fb7ff",
+              "signature": "eeXr48k3WSP+kpszMEuAb1RRpdwUV3zgo+Xhw5DDDY5YtJf2Ruxbcvkz6vXrBt34Ix178CpuR8WIZxqZEE7R0A=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:c87bf0d42caf8cf2ed6fb7b40889d46c781f46034d22396adb41b2507a695c57",
+              "bytesHash": "sha256:af8a428e7a8697265906015e62d1547edd901934c46f06e9b84317425673e93c",
+              "signature": "xp3j/mBN6/eciKIqNEOq9XKbAlQw+1zt0gjy9EcMeAFkYtUPDxjgfKcjmHnMyYOfeLpinmLILGX3L3S54DCljA=="
+            },
+            "observedBytesHash": "sha256:af8a428e7a8697265906015e62d1547edd901934c46f06e9b84317425673e93c"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 10,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:fbc5b6bd4cf4662d1d6fc8f845074357f2bb3bd0a2ee4cadd003a558c68f893d",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 10,
+              "offset": 2621440,
+              "sizeBytes": 262144,
+              "nonce": "f5429738-f699-4264-9ae9-538e6f28cb32",
+              "signature": "kZWWq/UK8x+TUaQL2RGGAFIo1+mbm6j02t+GgI3ePYHiBL+QCMdM3QXOb9E5GWX1r1F2Og6K1ueZ6x2qoYsugQ=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:fbc5b6bd4cf4662d1d6fc8f845074357f2bb3bd0a2ee4cadd003a558c68f893d",
+              "bytesHash": "sha256:a3f3e17ae9274875dd5d7e73280d849d72a029d3b4bc6d0587719d0460b79da5",
+              "signature": "ZTijqVrnwKKj5lZvZHGi1KXpLiRcfrAw1/+TABJ5BKF/HKu6UWQKKIv19++oGYUFDsRPbBccDmm8vaBES1AfQw=="
+            },
+            "observedBytesHash": "sha256:a3f3e17ae9274875dd5d7e73280d849d72a029d3b4bc6d0587719d0460b79da5"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 11,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:5409af496baf981c0b039f02efdc85c68276b8a9dc04c19138a340d6dfe72216",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 11,
+              "offset": 2883584,
+              "sizeBytes": 262144,
+              "nonce": "136a9b6c-b0cc-4c37-846f-6468929947f1",
+              "signature": "p1g8Tbqmtyf85V4xS2eFY3XwAhv7hXs/BbEhOL/6OLICAF5pRy2oHh2udSsCEnlu9fGFg9jx5/iHOfKv0I/2xA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:5409af496baf981c0b039f02efdc85c68276b8a9dc04c19138a340d6dfe72216",
+              "bytesHash": "sha256:845de9342e87eaabf7fbc77f718a564440b58d41b021bb02e296dcf473ebe2f2",
+              "signature": "a+I8WM7mPef3sBwlf5fcyxQ9jQpIWt9YBmQRQbEzEkpD3g5oFK6KR+7VkynJzTrck3RWMRYCFC30fDRfuhuLeg=="
+            },
+            "observedBytesHash": "sha256:845de9342e87eaabf7fbc77f718a564440b58d41b021bb02e296dcf473ebe2f2"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 12,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:0ff5bcd6859eccb68cba29c7d368700cdb91a774a0fed0b402fee7ac66178865",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 12,
+              "offset": 3145728,
+              "sizeBytes": 262144,
+              "nonce": "40a7c388-b634-42b9-a49c-280acd619c6d",
+              "signature": "Q9RrUchrUeJM6FuFCV/HeTNvR+6fLPtBvWMRHFJ/3XIN95ss2Og7uplsOTMKCtqnnsW9kU9PfO1OzYUP0BYRmw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:0ff5bcd6859eccb68cba29c7d368700cdb91a774a0fed0b402fee7ac66178865",
+              "bytesHash": "sha256:d79e5d1e6891dbcb2fc19b8dda8e5e691f09fc813c4dbfbcd388c032b0a381f9",
+              "signature": "/f+AB8XXoUuCuG+URdpqqhsLB/XDuOB+FZWTY/pGTe8vcj09/+3TU2FrIx4zP/HIL50bWLjPTqcUYMMIR8HlBg=="
+            },
+            "observedBytesHash": "sha256:d79e5d1e6891dbcb2fc19b8dda8e5e691f09fc813c4dbfbcd388c032b0a381f9"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 13,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:21e4a70a0b08d9a53e19bcc6982359847e30e72c28769192b917df25a6fdef55",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 13,
+              "offset": 3407872,
+              "sizeBytes": 262144,
+              "nonce": "061efa2f-8d73-4ff3-ad39-a6114227f48e",
+              "signature": "d9S59QlpkrjxkVbjgRm62ud5AcSw1Ag5t6f+HXNzAOcigtAFDK0hWDHdkfh0nzN4ZP16T53vNEbZbvgMZDhHsA=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:21e4a70a0b08d9a53e19bcc6982359847e30e72c28769192b917df25a6fdef55",
+              "bytesHash": "sha256:7eac5fbef2994c01ffef0fbe38b299755df5dfb303e1923979a6df11fff7a1c0",
+              "signature": "cwUA9zbD+QkiWtj9+YFZEP7h8jGUsSbTbABK6Syc7ZpO8X28wiBVE2B3E2fhGF6ulTO2lAelt2nhcnjmpp1dBA=="
+            },
+            "observedBytesHash": "sha256:7eac5fbef2994c01ffef0fbe38b299755df5dfb303e1923979a6df11fff7a1c0"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 14,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:29da783af4b95831bd17fe99dea935426f6ff8a754b26eec464ebbb973f60969",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 14,
+              "offset": 3670016,
+              "sizeBytes": 262144,
+              "nonce": "451c9e04-0bbc-4b69-bb2b-19a4ac99224e",
+              "signature": "LQ4gpN7HhPEgCuHhSPvUczJyZHEye9AzkK88aK7QJftYgeetCxzucI+xerFALs+lEVtSLhhZxEcqtW+Ozc0PBg=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:29da783af4b95831bd17fe99dea935426f6ff8a754b26eec464ebbb973f60969",
+              "bytesHash": "sha256:36b4909a993955ce7be9cd3891804294d233809e2d4b542eeed5d7782b2911e0",
+              "signature": "kyg6b+A6x29RQPw9Bf4snMmAmmJgV5mNz/w0oMsFl76+iw09q0wvksrh5D2ovR39W+XCekgR9LB8r26hUrPZ/A=="
+            },
+            "observedBytesHash": "sha256:36b4909a993955ce7be9cd3891804294d233809e2d4b542eeed5d7782b2911e0"
+          },
+          {
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "chunkIndex": 15,
+            "reservedBytes": 262144,
+            "receivedBytes": 262144,
+            "status": "accepted",
+            "requestHash": "sha256:02b968b7b242b700089521630eaab79fb1d0ffb526467656c315fd16b581e8d0",
+            "request": {
+              "schema": "reploid.pool.pack-custody-request/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "transferId": "6b26a9ed-0d1c-41af-a292-805d7522e664",
+              "attempt": 1,
+              "requesterPeerId": "c2ae6385-8626-4442-95f7-995b3886ba5d",
+              "supplierPeerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+              "chunkIndex": 15,
+              "offset": 3932160,
+              "sizeBytes": 262144,
+              "nonce": "b089cd03-befe-47dc-94f0-ca9d415f736e",
+              "signature": "BN8pLVyblDeSE8j0dNrZsWciwMaGbfSuN+8zojEJQK9Sf00KXk1+aDaeaD/dRa9yyThhS13SMye1SB+7aH20Sw=="
+            },
+            "response": {
+              "schema": "reploid.pool.pack-custody-response/v1",
+              "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+              "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+              "requestHash": "sha256:02b968b7b242b700089521630eaab79fb1d0ffb526467656c315fd16b581e8d0",
+              "bytesHash": "sha256:5461e859c6f430691cd471f348ad832b2375a9df143ed0bd4b72630208d56ffe",
+              "signature": "ezbI6OiIBgCmeRXrWfamsaX5ldDHWzeWzKW23UDiUPSBxDM/M5/QiNyoWljC/Z8OuxUgOMVV7wWWt5fvPAnebQ=="
+            },
+            "observedBytesHash": "sha256:5461e859c6f430691cd471f348ad832b2375a9df143ed0bd4b72630208d56ffe"
+          }
+        ],
+        "completed": [
+          {
+            "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+            "hash": "sha256:b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925",
+            "sizeBytes": 4194304
+          }
+        ],
+        "inventories": [
+          {
+            "expiresAt": 1791777002788,
+            "maxBytes": 4194304,
+            "artifacts": [
+              {
+                "artifactId": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+                "chunkIndexes": [
+                  0,
+                  1,
+                  2,
+                  3,
+                  4,
+                  5,
+                  6,
+                  7,
+                  8,
+                  9,
+                  10,
+                  11,
+                  12,
+                  13,
+                  14,
+                  15
+                ]
+              }
+            ],
+            "schema": "reploid.pool.pack-custody-inventory/v1",
+            "authorizationHash": "sha256:ccaa94b13a169f72bb9ccbecaccf4863bd3ebf08ba048606c7dd4ce861873217",
+            "peerId": "59332ca9-b4b7-4bb0-881b-58accf211f65",
+            "signature": "KFDI4nKck78PNbFfzspI1zjO7njsIwj+rS6w9gGssstTJO2ad2Atp1Mp3ijog9Y82jkic5voRIaHzoXXD6de8g=="
+          }
+        ],
+        "cacheBytes": 0,
+        "corruptCacheBytes": 0,
+        "persistedBytes": 0,
+        "evictedBytes": 0,
+        "duplicateBytes": 0,
+        "maxConcurrentChunks": 2,
+        "peakInFlightBytes": 524288,
+        "peakArtifactBytes": 4194304,
+        "firstArtifactMs": 4680,
+        "elapsedMs": 4710,
+        "browserHeapBytes": null,
+        "wireBytes": null,
+        "relayBytes": null,
+        "interruptedBytes": null
+      }
+    ]
+  }
+}

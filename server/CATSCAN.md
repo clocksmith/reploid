@@ -28,12 +28,14 @@ Outputs:
 - Authentication and transport success cannot be represented as model or scientific validity.
 - Hosted failures remain explicit.
 - Native hosts reuse browser participant contracts. Doppler owns computation; native adapters own provider lifetime, authorized files and observed settlement.
+- Native file supply requires separate consent from compute. Acquisition uses existing signed custody grants and Doppler's verified piece reader; only requested pieces are acquired. Complete verified files persist in a bounded cache; corrupt bytes are quarantined, never served. Interrupted partial pieces restart.
 - Native receipts retain opening mode and runtime/provider identities; support is separately qualified.
 - `/swarm` is bounded discovery only: exact origins, namespace admission, destination membership, heartbeat and unjoined expiry. No application relay or virtual inference peers; origin is not authentication.
 
 ## Acceptance
 - Signaling and public-inference admission preserve their declared boundaries.
 - Native host selection, verified local pieces and provider settlement: [native host tests](../tests/unit/native-participant.test.js).
+- Native cache, signed acquisition, supply revocation, corruption, cancellation and cleanup: [native file tests](../tests/unit/native-model-files.test.js).
 - Evidence: [public discovery tests](../tests/integration/public-swarm-server.test.js).
 - Evidence: [signaling integration tests](../tests/integration/signaling-server.test.js) and [public inference admission tests](../tests/integration/public-inference-admission.test.js).
 
