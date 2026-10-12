@@ -1,0 +1,31 @@
+{
+  "scope": "CPU-tested controller correction; no physical rerun claim",
+  "deadlines": {
+    "operationMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000,
+    "sampleMs": 1000
+  },
+  "sources": [
+    {
+      "path": "tests/fixtures/concurrent-partition-memory.js",
+      "sha256": "33e7de0df96bf8581b70e9d27d722a7873e54204e7ae85f036ed81d12515b540"
+    },
+    {
+      "path": "tests/fixtures/browser-partition-memory-completion.js",
+      "sha256": "a257d842d7d17dd2a4e21f3c52cb982d620ef3898768dead7feb556e9d73041d"
+    },
+    {
+      "path": "tests/unit/concurrent-partition-memory.test.js",
+      "sha256": "c9c41e593e6761025a2d7aad4403fd9d7fc9d727382a0988c957132490ba2462"
+    }
+  ],
+  "validation": {
+    "focusedTests": 20,
+    "workerErrors": 0,
+    "workerWarnings": 12
+  },
+  "archiveUnchanged": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "inputTokens": 1588,
+  "ceilingBytes": 1420000000
+}

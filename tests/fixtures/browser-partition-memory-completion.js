@@ -6,7 +6,7 @@ import { createHash } from 'node:crypto';
 import { hostname } from 'node:os';
 import { resolve } from 'node:path';
 import { loadPairedPartitionFixture, assertPartitionTraversal } from './paired-partition-binding.js';
-import { runConcurrentPartitionMemory } from './concurrent-partition-memory.js';
+import { runConcurrentPartitionMemory, createConcurrentOperationObserver } from './concurrent-partition-memory.js';
 import { selectPartitionDiagnostic, assertNativePartitionPhase } from './partition-diagnostic-selection.js';
 import { observePartitionAttemptCleanup } from './partition-attempt-cleanup.js';
 import { connectNativePartitionEndpoint } from './native-partition-endpoint.js';
@@ -101,6 +101,19 @@ const evidence = { scope: reference
     scope: promptOnly ? 'One complete original request; no boundary capture or auxiliary unsplit execution'
       : 'Selected from the retained four-control comparison; not necessarily the first frozen-reference failure' },
   testDelivery, pairedBinding, requestFixtureSha256: createHash('sha256').update(raw).digest('hex'), phase, runs, descriptors };
+let pendingEvidenceWrite = Promise.resolve();
+const persistEvidence = () => {
+  const bytes = JSON.stringify(evidence);
+  pendingEvidenceWrite = pendingEvidenceWrite.then(() => writeFile(output, bytes));
+  return pendingEvidenceWrite;
+};
+const concurrentObservation = phase === 'concurrent' ? {} : null;
+if (concurrentObservation) evidence.concurrentObservation = concurrentObservation;
+const boundedOperation = concurrentObservation ? createConcurrentOperationObserver({
+  evidence: concurrentObservation, persist: persistEvidence
+}) : null;
+const evaluateCleanup = (page, label, callback, observe = true) => boundedOperation
+  ? boundedOperation(page, label, callback, undefined, true, observe) : page.evaluate(callback);
 try {
   for (const [slot, browser] of hostBrowsers.entries()) {
     const index = reverse ? 1 - slot : slot;
@@ -117,8 +130,13 @@ try {
       identitySource: await readFile(new URL(`../../self/vendor/doppler/${packageIdentity.version}/src/config/initial-execution-identity.js`, import.meta.url), 'utf8')
     }) : null;
     let prepared;
+    const preparationStartedAt = new Date().toISOString();
+    const preparationStarted = performance.now();
     try {
-    prepared = await page.evaluate(preparePartitionMemory, { config: browser.native ? browser.identity.fixture.config : await page.evaluate(async () => {
+    const prepare = boundedOperation
+      ? (callback, argument) => boundedOperation(page, `prepare-resident-${index}`, callback, argument)
+      : page.evaluate.bind(page);
+    prepared = await prepare(preparePartitionMemory, { config: browser.native ? browser.identity.fixture.config : await page.evaluate(async () => {
       const config = await import('/config/doppler-local-models.js');
       return { DOPPLER_PACKAGE_VERSION: config.DOPPLER_PACKAGE_VERSION, DOPPLER_PARTITIONS_MODULE_URL: new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href).href,
         DOPPLER_KERNEL_BASE_URL: new URL(config.DOPPLER_KERNEL_BASE_URL, location.href).href };
@@ -128,7 +146,8 @@ try {
     if (openingObserver) prepared.openingObservation = await openingObserver.finish();
     if (browser.native) prepared.nativeProvider = await page.evaluate(() => __nativePartitionFixture.observeProvider());
     } finally { await openingObserver?.close(); }
-    descriptors.push({ ...prepared, platform: hostNames[slot],
+    descriptors.push({ ...prepared, preparationTiming: { startedAt: preparationStartedAt,
+      completedAt: new Date().toISOString(), elapsedMs: performance.now() - preparationStarted }, platform: hostNames[slot],
       ...(browser.native ? { surface: 'node-webgpu', nativePid: browser.identity.pid, node: browser.identity.node, nativeHost: browser.identity.fixture }
         : { surface: 'browser-webgpu', browser: browser.version() }) });
     console.log(JSON.stringify({ prepared: index, bytes: prepared.afterPreparation.device.liveBytes }));
@@ -142,14 +161,14 @@ try {
   if (phase === 'concurrent') {
     evidence.scope = 'Two live 1,588-token resident attempts, submitted cancellation, surviving output and fresh retry; Node tensor forwarding, not signed application acceptance';
     await runConcurrentPartitionMemory({ pages, pageA, pageB, request: requests[1], generation,
-      planId: descriptors[0].planId, runs,
-      persist: () => writeFile(output, JSON.stringify(evidence)),
+      planId: descriptors[0].planId, runs, operation: boundedOperation,
+      persist: persistEvidence,
       onProgress: row => console.log(JSON.stringify(row)) });
   } else for (const [attempt, testCase] of cases.entries()) {
     const { request } = testCase;
     const identity = { modelId: request.model.id, modelIdentity: request.model.identity, planId: descriptors[0].planId,
       participantA: 'memory-A', participantB: 'memory-B', threadId: `memory-${attempt}`, attemptId: `memory-${attempt}` };
-    const row = { attempt, generation, retainedGeneration: request.model.generation, before: [], after: [], text: '', steps: 0,
+    const row = { attempt, generation, retainedGeneration: request.model.generation, before: [], after: [], text: '', steps: 0, stageTimings: [],
       ...(reference ? { numerical: [] } : {}) }; runs.push(row);
     for (const page of pages) row.before.push(await page.evaluate(() => { chunks = []; return settleMemory(); }));
     try {
@@ -162,12 +181,18 @@ try {
       for (let step = 0; step < generation.maxTokens; step++) {
         const parameters = { identity, step, tokenPosition: position, inputTokenCount: ids.length,
           generation, maxTokens: generation.maxTokens };
+        const stageTiming = { step, group0: { startedAt: new Date().toISOString() } };
+        row.stageTimings.push(stageTiming);
+        const group0Started = performance.now();
         const a = await pageA.evaluate(async ({ parameters, ids, continuation, cancel }) => {
           observePrefill = parameters.step === 0;
           const controller = new AbortController(); if (cancel) abortOnSubmit = controller;
           const value = await resident.executeGroup0({ ...parameters, tokenIds: ids, continuation, signal: controller.signal });
           return { activation: { ...value.activationTensor, data: encodeBytes(value.activationTensor.data) }, continuation: value.continuation };
         }, { parameters, ids, continuation: aContinuation, cancel: testCase.cancel === true });
+        Object.assign(stageTiming.group0, { completedAt: new Date().toISOString(), elapsedMs: performance.now() - group0Started });
+        stageTiming.group1 = { startedAt: new Date().toISOString() };
+        const group1Started = performance.now();
         const b = await pageB.evaluate(async ({ parameters, ids, activation, continuation, captureLogits }) => {
           observePrefill = parameters.step === 0;
           const value = await resident.executeGroup1({ ...parameters, inputTokenIds: ids,
@@ -176,6 +201,7 @@ try {
           return { tokenId: value.tokenId, delta: value.delta, done: value.done, stopReason: value.stopReason, continuation: value.continuation,
             ...(captureLogits ? { logits: encodeBytes(value.logits) } : {}) };
         }, { parameters, ids, activation: a.activation, continuation: bContinuation, captureLogits: !!reference });
+        Object.assign(stageTiming.group1, { completedAt: new Date().toISOString(), elapsedMs: performance.now() - group1Started });
         if (reference) {
           distributedControls[attempt].steps.push({ logits: b.logits, tokenId: b.tokenId });
           const expected = testCase.expected.steps[step];
@@ -200,7 +226,7 @@ try {
             if (selectedBoundary) row.observationBoundary = boundary;
             else row.firstDivergence = boundary;
             // Preserve the actual boundary before token/stopping assertions can fail.
-            await writeFile(output, JSON.stringify(evidence));
+            await persistEvidence();
           }
           row.numerical.push({ step, tokenId: b.tokenId, stopReason: b.stopReason,
             maxDifference, maxDifferenceIndex, tolerance: 0.001, matches: maxDifference <= 0.001,
@@ -229,7 +255,7 @@ try {
     }
     finally {
       Object.assign(row, await observePartitionAttemptCleanup(pages, identity));
-      await writeFile(output, JSON.stringify(evidence));
+      await persistEvidence();
       if (row.cleanupErrors.length && !row.error) {
         throw new AggregateError(row.cleanupErrors.map(error => new Error(error.message)), 'Attempt cleanup failed');
       }
@@ -246,13 +272,13 @@ try {
   throw error;
 } finally {
   evidence.afterResidentClose = [];
-  for (const page of pages) evidence.afterResidentClose.push(await page.evaluate(async () => {
+  for (const [index, page] of pages.entries()) evidence.afterResidentClose.push(await evaluateCleanup(page, `resident-close-${index}`, async () => {
     await globalThis.resident?.close(); return globalThis.settleMemory?.();
   }).catch(error => ({ error: error.message })));
   // A completion requested by close can retire one batch and schedule another.
   // Preserve the first snapshot, then observe cleanup without destroying the pool.
   evidence.residentSettlement = [];
-  for (const page of pages) evidence.residentSettlement.push(await page.evaluate(async () => {
+  for (const [index, page] of pages.entries()) evidence.residentSettlement.push(await evaluateCleanup(page, `resident-settlement-${index}`, async () => {
     const started = performance.now();
     let snapshot = await settleMemory(), barriers = 1;
     while (snapshot.pool.resources.deferredCleanup.count > 0 && performance.now() - started < 10000) {
@@ -261,7 +287,7 @@ try {
     }
     return { barriers, snapshot };
   }).catch(error => ({ error: error.message })));
-  await writeFile(output, JSON.stringify(evidence));
+  await persistEvidence();
   try {
     for (const settlement of evidence.residentSettlement) {
       assert(!settlement.error, 'Resident cleanup observation failed');
@@ -534,7 +560,7 @@ try {
             diagnostic.captureFailure = 'The attention diagnostic did not retain its output projection';
           }
         }
-        await writeFile(output, JSON.stringify(evidence));
+        await persistEvidence();
       }
     }
     const [localRun, remoteRun] = evidence.unsplitFirstDivergence.runs;
@@ -559,19 +585,30 @@ try {
       firstOperatorDifference: evidence.unsplitFirstDivergence.operatorComparison.find(row => row.maxDifference > 0) }));
     }
   }
-  evidence.deviceObservations = await Promise.all(pages.map(page => page.evaluate(() => ({
+  evidence.deviceObservations = await Promise.all(pages.map((page, index) => evaluateCleanup(page, `final-observation-${index}`, () => ({
     deviceEvents: globalThis.partitionDeviceEvents || [], snapshot: globalThis.memorySnapshot?.()
   })).catch(error => ({ error: error.message }))));
-  await writeFile(output, JSON.stringify(evidence));
-  for (const context of contexts) await context.close();
-  await local.close();
+  await persistEvidence();
+  for (const [index, context] of contexts.entries()) {
+    try {
+      await evaluateCleanup({ evaluate: () => context.close() }, `context-close-${index}`, () => {}, false);
+    } catch (error) {
+      (evidence.processCloseErrors ||= []).push({ owner: `context-${index}`, error: error.message });
+      cleanupFailure ||= error;
+    }
+  }
+  try { await evaluateCleanup({ evaluate: () => local.close() }, 'local-browser-close', () => {}, false); }
+  catch (error) {
+    (evidence.processCloseErrors ||= []).push({ owner: 'local-browser', error: error.message });
+    cleanupFailure ||= error;
+  }
   try {
-    const closed = await remote.close();
+    const closed = await evaluateCleanup({ evaluate: () => remote.close() }, 'remote-browser-close', () => {}, false);
     if (nativeEndpoint) evidence.nativeHostSettlement = { ...closed, pid: remote.identity.pid };
   } catch (error) {
     if (nativeEndpoint) evidence.nativeHostSettlement = { pid: remote.identity.pid, ownedProviderReleased: false, error: error.message };
     cleanupFailure ||= error;
   }
-  await writeFile(output, JSON.stringify(evidence));
+  await persistEvidence();
   if (cleanupFailure && !evidence.failure) throw cleanupFailure;
 }

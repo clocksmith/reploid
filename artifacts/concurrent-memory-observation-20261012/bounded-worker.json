@@ -1,0 +1,195 @@
+{
+  "scope": "Actual Worker existing /testing/ capability for physical fixture tooling only",
+  "sources": {
+    "/testing/tests/fixtures/concurrent-partition-memory.js": "33e7de0df96bf8581b70e9d27d722a7873e54204e7ae85f036ed81d12515b540",
+    "/testing/tests/fixtures/browser-partition-memory-completion.js": "a257d842d7d17dd2a4e21f3c52cb982d620ef3898768dead7feb556e9d73041d"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/tests/fixtures/concurrent-partition-memory.js:83: Suspicious variable name: evaluate - may indicate code execution",
+      "File has 22 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js:178: Dynamic property write detected: [attempt] - verify input sanitization",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js:521: Dynamic property write detected: [index] - verify input sanitization",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js:528: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js:566: Dynamic property write detected: [localRun, remoteRun] - verify input sanitization",
+      "Warning in /testing/tests/fixtures/browser-partition-memory-completion.js:115: Suspicious variable name: evaluateCleanup - may indicate code execution",
+      "File exceeds 500 lines (615) - consider splitting",
+      "File has 31 functions (max 20) - consider modularizing",
+      "Nesting depth of 11 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791845943961,
+        "path": "/testing/tests/fixtures/concurrent-partition-memory.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: evaluate - may indicate code execution",
+        "line": 83,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791845943963,
+        "metric": "functions",
+        "value": 22,
+        "threshold": 20,
+        "message": "File has 22 functions (max 20) - consider modularizing",
+        "path": "/testing/tests/fixtures/concurrent-partition-memory.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791845943963,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/testing/tests/fixtures/concurrent-partition-memory.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791845943977,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791845943978,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [attempt] - verify input sanitization",
+        "line": 178,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791845943978,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index] - verify input sanitization",
+        "line": 521,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791845943978,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 528,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791845943978,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [localRun, remoteRun] - verify input sanitization",
+        "line": 566,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791845943978,
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: evaluateCleanup - may indicate code execution",
+        "line": 115,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791845943979,
+        "metric": "lines",
+        "value": 615,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (615) - consider splitting",
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791845943979,
+        "metric": "functions",
+        "value": 31,
+        "threshold": 20,
+        "message": "File has 31 functions (max 20) - consider modularizing",
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791845943979,
+        "metric": "nesting",
+        "value": 11,
+        "threshold": 5,
+        "message": "Nesting depth of 11 exceeds 5 - refactor nested code",
+        "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 22,
+          "threshold": 20,
+          "message": "File has 22 functions (max 20) - consider modularizing",
+          "path": "/testing/tests/fixtures/concurrent-partition-memory.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/testing/tests/fixtures/concurrent-partition-memory.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 615,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (615) - consider splitting",
+          "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 31,
+          "threshold": 20,
+          "message": "File has 31 functions (max 20) - consider modularizing",
+          "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 11,
+          "threshold": 5,
+          "message": "Nesting depth of 11 exceeds 5 - refactor nested code",
+          "path": "/testing/tests/fixtures/browser-partition-memory-completion.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

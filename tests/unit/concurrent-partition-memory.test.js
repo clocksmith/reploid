@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { createContext, runInContext } from 'node:vm';
-import { runConcurrentPartitionMemory } from '../fixtures/concurrent-partition-memory.js';
+import { runConcurrentPartitionMemory, createConcurrentOperationObserver } from '../fixtures/concurrent-partition-memory.js';
 
-function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = false, deviceEvents = [], observationErrors = [] } = {}) {
+function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = false, deviceEvents = [], observationErrors = [], stallInput = false, stallClose = false } = {}) {
   const events = [], runs = [], live = [new Set(), new Set()];
   const pages = [0, 1].map(index => {
     let context;
@@ -12,6 +12,7 @@ function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = f
       executeGroup0: async ({ identity, step, signal }) => {
         live[index].add(identity.attemptId);
         events.push(['input', identity.attemptId, step]);
+        if (stallInput) return new Promise(() => {});
         if (context.abortOnSubmit) {
           const controller = context.abortOnSubmit;
           context.abortOnSubmit = null;
@@ -29,6 +30,7 @@ function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = f
       },
       closeAttempt: async ({ identity }) => {
         events.push(['close', identity.attemptId, index]);
+        if (stallClose && index === 0) return new Promise(() => {});
         if (rejectClose && identity.attemptId.endsWith('cancelled') && index === 0) throw Error('cleanup failed');
         live[index].delete(identity.attemptId);
       }
@@ -47,7 +49,9 @@ function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = f
   });
   return { events, runs, live, run: () => runConcurrentPartitionMemory({ pages, pageA: pages[0], pageB: pages[1],
     request: { model: { id: 'synthetic', identity: 'synthetic' }, messages: [] },
-    generation: { maxTokens: 8 }, planId: 'synthetic', runs, persist: async () => {} }) };
+    generation: { maxTokens: 8 }, planId: 'synthetic', runs, persist: async () => {},
+    operation: createConcurrentOperationObserver({ evidence: {}, persist: async () => {},
+      deadlines: { operationMs: 30, cleanupMs: 10, observationMs: 5, sampleMs: 2 } }) }) };
 }
 
 describe('long concurrent physical-controller assertions (synthetic GPU only)', () => {
@@ -71,6 +75,14 @@ describe('long concurrent physical-controller assertions (synthetic GPU only)', 
   ])('rejects missing or failed device observations %j', async (options, message) => {
     await expect(fixture(options).run()).rejects.toThrow(message);
   });
+  it('keeps the primary execution timeout while attempting both independent closes', async () => {
+    const test = fixture({ stallInput: true, stallClose: true });
+    await expect(test.run()).rejects.toThrow('step-0:group-0 exceeded 30ms');
+    expect(test.runs[0].closed).toBe(false);
+    expect(test.runs[0].closeResults.map(result => result.settled)).toEqual([false, true]);
+    expect(test.live[0].size).toBe(1);
+    expect(test.events.some(([kind, , index]) => kind === 'close' && index === 1)).toBe(true);
+  });
   it('rejects a changed surviving answer and still closes every attempt', async () => {
     const test = fixture({ corruptSurvivor: true });
     await expect(test.run()).rejects.toThrow('Surviving answer changed');
@@ -88,5 +100,76 @@ describe('long concurrent physical-controller assertions (synthetic GPU only)', 
     expect(test.runs[1].closed).toBe(false);
     expect(test.live[0].size).toBe(1);
     expect(test.live[1].size).toBe(0);
+  });
+});
+
+describe('bounded physical observations (synthetic unresolved providers)', () => {
+  it('retains the last submitted operation and returns unknown ownership on a stalled execution', async () => {
+    const { createConcurrentOperationObserver } = await import('../fixtures/concurrent-partition-memory.js');
+    const evidence = {}, saved = [];
+    const operation = createConcurrentOperationObserver({ evidence,
+      persist: async () => saved.push(structuredClone(evidence)),
+      deadlines: { operationMs: 25, cleanupMs: 10, observationMs: 5, sampleMs: 2 } });
+    const page = { evaluate: fn => fn.toString().includes('memorySnapshot')
+      ? Promise.resolve({ submissions: [{ label: 'last-submitted' }],
+        pendingPipelinePreparation: [{ operation: 'createComputePipelineAsync' }] })
+      : new Promise(() => {}) };
+    await expect(operation(page, 'group-0', () => resident.executeGroup0())).rejects.toThrow('ownership unknown');
+    expect(evidence.operations[0].status).toBe('timed-out');
+    expect(evidence.operations[0].samples.at(-1).snapshot.submissions[0].label).toBe('last-submitted');
+    expect(saved.some(item => item.operations[0].status === 'pending')).toBe(true);
+    expect(evidence.operations[0].ownership).toBe('unknown');
+  });
+  it('bounds an unresolved queue barrier and an unresponsive observation independently', async () => {
+    const { createConcurrentOperationObserver } = await import('../fixtures/concurrent-partition-memory.js');
+    const evidence = {};
+    const operation = createConcurrentOperationObserver({ evidence, persist: async () => {},
+      deadlines: { operationMs: 50, cleanupMs: 15, observationMs: 3, sampleMs: 2 } });
+    await expect(operation({ evaluate: () => new Promise(() => {}) }, 'queue-close',
+      () => settleMemory(), undefined, true)).rejects.toThrow('exceeded 15ms');
+    expect(evidence.operations[0].samples.some(item => item.error?.includes('observation'))).toBe(true);
+    expect(evidence.operations[0].status).toBe('timed-out');
+  });
+  it('preserves original rejection and does not observe or duplicate process close', async () => {
+    const { createConcurrentOperationObserver } = await import('../fixtures/concurrent-partition-memory.js');
+    const evidence = {};
+    const operation = createConcurrentOperationObserver({ evidence, persist: async () => {} });
+    const primary = Error('original queue rejection');
+    let calls = 0;
+    await expect(operation({ evaluate: () => { calls++; return Promise.reject(primary); } },
+      'browser-close', () => {}, undefined, true, false)).rejects.toBe(primary);
+    expect(calls).toBe(1);
+    expect(evidence.operations[0].status).toBe('rejected');
+    expect(evidence.operations[0].samples).toEqual([]);
+  });
+  it('retains sampling persistence failure without masking the primary timeout', async () => {
+    const evidence = {};
+    let writes = 0;
+    const operation = createConcurrentOperationObserver({ evidence,
+      persist: async () => { if (++writes > 1) throw Error('disk unavailable'); },
+      deadlines: { operationMs: 20, cleanupMs: 10, observationMs: 3, sampleMs: 2 } });
+    const page = { evaluate: fn => fn.toString().includes('memorySnapshot')
+      ? Promise.resolve({ pendingPipelinePreparation: ['pending'] }) : new Promise(() => {}) };
+    await expect(operation(page, 'execution', () => resident.executeGroup0())).rejects.toThrow('exceeded 20ms');
+    expect(evidence.operations[0].status).toBe('timed-out');
+    expect(evidence.operations[0].persistenceFailures.some(item => item.phase === 'sample')).toBe(true);
+    expect(evidence.operations[0].persistenceFailures.at(-1)).toEqual({ phase: 'final', message: 'disk unavailable' });
+  });
+  it('rejects successful execution when its pending evidence could not be persisted', async () => {
+    const evidence = {};
+    let writes = 0;
+    const operation = createConcurrentOperationObserver({ evidence,
+      persist: async () => { if (++writes === 2) throw Error('sample write rejected'); } });
+    const page = { evaluate: fn => fn.toString().includes('memorySnapshot')
+      ? Promise.resolve({}) : new Promise(resolve => setTimeout(() => resolve('done'), 5)) };
+    await expect(operation(page, 'execution', () => 'done')).rejects.toThrow('Observation persistence failed');
+    expect(evidence.operations[0].status).toBe('observation-failed');
+  });
+  it('does not accept a timeout expansion or invalid bound', async () => {
+    const { createConcurrentOperationObserver, CONCURRENT_DEADLINES } = await import('../fixtures/concurrent-partition-memory.js');
+    expect(() => createConcurrentOperationObserver({ evidence: {}, persist: async () => {},
+      deadlines: { ...CONCURRENT_DEADLINES, operationMs: 300001 } })).toThrow('cannot expand');
+    expect(() => createConcurrentOperationObserver({ evidence: {}, persist: async () => {},
+      deadlines: { ...CONCURRENT_DEADLINES, cleanupMs: 0 } })).toThrow('Invalid');
   });
 });
