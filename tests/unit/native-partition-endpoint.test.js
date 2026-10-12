@@ -7,6 +7,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { connectNativeInspector, connectNativePartitionEndpoint } from '../fixtures/native-partition-endpoint.js';
+import { runConcurrentPartitionMemory } from '../fixtures/concurrent-partition-memory.js';
+import { assertNativePartitionPhase } from '../fixtures/partition-diagnostic-selection.js';
 import { observeResidentOpening } from '../fixtures/resident-opening-observer.js';
 
 async function withInspector(script, run) {
@@ -71,4 +73,53 @@ test('failed owned cleanup is not reported as a released provider', async () => 
     expect(Number.isInteger(endpoint.identity.pid)).toBe(true);
     await expect(endpoint.close()).rejects.toThrow('resident ownership unsettled');
   });
+});
+
+function installSyntheticLongResident() {
+  const live = new Set();
+  globalThis.abortOnSubmit = null; globalThis.observePrefill = false;
+  globalThis.encodeBytes = data => Buffer.from(data.buffer).toString('base64');
+  globalThis.rejectOversizedAllocation = async () => ({ code: 'RESOURCE_EXHAUSTED', synthetic: true });
+  globalThis.settleMemory = async () => ({ gpuValidationErrors: [], device: { liveBytes: 100 + live.size,
+    peakBytes: 102, maxBytes: 1420000000, lost: false, categories: { weights: 100 } }, liveAttempts: [...live] });
+  globalThis.resident = {
+    tokenize: async () => ({ tokenIds: Array(1588).fill(7) }),
+    executeGroup0: async ({ identity, step, signal }) => {
+      live.add(identity.attemptId);
+      if (globalThis.abortOnSubmit) {
+        const controller = globalThis.abortOnSubmit; globalThis.abortOnSubmit = null;
+        controller.abort(new DOMException('synthetic submitted cancellation', 'AbortError'));
+      }
+      signal.throwIfAborted();
+      return { activationTensor: { data: new Float32Array([step]) }, continuation: { step } };
+    },
+    executeGroup1: async ({ identity, step, activation }) => {
+      if (new Float32Array(activation.tensorData)[0] !== step) throw Error('Actual forwarded bytes differ');
+      live.add(identity.attemptId);
+      return { tokenId: step + 10, delta: String(step), done: step === 3,
+        stopReason: step === 3 ? 'eos-token' : null, continuation: { step } };
+    },
+    closeAttempt: async ({ identity }) => { live.delete(identity.attemptId); }
+  };
+}
+test('unchanged concurrent lifecycle runs through actual Node inspector calls in both roles (synthetic residents)', async () => {
+  await withInspector(fixtureScript, async first => withInspector(fixtureScript, async second => {
+    const endpoints = await Promise.all([first, second].map(connectNativePartitionEndpoint));
+    try {
+      assertNativePartitionPhase('concurrent', null);
+      for (const reversed of [false, true]) {
+        const pages = endpoints.map(endpoint => endpoint.page);
+        for (const page of pages) await page.evaluate(installSyntheticLongResident);
+        const runs = [], ordered = reversed ? [...pages].reverse() : pages;
+        await runConcurrentPartitionMemory({ pages, pageA: ordered[0], pageB: ordered[1],
+          request: { model: { id: 'synthetic', identity: 'synthetic' }, messages: [] },
+          generation: { maxTokens: 8 }, planId: 'synthetic', runs, persist: async () => {} });
+        expect(runs.map(row => row.inputTokens)).toEqual([1588, 1588, 1588, 1588]);
+        expect(runs[1].cancelled).toBe(true);
+        expect(runs[2].duringOverlap.every(row => row.liveAttempts.length === 2)).toBe(true);
+        expect(runs[2].text).toBe(runs[0].text); expect(runs[3].tokenIds).toEqual(runs[0].tokenIds);
+        expect(runs.every(row => row.closed)).toBe(true);
+      }
+    } finally { for (const endpoint of endpoints) await endpoint.close(); }
+  }));
 });
