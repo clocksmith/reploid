@@ -1,0 +1,15 @@
+{
+  "pid": 2989450,
+  "cwd": "/var/tmp/reploid-native-installed-8n7b1i/final/reploid",
+  "mapped": [
+    {
+      "path": "/var/tmp/reploid-native-installed-8n7b1i/final/reploid/node_modules/webgpu/dist/linux-x64.dawn.node",
+      "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1"
+    },
+    {
+      "path": "/var/tmp/reploid-native-installed-8n7b1i/final/reploid/node_modules/@roamhq/wrtc-linux-x64/wrtc.node",
+      "sha256": "a629f3ee4aa32a097361270f719007e62325068dac347086218027ce4274302f"
+    }
+  ],
+  "commandLine": "node --inspect=127.0.0.1:18229 server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /var/tmp/reploid-native-installed-execution-20261012/weights --cache-directory /var/tmp/reploid-native-installed-execution-20261012/cache --identity-file /var/tmp/reploid-native-installed-execution-20261012/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --signaling-url ws://127.0.0.1:18200/swarm "
+}

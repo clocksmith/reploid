@@ -1,0 +1,74 @@
+{
+  "scope": "Installed native85-file application, accepted archive, ordinarybrowser+Node shortinference/acquisition/cancellation",
+  "applicationArchiveSha256": "f032431dc4416eeaa2d167d8e079c534aa45784dd42e532302aa0970e979a123",
+  "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "participant": {
+    "schema": "doppler.resident-partition/v1",
+    "ready": true,
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+    "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+    "index": 1,
+    "layerRange": [
+      12,
+      23
+    ],
+    "residentWeightBytes": 285497344,
+    "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+  },
+  "completedPieceCount": 75,
+  "completedPieceBytes": 307887776,
+  "retainedFileCount": 77,
+  "filesSharing": false,
+  "settledAttemptIds": [
+    "7ee72f10-2e55-49d8-9b2e-999bbf5b2176",
+    "84d65565-676a-47a6-9144-5b39cec8612b",
+    "79f57beb-9489-4060-b317-dea39be31b52",
+    "2b36d9ff-f078-4960-a039-5c3a00beb318",
+    "bc8141ef-dcd6-4003-b477-7bb02c04caa3",
+    "6590a456-8fd2-4d28-b431-e4b7e169fd2e",
+    "2288f877-16c1-4a0f-9137-24b267b3d452",
+    "535487ea-d868-4df1-821c-45d008a35427",
+    "21711038-19ae-4285-a716-5a4104dab3c1",
+    "62da15b8-280a-46b9-b12c-eeee9c7d68b1",
+    "845f5d80-8fe6-476a-8db1-9977acb93556",
+    "e940f09f-bbbd-4a14-bda1-e658acfb5ea5",
+    "85120715-391d-4b8a-92d2-07eebba02e5c"
+  ],
+  "activeReservations": 0,
+  "pendingFiles": 0,
+  "poolMemory": {
+    "currentBytes": 310641152,
+    "currentBytesRequested": 294426624,
+    "activeBuffers": 177,
+    "pooledBuffers": 64,
+    "peakBytes": 335382784,
+    "peakBytesRequested": 320818944
+  },
+  "ordinaryUiFinalVerificationPassed": true,
+  "originalSourceWeightDirectoryEmpty": true,
+  "shutdown": {
+    "pid": 2989450,
+    "signal": "SIGTERM",
+    "allThirteenReservationsSettledBeforeSignal": true,
+    "activeReservationsBeforeSignal": 0,
+    "pendingFilesBeforeSignal": 0,
+    "residentWeightBytesBeforeSignal": 285497344,
+    "modelUnloadObserved": true,
+    "ownedDeviceDestructionObserved": true,
+    "naturalExitCode": 0,
+    "ownedTunnelPort": 18200,
+    "ownedTunnelExitCode": 0,
+    "unrelatedPublicContributorPid": 3094599,
+    "unrelatedPublicContributorStillRunning": true,
+    "weightsDirectoryFiles": []
+  },
+  "unqualified": [
+    "signed Capsule physical opening",
+    "native input placement",
+    "document quality",
+    "numerical accuracy",
+    "long-prompt concurrency",
+    "deployment"
+  ]
+}

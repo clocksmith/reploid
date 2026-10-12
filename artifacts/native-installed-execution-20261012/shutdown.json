@@ -1,0 +1,16 @@
+{
+  "pid": 2989450,
+  "signal": "SIGTERM",
+  "allThirteenReservationsSettledBeforeSignal": true,
+  "activeReservationsBeforeSignal": 0,
+  "pendingFilesBeforeSignal": 0,
+  "residentWeightBytesBeforeSignal": 285497344,
+  "modelUnloadObserved": true,
+  "ownedDeviceDestructionObserved": true,
+  "naturalExitCode": 0,
+  "ownedTunnelPort": 18200,
+  "ownedTunnelExitCode": 0,
+  "unrelatedPublicContributorPid": 3094599,
+  "unrelatedPublicContributorStillRunning": true,
+  "weightsDirectoryFiles": []
+}

@@ -1,0 +1,29 @@
+{
+  "directory": "/var/tmp/reploid-native-installed-8n7b1i/final/reploid",
+  "node": "v22.22.1",
+  "applicationArchiveSha256": "f032431dc4416eeaa2d167d8e079c534aa45784dd42e532302aa0970e979a123",
+  "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "deliveryFilesVerified": 85,
+  "modelDirectory": "/var/tmp/reploid-native-installed-execution-20261012/weights",
+  "cacheDirectory": "/var/tmp/reploid-native-installed-execution-20261012/cache",
+  "initialWeightFiles": [],
+  "initialCacheFiles": [],
+  "dependencies": {
+    "doppler-gpu": {
+      "version": "0.6.27",
+      "path": "/var/tmp/reploid-native-installed-8n7b1i/final/reploid/node_modules/doppler-gpu/package.json"
+    },
+    "@roamhq/wrtc": {
+      "version": "0.10.0",
+      "path": "/var/tmp/reploid-native-installed-8n7b1i/final/reploid/node_modules/@roamhq/wrtc/package.json"
+    },
+    "ws": {
+      "version": "8.21.0",
+      "path": "/var/tmp/reploid-native-installed-8n7b1i/final/reploid/node_modules/ws/package.json"
+    },
+    "webgpu": {
+      "version": "0.4.0",
+      "path": "/var/tmp/reploid-native-installed-8n7b1i/final/reploid/node_modules/webgpu/package.json"
+    }
+  }
+}
