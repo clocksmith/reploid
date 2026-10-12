@@ -1,0 +1,155 @@
+{
+  "sourceSha256": "1ebb81f8f5cc1a360f0e974fb4259bc158c3e5293b1905f91de23e3d861cff11",
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Warning in /server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /server/native-participant.js:35: Dynamic property write detected: [key] - verify input sanitization",
+    "Warning in /server/native-participant.js:254: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+    "Warning in /server/native-participant.js:22: Suspicious variable name: requireValue - may indicate code execution",
+    "File has 31 functions (max 20) - consider modularizing",
+    "Nesting depth of 7 exceeds 5 - refactor nested code",
+    "Warning in /server/native-model-files.js: Path traversal pattern detected (../) - potential security risk",
+    "File has 34 functions (max 20) - consider modularizing",
+    "Nesting depth of 9 exceeds 5 - refactor nested code"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791776247713,
+      "path": "/server/native-participant.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791776247714,
+      "path": "/server/native-participant.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [key] - verify input sanitization",
+      "line": 35,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791776247714,
+      "path": "/server/native-participant.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "line": 254,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791776247714,
+      "path": "/server/native-participant.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: requireValue - may indicate code execution",
+      "line": 22,
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791776247715,
+      "metric": "functions",
+      "value": 31,
+      "threshold": 20,
+      "message": "File has 31 functions (max 20) - consider modularizing",
+      "path": "/server/native-participant.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791776247715,
+      "metric": "nesting",
+      "value": 7,
+      "threshold": 5,
+      "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "path": "/server/native-participant.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791776247719,
+      "path": "/server/native-model-files.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791776247720,
+      "metric": "functions",
+      "value": 34,
+      "threshold": 20,
+      "message": "File has 34 functions (max 20) - consider modularizing",
+      "path": "/server/native-model-files.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791776247720,
+      "metric": "nesting",
+      "value": 9,
+      "threshold": 5,
+      "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "path": "/server/native-model-files.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/server/native-model-files.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 31,
+        "threshold": 20,
+        "message": "File has 31 functions (max 20) - consider modularizing",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 34,
+        "threshold": 20,
+        "message": "File has 34 functions (max 20) - consider modularizing",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/server/native-model-files.js"
+      }
+    ],
+    "filesAnalyzed": 2
+  }
+}

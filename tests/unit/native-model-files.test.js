@@ -115,3 +115,22 @@ it('attempts cache settlement even when custody close rejects and retains both f
   expect(failure).toBeInstanceOf(AggregateError);
   expect(failure.errors.map(error => error.message).sort()).toEqual(['cache commit failed', 'custody close failed']);
 });
+it('offers newly acquired pieces only while their model has approved supply', async () => {
+  const f = await fixture(3);
+  await fs.unlink(path.join(f.directories[2], 'weights.bin'));
+  await f.owners[1].share(f.model, true);
+  await f.owners[0].share(f.model, true); // Initially only metadata is present.
+  const source = await f.owners[0].preparePartitionSource(f.model);
+  await source.storage.loadShardRange(0, 0, 4);
+  f.owners[1].stopSupply();
+  await new Promise(resolve => setTimeout(resolve, 10));
+  const reader = await f.owners[2].preparePartitionSource(f.model);
+  try {
+    expect(new Uint8Array(await reader.storage.loadShardRange(0, 0, 4))).toEqual(new Uint8Array(f.chunks[0]));
+    expect(f.writes.some(row => row.from === 2 && row.peer === '0' && row.type === 'reploid:custody-request')).toBe(true);
+    f.owners[0].stopSupply();
+    await f.owners[1].share(f.model, true);
+    await source.storage.loadShardRange(0, 4, 4);
+    expect(f.owners[0].getState().sharing).toBe(false);
+  } finally { await source.storage.close(); await reader.storage.close(); }
+});
