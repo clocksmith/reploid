@@ -144,10 +144,20 @@ export async function calculateLedger(input, messages, options = {}) {
       allInTotal: null, allInTotalReason: 'The ledger does not infer unpriced exclusions or future conditional charges.' });
   }
   const calculated = await runCalculation({ facts: catalog.facts, operations }, messages, options);
-  const values = new Map(calculated.results.map(result => [result.id, result]));
-  for (const fact of catalog.facts) values.set(fact.id, { ...fact, sources: [fact.source], derived: false });
+  const dependencies = new Map(catalog.facts.map(fact => [fact.id, new Set([fact.id])]));
+  for (const operation of operations) dependencies.set(operation.id,
+    new Set(operation.args.flatMap(id => [...dependencies.get(id)])));
+  const selectedConditions = ledgers.flatMap(ledger => ledger.claims).filter(claim => claim.relation === 'condition');
+  const annotate = value => {
+    const conditions = selectedConditions.filter(claim => claim.affectedFacts.some(id => dependencies.get(value.id).has(id)));
+    return { ...value, conditional: conditions.length ? true : null, conditions,
+      conditionScope: 'Selected conditions propagate; an empty list does not establish unconditionality.' };
+  };
+  const computed = calculated.results.map(annotate);
+  const values = new Map(computed.map(result => [result.id, result]));
+  for (const fact of catalog.facts) values.set(fact.id, annotate({ ...fact, sources: [fact.source], derived: false }));
   for (const ledger of ledgers) ledger.values = Object.fromEntries(Object.entries(ledger.values)
     .map(([key, id]) => [key, id === null ? null : values.get(id)]));
-  return { budget, deadline, documents: ledgers, operations, computed: calculated.results,
+  return { budget, deadline, documents: ledgers, operations, computed,
     semanticAcceptance: 'unqualified', scope: 'Calculations and source spans are checked; selected meanings, completeness and final answer remain subject to the unchanged independent factual review.' };
 }
