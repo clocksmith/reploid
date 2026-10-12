@@ -1,0 +1,33 @@
+{
+  "sourceSha256": "d5254e16828bfa039e0da66793230251fb80e3de2fd891ba152bc8226824ee07",
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Nesting depth of 6 exceeds 5 - refactor nested code"
+  ],
+  "events": [
+    {
+      "type": "complexity",
+      "timestamp": 1791781738657,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/artifacts/attachment-standalone-20261012/allocation-v2-replay.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/artifacts/attachment-standalone-20261012/allocation-v2-replay.js"
+      }
+    ],
+    "filesAnalyzed": 1
+  }
+}
