@@ -5,10 +5,20 @@ import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import * as runtime from 'doppler-gpu/partitions';
-import { normalizeNativeDataChannel, openNativeModelSource, createNativeGpuHost } from '../../server/native-participant.js';
+import { normalizeNativeDataChannel, openNativeModelSource, createNativeGpuHost, createNativeShutdown } from '../../server/native-participant.js';
 
 const gpu = vi.hoisted(() => ({ device: null, order: [] }));
 vi.mock('doppler-gpu/tooling', () => ({ getDevice: () => gpu.device, destroyBufferPool: () => gpu.order.push('pool') }));
+
+it('settles the provider after failed participant cleanup and shares overlapping stops', async () => {
+  const order = [];
+  const stop = createNativeShutdown({ async close() { order.push('participant'); throw new Error('participant failed'); } },
+    { async close() { order.push('provider'); throw new Error('provider failed'); } });
+  const first = stop(); expect(stop()).toBe(first);
+  const failure = await first.catch(error => error);
+  expect(order).toEqual(['participant', 'provider']);
+  expect(failure.errors.map(error => error.message)).toEqual(['participant failed', 'provider failed']);
+});
 
 const roots = [];
 afterEach(async () => { await Promise.all(roots.splice(0).map(root => fs.rm(root, { recursive: true, force: true }))); });

@@ -87,9 +87,9 @@ automatic placement as the browser. SIGINT/SIGTERM settle the participant and
 then release its owned native device.
 
 The weight directory is read only; individual requested pieces are authenticated
-by Doppler. This change does not yet expose a native file-supplier switch or
-acquire missing local files from peers. Those capabilities must not be inferred
-from the successful assigned-partition opening.
+by Doppler. This initial opening did not exercise peer acquisition or file supply.
+The subsequent [native custody implementation and physical checks](../native-files-20261012/)
+record those capabilities separately.
 
 ## Checks
 

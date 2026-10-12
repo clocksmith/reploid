@@ -1,0 +1,174 @@
+{
+  "sourceSha256": "e21ab47961afeafb26994ae622b673a53459d11ad5c2cb1ebba6ea940dad8d39",
+  "passed": false,
+  "errors": [
+    "Security Violation in /server/native-participant.js: process.exit is forbidden"
+  ],
+  "warnings": [
+    "Warning in /server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /server/native-participant.js:35: Dynamic property write detected: [key] - verify input sanitization",
+    "Warning in /server/native-participant.js:254: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+    "Warning in /server/native-participant.js:22: Suspicious variable name: requireValue - may indicate code execution",
+    "File has 32 functions (max 20) - consider modularizing",
+    "Nesting depth of 7 exceeds 5 - refactor nested code",
+    "Warning in /server/native-model-files.js: Path traversal pattern detected (../) - potential security risk",
+    "File has 33 functions (max 20) - consider modularizing",
+    "Nesting depth of 9 exceeds 5 - refactor nested code"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791775631291,
+      "path": "/server/native-participant.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791775631292,
+      "path": "/server/native-participant.js",
+      "patternId": "process_exit",
+      "category": "process",
+      "message": "process.exit is forbidden",
+      "severity": "error"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791775631292,
+      "path": "/server/native-participant.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [key] - verify input sanitization",
+      "line": 35,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791775631292,
+      "path": "/server/native-participant.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "line": 254,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791775631292,
+      "path": "/server/native-participant.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: requireValue - may indicate code execution",
+      "line": 22,
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791775631293,
+      "metric": "functions",
+      "value": 32,
+      "threshold": 20,
+      "message": "File has 32 functions (max 20) - consider modularizing",
+      "path": "/server/native-participant.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791775631293,
+      "metric": "nesting",
+      "value": 7,
+      "threshold": 5,
+      "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "path": "/server/native-participant.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791775631297,
+      "path": "/server/native-model-files.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791775631298,
+      "metric": "functions",
+      "value": 33,
+      "threshold": 20,
+      "message": "File has 33 functions (max 20) - consider modularizing",
+      "path": "/server/native-model-files.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791775631298,
+      "metric": "nesting",
+      "value": 9,
+      "threshold": 5,
+      "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "path": "/server/native-model-files.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/server/native-participant.js",
+        "patternId": "process_exit",
+        "category": "process",
+        "message": "process.exit is forbidden",
+        "severity": "error"
+      },
+      {
+        "path": "/server/native-model-files.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 32,
+        "threshold": 20,
+        "message": "File has 32 functions (max 20) - consider modularizing",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 33,
+        "threshold": 20,
+        "message": "File has 33 functions (max 20) - consider modularizing",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/server/native-model-files.js"
+      }
+    ],
+    "filesAnalyzed": 2
+  },
+  "reason": "Verification Failed"
+}

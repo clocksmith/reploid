@@ -2,6 +2,7 @@
  * No browser, model arithmetic, placement policy, or whole-request fallback lives here.
  */
 import fs from 'node:fs/promises';
+import { createNativeModelFiles } from './native-model-files.js';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { EventEmitter } from 'node:events';
@@ -48,7 +49,8 @@ export function createNativeRtcAdapter(rtc) {
 }
 
 /** Read only complete authenticated pieces requested by Doppler's public reader. */
-export async function openNativeModelSource({ model, modelDirectory, signal, runtime }) {
+export async function openNativeModelSource({ model, modelDirectory, signal, runtime, files }) {
+  if (files) return files.preparePartitionSource(model, { signal });
   const root = await fs.realpath(modelDirectory);
   const read = async (name, offset, size) => {
     signal?.throwIfAborted();
@@ -124,11 +126,11 @@ export function createNativeGpuHost(loadProvider) {
   });
 }
 
-export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId, onProgress = () => {} }) {
+export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId, files, onProgress = () => {} }) {
   const runtime = await import('doppler-gpu/partitions');
   await nativeGpu(); signal.throwIfAborted();
   await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
-  const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime });
+  const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files });
   let resident;
   try {
     const manifest = source.manifest, configured = { ...selected, generation: resolvePartitionGeneration(selected) };
@@ -156,7 +158,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
 }
 
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
-  signalingUrl, roomId, roomToken, nativeGpu, onChange = () => {}, logger = console }) {
+  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, onFileChange = () => {}, onChange = () => {}, logger = console }) {
   requireValue(identity?.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId,
     'Native participant requires its own valid signing identity');
   requireValue(typeof rtc?.RTCPeerConnection === 'function' && typeof WebSocket === 'function', 'Native WebRTC and WebSocket required');
@@ -170,7 +172,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   } });
   const eventBus = events(), bridge = events(), utils = { logger, generateId: () => crypto.randomUUID() };
   const admission = roomId === bootstrap.publicRoomId ? null : createRoomIntroductionAdmission({ roomId, token: roomToken });
-  let transport, partitions, closePromise, closed = false, gpuPromise;
+  let transport, partitions, files, closePromise, closed = false, gpuPromise;
   const networks = new Set();
   const mesh = createLegacyGenerationMesh({ config, ports: {
     instanceId: 'node:' + identity.peerId, modelConfig: null, utils, eventBus, events: bridge,
@@ -190,12 +192,14 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
   const close = () => closePromise ||= (async () => {
     closed = true;
     const results = await Promise.allSettled([partitions?.close(), ...[...networks].map(network => network.close())]);
+    try { await files?.close(); } catch (error) { results.push({ status: 'rejected', reason: error }); }
     try { await mesh.close(); } catch (error) { results.push({ status: 'rejected', reason: error }); }
     const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
     if (failures.length) throw new AggregateError(failures, 'Native contribution did not settle cleanly');
   })();
   try {
     await mesh.connect();
+    if (cacheDirectory) files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange: onFileChange });
     partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], policy,
       peers: () => transport.getConnectedPeers().map(peer => ({ ...peer, localTransportId: transport._getPeerId() })),
       createNetwork(options) {
@@ -207,20 +211,34 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         networks.add(network); return network;
       },
       loadProgram: (selected, index, controls) => openNativePartition({ model: selected, index, modelDirectory,
-        nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), ...controls }), onChange
+        nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls }), onChange
     });
     return Object.freeze({ identity: identity.peerId, getState: () => partitions.getState(),
       contribute: approved => partitions.contribute(model.id, approved), stop: () => partitions.stop(), close,
-      getNetworkState: () => mesh.getSwarmSnapshot() });
+      getNetworkState: () => mesh.getSwarmSnapshot(), getFileState: () => files?.getState() || null,
+      shareFiles: approved => { requireValue(files, 'Native cache directory required'); return files.share(model, approved); },
+      stopSharing: () => files?.stopSupply(), announceFiles: () => files?.announce() });
   } catch (error) { try { await close(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Native startup and cleanup failed'); } throw error; }
+}
+
+/** Attempt provider cleanup even when participant settlement reports failure. */
+export function createNativeShutdown(participant, gpuHost) {
+  let closing;
+  return () => closing ||= (async () => {
+    const failures = [];
+    try { await participant.close(); } catch (error) { failures.push(error); }
+    try { await gpuHost.close(); } catch (error) { failures.push(error); }
+    if (failures.length) throw new AggregateError(failures, 'Native host cleanup failed');
+  })();
 }
 
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
-    'ws-module', 'gpu-module', 'signaling-url', 'room', 'room-token', 'origin'].map(key => [key, { type: 'string' }]).concat([
-      ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
-  requireValue(values.contribute || values['connect-only'], 'Choose --contribute explicitly or --connect-only');
-  for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module', 'gpu-module']) requireValue(values[name], '--' + name + ' is required');
+    'ws-module', 'gpu-module', 'signaling-url', 'room', 'room-token', 'origin', 'cache-directory'].map(key => [key, { type: 'string' }]).concat([
+      ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
+  requireValue(values.contribute || values['share-files'] || values['connect-only'], 'Choose --contribute, --share-files or --connect-only explicitly');
+  if (values.contribute) requireValue(values['gpu-module'], '--gpu-module is required for compute');
+  for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');
   const identityFile = path.resolve(values['identity-file']);
   let identity;
   try { identity = JSON.parse(await fs.readFile(identityFile, 'utf8')); }
@@ -242,13 +260,25 @@ async function main() {
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: values['room-token'] || bootstrap.publicJoinMarker,
+    cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     nativeGpu: () => gpuHost.open(), onChange: state => console.log(JSON.stringify({ event: 'partition-state', ...state })) });
-  const timer = setInterval(() => console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState() })), policy.pollMs);
-  const stop = async () => { clearInterval(timer); await participant.close(); await gpuHost.close(); };
-  process.once('SIGINT', stop); process.once('SIGTERM', stop);
+  const timer = setInterval(() => { participant.announceFiles(); console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(), files: participant.getFileState() })); }, policy.pollMs);
+  const shutdown = createNativeShutdown(participant, gpuHost);
+  const stop = () => { clearInterval(timer); return shutdown(); };
+  const completion = new Promise((resolve, reject) => {
+    const signalStop = () => stop().then(resolve, reject);
+    process.once('SIGINT', signalStop); process.once('SIGTERM', signalStop);
+  });
   console.log(JSON.stringify({ event: 'native-initialized', participantId: identity.peerId, modelId: model.id }));
-  if (values.contribute) {
-    try { await participant.contribute(true); } catch (error) { await stop(); throw error; }
+  try {
+    await Promise.all([completion, (async () => {
+      if (values['share-files']) await participant.shareFiles(true);
+      if (values.contribute) await participant.contribute(true);
+    })()]);
+  } catch (error) {
+    try { await stop(); }
+    catch (cleanup) { if (cleanup !== error) throw new AggregateError([error, cleanup], 'Native preparation and cleanup failed'); }
+    throw error;
   }
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
