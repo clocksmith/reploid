@@ -45,14 +45,14 @@ them as JSON, and sends the records through the validator. Baseline-release
 states remain distinct from qualified candidate promotion until clean-release
 evidence is published.
 
-### 3. Verification Checklist
+### 3. Verification requirements
 
 - [x] Qualified browser state reads and validates persisted record content
 - [x] Qualified scientific state resolves governed exact baseline contracts
 - [x] ESM-2 baseline identity is required for candidate scientific value claims
 - [x] DNA qualification requires hash-addressed exact-contract admission records
 - [x] Receipt paths are constrained to durable status records
-- [ ] Persist clean-release ESM-2 browser and baseline-evaluation evidence
-- [ ] Validate each candidate's browser and scientific record before promotion
+- Persist clean-release ESM-2 browser and baseline-evaluation evidence
+- Validate each candidate's browser and scientific record before promotion
 
 *Last updated: August 2026*

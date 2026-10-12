@@ -503,28 +503,28 @@ const widget = {
 
 15. **Test** Shadow DOM rendering, EventBus subscription/cleanup, mode changes, approval flow, statistics tracking, persistence
 
-### 4. Verification Checklist
+### 4. Verification requirements
 
-- [ ] `registerModule()` adds modules to registry correctly
-- [ ] `getModuleMode()` respects overrides and falls back to master mode
-- [ ] `requiresApproval()` returns false in autonomous mode
-- [ ] `requiresApproval()` checks capability matching correctly
-- [ ] `setMasterMode()` updates config, saves, emits event
-- [ ] `setModuleMode()` validates mode, updates config, saves, emits event
-- [ ] `handleApprovalRequest()` auto-approves when not required
-- [ ] `handleApprovalRequest()` adds to queue when required
-- [ ] Timeout mechanism auto-rejects pending approvals
-- [ ] `handleApprove()` calls callback, removes from queue, emits event
-- [ ] `handleReject()` calls callback, removes from queue, emits event
-- [ ] Statistics tracking increments counters correctly
-- [ ] History tracking keeps last 50 entries
-- [ ] `saveConfig()` / `loadConfig()` round-trip works
-- [ ] `resetToDefaults()` clears overrides and queue
-- [ ] Widget displays master mode, pending count, statistics
-- [ ] Widget toggle button switches between HITL and Autonomous
-- [ ] Widget reset button clears all overrides
-- [ ] Widget re-renders on EventBus events
-- [ ] Widget cleanup prevents memory leaks
+- `registerModule()` adds modules to registry correctly
+- `getModuleMode()` respects overrides and falls back to master mode
+- `requiresApproval()` returns false in autonomous mode
+- `requiresApproval()` checks capability matching correctly
+- `setMasterMode()` updates config, saves, emits event
+- `setModuleMode()` validates mode, updates config, saves, emits event
+- `handleApprovalRequest()` auto-approves when not required
+- `handleApprovalRequest()` adds to queue when required
+- Timeout mechanism auto-rejects pending approvals
+- `handleApprove()` calls callback, removes from queue, emits event
+- `handleReject()` calls callback, removes from queue, emits event
+- Statistics tracking increments counters correctly
+- History tracking keeps last 50 entries
+- `saveConfig()` / `loadConfig()` round-trip works
+- `resetToDefaults()` clears overrides and queue
+- Widget displays master mode, pending count, statistics
+- Widget toggle button switches between HITL and Autonomous
+- Widget reset button clears all overrides
+- Widget re-renders on EventBus events
+- Widget cleanup prevents memory leaks
 
 ### 5. Extension Opportunities
 

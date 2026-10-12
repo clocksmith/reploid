@@ -801,23 +801,23 @@ class ToolExecutorWidget extends HTMLElement {
 customElements.define('tool-executor-widget', ToolExecutorWidget);
 ```
 
-### 10. Verification Checklist
+### 10. Verification requirements
 
-- [ ] `executeWithTimeout()` resolves before timeout
-- [ ] `executeWithTimeout()` rejects with EXECUTION_TIMEOUT after timeout
-- [ ] `executeWithTimeout()` clears timer on success or error
-- [ ] `executeWithRetry()` retries on failure up to maxRetries
-- [ ] `executeWithRetry()` uses exponential backoff
-- [ ] `executeWithRetry()` respects shouldRetry predicate
-- [ ] `executeBatch()` executes all tools in sequence
-- [ ] `executeBatch()` continues on error (unless stopOnError)
-- [ ] `executeBatch()` returns results and summary
-- [ ] `executeWithParallelization()` runs read-only tools in parallel
-- [ ] `executeWithParallelization()` runs mutating tools sequentially
-- [ ] `executeWithParallelization()` respects maxConcurrency
-- [ ] `formatResultForContext()` truncates long results
-- [ ] `formatResultForContext()` includes metadata when requested
-- [ ] All execution methods emit appropriate EventBus events
+- `executeWithTimeout()` resolves before timeout
+- `executeWithTimeout()` rejects with EXECUTION_TIMEOUT after timeout
+- `executeWithTimeout()` clears timer on success or error
+- `executeWithRetry()` retries on failure up to maxRetries
+- `executeWithRetry()` uses exponential backoff
+- `executeWithRetry()` respects shouldRetry predicate
+- `executeBatch()` executes all tools in sequence
+- `executeBatch()` continues on error (unless stopOnError)
+- `executeBatch()` returns results and summary
+- `executeWithParallelization()` runs read-only tools in parallel
+- `executeWithParallelization()` runs mutating tools sequentially
+- `executeWithParallelization()` respects maxConcurrency
+- `formatResultForContext()` truncates long results
+- `formatResultForContext()` includes metadata when requested
+- All execution methods emit appropriate EventBus events
 
 ### 11. Extension Opportunities
 

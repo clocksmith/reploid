@@ -34,7 +34,7 @@ IndexedDB stores a non-exportable root when supported. The labeled localStorage
 fallback is exportable. Passkeys prove credential possession and continuity,
 not one-person identity or Sybil resistance.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Requester and provider roles share one root
 - [x] Delegations cannot exceed signed participation capabilities
 - [x] Passkey and fallback protection levels remain receipt-visible

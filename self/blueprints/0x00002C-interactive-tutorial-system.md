@@ -60,12 +60,12 @@ Tutorial.start('first-time');
    - Focus tooltip for screen readers; trap focus while tutorial active.
    - Provide keyboard navigation (Enter = next, Esc = exit).
 
-### 4. Verification Checklist
-- [ ] Starting tutorial with invalid ID logs warning and aborts gracefully.
-- [ ] Overlay blocks background clicks while allowing tooltip interactions.
-- [ ] Highlight removal occurs on step change/exit.
-- [ ] `preAction` handlers execute before tooltip positions (e.g., switching panel).
-- [ ] Completion stores state and emits `tutorial:completed` event.
+### 4. Verification requirements
+- Starting tutorial with invalid ID logs warning and aborts gracefully.
+- Overlay blocks background clicks while allowing tooltip interactions.
+- Highlight removal occurs on step change/exit.
+- `preAction` handlers execute before tooltip positions (e.g., switching panel).
+- Completion stores state and emits `tutorial:completed` event.
 
 ### 5. Web Component Widget
 

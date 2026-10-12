@@ -28,7 +28,7 @@ The tool delegates to `DopplerOptimizer`. It is present only on the X optimizati
 ### 3. Implementation Notes
 The input contract is explicit JSON. Unknown actions fail closed. `prepare-promotion` returns paths and hashes for review; it never writes the active pointer.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Tool is registered only on X
 - [x] DopplerOptimizer dependency is injected through ToolRunner
 - [x] Promote remains a distinct human-approved call

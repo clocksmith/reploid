@@ -413,7 +413,7 @@ EventBus.on('cycle:completed', async () => {
 
 ---
 
-## Future Enhancements
+## Optional contract extensions
 
 1. **Full test framework** - Jest/Vitest-compatible API
 2. **Real linting** - ESLint integration

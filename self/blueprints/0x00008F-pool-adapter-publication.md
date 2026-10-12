@@ -37,7 +37,7 @@ Publication v2 signs the AdapterPack primary origin and exact base-model
 identity. Private delivery URLs are assignment authorization material and never
 part of publication identity.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Publications require promoted packs
 - [x] Use approval is prompt- and model-bound
 - [x] Revocation cannot be forged by a requester or provider

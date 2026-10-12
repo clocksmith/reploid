@@ -1457,7 +1457,7 @@ Removing any component breaks at least one requirement.
 
 ---
 
-## 25. Evolution Opportunities
+## 25. Optional contract extensions
 
 - Add crowding distance to preserve behavioral diversity.
 - Add lineage-aware recombination between candidates with complementary strengths.

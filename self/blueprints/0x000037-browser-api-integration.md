@@ -155,12 +155,12 @@ The widget provides a complete proto for monitoring browser API availability and
    - Add Wake Lock management to prevent sleep during long sessions.
    - Integrate Web Share for quick blueprint sharing with teammates.
 
-### 4. Verification Checklist
-- [ ] Capability detection runs once and events emitted correctly.
-- [ ] Filesystem operations respect user-selected handle and handle nested paths.
-- [ ] Notification requests update permission state and block `showNotification` when not granted.
-- [ ] Clipboard API gracefully degrades (returns false/null when unsupported).
-- [ ] Storage estimates include MB conversions and handle quota==0 edge cases.
+### 4. Verification requirements
+- Capability detection runs once and events emitted correctly.
+- Filesystem operations respect user-selected handle and handle nested paths.
+- Notification requests update permission state and block `showNotification` when not granted.
+- Clipboard API gracefully degrades (returns false/null when unsupported).
+- Storage estimates include MB conversions and handle quota==0 edge cases.
 
 ### 5. Extension Opportunities
 - Provide sandboxed “dry run” that previews filesystem changes before writing.

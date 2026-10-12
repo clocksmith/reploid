@@ -10,7 +10,7 @@
 
 **Owned Source Files:** `ui/components/inline-chat.js`
 
-**Former Blueprint Paths:** `self/blueprints/0x000075-inline-chat.md`, `self/blueprints/0x000075-inline-chat.md`
+**Former Blueprint Paths:** `self/blueprints/0x000075-inline-chat.md`
 **Objective:** Human-in-the-loop message injection for real-time agent context modification.
 
 **Target Module:** `InlineChat`

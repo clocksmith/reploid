@@ -76,11 +76,11 @@ Key components:
 - **Search Providers**: optionally augment search with fuzzy matching or content scanning.
 - **Breadcrumbs**: surface current path context for long file names.
 
-### 5. Verification Checklist
-- [ ] Rendering stays responsive (<50ms) for 1k artifacts.
-- [ ] Keyboard navigation (Arrow keys, Enter) mirrors tree semantics.
-- [ ] Screen readers announce folder/file roles.
-- [ ] EventBus notifications fire on selection/refresh.
-- [ ] Search highlights match case-insensitive substrings.
+### 5. Verification requirements
+- Rendering stays responsive (<50ms) for 1k artifacts.
+- Keyboard navigation (Arrow keys, Enter) mirrors tree semantics.
+- Screen readers announce folder/file roles.
+- EventBus notifications fire on selection/refresh.
+- Search highlights match case-insensitive substrings.
 
 Follow this blueprint when enhancing the explorer, adding persona-specific restrictions, or revisiting UI polish. It is the operator’s primary window into REPLOID’s mind.

@@ -28,7 +28,7 @@ The pure helper converts milliseconds or seconds into a non-negative delay, clam
 ### 3. Implementation Notes
 Invalid, negative, or non-finite inputs become zero. Base and maximum delays remain at least one millisecond. The policy owns delay calculation only; callers own attempt limits, cancellation, and parked/resumable state.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Explicit retry hints are bounded
 - [x] Consecutive failures use bounded exponential backoff
 - [x] Invalid numeric inputs fail to safe finite values

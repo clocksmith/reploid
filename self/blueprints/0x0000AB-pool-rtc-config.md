@@ -28,7 +28,7 @@ The service calls the Pool SDK `rtcConfig()` route, validates a future expiry, n
 ### 3. Implementation Notes
 Authenticated coordinator access remains outside this module in the SDK. An absent SDK method, invalid expiry, or expired response fails closed. Tests and session teardown can clear the module cache explicitly.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Fresh configuration is cached before the refresh skew
 - [x] Expired or invalid payloads fail closed
 - [x] Relay forcing does not mutate the cached base configuration

@@ -564,20 +564,20 @@ class ReplayEngineWidget extends HTMLElement {
 customElements.define('replay-engine-widget', ReplayEngineWidget);
 ```
 
-### 9. Verification Checklist
+### 9. Verification requirements
 
-- [ ] `loadRun()` parses run file and resets state
-- [ ] `play()` starts playback from current position
-- [ ] `pause()` stops playback, preserves position
-- [ ] `stop()` stops playback, resets to beginning
-- [ ] `step()` advances one event without auto-play
-- [ ] `seek()` jumps to specified index (clamped)
-- [ ] `setSpeed()` changes playback speed, reschedules timer
-- [ ] Events emitted through EventBus with `replay:*` prefix
-- [ ] Playback respects timing between events
-- [ ] Speed multiplier correctly affects delays
-- [ ] Completion event emitted at end of timeline
-- [ ] Timer cleaned up on pause/stop/component disconnect
+- `loadRun()` parses run file and resets state
+- `play()` starts playback from current position
+- `pause()` stops playback, preserves position
+- `stop()` stops playback, resets to beginning
+- `step()` advances one event without auto-play
+- `seek()` jumps to specified index (clamped)
+- `setSpeed()` changes playback speed, reschedules timer
+- Events emitted through EventBus with `replay:*` prefix
+- Playback respects timing between events
+- Speed multiplier correctly affects delays
+- Completion event emitted at end of timeline
+- Timer cleaned up on pause/stop/component disconnect
 
 ### 10. Extension Opportunities
 

@@ -64,7 +64,7 @@ verification, and promotion.
 - Pack and Capsule identities remain distinct. Existing signed files and history
   retain their original fields; new Capsules require publisher-issued identities.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 
 - [x] Unit tests cover reuse, scope separation, close, and fail-closed identity.
 - [x] Local provider and Poolday adapters use the scoped API.
@@ -73,6 +73,6 @@ verification, and promotion.
 - [x] Real two-browser text and protein lanes pass after deployment.
 - [x] A real two-provider ring quorum passes through the deployed server relay
   with signed requester acceptance.
-- [ ] Real Zero bounded RSI passes after deployment.
+- Real Zero bounded RSI passes after deployment.
 
 *Last updated: July 2026*

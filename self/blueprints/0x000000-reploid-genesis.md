@@ -324,7 +324,7 @@ See Blueprint 0x000002 for details.
 
 ---
 
-## 9. Evolution Opportunities
+## 9. Optional contract extensions
 
 REPLOID is designed for continuous evolution:
 

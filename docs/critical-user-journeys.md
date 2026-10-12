@@ -3,7 +3,7 @@
 Reploid's product is the participating network, presented as concurrent
 conversations. These retained journey registries cover supporting receipt,
 Zero, and X workflows; they do not replace [the chat contract](chat-mvp.md)
-or qualify [split-model execution](poolday/executable-intelligence-network-plan.md).
+or qualify [split-model execution](open-mesh-architecture.md).
 
 | Surface | Route | Readable summary | Canonical registry |
 | --- | --- | --- | --- |

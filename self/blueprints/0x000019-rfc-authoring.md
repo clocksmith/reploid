@@ -268,16 +268,16 @@ The widget renders encapsulated UI:
 - **Action Button**: Interactive "Draft Sample RFC" button
 - **Auto-refresh**: Updates display every 10 seconds
 
-### 3.2 Quality Checklist:
+### 3.2 Quality requirements:
 
 Before finalizing an RFC, verify:
-- [ ] Title accurately summarizes the change
-- [ ] Background provides sufficient context
-- [ ] Goals are SMART (Specific, Measurable, Achievable, Relevant, Time-bound)
-- [ ] Technical scope identifies all affected components
-- [ ] Risks are realistic and mitigations are actionable
-- [ ] Document follows markdown best practices
-- [ ] All placeholders have been replaced with content
+- Title accurately summarizes the change
+- Background provides sufficient context
+- Goals are SMART (Specific, Measurable, Achievable, Relevant, Time-bound)
+- Technical scope identifies all affected components
+- Risks are realistic and mitigations are actionable
+- Document follows markdown best practices
+- All placeholders have been replaced with content
 
 ### 3.3 Advanced Techniques:
 

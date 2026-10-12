@@ -82,7 +82,7 @@ biological sequences or full logits. The peer transport may return requested
 vectors to the requester. A provider cannot advertise a workload absent from
 the loaded runtime model contract.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Text and embedding behavior remains covered
 - [x] Doppler generation receives an explicit speculative-decoding boolean
 - [x] Sequence embedding and masked-logit paths are covered

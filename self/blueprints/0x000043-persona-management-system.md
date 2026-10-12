@@ -360,9 +360,9 @@ EventBus.emit('persona:switched', {
 - [x] Event listeners cleaned up on disconnect
 
 **Future:**
-- [ ] StructuredCycle uses active persona for execution
-- [ ] Performance tracking per persona
-- [ ] Auto-recommendation based on task type
+- StructuredCycle uses active persona for execution
+- Performance tracking per persona
+- Auto-recommendation based on task type
 
 ---
 
@@ -375,7 +375,7 @@ EventBus.emit('persona:switched', {
 
 ---
 
-## Future Enhancements
+## Optional contract extensions
 
 1. **Persona Persistence** - Store active persona in StateManager
 2. **Lazy Loading** - Load personas only when needed

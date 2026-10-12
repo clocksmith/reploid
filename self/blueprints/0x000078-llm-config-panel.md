@@ -10,7 +10,7 @@
 
 **Owned Source Files:** None
 
-**Former Blueprint Paths:** `self/blueprints/0x000078-llm-config-panel.md`, `self/blueprints/0x000078-llm-config-panel.md`
+**Former Blueprint Paths:** `self/blueprints/0x000078-llm-config-panel.md`
 **Objective:** Provide a comprehensive runtime configuration panel for LLM model selection, provider management, parameter tuning, and connection testing.
 
 **Target Module:** `LLMConfigPanel`
@@ -645,24 +645,24 @@ EventBus.on('llm:model-error', handleModelError);
 ## 8. Success Criteria
 
 **Provider Management:**
-- [ ] Provider dropdown shows all supported providers
-- [ ] API key field shows/hides based on provider requirements
-- [ ] Local provider disabled when WebGPU unavailable
+- Provider dropdown shows all supported providers
+- API key field shows/hides based on provider requirements
+- Local provider disabled when WebGPU unavailable
 
 **Model Selection:**
-- [ ] Model list updates when provider changes
-- [ ] Ollama models fetched dynamically
-- [ ] Currently loaded model indicated
+- Model list updates when provider changes
+- Ollama models fetched dynamically
+- Currently loaded model indicated
 
 **Parameter Tuning:**
-- [ ] All sliders functional with real-time value display
-- [ ] Parameters persist across sessions
-- [ ] Reset restores default values
+- All sliders functional with real-time value display
+- Parameters persist across sessions
+- Reset restores default values
 
 **Connection Testing:**
-- [ ] Test validates API credentials
-- [ ] WebGPU availability correctly detected
-- [ ] Error messages displayed clearly
+- Test validates API credentials
+- WebGPU availability correctly detected
+- Error messages displayed clearly
 
 ---
 
@@ -675,7 +675,7 @@ EventBus.on('llm:model-error', handleModelError);
 
 ---
 
-## 10. Future Enhancements
+## 10. Optional contract extensions
 
 1. **Secure key storage** - Encrypted API key persistence
 2. **Model comparison** - Side-by-side capability view

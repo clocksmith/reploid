@@ -34,7 +34,7 @@ or `::1`; the regular Reploid development server does not expose it and the
 404 is not an auth signal. Firebase emulator use remains available by injecting
 `REPLOID_FIREBASE_CONFIG` or `REPLOID_POOL_FIREBASE_CONFIG`.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Loopback bootstrap does not issue the hosted-config request
 - [x] Explicit config remains available on loopback
 - [x] Hosted pages may probe Firebase Hosting config

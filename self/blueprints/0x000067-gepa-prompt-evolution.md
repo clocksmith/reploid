@@ -814,34 +814,34 @@ const selectBestForDeployment = async (frontier) => {
 ## 7. Implementation Pathway
 
 ### Phase 1: Core Algorithm
-- [ ] Implement Candidate data structure
-- [ ] Implement evaluation engine with trace collection
-- [ ] Implement Pareto selection (NSGA-II style)
-- [ ] Implement crowding distance for diversity
+- Implement Candidate data structure
+- Implement evaluation engine with trace collection
+- Implement Pareto selection (NSGA-II style)
+- Implement crowding distance for diversity
 
 ### Phase 2: Reflection Engine
-- [ ] Implement failure grouping by error type
-- [ ] Implement reflection prompt generation
-- [ ] Implement reflection parsing and caching
-- [ ] Implement reflection-guided mutation
+- Implement failure grouping by error type
+- Implement reflection prompt generation
+- Implement reflection parsing and caching
+- Implement reflection-guided mutation
 
 ### Phase 3: Evolution Loop
-- [ ] Implement crossover operator
-- [ ] Implement random mutation operator
-- [ ] Implement main evolution loop
-- [ ] Implement checkpoint persistence
+- Implement crossover operator
+- Implement random mutation operator
+- Implement main evolution loop
+- Implement checkpoint persistence
 
 ### Phase 4: Integration
-- [ ] Create Web Component widget
-- [ ] Integrate with EventBus
-- [ ] Connect to Deja Vu Detector
-- [ ] Connect to Arena for final selection
+- Create Web Component widget
+- Integrate with EventBus
+- Connect to Deja Vu Detector
+- Connect to Arena for final selection
 
 ### Phase 5: Optimization
-- [ ] Add parallel evaluation (Web Workers)
-- [ ] Add reflection caching across generations
-- [ ] Add early stopping on convergence
-- [ ] Add adaptive mutation rates
+- Add parallel evaluation (Web Workers)
+- Add reflection caching across generations
+- Add early stopping on convergence
+- Add adaptive mutation rates
 
 ---
 

@@ -28,7 +28,7 @@ The protocol depends only on receipt cryptography. Higher layers construct messa
 ### 3. Implementation Notes
 Signatures exclude signature and messageHash fields. Expired messages and unknown types fail validation before state ingestion.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Envelope fields and message types remain compatibility-stable
 - [x] Hash and signature domains are enforced
 - [x] Peer signature and nonce tests pass

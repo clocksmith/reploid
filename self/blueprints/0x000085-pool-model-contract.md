@@ -51,7 +51,7 @@ instead of downloading an artifact they cannot execute. Its catalog
 `artifactIdentity` mirrors only fields declared by the immutable hosted
 manifest; richer provenance is not inferred at registration time.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Multi-workload capability checks are explicit
 - [x] Required WebGPU features block incompatible model loads before download
 - [x] Sequence execution mode is deterministic

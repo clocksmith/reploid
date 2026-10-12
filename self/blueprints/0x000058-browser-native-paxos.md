@@ -54,14 +54,14 @@ async function runPawsArenaWorkflow(objective) {
 ```
 
 **Limitations:**
-- [ ] Requires Node.js server running (not pure browser)
-- [ ] Requires Python environment
-- [ ] Requires git worktrees (filesystem access)
-- [ ] Requires shell command execution
-- [ ] Cannot work in pure browser environment
-- [ ] No integration with REPLOID's VFS
-- [ ] No Web Worker-based verification
-- [ ] No WebRTC distribution capabilities
+- Requires Node.js server running (not pure browser)
+- Requires Python environment
+- Requires git worktrees (filesystem access)
+- Requires shell command execution
+- Cannot work in pure browser environment
+- No integration with REPLOID's VFS
+- No Web Worker-based verification
+- No WebRTC distribution capabilities
 
 **The Vision:**
 

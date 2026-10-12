@@ -88,7 +88,7 @@ export function renderBlueprintInventory(declarations) {
     '| ID | Canonical specification | Status | Owned source files | Verified / planned artifacts |',
     '| --- | --- | --- | ---: | --- |',
     ...declarations.map((entry) => '| `' + entry.id + '` | [' + entry.title.replaceAll('|', '\\|') + '](' + entry.file + ') | ' + entry.status + ' | ' + entry.files.length + ' | ' + entry.verified + ' / ' + entry.planned + ' |'),
-    '', 'Former-path provenance remains in [deduplication-map.json](deduplication-map.json).', ''
+    '', 'Former-path provenance remains in the **Former Blueprint Paths** metadata of each specification.', ''
   ].join('\n');
 }
 

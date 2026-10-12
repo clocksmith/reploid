@@ -10,7 +10,7 @@
 
 **Owned Source Files:** None
 
-**Former Blueprint Paths:** `self/blueprints/0x000077-code-panel.md`, `self/blueprints/0x000077-code-panel.md`
+**Former Blueprint Paths:** `self/blueprints/0x000077-code-panel.md`
 **Objective:** Provide a full-featured code editor panel for viewing and editing VFS files with syntax highlighting, file navigation, and VFS integration.
 
 **Target Module:** `CodePanel`
@@ -420,28 +420,28 @@ EventBus.on('code-panel:open-file', openFileHandler);   // Request to open file
 ## 7. Success Criteria
 
 **Editor Functionality:**
-- [ ] Syntax highlighting for JS, CSS, HTML, JSON, Python, Markdown
-- [ ] Line numbers displayed correctly
-- [ ] Proper indentation and tab handling
-- [ ] Search and replace within file
+- Syntax highlighting for JS, CSS, HTML, JSON, Python, Markdown
+- Line numbers displayed correctly
+- Proper indentation and tab handling
+- Search and replace within file
 
 **File Navigation:**
-- [ ] Tree displays VFS directory structure
-- [ ] Folders expand/collapse on click
-- [ ] Files open in editor on click
-- [ ] Active file highlighted in tree
+- Tree displays VFS directory structure
+- Folders expand/collapse on click
+- Files open in editor on click
+- Active file highlighted in tree
 
 **VFS Integration:**
-- [ ] Files load correctly from Storage
-- [ ] Save updates file in IndexedDB
-- [ ] External changes trigger reload prompt
-- [ ] Dirty indicator shows unsaved changes
+- Files load correctly from Storage
+- Save updates file in IndexedDB
+- External changes trigger reload prompt
+- Dirty indicator shows unsaved changes
 
 **Read-Only Protection:**
-- [ ] System files cannot be edited
-- [ ] Read-only badge displays correctly
-- [ ] Save button disabled for protected files
-- [ ] Genesis Kernel files always protected
+- System files cannot be edited
+- Read-only badge displays correctly
+- Save button disabled for protected files
+- Genesis Kernel files always protected
 
 ---
 
@@ -454,7 +454,7 @@ EventBus.on('code-panel:open-file', openFileHandler);   // Request to open file
 
 ---
 
-## 9. Future Enhancements
+## 9. Optional contract extensions
 
 1. **Multi-tab editing** - Open multiple files simultaneously
 2. **Git integration** - Show diff markers for changed lines

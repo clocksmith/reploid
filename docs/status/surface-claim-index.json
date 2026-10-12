@@ -136,7 +136,7 @@
       "status": "blocked",
       "evidencePaths": [
         "docs/change-passport/product-intent.md",
-        "docs/change-passport/implementation-plan.md",
+        "docs/change-passport/runtime-contract.md",
         "docs/change-passport/pilot-charter.md",
         "docs/change-passport/pilot-manifest.json",
         "docs/status/change-passport-github-installation-2026-08-23.json",

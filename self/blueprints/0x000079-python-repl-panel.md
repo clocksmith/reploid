@@ -10,7 +10,7 @@
 
 **Owned Source Files:** None
 
-**Former Blueprint Paths:** `self/blueprints/0x000079-python-repl-panel.md`, `self/blueprints/0x000079-python-repl-panel.md`
+**Former Blueprint Paths:** `self/blueprints/0x000079-python-repl-panel.md`
 **Objective:** Provide an interactive Python execution environment in the browser using Pyodide (WebAssembly Python) with VFS integration, package management, and proper stdout/stderr separation.
 
 **Target Module:** `PythonReplPanel`
@@ -870,28 +870,28 @@ EventBus.on('python-repl:execute', handleExternalExecute);
 ## 9. Success Criteria
 
 **Execution:**
-- [ ] Python code executes correctly
-- [ ] Return values displayed properly
-- [ ] Stdout/stderr separated correctly
-- [ ] Error tracebacks formatted
+- Python code executes correctly
+- Return values displayed properly
+- Stdout/stderr separated correctly
+- Error tracebacks formatted
 
 **Package Management:**
-- [ ] Common packages listed
-- [ ] Package installation works
-- [ ] Installed packages tracked
-- [ ] Import after install succeeds
+- Common packages listed
+- Package installation works
+- Installed packages tracked
+- Import after install succeeds
 
 **VFS Integration:**
-- [ ] Manual sync works
-- [ ] Auto-sync option functional
-- [ ] VFS files accessible in Python
-- [ ] Output can be saved to VFS
+- Manual sync works
+- Auto-sync option functional
+- VFS files accessible in Python
+- Output can be saved to VFS
 
 **User Experience:**
-- [ ] Shift+Enter executes code
-- [ ] Command history navigation
-- [ ] Clear output functional
-- [ ] Loading state displayed
+- Shift+Enter executes code
+- Command history navigation
+- Clear output functional
+- Loading state displayed
 
 ---
 
@@ -905,7 +905,7 @@ EventBus.on('python-repl:execute', handleExternalExecute);
 
 ---
 
-## 11. Future Enhancements
+## 11. Optional contract extensions
 
 1. **Jupyter-style cells** - Multi-cell notebook interface
 2. **Matplotlib rendering** - Display plots inline

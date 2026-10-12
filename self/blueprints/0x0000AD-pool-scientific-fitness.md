@@ -52,7 +52,7 @@ evidence exists. AMPLIFY, ESMC, and Nucleotide Transformer remain disabled.
 Their scientific-fitness records cannot share model authority, coordinate spaces,
 or licensing decisions.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 
 - [x] Candidate and baseline bind exact model contracts
 - [x] Family partition requires frozen, disjoint holdout and development sets
@@ -60,7 +60,7 @@ or licensing decisions.
 - [x] Metric improvement flags and candidate claim boundaries are fail-closed
 - [x] Qualified config state requires a persisted receipt reference
 - [x] Qualified fitness receipts require a matching persisted frozen-evaluation manifest
-- [ ] Publish an adjudicated family-disjoint ESM-2 baseline evaluation
-- [ ] Publish candidate evaluations before promotion
+- Publish an adjudicated family-disjoint ESM-2 baseline evaluation
+- Publish candidate evaluations before promotion
 
 *Last updated: August 2026*

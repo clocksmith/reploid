@@ -135,12 +135,12 @@ The widget provides visibility into Python execution activity and Pyodide runtim
    - Catch runtime exceptions, log via `logger.error`, and return `success: false` with message/traceback.
    - Map common errors to actionable advice (runtime not ready, package missing, syntax error).
 
-### 4. Verification Checklist
-- [ ] Tools registered with Tool Runner and appear in `tools-write.json`.
-- [ ] Runtime-not-ready path returns friendly error (no throw).
-- [ ] Package installs respect micropip semantics; failure surfaces actual pip error.
-- [ ] Execution results propagate to reflections/test harness when required.
-- [ ] Tool call remains deterministic (no non-serializable data).
+### 4. Verification requirements
+- Tools registered with Tool Runner and appear in `tools-write.json`.
+- Runtime-not-ready path returns friendly error (no throw).
+- Package installs respect micropip semantics; failure surfaces actual pip error.
+- Execution results propagate to reflections/test harness when required.
+- Tool call remains deterministic (no non-serializable data).
 
 ### 5. Extension Opportunities
 - Support uploading Python files via VFS for large scripts.

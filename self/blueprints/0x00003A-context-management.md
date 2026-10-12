@@ -284,7 +284,7 @@ Smaller context = faster API calls. Pruning can reduce latency by 20-40%.
 ### 4. Multi-Turn Conversations
 Enable 100+ turn conversations that would otherwise exceed limits.
 
-## Future Enhancements
+## Optional contract extensions
 
 1. **Semantic Importance:** Use embeddings to identify truly redundant information
 2. **Learned Scoring:** Train model to predict which context is most useful
