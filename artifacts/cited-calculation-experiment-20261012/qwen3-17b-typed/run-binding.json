@@ -1,0 +1,50 @@
+{
+  "schema": "reploid.qwen3-17b-typed-run/v1",
+  "frozenRevision": "28cb7985",
+  "host": "x@128.tail995236.ts.net",
+  "sourcePid": 500286,
+  "wrapperPid": 500284,
+  "status": "completed",
+  "startedAtUtc": "2026-10-12T20:35:10.582237+00:00",
+  "environment": {
+    "PYTHONPATH": "/tmp/doppler-reference-deps",
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4"
+  },
+  "nice": 10,
+  "threads": 4,
+  "cpuAffinity": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "gpu": false,
+  "evidenceDirectory": "/home/x/deco/reploid/reports/local/cited-calculation-qwen3-typed-20261013",
+  "freezeSha256": "bab58a84806a784c5591e52c4feec2c284dc0127730e31b6a9f72c1b61d1e212",
+  "restartPolicy": "Do not restart active or rejected cases; retain first structural failure and mark remaining calls unrun.",
+  "finishedAtUtc": "2026-10-12T20:37:42.567082+00:00",
+  "elapsedSeconds": 151.984845,
+  "exitCode": 0,
+  "command": [
+    "taskset",
+    "-c",
+    "4-7",
+    "nice",
+    "-n",
+    "10",
+    "python3",
+    "-u",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/qwen3-17b-typed/run.py",
+    "--doppler",
+    "/home/x/deco/doppler",
+    "--source",
+    "/var/tmp/doppler-qwen3-17b-source-20261011",
+    "--suite",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/qwen3-17b-typed/suite.json",
+    "--out",
+    "/home/x/deco/reploid/reports/local/cited-calculation-qwen3-typed-20261013/result.json",
+    "--threads",
+    "4"
+  ]
+}

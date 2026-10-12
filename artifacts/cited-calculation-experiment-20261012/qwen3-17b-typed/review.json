@@ -1,0 +1,123 @@
+{
+  "schema": "reploid.qwen3-17b-typed-review/v1",
+  "qualified": false,
+  "disposition": "rejected",
+  "attemptedCases": 1,
+  "passedCases": 0,
+  "caseId": "fresh-bathroom-comparison",
+  "phase": "extract-D1",
+  "calls": [
+    {
+      "attempt": 0,
+      "promptTokens": 1023,
+      "generatedTokens": 69,
+      "stopReason": "eos"
+    },
+    {
+      "attempt": 1,
+      "promptTokens": 1168,
+      "generatedTokens": 69,
+      "stopReason": "eos"
+    }
+  ],
+  "promptTokens": 2191,
+  "generatedTokens": 138,
+  "totalChargedTokens": 2329,
+  "rawOutputUtf16": 402,
+  "withinBudgets": true,
+  "calculatorExecuted": false,
+  "finalAnswerGenerated": false,
+  "correctionCount": 1,
+  "outputsTokenIdentical": true,
+  "elapsedSeconds": 151.984845,
+  "timingScope": "Observed CPU duration, not a performance comparison.",
+  "actualValidatorError": "Operand f001 has kind date; required days/weeks",
+  "failure": "Typed request/tool rejected: Operand f001 has kind date; required days/weeks",
+  "observations": [
+    "Both calls naturally completed official JSON with existing aliases.",
+    "Money request selects the stated price multiplied by the stated deposit percentage, but includes no budget-headroom request.",
+    "Date request passes the user deadline date as a duration. D1 supplies no days/weeks operand.",
+    "The complete plan is rejected before executing even its compatible money part; no partial output repair.",
+    "The one correction repeats the complete69-token call despite explicit typed validation feedback."
+  ],
+  "inputAudit": {
+    "executedPromptIdsEqualAdmitted": true,
+    "distinctPromptIds": true,
+    "actualFirstStepLogitsDiffer": true,
+    "firstToolLogits": [
+      24.847179412841797,
+      27.477359771728516
+    ],
+    "officialCorrectionFrameIncludesActualError": true,
+    "note": "Full model internal states were not captured; distinct first-step logits do not prove every token influenced every layer."
+  },
+  "semanticReview": [
+    {
+      "criterion": "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+      "established": false,
+      "reason": "No final answer was generated; required result absent, not a generated false factual assertion."
+    },
+    {
+      "criterion": "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+      "established": false,
+      "reason": "No final answer was generated; required result absent, not a generated false factual assertion."
+    },
+    {
+      "criterion": "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+      "established": false,
+      "reason": "No final answer was generated; required result absent, not a generated false factual assertion."
+    },
+    {
+      "criterion": "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+      "established": false,
+      "reason": "No final answer was generated; required result absent, not a generated false factual assertion."
+    },
+    {
+      "criterion": "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges.",
+      "established": false,
+      "reason": "No final answer was generated; required result absent, not a generated false factual assertion."
+    }
+  ],
+  "unrunSourceDocuments": [
+    "D2",
+    "D3"
+  ],
+  "unrunCases": [
+    "fresh-bathroom-correction",
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "holdouts": "Two prior independent holdouts remain locked/unrun.",
+  "priorEvidenceScope": "Prior14-task thinking-policy success is separate from this rejected nonthinkinggreedy typed workflow.",
+  "outputRepair": false,
+  "productionAdoption": false,
+  "rawEvidence": [
+    {
+      "path": "result.json.gz",
+      "sha256": "0047bfdf93f1aae39d08aa5815ef6528e7b7a8bbfc342944ce4ea15b449dc335",
+      "uncompressedSha256": "3b3b1e16d5434fb4f52dccb2d23a14338fc7faae88d08847bb7ecbef2b1935d4",
+      "uncompressedBytes": 53542
+    },
+    {
+      "path": "result-fresh-bathroom-comparison-extract-D1-0.json.gz",
+      "sha256": "82d62c9752df5eaa2f79beb72eeb24f7f2bb01c537049b650013b5df3c93518c",
+      "uncompressedSha256": "3ec06467a40539b1f44da5921d8e69f3c21dd92b6a5d5c6e84e82c7ad20ed1df",
+      "uncompressedBytes": 16105
+    },
+    {
+      "path": "result-fresh-bathroom-comparison-extract-D1-1.json.gz",
+      "sha256": "d48adae2f5dbdd0820b86486810e850e06f11292af4527e891a838ba160715f6",
+      "uncompressedSha256": "1885cc2e06f84268c7efd27027c279ee62667d48c14abe718cf795993f172181",
+      "uncompressedBytes": 18208
+    },
+    {
+      "path": "run.log.gz",
+      "sha256": "bf982033fe591208a253eea31f6fa5125973efd2b976bb6e0ea94fa6c5290e87",
+      "uncompressedSha256": "272c1ef97eab5de0214949b42d94916213d311e3459a83d626604d30b3e52ea5",
+      "uncompressedBytes": 1669
+    }
+  ]
+}
