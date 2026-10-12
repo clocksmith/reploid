@@ -1,0 +1,42 @@
+{
+  "schema": "reploid.source-scoped-selection-run/v1",
+  "frozenRevision": "e90882f1",
+  "host": "x@128.tail995236.ts.net",
+  "sourcePid": 4185688,
+  "wrapperPid": 4185686,
+  "status": "running",
+  "startedAtUtc": "2026-10-12T19:51:44Z",
+  "command": [
+    "nice",
+    "-n",
+    "10",
+    "python3",
+    "-u",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/run.py",
+    "--doppler",
+    "/home/x/deco/doppler",
+    "--source",
+    "/var/tmp/doppler-qwen35-2b-source-20261011",
+    "--deployed",
+    "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+    "--suite",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/suite.json",
+    "--out",
+    "/home/x/deco/reploid/reports/local/cited-calculation-source-scoped-20261013/result.json",
+    "--threads",
+    "4"
+  ],
+  "environment": {
+    "PYTHONPATH": "/tmp/doppler-reference-deps",
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4"
+  },
+  "identity": {
+    "allFrozenFilesMatch": true,
+    "freezeSha256": "00f088976f337be93185d4e4c35e4c608cab5d0dc420c39996fd603b8ee352cb",
+    "reploidRevision": "4e025111b10c508643908e2ac660fdc83c4d520d",
+    "dopplerRevision": "909b49a7102f1f2537a4a8b03dada3130a1a05ac"
+  },
+  "evidenceDirectory": "/home/x/deco/reploid/reports/local/cited-calculation-source-scoped-20261013",
+  "restartPolicy": "Do not restart an active or rejected case; inspect retained result/exit-code and follow frozen stop rule."
+}
