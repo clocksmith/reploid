@@ -1,0 +1,11 @@
+/** Small shared line icons. Buttons retain their own accessible names. */
+export function interfaceIcon(name) {
+  const paths = {
+    close: '<path d="m6 6 12 12M18 6 6 18"/>',
+    activity: '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
+    peers: '<circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><path d="m7 9 4 6m6-6-4 6"/>',
+    device: '<rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/>',
+    settings: '<path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="10" cy="18" r="2"/>'
+  };
+  return `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">${paths[name] || ''}</svg>`;
+}

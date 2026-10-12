@@ -37,6 +37,7 @@ export function projectNetworkPeers(state) {
     const offered = partition?.offer;
     const name = state.models?.find(model => model.id === offered?.id)?.name || offered?.id;
     peers.set(peer.peerId, { id: peer.peerId, model: name || peer.model || 'No model offered',
+      phase: partition?.phase || null, partitionIndex: partition?.index ?? null,
       status: offered ? (partition.index == null ? 'Waiting for placement' : `Partition ${partition.index + 1} · ${partition.phase}`)
         : peer.role === 'provider' ? (peer.executionPhase || 'Offered') : 'Connected' });
   }
@@ -47,8 +48,15 @@ function renderPeerRows(list, state) {
   const rows = projectNetworkPeers(state), key = JSON.stringify(rows);
   if (list.dataset.projection === key) return;
   list.dataset.projection = key;
-  list.innerHTML = rows.length ? rows.map((peer, index) => `<li class="network-peer-row"><div><strong>Computer ${index + 1}</strong><span>${escape(peer.model)}</span><details><summary>Identity</summary><code>${escape(peer.id)}</code></details></div><span class="network-status">${escape(peer.status)}</span></li>`).join('')
-    : '<li class="network-empty">No peers connected yet</li>';
+  const expanded = new Set([...list.querySelectorAll('details[open]')].map(node => node.dataset.peerIdentity));
+  list.innerHTML = rows.length ? rows.map((peer, index) => {
+    const status = ({ loading: 'Preparing', ready: 'Ready', executing: 'Working', failed: 'Unavailable', waiting: 'Waiting', stopping: 'Stopping' })[peer.phase] || peer.status;
+    return `<li class="network-peer-row" data-peer-phase="${escape(peer.phase || 'connected')}"><div><strong>Contributor ${index + 1}</strong><span>${escape(peer.model)}</span>
+      <details data-peer-identity="${escape(peer.id)}"${expanded.has(peer.id) ? ' open' : ''}><summary>Details</summary><p>${escape(peer.status)}</p><code>${escape(peer.id)}</code></details></div><span class="network-status">${escape(status)}</span></li>`;
+  }).join('') : '<li class="network-empty">No peers connected yet</li>';
+  const summary = list.parentElement.querySelector('[data-peer-readiness]');
+  if (summary) summary.textContent = `${rows.filter(peer => peer.phase === 'ready').length} ready · ${rows.filter(peer => peer.phase === 'executing').length} working · ${rows.filter(peer => peer.phase === 'failed').length} unavailable`;
+
 }
 
 export function bindNetworkControls(container, session, { getInviteUrl } = {}) {

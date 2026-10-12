@@ -58,8 +58,8 @@ describe('network model projection', () => {
         description: { offer: { id: 'qwen' }, index: 1, phase: 'loading' } }]
     } };
     expect(projectNetworkPeers(state)).toEqual([
-      { id: 'remote', model: 'Qwen', status: 'Partition 2 · loading' },
-      { id: 'requester', model: 'No model offered', status: 'Connected' }
+      { id: 'remote', model: 'Qwen', phase: 'loading', partitionIndex: 1, status: 'Partition 2 · loading' },
+      { id: 'requester', model: 'No model offered', phase: null, partitionIndex: null, status: 'Connected' }
     ]);
     state.network.partitionPeers[0].available = false;
     expect(projectNetworkPeers(state)[0]).toMatchObject({ model: 'No model offered', status: 'Connected' });

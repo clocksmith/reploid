@@ -201,7 +201,7 @@ describe('Conversation workspace', () => {
     const thread = session.createThread({ sharingScope: 'local' });
     await session.send(thread, 'Hello');
     expect(find('[data-message-stream]').textContent).toContain('This answer could not finish.');
-    expect(find('[data-message-stream] details').textContent).toContain('GPU unavailable');
+    expect(find('[data-message-stream] .chat-message-actions details').textContent).toContain('GPU unavailable');
     expect(find('[data-message-stream]').textContent).not.toContain('Executing via');
   });
 
