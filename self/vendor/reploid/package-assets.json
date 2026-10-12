@@ -341,13 +341,13 @@
     },
     {
       "path": "chat/thread-grants.js",
-      "bytes": 2977,
-      "sha256": "3b0846b0fc4d5e5c1531aaaf3a5a8ade226f71ba72a71fe6b66f9a78181c8c93"
+      "bytes": 3583,
+      "sha256": "47d498fb68d4747b93c6014af9dcc8f4c36b0dc0bbf9374799b719fcb7248d46"
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 15889,
-      "sha256": "e64cc5c7564939c594c0d7019fbdd4a7d0b11cd69e913c106a9eabc497c95c34"
+      "bytes": 15986,
+      "sha256": "975c279fa2a2bdca6e31ddb68a8ffd3cc7bb32312afe10102d29a2f422e02a7c"
     },
     {
       "path": "config/defaults.json",

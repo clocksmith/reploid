@@ -6,14 +6,19 @@ export function disclosureScope(request, preview) {
   const adapters = (request.model.adapters || []).map(adapter => adapter.identity);
   const partition = preview.operation === 'generate-partition' && preview.disclosure === 'partition-activations-and-tokens'
     && typeof preview.planId === 'string' && preview.planId === request.model.partition?.planId
-    && preview.participantA === request.model.partition?.participantA
-    && preview.recipientIdentity === request.model.partition?.participantB;
+    && recipient(preview.participantA) && recipient(preview.participantB) && preview.participantA !== preview.participantB
+    && (preview.recipientIdentity === preview.participantA && preview.peerId === preview.participantA
+      && JSON.stringify(preview.input?.recipients) === JSON.stringify([preview.participantA, preview.participantB])
+      || preview.participantA === request.model.partition?.participantA
+        && preview.participantB === request.model.partition?.participantB && preview.recipientIdentity === preview.participantB);
   if (!(preview.operation === 'generate' && preview.disclosure === 'public' || partition)
     || typeof request.permissions.sharingScope !== 'string' || request.permissions.sharingScope === 'local'
     || !recipient(preview.recipientIdentity) || !hash(preview.modelIdentity)
     || preview.modelId !== request.model.id || preview.modelIdentity !== request.model.identity
     || JSON.stringify(preview.adapterIdentities) !== JSON.stringify(adapters)) return null;
-  return { recipientIdentity: preview.recipientIdentity, modelId: request.model.id,
+  // The persisted pair is input participantA plus output recipientIdentity.
+  // Entry-host previews address the input owner; normalize without dropping the output binding.
+  return { recipientIdentity: partition ? preview.participantB : preview.recipientIdentity, modelId: request.model.id,
     modelIdentity: request.model.identity, adapterIdentities: adapters,
     sharingScope: request.permissions.sharingScope, disclosure: preview.disclosure,
     ...(partition ? { planId: preview.planId, participantA: preview.participantA } : {}) };

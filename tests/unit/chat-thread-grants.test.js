@@ -1,4 +1,5 @@
 import { it, expect, vi } from 'vitest';
+import { disclosureScope, matchingThreadGrant } from '../../packages/reploid/src/chat/thread-grants.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 
 const model = { id: 'base', name: 'Base', identity: 'sha256:' + 'a'.repeat(64) };
@@ -107,4 +108,54 @@ it('rejects a stored grant moved into another thread', async () => {
   const saved = f.options.store.load(); saved.threads[0].grants[0].threadId = 'someone-else';
   expect(() => createChatWorkspace({ ...f.options, store: { load: () => saved, save() {} } })).toThrow('Invalid stored conversation grants');
   await f.app.close();
+});
+
+it('remembers the ordinary partition entry preview and revokes its active follow-up', async () => {
+  const input = bob, output = carol;
+  const partitionModel = { ...model, partition: { planId: 'plan', participantA: input, participantB: output } };
+  let nextOutput = output, pending = false;
+  const app = createChatWorkspace({ meshId: 'mesh', participantId: 'alice', store: { load: () => null, save() {} },
+    async execute(request, controls) {
+      const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
+        peerId: input, recipientIdentity: input, operation: 'generate-partition', disclosure: 'partition-activations-and-tokens',
+        modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], planId: 'plan', participantA: input, participantB: nextOutput,
+        input: { messages: request.messages, recipients: [input, nextOutput] }, expiresAt: Date.now() + 10000 });
+      if (!approved) throw Error('Declined'); controls.signal.throwIfAborted();
+      if (pending) await new Promise(resolve => controls.signal.addEventListener('abort', resolve, { once: true }));
+      return { threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], content: 'Answer' };
+    } });
+  const id = app.createThread({ model: partitionModel, permissions: { sharingScope: 'mesh' } });
+  const first = app.send(id, 'Approved question'), approval = app.getState().threads[0].attempts.at(-1);
+  expect(approval.approval.reusable).toBe(true);
+  app.approve(id, approval.id, approval.approval.id, true, { remember: true }); await first;
+  const grant = app.getState().threads[0].grants[0];
+  expect(grant).toMatchObject({ participantA: input, recipientIdentity: output });
+  pending = true; const active = app.send(id, 'Follow-up');
+  expect(app.getState().threads[0].attempts.at(-1).authorization.kind).toBe('thread-grant');
+  app.revokeGrant(id, grant.id); expect((await active).status).toBe('cancelled');
+  pending = false; nextOutput = 'peer:' + 'd'.repeat(24);
+  const changed = app.send(id, 'Replacement'), next = app.getState().threads[0].attempts.at(-1);
+  expect(next.status).toBe('approval'); expect(next.approval.reusable).toBe(true);
+  app.approve(id, next.id, next.approval.id, false); await changed; await app.close();
+});
+
+it('binds entry grants to both reviewed identities and rejects inconsistent recipient lists', () => {
+  const partition = { planId: 'plan', participantA: bob, participantB: carol };
+  const request = { model: { ...model, partition }, permissions: { sharingScope: 'mesh' } };
+  const preview = { ...partition, peerId: bob, recipientIdentity: bob, operation: 'generate-partition',
+    disclosure: 'partition-activations-and-tokens', modelId: model.id, modelIdentity: model.identity,
+    adapterIdentities: [], input: { recipients: [bob, carol] } };
+  const scope = disclosureScope(request, preview), grants = [{ ...scope, revokedAt: null }];
+  expect(scope).toBeTruthy();
+  for (const input of [undefined, { recipients: [bob] }, { recipients: [carol, bob] }, { recipients: [bob, carol, bob] }]) {
+    expect(disclosureScope(request, { ...preview, input })).toBeNull();
+  }
+  expect(disclosureScope(request, { ...preview, peerId: carol })).toBeNull();
+  expect(disclosureScope(request, { ...preview, participantB: bob, input: { recipients: [bob, bob] } })).toBeNull();
+  const replacement = 'peer:' + 'd'.repeat(24);
+  for (const pair of [[bob, replacement], [replacement, carol]]) {
+    const changed = disclosureScope(request, { ...preview, participantA: pair[0], participantB: pair[1],
+      peerId: pair[0], recipientIdentity: pair[0], input: { recipients: pair } });
+    expect(changed).toBeTruthy(); expect(matchingThreadGrant(grants, changed)).toBeUndefined();
+  }
 });

@@ -73,4 +73,14 @@ describe('Stable message presentation', () => {
     expect(root.textContent).toContain('A computer disconnected. Retry this answer.');
     expect(root.querySelector('[data-retry-attempt]').disabled).toBe(false);
   });
+  it('presents declined sharing as not sent rather than a network failure', () => {
+    const root = document.createElement('div'), view = createMessageList(root), thread = conversation();
+    thread.messages[1].content = '';
+    thread.attempts[0] = { id: 'attempt', status: 'cancelled', error: 'Disclosure declined' };
+    view.update(thread, { usable: true, busy: false });
+    expect(root.textContent).toContain('Not sent. You declined sharing this request.');
+    expect(root.textContent).not.toContain('could not finish');
+    view.dispose();
+  });
+
 });

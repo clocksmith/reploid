@@ -71,7 +71,7 @@ describe('conversation workspace', () => {
     expect(() => app.approve(a, attempts[1].id, 'preview-' + b, true)).toThrow('Approval no longer matches');
     app.approve(a, attempts[0].id, 'preview-' + a, false);
     app.approve(b, attempts[1].id, 'preview-' + b, true);
-    expect((await first).status).toBe('failed'); expect((await second).status).toBe('completed');
+    expect(await first).toMatchObject({ status: 'cancelled', error: 'Disclosure declined' }); expect((await second).status).toBe('completed');
     await app.close();
   });
 

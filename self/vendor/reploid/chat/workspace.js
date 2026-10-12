@@ -190,6 +190,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1), run = runs.get(threadId);
       assert(attempt?.id === attemptId && attempt.approval?.id === previewId && run?.approval, 'Approval no longer matches this attempt');
       assert(!run.deciding, 'Approval is already being recorded');
+      if (accepted !== true) { run.controller.abort(new Error('Disclosure declined')); return; }
       const allowed = accepted === true && attempt.approval.expiresAt > now() && !run.controller.signal.aborted;
       if (allowed) {
         const scope = disclosureScope(attempt.request, attempt.approval);
