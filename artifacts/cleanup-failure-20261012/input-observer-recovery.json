@@ -1,0 +1,14 @@
+{
+  "recordedAt": "2026-10-12T12:43:48.867835+00:00",
+  "restoredPid": 4018571,
+  "profile": "/home/clocksmith/.local/share/reploid/live-compute-20261012",
+  "phase": "Sharing",
+  "progress": "Waiting for another contributor",
+  "error": "",
+  "cleanupFix": "process.getBuiltinModule(\"node:inspector\").close()",
+  "processStillAliveAfterObserver": true,
+  "inspectorEndpointClosedAfterObserver": true,
+  "reservationObservation": "Timed out without hitting automatic owner source breakpoint within 45 seconds; no reservation evidence produced",
+  "oldAttemptSettlementQualified": false,
+  "sourceLogSha256": "6ab5c8151c1ee5b6f84b5f17da51c79d369bee3a29544c6e15c3852d0a900ab8"
+}
