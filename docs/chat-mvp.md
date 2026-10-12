@@ -82,7 +82,7 @@ qualify or activate a model.
 An application instruction uses the existing explicit
 `chatSession.createThread({ model, purpose })` port. The workspace retains that
 purpose and places it in the system message before user input; the exact prompt
-travels through disclosure approval and Doppler tokenization. A qualification
+travels through per-attempt disclosure authorization and Doppler tokenization. A qualification
 that requires an instruction must supply and record that purpose. A model's
 sampling settings alone cannot establish that the application's required
 instruction was used. Ordinary threads keep their current empty purpose unless
@@ -107,6 +107,13 @@ resource budgets. Compare the bounded split with an unsplit reference under
 Doppler's declared numerical and output comparison contract.
 
 ## Implementation and qualification
+
+Ordinary browser Send and Retry authorize one attempt through the host's live
+authorization port. The workspace binds this authorization to verified recipients,
+model, adapters and scope, retaining evidence without a separate review screen.
+Changed recipients fail the attempt; Retry is a new user action. Viewing or
+restoring a conversation grants no execution, and no reusable grant is created.
+Other library hosts retain explicit review and revocable thread-grant support.
 
 | Category | Boundary |
 | --- | --- |

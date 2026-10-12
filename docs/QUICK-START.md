@@ -23,8 +23,9 @@ Cloud-provider keys are not a prerequisite for prepared peer execution.
 1. Start a conversation and choose a model with an available execution path.
    The configured public mesh discovers participants without an invitation,
    manual room setup or selecting individual computers.
-2. Enter your question. Review the recipients, model and disclosure scope before
-   granting remote execution. A grant does not authorize local compute or storage
+2. Enter your question and press Send. This authorizes that attempt's messages,
+   attached text and derived model data to verified eligible executors for the
+   selected model. It creates no future-message grant and authorizes no local
    contribution, candidate evaluation or adoption.
 3. Watch the answer stream into its originating conversation. Using an already
    prepared path requires no requester weight downloads. Preparation on

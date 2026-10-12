@@ -321,8 +321,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 5317,
-      "sha256": "3f06cc0ac8163def1157bf61cca57be04fb6968ebeb5393ba0c7fe72a3e46019"
+      "bytes": 5827,
+      "sha256": "69d6460e30ecc009e189b86d31d3823014f6cc8f9eb58ad760aa109798a8b043"
     },
     {
       "path": "chat/index.js",
@@ -346,8 +346,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 15986,
-      "sha256": "975c279fa2a2bdca6e31ddb68a8ffd3cc7bb32312afe10102d29a2f422e02a7c"
+      "bytes": 17363,
+      "sha256": "7571e05ee82f8fc355ab4a13f161ba15144675e058a9d037156bc89919809646"
     },
     {
       "path": "config/defaults.json",

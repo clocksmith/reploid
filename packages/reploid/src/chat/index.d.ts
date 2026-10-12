@@ -58,7 +58,9 @@ export interface ChatAttempt {
   finishedAt: number | null;
   error: string | null;
   approval: ChatApproval | null;
-  authorization: { kind: 'once' | 'thread-grant'; grantId: string | null; peerId: string; recipientIdentity?: string | null } | null;
+  authorization: { kind: 'once' | 'thread-grant'; grantId: string | null; peerId: string; recipientIdentity?: string | null;
+    source?: 'send'; expiresAt?: number; modelId?: string; modelIdentity?: string; adapterIdentities?: string[];
+    participantA?: string; planId?: string; sharingScope?: string; disclosure?: string } | null;
   execution: Record<string, unknown> | null;
   request: ChatRequest;
 }
@@ -78,6 +80,11 @@ export interface ChatControls {
   onState(envelope: ChatEnvelope & { status: string; execution?: Record<string, unknown> }): void;
   requestApproval(preview: ChatApproval): Promise<boolean>;
 }
+/** Live host authorization for this Send/Retry only. Never persisted or reused. */
+export interface ChatSendOptions {
+  select?: boolean;
+  authorizeDisclosure?: ((input: { request: ChatRequest & ChatEnvelope; preview: ChatApproval }) => boolean) | null;
+}
 export function createChatWorkspace(options: {
   meshId: string; participantId: string;
   store: { load(): unknown; save(state: unknown): void };
@@ -91,8 +98,8 @@ export function createChatWorkspace(options: {
   renameThread(threadId: string, title: string): void;
   closeThread(threadId: string): void;
   reopenThread(threadId: string): void;
-  send(threadId: string, content: string, options?: { select?: boolean }): Promise<ChatAttempt>;
-  retry(threadId: string, attemptId: string): Promise<ChatAttempt>;
+  send(threadId: string, content: string, options?: ChatSendOptions): Promise<ChatAttempt>;
+  retry(threadId: string, attemptId: string, options?: Pick<ChatSendOptions, 'authorizeDisclosure'>): Promise<ChatAttempt>;
   approve(threadId: string, attemptId: string, previewId: string, accepted: boolean, options?: { remember?: boolean }): void;
   revokeGrant(threadId: string, grantId: string): void;
   cancel(threadId: string): Promise<unknown>;

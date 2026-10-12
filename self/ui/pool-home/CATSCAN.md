@@ -3,7 +3,7 @@
 Parent: [Browser Interfaces](../CATSCAN.md)
 
 ## Target
-Present connected conversations, agents, models, results and evaluated changes.
+Present conversations/agents/models/results/evaluated changes.
 
 ## Authority
 Owns product/Room-1 presentation; requests candidate transfer/evaluation/adoption/rollback.
@@ -21,14 +21,14 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
 ## Invariants
 
 - Monochrome, shallow depth; prismatic navigation/model/focus accents. Animate observed events only; idle readiness stays still; discovery never implies execution. Respect reduced motion; concise controls; no banners/slogans/preset-prompt grids.
-- Preserve Reploid/Poolday identities, shared components/tokens, aligned gutters,
+- Preserve Reploid/Poolday identities, shared components/tokens, gutters,
   accessible themes/responsive scrolling. Activities prescribe no hierarchy.
 - Link tasks/helpers/jobs/results/candidates; show observations and missing admission/evaluators.
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
-- Disclose execution location; approve exact public payloads or explicitly grant
-  future disclosure to the verified recipient for that thread/model. Show and
-  revoke grants. Membership grants no disclosure.
-- Keep failures/approvals/stop visible; selection never stops background threads.
+- Disclose execution location. Send and Retry authorize only their exact attempt's
+  messages/attached-text/derived-data to verified model executors, without a
+  separate review screen. Viewing/restoring/selection grants nothing; contribution is separate.
+- Keep failures and Stop visible; selection never stops background threads.
 - Include compatible adapters in model selection. Separate compute/bounded file consent;
   discovery/thread grants imply neither.
 - Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.
@@ -37,8 +37,8 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
 
 ## Acceptance
 
-- Measure benefit/cost against local/centralized baselines. Injected providers prove no inference.
-- Desktop/mobile, both themes: empty/active/approval/completed screenshots.
+- Measure benefit/cost against local/centralized baselines. Fixtures prove no inference.
+- Desktop/mobile, both themes: empty/active/interrupted/completed screenshots.
 - Evidence: [conversations](../../../tests/e2e/chat-material.spec.js), [CSS](../../../scripts/verify-poolday-css-layers.js), [visuals](../../../tests/e2e/workspace-material.spec.js), [navigation](../../../tests/unit/pool-home-nav.test.js), [requests](../../../tests/unit/pool-home-ask-controls.test.js), [records](../../../tests/unit/pool-home-record.test.js), [peers](../../../tests/e2e/p2p-mesh.spec.js).
 
 ## Non-goals

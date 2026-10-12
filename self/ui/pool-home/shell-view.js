@@ -29,7 +29,7 @@ export const normalizeProductPath = (path = window.location.pathname) => {
 export const getRouteId = () => PRODUCT_ROUTES[normalizeProductPath()] || 'home';
 export const isProductPath = (path) => Object.prototype.hasOwnProperty.call(PRODUCT_ROUTES, normalizeProductPath(path));
 
-export const renderPowerTower = (inverse = false) => `<span class="pool-power-tower" aria-hidden="true">${inverse ? '<span>7</span><sup>7</sup>' : '<sup>7</sup><span>7</span>'}</span>`;
+export const renderPowerTower = (inverse = false) => `<span class="pool-power-tower"${inverse ? ' data-inverse' : ''} aria-hidden="true"><span class="pool-seven-main">7</span><sup class="pool-seven-small">7</sup></span>`;
 
 export const renderNav = (activeRoute) => {
   const home = escapeHtml(roomHref('/', getPeerRoomId()));

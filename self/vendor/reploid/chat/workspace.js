@@ -58,8 +58,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       && value.adapters.every(adapter => /^sha256:[a-f0-9]{64}$/.test(adapter.identity)), 'Select identified adapters');
     return copy(value);
   };
-  const start = (thread, request, userMessageId, retryOf = null, select = true) => {
+  const start = (thread, request, userMessageId, retryOf = null, select = true, authorizeDisclosure = null) => {
     current();
+    assert(authorizeDisclosure === null || typeof authorizeDisclosure === 'function', 'Invalid disclosure authorization port');
     assert(!runs.has(thread.id), 'This conversation already has an active response');
     assert(runs.size < limits.maxConcurrentAttempts, 'Concurrent conversation limit reached');
     assert(thread.messages.length < limits.maxMessagesPerThread, 'Conversation history limit reached');
@@ -109,6 +110,21 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
               && preview.expiresAt > now(), 'Invalid conversation disclosure');
             assert(!run.approval, 'An approval is already pending');
             const scope = disclosureScope(request, preview), grant = matchingThreadGrant(thread.grants, scope);
+            if (authorizeDisclosure) {
+              assert(scope, 'Peer disclosure does not match the selected model and verified recipients');
+              if (attempt.authorization?.source === 'send') {
+                assert(attempt.authorization.peerId === preview.peerId && Object.keys(scope).every(key =>
+                  JSON.stringify(attempt.authorization[key]) === JSON.stringify(scope[key])),
+                'Execution recipients changed. Retry starts a new authorized attempt.');
+                return live() && attempt.authorization.expiresAt > now();
+              }
+              const accepted = authorizeDisclosure({ request: copy({ ...request, threadId: thread.id, attemptId: attempt.id }), preview: copy(preview) });
+              if (accepted !== true || !live() || preview.expiresAt <= now()) return false;
+              attempt.authorization = { kind: 'once', grantId: null, peerId: preview.peerId,
+                ...copy(scope), source: 'send', expiresAt: preview.expiresAt };
+              persist(); controller.signal.throwIfAborted();
+              return true;
+            }
             if (grant) {
               attempt.authorization = { kind: 'thread-grant', grantId: grant.id, peerId: preview.peerId, ...copy(scope) };
               persist(); controller.signal.throwIfAborted();
@@ -167,7 +183,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     renameThread(threadId, title) { current(); assert(typeof title === 'string' && title.trim() && title.length <= limits.maxMessageCharacters, 'Invalid conversation title'); find(threadId).title = title.trim(); persist(); },
     closeThread(threadId) { current(); find(threadId).closed = true; if (selectedId === threadId) selectedId = null; persist(); },
     reopenThread(threadId) { current(); find(threadId).closed = false; selectedId = threadId; persist(); },
-    send(threadId, content, { select = true } = {}) {
+    send(threadId, content, { select = true, authorizeDisclosure = null } = {}) {
       current(); const thread = find(threadId);
       assert(!thread.closed && !runs.has(threadId), 'Open an idle conversation before sending');
       assert(runs.size < limits.maxConcurrentAttempts && thread.messages.length + 2 <= limits.maxMessagesPerThread, 'Conversation allowance reached');
@@ -178,13 +194,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
         && (item.role === 'assistant' || completedUsers.has(item.id) || item.id === message.id))
         .map(({ role, content }) => ({ role, content }));
       if (thread.purpose) messages.unshift({ role: 'system', content: thread.purpose });
-      try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages }, message.id, null, select); }
+      try { return start(thread, { model: thread.model, permissions: thread.permissions, members: thread.members, messages }, message.id, null, select, authorizeDisclosure); }
       catch (error) { thread.messages.pop(); throw error; }
     },
-    retry(threadId, attemptId) {
+    retry(threadId, attemptId, { authorizeDisclosure = null } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1);
       assert(!thread.closed && attempt?.id === attemptId && ['cancelled', 'failed', 'interrupted'].includes(attempt.status), 'Only the latest interrupted or unsuccessful response can be retried');
-      return start(thread, attempt.request, attempt.userMessageId, attempt.id);
+      return start(thread, attempt.request, attempt.userMessageId, attempt.id, true, authorizeDisclosure);
     },
     approve(threadId, attemptId, previewId, accepted, { remember = false } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1), run = runs.get(threadId);

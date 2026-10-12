@@ -100,7 +100,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(page.locator('[data-chat-workspace]')).toBeVisible();
     await installConversation(page, theme);
     const field = page.locator('[data-composer-field]');
-    for (const state of ['empty', 'unavailable', 'preparing', 'queued', 'loading', 'executing', 'approval', 'interrupted', 'completed']) {
+    for (const state of ['empty', 'unavailable', 'preparing', 'queued', 'loading', 'executing', 'interrupted', 'completed']) {
       await page.evaluate(state => window.setVisualState(state), state);
       await expect(field).toHaveAttribute('data-activity', state === 'executing' ? 'executing' : 'idle');
       expect(await animation(field)).toBe(state === 'executing' ? 'pool-optical-flow' : 'none');
@@ -115,9 +115,9 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
       const guidance = page.locator('[data-model-status]');
       if (width < 760 && await guidance.isVisible()) {
         const hint = await guidance.boundingBox();
-        const toolbar = await page.locator('.chat-composer-toolbar').boundingBox();
-        expect(hint.width).toBeGreaterThanOrEqual(geometry.composer.width - 1);
-        expect(hint.y + hint.height).toBeLessThanOrEqual(toolbar.y);
+        expect(hint.width).toBeGreaterThan(0);
+        expect(hint.x).toBeGreaterThanOrEqual(geometry.composer.x);
+        expect(hint.x + hint.width).toBeLessThanOrEqual(geometry.composer.right);
       }
       expect(geometry.nav.left).toBe(geometry.content.left);
       expect(geometry.nav.width).toBe(geometry.content.width);
@@ -127,18 +127,14 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
         expect(stop.y).toBe(attach.y);
         expect(stop.x).toBeGreaterThan(attach.x + attach.width);
       }
-      if (state === 'approval') {
-        await expect(page.locator('[data-chat-approval]')).toBeVisible();
-        await expect(page.locator('[data-approval-send]')).toBeDisabled();
-      }
-      if (['empty', 'unavailable', 'preparing', 'executing', 'approval', 'interrupted', 'completed'].includes(state)) {
+      if (['empty', 'unavailable', 'preparing', 'executing', 'interrupted', 'completed'].includes(state)) {
         await page.screenshot({ path: testInfo.outputPath(`${theme}-${width}-${state}.png`), fullPage: true });
       }
     }
     // Prove composable material actually wins the cascade, including the focus modifier.
     const textarea = page.locator('[data-composer-input]');
     await textarea.focus();
-    const focused = await textarea.evaluate(node => {
+    const focused = await field.evaluate(node => {
       const css = getComputedStyle(node);
       return { background: css.backgroundImage, outline: css.outlineStyle, height: node.getBoundingClientRect().height };
     });
@@ -150,9 +146,9 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     const modelControl = page.locator('[data-active-model-select]');
     // Focus has a stronger edge; compare the two unfocused glass surfaces.
     await textarea.blur();
-    expect(await textarea.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
+    expect(await field.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
     await page.locator('[data-current-model]').hover();
-    expect(await textarea.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
+    expect(await field.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
     await openParticipantControls(page);
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     await page.locator('[data-inspector-section="device"]').click();

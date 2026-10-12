@@ -153,6 +153,9 @@
 .permission-summary details > summary { cursor: pointer; padding-block: var(--pool-space-sm); }
 .permission-message p { margin-block: var(--pool-space-sm); }
 .network-inspector { width: calc(var(--pool-px-r28) * 0.75); height: calc(100dvh - var(--pool-px-64)); top: var(--pool-px-64); right: var(--pool-px-64); bottom: 0; padding: var(--pool-space-md); border-radius: var(--pool-radius-control); font-size: var(--pool-text-sm); }
+.network-inspector[open] { animation: pool-inspector-enter var(--pool-motion-nav); }
+@keyframes pool-inspector-enter { from { opacity: 0; transform: translateX(var(--pool-space-md)); } to { opacity: 1; transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) { .network-inspector[open] { animation: none !important; } }
 .network-peer-row { align-items: start; gap: var(--pool-space-sm); padding-block: var(--pool-space-md); }
 .network-peer-row strong { font-size: var(--pool-text-sm); font-weight: var(--pool-type-weight-emphasis); }
 .network-peer-row details { font-size: var(--pool-text-sm); }

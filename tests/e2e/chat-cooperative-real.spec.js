@@ -136,15 +136,14 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await selection.selectOption(model.id, { timeout: 30000 });
   };
   const approve = async page => {
+    await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
     await expect.poll(async () => {
       const data = await history(page);
       const activeId = await page.locator('[data-thread-item-id][aria-current="true"]').getAttribute('data-thread-item-id').catch(() => null);
       const attempt = data?.threads.find(thread => thread.id === activeId)?.attempts.at(-1);
       if (attempt?.status === 'failed') throw new Error(attempt.error);
-      return await page.locator('[data-chat-approval]').isVisible();
-    }, { timeout: 30000 }).toBe(true);
-    await page.locator('[data-approval-consent]').check();
-    await page.locator('[data-approval-send]').click();
+      return attempt?.authorization?.source;
+    }, { timeout: 30000 }).toBe('send');
   };
   const standaloneDenials = [];
   let capacityControls = null;
