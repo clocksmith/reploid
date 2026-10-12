@@ -1,3 +1,4 @@
+import { resolvePartitionArtifactSource } from '../self/host/work-partition-artifact-source.js';
 /** Filesystem host ports for the existing signed custody protocol. No origin downloads. */
 import fs from 'node:fs/promises';
 import { constants } from 'node:fs';
@@ -172,13 +173,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       let sourceClosed = false;
       const admittedFile = artifact => {
         assert(!sourceClosed && !closed, 'Partition artifact source is closed');
-        const shard = data.manifest.shards.find(row => row.filename === artifact.path);
-        const file = model.source.files.find(row => row.path === artifact.path)
-          || (shard && { path: shard.filename, role: 'model-weights', sizeBytes: shard.size,
-            hash: shard.hash, hashAlgorithm: data.manifest.hashAlgorithm });
-        assert(file && file.sizeBytes === artifact.sizeBytes && 'sha256:' + file.hash === artifact.hash
-          && file.hashAlgorithm === 'sha256', 'Capsule artifact differs from the pinned catalog source');
-        return file;
+        return resolvePartitionArtifactSource(model, data.manifest, model.source.files, artifact);
       };
       const artifactStore = Object.freeze({
         async readArtifact(artifact, controls = {}) {
@@ -187,11 +182,11 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
           return readMetadata(file, AbortSignal.any([signal, controls.signal].filter(Boolean)));
         },
         async readArtifactRange(artifact, offset, size, controls = {}) {
-          admittedFile(artifact);
-          const piece = data.index.files.find(file => file.path === artifact.path)?.pieces
+          const file = admittedFile(artifact);
+          const piece = data.index.files.find(row => row.path === file.path)?.pieces
             .find(piece => piece.offset === offset && piece.size === size);
           assert(piece, 'Capsule range is not a complete pinned piece');
-          return acquisition.acquire({ ...piece, path: artifact.path }, {
+          return acquisition.acquire({ ...piece, path: file.path }, {
             ...controls, signal: AbortSignal.any([signal, controls.signal].filter(Boolean)) });
         }
       });

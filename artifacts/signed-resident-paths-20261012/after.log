@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/native-delivery.test.js (2 tests) 291ms
+ ✓ tests/unit/native-model-files.test.js (11 tests) 600ms
+ ✓ tests/unit/native-participant.test.js (8 tests) 13ms
+ ✓ tests/unit/work-partition-capsule-source.test.js (4 tests) 6ms
+
+ Test Files  4 passed (4)
+      Tests  25 passed (25)
+   Start at  08:11:40
+   Duration  1.09s (transform 349ms, setup 0ms, import 560ms, tests 910ms, environment 100ms)
+

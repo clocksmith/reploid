@@ -1,0 +1,122 @@
+{
+  "sourceSha256": "f5f719a4ed732d42feecc72271e00570b07e322c9d0a051ba77ad70112d66c83",
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Warning in /host/work-model-files.js: Path traversal pattern detected (../) - potential security risk",
+    "File has 49 functions (max 20) - consider modularizing",
+    "Nesting depth of 8 exceeds 5 - refactor nested code",
+    "Warning in /server/native-model-files.js: Path traversal pattern detected (../) - potential security risk",
+    "File has 37 functions (max 20) - consider modularizing",
+    "Nesting depth of 9 exceeds 5 - refactor nested code"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791806990489,
+      "path": "/host/work-model-files.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791806990491,
+      "metric": "functions",
+      "value": 49,
+      "threshold": 20,
+      "message": "File has 49 functions (max 20) - consider modularizing",
+      "path": "/host/work-model-files.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791806990491,
+      "metric": "nesting",
+      "value": 8,
+      "threshold": 5,
+      "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "path": "/host/work-model-files.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791806990494,
+      "path": "/server/native-model-files.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791806990495,
+      "metric": "functions",
+      "value": 37,
+      "threshold": 20,
+      "message": "File has 37 functions (max 20) - consider modularizing",
+      "path": "/server/native-model-files.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791806990495,
+      "metric": "nesting",
+      "value": 9,
+      "threshold": 5,
+      "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "path": "/server/native-model-files.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/host/work-model-files.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/server/native-model-files.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 49,
+        "threshold": 20,
+        "message": "File has 49 functions (max 20) - consider modularizing",
+        "path": "/host/work-model-files.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/host/work-model-files.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 37,
+        "threshold": 20,
+        "message": "File has 37 functions (max 20) - consider modularizing",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/server/native-model-files.js"
+      }
+    ],
+    "filesAnalyzed": 3
+  }
+}

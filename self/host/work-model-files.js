@@ -1,3 +1,4 @@
+import { resolvePartitionArtifactSource } from './work-partition-artifact-source.js';
 /** Host grants and pinned catalog composition for the library's signed artifact custody. */
 import { createCustodyExchange } from '../vendor/reploid/artifacts/custody/exchange.js';
 import { createPeerPackSupplier, createPeerPackArtifactStore } from '../pool/peer-pack-custody.js';
@@ -242,21 +243,20 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
       const pieceIndex = JSON.parse(decoder.decode(indexBytes));
       const admittedFile = artifact => {
         assert(!sourceClosed, 'Partition artifact source is closed');
-        const file = files.find(row => row.path === artifact.path);
-        assert(file && file.sizeBytes === artifact.sizeBytes && 'sha256:' + file.hash === artifact.hash
-          && file.hashAlgorithm === 'sha256', 'Capsule artifact differs from the pinned catalog source');
-        return file;
+        return resolvePartitionArtifactSource(model, manifest, files, artifact);
       };
       const artifactStore = Object.freeze({
         async readArtifact(artifact, controls = {}) {
-          return read(admittedFile(artifact), { signal: AbortSignal.any([signal, controls.signal].filter(Boolean)), onProgress });
+          const file = admittedFile(artifact);
+          assert(file.role !== 'model-weights', 'Resident weights require complete pinned piece ranges');
+          return read(file, { signal: AbortSignal.any([signal, controls.signal].filter(Boolean)), onProgress });
         },
         async readArtifactRange(artifact, offset, size, controls = {}) {
-          admittedFile(artifact);
-          const piece = pieceIndex.files.find(file => file.path === artifact.path)?.pieces
+          const file = admittedFile(artifact);
+          const piece = pieceIndex.files.find(row => row.path === file.path)?.pieces
             .find(piece => piece.offset === offset && piece.size === size);
           assert(piece, 'Capsule range is not a complete pinned piece');
-          return acquire({ ...piece, path: artifact.path }, controls);
+          return acquire({ ...piece, path: file.path }, controls);
         }
       });
       return { manifest, storage: { ...opened.storage, async close() { sourceClosed = true; await opened.storage.close(); } }, artifactStore, getReceipt: () => ({ ...opened.getReceipt(), custody: { ...custody } }) };
