@@ -1,0 +1,117 @@
+{
+  "scope": "Two-prefix native/browser resident diagnostic only; not full55, signed admission, ordinary CLI catalog, task quality, responsiveness, or concurrent-long acceptance",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "testDeliveryHash": "sha256:92a2a7faa9de26b926e05870a82a25114b308127a375d741de5d8322a9b0ba2b",
+  "referenceSha256": "ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "runs": [
+    {
+      "direction": 0,
+      "placements": [
+        {
+          "index": 0,
+          "host": "mac.lan"
+        },
+        {
+          "index": 1,
+          "host": "x@128.tail995236.ts.net:node-dawn"
+        }
+      ],
+      "captureSha256": "01e28507711b1f1ea12b931b248ca951c445c39bef5d7fe75177bb1cfb7d5154",
+      "compressedCaptureSha256": "5d1f46582eed9ab48a8b412bba92d89a6fa2be165848cefb191900ac05122412",
+      "comparisons": [
+        {
+          "step": 0,
+          "logitCount": 248320,
+          "maximumAbsoluteError": 8.399647413170896e-07,
+          "aboveTolerance": 0
+        },
+        {
+          "step": 1,
+          "logitCount": 248320,
+          "maximumAbsoluteError": 6.15752007604442e-07,
+          "aboveTolerance": 0
+        }
+      ],
+      "inputTokens": 19,
+      "completed": true,
+      "stopReason": "eos-token",
+      "text": "Hello",
+      "maxAllocatedBytes": 1420000000,
+      "peakAllocatedBytesByParticipantOrder": [
+        693112784,
+        330557184
+      ],
+      "nativeHostSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true,
+        "pid": 1275520
+      },
+      "nativeProcessExit": {
+        "pid": 1275520,
+        "exitCode": 0
+      },
+      "firstOutputUnixSeconds": 1791842362.5079052,
+      "controllerStartUnixSeconds": 1791841446,
+      "firstOutputSecondsAfterControllerStart": 916.5079052448273,
+      "timingScope": "Output log modification time observed by separate reader; direction0 process start rounded to1second from ps; persistent compilation/driver cache state uncontrolled",
+      "maximumObservedProcessRssBytes": 10190360576,
+      "processRssScope": "Largest ps sample9951524KiB near21:59:26Z; not a complete lifetime peak. Earlier timestamped inspector/proc samples retained."
+    },
+    {
+      "direction": 1,
+      "placements": [
+        {
+          "index": 1,
+          "host": "mac.lan"
+        },
+        {
+          "index": 0,
+          "host": "x@128.tail995236.ts.net:node-dawn"
+        }
+      ],
+      "captureSha256": "d0f00cd4ec7b43231e63931cc76b38d450963c63dea71569d07f779e12dc4609",
+      "compressedCaptureSha256": "85df9055b3dd4daac1e996fa43203e508bfea7b14b237e29ed59ecc510af1d95",
+      "comparisons": [
+        {
+          "step": 0,
+          "logitCount": 248320,
+          "maximumAbsoluteError": 8.399647413170896e-07,
+          "aboveTolerance": 0
+        },
+        {
+          "step": 1,
+          "logitCount": 248320,
+          "maximumAbsoluteError": 6.15752007604442e-07,
+          "aboveTolerance": 0
+        }
+      ],
+      "inputTokens": 19,
+      "completed": true,
+      "stopReason": "eos-token",
+      "text": "Hello",
+      "maxAllocatedBytes": 1420000000,
+      "peakAllocatedBytesByParticipantOrder": [
+        330557184,
+        693112784
+      ],
+      "nativeHostSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true,
+        "pid": 1486760
+      },
+      "nativeProcessExit": {
+        "pid": 1486760,
+        "exitCode": 0
+      },
+      "firstOutputUnixSeconds": 1791842476.3084912,
+      "controllerStartUnixSeconds": 1791842453.160436,
+      "firstOutputSecondsAfterControllerStart": 23.1480553150177,
+      "timingScope": "Output log modification time observed by separate reader; direction0 process start rounded to1second from ps; persistent compilation/driver cache state uncontrolled",
+      "maximumObservedProcessRssBytes": 881410048,
+      "maximumObservedProcessHighWaterBytes": 972464128
+    }
+  ],
+  "nativeLatencyDisposition": "First direction took about15minutes to first output; correctness does not qualify interactive responsiveness. Reverse was faster but cache-state causal attribution was not tested."
+}

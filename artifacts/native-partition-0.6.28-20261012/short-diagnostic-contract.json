@@ -1,0 +1,16 @@
+{
+  "scope": "Bounded native-browser diagnostic, not full55/signed/quality qualification",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "testDeliveryHash": "sha256:92a2a7faa9de26b926e05870a82a25114b308127a375d741de5d8322a9b0ba2b",
+  "referenceSha256": "ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "promptIndex": 0,
+  "expectedPrefixCount": 2,
+  "inputTokens": 19,
+  "tolerance": 0.001,
+  "maxAllocatedBytes": 1420000000,
+  "placements": [
+    "Mac browser input / AMD Node output",
+    "AMD Node input / Mac browser output"
+  ],
+  "nativeProviderPreflightSha256": "bc84982013dc81add794af5fc52c8dce034815d8d3c420ae896fb82948a0ed89"
+}
