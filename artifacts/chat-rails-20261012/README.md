@@ -29,4 +29,10 @@ Initial checks caught desktop inspector overlap and a phone rail intercepting th
 
 [Desktop rails](desktop-rails.png) · [Phone activity with synthetic timing](phone-activity.png) · [Phone attachment review](phone-approval.png)
 
-These are browser interaction fixtures, not distributed inference, physical phone keyboard or unfamiliar-user evidence. No deployment occurred. Doppler's accepted 0.6.27 pin is unchanged; this does not close numerical, useful-answer or signed physical release acceptance.
+These are browser interaction fixtures, not distributed inference, physical phone keyboard or unfamiliar-user evidence. At the initial UI checkpoint, no deployment had occurred. Doppler's accepted 0.6.27 pin is unchanged; this does not close numerical, useful-answer or signed physical release acceptance.
+
+## Public deployment
+
+Deployed source `1ae67af2` to https://replo.id on 2026-10-12 using Firebase Hosting only. [Deployment receipt](deployment.json). Backend services and the Doppler 0.6.27 pin remain unchanged.
+
+[Served-byte verification](deployed-bundle.log) matched all 1,909 assets and the descriptor to `sha256:6f7a4f88f15f62bae7d1a68b89d3fe450267de4732c0c5d016250ef1ed9c34c1`. Four Chromium cases against the public origin passed in 45.7 seconds: light/dark at 1440/390px, independent rails, composer placement, readable attachment approval and no nested vertical approval scrolling. The tests exercise actual application rails, then mount scoped presentation fixtures for approval states. Desktop and phone screenshots were visually inspected. This does not establish physical-phone, returning-installation migration or distributed inference acceptance.

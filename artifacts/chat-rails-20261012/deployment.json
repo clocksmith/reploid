@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-12",
+  "url": "https://replo.id",
+  "sourceRevision": "1ae67af2",
+  "scope": "Firebase Hosting only",
+  "bundleHash": "sha256:6f7a4f88f15f62bae7d1a68b89d3fe450267de4732c0c5d016250ef1ed9c34c1",
+  "verifiedServedFiles": 1909,
+  "dopplerVersion": "0.6.27",
+  "browserStats": {
+    "startTime": "2026-10-12T14:21:43.299Z",
+    "duration": 45714.782,
+    "expected": 4,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "commands": [
+    "firebase deploy --project reploid --only hosting:reploid --non-interactive",
+    "node scripts/verify-browser-bundle.js --url https://replo.id",
+    "REPLOID_E2E_BASE_URL=https://replo.id REPLOID_E2E_SKIP_LOCAL_SERVER=1 REPLOID_E2E_CHROMIUM_CHANNEL=chrome npx playwright test --config tests/playwright.config.js --project=chromium tests/e2e/chat-rails.spec.js"
+  ],
+  "scopeLimit": "Actual deployed application rails plus scoped presentation fixtures for approvals. No inference, numerical, physical-phone or migration acceptance claimed."
+}
