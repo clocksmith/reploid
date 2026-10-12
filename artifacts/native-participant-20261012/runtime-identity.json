@@ -1,0 +1,32 @@
+{
+  "schema": "reploid.native-runtime-identity/v1",
+  "recordedAt": "2026-10-12T02:45:01.676649+00:00",
+  "archiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "archiveSha512": "572d6c38f61522633e11f4a904884e76d96b33f6b8bf0128e532051844918a6f849f59ab6eddc22ce8492361f850be5fbff8bdfbc1402ad1d2887002591bf0e8",
+  "installedRoot": "/home/x/deco/reploid/node_modules/doppler-gpu",
+  "comparedFiles": 1897,
+  "mismatches": [],
+  "installedTreeSha256": "66c26fc546f12464cf1a08ede3d11e357f008eb4059b16ed9b382cabeb3a9000",
+  "providerFiles": [
+    {
+      "path": "/home/x/deco/reploid/server/native-participant.js",
+      "size": 16617,
+      "sha256": "f0c2c165849a8aed016c88278ea37e60ba42c83c39d3bf0a7f541917f2e9d35d"
+    },
+    {
+      "path": "/home/x/deco/reploid/node_modules/webgpu/index.js",
+      "size": 503,
+      "sha256": "18a44f1e81cd3697156e7ddd3456e9f0d346a0afabb76588379b5b2f6dca50b4"
+    },
+    {
+      "path": "/home/x/deco/reploid/node_modules/webgpu/dist/linux-x64.dawn.node",
+      "size": 18617336,
+      "sha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1"
+    },
+    {
+      "path": "/var/tmp/reploid-native-deps-20261012/node_modules/@roamhq/wrtc-linux-x64/wrtc.node",
+      "size": 26221464,
+      "sha256": "a629f3ee4aa32a097361270f719007e62325068dac347086218027ce4274302f"
+    }
+  ]
+}
