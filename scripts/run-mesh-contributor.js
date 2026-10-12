@@ -44,8 +44,8 @@ try {
       urlRegex: '/host/work-partitions\\.js$', lineNumber: source.findIndex(line => line.includes('return { runtime, model, plan'))
     });
     cdp.on('Debugger.paused', async event => {
+      if (!event.hitBreakpoints.includes(breakpoint.breakpointId)) return;
       try {
-        if (!event.hitBreakpoints.includes(breakpoint.breakpointId)) return;
         const observed = await cdp.send('Debugger.evaluateOnCallFrame', {
           callFrameId: event.callFrames[0].callFrameId, returnByValue: true,
           expression: '({participantId,descriptor:resident.getState().descriptor,acquisition:source.getReceipt(),preparation})'
