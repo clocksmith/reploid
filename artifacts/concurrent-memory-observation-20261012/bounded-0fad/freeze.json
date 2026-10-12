@@ -1,0 +1,19 @@
+{
+  "status": "prepared-not-executed",
+  "snapshot": "/var/tmp/reploid-concurrent-bounded-0fad-20261012",
+  "sourceCommit": "6ef91bc9",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "testDeliverySha256": "5296c627db4dbbed5a776d8c0e0332153d8b1f63dd7d42cae7afd5915155c61b",
+  "runnerSha256": "fe85b04a5c6cb8cfd9d3a072c6bb4a8ba8992248ec9f95e00697a0683b2e728d",
+  "files": 2011,
+  "promptTokens": 1588,
+  "maxGpuBufferBytesPerExecutor": 1420000000,
+  "deadlines": {
+    "operationMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000,
+    "sampleMs": 1000
+  },
+  "scope": "Bounded concurrent fixture; no changed generation/budget; distinct readiness and signed-reader candidate",
+  "priorFailedArchive": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7"
+}
