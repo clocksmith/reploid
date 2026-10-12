@@ -4,6 +4,8 @@ import { readFile } from 'node:fs/promises';
 async function installFixture(page) {
   // State-only screenshots: no peer connection, model download or inference.
   await page.evaluate(async () => {
+    window.dispatchEvent(new PageTransitionEvent('pagehide', { persisted: false }));
+    document.querySelector('[data-shell-inspector]')?.remove();
     const { renderConversationWorkspace, bindConversationWorkspace } = await import('/ui/pool-home/conversation-workspace.js');
     const root = document.querySelector('.pool-route-content');
     root.innerHTML = renderConversationWorkspace();
