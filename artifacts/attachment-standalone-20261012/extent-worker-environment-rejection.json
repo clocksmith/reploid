@@ -1,0 +1,53 @@
+{
+  "sourceSha256": "085e6a0a0a01a2cf8a8ff4cacff045b37eedf3798b24080c90fd64a0f7e476d6",
+  "passed": false,
+  "errors": [
+    "Security Violation in /artifacts/attachment-standalone-20261012/extent-replay.js: process.env access is forbidden - environment leakage risk"
+  ],
+  "warnings": [
+    "Nesting depth of 6 exceeds 5 - refactor nested code"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791781403619,
+      "path": "/artifacts/attachment-standalone-20261012/extent-replay.js",
+      "patternId": "process_env",
+      "category": "process",
+      "message": "process.env access is forbidden - environment leakage risk",
+      "severity": "error"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791781403619,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/artifacts/attachment-standalone-20261012/extent-replay.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/artifacts/attachment-standalone-20261012/extent-replay.js",
+        "patternId": "process_env",
+        "category": "process",
+        "message": "process.env access is forbidden - environment leakage risk",
+        "severity": "error"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/artifacts/attachment-standalone-20261012/extent-replay.js"
+      }
+    ],
+    "filesAnalyzed": 1
+  },
+  "reason": "Verification Failed"
+}
