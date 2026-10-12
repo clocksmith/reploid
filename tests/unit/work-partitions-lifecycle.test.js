@@ -168,6 +168,7 @@ it('preserves operation failure and post-operation revocation together', async (
 });
 it('settles signed source and release exactly once after failed preparation cleanup', async () => {
   const { release } = signedPorts();
+  const settled = vi.fn(); controls.registerCleanup = vi.fn(() => settled);
   resident.prepare.mockImplementation(async () => {
     const opened = await ports.signedFactory.mock.calls[0][0].openCapsule(signed().capsule, {});
     resident.close.mockImplementation(() => opened.residentPartition.close());
@@ -175,6 +176,7 @@ it('settles signed source and release exactly once after failed preparation clea
   });
   await expect(loadWorkPartition(files, signed(), 0, controls)).rejects.toThrow('admission rejected');
   expect(source.storage.close).toHaveBeenCalledOnce(); expect(release.close).toHaveBeenCalledOnce();
+  expect(settled).toHaveBeenCalledOnce();
 });
 
 it('concurrent signed close callers await the same settled cleanup', async () => {
@@ -208,7 +210,7 @@ it.each(['session', 'source', 'release'])('retries failed %s cleanup without rec
 
 it('hands failed admission cleanup to the preparation owner until the unreturned session settles', async () => {
   const { session, release } = signedPorts();
-  controls.registerCleanup = vi.fn();
+  const settled = vi.fn(); controls.registerCleanup = vi.fn(() => settled);
   release.assertCurrent.mockRejectedValue(new Error('release revoked'));
   session.close.mockRejectedValue(new Error('device cleanup failed'));
   resident.prepare.mockImplementation(async () => {
@@ -219,8 +221,10 @@ it('hands failed admission cleanup to the preparation owner until the unreturned
   expect(controls.registerCleanup).toHaveBeenCalledOnce();
   const owner = controls.registerCleanup.mock.calls[0][0];
   await expect(owner.close()).rejects.toThrow('device cleanup failed');
+  expect(settled).not.toHaveBeenCalled();
   session.close.mockResolvedValue();
   await owner.close();
+  expect(settled).toHaveBeenCalledOnce();
   expect(session.close).toHaveBeenCalledTimes(4);
   expect(source.storage.close).toHaveBeenCalledOnce();
   expect(release.close).toHaveBeenCalledOnce();

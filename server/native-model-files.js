@@ -123,7 +123,9 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     return { runtime, manifestBytes, indexBytes, indexIdentity: 'sha256:' + indexFile.hash, manifest: checked.manifest,
       index: JSON.parse(new TextDecoder().decode(indexBytes)) };
   };
-  const getState = () => ({ ...exchange.getState(), cache: cache.getState(), retainedFiles: retained.size, receipts: structuredClone(receipts) });
+  const getState = ({ includeReceipts = true } = {}) => ({ ...exchange.getState(), cache: cache.getState(),
+    retainedFiles: retained.size, receiptCount: receipts.length,
+    ...(includeReceipts ? { receipts: structuredClone(receipts) } : {}) });
   exchange.announce();
   return Object.freeze({ getState, announce: () => exchange.announce(),
     preparePartitionSource(model, { signal } = {}) { return own((async () => {

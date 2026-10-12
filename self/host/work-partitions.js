@@ -39,9 +39,10 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
       await closeSources(failures);
       if (failures.length === 1) throw failures[0];
       if (failures.length) throw new AggregateError(failures, 'Partition preparation cleanup failed');
+      releaseCleanup?.();
     })().catch(error => { cleaning = null; throw error; });
   } };
-  registerCleanup?.(cleanupOwner);
+  const releaseCleanup = registerCleanup?.(cleanupOwner);
   try {
     signal?.throwIfAborted();
     const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,

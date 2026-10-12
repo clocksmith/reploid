@@ -1,0 +1,20 @@
+[
+  {
+    "path": "input-replacement-state.json.gz",
+    "uncompressedBytes": 2476033,
+    "uncompressedSha256": "3574bd4fa756212717ca4e8b6174526fb344be1382ff079ee0230026f22d48bc",
+    "compressedSha256": "6bfbcb8dad58bbff317451c5d3014af6085c77fdcdfa562c9b9df236fb7a5d5b"
+  },
+  {
+    "path": "public-identities-before.json.gz",
+    "uncompressedBytes": 435726,
+    "uncompressedSha256": "e4fa61ea84094e352789a4d561d8773d14eb6562f76db1a067904ed24ce2aa4e",
+    "compressedSha256": "8c069f20a9100ce54bab5f87d2a6a16d9968a39054759f71ed41bda9c0f78128"
+  },
+  {
+    "path": "suby-final-state.json.gz",
+    "uncompressedBytes": 2495158,
+    "uncompressedSha256": "2bd9f5001db7ac9c33bf19e4b4ff84e5039a6c5720e0e8b6962b666881fab4e8",
+    "compressedSha256": "fc030e1db49fdb9b5dc67e6eaef435a5a648c188a2a49414d24cb7bd1e29b0e8"
+  }
+]

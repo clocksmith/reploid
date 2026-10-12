@@ -1,0 +1,326 @@
+{
+  "startedAt": "2026-10-12T15:32:08.708Z",
+  "url": "https://replo.id/",
+  "phases": [
+    {
+      "at": "2026-10-12T15:32:23.851Z",
+      "phase": "Not sharing",
+      "progress": "",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:25.857Z",
+      "phase": "Sharing",
+      "progress": "Waiting for another contributor",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:27.870Z",
+      "phase": "Loading",
+      "progress": "Waiting for another contributor",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:29.876Z",
+      "phase": "Loading",
+      "progress": "Downloading manifest.json: 100%",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:31.887Z",
+      "phase": "Loading",
+      "progress": "Downloading manifest.json: 100%",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:33.896Z",
+      "phase": "Loading",
+      "progress": "Downloading manifest.json: 100%",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:35.911Z",
+      "phase": "Loading",
+      "progress": "Downloading manifest.json: 100%",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:37.917Z",
+      "phase": "Loading",
+      "progress": "Downloading manifest.json: 100%",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:39.934Z",
+      "phase": "Loading",
+      "progress": "Downloading manifest.json: 100%",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:41.949Z",
+      "phase": "Loading",
+      "progress": "Downloading manifest.json: 100%",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:43.964Z",
+      "phase": "Loading",
+      "progress": "Downloading qwen-0-8b-pieces.json: 100%",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:45.980Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:47.991Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:50.001Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:52.011Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:54.018Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:56.024Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:32:58.029Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:00.036Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:02.041Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:04.047Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:06.053Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:08.059Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:10.063Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:12.067Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:14.071Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:16.078Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:18.085Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:20.092Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:22.096Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:24.103Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:26.110Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:28.115Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:30.121Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:32.127Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:34.133Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:36.141Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:38.147Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:40.152Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:42.159Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:44.166Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:46.173Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:48.179Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:50.189Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T15:33:52.199Z",
+      "phase": "Cleanup not confirmed",
+      "progress": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "message": "Pipeline load phase \"tokenizer\" failed: [Tokenizer] Bundled tokenizer not found for model \"qwen-3-5-0-8b-q4k-ehaf16\". Expected tokenizer file: \"tokenizer.json\". Attempted paths: [custom-loader, OPFS:tokenizer.json]. Ensure tokenizer.json is in OPFS or model directory. Clear browser storage and re-download the model.",
+      "sharingFiles": "false"
+    }
+  ],
+  "requests": [],
+  "passed": false,
+  "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: \"Unavailable\"\nReceived: \"Cleanup not confirmed\"\n\nCall Log:\n- Timeout 90000ms exceeded while waiting on the predicate\n    at pollMatcher (/Users/xyz/deco/reploid/node_modules/playwright/lib/matchers/expect.js:293:11)\n    at async file:///Users/xyz/deco/reploid/artifacts/capacity-failover-20261012/cold-contributor.js:26:3",
+  "cleanupError": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-toggle-contribution]')\u001b[22m\n\u001b[2m    - locator resolved to <button disabled type=\"button\" role=\"switch\" aria-checked=\"true\" class=\"network-switch\" data-toggle-contribution=\"\" aria-label=\"Help answer requests\">…</button>\u001b[22m\n\u001b[2m  - attempting click action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m      - element is not enabled\u001b[22m\n\u001b[2m    - retrying click action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    58 × waiting for element to be visible, enabled and stable\u001b[22m\n\u001b[2m       - element is not enabled\u001b[22m\n\u001b[2m     - retrying click action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at /Users/xyz/deco/reploid/artifacts/capacity-failover-20261012/cold-contributor.js:52:58",
+  "finishedAt": "2026-10-12T15:34:22.215Z"
+}

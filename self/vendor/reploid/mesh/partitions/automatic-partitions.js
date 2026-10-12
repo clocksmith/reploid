@@ -98,6 +98,9 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
         registerCleanup(owner) {
           assert(typeof owner?.close === 'function', 'Preparation cleanup owner must expose close');
           preparationOwners.add(owner);
+          // The host releases this registration only after successful cleanup.
+          // A failed opening is not itself evidence of failed resource disposal.
+          return () => preparationOwners.delete(owner);
         },
         onProgress: value => { error = null; progress = value; notify(); }
       }));

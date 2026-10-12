@@ -46,6 +46,14 @@ it('persists only requested verified pieces and reopens them without a supplier'
   try {
     expect(new Uint8Array(await source.storage.loadShardRange(0, 1, 2))).toEqual(new Uint8Array([2,3]));
     expect(source.getReceipt().verifiedBytes).toBe(4);
+    const complete = f.owners[0].getState();
+    expect(complete.receipts.length).toBeGreaterThan(0);
+    const summary = f.owners[0].getState({ includeReceipts: false });
+    expect(summary).not.toHaveProperty('receipts');
+    expect(summary).toEqual({ ...complete, receipts: undefined });
+    expect(summary.receiptCount).toBe(complete.receipts.length);
+    // Polling summaries must not discard the retained signed transfer evidence.
+    expect(f.owners[0].getState().receipts).toEqual(complete.receipts);
     const files = await fs.readdir(f.cacheDirectories[0]);
     expect(files).toContain('sha256-' + hash(f.chunks[0])); expect(files).not.toContain('sha256-' + hash(f.chunks[1]));
     f.owners[1].stopSupply();

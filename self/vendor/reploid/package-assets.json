@@ -241,8 +241,8 @@
     },
     {
       "path": "artifacts/custody/exchange.js",
-      "bytes": 18306,
-      "sha256": "7c7393811e61066d8b0f5b05911c8a30420324b4cecd7ab6d655a24269c8cbb8"
+      "bytes": 18373,
+      "sha256": "db43d57238a4d7b4f8a84636799ce6548cd2b301c911efb17acdb276ccfd1ced"
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",
@@ -621,13 +621,13 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.d.ts",
-      "bytes": 3444,
-      "sha256": "fa1a93d8ab612d388a090195b326815f4a5adc11ac6131bc68d2e99180ad04a3"
+      "bytes": 3528,
+      "sha256": "b209416aeebbeaf703450f3f7dda1c2993dd0b017a649ac9589912ed964f60fe"
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 15651,
-      "sha256": "c0ddbdcf2c12cf5d964b321de1c5e9a128cf92a524c74762bab212ea791b1c7f"
+      "bytes": 15869,
+      "sha256": "f1e2afea8cecf652249689e223902b35f0da739e76bd3ca3c0b6936cb3665a26"
     },
     {
       "path": "mesh/partitions/partition-chat.d.ts",

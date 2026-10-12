@@ -1,0 +1,391 @@
+{
+  "startedAt": "2026-10-12T15:29:05.342Z",
+  "operation": "inspect",
+  "targetUrl": "file:///var/tmp/reploid-native-path-delivery-20261012/installed/reploid/server/native-participant.js",
+  "before": {
+    "state": {
+      "phase": "idle",
+      "error": null,
+      "progress": null,
+      "offering": false,
+      "modelId": null,
+      "placement": null,
+      "placementDecision": {
+        "participants": [
+          "peer:688e732256ab83155c54f72e",
+          "peer:57adcc49bae5ed5eefe8fbf1"
+        ],
+        "eligibility": [
+          {
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "transportId": "8e97febb-c161-4239-a1cc-63ae8b73d52f",
+            "observedAt": 1791818888738,
+            "expiresAt": 1791818898738,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:7796914cb326ad2e7ad83a63",
+            "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+            "observedAt": 1791818888730,
+            "expiresAt": 1791818898730,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:eb2239e208132544b4109b58",
+            "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+            "observedAt": 1791818889276,
+            "expiresAt": 1791818899276,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:c78215ef0b84cc6aefb627de",
+            "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+            "observedAt": 1791818888738,
+            "expiresAt": 1791818898738,
+            "reason": "model-mismatch",
+            "index": null
+          }
+        ],
+        "reason": "retain-input-owner"
+      },
+      "capabilities": [
+        {
+          "transportId": "8e97febb-c161-4239-a1cc-63ae8b73d52f",
+          "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+          "observedAt": 1791818944941,
+          "expiresAt": 1791818954941,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "offer": {
+              "id": "qwen-3-5-0-8b-q4k-ehaf16",
+              "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+            },
+            "phase": "loading",
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:7796914cb326ad2e7ad83a63"
+            ],
+            "index": 0,
+            "planId": null,
+            "models": [],
+            "capacity": null
+          }
+        },
+        {
+          "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "participantId": "peer:7796914cb326ad2e7ad83a63",
+          "observedAt": 1791818944929,
+          "expiresAt": 1791818954929,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "participantId": "peer:7796914cb326ad2e7ad83a63",
+            "offer": {
+              "id": "qwen-3-5-0-8b-q4k-ehaf16",
+              "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+            },
+            "phase": "ready",
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:7796914cb326ad2e7ad83a63"
+            ],
+            "index": 1,
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "models": [],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "participantId": "peer:eb2239e208132544b4109b58",
+          "observedAt": 1791818944940,
+          "expiresAt": 1791818954940,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "participantId": "peer:eb2239e208132544b4109b58",
+            "offer": {
+              "id": "qwen-3-5-0-8b-q4k-ehaf16",
+              "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+            },
+            "phase": "ready",
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:eb2239e208132544b4109b58"
+            ],
+            "index": 1,
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "models": [],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "participantId": "peer:c78215ef0b84cc6aefb627de",
+          "observedAt": 1791818944942,
+          "expiresAt": 1791818954942,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "participantId": "peer:c78215ef0b84cc6aefb627de",
+            "offer": null,
+            "phase": "idle",
+            "placement": null,
+            "index": null,
+            "planId": null,
+            "models": [],
+            "capacity": null
+          }
+        },
+        {
+          "transportId": "67c397f9-01c7-4349-9cc5-e3926de3521f",
+          "participantId": "peer:c71b5657c3446315e093135e",
+          "observedAt": 1791818944942,
+          "expiresAt": 1791818954942,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "participantId": "peer:c71b5657c3446315e093135e",
+            "offer": null,
+            "phase": "idle",
+            "placement": null,
+            "index": null,
+            "planId": null,
+            "models": [],
+            "capacity": null
+          }
+        }
+      ],
+      "descriptor": null,
+      "acquisition": null,
+      "models": [],
+      "reservations": null,
+      "attempts": [],
+      "unsettledOwners": 0
+    },
+    "files": {
+      "sharing": true,
+      "suppliedBytes": 1583959904,
+      "pending": 0,
+      "peers": [
+        "8e97febb-c161-4239-a1cc-63ae8b73d52f",
+        "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+        "e907c78d-ab06-42e1-af07-b6955d8c6036",
+        "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+        "67c397f9-01c7-4349-9cc5-e3926de3521f"
+      ],
+      "cache": {
+        "quarantined": []
+      },
+      "retainedFiles": 2,
+      "receipts": []
+    }
+  },
+  "after": {
+    "state": {
+      "phase": "idle",
+      "error": null,
+      "progress": null,
+      "offering": false,
+      "modelId": null,
+      "placement": null,
+      "placementDecision": {
+        "participants": [
+          "peer:688e732256ab83155c54f72e",
+          "peer:57adcc49bae5ed5eefe8fbf1"
+        ],
+        "eligibility": [
+          {
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "transportId": "8e97febb-c161-4239-a1cc-63ae8b73d52f",
+            "observedAt": 1791818888738,
+            "expiresAt": 1791818898738,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:7796914cb326ad2e7ad83a63",
+            "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+            "observedAt": 1791818888730,
+            "expiresAt": 1791818898730,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:eb2239e208132544b4109b58",
+            "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+            "observedAt": 1791818889276,
+            "expiresAt": 1791818899276,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:c78215ef0b84cc6aefb627de",
+            "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+            "observedAt": 1791818888738,
+            "expiresAt": 1791818898738,
+            "reason": "model-mismatch",
+            "index": null
+          }
+        ],
+        "reason": "retain-input-owner"
+      },
+      "capabilities": [
+        {
+          "transportId": "8e97febb-c161-4239-a1cc-63ae8b73d52f",
+          "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+          "observedAt": 1791818944941,
+          "expiresAt": 1791818954941,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "offer": {
+              "id": "qwen-3-5-0-8b-q4k-ehaf16",
+              "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+            },
+            "phase": "loading",
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:7796914cb326ad2e7ad83a63"
+            ],
+            "index": 0,
+            "planId": null,
+            "models": [],
+            "capacity": null
+          }
+        },
+        {
+          "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "participantId": "peer:7796914cb326ad2e7ad83a63",
+          "observedAt": 1791818944929,
+          "expiresAt": 1791818954929,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "participantId": "peer:7796914cb326ad2e7ad83a63",
+            "offer": {
+              "id": "qwen-3-5-0-8b-q4k-ehaf16",
+              "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+            },
+            "phase": "ready",
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:7796914cb326ad2e7ad83a63"
+            ],
+            "index": 1,
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "models": [],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "participantId": "peer:eb2239e208132544b4109b58",
+          "observedAt": 1791818944940,
+          "expiresAt": 1791818954940,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "participantId": "peer:eb2239e208132544b4109b58",
+            "offer": {
+              "id": "qwen-3-5-0-8b-q4k-ehaf16",
+              "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9"
+            },
+            "phase": "ready",
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:eb2239e208132544b4109b58"
+            ],
+            "index": 1,
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "models": [],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "participantId": "peer:c78215ef0b84cc6aefb627de",
+          "observedAt": 1791818944942,
+          "expiresAt": 1791818954942,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "participantId": "peer:c78215ef0b84cc6aefb627de",
+            "offer": null,
+            "phase": "idle",
+            "placement": null,
+            "index": null,
+            "planId": null,
+            "models": [],
+            "capacity": null
+          }
+        },
+        {
+          "transportId": "67c397f9-01c7-4349-9cc5-e3926de3521f",
+          "participantId": "peer:c71b5657c3446315e093135e",
+          "observedAt": 1791818944942,
+          "expiresAt": 1791818954942,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "participantId": "peer:c71b5657c3446315e093135e",
+            "offer": null,
+            "phase": "idle",
+            "placement": null,
+            "index": null,
+            "planId": null,
+            "models": [],
+            "capacity": null
+          }
+        }
+      ],
+      "descriptor": null,
+      "acquisition": null,
+      "models": [],
+      "reservations": null,
+      "attempts": [],
+      "unsettledOwners": 0
+    },
+    "files": {
+      "sharing": true,
+      "suppliedBytes": 1583959904,
+      "pending": 0,
+      "peers": [
+        "8e97febb-c161-4239-a1cc-63ae8b73d52f",
+        "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+        "e907c78d-ab06-42e1-af07-b6955d8c6036",
+        "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+        "67c397f9-01c7-4349-9cc5-e3926de3521f"
+      ],
+      "cache": {
+        "quarantined": []
+      },
+      "retainedFiles": 2,
+      "receipts": []
+    }
+  },
+  "passed": true,
+  "finishedAt": "2026-10-12T15:29:05.379Z"
+}

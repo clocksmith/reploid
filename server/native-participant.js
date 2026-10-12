@@ -161,9 +161,10 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
       await closeSources(failures);
       if (failures.length === 1) throw failures[0];
       if (failures.length) throw new AggregateError(failures, 'Native preparation cleanup failed');
+      releaseCleanup?.();
     })().catch(error => { cleaning = null; throw error; });
   } };
-  registerCleanup?.(cleanupOwner);
+  const releaseCleanup = registerCleanup?.(cleanupOwner);
   try {
     signal.throwIfAborted();
     const manifest = source.manifest;
@@ -259,7 +260,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     });
     return Object.freeze({ identity: identity.peerId, getState: () => partitions.getState(),
       contribute: approved => partitions.contribute(model.id, approved), stop: () => partitions.stop(), close,
-      getNetworkState: () => mesh.getSwarmSnapshot(), getFileState: () => files?.getState() || null,
+      getNetworkState: () => mesh.getSwarmSnapshot(), getFileState: options => files?.getState(options) || null,
       shareFiles: approved => { requireValue(files, 'Native cache directory required'); return files.share(model, approved); },
       stopSharing: () => files?.stopSupply(), announceFiles: () => files?.announce() });
   } catch (error) { try { await close(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Native startup and cleanup failed'); } throw error; }
@@ -321,7 +322,8 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     roomId: values.room || bootstrap.publicRoomId, roomToken: values['room-token'] || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     nativeGpu: () => gpuHost.open(), onChange: state => console.log(JSON.stringify({ event: 'partition-state', ...state })) });
-  const timer = setInterval(() => { participant.announceFiles(); console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(), files: participant.getFileState() })); }, policy.pollMs);
+  const timer = setInterval(() => { participant.announceFiles(); console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),
+    files: participant.getFileState({ includeReceipts: false }) })); }, policy.pollMs);
   const shutdown = createNativeShutdown(participant, gpuHost);
   const stop = () => { clearInterval(timer); return shutdown(); };
   const completion = new Promise((resolve, reject) => {

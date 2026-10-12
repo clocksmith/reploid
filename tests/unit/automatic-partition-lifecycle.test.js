@@ -107,3 +107,18 @@ it('retains cleanup registered by a loader that throws synchronously', async () 
   await f.mesh.stop(); expect(owner.close).toHaveBeenCalledOnce();
   expect(f.mesh.getState()).toMatchObject({ phase: 'idle', unsettledOwners: 0 });
 });
+
+it('does not retain a preparation owner whose cleanup already succeeded', async () => {
+  const close = vi.fn(async () => {});
+  const f = await fixture(async () => {}, async ({ registerCleanup }) => {
+    const settled = registerCleanup({ close });
+    await close(); settled();
+    throw new Error('authorized supplier unavailable');
+  });
+  await f.mesh.contribute('model', true);
+  expect(f.mesh.getState()).toMatchObject({ phase: 'failed', unsettledOwners: 0,
+    error: 'authorized supplier unavailable' });
+  await f.mesh.stop();
+  expect(close).toHaveBeenCalledOnce();
+  expect(f.mesh.getState()).toMatchObject({ phase: 'idle', unsettledOwners: 0 });
+});
