@@ -1,0 +1,32 @@
+{
+  "schema": "reploid.native-preparation-diagnostic/v1",
+  "scope": "One original19token/two-prefix direction0; observe preparation owner, not full55, signed or ordinary application qualification",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "testDeliveryHash": "sha256:ca3ba85660efbf9a35ae98e8e70e8ef87e3fe34e6ef07fea6605578246cd81ba",
+  "nativeDeliverySha256": "32fa4e3f1e2ad3c7a1c6624078310255a2fa4c9d8d43a0ff457637dcc47bd04d",
+  "nativeArtifactSha256": "46af2517eedad71819ba796a3444347db8baf176d8a34c63a08ddeab3ed2aec5",
+  "referenceSha256": "ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+  "promptIndex": 0,
+  "expectedPrefixCount": 2,
+  "inputTokens": 19,
+  "tolerance": 0.001,
+  "maxAllocatedBytes": 1420000000,
+  "placement": "Mac browser input / AMD Node output",
+  "nativeOperationTimeoutMs": 1200000,
+  "outputDirectory": "/var/tmp/reploid-native-preparation-0.6.28-output-20261012",
+  "cachePolicy": "Preserve existing shared caches and inherited cache environment; cache state uncontrolled. Failure to reproduce earlier delay does not establish a correction.",
+  "observations": [
+    "Existing pendingPipelinePreparation and pipelinePreparationEvents snapshots",
+    "Read-only process RSS/HWM",
+    "External output-log arrival timestamps"
+  ],
+  "priorResultDisposition": "Earlier916.5s firstoutput remains failed ordinary responsiveness; no deadline widening",
+  "files": {
+    "snapshot-binding.json": "ca3ba85660efbf9a35ae98e8e70e8ef87e3fe34e6ef07fea6605578246cd81ba",
+    "config.json": "378daa9bf7d473efa100652f541be4dcaf65f7359541927abbd6b29ff2d678ec",
+    "run-native-reference.sh": "df6a60e9b6a69c972d17adf2127f9c55978b6470fbb7552ef65bc093d65c1923",
+    "tests/fixtures/prepare-partition-memory.js": "8975cec83efccf9b7dd78b4d4da9aca463146ab716145cf268b30d6604815573",
+    "supervise-native.sh": "9bdf5370c60d125d834d40bb81df657f66e48511919efa9ee29ee79331997540"
+  },
+  "observationExpression": "JSON.stringify({observedAt:new Date().toISOString(),pid:process.pid,uptimeSeconds:process.uptime(),rssBytes:process.memoryUsage().rss,maxRssKiB:process.resourceUsage().maxRSS,preparation:(()=>{const s=globalThis.memorySnapshot?.();return s?{events:s.pipelinePreparationEvents,pending:s.pendingPipelinePreparation,deviceEvents:s.deviceEvents,observationErrors:s.observationErrors}:null})()})"
+}
