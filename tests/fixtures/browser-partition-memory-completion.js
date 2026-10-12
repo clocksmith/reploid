@@ -129,7 +129,7 @@ try {
     if (browser.native) prepared.nativeProvider = await page.evaluate(() => __nativePartitionFixture.observeProvider());
     } finally { await openingObserver?.close(); }
     descriptors.push({ ...prepared, platform: hostNames[slot],
-      ...(browser.native ? { surface: 'node-webgpu', node: browser.identity.node, nativeHost: browser.identity.fixture }
+      ...(browser.native ? { surface: 'node-webgpu', nativePid: browser.identity.pid, node: browser.identity.node, nativeHost: browser.identity.fixture }
         : { surface: 'browser-webgpu', browser: browser.version() }) });
     console.log(JSON.stringify({ prepared: index, bytes: prepared.afterPreparation.device.liveBytes }));
   }
