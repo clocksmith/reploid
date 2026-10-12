@@ -14,7 +14,8 @@ export interface AutomaticPartitionState {
     participantId: string; transportId: string; observedAt: number; expiresAt: number; reason: string; index: 0 | 1 | null;
   }> } | null;
   reservations: PartitionReservationsState | null; attempts: PartitionAttemptReceipt[];
-  phase: 'idle' | 'waiting' | 'loading' | 'ready' | 'failed'; error: string | null;
+  phase: 'idle' | 'waiting' | 'loading' | 'ready' | 'stopping' | 'failed'; error: string | null;
+  unsettledOwners: number;
   offering: boolean; modelId: string | null; placement: string[] | null;
   descriptor: ResidentPartitionDescriptor | null; acquisition: unknown; models: ChatModel[];
 }
@@ -42,6 +43,8 @@ export function createAutomaticPartitions(options: {
     onPeer?(transportId: string, endpoint: T): void;
   }): PartitionNetwork<T>;
   loadProgram(model: ChatModel, index: 0 | 1, controls: { signal: AbortSignal; participantId: string;
+    /** Retained if loading rejects; a successful returned resident assumes this ownership. */
+    registerCleanup(owner: { close(): void | Promise<void> }): void;
     onProgress(value: unknown): void }): Promise<{ runtime: PartitionRuntime; model: ChatModel;
       plan: PartitionPlan; planId: string; resident: ResidentPartition; getReceipt?(): unknown }>;
   onChange?(state: AutomaticPartitionState & { progress?: unknown }): void;

@@ -1,4 +1,4 @@
-import { beforeEach, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const ports = vi.hoisted(() => ({
   signedFactory: vi.fn(), openCapsule: vi.fn(), release: vi.fn(), budget: vi.fn(), plan: vi.fn(), hash: vi.fn(), factory: vi.fn(), resident: vi.fn(), memory: vi.fn(),
@@ -17,7 +17,30 @@ vi.mock('../../self/host/work-partition-capsule.js', () => ({ assertWorkResident
 vi.mock('../../self/vendor/doppler/0.6.27/src/index.js', () => ({ openCapsule: ports.openCapsule }));
 vi.mock('../../self/pool/pack-release-policy.js', () => ({ prepareLocalPackRelease: ports.release }));
 vi.mock('../../self/vendor/reploid/mesh/index.js', () => ({ createResidentPartition: ports.resident }));
-import { loadWorkPartition } from '../../self/host/work-partitions.js';
+vi.mock('doppler-gpu/partitions', () => ({
+  createResidentPartitionFactory: ports.signedFactory, configureDeviceMemoryBudget: ports.budget,
+  createLayerPartitionPlan: ports.plan, hashLayerPartitionPlan: ports.hash,
+  createManifestResidentPartitionFactory: ports.factory, inspectDeviceMemory: ports.memory,
+}));
+vi.mock('doppler-gpu', () => ({ openCapsule: ports.openCapsule }));
+vi.mock('../../packages/reploid/src/mesh/index.js', async importOriginal => ({
+  ...await importOriginal(), createResidentPartition: ports.resident,
+}));
+import { loadWorkPartition as loadBrowserPartition } from '../../self/host/work-partitions.js';
+import { openNativePartition } from '../../server/native-participant.js';
+import { createSignedResidentFactory } from '../../packages/reploid/src/mesh/partitions/signed-resident-factory.js';
+
+it('requires a session cleanup owner before constructing a signed factory', () => {
+  const createFactory = vi.fn();
+  expect(() => createSignedResidentFactory({ createFactory })).toThrow('explicit session cleanup owner');
+  expect(createFactory).not.toHaveBeenCalled();
+});
+
+describe.each(['browser', 'native'])('%s resident opening', host => {
+const loadWorkPartition = (files, selected, index, controls) => host === 'browser'
+  ? loadBrowserPartition(files, selected, index, controls)
+  : openNativePartition({ files, model: selected, index, ...controls, modelDirectory: '/unused-model',
+    releaseDirectory: '/unused-checkpoints', nativeGpu: async () => {} });
 
 let files, source, resident, controls;
 const selected = { id: 'fixture', identity: 'sha256:' + 'a'.repeat(64), partitionSplitLayer: 2 };
@@ -101,7 +124,7 @@ it('uses signed opening only when explicitly configured and passes pinned custod
   expect(session.close).toHaveBeenCalledOnce(); expect(source.storage.close).toHaveBeenCalledOnce(); expect(release.close).toHaveBeenCalledOnce();
 });
 it('never falls back to manifest execution for incomplete signed configuration', async () => {
-  await expect(loadWorkPartition(files, signed(), 0, controls)).rejects.toThrow('Signed resident requires');
+  await expect(loadWorkPartition(files, signed(), 0, controls)).rejects.toThrow(/Signed (native )?resident requires/);
   expect(ports.factory).not.toHaveBeenCalled(); expect(source.storage.close).toHaveBeenCalledOnce();
 });
 it('rejects changed release authorization before resident computation', async () => {
@@ -167,6 +190,40 @@ it('concurrent signed close callers await the same settled cleanup', async () =>
   expect(source.storage.close).toHaveBeenCalledOnce();
 });
 
+it.each(['session', 'source', 'release'])('retries failed %s cleanup without reclosing settled owners', async failedOwner => {
+  const { session, release } = signedPorts();
+  await loadWorkPartition(files, signed(), 0, controls);
+  const opened = await ports.signedFactory.mock.calls[0][0].openCapsule(signed().capsule, {});
+  const owners = { session: session.close, source: source.storage.close, release: release.close };
+  owners[failedOwner].mockRejectedValueOnce(new Error(`${failedOwner} cleanup failed`));
+  const first = opened.residentPartition.close();
+  expect(opened.residentPartition.close()).toBe(first);
+  await expect(first).rejects.toThrow('cleanup failed');
+  for (const owner of Object.values(owners)) expect(owner).toHaveBeenCalledOnce();
+  await opened.residentPartition.close();
+  for (const [name, owner] of Object.entries(owners)) expect(owner).toHaveBeenCalledTimes(name === failedOwner ? 2 : 1);
+});
+
+it('hands failed admission cleanup to the preparation owner until the unreturned session settles', async () => {
+  const { session, release } = signedPorts();
+  controls.registerCleanup = vi.fn();
+  release.assertCurrent.mockRejectedValue(new Error('release revoked'));
+  session.close.mockRejectedValue(new Error('device cleanup failed'));
+  resident.prepare.mockImplementation(async () => {
+    const binding = ports.signedFactory.mock.calls[0][0];
+    await binding.openCapsule(signed().capsule, binding.capsuleOptions);
+  });
+  await expect(loadWorkPartition(files, signed(), 0, controls)).rejects.toThrow('cleanup failed');
+  expect(controls.registerCleanup).toHaveBeenCalledOnce();
+  const owner = controls.registerCleanup.mock.calls[0][0];
+  await expect(owner.close()).rejects.toThrow('device cleanup failed');
+  session.close.mockResolvedValue();
+  await owner.close();
+  expect(session.close).toHaveBeenCalledTimes(4);
+  expect(source.storage.close).toHaveBeenCalledOnce();
+  expect(release.close).toHaveBeenCalledOnce();
+});
+
 it('passes explicit generation to admission and uses its context for owned cache allocation', async () => {
   const generation = { maxTokens: 16, maxSeqLen: 2048, temperature: 0.6, topK: 20, topP: 0.95,
     repetitionPenalty: 1, repetitionPenaltyWindow: 0, useChatTemplate: true, seed: 37 };
@@ -178,4 +235,6 @@ it('passes explicit generation to admission and uses its context for owned cache
 it('rejects unsupported explicit generation before acquiring model files or GPU resources', async () => {
   await expect(loadWorkPartition(files, { ...selected, generation: { temperature: 0.6 } }, 0, controls)).rejects.toThrow();
   expect(ports.budget).not.toHaveBeenCalled(); expect(files.preparePartitionSource).not.toHaveBeenCalled();
+});
+
 });

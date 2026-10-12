@@ -5,8 +5,9 @@ import { resolvePartitionGeneration } from '../config/partition-generation.js';
 import policy from '../config/partition-policy.json' with { type: 'json' };
 import { prepareLocalPackRelease } from '../pool/pack-release-policy.js';
 import { assertWorkResidentCapsule } from './work-partition-capsule.js';
+import { createSignedResidentFactory } from '../vendor/reploid/mesh/partitions/signed-resident-factory.js';
 
-export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress }) {
+export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress, registerCleanup }) {
   const model = { ...selected, generation: resolvePartitionGeneration(selected) };
   const openedAt = performance.now();
   globalThis.__DOPPLER_KERNEL_BASE_PATH__ = DOPPLER_KERNEL_BASE_URL;
@@ -17,16 +18,30 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   const manifest = source.manifest;
   let resident = null, release = null, capsuleVerification = null;
   let sourceSettled = false, releaseSettled = false;
+  const sessions = new Set();
+  const trackSession = session => { sessions.add(session); return () => sessions.delete(session); };
   const closeSources = async failures => {
     if (!sourceSettled) {
-      sourceSettled = true;
-      try { await source.storage.close(); } catch (error) { failures.push(error); }
+      try { await source.storage.close(); sourceSettled = true; } catch (error) { failures.push(error); }
     }
     if (release && !releaseSettled) {
-      releaseSettled = true;
-      try { await release.close(); } catch (error) { failures.push(error); }
+      try { await release.close(); releaseSettled = true; } catch (error) { failures.push(error); }
     }
   };
+  let cleaning = null;
+  const cleanupOwner = { close() {
+    return cleaning ||= (async () => {
+      const failures = [];
+      try { await resident?.close(); } catch (error) { failures.push(error); }
+      for (const session of sessions) {
+        try { await session.close(); sessions.delete(session); } catch (error) { failures.push(error); }
+      }
+      await closeSources(failures);
+      if (failures.length === 1) throw failures[0];
+      if (failures.length) throw new AggregateError(failures, 'Partition preparation cleanup failed');
+    })().catch(error => { cleaning = null; throw error; });
+  } };
+  registerCleanup?.(cleanupOwner);
   try {
     signal?.throwIfAborted();
     const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
@@ -40,46 +55,10 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
       }
       release = await prepareLocalPackRelease({ model });
       const { openCapsule } = await import(DOPPLER_MODULE_URL);
-      factory = runtime.createResidentPartitionFactory({ capsuleOptions: { ...release.options, artifactStore: source.artifactStore },
-        async openCapsule(capsule, options) {
-          const session = await openCapsule(capsule, options);
-          try {
-            await assertWorkResidentCapsule(model, session);
-            await release.assertCurrent(session);
-            capsuleVerification = session.verification;
-            const partition = session.residentPartition;
-            if (!partition) throw new Error('Capsule opener did not return a qualified resident');
-            let closing = null;
-            const invoke = async (method, request) => {
-              await release.assertCurrent(session);
-              const failures = []; let result;
-              try { result = await partition[method](request); } catch (error) { failures.push(error); }
-              try { await release.assertCurrent(session); } catch (error) { failures.push(error); }
-              if (failures.length === 1) throw failures[0];
-              if (failures.length) throw new AggregateError(failures, 'Resident computation and authorization failed');
-              return result;
-            };
-            return { ...session, residentPartition: Object.freeze({ ...partition,
-              tokenize: request => invoke('tokenize', request),
-              executeGroup0: request => invoke('executeGroup0', request),
-              executeGroup1: request => invoke('executeGroup1', request),
-              close() {
-                if (!closing) closing = (async () => {
-                  const failures = [];
-                  try { await session.close(); } catch (error) { failures.push(error); }
-                  await closeSources(failures);
-                  if (failures.length) throw new AggregateError(failures, 'Signed resident cleanup failed');
-                })();
-                return closing;
-              }
-            }) };
-          } catch (error) {
-            try { await session.close(); } catch (cleanup) {
-              throw new AggregateError([error, cleanup], 'Signed resident admission and cleanup failed');
-            }
-            throw error;
-          }
-        } });
+      factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,
+        openCapsule, model, artifactStore: source.artifactStore, release,
+        assertSession: assertWorkResidentCapsule, closeSources, trackSession,
+        onVerification: value => { capsuleVerification = value; } });
     } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
       runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: model.generation.maxSeqLen },
@@ -97,8 +76,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
         openingMode: selected.capsule === undefined ? 'pinned-manifest' : 'signed-capsule', capsuleVerification }) };
   } catch (error) {
     const failures = [error];
-    try { await resident?.close(); } catch (cleanup) { failures.push(cleanup); }
-    await closeSources(failures);
+    try { await cleanupOwner.close(); } catch (cleanup) { failures.push(cleanup); }
     if (failures.length > 1) throw new AggregateError(failures, 'Partition opening and cleanup failed');
     throw error;
   }

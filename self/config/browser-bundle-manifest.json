@@ -1770,8 +1770,8 @@
     },
     {
       "path": "host/work-partitions.js",
-      "byteLength": 6139,
-      "sha256": "sha256:90604c9d74519e5c31ebf343e45922f10ab5f75fb51bf393d9a89003f8393c09"
+      "byteLength": 5120,
+      "sha256": "sha256:99358c5cbe6af4b1cca391d147c5776f902e98858781e2d148cdcfcaccd94dc9"
     },
     {
       "path": "host/work-peer-jobs.js",
@@ -9300,8 +9300,8 @@
     },
     {
       "path": "vendor/reploid/mesh/index.js",
-      "byteLength": 3123,
-      "sha256": "sha256:2f9c78ddee2532e5ea3e32a41659dfe56aa2cb7609542d37775f0d68287a49d6"
+      "byteLength": 3180,
+      "sha256": "sha256:df6356ef0fae5f05605c5c1e681366351c4f36d8c3bf9be6df5f653aa5ac9300"
     },
     {
       "path": "vendor/reploid/mesh/jobs/contracts.js",
@@ -9340,8 +9340,8 @@
     },
     {
       "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
-      "byteLength": 15143,
-      "sha256": "sha256:f654d6c186895407ed0dde69e6224046ded418edc5b4c159c7af515f38478fce"
+      "byteLength": 15651,
+      "sha256": "sha256:c0ddbdcf2c12cf5d964b321de1c5e9a128cf92a524c74762bab212ea791b1c7f"
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-chat.js",
@@ -9419,6 +9419,11 @@
       "sha256": "sha256:a634e3c0e8d6681b335b23396462d9cc4c5421e21dc91243b344120d3c170def"
     },
     {
+      "path": "vendor/reploid/mesh/partitions/signed-resident-factory.js",
+      "byteLength": 2593,
+      "sha256": "sha256:28976614627ca5a815dfcc39ba2948796cd1207979b8b52d174eb7779a89a535"
+    },
+    {
       "path": "vendor/reploid/mesh/peer-identity.js",
       "byteLength": 3834,
       "sha256": "sha256:825f2a0397d7da4d37bee4e786e4aa941f578b35b110af93e83aa19fb06ad6db"
@@ -9440,8 +9445,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 30232,
-      "sha256": "sha256:b29cb37cc85b8136d50986cd01dca466b49a7616ceede305de0880c212430ab3"
+      "byteLength": 30588,
+      "sha256": "sha256:2a15fb45242daff616138c56274b85abdf8946313caef6eafe77ef94a73a6296"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -9529,5 +9534,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:490d4bf46919432de3866e8ad090576c34c03532506ea7e0c3be6751919271ea"
+  "bundleHash": "sha256:eac23c6a242eae9cc84e70439c54631eef40af2ea759496a17622c1512864d68"
 }
