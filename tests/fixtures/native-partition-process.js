@@ -5,6 +5,7 @@ import { createHash } from 'node:crypto';
 import { createRequire } from 'node:module';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { observeNativeProviderLibraries } from './native-provider-observation.js';
 import { verifyNumericalTestDelivery } from './numerical-test-delivery.js';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const config = JSON.parse(await readFile(process.argv[2]));
@@ -49,13 +50,8 @@ globalThis.__nativePartitionFixture = Object.freeze({
     return this.identity;
   },
   async observeProvider() {
-    const libraries = [];
-    for (const path of process.report.getReport().sharedObjects) {
-      const bytes = await readFile(path); libraries.push({ path, bytes: bytes.length, sha256: hash(bytes) });
-    }
-    assert(libraries.some(row => row.path.endsWith('.node') && row.path.includes('webgpu')),
-      'The selected native WebGPU library was not observed in this process');
-    return { ...this.identity.provider, observation: 'Actual process.report sharedObjects after resident preparation', libraries };
+    const observed = await observeNativeProviderLibraries(process.report.getReport().sharedObjects);
+    return { ...this.identity.provider, observation: 'Actual process.report sharedObjects after provider opening', ...observed };
   },
   async close() {
     if (closed) return { closed: true };
