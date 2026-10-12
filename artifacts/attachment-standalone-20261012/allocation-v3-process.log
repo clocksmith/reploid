@@ -1,0 +1,49 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.5ms
+[490.1ms][doppler] Resolving model
+[490.8ms][doppler] Fetching manifest
+[518.8ms][doppler] Loading weights
+[523.8ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[523.9ms][Config] Using manifest-first config (source of truth)
+[526.6ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[526.6ms][Pipeline] Vision capable: imageTokenId=248056
+[527.4ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[527.8ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[528.2ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[618.5ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[720.4ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[720.8ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[725.6ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=8192
+[726.6ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[764.5ms][ShardCache] Custom shard loader configured
+[764.7ms][Loader] Initializing...
+[783.3ms][HeapManager] Allocated segment 0: 1024MB
+[783.4ms][HeapManager] Segmented heap: 1GB per segment
+[783.4ms][HeapManager] Initialized with strategy: SEGMENTED
+[783.5ms][Loader] Initialized (f16, subgroups)
+[783.9ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[785.0ms][Loader] [0.0s] Memory (start): | RSS=246.79 MB (heap=63.89 MB/97.89 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[785.5ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[963.3ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[963.7ms][Loader] Layers: 0-23
+[1094.0ms][Loader] Layers: 24 complete (0.13s)
+[1135.3ms][Loader] Complete: 890.16 MB in 0.35s (2.50 GB/s)
+[1136.3ms][Loader] [0.4s] Memory (complete): | RSS=307.59 MB (heap=86.08 MB/118.89 MB, external=1.02 GB, arrayBuffers=1.01 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1145.0ms][Pipeline] Model loaded successfully (624ms)
+[1146.7ms][doppler] Model ready
+[1176.2ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[1181.1ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+[1236.4ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[1458.8ms][ExpertCache] Cache cleared
+[1459.4ms][Pipeline] Unloaded
+[1462.9ms][GPU] Device lost: device was destroyed, Reason: destroyed
+{"executionPass":false,"settled":true,"error":"Error: GPU memory budget exceeded: residual_output_524288 requires 524288 bytes; 1419668344 live, 1420000000 allowed.\n    at device.createBuffer (file:///var/tmp/reploid-attachment-allocation-v3-20261012/node_modules/doppler-gpu/src/memory/device-budget.js:24:27)\n    at BufferPool.acquire (file:///var/tmp/reploid-attachment-allocation-v3-20261012/node_modules/doppler-gpu/src/memory/buffer-pool.js:259:27)\n    at acquireBuffer (file:///var/tmp/reploid-attachment-allocation-v3-20261012/node_modules/doppler-gpu/src/memory/buffer-pool.js:779:19)\n    at _residualAdd (file:///var/tmp/reploid-attachment-allocation-v3-20261012/node_modules/doppler-gpu/src/gpu/kernels/residual.js:139:34)","cases":[]}
+file:///var/tmp/reploid-attachment-allocation-v3-20261012/allocation-v3-replay.mjs:81
+if (!receipt.executionPass || !receipt.settled) throw new Error('Diagnostic failed; see retained receipt');
+                                                      ^
+
+Error: Diagnostic failed; see retained receipt
+    at file:///var/tmp/reploid-attachment-allocation-v3-20261012/allocation-v3-replay.mjs:81:55
+
+Node.js v22.22.1
