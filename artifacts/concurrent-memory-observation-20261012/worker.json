@@ -1,0 +1,38 @@
+{
+  "scope": "Actual Worker existing /testing/ capability for physical fixture tooling only",
+  "sources": {
+    "/testing/tests/fixtures/concurrent-partition-memory.js": "c9dbaab26ecde4499f0866f4213d1126cf20017cbb3af5dd6ca0a7bd3434f59c"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Nesting depth of 6 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "complexity",
+        "timestamp": 1791843786826,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/testing/tests/fixtures/concurrent-partition-memory.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/testing/tests/fixtures/concurrent-partition-memory.js"
+        }
+      ],
+      "filesAnalyzed": 1
+    }
+  }
+}

@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { createContext, runInContext } from 'node:vm';
 import { runConcurrentPartitionMemory } from '../fixtures/concurrent-partition-memory.js';
 
-function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = false } = {}) {
+function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = false, deviceEvents = [], observationErrors = [] } = {}) {
   const events = [], runs = [], live = [new Set(), new Set()];
   const pages = [0, 1].map(index => {
     let context;
@@ -37,8 +37,8 @@ function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = f
       abortOnSubmit: null, observePrefill: false,
       rejectOversizedAllocation: async () => ({ code: 'RESOURCE_EXHAUSTED', synthetic: true }),
       encodeBytes: data => Buffer.from(data.buffer).toString('base64'),
-      settleMemory: async () => ({ gpuValidationErrors: [], device: { liveBytes: 100 + live[index].size,
-        peakBytes: 102, maxBytes: 1420000000, lost: false, categories: { weights: 100 } },
+      settleMemory: async () => ({ gpuValidationErrors: [], deviceEvents, observationErrors, device: { liveBytes: 100 + live[index].size,
+        peakBytes: 102, maxBytes: 1420000000, categories: { weights: 100 } },
         liveAttempts: [...live[index]] }) });
     return { evaluate: async (fn, arg) => {
       context.args = structuredClone(arg);
@@ -63,6 +63,13 @@ describe('long concurrent physical-controller assertions (synthetic GPU only)', 
     expect(retry.text).toBe('0123');
     expect(survivor.afterOtherCancellation.every(item => item.liveAttempts.length === 1)).toBe(true);
     expect(test.live.every(item => item.size === 0)).toBe(true);
+  });
+  it.each([
+    [{ deviceEvents: [{ type: 'device-lost' }] }, 'Executor device event'],
+    [{ observationErrors: [{ operation: 'device' }] }, 'Executor memory observation'],
+    [{ deviceEvents: null }, 'Executor device event']
+  ])('rejects missing or failed device observations %j', async (options, message) => {
+    await expect(fixture(options).run()).rejects.toThrow(message);
   });
   it('rejects a changed surviving answer and still closes every attempt', async () => {
     const test = fixture({ corruptSurvivor: true });

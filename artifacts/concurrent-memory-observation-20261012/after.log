@@ -1,0 +1,9 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+
+ Test Files  1 passed (1)
+      Tests  7 passed (7)
+   Start at  18:23:06
+   Duration  109ms (transform 13ms, setup 0ms, import 19ms, tests 18ms, environment 0ms)
+

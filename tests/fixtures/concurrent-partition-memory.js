@@ -10,7 +10,8 @@ export async function runConcurrentPartitionMemory({ pages, pageA, pageB, reques
       assert.equal(item.device.maxBytes, 1420000000, 'Executor allocation policy changed');
       assert(item.device.liveBytes <= 1420000000, 'Executor allocation ceiling exceeded');
       assert(item.device.peakBytes <= 1420000000, 'Peak executor allocation ceiling exceeded');
-      assert.equal(item.device.lost, false, 'Executor device was lost');
+      assert.deepEqual(item.deviceEvents, [], 'Executor device event was observed');
+      assert.deepEqual(item.observationErrors, [], 'Executor memory observation failed');
     }
   };
   const open = async name => {
