@@ -73,3 +73,11 @@ attempted cleanup; this run does not claim natural settlement. No device or
 model was requested. The observer now records that exact virtual mapping
 separately and still rejects missing file-backed libraries or unknown relative
 library names. `native-provider-controls.log` verifies both dispositions.
+
+The corrected adapter-only preflight passed in `provider-preflight.json`:
+Node 22.22.1, installed `webgpu` 0.4.0, AMD RDNA3 Radeon8060S, RADV Mesa
+26.0.3-1ubuntu1. It retained SHA-256 identities for 54 actual mapped file-backed
+libraries (including the WebGPU native binary) and a separate kernel vDSO entry.
+No GPUDevice, shader, model or inference was requested. Owned PID1066650 closed
+the provider and exited naturally with code0. The exact fixture binding is
+`provider-preflight-binding.json`; the failed predecessor remains retained.

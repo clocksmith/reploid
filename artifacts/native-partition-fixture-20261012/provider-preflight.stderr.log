@@ -1,0 +1,7 @@
+Debugger listening on ws://127.0.0.1:43481/9809b9a3-7b4f-4940-86d5-b72a193e4be3
+For help, see: https://nodejs.org/en/docs/inspector
+Debugger attached.
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Debugger ending on ws://127.0.0.1:43481/9809b9a3-7b4f-4940-86d5-b72a193e4be3
+For help, see: https://nodejs.org/en/docs/inspector
