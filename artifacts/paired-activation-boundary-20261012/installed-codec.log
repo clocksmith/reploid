@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:43640) ExperimentalWarning: vm.USE_MAIN_CONTEXT_DEFAULT_LOADER is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/partition-paired-boundary.test.js (16 tests) 98ms
+
+ Test Files  1 passed (1)
+      Tests  16 passed (16)
+   Start at  15:50:07
+   Duration  413ms (transform 33ms, setup 0ms, import 162ms, tests 98ms, environment 94ms)
+
