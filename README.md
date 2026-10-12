@@ -5,6 +5,11 @@ Chat is the first interface; each participant controls contribution and disclosu
 
 **[Try Reploid](https://replo.id/)** · [Get started](docs/QUICK-START.md) · [Documentation](docs/INDEX.md)
 
+<picture>
+  <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg" />
+  <img src="docs/diagrams/readme-architecture.svg" alt="A requester without model weights receives an answer from two Doppler contributors; a separate storage participant supplies their assigned pieces." />
+</picture>
+
 ## Get started
 
 From a repository checkout, install and start the browser application:
@@ -26,57 +31,18 @@ own permissions and limits. See the [conversation contract](docs/chat-mvp.md).
 
 ### Component ownership
 
-Reploid coordinates; Doppler computes; Poolday transport connects participants.
-This diagram shows the two-partition path, not a deployment qualification.
+![Ten components connect conversations, persistent history, discovery, admission, contribution controls, piece custody, a partition coordinator, and two Doppler executors.](docs/diagrams/technical-architecture.svg)
 
-```mermaid
-flowchart TB
-    USER["Conversation<br/>requester needs no model weights"] --> COORD["Reploid<br/>discover, authorize and assign"]
-    COORD --> A["Contributor A<br/>Doppler partition 0"]
-    COORD --> B["Contributor B<br/>Doppler partition 1"]
-    STORE["Verified model pieces"] -->|assigned pieces| A
-    STORE -->|assigned pieces| B
-    A -->|activations| B
-    B -->|selected token for next step| A
-    B -->|identified output| COORD
-    COORD -->|stream answer| USER
-    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
-    classDef resource fill:#edf3ff,stroke:#2563eb,color:#111827
-    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
-    class COORD contract
-    class STORE resource
-    class A,B compute
-```
+Discovery supplies candidates; admission checks the split, grants, and capacity.
+Custody supplies verified pieces to executors. The coordinator sends ordered
+steps: activations travel forward, selected tokens return for the next step,
+and identified output reaches the conversation. Each executor owns separate
+attempt state. Storage, compute, and disclosure permissions remain distinct.
 
-Storage sharing, whole requests, model partitions, and agent subtasks retain
-distinct contracts. Introduction or transport access grants no compute or
-input-disclosure permission.
+Reploid coordinates, Doppler computes, and Poolday transports. These diagrams
+explain the two-partition design; they do not establish deployment acceptance.
 
-### Attempt failure and recovery
-
-Every attempt has its own identity, output, and cancellation boundary.
-
-```mermaid
-flowchart TB
-    ADMIT["Authorize and admit attempt"] --> RUN["Prepare and execute"]
-    RUN -->|complete| DONE["Retain answer<br/>and outcome"]
-    RUN -->|Stop| CANCEL["Cancel identified work<br/>await owned cleanup"]
-    CANCEL --> STOPPED["Keep partial answer<br/>and stop reason"]
-    RUN -->|error or peer loss| PARTIAL["Keep partial answer<br/>and error"]
-    PARTIAL -->|explicit Retry| NEW["New authorized attempt"]
-    STOPPED -->|explicit Retry| NEW
-    NEW --> ADMIT
-    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
-    classDef resource fill:#edf3ff,stroke:#2563eb,color:#111827
-    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
-    class ADMIT,NEW contract
-    class DONE,STOPPED,PARTIAL resource
-    class RUN,CANCEL compute
-```
-
-A lost connection does not prove GPU cleanup. Restart creates a new attempt;
-saved outcomes do not restore model execution state. Other conversations keep
-their own progress and histories.
+[Architecture and source owners](docs/open-mesh-architecture.md) · [Attempt recovery](docs/open-mesh-architecture.md#attempt-failure-and-recovery)
 
 ## Evidence
 

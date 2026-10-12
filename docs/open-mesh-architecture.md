@@ -4,8 +4,8 @@
 
 These views trace the ordinary distributed conversation through the implementation
 at `1c8860f4`. They describe ownership and message flow, not a qualification result.
-The README contains component and recovery diagrams; the generation sequence,
-source owners and contracts remain here.
+The README contains the graphical system overview and component map. Recovery
+diagrams, the generation sequence, source owners, and contracts remain here.
 The dated design and its original gap ledger remain below. Solid arrows in the
 component view are calls or data flow; dotted arrows supply observations.
 
@@ -78,10 +78,26 @@ Sequence owners: [partition-chat.js](../packages/reploid/src/mesh/partitions/par
 
 ### Attempt failure and recovery
 
-The linked diagram shows selected transitions from the chat workspace. A retry
+The diagram shows selected transitions from the chat workspace. A retry
 constructs a new attempt; it does not revive missing generation state.
 
-[View this diagram in the README.](../README.md#attempt-failure-and-recovery)
+```mermaid
+flowchart TB
+    ADMIT["Authorize and admit attempt"] --> RUN["Prepare and execute"]
+    RUN -->|complete| DONE["Retain answer<br/>and outcome"]
+    RUN -->|Stop| CANCEL["Cancel identified work<br/>await owned cleanup"]
+    CANCEL --> STOPPED["Keep partial answer<br/>and stop reason"]
+    RUN -->|error or peer loss| PARTIAL["Keep partial answer<br/>and error"]
+    PARTIAL -->|explicit Retry| NEW["New authorized attempt"]
+    STOPPED -->|explicit Retry| NEW
+    NEW --> ADMIT
+    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
+    classDef resource fill:#edf3ff,stroke:#2563eb,color:#111827
+    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
+    class ADMIT,NEW contract
+    class DONE,STOPPED,PARTIAL resource
+    class RUN,CANCEL compute
+```
 
 Reload marks unfinished saved attempts interrupted; the user can explicitly retry.
 UI navigation detaches a view rather than closing the application session.
