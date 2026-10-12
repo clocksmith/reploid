@@ -73,3 +73,36 @@ close. Model operands and execution are untouched.
 
 The final controller preserves real HTTP navigation and verifies its bytes.
 No application networking repair or browser security bypass was introduced.
+
+## Active conversation follow-up
+
+`active-controller.mjs` / `active-result.json` extend the same frozen browser
+contributor to an actual streaming conversation through the existing requester.
+The first close is rejected while the answer is executing. The original attempt
+becomes interrupted with its partial answer retained; Retry stopping settles the
+resident. A replacement session prepares. The requester explicitly retries and
+approves the actual Suby/Mac recipient pair again. The new attempt completes;
+its entire answer is exactly the newline-separated integers 1 through 100.
+All 27 pre-existing conversations compare unchanged. Two disclosure approvals
+are recorded, and no HTTP weight request from the requester is observed.
+This follow-up does not add a new full requester-storage scan or signed-opening
+claim. The existing requester was attached over its retained CDP endpoint; only
+the contributor's served module closure is freshly hashed in this receipt.
+
+The follow-up ran 12:25:07–12:27:26 UTC and closed its contributor context.
+Peak device allocation: **504,255,752 bytes**, within the same ceiling. It does
+not establish simultaneous long conversations or final candidate acceptance.
+
+A second one-time CDP observation captures the already-selected buffer pool
+at `getBufferPool()`'s existing return boundary; it neither allocates a pool
+nor changes the public application interface. Before retry, the pool retains
+285,497,344 model bytes. After Retry stopping, retained-model, active and deferred
+cleanup resources are all zero; exactly 9,411,328 bytes in 64 reusable buffers
+remain. After the replacement completes and stops, queue settlement confirms
+the same pool counts. Device accounting is 9,422,104 bytes: the additional
+10,776 bytes are cached uniform buffers, with labels retained in the receipt.
+This is measured pool ownership for this active run, not retrospective proof
+of the idle run's entire 58,021,376-byte remainder or a zero-GPU-allocation claim.
+
+This closes the focused active cleanup/retry boundary. It leaves the final
+signed, simultaneous-long, exact-runtime acceptance open.
