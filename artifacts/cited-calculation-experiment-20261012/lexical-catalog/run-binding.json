@@ -27,9 +27,12 @@
     "OPENBLAS_NUM_THREADS": "4",
     "OMP_NUM_THREADS": "4"
   },
-  "status": "running",
+  "status": "completed",
   "startedAtUtc": "2026-10-12T18:46:31.604055+00:00",
   "remoteReploidRevision": "ba1ca4e200396746b7aab5bf44af0e606d0bb57f",
   "remoteDopplerRevision": "f02579de07dd69cdfd891f08c2c4996c6bbaaf42",
-  "pid": 3456366
+  "pid": 3456366,
+  "exitCode": 0,
+  "elapsedSeconds": 496.63207334652543,
+  "finishedAtUtc": "2026-10-12T18:54:48.236129+00:00"
 }

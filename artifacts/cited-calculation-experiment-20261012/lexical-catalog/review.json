@@ -1,0 +1,124 @@
+{
+  "schema": "reploid.lexical-catalog-review/v1",
+  "disposition": "rejected",
+  "qualified": false,
+  "frozenRevision": "d2ee4d54",
+  "reviewAndRunReceiptRevision": "befa7b2e",
+  "attempted": 1,
+  "passed": 0,
+  "unrunCases": [
+    "fresh-bathroom-correction",
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "holdouts": "Both frozen independent holdouts remain locked and unrun; original seven did not pass.",
+  "caseId": "fresh-bathroom-comparison",
+  "stopReason": "max-tokens",
+  "naturalCompletion": false,
+  "toolExecuted": false,
+  "finalAnswerGenerated": false,
+  "generatedTokens": 1536,
+  "promptTokens": 1705,
+  "totalChargedTokens": 3241,
+  "rawOutputUtf16": 2761,
+  "withinAggregateBudgets": true,
+  "elapsedSeconds": 496.63207334652543,
+  "timingScope": "Observed end-to-end source process including load/prefill; not a performance comparison.",
+  "parserError": "Unknown function or malformed official tool wrapper",
+  "completeOperationObjectsObserved": 49,
+  "repeatedIdenticalAdditions": 41,
+  "diagnosis": [
+    {
+      "operation": "c001",
+      "observed": "add f002 ($8,400 Birch) and f006 ($9,100 Quarry)",
+      "problem": "Combines mutually alternative bids despite explicit prohibition."
+    },
+    {
+      "operation": "c002",
+      "observed": "subtract f001 (September 25) and f003 (September 18)",
+      "problem": "Numeric subtract is incompatible with date literals; schema explicitly requires matching numeric kinds."
+    },
+    {
+      "operation": "c003",
+      "observed": "add f006 ($9,100 Quarry) and f007 ($500 included electrical allowance)",
+      "problem": "Adds an allowance already included by the source."
+    },
+    {
+      "operation": "c004",
+      "observed": "add f012 ($7,900 Linden) and f013 ($450 removal)",
+      "problem": null,
+      "scope": "Appropriate operands for one subtotal; no calculator execution or complete answer resulted."
+    },
+    {
+      "operation": "c005-c008",
+      "observed": "add Quarry money to percentages, duration, or date",
+      "problem": "Incompatible numeric kinds; schema states compatible operands."
+    },
+    {
+      "operation": "c009-c049",
+      "observed": "Repeated add f011 ($9,100) to itself",
+      "problem": "41 repeated operations; 49 complete objects exceed the 30-operation bound and output never closes."
+    }
+  ],
+  "factualReview": [
+    {
+      "criterion": "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+      "passed": false,
+      "reason": "No final answer; criterion not satisfied by an unfinished tool plan."
+    },
+    {
+      "criterion": "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+      "passed": false,
+      "reason": "No final answer; criterion not satisfied by an unfinished tool plan."
+    },
+    {
+      "criterion": "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+      "passed": false,
+      "reason": "No final answer; criterion not satisfied by an unfinished tool plan."
+    },
+    {
+      "criterion": "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+      "passed": false,
+      "reason": "No final answer; criterion not satisfied by an unfinished tool plan."
+    },
+    {
+      "criterion": "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges.",
+      "passed": false,
+      "reason": "No final answer; criterion not satisfied by an unfinished tool plan."
+    }
+  ],
+  "inputAudit": {
+    "catalogValuesHostGenerated": true,
+    "promptIdBudgetEqualityAssertedByRunner": true,
+    "officialTemplateAndTokenizerIdentitiesAsserted": true,
+    "exactOriginalSevenMessagesAndCriteriaFrozen": true,
+    "runtimeOrSerializationDefectEstablished": false,
+    "scope": "Original source model under this declared F32/F16KV greedy nonthinking configuration, not all configurations or distributed runtime."
+  },
+  "outputRepair": false,
+  "retry": false,
+  "productionAdoption": false,
+  "rawEvidence": [
+    {
+      "path": "result.json.gz",
+      "sha256": "61b6bd50c5c0e60d5a8d4e5a085d36653925c9c01c90f854a1b8a4a6106fda2e",
+      "uncompressedSha256": "910ba76d72121da4c1a4a32c03e699306752f7a5afc96606b58b079ebb678d8c",
+      "uncompressedBytes": 93094
+    },
+    {
+      "path": "result-fresh-bathroom-comparison-extract.json.gz",
+      "sha256": "3d2589564858dd21909f1872c38ecc223bc201d81828d49d92aab19c50b8fc38",
+      "uncompressedSha256": "71de761a9fd041ebc03d575bf84c9ae105a499f5fb25ddc830fc4d300449bae8",
+      "uncompressedBytes": 33815
+    },
+    {
+      "path": "run.log.gz",
+      "sha256": "7f879737be08a76a48350e8e73087e44380419375667ff609090a2abf335c273",
+      "uncompressedSha256": "0a4a289b26a80a8a80cc81c12155e451d6eaa107865ba41804daccb400e48c3a",
+      "uncompressedBytes": 7215
+    }
+  ]
+}
