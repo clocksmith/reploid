@@ -1,0 +1,9 @@
+{
+  "cause": "Observer cleanup scheduled dynamic import in Node inspector evaluation, whose dynamic import callback is unavailable. Unhandled timer exception terminated contributor.",
+  "name": "ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING",
+  "oldPid": 3969218,
+  "stage": "After active conversation receipt and first read-only input memory observation, before reservation snapshot",
+  "diagnosticFault": true,
+  "physicalInputSettlementQualified": false,
+  "sourceLogSha256": "a9f81eaf8ddf381464e1552f7803c41e84b50eeb2e320cd22c72b6c427a426a4"
+}

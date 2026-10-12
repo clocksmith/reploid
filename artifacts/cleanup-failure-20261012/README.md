@@ -106,3 +106,32 @@ of the idle run's entire 58,021,376-byte remainder or a zero-GPU-allocation clai
 
 This closes the focused active cleanup/retry boundary. It leaves the final
 signed, simultaneous-long, exact-runtime acceptance open.
+
+## Input-side observer failure after the successful conversation
+
+`observe-input-failed-cleanup.mjs` attached to the still-running Suby input
+contributor after the active receipt completed. Its public memory observation
+(`input-after-active.json`) found zero recurrent bytes and 1,280 attention bytes,
+all labeled cached KV-write uniforms, with weights still resident. This alone
+does not establish reservation settlement.
+
+The observer then scheduled `import('node:inspector')` in an inspector-evaluated
+timer. Node does not supply a dynamic-import callback in that context, so the
+unhandled `ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING` terminated the contributor.
+`input-observer-crash.log` and `.json` retain this **diagnostic-caused failure**.
+It occurred after the completed active test, before an input reservation snapshot;
+input-side reservation settlement for that attempt remains unqualified.
+
+The observer now uses Node's existing `process.getBuiltinModule('node:inspector')`
+for debugger cleanup. The contributor was restarted using the same explicit
+compute command and persistent profile; this restart reopens its lifecycle and
+cannot prove old resident reuse. No production runtime or networking change was
+made to explain away the diagnostic failure.
+
+`input-observer-recovery.json` records restored PID 4018571, sharing/waiting
+without an error. The corrected debugger cleanup leaves that process alive and
+closes its inspector endpoint. The attempted reservation observer timed out
+without hitting its source breakpoint and supplies no reservation proof. It is
+retained as a diagnostic limitation, not a passing lifecycle assertion. Observe
+both resident owners from their actual creation boundaries in the next required
+integrated run rather than infer the original input ownership retrospectively.
