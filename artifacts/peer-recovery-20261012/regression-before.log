@@ -1,0 +1,32 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/work-swarm-lifecycle.test.js (14 tests | 1 failed) 410ms
+   × clears a connection failure only when its affected peer reconnects 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/work-swarm-lifecycle.test.js > clears a connection failure only when its affected peer reconnects
+AssertionError: expected 'Peer A unavailable' to be '' // Object.is equality
+
+- Expected
++ Received
+
++ Peer A unavailable
+
+ ❯ tests/unit/work-swarm-lifecycle.test.js:233:34
+    231|   expect(swarm.getState().error).toBe('Peer A unavailable');
+    232|   networkEvents.emit('swarm:peer-connected', { peerId: 'peer-a' });
+    233|   expect(swarm.getState().error).toBe('');
+       |                                  ^
+    234|   await swarm.close();
+    235| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 13 passed (14)
+   Start at  12:03:08
+   Duration  706ms (transform 175ms, setup 0ms, import 233ms, tests 410ms, environment 0ms)
+

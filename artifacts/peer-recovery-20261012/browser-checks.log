@@ -1,0 +1,21 @@
+
+Running 12 tests using 1 worker
+
+(node:9663) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:9663) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium] › tests/e2e/chat-rails.spec.js:59:3 › light direct chat and floating composer at 1440px (653ms)
+  ✓   2 [chromium] › tests/e2e/chat-rails.spec.js:59:3 › dark direct chat and floating composer at 1440px (507ms)
+  ✓   3 [chromium] › tests/e2e/chat-rails.spec.js:59:3 › light direct chat and floating composer at 390px (502ms)
+  ✓   4 [chromium] › tests/e2e/chat-rails.spec.js:59:3 › dark direct chat and floating composer at 390px (566ms)
+  ✓   5 [chromium] › tests/e2e/chat-rails.spec.js:59:3 › light direct chat and floating composer at 320px (551ms)
+  ✓   6 [chromium] › tests/e2e/chat-rails.spec.js:59:3 › dark direct chat and floating composer at 320px (509ms)
+  ✓   7 [chromium] › tests/e2e/chat-rails.spec.js:92:1 › both sevens move symmetrically on hover and remain expanded, with reduced motion support (1.7s)
+  ✓   8 [chromium] › tests/e2e/chat-workspace.spec.js:4:1 › browser chat owner retains separate conversations across reload without redispatch (339ms)
+  ✓   9 [chromium] › tests/e2e/chat-workspace.spec.js:35:1 › Verification Worker accepts the conversation and scheduler modules (301ms)
+  ✓  10 [chromium] › tests/e2e/chat-workspace.spec.js:56:1 › file checkpoints remain bounded and release storage across successful transfers (220ms)
+  ✓  11 [chromium] › tests/e2e/chat-workspace.spec.js:88:1 › file checkpoints repair missing and truncated files without stale index entries (198ms)
+  ✓  12 [chromium] › tests/e2e/chat-workspace.spec.js:116:1 › browser host restores accepted placement without owning a borrowed scheduler (265ms)
+
+  12 passed (7.1s)

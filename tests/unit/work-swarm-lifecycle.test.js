@@ -22,15 +22,15 @@ import { LOCAL_DOPPLER_MODELS } from '../../self/config/doppler-local-models.js'
 const wholeModelIdentity = LOCAL_DOPPLER_MODELS.find(model => model.id === 'whole-model-lifecycle-fixture').identity;
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
-let values;
+let values, networkEvents;
 const fixture = (service = {}, partitions = {}) => createWorkSwarm({ service,
   createPartitions: () => ({ getModels: () => [], stop: async () => {}, close: async () => {}, ...partitions }), storage: {
   getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value)
 }, createModelFiles: () => ({ attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}),
-  prepareSource: async model => model.id }), networkOptions: () => ({ autoConnect: true, discoveryScope: 'public',
+  prepareSource: async model => model.id }), networkOptions: ({ EventBus }) => { networkEvents = EventBus; return { autoConnect: true, discoveryScope: 'public',
   getInviteUrl: () => 'https://replo.id/?swarm=public',
   config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'reploid-swarm-public' } } })
-}) });
+}; } });
 beforeEach(() => { vi.clearAllMocks(); values = new Map(); });
 
 it('closes initialization before late identity resolution can open a transport', async () => {
@@ -220,4 +220,39 @@ it('binds introductions to the existing identity, public namespace and separate 
     await swarm.disconnect();
     expect(await introductions.authorize({ ...request, action: 'admit' })).toBe(false);
   } finally { await swarm.close(); }
+});
+
+
+it('clears a connection failure only when its affected peer reconnects', async () => {
+  const swarm = fixture();
+  networkEvents.emit('swarm:connection-failed', { peerId: 'peer-a', message: 'Peer A unavailable' });
+  expect(swarm.getState().error).toBe('Peer A unavailable');
+  networkEvents.emit('swarm:peer-connected', { peerId: 'peer-b' });
+  expect(swarm.getState().error).toBe('Peer A unavailable');
+  networkEvents.emit('swarm:peer-connected', { peerId: 'peer-a' });
+  expect(swarm.getState().error).toBe('');
+  await swarm.close();
+});
+
+it('does not clear bootstrap failure just because one peer connects', async () => {
+  const swarm = fixture();
+  networkEvents.emit('swarm:bootstrap-error', { message: 'Discovery unavailable' });
+  networkEvents.emit('swarm:peer-connected', { peerId: 'peer-a' });
+  expect(swarm.getState().error).toBe('Discovery unavailable');
+  await swarm.close();
+});
+
+it('preserves contribution cleanup failure when a peer reconnects', async () => {
+  ports.ensure.mockResolvedValue({ peerId: 'fixture', contribution: {} });
+  ports.createTransport.mockReturnValue({ init: async () => true, disconnect: vi.fn(),
+    onMessage: vi.fn(), broadcast: vi.fn() });
+  let failStop = true;
+  const swarm = fixture({}, { stop: async () => { if (failStop) throw new Error('Cleanup not confirmed'); } });
+  await swarm.connect();
+  networkEvents.emit('swarm:connection-failed', { peerId: 'peer-a', message: 'Peer A unavailable' });
+  await expect(swarm.stop()).rejects.toThrow('Cleanup not confirmed');
+  networkEvents.emit('swarm:peer-connected', { peerId: 'peer-a' });
+  expect(swarm.getState().error).toBe('Cleanup not confirmed');
+  failStop = false;
+  await swarm.close();
 });

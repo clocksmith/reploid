@@ -1805,8 +1805,8 @@
     },
     {
       "path": "host/work-swarm.js",
-      "byteLength": 22627,
-      "sha256": "sha256:96d3e59db8ba85ea4bc92a2bfaaeb0adbe7d7ee3c7981ada83ba1df67435e2d9"
+      "byteLength": 23046,
+      "sha256": "sha256:3587113297e438e0dd4e987b30122a8f1b05ba07fab17382042e2a7267d6f3cb"
     },
     {
       "path": "host/work-task.js",
@@ -9554,5 +9554,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:e86de5b8587889aeb95cb3d83f80a8b9919d8b5e83ec369c646ab04e1b21ebaa"
+  "bundleHash": "sha256:5be2d8f1e10ddd9467b09b40ce7dbbdc2e1898952f8d988e0f5b2d590a225325"
 }
