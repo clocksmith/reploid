@@ -1,0 +1,14 @@
+{
+  "failures": [
+    {
+      "operation": "remote finalpreflight",
+      "error": "ENOENT /var/tmp/reploid-readiness-numerical-20261012/cache-preflight.json",
+      "disposition": "Copied alreadyfrozenpreflight fromownedappstaging tofixtureinput; reverifieddelivery/cache. NoGPUopened."
+    },
+    {
+      "operation": "focusedVitest",
+      "error": "nonexistent root vitest.config.js",
+      "disposition": "Use existing tests/vitest.config.js;27controlspass"
+    }
+  ]
+}
