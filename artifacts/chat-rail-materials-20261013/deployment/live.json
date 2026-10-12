@@ -1,0 +1,36 @@
+{
+  "scope": "Fresh and returning saved-state fixtures on public UI; no inference. Returning fixture seeded after deployment, not a physical upgrade observation.",
+  "revision": "0790710539bf861ba2fcfb853c225a67456b220f",
+  "receipts": [
+    {
+      "returning": false,
+      "bundleHash": "sha256:55978b55aff381dbfc7b8f65399c93367c681cb1ecb8a129061d457cddfe6f75",
+      "runtime": {
+        "name": "doppler-gpu",
+        "version": "0.6.27",
+        "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+        "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+        "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+      },
+      "defaultPreview": "You assist in Reploid. Inference may use authorized peers. Never invent model identity or execution details.",
+      "weightRequests": 0,
+      "historyAndDraftPreserved": null,
+      "contextPersisted": null
+    },
+    {
+      "returning": true,
+      "bundleHash": "sha256:55978b55aff381dbfc7b8f65399c93367c681cb1ecb8a129061d457cddfe6f75",
+      "runtime": {
+        "name": "doppler-gpu",
+        "version": "0.6.27",
+        "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+        "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+        "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+      },
+      "defaultPreview": "You assist in Reploid. Inference may use authorized peers. Never invent model identity or execution details.",
+      "weightRequests": 0,
+      "historyAndDraftPreserved": true,
+      "contextPersisted": true
+    }
+  ]
+}
