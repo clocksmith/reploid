@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import crypto from 'node:crypto';
+const paths = ['adapter.js', 'adapter.test.js'].map(file => 'artifacts/cited-calculation-experiment-20261012/source-ledger/' + file);
+const snapshot = Object.fromEntries(paths.map(path => ['/' + path, fs.readFileSync(path, 'utf8')]));
+const sources = Object.fromEntries(Object.entries(snapshot).map(([path, code]) => [path, crypto.createHash('sha256').update(code).digest('hex')]));
+let result;
+const sandbox = { console, setTimeout, clearTimeout };
+sandbox.self = sandbox;
+sandbox.postMessage = value => { result = value; };
+const context = vm.createContext(sandbox);
+sandbox.importScripts = path => vm.runInContext(fs.readFileSync('self' + path, 'utf8'), context, { filename: path });
+vm.runInContext(fs.readFileSync('self/core/verification-worker.js', 'utf8'), context, { filename: 'verification-worker.js' });
+await sandbox.onmessage({ data: { type: 'VERIFY', snapshot } });
+fs.writeFileSync('artifacts/cited-calculation-experiment-20261012/source-ledger/verification-worker.json', JSON.stringify({ scope: 'Actual Verification Worker in isolated VM; candidate source is parsed, not executed', sources, result }, null, 2) + '\n');
+console.log(JSON.stringify({ passed: result.passed, errors: result.errors, warnings: result.warnings.length, files: result.details?.filesAnalyzed }));
+if (!result.passed) process.exitCode = 1;
