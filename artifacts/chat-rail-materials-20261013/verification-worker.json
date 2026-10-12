@@ -1,0 +1,74 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/ui/pool-home/conversation-workspace.js": "6d5e1f0c52cb3f0ef345eaea4f2fa30c4b4445d67001cd9955638380f2deaa06"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /ui/pool-home/conversation-workspace.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 29 functions (max 20) - consider modularizing",
+      "14 lines exceed 200 characters"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791832865648,
+        "path": "/ui/pool-home/conversation-workspace.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791832865651,
+        "metric": "functions",
+        "value": 29,
+        "threshold": 20,
+        "message": "File has 29 functions (max 20) - consider modularizing",
+        "path": "/ui/pool-home/conversation-workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791832865651,
+        "metric": "line_length",
+        "value": 14,
+        "threshold": 5,
+        "message": "14 lines exceed 200 characters",
+        "path": "/ui/pool-home/conversation-workspace.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/ui/pool-home/conversation-workspace.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 29,
+          "threshold": 20,
+          "message": "File has 29 functions (max 20) - consider modularizing",
+          "path": "/ui/pool-home/conversation-workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 14,
+          "threshold": 5,
+          "message": "14 lines exceed 200 characters",
+          "path": "/ui/pool-home/conversation-workspace.js"
+        }
+      ],
+      "filesAnalyzed": 1
+    }
+  }
+}

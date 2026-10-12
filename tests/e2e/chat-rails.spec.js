@@ -89,22 +89,68 @@ for (const width of [1440, 390, 320]) for (const theme of ['light', 'dark']) {
   });
 }
 
-test('both sevens move symmetrically on hover and remain expanded, with reduced motion support', async ({ page }) => {
-  await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
-  const left = page.locator('[data-toggle-thread-rail]');
-  const transform = locator => locator.evaluate(node => new DOMMatrixReadOnly(getComputedStyle(node).transform).m42);
-  await left.hover();
-  await expect.poll(() => transform(left.locator('.pool-seven-main'))).toBe(6);
-  expect(await transform(left.locator('.pool-seven-small'))).toBe(-6);
-  await left.click(); await page.mouse.move(600, 300);
-  expect(await transform(left.locator('.pool-seven-main'))).toBe(6);
-  expect(await transform(left.locator('.pool-seven-small'))).toBe(-6);
-  await left.click(); await page.mouse.move(600, 300);
-  await expect.poll(() => transform(left.locator('.pool-seven-main'))).toBe(2);
-  const right = page.locator('[data-pool-settings] > summary');
-  await right.click(); await page.mouse.move(600, 300);
-  await expect.poll(() => transform(right.locator('.pool-seven-main'))).toBe(6);
-  expect(await transform(right.locator('.pool-seven-small'))).toBe(-6);
-  await page.emulateMedia({ reducedMotion: 'reduce' });
-  expect(await right.locator('.pool-seven-main').evaluate(node => getComputedStyle(node).transitionDuration)).toBe('0s');
-});
+for (const width of [1440, 320]) for (const theme of ['light', 'dark']) {
+  test(`${theme} stationary rail controls and raised panels at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+    await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
+    const left = page.locator('[data-toggle-thread-rail]');
+    const right = page.locator('[data-pool-settings] > summary');
+    const shadow = node => node.evaluate(element => getComputedStyle(element).boxShadow);
+    const material = (node, kind) => node.evaluate((element, kind) => {
+      const probe = document.createElement('span');
+      probe.style.boxShadow = `var(--pool-surface-shadow-${kind})`;
+      element.append(probe); const value = getComputedStyle(probe).boxShadow; probe.remove(); return value;
+    }, kind);
+    const glyphs = node => node.locator('.pool-seven-main, .pool-seven-small').evaluateAll(elements => elements.map(element => {
+      const rect = element.getBoundingClientRect();
+      return [rect.x, rect.y, getComputedStyle(element).transform];
+    }));
+    const initial = [await glyphs(left), await glyphs(right)];
+    await page.mouse.move(width / 2, 400);
+    for (const [index, control] of [left, right].entries()) {
+      await expect.poll(() => shadow(control)).toBe('none');
+      await control.hover();
+      await expect.poll(() => shadow(control)).toBe(await material(control, 'raised'));
+      expect(await glyphs(control)).toEqual(initial[index]);
+      await page.screenshot({ path: info.outputPath(`hover-${index}.png`), fullPage: true });
+      await page.mouse.down();
+      await expect.poll(() => shadow(control)).toBe(await material(control, 'inset'));
+      await page.mouse.up();
+      await expect(control).toHaveAttribute('aria-expanded', 'true');
+      await page.mouse.move(width / 2, 400);
+      expect(await shadow(control)).toBe(await material(control, 'inset'));
+      expect(await glyphs(control)).toEqual(initial[index]);
+    }
+    const sidebar = page.locator('[data-chat-workspace] > [data-thread-sidebar]');
+    const inspector = page.locator('.network-inspector[open]');
+    for (const panel of [sidebar, inspector]) {
+      await expect(panel).toBeVisible();
+      await panel.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished.catch(() => {}))));
+      expect(await shadow(panel)).toBe(await material(panel, 'raised'));
+      const geometry = await panel.evaluate(node => ({ padding: parseFloat(getComputedStyle(node).paddingLeft), box: node.getBoundingClientRect().toJSON() }));
+      expect(geometry.padding).toBeGreaterThanOrEqual(16);
+      expect(geometry.box.x).toBeGreaterThanOrEqual(16);
+      expect(geometry.box.x + geometry.box.width).toBeLessThanOrEqual(width - 16);
+    }
+    await page.screenshot({ path: info.outputPath('both-open.png'), fullPage: true });
+    await left.click();
+    await expect(left).toHaveAttribute('aria-expanded', 'false');
+    await expect(right).toHaveAttribute('aria-expanded', 'true');
+    await right.click();
+    await expect(right).toHaveAttribute('aria-expanded', 'false');
+    await page.mouse.move(width / 2, 400);
+    await page.keyboard.press('Tab'); await left.focus();
+    expect(await left.evaluate(node => node.matches(':focus-visible'))).toBe(true);
+    expect(await left.evaluate(node => getComputedStyle(node).outlineStyle)).toBe('solid');
+    expect(await glyphs(left)).toEqual(initial[0]);
+    await page.screenshot({ path: info.outputPath('keyboard-focus.png'), fullPage: true });
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await left.click(); await right.click();
+    expect(await left.evaluate(node => getComputedStyle(node).transitionDuration)).toBe('0s');
+    expect(await inspector.evaluate(node => getComputedStyle(node).animationName)).toBe('none');
+    expect(await glyphs(left)).toEqual(initial[0]);
+    expect(await glyphs(right)).toEqual(initial[1]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+  });
+}

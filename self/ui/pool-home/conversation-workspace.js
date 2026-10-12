@@ -13,7 +13,7 @@ const selectable = model => ['ready', 'busy', 'loading', 'preparing'].includes(m
 
 export function renderConversationWorkspace({ inspector = true } = {}) {
   return `<section class="reploid-chat-workspace" data-chat-workspace aria-label="Conversation workspace">
-    <aside id="chat-threads" class="chat-thread-sidebar" data-thread-sidebar aria-label="Threads">
+    <aside id="chat-threads" class="chat-thread-sidebar pool-surface" data-thread-sidebar aria-label="Threads">
       <header class="chat-sidebar-header"><h2 id="chat-threads-title">Threads</h2><button class="pool-button chat-mobile-threads" type="button" data-close-threads>Close</button><button class="btn pool-button btn-ghost" type="button" data-new-thread>New thread</button></header>
       <div class="chat-thread-list" data-thread-list></div>
     </aside>

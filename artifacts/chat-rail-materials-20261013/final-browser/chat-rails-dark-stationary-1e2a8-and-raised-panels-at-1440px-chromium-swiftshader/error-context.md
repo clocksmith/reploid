@@ -1,0 +1,42 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - navigation "Reploid":
+    - button "Toggle threads" [ref=e4] [cursor=pointer]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: "7"
+        - superscript [ref=e7]: "7"
+    - group [ref=e9]:
+      - generic "Settings" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]:
+          - generic [ref=e12]: "7"
+          - superscript [ref=e13]: "7"
+  - region "Conversation workspace" [ref=e15]:
+    - region "Current conversation" [ref=e16]:
+      - generic [ref=e17]:
+        - combobox "Model" [ref=e20] [cursor=pointer]:
+          - option "Qwen 3.5 0.8B · Ready" [selected]
+        - button "Inspect network" [ref=e21] [cursor=pointer]:
+          - img [ref=e22]
+          - generic [ref=e27]: 6 peers
+        - group [ref=e28]:
+          - generic "Conversation actions" [ref=e29] [cursor=pointer]:
+            - img [ref=e30]
+          - option "16" [selected]
+          - option "32"
+          - option "64"
+      - log "Messages" [ref=e35]
+      - generic [ref=e37]:
+        - generic [ref=e38]: Message
+        - generic [ref=e39]:
+          - textbox "Message" [ref=e40]:
+            - /placeholder: Ask a question…
+          - generic "Attach files" [ref=e41] [cursor=pointer]:
+            - img [ref=e42]
+            - generic [ref=e44]: Attach files
+            - button "Attach files" [ref=e45]
+          - button "Send" [ref=e47] [cursor=pointer]:
+            - img [ref=e48]
+  - text: ● ● ● ●
+```

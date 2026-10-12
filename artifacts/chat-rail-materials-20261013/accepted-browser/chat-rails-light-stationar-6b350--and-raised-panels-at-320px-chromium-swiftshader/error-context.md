@@ -1,0 +1,68 @@
+# Page snapshot
+
+```yaml
+- main [ref=e3]:
+  - navigation "Reploid":
+    - button "Toggle threads" [expanded] [ref=e4] [cursor=pointer]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: "7"
+        - superscript [ref=e7]: "7"
+    - group [ref=e9]:
+      - generic "Settings" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]:
+          - generic [ref=e12]: "7"
+          - superscript [ref=e13]: "7"
+  - region "Conversation workspace" [ref=e15]:
+    - complementary "Threads" [ref=e16]:
+      - generic [ref=e17]:
+        - heading "Threads" [level=2] [ref=e18]
+        - button "Close" [ref=e19] [cursor=pointer]
+        - button "New thread" [ref=e20] [cursor=pointer]
+    - region "Current conversation" [ref=e21]:
+      - generic [ref=e22]:
+        - button "Inspect network" [ref=e23] [cursor=pointer]:
+          - img [ref=e24]
+        - group [ref=e29]:
+          - generic "Conversation actions" [ref=e30] [cursor=pointer]:
+            - img [ref=e31]
+          - option "16" [selected]
+          - option "32"
+          - option "64"
+      - log "Messages" [ref=e36]
+      - generic [ref=e38]:
+        - generic [ref=e39]: Message
+        - generic [ref=e40]:
+          - textbox "Message" [ref=e41]:
+            - /placeholder: Ask a question…
+          - generic "Attach files" [ref=e42] [cursor=pointer]:
+            - img [ref=e43]
+            - generic [ref=e45]: Attach files
+            - button "Attach files" [ref=e46]
+          - button "Send" [disabled] [ref=e48]:
+            - img [ref=e49]
+        - button "Retry connection" [ref=e52] [cursor=pointer]
+  - dialog "Network" [ref=e54]:
+    - generic [ref=e55]:
+      - heading "Network" [level=2] [ref=e56]
+      - button "Close network and settings" [active] [ref=e57] [cursor=pointer]:
+        - img [ref=e58]
+    - navigation "Network sections" [ref=e60]:
+      - button "This conversation" [ref=e61] [cursor=pointer]:
+        - img [ref=e62]
+      - button "Participants" [ref=e64] [cursor=pointer]:
+        - img [ref=e65]
+        - generic [ref=e70]: 0 peers
+      - button "This device" [ref=e71] [cursor=pointer]:
+        - img [ref=e72]
+      - button "Settings" [pressed] [ref=e75] [cursor=pointer]:
+        - img [ref=e76]
+    - region "Settings" [ref=e81]:
+      - group "Appearance" [ref=e82]:
+        - button "System" [pressed] [ref=e83] [cursor=pointer]
+        - button "Light" [ref=e84] [cursor=pointer]
+        - button "Dark" [ref=e85] [cursor=pointer]
+      - link "Changes" [ref=e86] [cursor=pointer]:
+        - /url: /improve
+      - link "Examples" [ref=e87] [cursor=pointer]:
+        - /url: /examples
+```
