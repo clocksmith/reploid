@@ -1,0 +1,18 @@
+{
+  "priorThinkingReportSha256": "d5a29144d198c170b65deb276ea1a56a6cbd9894f7743e9923771b26cb9b87a1",
+  "sourcePassCount": 14,
+  "scope": "Different sampled thinking policy; not qualification of current nonthinking typed workflow.",
+  "settings": {
+    "maxTokens": 4096,
+    "maxSeqLen": 8192,
+    "temperature": 0.6,
+    "topK": 20,
+    "topP": 0.95,
+    "repetitionPenalty": 1.0,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "stopSequences": [],
+    "useChatTemplate": true,
+    "minP": 0
+  }
+}
