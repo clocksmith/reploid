@@ -1,3 +1,4 @@
+import { allowsSwarmOrigin } from '../swarm-origin-policy.js';
 import { DurableObject } from 'cloudflare:workers';
 import bootstrap from '../../self/config/swarm-bootstrap.json';
 
@@ -34,7 +35,7 @@ export class SwarmRoom extends DurableObject {
 
   async fetch(request) {
     const join = namespace(new URL(request.url));
-    if (!join || !bootstrap.allowedOrigins.includes(request.headers.get('Origin'))) return new Response('Forbidden', { status: 403 });
+    if (!join || !allowsSwarmOrigin(request.headers.get('Origin'), bootstrap)) return new Response('Forbidden', { status: 403 });
     if (request.headers.get('Upgrade')?.toLowerCase() !== 'websocket') return new Response('WebSocket required', { status: 426 });
     if (this.sockets().length >= limits.maxPeersPerRoom) return new Response('Room capacity reached', { status: 429 });
     const lease = await this.admission().reserve(join.roomId);

@@ -17,7 +17,7 @@ Outputs: existing signaling envelopes and expiring RTC configuration.
 
 ## Invariants
 - Each namespace has an independent hibernating room object; admission leases enforce shared bounded capacity, not message routing.
-- Exact origins, active membership, scoped capabilities, frame/rate limits and expiry precede signaling.
+- Exact hosted origins or explicitly allowed HTTP(S) loopback origins on any port, active membership, scoped capabilities, frame/rate limits and expiry precede signaling.
 - Private capability hashes survive object eviction and empty rooms.
 - No application relay, virtual peer, model execution or automatic contribution.
 - Credentials require verified Firebase issuer, audience, signature and time claims; secrets never reach clients or logs.

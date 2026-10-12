@@ -1355,8 +1355,8 @@
     },
     {
       "path": "config/swarm-bootstrap.json",
-      "byteLength": 938,
-      "sha256": "sha256:80cfe0e442e874c722be0eda7b734c86c7b592642d091876208b8d4e20b20325"
+      "byteLength": 970,
+      "sha256": "sha256:e58556e86cbe99ab3d28fc2a01a5cd89596a9bb7d6264e58ab76978423c1074e"
     },
     {
       "path": "config/tool-surfaces.js",
@@ -9549,5 +9549,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:1f42c022280776a169eb4f6d7e14050c34eb0bc52f23ecbcfc6ef14a89c8a381"
+  "bundleHash": "sha256:5d9139e722fb1c84b5c7ac5af7108ff55816a32fc4c25cc4fdb9ff59931694ef"
 }

@@ -9,6 +9,7 @@
   "autoConnect": true,
   "retryMs": [1000, 2000, 4000, 8000, 16000, 30000],
   "healthCheckMs": 10000,
+  "allowLoopbackOrigins": true,
   "allowedOrigins": ["https://replo.id", "https://reploid.web.app", "https://reploid.firebaseapp.com", "http://localhost:8000", "http://127.0.0.1:8000"],
   "server": {
     "heartbeatInterval": 30000, "peerTimeout": 60000, "maxMessageBytes": 65536,

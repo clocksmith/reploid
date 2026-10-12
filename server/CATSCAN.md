@@ -30,7 +30,7 @@ Outputs:
 - Native hosts reuse participant contracts. Doppler owns computation; adapters own provider lifetime, authorized files and settlement.
 - File supply needs separate consent. Signed custody and Doppler verification acquire requested pieces only. Bounded caches retain verified complete files; quarantine corruption; restart partial pieces.
 - Receipts retain opening/runtime/provider identities; native support qualifies separately.
-- `/swarm` is bounded discovery only: exact origins, namespace admission, destination membership, heartbeat and unjoined expiry. No application relay or virtual inference peers; origin is not authentication.
+- `/swarm` is bounded discovery only: exact hosted origins or explicitly allowed HTTP(S) loopback origins on any port, namespace admission, destination membership, heartbeat and unjoined expiry. No application relay or virtual inference peers; origin is not authentication.
 
 ## Acceptance
 - Preserve admission boundaries.

@@ -1,3 +1,4 @@
+import { allowsSwarmOrigin } from '../swarm-origin-policy.js';
 import bootstrap from '../../self/config/swarm-bootstrap.json';
 import { namespace } from './room.js';
 import { handleTurn } from './turn.js';
@@ -11,7 +12,7 @@ export default {
       return Response.json({ service: 'reploid-swarm', release: env.RELEASE_ID, discoveryOnly: true }, { headers: { 'Cache-Control': 'no-store' } });
     }
     const origin = request.headers.get('Origin');
-    if (!bootstrap.allowedOrigins.includes(origin)) return new Response('Origin not allowed', { status: 403 });
+    if (!allowsSwarmOrigin(origin, bootstrap)) return new Response('Origin not allowed', { status: 403 });
     const headers = { 'Access-Control-Allow-Origin': origin, Vary: 'Origin', 'Cache-Control': 'no-store',
       'Access-Control-Allow-Methods': 'GET, OPTIONS', 'Access-Control-Allow-Headers': 'Authorization, X-Reploid-Client-Id',
       'Access-Control-Expose-Headers': 'Retry-After' };
