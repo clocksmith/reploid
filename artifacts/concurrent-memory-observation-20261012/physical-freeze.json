@@ -1,0 +1,15 @@
+{
+  "schema": "reploid.concurrent-resident-memory-freeze/v1",
+  "status": "prepared-not-executed",
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "testDeliverySha256": "f1e63d3e5b6f958e6748c1ac3ce6b6da716170b07c551c505828b6ae1243b68e",
+  "runnerSha256": "b598365c76ffce06ff84ab9af38d4a412d25896f106561be5049958f9c5d21ac",
+  "requestFixtureSha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+  "helperSha256": "c9dbaab26ecde4499f0866f4213d1126cf20017cbb3af5dd6ca0a7bd3434f59c",
+  "phase": "concurrent",
+  "promptTokens": 1588,
+  "maxGpuBufferBytesPerExecutor": 1420000000,
+  "operation": "Baseline to EOS; two live long attempts through prefill and decode; allocation rejection; cancel one after submission; unchanged surviving tokens through EOS; explicit fresh retry to EOS without reopening weights.",
+  "runtimeChanged": false,
+  "observedPhysicalResult": null
+}
