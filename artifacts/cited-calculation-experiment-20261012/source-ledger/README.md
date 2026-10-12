@@ -1,6 +1,6 @@
 # Source-role ledger preparation
 
-Status: adapter preparation only. No model output, model qualification,
+Status: adapter and primary-renderer preparation only. No model output, model qualification,
 production integration or release acceptance exists for this treatment.
 
 The previous typed request allowed the model to assemble arithmetic expressions.
@@ -36,18 +36,33 @@ literal spans, including the original user's budget and deadline.
 `adapter.test.js` uses an unrelated studio estimate. It checks arithmetic,
 provenance, included-charge handling, unresolved inputs, unit/scope rejection,
 assistant exclusion, duplicate/unknown references and existing authorization.
-All 13 controls pass. The actual Verification Worker passes with three warnings
-and no errors. Passing these controls does not establish that a model chooses
-correct relations.
+`render.js` is a distinct proposed output treatment. It presents only selected
+source evidence and admitted derived values, with source IDs, visible conditions
+and unresolved fields. It does not consume or rewrite a failed generated answer.
+It does not infer a deadline guarantee, all-in price or unconditional recommendation.
+`render.test.js` includes a deliberately wrong source-role selection: its quoted
+spans and arithmetic remain valid, but independent fixture criteria reject the
+wrong subtotal and included/excluded interpretation. Rendering cannot grant
+semantic acceptance. The output limit rejects the whole report rather than
+silently truncating missing requirements.
+
+All 17 controls pass. The actual Verification Worker checks four files and
+passes with three warnings and no errors. Passing these controls does not
+establish that a model chooses correct relations.
 
 The proposed later model experiment must reuse the existing evaluator/runner,
 authorized source model, exact seven ordered histories, unchanged full factual
 and citation criteria, and aggregate 4096 generated/8192 prompt-plus-generated
-tokens/16000 raw UTF16 limits. Every repeated prompt and any correction must be
-charged. The final call must receive the original complete ordered history plus
-the retained ledger, without editing prior answers or repairing model output.
-Conditions, contradictions, missing information and citation entailment still
-require independent review. The existing locked holdouts remain unrun.
+tokens/16000 raw UTF16 limits. The original complete ordered history must reach
+the model selecting source roles; catalog construction still excludes assistant
+assertions as operand evidence. Every repeated prompt and any correction must
+be charged. The proposed primary report replaces a later free-prose call; it does
+not claim to pass the old free-prose treatment or rewrite its rejected answer.
+Rendered characters must fit the remaining output-character allowance after
+all raw model output; renderer output and model token counts must be reported
+separately. No historical input or criterion may be changed. Conditions,
+contradictions, missing information and citation entailment still require
+independent review. The existing locked holdouts remain unrun.
 
 No source experiment may launch before the active four-pair direct control
 finishes, tokenizer preflight admits the complete workflow, and a concrete
