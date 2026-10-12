@@ -1,3 +1,4 @@
+import { allowsSwarmOrigin } from './swarm-origin-policy.js';
 import SignalingServer from './signaling-server.js';
 import policy from '../self/config/swarm-bootstrap.json' with { type: 'json' };
 
@@ -24,7 +25,7 @@ export class PublicSwarmServer extends SignalingServer {
   handleUpgrade(req, socket, head) {
     const scope = new URL(req.url, 'http://swarm.invalid').searchParams.get('scope');
     if (!this.shouldHandle(req) || !['public', 'private'].includes(scope)) return this.rejectUpgrade(socket, 400, 'Invalid discovery scope');
-    if (!this.bootstrap.allowedOrigins.includes(req.headers.origin)) return this.rejectUpgrade(socket, 403, 'Origin not allowed');
+    if (!allowsSwarmOrigin(req.headers.origin, this.bootstrap)) return this.rejectUpgrade(socket, 403, 'Origin not allowed');
     const limits = this.bootstrap.server;
     const now = Date.now();
     if (now >= this.connectionWindow.end) this.connectionWindow = { end: now + limits.connectionWindowMs, count: 0 };

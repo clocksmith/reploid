@@ -26,12 +26,16 @@ const publicJoin = peerId => ({ type: 'join', peerId, roomId: policy.publicRoomI
 const wait = async (peer, type) => { await expect.poll(() => peer.messages.find(m => m.type === type)).toBeTruthy(); return peer.messages.find(m => m.type === type); };
 
 describe('public discovery signaling, not application relay', () => {
-  it('admits the configured local application origin while retaining exact origin checks', async () => {
+  it('admits loopback ports into the hosted room while rejecting lookalike origins', async () => {
     const f = await fixture({}, 8123);
     try {
       const peer = await f.open('public', 'http://localhost:8123');
       peer.send(publicJoin('local-peer')); await wait(peer, 'joined');
-      const ws = new WebSocket(f.url + '?scope=public', { origin: 'http://localhost:8124' });
+      const hosted = await f.open(); hosted.send(publicJoin('hosted-peer'));
+      expect((await wait(hosted, 'joined')).peers).toContain('local-peer');
+      const other = await f.open('public', 'http://[::1]:5173'); other.send(publicJoin('other-local'));
+      expect((await wait(other, 'joined')).peers).toEqual(['local-peer', 'hosted-peer']);
+      const ws = new WebSocket(f.url + '?scope=public', { origin: 'http://localhost.evil.test:8124' });
       const status = await new Promise(resolve => {
         ws.on('unexpected-response', (req, res) => { resolve(res.statusCode); req.destroy(); });
         ws.on('error', () => {});

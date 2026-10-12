@@ -9,9 +9,9 @@ const sockets = [];
 afterEach(async () => { for (const ws of sockets.splice(0)) ws.close(); await reset(); });
 const roomId = () => `reploid-swarm-${crypto.randomUUID()}`;
 const join = (id, room = bootstrap.publicRoomId, token = bootstrap.publicJoinMarker) => ({ type: 'join', peerId: id, roomId: room, token });
-async function connect(room = bootstrap.publicRoomId, scope = room === bootstrap.publicRoomId ? 'public' : 'private') {
+async function connect(room = bootstrap.publicRoomId, scope = room === bootstrap.publicRoomId ? 'public' : 'private', origin = 'https://replo.id') {
   const response = await exports.default.fetch(`https://worker.test/swarm?scope=${scope}&roomId=${room}`, {
-    headers: { Origin: 'https://replo.id', Upgrade: 'websocket' }
+    headers: { Origin: origin, Upgrade: 'websocket' }
   });
   expect(response.status).toBe(101);
   const ws = response.webSocket, messages = [];
@@ -176,4 +176,17 @@ it('rate limits credential issuance by verified subject', async () => {
   const response = await handleTurn(turnRequest(), turnEnv(), { verify: async () => 'one-user', fetcher: async () => { throw new Error('must not execute'); } });
   expect(response.status).toBe(429); expect(response.headers.get('Retry-After')).toBe('60');
   expect(await admission.allowTurn('another-user')).toBe(true);
+});
+
+
+it('shares the public room across hosted and arbitrary loopback origins without granting TURN', async () => {
+  const hosted = await connect(); hosted.send(join('hosted')); await hosted.wait('joined');
+  for (const [index, origin] of ['http://localhost:5173', 'https://localhost:9443', 'http://127.0.0.1:4321', 'http://[::1]:8081'].entries()) {
+    const local = await connect(bootstrap.publicRoomId, 'public', origin);
+    local.send(join(`local-${index}`)); expect((await local.wait('joined')).peers).toContain('hosted');
+    const options = await exports.default.fetch('https://worker.test/rtc-config', { method: 'OPTIONS', headers: { Origin: origin } });
+    expect(options.status).toBe(204); expect(options.headers.get('Access-Control-Allow-Origin')).toBe(origin);
+    const credentials = await exports.default.fetch('https://worker.test/rtc-config', { headers: { Origin: origin } });
+    expect(credentials.status).toBe(401);
+  }
 });
