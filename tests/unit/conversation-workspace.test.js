@@ -19,7 +19,7 @@ describe('Conversation workspace', () => {
   it('keeps the composer and draft while network capacity is unavailable', () => {
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-active-model-select]').textContent).toBe('No models available');
-    expect(find('[data-model-status]').textContent).toBe('No model is available right now. Your draft stays here.');
+    expect(find('[data-model-status]').textContent).toBe('No model available. Your draft stays here.');
     expect(find('[data-model-control]').hidden).toBe(true);
     expect(find('[data-model-setup]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(false);
@@ -38,12 +38,12 @@ describe('Conversation workspace', () => {
       swarm: { getState: () => ({ partitionPeers: [peer], consumer: { peers: [] } }) } });
     dispose = bindConversationWorkspace(root, session);
     find('[data-composer-input]').value = 'Keep my question';
-    expect(find('[data-model-status]').textContent).toBe('A connected computer is preparing a model. Your draft stays here.');
+    expect(find('[data-model-status]').textContent).toBe('A peer is preparing a model. Your draft stays here.');
     expect(find('[data-retry-connection]').hidden).toBe(true);
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(service.calls).toHaveLength(0);
     peer.available = false; session.refreshNetwork();
-    expect(find('[data-model-status]').textContent).toBe('No model is available right now. Your draft stays here.');
+    expect(find('[data-model-status]').textContent).toBe('No model available. Your draft stays here.');
     expect(find('[data-retry-connection]').hidden).toBe(false);
     expect(find('[data-composer-input]').value).toBe('Keep my question');
   });
@@ -161,7 +161,7 @@ describe('Conversation workspace', () => {
     find('[data-new-thread]').click();
     expect(find('[data-composer-input]').placeholder).toBe(previous);
     expect(session.getState().threads).toHaveLength(0);
-    expect(find('.chat-empty-state').textContent).toContain('Start a conversation');
+    expect(find('[data-message-stream]').textContent).toBe('');
     expect(find('[data-conversation-actions] [data-show-archived]')).not.toBeNull();
     expect(find('[data-thread-sidebar] [data-show-archived]')).toBeNull();
   });

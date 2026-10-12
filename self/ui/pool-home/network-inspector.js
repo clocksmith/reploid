@@ -10,23 +10,22 @@ export function renderNetworkInspector() {
     <header class="chat-network-heading"><h2 id="network-inspector-title">Network</h2><button class="pool-button" type="button" data-close-inspector>Close</button></header>
     <nav class="network-inspector-tabs" aria-label="Network sections">
       <button class="pool-button" type="button" data-inspector-section="conversation">This conversation</button>
-      <button class="pool-button" type="button" data-inspector-section="participants">Participants</button>
+      <button class="pool-button" type="button" data-inspector-section="participants">Participants <span data-mesh-peers></span></button>
       <button class="pool-button" type="button" data-inspector-section="device">This device</button>
     </nav>
     <section data-inspector-pane="conversation" aria-label="This conversation">
-      <h3>This conversation</h3><div class="execution-ribbon-route" data-inspector-route></div>
+      <div class="execution-ribbon-route" data-inspector-route></div>
       <p data-inspector-status role="status"></p>
       <details><summary>Execution details</summary><div class="execution-inspector-facts" data-ribbon-facts></div><details><summary>Timeline</summary><ol data-ribbon-timeline></ol></details></details>
       <section data-thread-permissions hidden><h4>Current permissions</h4>
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
     <section data-inspector-pane="participants" aria-label="Available participants" hidden>
-      <h3>Available participants <small data-mesh-peers></small></h3>
       ${renderConnectionControl()}<ul class="network-peer-list" data-insp-device-list></ul>
       <button class="pool-button" type="button" data-mesh-invite hidden>Copy private invitation</button>
     </section>
     <section data-inspector-pane="device" aria-label="This device" hidden>
-      <h3>This device</h3>${renderSharingControls()}
+      ${renderSharingControls()}
       <button class="pool-button" type="button" data-model-setup>Run on this device</button>
       <details data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
     </section>
