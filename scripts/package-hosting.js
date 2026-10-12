@@ -38,9 +38,7 @@ async function verifyArchiveProjection(selfDir, files) {
     }
   } finally { await fs.rm(staging, { recursive: true, force: true }); }
 }
-export async function packageHosting({ selfDir = path.join(root, 'self'), outputDir = path.join(root, '.firebase-hosting/reploid') } = {}) {
-  if (path.resolve(outputDir) === path.resolve(selfDir)
-    || path.resolve(selfDir).startsWith(path.resolve(outputDir) + path.sep)) throw new Error('Hosting output cannot replace source');
+export async function verifyHostingSource(selfDir) {
   const files = await buildHostingFileSet({ selfDir });
   await verifyArchiveProjection(selfDir, files);
   const descriptor = await fs.readFile(path.join(selfDir, BROWSER_BUNDLE_DESCRIPTOR_PATH));
@@ -49,6 +47,12 @@ export async function packageHosting({ selfDir = path.join(root, 'self'), output
     .map(async name => ({ path: name, bytes: new Uint8Array(await fs.readFile(path.join(selfDir, name))) })));
   const validation = await validateBrowserBundleManifest(manifest, { entries });
   if (!validation.ok) throw new Error(`Hosting manifest is stale: ${validation.reasons.join('; ')}`);
+  return { files, manifest, entries, descriptor };
+}
+export async function packageHosting({ selfDir = path.join(root, 'self'), outputDir = path.join(root, '.firebase-hosting/reploid') } = {}) {
+  if (path.resolve(outputDir) === path.resolve(selfDir)
+    || path.resolve(selfDir).startsWith(path.resolve(outputDir) + path.sep)) throw new Error('Hosting output cannot replace source');
+  const { files, manifest, entries, descriptor } = await verifyHostingSource(selfDir);
   await fs.rm(outputDir, { recursive: true, force: true });
   // Write the bytes we validated. Rereading the checkout here could silently
   // mix revisions when another process edits it during packaging.

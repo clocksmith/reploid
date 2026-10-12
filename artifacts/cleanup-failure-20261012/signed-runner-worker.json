@@ -1,0 +1,102 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/scripts/package-hosting.js": "ace99902b0226b3ca13383925efdaf8c733e2d7456d3a3aef18625d5f4185419",
+    "/artifacts/cleanup-failure-20261012/signed-preflight.js": "dc4d748aa591a4cd8aa7ffb3344aae722f3f2c06ffb2e5f77da7ac2c8b81ba7e"
+  },
+  "result": {
+    "passed": false,
+    "errors": [
+      "Security Violation in /scripts/package-hosting.js: child_process operations are forbidden",
+      "Security Violation in /scripts/package-hosting.js: process.exit is forbidden"
+    ],
+    "warnings": [
+      "Warning in /scripts/package-hosting.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /scripts/package-hosting.js:14: Suspicious variable name: exec - may indicate code execution",
+      "Warning in /artifacts/cleanup-failure-20261012/signed-preflight.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791836289280,
+        "path": "/scripts/package-hosting.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791836289280,
+        "path": "/scripts/package-hosting.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791836289280,
+        "path": "/scripts/package-hosting.js",
+        "patternId": "process_exit",
+        "category": "process",
+        "message": "process.exit is forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791836289280,
+        "path": "/scripts/package-hosting.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 14,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791836289286,
+        "path": "/artifacts/cleanup-failure-20261012/signed-preflight.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/scripts/package-hosting.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/scripts/package-hosting.js",
+          "patternId": "child_process",
+          "category": "process",
+          "message": "child_process operations are forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/scripts/package-hosting.js",
+          "patternId": "process_exit",
+          "category": "process",
+          "message": "process.exit is forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/artifacts/cleanup-failure-20261012/signed-preflight.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [],
+      "filesAnalyzed": 2
+    },
+    "reason": "Verification Failed"
+  }
+}
