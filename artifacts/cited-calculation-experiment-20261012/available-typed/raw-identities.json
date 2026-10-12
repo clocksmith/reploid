@@ -1,0 +1,32 @@
+[
+  {
+    "path": "result.json.gz",
+    "sha256": "eaf777b728b6279f6d9e8a723bd3b20b741b3850544756412c18c988baef1cb0",
+    "uncompressedSha256": "4a510d1ae6c5e48b4000f4c2945a00a400cd9cc261093aee936ca88dc026e80a",
+    "uncompressedBytes": 70751
+  },
+  {
+    "path": "result-fresh-bathroom-comparison-extract-D1-0.json.gz",
+    "sha256": "a7197343173e086734a1dde260e465ad8f964c1b3423e345fa5e79ed2d32c1d6",
+    "uncompressedSha256": "b8ba9b088c8fcd1e5a90c3165922af212b86f27f37d4b91516b60832cbc1f9ba",
+    "uncompressedBytes": 15497
+  },
+  {
+    "path": "result-fresh-bathroom-comparison-extract-D2-0.json.gz",
+    "sha256": "08180ef4ad6d29b043ee1addcb5af6b9279dcc97d9ed0f25694fab60c5dca8f1",
+    "uncompressedSha256": "9bee2d151507e28beb5f90bfd9de64b8a7ce9062604765852389d421cea1b0ee",
+    "uncompressedBytes": 16329
+  },
+  {
+    "path": "result-fresh-bathroom-comparison-extract-D2-1.json.gz",
+    "sha256": "ce2c8fbb1d2911dd504f2d10307336b6e1f1c4d9fba1d242d2ff6b0d9efb5155",
+    "uncompressedSha256": "7a5355ac4ba2ed9db1cd094b4f43785220b43017424445963e69c802f18ae5d7",
+    "uncompressedBytes": 18406
+  },
+  {
+    "path": "run.log.gz",
+    "sha256": "6bdd6cda8a5fb5e118ccb47342607a3be7416fc2b2190b5fe9a5d95a0bc80547",
+    "uncompressedSha256": "38015ce13f3c6516512b00b13acb8938d64d5b24c0cc00ff77179ad7a41eb5e4",
+    "uncompressedBytes": 2311
+  }
+]

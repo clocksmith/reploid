@@ -4,7 +4,7 @@
   "host": "x@128.tail995236.ts.net",
   "sourcePid": 596858,
   "wrapperPid": 596857,
-  "status": "running",
+  "status": "completed",
   "startedAtUtc": "2026-10-12T20:44:07.322070+00:00",
   "environment": {
     "PYTHONPATH": "/tmp/doppler-reference-deps",
@@ -22,5 +22,29 @@
   "gpu": false,
   "evidenceDirectory": "/home/x/deco/reploid/reports/local/cited-calculation-available-20261013",
   "freezeSha256": "2245d08c88139aa665f95440ea4bce4aabfacca2dec1020de0b2825d5b17235e",
-  "restartPolicy": "No unchanged rerun; preserve first structural failure and unrun cases."
+  "restartPolicy": "No unchanged rerun; preserve first structural failure and unrun cases.",
+  "finishedAtUtc": "2026-10-12T20:47:03.712243+00:00",
+  "elapsedSeconds": 176.390173,
+  "exitCode": 0,
+  "command": [
+    "taskset",
+    "-c",
+    "4-7",
+    "nice",
+    "-n",
+    "10",
+    "python3",
+    "-u",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/available-typed/run.py",
+    "--doppler",
+    "/home/x/deco/doppler",
+    "--source",
+    "/var/tmp/doppler-qwen3-17b-source-20261011",
+    "--suite",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/available-typed/suite.json",
+    "--out",
+    "/home/x/deco/reploid/reports/local/cited-calculation-available-20261013/result.json",
+    "--threads",
+    "4"
+  ]
 }
