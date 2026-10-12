@@ -1685,8 +1685,8 @@
     },
     {
       "path": "host/document-comparison.js",
-      "byteLength": 4171,
-      "sha256": "sha256:78982ae492c93b71cce6401784ec5c201b8b86c8d5f26b0cd34379dc909be3dd"
+      "byteLength": 4482,
+      "sha256": "sha256:7d80ae3314b2be989b74a3eecc54d0ebfe4d1f190d7f3bad263f4a80c58c3e42"
     },
     {
       "path": "host/document-study.js",
@@ -3095,8 +3095,8 @@
     },
     {
       "path": "ui/pool-home/message-list.js",
-      "byteLength": 5093,
-      "sha256": "sha256:666300dfc8ebe6323fc9ad9bb6b512712ccc4ad61eceb838502c277214eea52c"
+      "byteLength": 5078,
+      "sha256": "sha256:f51cc7becc71704c22ea6fdfc76dedcd2e777b14c1dba51162a0f9eb944bd4d8"
     },
     {
       "path": "ui/pool-home/navigation.js",
@@ -9534,5 +9534,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:eac23c6a242eae9cc84e70439c54631eef40af2ea759496a17622c1512864d68"
+  "bundleHash": "sha256:13f20122b9510e27d1aa87847259b8bb7c78e05ff05e3878479162e868ee69c0"
 }

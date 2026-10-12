@@ -132,9 +132,12 @@ test('browser host preserves files and followups across reload with injected exe
   await page.goto('/'); await install();
   await page.locator('[data-composer-files]').setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('Attached evidence') });
   await expect(page.locator('[data-attachments-preview]')).toContainText('notes.txt');
-  await page.locator('[data-composer-input]').fill('Read the attachment');
+  const question = 'Read the attachment.\nInclude exclusions.\n\nCheck the date.';
+  await page.locator('[data-composer-input]').fill(question);
   await page.locator('[data-composer-send]').click();
   await expect(page.locator('.is-assistant')).toContainText('Attached evidence');
+  await expect(page.locator('.is-user').first()).toContainText(question);
+  await expect(page.locator('.is-user').first()).not.toContainText('Treat attached passages');
   await page.locator('[data-composer-input]').fill('Follow up');
   await page.locator('[data-composer-send]').click();
   await expect(page.locator('.is-assistant')).toHaveCount(2);
@@ -142,6 +145,7 @@ test('browser host preserves files and followups across reload with injected exe
   await page.locator('[data-thread-item-id]').click();
   await expect(page.locator('.is-assistant')).toHaveCount(2);
   await expect(page.locator('.is-user').first()).toContainText('Attached evidence');
+  await expect(page.locator('.is-user').first()).toContainText(question);
 });
 
 test('Verification Worker accepts repaired application modules', async ({ page }) => {

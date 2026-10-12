@@ -1,11 +1,21 @@
 import { describe, it, expect } from 'vitest';
-import { comparisonInput, comparisonSources, comparisonExport } from '../../self/host/document-comparison.js';
+import { attachmentInput, comparisonInput, comparisonSources, comparisonExport } from '../../self/host/document-comparison.js';
 import { createChatSession } from '../../self/host/chat-session.js';
 import { createChatTestService } from '../fixtures/chat-service.js';
 import sample from '../../self/config/document-comparison-sample.json' with { type: 'json' };
 const storage = () => { const values = new Map(); return { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) }; };
 
 describe('Document workflow ownership', () => {
+  it('preserves the complete multiline question while separating generated instructions', () => {
+    const question = 'Compare the prices.\nInclude exclusions.\n\nWhich date is conditional?';
+    const files = [{ name: 'quote.txt', text: 'May deliver Friday.' }];
+    const attached = attachmentInput(question, files);
+    expect(comparisonSources(attached).question).toBe(question);
+    expect(comparisonSources(comparisonInput(question, [...files, { name: 'second.txt', text: 'Delivery unconfirmed.' }])).question).toBe(question);
+    expect(comparisonExport({ messages: [{ role: 'user', content: attached, status: 'completed' }] })).toContain(question);
+    expect(comparisonExport({ messages: [{ role: 'user', content: attached, status: 'completed' }] })).not.toContain('Treat attached passages');
+  });
+
   it('gives ordinary attachments stable passages without starting a comparison or checking pass', async () => {
     const store = storage();
     const session = createChatSession({ storage: store, service: createChatTestService() });

@@ -9,6 +9,18 @@ function conversation() {
 }
 
 describe('Stable message presentation', () => {
+  it('shows every line of an attached question as inert text', () => {
+    const root = document.createElement('div'), thread = conversation();
+    const question = 'Compare prices.\nInclude <script> and exclusions.\n\nCheck the date.';
+    const view = createMessageList(root, { getSources: text => text === 'Question' ? {
+      question, documents: [{ name: 'Quote', passages: [{ id: 'D1:P1', text: 'May deliver Friday.' }] }]
+    } : null });
+    view.update(thread, { usable: true, busy: false });
+    expect(root.querySelector('[data-message-id="question"] .chat-message-content').textContent).toContain(question);
+    expect(root.querySelector('script')).toBeNull();
+    view.dispose();
+  });
+
   it('keeps existing text nodes, selection, focus, and source disclosures while streaming', () => {
     const root = document.createElement('div'); document.body.append(root);
     const thread = conversation();
