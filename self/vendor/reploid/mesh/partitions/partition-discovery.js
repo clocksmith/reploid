@@ -21,7 +21,7 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
         remoteParticipantId, limits: policy.controlChannel,
         authorize: async ({ metadata, byteLength }) => metadata.operation === 'describe' && byteLength === 0,
         serve: async () => structuredClone(describe()) });
-      const peer = { endpoint, participantId: remoteParticipantId, description: null, observedAt: 0,
+      const peer = { endpoint, participantId: remoteParticipantId, description: null, observedAt: 0, revision: 0,
         close: () => endpoint.close() };
       channel.addEventListener('close', () => {
         for (const [id, value] of connections) if (value === peer) connections.delete(id);
@@ -34,6 +34,14 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
   return Object.freeze({
     getSnapshot: snapshot,
     getModels: () => snapshot().filter(peer => peer.available).flatMap(peer => peer.description.models),
+    invalidateModel(transportId, model) {
+      const peer = connections.get(transportId);
+      if (!peer || closed) return;
+      peer.revision++;
+      if (peer.description) peer.description.models = peer.description.models.filter(candidate =>
+        candidate.id !== model.id || candidate.identity !== model.identity);
+      notify();
+    },
     refresh() {
       if (closed) return Promise.resolve(snapshot());
       if (refreshing) return refreshing;
@@ -45,6 +53,7 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
           }
         }
         await Promise.allSettled([...connections.values()].map(async peer => {
+          const revision = peer.revision;
           try {
             const description = await peer.endpoint.request({ operation: 'describe' }, new Uint8Array(), { signal: lifetime.signal });
             assert(description.participantId === peer.participantId && Array.isArray(description.models)
@@ -54,8 +63,10 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
                 && description.capacity.active >= 0 && typeof description.capacity.closed === 'boolean')
               && ['idle', 'waiting', 'loading', 'ready', 'stopping', 'failed'].includes(description.phase),
             'Partition capability identity or inventory mismatch');
-            if (!closed) { peer.description = structuredClone(description); peer.observedAt = now(); peer.reason = null; }
-          } catch { peer.description = null; peer.reason = 'description-unavailable'; }
+            // A describe already in flight cannot restore a hint rejected by a
+            // newer authoritative entry check. The next observation may restore it.
+            if (!closed && revision === peer.revision) { peer.description = structuredClone(description); peer.observedAt = now(); peer.reason = null; }
+          } catch { if (revision === peer.revision) { peer.description = null; peer.reason = 'description-unavailable'; } }
         }));
         notify(); return snapshot();
       })().finally(() => { refreshing = null; });

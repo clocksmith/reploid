@@ -626,8 +626,8 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 14577,
-      "sha256": "d123f705238efcadde21eda6fa0f87f5ec702c7edf7d0edf496940f754591060"
+      "bytes": 15143,
+      "sha256": "f654d6c186895407ed0dde69e6224046ded418edc5b4c159c7af515f38478fce"
     },
     {
       "path": "mesh/partitions/partition-chat.d.ts",
@@ -651,8 +651,8 @@
     },
     {
       "path": "mesh/partitions/partition-discovery.js",
-      "bytes": 4490,
-      "sha256": "aa058f206d8d3bb22b9264cf5f8b15a99be264c3e8533fa6553ee2b602208fd9"
+      "bytes": 5123,
+      "sha256": "81c8f9c8705a4eb0ead0529f9890e3db15ee9381e3c781dc2ff2d64c27165563"
     },
     {
       "path": "mesh/partitions/partition-entry.d.ts",

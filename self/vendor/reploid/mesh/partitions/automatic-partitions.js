@@ -142,6 +142,16 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
     try { await ticking; } catch (cause) { if (!closed) { error = cause.message; notify(); } }
     finally { ticking = null; }
   }
+  async function refreshEntry(entry, transportId, model, signal) {
+    let current;
+    try { current = await entry.refresh({ signal }); }
+    catch (cause) { if (!signal?.aborted) discovery.invalidateModel(transportId, model); throw cause; }
+    if (!current.ready || !current.descriptor.models.some(candidate => candidate.id === model.id
+      && candidate.identity === model.identity && candidate.availability === 'ready')) {
+      discovery.invalidateModel(transportId, model);
+    }
+    return current;
+  }
   const timer = setInterval(tick, config.pollMs);
   return Object.freeze({ getState, getModels,
     subscribe(listener) { listeners.add(listener); listener(getModels()); return () => listeners.delete(listener); },
@@ -171,7 +181,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       const decision = selectPartitionExecution({ model: request.model, capabilities: discovery.getSnapshot() });
       assert(decision.transportId, 'No prepared cooperative partition path is available');
       const entry = await entries.connect(decision.transportId);
-      const refreshed = await entry.refresh({ signal: controls.signal });
+      const refreshed = await refreshEntry(entry, decision.transportId, request.model, controls.signal);
       const model = refreshed.descriptor.models.find(model => model.id === request.model.id
         && model.identity === request.model.identity && model.availability === 'ready');
       assert(refreshed.ready && model, 'No prepared cooperative partition path is available');
@@ -186,7 +196,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       assert(Date.now() < expiresAt, 'Partition input disclosure expired');
       // Human review can outlive an availability descriptor. Refresh liveness,
       // but never transfer reviewed input to a newly selected recipient or plan.
-      const current = await entry.refresh({ signal: controls.signal });
+      const current = await refreshEntry(entry, decision.transportId, model, controls.signal);
       const same = current.descriptor.models.find(candidate => candidate.id === model.id
         && candidate.identity === model.identity && candidate.availability === 'ready'
         && canonicalPartitionJson(candidate.partition) === canonicalPartitionJson(model.partition));
