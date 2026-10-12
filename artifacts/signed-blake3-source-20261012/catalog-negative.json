@@ -1,0 +1,6 @@
+{
+  "control": "Changed report bytes with unchanged initial identity and plan",
+  "rejected": true,
+  "exitCode": 1,
+  "boundary": "Report is outside signed qualification"
+}
