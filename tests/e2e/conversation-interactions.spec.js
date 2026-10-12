@@ -66,7 +66,7 @@ test('ordinary entry stays focused, and route navigation preserves a draft', asy
   expect(modules).not.toContain('/ui/pool-home/controls.js');
   expect(modules).not.toContain('/ui/pool-home/view.js');
   expect(modules).not.toContain('/ui/pool-home/prism.js');
-  const ribbon = page.locator('[data-ribbon-trigger]');
+  const ribbon = page.locator('[data-toggle-inspector]');
   await ribbon.focus(); await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
   await ribbon.press('Enter'); await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
   await page.keyboard.press('Escape'); await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
@@ -106,12 +106,12 @@ test('phone thread drawer preserves drafts, streaming nodes, and isolated Stop',
   });
   await expect(page.locator('[data-thread-sidebar]')).toBeHidden();
   await page.locator('[data-composer-input]').fill('Draft one');
-  await page.locator('[data-open-threads]').click();
-  await expect(page.locator('[data-thread-dialog]')).toBeVisible();
+  await page.locator('[data-toggle-thread-rail]').click();
+  await expect(page.locator('[data-thread-sidebar]')).toBeVisible();
   await page.locator('[data-thread-item-id="two"]').click();
-  await expect(page.locator('[data-thread-dialog]')).toBeHidden();
+  await expect(page.locator('[data-thread-sidebar]')).toBeHidden();
   await page.locator('[data-composer-input]').fill('Draft two');
-  await page.locator('[data-open-threads]').click();
+  await page.locator('[data-toggle-thread-rail]').click();
   await page.locator('[data-thread-item-id="one"]').click();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Draft one');
   await page.evaluate(() => {
@@ -125,8 +125,8 @@ test('phone thread drawer preserves drafts, streaming nodes, and isolated Stop',
     selection: getSelection().toString() }))).toEqual({ same: true, selection: 'First' });
   await page.locator('[data-composer-stop]').click();
   expect(await page.evaluate(() => window.conversationState.runningIds)).toEqual(['two']);
-  await page.locator('[data-open-threads]').click();
+  await page.locator('[data-toggle-thread-rail]').click();
   await page.keyboard.press('Escape');
-  await expect(page.locator('[data-thread-dialog]')).toBeHidden();
-  await expect(page.locator('[data-open-threads]')).toBeFocused();
+  await expect(page.locator('[data-thread-sidebar]')).toBeHidden();
+  await expect(page.locator('[data-toggle-thread-rail]')).toBeFocused();
 });

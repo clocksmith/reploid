@@ -6,7 +6,7 @@ Parent: [Reploid Browser Library](../../CATSCAN.md)
 Concurrent conversations from authorized peers, without a global objective.
 
 ## Authority
-Owns history, membership, thread permissions, attempts, streams and fair scheduling.
+Owns history/membership/permissions/attempts/streams/scheduling.
 Hosts supply authenticated identity/persistence/admission/disclosure and Doppler sessions.
 
 ## Scope
@@ -22,21 +22,23 @@ Compose custody/whole-request jobs; file possession grants no execution.
 - Stream updates bind thread/attempt. Retries create new attempts, never append to old generations.
 - Restore history and mark unfinished attempts interrupted; never silently resend.
 - Permissions precede placement. Model and adapter identity remain exact.
+- A synchronous host authorization port may bind Send/Retry to its current
+  verified disclosure. Persist authorization evidence, never its live capability
+  or future authority. Other hosts retain explicit review.
 - Prepared peer execution requires no requester weights; contribution preparation is separate.
 - Reusable disclosure grants bind verified recipient, mesh, thread, model,
   adapters and scope. Persist before use; revocation cancels affected attempts and
-  prevents reuse. Grants authorize no contribution, artifact supply, evaluation or adoption.
+  prevents reuse. Grants authorize no contribution/supply/evaluation/adoption.
 - Share bounded residency; reset conversation/adapter state between executions.
 - Fairness uses host-authenticated participants, never requester-chosen thread IDs.
 - Cancellation retains the device slot until execution and cleanup settle.
 - Bind queue/load/execution/failure observations to attempts.
-- Verified files, compatible adapters, whole requests and Doppler-defined splits remain distinct capabilities.
+- Files/adapters/whole-requests/Doppler-splits remain distinct.
 
 ## Acceptance
 Evidence: [workspace tests](../../../../tests/unit/chat-workspace.test.js),
 [scheduler tests](../../../../tests/unit/chat-scheduler.test.js), [three tabs](../../../../tests/e2e/chat-three-tab.spec.js).
-Isolated-tab integration covers concurrent conversations, resumed file/adapter
-exchange, refresh recovery and execution-peer loss. Physical qualification stays separate.
+Tab evidence covers concurrency/transfers/refresh/peer-loss; physical qualification is separate.
 
 ## Non-goals
 Agent loops, model mathematics, transport reimplementation, admission or qualification by UI.

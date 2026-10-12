@@ -38,14 +38,15 @@ async function installFixture(page) {
 }
 
 for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
-  test(`${theme} ${width}: aligned material, contextual approvals and open composer`, async ({ page }, info) => {
+  test(`${theme} ${width}: aligned material and open composer`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 1000 });
     await page.goto('/');
     await page.locator('[data-composer-input]').waitFor();
     await page.locator('[data-pool-settings] summary').click();
     await page.locator(`[data-pool-theme-choice="${theme}"]`).click();
+    await page.locator('[data-pool-settings] summary').click();
     await installFixture(page);
-    for (const phase of ['empty', 'active', 'approval', 'completed']) {
+    for (const phase of ['empty', 'active', 'completed']) {
       await page.evaluate(phase => window.setConversationPhase(phase), phase);
       await expect(page.locator('[data-composer-input]')).toBeVisible();
       await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
@@ -59,22 +60,16 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390]) {
             .map(node => node.getBoundingClientRect().toJSON()).filter(rect => rect.width && rect.height) };
       });
       expect(geometry.scroll).toBeLessThanOrEqual(geometry.width);
-      expect(geometry.nav.left).toBe(geometry.root.left);
-      expect(geometry.nav.width).toBe(geometry.root.width);
-      expect(geometry.depth).not.toBe('none');
+      expect(geometry.root.left).toBeGreaterThanOrEqual(16);
+      expect(geometry.root.right).toBeLessThanOrEqual(geometry.width - 16);
+      expect(geometry.conversation.left).toBeGreaterThanOrEqual(geometry.root.left);
+      expect(geometry.conversation.right).toBeLessThanOrEqual(geometry.root.right);
+      expect(geometry.depth).toBe('none');
       geometry.headerControls.forEach((a, index) => geometry.headerControls.slice(index + 1).forEach(b => {
         expect(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top).toBe(true);
       }));
       if (width > 760) {
-        expect(geometry.sidebar.top).toBe(geometry.conversation.top);
-        expect(geometry.sidebar.bottom).toBe(geometry.conversation.bottom);
-      }
-      if (phase === 'approval') {
-        await expect(page.locator('[data-chat-approval]')).toBeVisible();
-        await expect(page.locator('[data-approval-send]')).toBeDisabled();
-        await page.locator('[data-approval-consent]').check();
-        await page.locator('[data-approval-send]').click();
-        expect(await page.evaluate(() => window.approvedAttempt)).toEqual(['thread-A', 'attempt-A', 'preview-A', true, { remember: undefined }]);
+        expect(geometry.conversation.height).toBeGreaterThan(0);
       }
       if (phase === 'active') {
         await page.locator('[data-composer-stop]').click();
@@ -142,6 +137,7 @@ test('browser host preserves files and followups across reload with injected exe
   await page.locator('[data-composer-send]').click();
   await expect(page.locator('.is-assistant')).toHaveCount(2);
   await page.reload(); await install();
+  await page.locator('[data-toggle-thread-rail]').click();
   await page.locator('[data-thread-item-id]').click();
   await expect(page.locator('.is-assistant')).toHaveCount(2);
   await expect(page.locator('.is-user').first()).toContainText('Attached evidence');

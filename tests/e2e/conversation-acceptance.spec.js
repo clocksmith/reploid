@@ -53,13 +53,12 @@ async function mount(page, { available = true } = {}) {
 async function send(page, text) {
   await page.locator('[data-composer-input]').fill(text);
   await page.locator('[data-composer-send]').click();
-  await expect(page.locator('[data-chat-approval]')).toBeVisible();
+  await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
 }
-async function approve(page, remember = false) {
-  await page.locator('[data-approval-consent]').check();
-  if (remember) await page.locator('[data-approval-remember]').check();
-  await page.locator('[data-approval-send]').click();
+async function approve(page) {
+  // Send records exact verified one-attempt authorization before dispatch.
   await expect.poll(() => page.evaluate(() => window.journey.jobs.size)).toBeGreaterThan(0);
+  expect(await page.evaluate(() => window.journey.session.getState().activeThread.attempts.at(-1).authorization.source)).toBe('send');
 }
 async function emit(page, text, finish = true) {
   await page.evaluate(({ text, finish }) => {
@@ -68,11 +67,11 @@ async function emit(page, text, finish = true) {
   }, { text, finish });
 }
 async function newThread(page) {
-  await page.locator('[data-open-threads]').click();
+  await page.locator('[data-toggle-thread-rail]').click();
   await page.locator('[data-new-thread]').click();
 }
 async function select(page, id) {
-  await page.locator('[data-open-threads]').click();
+  await page.locator('[data-toggle-thread-rail]').click();
   await page.locator(`[data-thread-item-id="${id}"]`).click();
 }
 
@@ -81,15 +80,13 @@ test.beforeEach(async ({ page }) => {
   await page.context().grantPermissions(['clipboard-read', 'clipboard-write']);
 });
 
-test('scripted first visit: capacity retry preserves draft, approval precedes output', async ({ page }) => {
+test('scripted first visit: capacity retry preserves draft, Send authorizes before output', async ({ page }) => {
   await mount(page, { available: false });
   await page.locator('[data-composer-input]').fill('What can you help with?');
   await expect(page.locator('[data-composer-send]')).toBeDisabled();
   await page.locator('[data-retry-connection]').click();
   await expect(page.locator('[data-composer-input]')).toHaveValue('What can you help with?');
   await page.locator('[data-composer-send]').click();
-  await expect(page.locator('[data-approval-send]')).toBeDisabled();
-  expect(await page.evaluate(() => window.journey.jobs.size)).toBe(0);
   await approve(page); await emit(page, 'Scripted answer, supplied by the test.');
   await expect(page.locator('.is-assistant')).toContainText('Scripted answer');
   await expect(page.locator('[data-composer-stop]')).toBeHidden();
@@ -103,7 +100,7 @@ test('scripted attachment: disclosed text, usable citation and copying', async (
   await mount(page);
   await page.locator('[data-composer-files]').setInputFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('Delivery may happen Friday.') });
   await send(page, 'What commitment is stated?');
-  await expect(page.locator('[data-permission-content]')).toContainText('Delivery may happen Friday.');
+  expect(await page.evaluate(() => JSON.stringify(window.journey.session.getState().activeThread.attempts.at(-1).request.messages))).toContain('Delivery may happen Friday.');
   await approve(page); await emit(page, 'Friday is possible, not promised. [D1:P1]');
   await page.locator('[data-source-reference]').click();
   await expect(page.locator('[id$="D1-P1"]')).toBeFocused();
@@ -132,32 +129,20 @@ test('scripted contributor loss: explicit retry keeps the partial response separ
   await page.evaluate(() => window.journey.jobs.get(window.journey.session.getState().selectedId).fail());
   await expect(page.locator('.is-assistant')).toContainText('A computer disconnected. Retry this answer.');
   await page.locator('[data-retry-attempt]').click();
-  await expect(page.locator('[data-chat-approval]')).toBeVisible();
+  await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
   await approve(page); await emit(page, 'Complete replacement answer.');
   await expect(page.locator('.is-assistant')).toHaveCount(2);
   await expect(page.locator('.is-assistant').first()).toContainText('Partial before departure.');
   await expect(page.locator('.is-assistant').last()).toContainText('New attempt');
 });
 
-test('scripted sharing: decline and revocation stop sharing; panels restore focus', async ({ page }) => {
-  await mount(page); await send(page, 'Do not send this');
-  await page.locator('[data-approval-decline]').click();
-  expect(await page.evaluate(() => window.journey.jobs.size)).toBe(0);
-  await send(page, 'Allowed now'); await approve(page, true); await emit(page, 'First answer.');
-  await page.locator('[data-composer-input]').fill('Allowed follow-up'); await page.locator('[data-composer-send]').click();
-  await expect.poll(() => page.evaluate(() => window.journey.jobs.size)).toBe(1);
-  await page.locator('[data-toggle-inspector]').click();
-  await page.locator('[data-inspector-section="conversation"]').click();
-  await expect(page.locator('[data-thread-permissions]')).toBeVisible();
-  await page.locator('[data-revoke-grant]').click();
+test('scripted Send grants no future sharing and Stop preserves the partial answer', async ({ page }) => {
+  await mount(page); await send(page, 'First message'); await approve(page); await emit(page, 'First answer.');
+  await send(page, 'Follow-up'); await approve(page); await emit(page, 'Partial follow-up', false);
+  expect(await page.evaluate(() => window.journey.session.getState().activeThread.grants)).toEqual([]);
+  await page.locator('[data-composer-stop]').click();
   await expect.poll(() => page.evaluate(() => window.journey.jobs.size)).toBe(0);
-  await page.locator('[data-close-inspector]').click();
-  await send(page, 'Ask permission again'); await expect(page.locator('[data-approval-send]')).toBeDisabled();
-  await page.locator('[data-approval-decline]').click();
-  for (let i = 0; i < 3; i++) {
-    await page.locator('[data-open-threads]').click(); await page.keyboard.press('Escape');
-    await expect(page.locator('[data-open-threads]')).toBeFocused();
-  }
+  await expect(page.locator('.is-assistant').last()).toContainText('Partial follow-up');
   await page.setViewportSize({ width: 390, height: 460 });
   await page.locator('[data-composer-input]').focus();
   await expect(page.locator('[data-composer-input]')).toBeInViewport();

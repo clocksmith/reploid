@@ -42,9 +42,7 @@ test('open chat discovers a real contributor, streams without requester weights,
     await page.locator('[data-contribution-model]').selectOption(model.id);
   };
   const approve = async page => {
-    await page.locator('[data-chat-approval]').waitFor({ state: 'visible' });
-    await page.locator('[data-approval-consent]').check();
-    await page.locator('[data-approval-send]').click();
+    await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
   };
   try {
     // Fixed test quotas exercise bounded cache operation reproducibly; these are

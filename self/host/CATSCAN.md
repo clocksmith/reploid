@@ -8,7 +8,8 @@ Boot surfaces from trusted seeds.
 
 ## Authority
 - Owns seeding, startup, tools and independent threads.
-- Disclosure requires exact-payload approval or revocable recipient/mesh/thread/model/adapter grants.
+- Disclosure requires per-attempt Send/Retry, exact-payload approval,
+  or revocable recipient/mesh/thread/model/adapter grants.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
 - Tasks validate; repositories version; providers execute; views are immutable.
 - Excludes policy, module semantics and recovery-root mutation.
@@ -21,9 +22,7 @@ Subtree.
 
 Inputs: [boot seed](../config/boot-seed.js), [start-app.js](start-app.js).
 
-Outputs:
-- Seeded virtual files through [seed-vfs.js](seed-vfs.js).
-- Application startup through [start-reploid.js](start-reploid.js).
+Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 
 ## Invariants
 - Explicit seed identity/destination.
@@ -33,10 +32,12 @@ Outputs:
 - Received files cannot grant permissions or prove correctness.
 - Viewing/stopping threads cannot change another's objective, grants or execution.
 - Candidate delivery grants no evaluation/adoption authority.
-- Peer operations require current grants, exact identities and evidence; changed recipients/models/adapters require approval.
+- Peer operations require current authorization, exact identities and evidence.
+  Send/Retry authorizes one live attempt, never restoration or future messages.
+  Changed execution identities require a new user action.
 - File contribution requires separate bounded consent. Explicit compute may acquire
   selected files, not redistribute them. Discovery never downloads weights.
-- Pinned Doppler storage verifies files; inventories cannot select code.
+- Doppler storage verifies files; inventories cannot select code.
   Resident leases include adapter application/evidence/removal and cancellation settlement.
 - Candidates cannot read protected tests or self-activate; attempts pin versions and retain rollback sources.
 - Version objectives/measures outside isolation; changed objectives require reevaluation.
@@ -47,7 +48,7 @@ Outputs:
   [real chat](../../tests/e2e/chat-real-adapter.spec.js), [races](../../tests/unit/work-swarm-lifecycle.test.js).
 
 ## Non-goals
-- Choosing the scientific question, model policy, or promotion outcome.
+- Scientific question/model policy/promotion.
 
 ## Freedom
 Preserve boundaries and acceptance evidence.

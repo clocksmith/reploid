@@ -6,15 +6,13 @@ const send = async (page, text) => {
   await page.locator('[data-composer-input]').fill(text);
   await page.locator('[data-composer-input]').press('Enter');
 };
-const approve = async (page, remember = false) => {
-  await expect(page.locator('[data-chat-approval]')).toBeVisible();
-  await page.locator('[data-approval-consent]').check();
-  if (remember) await page.locator('[data-approval-remember]').check();
-  await page.locator('[data-approval-send]').click();
+const approve = async page => {
+  await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
+  await expect.poll(async () => (await history(page))?.threads.at(-1)?.attempts.at(-1)?.authorization?.source).toBe('send');
 };
 const complete = page => expect.poll(async () => (await history(page))?.threads.at(-1)?.attempts.at(-1)?.status).toBe('completed');
 
-test('real WebRTC proves recipients and retains revocable grants through requester refresh with injected inference', async ({ browser }, info) => {
+test('real WebRTC binds each Send to verified recipients across refresh and replacement with injected inference', async ({ browser }, info) => {
   const contexts = await Promise.all([browser.newContext(), browser.newContext(), browser.newContext()]);
   const [supplier, requester, replacement] = await Promise.all(contexts.map(context => context.newPage()));
   const errors = [];
@@ -41,6 +39,7 @@ test('real WebRTC proves recipients and retains revocable grants through request
     }
     const contribute = async page => {
       await page.locator('[data-toggle-inspector]').click();
+      await page.locator('[data-inspector-section="device"]').click();
       await page.locator('[data-contribution-model]').selectOption('qwen-3-5-2b-q4k-ehaf16');
       await page.locator('[data-toggle-contribution]').click();
       await expect(page.locator('[data-contrib-label]')).toHaveText('Ready');
@@ -48,33 +47,25 @@ test('real WebRTC proves recipients and retains revocable grants through request
     await contribute(supplier);
     await expect(requester.locator('[data-active-model-select]')).toContainText('ready');
     await send(requester, 'First approved message');
-    await expect(requester.locator('[data-approval-remember-label]')).toBeVisible();
-    await expect(requester.locator('[data-approval-remember]')).not.toBeChecked();
     await approve(requester, true); await complete(requester);
-    const original = (await history(requester)).threads[0], grant = original.grants[0];
+    const original = (await history(requester)).threads[0], grant = original.attempts[0].authorization;
+    expect(original.grants).toEqual([]); expect(grant.source).toBe('send');
     expect(grant.recipientIdentity).toMatch(/^peer:[a-f0-9]{24}$/);
     await send(requester, 'Follow-up without another approval'); await complete(requester);
     await expect(requester.locator('[data-chat-approval]')).toBeHidden();
-    await requester.reload(); await requester.locator('[data-thread-item-id]').first().click();
+    await requester.reload(); await requester.locator('[data-toggle-thread-rail]').click(); await requester.locator('[data-thread-item-id]').first().click();
     await send(requester, 'After refresh'); await complete(requester);
-    expect((await history(requester)).threads[0].attempts.at(-1).authorization.grantId).toBe(grant.id);
-    await requester.locator('[data-toggle-inspector]').click();
-    await requester.locator('[data-thread-permissions] summary').click();
-    await requester.locator('[data-revoke-grant]').click();
-    await requester.locator('[data-close-inspector]').click();
-    await send(requester, 'After revocation');
-    await approve(requester, true); await complete(requester);
+    expect((await history(requester)).threads[0].attempts.at(-1).authorization).toMatchObject({ source: 'send', kind: 'once', grantId: null });
+    await supplier.locator('[data-inspector-section="participants"]').click();
     await supplier.locator('[data-mesh-connect]').click();
     await contribute(replacement);
     await expect(requester.locator('[data-active-model-select]')).toContainText('ready');
-    await send(requester, 'A new recipient requires permission');
-    await expect(requester.locator('[data-chat-approval]')).toBeVisible();
-    await expect(requester.locator('[data-approval-remember-label]')).toBeVisible();
+    await send(requester, 'A new Send authorizes the replacement recipient');
     await approve(requester); await complete(requester);
     const result = (await history(requester)).threads[0];
     expect(result.attempts.at(-1).authorization.recipientIdentity).not.toBe(grant.recipientIdentity);
     expect(result.attempts.at(-1).authorization.kind).toBe('once');
-    expect(result.grants[0].revokedAt).not.toBeNull();
+    expect(result.grants).toEqual([]); expect(result.attempts.at(-1).authorization.source).toBe('send');
     expect(errors).toEqual([]);
     await info.attach('thread-grants.json', { contentType: 'application/json', body: JSON.stringify(result, null, 2) });
   } finally { await Promise.all(contexts.map(context => context.close())); }

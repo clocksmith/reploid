@@ -7,7 +7,6 @@ import { renderNetworkInspector, bindNetworkInspector } from './network-inspecto
 import { escapeHtml as escape, renderAttachments, readTextAttachments } from '../components/attachments.js';
 import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
-import { renderPermissionSummary, updatePermissionSummary } from '../components/permission-card.js';
 import { createMessageList } from './message-list.js';
 
 const selectable = model => ['ready', 'busy', 'loading', 'preparing'].includes(model.availability);
@@ -31,27 +30,21 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
           <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
         </div></details>
       </header>
-      <div class="chat-transcript" data-chat-transcript><div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
-      <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
-        <div class="chat-approval-body"><h2>Review before sending</h2>${renderPermissionSummary()}</div>
-        <div class="chat-approval-actions">
-        <label><input type="checkbox" data-approval-consent> <span data-approval-description>Share this exact input with this peer as public data</span></label>
-        <label data-approval-remember-label hidden><input type="checkbox" data-approval-remember> <span data-approval-remember-description>Also allow future messages and attached text in this thread to this recipient, using this model, until revoked</span></label>
-        <div class="chat-network-actions"><button class="btn pool-button btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn pool-button btn-ghost" type="button" data-approval-decline>Decline</button></div></div>
-      </section>
-      </div><p class="chat-error" role="alert" data-chat-error hidden></p>
+      <div class="chat-transcript" data-chat-transcript><div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div></div>
+      <p class="chat-error" role="alert" data-chat-error hidden></p>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
-        <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="Ask a question…"></textarea></div>
-        <p class="chat-setup-hint" id="chat-model-status" data-model-status role="status" hidden></p>
-        <div class="chat-composer-toolbar">
+        <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge" data-composer-field>
+          <div class="chat-attachments" data-attachments-preview hidden></div>
+          <textarea id="chat-message" data-composer-input rows="1" required placeholder="Ask a question…"></textarea>
           <label class="btn pool-button btn-ghost chat-file-label pool-focus-within" title="Attach files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
           <div class="chat-composer-submit">
             <button class="btn pool-button btn-primary" type="submit" data-composer-send aria-label="Send" title="Send">${interfaceIcon('send')}</button>
-            <button class="btn pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button>
             <button class="btn pool-button btn-ghost" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
-        </div><p class="chat-attachment-help" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p><div class="chat-attachments" data-attachments-preview hidden></div>
+        </div>
+        <div class="chat-composer-notices"><p class="chat-setup-hint" id="chat-model-status" data-model-status role="status" hidden></p><button class="pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button></div>
+        <p class="chat-attachment-help" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p>
       </form></footer>
       <dialog class="chat-model-setup pool-surface" data-rename-dialog aria-labelledby="chat-rename-title">
         <form data-rename-form><h2 id="chat-rename-title">Rename thread</h2><label>Name<input class="pool-input" data-thread-name required maxlength="256"></label>
@@ -78,7 +71,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const input = find('[data-composer-input]'), modelSelect = find('[data-active-model-select]');
   const inspector = sharedInspector || bindNetworkInspector(container, session, { getInviteUrl });
   let archived = false, renameId = null, chosenModel = viewState.chosenModel || null, pickerModel = null;
-  let files = [], fileRevision = 0, reading = false, approvalKey = '';
+  let files = [], fileRevision = 0, reading = false;
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
   const threads = createConversationList(find('[data-thread-list]'), viewState.seen, { getSources: session.getDocumentSources });
   const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions, scrollContainer: find('[data-chat-transcript]') });
@@ -94,10 +87,16 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   };
   setThreads(viewState.threadsOpen ?? false);
   railToggle?.addEventListener('click', () => setThreads(!container.hasAttribute('data-threads-open')), options);
+  surface?.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && container.hasAttribute('data-threads-open')) {
+      event.preventDefault(); setThreads(false); railToggle?.focus();
+    }
+  }, options);
   const closeThreads = () => { threadDialog.close(); container.prepend(sidebar); };
   drawer.addEventListener('close', () => container.prepend(sidebar), options);
   onResize();
   function onResize() {
+    resizeInput();
     if (globalThis.innerWidth > 760 && drawer.open) closeThreads();
     const surface = container.closest('.pool-home');
     if (surface) {
@@ -123,7 +122,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   };
   const act = operation => Promise.resolve().then(operation).catch(error);
   const on = (selector, event, callback) => find(selector)?.addEventListener(event, callback, options);
-  const showFiles = () => { renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
+  function resizeInput() {
+    input.style.height = 'auto';
+    input.style.height = Math.min(Math.max(48, input.scrollHeight), Math.max(72, (globalThis.visualViewport?.height || globalThis.innerHeight || 800) * 0.22)) + 'px';
+  }
+  const showFiles = () => { resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
   const updatePicker = state => {
     const keyFor = model => model?.selectionId || model?.id;
     const models = state.models.filter(selectable);
@@ -195,41 +198,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
     messages.update(thread, { usable: usable && !thread?.closed, busy, state });
     if (find('[data-model-picker]').open) updatePicker(state);
-    const pending = attempt?.approval, key = pending ? JSON.stringify([thread.id, attempt.id, pending]) : '';
-    const partitionRecipients = pending?.disclosure === 'partition-activations-and-tokens'
-      && Array.isArray(pending.input?.recipients) ? pending.input.recipients : null;
-    const peerLabel = id => `Peer ${String(id).replace(/^peer:/, '').slice(0, 8)}`;
-    if (key !== approvalKey) {
-      approvalKey = key; find('[data-approval-consent]').checked = false; find('[data-approval-remember]').checked = false;
-    }
-    find('[data-approval-description]').textContent = partitionRecipients
-      ? 'Allow this request to these contributors'
-      : pending?.disclosure === 'partition-activations'
-      ? 'Share model activations derived from this input with this peer as public data'
-      : 'Share this exact input with this peer as public data';
-    find('[data-approval-remember-label]').hidden = !pending?.reusable;
-    find('[data-approval-remember-description]').textContent = partitionRecipients
-      ? 'Allow future messages and attachments in this thread to these contributors with this model, until revoked'
-      : 'Also allow future messages and attached text in this thread to this recipient, using this model, until revoked';
-    find('[data-chat-approval]').hidden = !pending;
-    find('[data-composer-area]').hidden = !!pending;
-    if (pending) {
-      updatePermissionSummary(find('[data-chat-approval]'), {
-        recipient: `${partitionRecipients ? 'Recipients: ' + partitionRecipients.map(peerLabel).join(' → ')
-          : 'Recipient: ' + peerLabel(pending.peerId)} · ${thread.model.name || pending.modelId}`,
-        scope: partitionRecipients
-          ? `Your messages go to ${peerLabel(partitionRecipients[0])}. Derived model data and tokens go to ${peerLabel(partitionRecipients[1])}. Approval applies to this request.`
-          : pending.disclosure === 'partition-activations'
-          ? 'Model data derived from the input below leaves this device. Approval applies to this request.'
-          : 'The messages and attached text below leave this device. Approval applies to this request.',
-        input: pending.input, getSources: session.getDocumentSources,
-        technical: { recipient: pending.peerId, recipients: partitionRecipients || undefined,
-          model: pending.modelId || thread.model.id, modelIdentity: pending.modelIdentity || thread.model.identity,
-          planId: pending.planId, disclosure: pending.disclosure,
-          input: pending.input, options: pending.options, limits: pending.limits, expiresAt: pending.expiresAt, approvalId: pending.id }
-      });
-    }
-    find('[data-approval-send]').disabled = !pending || !find('[data-approval-consent]').checked;
     error(state.storageError || '');
 
   };
@@ -250,8 +218,8 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     pickerModel = session.getState().models.find(model => (model.selectionId || model.id) === find('[data-next-model]').value) || pickerModel;
     updatePicker(session.getState());
   });
-  on('[data-composer-input]', 'input', () => { try { saveDraft(); } catch (cause) { error(cause); } });
-  const newThread = () => { saveDraft(); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); session.select(null); if (drawer.open) closeThreads(); input.focus(); };
+  on('[data-composer-input]', 'input', () => { resizeInput(); try { saveDraft(); } catch (cause) { error(cause); } });
+  const newThread = () => { saveDraft(); chosenModel = null; viewState.chosenModel = null; archived = false; find('[data-show-archived]').setAttribute('aria-pressed', 'false'); find('[data-show-archived]').textContent = 'Archived threads'; actionsPanel.setOpen(false); session.select(null); if (drawer.open) closeThreads(); if (globalThis.innerWidth <= 760) setThreads(false); input.focus(); };
   on('[data-new-thread]', 'click', newThread);
   on('[data-active-model-select]', 'change', () => { chosenModel = session.getState().models.find(model => (model.selectionId || model.id) === modelSelect.value); viewState.chosenModel = chosenModel; render(session.getState()); });
   on('[data-change-model]', 'click', () => {
@@ -289,7 +257,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         (find('[data-thread-item-id][aria-current="true"]') || find('[data-new-thread]')).focus();
       }); return;
     }
-    const button = event.target.closest('[data-thread-item-id]'); if (button) { saveDraft(); session.select(button.dataset.threadItemId); if (drawer.open) closeThreads(); } });
+    const button = event.target.closest('[data-thread-item-id]'); if (button) { saveDraft(); session.select(button.dataset.threadItemId); if (drawer.open) closeThreads(); if (globalThis.innerWidth <= 760) setThreads(false); } });
   on('[data-composer-form]', 'submit', event => {
     event.preventDefault();
     const content = input.value.trim(), state = session.getState();
@@ -299,9 +267,9 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value), attachments = files.map(file => ({ ...file }));
       const threadId = state.selectedId || session.createThread({ model, sharingScope: model?.localReady ? 'local' : 'mesh' });
       input.value = content; files = attachments; showFiles();
-      const completion = session.send(threadId, content, attachments);
+      const completion = session.send(threadId, content, attachments, { allowPeerExecution: true });
       session.saveDraft?.(null, null); session.saveDraft?.(threadId, null);
-      input.value = ''; files = []; drafts.delete(null); drafts.delete(threadId); showFiles();
+      input.value = ''; resizeInput(); files = []; drafts.delete(null); drafts.delete(threadId); showFiles();
       await completion;
     });
   });
@@ -318,7 +286,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       await navigator.clipboard.writeText(content); copy.textContent = 'Copied';
     });
     const button = event.target.closest('[data-retry-attempt]');
-    if (button && !button.disabled) act(() => session.retry(session.getState().selectedId, button.dataset.retryAttempt));
+    if (button && !button.disabled) act(() => session.retry(session.getState().selectedId, button.dataset.retryAttempt, { allowPeerExecution: true }));
   });
   on('[data-composer-files]', 'click', () => { find('[data-attachment-help]').hidden = false; });
   on('[data-composer-files]', 'focus', () => { find('[data-attachment-help]').hidden = false; });
@@ -347,14 +315,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const target = document.getElementById(link.getAttribute('href').slice(1));
     if (target) { event.preventDefault(); target.closest('details').open = true; target.focus(); target.scrollIntoView({ block: 'nearest' }); }
   });
-  const approve = accepted => act(() => {
-    const thread = session.getState().activeThread, attempt = thread?.attempts.at(-1);
-    if (attempt?.approval) session.approve(thread.id, attempt.id, attempt.approval.id, accepted,
-      { remember: accepted && attempt.approval.reusable && find('[data-approval-remember]').checked });
-  });
-  on('[data-approval-consent]', 'change', () => render(session.getState()));
-  on('[data-approval-send]', 'click', () => { if (find('[data-approval-consent]').checked) approve(true); });
-  on('[data-approval-decline]', 'click', () => approve(false));
   return () => {
     try { saveDraft(); } catch (cause) { error(cause); }
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose(); threadDialog.dispose();

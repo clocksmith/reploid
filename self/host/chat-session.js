@@ -187,8 +187,9 @@ export function createChatSession({
       assertOpen();
       workspace.select(threadId);
     },
-    send(threadId, content, attachments = []) {
+    send(threadId, content, attachments = [], { allowPeerExecution = false } = {}) {
       assertOpen();
+      assert(typeof allowPeerExecution === 'boolean', 'Invalid peer execution authorization');
       assert(threadId, 'threadId required');
       assert(Array.isArray(attachments) && attachments.length <= profile.files.maxInputs, 'Too many attachments');
       let total = 0;
@@ -199,7 +200,9 @@ export function createChatSession({
         assert(bytes <= profile.files.maxFileBytes, 'Attachment exceeds the file allowance');
       });
       assert(total <= profile.files.maxInputBytes, 'Attachments exceed the input allowance');
-      return workspace.send(threadId, attachmentInput(content, attachments));
+      return workspace.send(threadId, attachmentInput(content, attachments), {
+        authorizeDisclosure: allowPeerExecution ? () => true : null
+      });
     },
     cancel(threadId) {
       assertOpen();
@@ -214,9 +217,10 @@ export function createChatSession({
         workspace.cancel(tid);
       }
     },
-    retry(threadId, attemptId) {
+    retry(threadId, attemptId, { allowPeerExecution = false } = {}) {
       assertOpen();
-      return workspace.retry(threadId, attemptId);
+      assert(typeof allowPeerExecution === 'boolean', 'Invalid peer execution authorization');
+      return workspace.retry(threadId, attemptId, { authorizeDisclosure: allowPeerExecution ? () => true : null });
     },
     approve(threadId, attemptId, previewId, accepted, options) {
       assertOpen();

@@ -13,6 +13,56 @@ const result = (request, content) => ({ threadId: request.threadId, attemptId: r
   modelIdentity: request.model.identity, adapterIdentities: (request.model.adapters || []).map(adapter => adapter.identity), content });
 
 describe('conversation workspace', () => {
+  it('authorizes a verified peer only for this explicit Send and records the exact attempt', async () => {
+    const peer = 'peer:' + 'b'.repeat(24), seen = [], authorize = vi.fn(() => true);
+    const { app, store, options } = fixture(async (request, controls) => {
+      const preview = { ...result(request, ''), id: 'preview-' + request.attemptId,
+        peerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
+        expiresAt: Date.now() + 10000, input: request.messages };
+      if (!await controls.requestApproval(preview)) throw Error('Disclosure declined');
+      return result(request, 'Peer answer');
+    });
+    app.subscribe(state => seen.push(state.threads[0]?.attempts.at(-1)?.status));
+    const thread = app.createThread({ model, permissions: { sharingScope: 'mesh' } });
+    const attempt = await app.send(thread, 'Question', { authorizeDisclosure: authorize });
+    expect(attempt.status).toBe('completed'); expect(seen).not.toContain('approval');
+    expect(attempt.authorization).toMatchObject({ kind: 'once', source: 'send', recipientIdentity: peer, modelIdentity: model.identity });
+    expect(authorize.mock.calls[0][0].request.messages).toEqual([{ role: 'user', content: 'Question' }]);
+    expect(app.getState().threads[0].grants).toEqual([]);
+    const saved = structuredClone(store.load()); await app.close();
+    const restored = createChatWorkspace({ ...options, store: { load: () => saved, save() {} } });
+    const second = restored.send(thread, 'Follow-up');
+    await vi.waitFor(() => expect(restored.getState().threads[0].attempts.at(-1).status).toBe('approval'));
+    expect(authorize).toHaveBeenCalledTimes(1);
+    await restored.cancel(thread); await second; await restored.close();
+  });
+
+  it('rejects substituted peer model identities before Send authorization', async () => {
+    const authorize = vi.fn(() => true);
+    const { app } = fixture(async (request, controls) => {
+      await controls.requestApproval({ ...result(request, ''), id: 'preview', peerId: 'peer:' + 'b'.repeat(24),
+        recipientIdentity: 'peer:' + 'b'.repeat(24), operation: 'generate', disclosure: 'public',
+        modelIdentity: 'sha256:' + 'c'.repeat(64), expiresAt: Date.now() + 10000 });
+      throw Error('Must not execute');
+    });
+    const thread = app.createThread({ model, permissions: { sharingScope: 'mesh' } });
+    expect(await app.send(thread, 'Question', { authorizeDisclosure: authorize })).toMatchObject({ status: 'failed' });
+    expect(authorize).not.toHaveBeenCalled(); await app.close();
+  });
+  it('does not extend one Send to a different recipient during an attempt', async () => {
+    const authorize = vi.fn(() => true);
+    const { app } = fixture(async (request, controls) => {
+      for (const letter of ['b', 'c']) {
+        const peer = 'peer:' + letter.repeat(24);
+        await controls.requestApproval({ ...result(request, ''), id: 'preview-' + letter,
+          peerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public', expiresAt: Date.now() + 10000 });
+      }
+      return result(request, 'Must not reach the second recipient');
+    });
+    const thread = app.createThread({ model, permissions: { sharingScope: 'mesh' } });
+    expect(await app.send(thread, 'Question', { authorizeDisclosure: authorize })).toMatchObject({ status: 'failed', error: 'Execution recipients changed. Retry starts a new authorized attempt.' });
+    expect(authorize).toHaveBeenCalledTimes(1); await app.close();
+  });
   it('isolates two live conversations, their streams and cancellation while closing does not stop either', async () => {
     const pending = [], calls = [];
     const { app } = fixture(async (request, controls) => {
