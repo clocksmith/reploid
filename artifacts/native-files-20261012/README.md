@@ -37,3 +37,30 @@ Actual output-owner state, read through the process inspector after completion, 
 After settlement, SIGTERM caused model unload and explicit GPU device destruction, and the canonical CLI exited naturally with status zero. `shutdown.json.gz` and `process-events.log.gz` record that outcome. The owned SSH tunnel closed; the unrelated public contributor was left untouched. Full repetitive raw network logging remains on x@128 at the path/hash in `raw-log-identity.json`; unique signed custody receipts are in this repository.
 
 A subsequent custody-only correction advertises newly verified assigned pieces when file supply for that same model remains approved. Otherwise `--share-files --contribute` could leave a cold host offering only its initial metadata. Its regression fails against `7cd5fbd0`, then passes with the fix; 33 focused checks and the actual Verification Worker pass. Revoking file supply prevents later acquisitions from republishing. The physical cold-compute run selected compute only and therefore did not exercise this additional supply-refresh behavior.
+
+
+## Physical acquisition cancellation and retry
+
+`acquisition-stop.mjs` uses the existing native file adapter on x@128, an empty
+source/cache, the live Mac browser supplier and no GPU. It waits for the actual
+required shard advertisement rather than treating any connection as supply.
+The first 4,194,304-byte piece completed and was retained. Cancellation during
+the second piece occurred after 1,835,008 bytes arrived. Acquisition and two
+concurrent source-close calls settled; the incomplete piece was not retained,
+no temporary file survived, and the completed piece remained intact.
+
+A fresh source reused the first piece with zero transferred bytes, then acquired
+and verified the missing 4,194,304-byte piece. Both concurrent host-close calls
+settled with zero pending work. The Node process exited normally and its owned
+tunnel closed. Existing browser contributors/requester stayed running and ready.
+`acquisition-stop.json` and `acquisition-stop-pass.log.gz` retain the physical
+receipts. This checks acquisition ownership; it does not inject failed GPU cleanup.
+
+Two failed harness observations are retained. The first incorrectly counted a
+cached piece in `completedPieces`, which counts new acquisitions only; separate
+`reusedBytes` and verified-piece identities now assert both outcomes. The second
+started before the required supplier advertisement arrived and correctly failed
+with no eligible source. Waiting for any connected peer was an invalid acquisition
+precondition. The corrected control observes the specific offer; it adds no
+production retry or weaker authorization. The original two raw logs remain in
+`acquisition-stop-count-failure.log.gz` and `acquisition-stop-inventory-failure.log.gz`.
