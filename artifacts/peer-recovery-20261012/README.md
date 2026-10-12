@@ -40,3 +40,33 @@ transport warning. This does not claim all connected peers can execute requests.
 The accepted Doppler archive is unchanged. Numerical, signed physical opening,
 complex document quality and simultaneous long-conversation acceptance remain
 open. No complete release qualification follows from this host repair.
+
+## Public deployment and rolling contributor restart
+
+Repair commit `6c573a70` is deployed at https://replo.id/. The deployed-byte
+verifier fetched and matched all 1,909 files; see
+`deployed-bundle-verification.log`.
+
+`public-conversation.json` records an ordinary fresh requester selecting the
+physical browser pair automatically, returning $36 for three $12 tickets and
+$48 on the follow-up. The requester downloaded no weight files. Each Send bound
+one authorization to the actual two recipients, model identity and partition
+plan. The contributors at that moment still had the previous host module loaded.
+
+The browser contributors were then restarted one at a time against the public
+URL, keeping both native processes running. Replacement receipts bind old/new
+PIDs and profile paths. During Suby's restart, another fresh requester
+automatically selected the native/native pair and completed the same two
+questions; see `rolling-restart-conversation.json`. No placement or invitation
+was manually supplied. These are basic-chat checks, not document-quality,
+simultaneous-long-input or signed-Capsule acceptance.
+
+Final observations show native and browser contributors ready on both hosts.
+Both native owners report zero active reservations and zero unsettled owners.
+Both browser network messages are empty. Suby's new process logged a connection
+warning during initial negotiation and then cleared it while loading and reaching
+Ready; the regression independently establishes the matching-peer rule.
+
+Final browser PIDs: x `1735944`, Suby `4102789`. Native PIDs remain x `1535668`
+and Suby `4086709`. These observations are timestamped in the two
+`*-after-replacement.json` files; they are not a sustained-availability claim.
