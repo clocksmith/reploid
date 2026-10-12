@@ -6,6 +6,8 @@ import { createHash } from 'node:crypto';
 import { hostname } from 'node:os';
 import { resolve } from 'node:path';
 import { loadPairedPartitionFixture, assertPartitionTraversal } from './paired-partition-binding.js';
+import { runConcurrentPartitionMemory } from './concurrent-partition-memory.js';
+import { observeResidentOpening } from './resident-opening-observer.js';
 import { chromium } from 'playwright';
 import referenceContract from './distributed-reference-contract.json' with { type: 'json' };
 import { decodeReferenceLogits } from './independent-numerical-reference.js';
@@ -50,7 +52,7 @@ const generation = reference?.generation || { ...requests[0].model.generation, .
   maxSeqLen: policy.maxSeqLen };
 assert(generation.maxTokens <= policy.limits.maxTokens);
 assert(generation.maxSeqLen <= policy.maxSeqLen);
-assert(['reference', 'repetition', 'cancellation', 'cancel-only', 'capacity'].includes(phase));
+assert(['reference', 'repetition', 'cancellation', 'cancel-only', 'capacity', 'concurrent'].includes(phase));
 const capacityModel = phase === 'capacity' ? JSON.parse(await readFile(new URL('../../self/config/chat-models.json', import.meta.url)))
   .find(model => model.id === process.env.REPLOID_TEST_MODEL) : null;
 if (phase === 'capacity') assert(capacityModel, 'Capacity diagnostic requires a catalog model');
@@ -90,7 +92,17 @@ try {
     const context = await browser.newContext(); contexts.push(context);
     const page = await context.newPage(); pages.push(page);
     await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000').href);
-    const prepared = await page.evaluate(async ({ model, index, modelSource, pairedBinding }) => {
+    const openingObserver = pairedBinding ? await observeResidentOpening(page, {
+      runtimeBaseUrl: await page.evaluate(async () => {
+        const config = await import('/config/doppler-local-models.js');
+        return new URL('./', new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href)).href;
+      }),
+      factorySource: await readFile(new URL(`../../self/vendor/doppler/${packageIdentity.version}/src/client/resident-partitions.js`, import.meta.url), 'utf8'),
+      identitySource: await readFile(new URL(`../../self/vendor/doppler/${packageIdentity.version}/src/config/initial-execution-identity.js`, import.meta.url), 'utf8')
+    }) : null;
+    let prepared;
+    try {
+    prepared = await page.evaluate(async ({ model, index, modelSource, pairedBinding }) => {
       const config = await import('/config/doppler-local-models.js');
       const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href);
       globalThis.__DOPPLER_KERNEL_BASE_PATH__ = config.DOPPLER_KERNEL_BASE_URL;
@@ -161,6 +173,8 @@ try {
     }, { model: { ...(capacityModel || requests[0].model), generation }, index, pairedBinding,
       modelSource: (browser === remote ? process.env.REPLOID_PEER_MODEL_BASE_URL : null)
         || process.env.REPLOID_MODEL_BASE_URL || 'http://127.0.0.1:9230/' });
+    if (openingObserver) prepared.openingObservation = await openingObserver.finish();
+    } finally { await openingObserver?.close(); }
     descriptors.push({ ...prepared, platform: hostNames[slot], browser: browser.version() });
     console.log(JSON.stringify({ prepared: index, bytes: prepared.afterPreparation.device.liveBytes }));
   }
@@ -170,7 +184,13 @@ try {
     if (pairedBinding) assertPartitionTraversal(prepared.legacyPlan, prepared.plan);
   }
   const pageA = pages[reverse ? 1 : 0], pageB = pages[reverse ? 0 : 1];
-  for (const [attempt, testCase] of cases.entries()) {
+  if (phase === 'concurrent') {
+    evidence.scope = 'Two live 1,588-token resident attempts, submitted cancellation, surviving output and fresh retry; Node tensor forwarding, not signed application acceptance';
+    await runConcurrentPartitionMemory({ pages, pageA, pageB, request: requests[1], generation,
+      planId: descriptors[0].planId, runs,
+      persist: () => writeFile(output, JSON.stringify(evidence)),
+      onProgress: row => console.log(JSON.stringify(row)) });
+  } else for (const [attempt, testCase] of cases.entries()) {
     const { request } = testCase;
     const identity = { modelId: request.model.id, modelIdentity: request.model.identity, planId: descriptors[0].planId,
       participantA: 'memory-A', participantB: 'memory-B', threadId: `memory-${attempt}`, attemptId: `memory-${attempt}` };
