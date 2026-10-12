@@ -2,7 +2,7 @@
   "schema": "deco.physical-execution-reservation/v1",
   "owner": "/root/native_participation",
   "recordedAt": "2026-10-12T23:00:07.060Z",
-  "state": "reserved-preflight",
+  "state": "released",
   "hosts": [
     "x@128.tail995236.ts.net AMD",
     "Mac Apple WebGPU"
@@ -15,5 +15,22 @@
   "approval": "Root reviewed finalfreeze; numerical explicitly released and has no queuedGPUjob before ourrelease",
   "scope": "Combined cold-first native/browser full55 direction0, thenreverse; onlyownedtestcontexts. Publicconsumers untouched, existing CPU/publicactivity interference recorded.",
   "priorRunLimitation": "102fd concurrent Macownerterminated/processgone; GPUqueue andbuffer settlement remainedunknown. Thisreservationdoesnotrewrite thatfailure.",
-  "release": "Ownerwillrecordconfirmedcleanuporunknownsettlementandnotifyroot/numerical explicitly"
+  "release": "Both placements: resident close and queue barriers confirmed; active/deferred/retained weights zero; native provider released and both native processes exited0. Root/numerical notified; task-owned idle servers/tunnel stopped. Public processes untouched.",
+  "updatedAt": "2026-10-12T23:31:57.444Z",
+  "nativePid": 2152012,
+  "passiveObserverToolSession": 28180,
+  "direction0": {
+    "controllerExitCode": 0,
+    "nativePid": 2152012,
+    "nativeExitCode": 0,
+    "providerReleased": true,
+    "all55Passed": true
+  },
+  "direction1": {
+    "controllerExitCode": 0,
+    "nativePid": 2371726,
+    "nativeExitCode": 0,
+    "providerReleased": true,
+    "all55Passed": true
+  }
 }
