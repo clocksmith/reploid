@@ -1,0 +1,8 @@
+{
+  "pid": 2772299,
+  "signal": "SIGTERM",
+  "finishedAt": 1791779615.1405082,
+  "settledProcessExit": true,
+  "exitCode": null,
+  "exitCodeObservation": "Process was already reaped; exit status unavailable. Log observes two settled attempts, model unload and device destruction."
+}
