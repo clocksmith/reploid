@@ -32,3 +32,19 @@ physical results and a subsequent bundle freeze. No GPU inference, signed
 opening, long-conversation acceptance, answer-quality pass or deployment is
 claimed by these checks. No synthetic report was substituted for physical
 qualification. The native artifact has its own separately recorded descriptor.
+
+## Matching native delivery
+
+The existing `package:native` command consumed this same canonically synchronized
+source and produced 95 files, descriptor
+`32fa4e3f1e2ad3c7a1c6624078310255a2fa4c9d8d43a0ff457637dcc47bd04d`,
+archive `46af2517eedad71819ba796a3444347db8baf176d8a34c63a08ddeab3ed2aec5`.
+See [native metadata](native-preparation.json) and [packaging](native-package.log).
+
+This preparation supersedes the native fixture's manually updated source for
+future ordinary-application checks: a read-only inspection found that source
+still advertised catalog runtime version 0.6.27 despite its installed 0.6.28
+package. Its already-running direct resident control remains separately bound
+evidence; it cannot qualify ordinary CLI catalog integration. The canonical
+synchronization used here updates both package and catalog mirrors. No running
+artifact was changed, and this new native delivery has not yet executed inference.
