@@ -1,0 +1,97 @@
+{
+  "schema": "reploid.official-tool-calculation-review/v1",
+  "status": "rejected; stopped after one completed case by explicit instruction",
+  "frozenRevision": "3d8a7362",
+  "passed": false,
+  "attemptedCases": 1,
+  "passedCases": 0,
+  "failedCases": 1,
+  "unrunCases": [
+    "fresh-bathroom-correction",
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "case": {
+    "id": "fresh-bathroom-comparison",
+    "passed": false,
+    "extraction": {
+      "stopReason": "eos",
+      "promptTokens": 1380,
+      "generatedTokens": 711,
+      "toolInvoked": false,
+      "error": "Expecting ',' delimiter: line 1 column 237 (char 236)"
+    },
+    "final": {
+      "stopReason": "eos",
+      "promptTokens": 2124,
+      "generatedTokens": 711,
+      "byteIdenticalToExtraction": true,
+      "tokenIdenticalToExtraction": true,
+      "additionalToolExecuted": false,
+      "failure": "Final response repeats invalid Calculate call and supplies no answer or honest failure explanation."
+    },
+    "counts": {
+      "generatedTokens": 1422,
+      "promptTokens": 3504,
+      "totalChargedTokens": 4926,
+      "rawOutputUtf16": 4080,
+      "withinBudgets": true
+    },
+    "criteria": [
+      {
+        "criterion": "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+        "status": "failed",
+        "reason": "No final answer: repeated invalid tool arguments do not provide the required comparison, derived values, conditions, unresolved conflicts or cited conclusions."
+      },
+      {
+        "criterion": "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+        "status": "failed",
+        "reason": "No final answer: repeated invalid tool arguments do not provide the required comparison, derived values, conditions, unresolved conflicts or cited conclusions."
+      },
+      {
+        "criterion": "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+        "status": "failed",
+        "reason": "No final answer: repeated invalid tool arguments do not provide the required comparison, derived values, conditions, unresolved conflicts or cited conclusions."
+      },
+      {
+        "criterion": "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+        "status": "failed",
+        "reason": "No final answer: repeated invalid tool arguments do not provide the required comparison, derived values, conditions, unresolved conflicts or cited conclusions."
+      },
+      {
+        "criterion": "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges.",
+        "status": "not exercised",
+        "reason": "No deposits are asserted as an answer; this optional subcriterion cannot qualify the missing answer."
+      }
+    ]
+  },
+  "toolAttribution": {
+    "passed": false,
+    "successfulCalculations": 0,
+    "reason": "Strict argument JSON parsing rejected before handler invocation. No repaired output or retry."
+  },
+  "executionIdentity": {
+    "templateAndPromptAssertionsPassed": true,
+    "distinctPromptLengths": [
+      1380,
+      2124
+    ],
+    "distinctFirstStepToolCallLogits": [
+      25.395545959472656,
+      24.278249740600586
+    ],
+    "cacheScope": "Existing evaluator constructs fresh StoredHalfCache for each call; no source cache reuse was introduced."
+  },
+  "disposition": "No production adoption, no claim of general model incapacity, and no further candidate without localized cause plus independent evidence. Pure generation failures remain retained. Source process and watcher exited; no other remote processes stopped.",
+  "observedRunCost": {
+    "logCreatedUtc": "2026-10-12T12:12:02.839559Z",
+    "lastGenerationLogWriteUtc": "2026-10-12T12:20:07.929192Z",
+    "elapsedSeconds": 485.089633,
+    "generatedTokens": 1422,
+    "endToEndGeneratedTokensPerSecond": 2.931417006802947,
+    "scope": "File creation to final generation log; includes source loading, two prefills, tool parsing and reporting. Concurrent correctness workloads; not an isolated inference benchmark."
+  }
+}

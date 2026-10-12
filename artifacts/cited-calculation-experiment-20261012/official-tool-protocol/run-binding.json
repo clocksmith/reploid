@@ -21,11 +21,12 @@
     "4"
   ],
   "output": "/home/x/deco/reploid/reports/local/cited-calculation-official-tool-20261012/result.json",
-  "status": "running",
+  "status": "completed",
   "environment": {
     "PYTHONPATH": "/tmp/doppler-reference-deps",
     "OPENBLAS_NUM_THREADS": "4",
     "OMP_NUM_THREADS": "4"
   },
-  "pid": 3408285
+  "pid": 3408285,
+  "exitCode": -15
 }
