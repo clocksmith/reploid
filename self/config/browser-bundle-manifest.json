@@ -1760,8 +1760,8 @@
     },
     {
       "path": "host/work-model-files.js",
-      "byteLength": 21494,
-      "sha256": "sha256:bdd780b6966f99d25eaf4c2b02d174d87cb5e36e6e1a9c7dece8b582ec5e730f"
+      "byteLength": 22499,
+      "sha256": "sha256:6a7d8eb448394254b4bc04a81dc66801e2ec458bec9fd9ddebba20b5a68c451f"
     },
     {
       "path": "host/work-partition-artifact-source.js",
@@ -1779,9 +1779,14 @@
       "sha256": "sha256:73419939ca3a843efd8f5ec1d02ad7c179425dc10d8ff6848d3db75f30eda4b9"
     },
     {
+      "path": "host/work-partition-tokenizer-guard.js",
+      "byteLength": 863,
+      "sha256": "sha256:a5c2ea8c6d89fdfd0c39177c19ff4570fe69407d83ef99d9ea38e7fb9fb39fe1"
+    },
+    {
       "path": "host/work-partitions.js",
-      "byteLength": 5169,
-      "sha256": "sha256:56dcf5aa01ee6299f860ddf40bcb0f41acdefd39231ecd3b0795b2be6ffe1e32"
+      "byteLength": 5422,
+      "sha256": "sha256:1fd948f32d5c914b73aee7f9c2200e1534e30ae168a0743840bf234d4156107f"
     },
     {
       "path": "host/work-peer-jobs.js",
@@ -1862,6 +1867,11 @@
       "path": "infrastructure/code-sandbox.js",
       "byteLength": 4215,
       "sha256": "sha256:15fc0489ba8146eb6b53f6d0d184fa66ac078f8ea62fac7315eba29e81764968"
+    },
+    {
+      "path": "infrastructure/custody-supply-budget.js",
+      "byteLength": 2423,
+      "sha256": "sha256:c32077923c77e0e7d5e74b945da661dec1f330353a24e6a206be63f0d112f590"
     },
     {
       "path": "infrastructure/di-container.js",
@@ -9185,8 +9195,8 @@
     },
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
-      "byteLength": 18373,
-      "sha256": "sha256:db43d57238a4d7b4f8a84636799ce6548cd2b301c911efb17acdb276ccfd1ced"
+      "byteLength": 19094,
+      "sha256": "sha256:22078d17acb1a05f600ca4ea302782160b37fc6de14d8d4fb67bf14da2f93d43"
     },
     {
       "path": "vendor/reploid/artifacts/custody/piece-acquisition.js",
@@ -9197,6 +9207,11 @@
       "path": "vendor/reploid/artifacts/custody/runtime.js",
       "byteLength": 21885,
       "sha256": "sha256:a9c3f7485f95a06d8f6d08ac01ebc768386af301e1ea3f9c9d105840e6d16414"
+    },
+    {
+      "path": "vendor/reploid/artifacts/custody/supply-budget.js",
+      "byteLength": 1278,
+      "sha256": "sha256:5a0bf00cb6e9ed88734881c018c123d2008994e7447625eaba95297e965ed460"
     },
     {
       "path": "vendor/reploid/artifacts/identity.js",
@@ -9465,8 +9480,8 @@
     },
     {
       "path": "vendor/reploid/package-assets.json",
-      "byteLength": 30588,
-      "sha256": "sha256:fa621d01b9bf9c7c85160ff4c5a5c9a10ad74d7f09bbfda96a0917b1973880c1"
+      "byteLength": 30757,
+      "sha256": "sha256:d9ba0ab47c7d78f57a8f420bd9be42597edf0688eeef28fe5cccfe297f2c119c"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -9554,5 +9569,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:5be2d8f1e10ddd9467b09b40ce7dbbdc2e1898952f8d988e0f5b2d590a225325"
+  "bundleHash": "sha256:68b3997b26dd569a9a2744a6789dcabb6af68d6bd389c941c1d59f62a811be02"
 }
