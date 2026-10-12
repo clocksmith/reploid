@@ -4,7 +4,7 @@
   "host": "x@128.tail995236.ts.net",
   "sourcePid": 4185688,
   "wrapperPid": 4185686,
-  "status": "running",
+  "status": "completed",
   "startedAtUtc": "2026-10-12T19:51:44Z",
   "command": [
     "nice",
@@ -38,5 +38,8 @@
     "dopplerRevision": "909b49a7102f1f2537a4a8b03dada3130a1a05ac"
   },
   "evidenceDirectory": "/home/x/deco/reploid/reports/local/cited-calculation-source-scoped-20261013",
-  "restartPolicy": "Do not restart an active or rejected case; inspect retained result/exit-code and follow frozen stop rule."
+  "restartPolicy": "Do not restart an active or rejected case; inspect retained result/exit-code and follow frozen stop rule.",
+  "exitCode": 0,
+  "finishedAtUtc": "2026-10-12T19:54:36Z",
+  "elapsedSeconds": 172.0
 }
