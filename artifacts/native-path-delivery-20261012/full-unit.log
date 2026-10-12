@@ -1,0 +1,1599 @@
+
+[1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90m/home/x/deco/reploid[39m
+
+ [32m✓[39m tests/integration/agent-loop.test.js [2m([22m[2m54 tests[22m[2m)[22m[33m 2628[2mms[22m[39m
+       [33m[2m✓[22m[39m circuit-breaks LoadModule after repeated module load failures [33m 909[2mms[22m[39m
+       [33m[2m✓[22m[39m should handle tool errors gracefully [33m 305[2mms[22m[39m
+       [33m[2m✓[22m[39m should skip tool when circuit is open after repeated failures [33m 908[2mms[22m[39m
+       [33m[2m✓[22m[39m should log reflections on tool error [33m 304[2mms[22m[39m
+ [32m✓[39m tests/unit/partition-api.test.js [2m([22m[2m41 tests[22m[2m)[22m[33m 4001[2mms[22m[39m
+     [33m[2m✓[22m[39m discovers cooperative executors with replica coverage=false [33m 1727[2mms[22m[39m
+     [33m[2m✓[22m[39m discovers cooperative executors with replica coverage=true [33m 1413[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-room.test.js [2m([22m[2m23 tests[22m[2m)[22m[33m 2174[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps a provider execution slot occupied after requester transport loss until runtime settlement [33m 402[2mms[22m[39m
+     [33m[2m✓[22m[39m accepts a provider that joins after requester discovery starts [33m 514[2mms[22m[39m
+     [33m[2m✓[22m[39m limits ring prompt dispatch until each active provider returns a receipt [33m 669[2mms[22m[39m
+ [32m✓[39m tests/unit/doppler-partition-delivery.test.js [2m([22m[2m3 tests[22m[2m)[22m[33m 1946[2mms[22m[39m
+     [33m[2m✓[22m[39m ships identical installed and hosted contract bytes from the pinned archive [33m 597[2mms[22m[39m
+     [33m[2m✓[22m[39m rejects a correctly hashed archive with mismatched runtime identity before delivery [33m 362[2mms[22m[39m
+     [33m[2m✓[22m[39m replaces stale generated files and rejects changed archive bytes before replacing assets [33m 985[2mms[22m[39m
+Error: connect ECONNREFUSED 127.0.0.1:3000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1631:16) {
+  errno: -111,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 3000
+}
+Error: connect ECONNREFUSED 127.0.0.1:3000
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1631:16) {
+  errno: -111,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 3000
+}
+ [32m✓[39m tests/unit/self-runtime.test.js [2m([22m[2m20 tests[22m[2m)[22m[33m 1504[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-home-ask-controls.test.js [2m([22m[2m31 tests[22m[2m)[22m[33m 1504[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-pack-job.test.js [2m([22m[2m26 tests[22m[2m)[22m[33m 1435[2mms[22m[39m
+     [33m[2m✓[22m[39m enforces deadline, event, byte and admission limits without accepting a partial answer [33m 671[2mms[22m[39m
+ [32m✓[39m tests/unit/custody-exchange.test.js [2m([22m[2m17 tests[22m[2m)[22m[33m 1269[2mms[22m[39m
+ [32m✓[39m tests/unit/cli-contract.test.js [2m([22m[2m4 tests[22m[2m)[22m[33m 1125[2mms[22m[39m
+     [33m[2m✓[22m[39m runs the advertised npm CLI and discovers actual proof targets [33m 561[2mms[22m[39m
+     [33m[2m✓[22m[39m fails unknown, incomplete and contradictory input instead of running default tests [33m 561[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-home-simulation.test.js [2m([22m[2m30 tests[22m[2m)[22m[33m 758[2mms[22m[39m
+     [33m[2m✓[22m[39m keeps flow speed and width bounded across repeated frames [33m 463[2mms[22m[39m
+ [32m✓[39m tests/unit/distributed-reference-contract.test.js [2m([22m[2m2 tests[22m[2m)[22m[33m 659[2mms[22m[39m
+   [33m[2m✓[22m[39m limits the reviewed reference correction to logits, preserving every frozen input and token [33m 657[2mms[22m[39m
+ [32m✓[39m tests/unit/conversation-workspace.test.js [2m([22m[2m18 tests[22m[2m)[22m[33m 767[2mms[22m[39m
+ [32m✓[39m tests/unit/code-evolution.test.js [2m([22m[2m16 tests[22m[2m)[22m[33m 762[2mms[22m[39m
+ [32m✓[39m tests/integration/public-swarm-server.test.js [2m([22m[2m6 tests[22m[2m)[22m[33m 697[2mms[22m[39m
+     [33m[2m✓[22m[39m isolates private capabilities and denies public/private cross-scope joins and offers [33m 312[2mms[22m[39m
+ [32m✓[39m tests/unit/legacy-generation-threads.test.js [2m([22m[2m11 tests[22m[2m)[22m[33m 550[2mms[22m[39m
+[90mstdout[2m | tests/unit/hosting-file-set.test.js[2m > [22m[2mHosting dependency projection[2m > [22m[2mcopies exact archive bytes, removes stale output and rejects a changed vendored module
+[22m[39m[hosting] packaged 8 files as sha256:e1a4e712db2259a973fd8c5eac1f1985b89d5fe07c9d7bba62e3c53f66f34a41
+
+ [32m✓[39m tests/unit/hosting-file-set.test.js [2m([22m[2m3 tests[22m[2m)[22m[33m 543[2mms[22m[39m
+     [33m[2m✓[22m[39m excludes retired packages and declarations from the real runtime selection [33m 485[2mms[22m[39m
+ [32m✓[39m tests/unit/doppler-optimizer.test.js [2m([22m[2m8 tests[22m[2m)[22m[33m 572[2mms[22m[39m
+ [32m✓[39m tests/unit/chat-model-manifests.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 471[2mms[22m[39m
+     [33m[2m✓[22m[39m ships every pinned manifest in the ordinary browser bundle with unchanged bytes [33m 470[2mms[22m[39m
+ [32m✓[39m tests/unit/retained-document-assistant.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 426[2mms[22m[39m
+   [33m[2m✓[22m[39m verifies retained physical assistant outputs and source parity without replaying a GPU [33m 424[2mms[22m[39m
+ [32m✓[39m tests/unit/retained-peer-pack-episode.test.js [2m([22m[2m8 tests[22m[2m)[22m[33m 389[2mms[22m[39m
+ [32m✓[39m tests/unit/work-swarm-lifecycle.test.js [2m([22m[2m11 tests[22m[2m)[22m[33m 395[2mms[22m[39m
+ [32m✓[39m tests/unit/retained-document-search.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 342[2mms[22m[39m
+     [33m[2m✓[22m[39m binds source comparison, exact runtime, failed attempts, and bounded retrieval observations [33m 341[2mms[22m[39m
+ [32m✓[39m tests/integration/browser-snapshot-server.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 303[2mms[22m[39m
+   [33m[2m✓[22m[39m serves every browser entry and asset from the selected snapshot without checkout fallback [33m 302[2mms[22m[39m
+ [32m✓[39m tests/integration/change-control-service.test.js [2m([22m[2m10 tests[22m[2m)[22m[33m 332[2mms[22m[39m
+ [32m✓[39m tests/unit/native-model-files.test.js [2m([22m[2m11 tests[22m[2m)[22m[33m 325[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-hosted-diagnostic.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 315[2mms[22m[39m
+     [33m[2m✓[22m[39m recovers an expired attempt, transports input outside the coordinator, and reaches accepted quorum [33m 314[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-research-view.test.js [2m([22m[2m11 tests[22m[2m)[22m[33m 316[2mms[22m[39m
+ [32m✓[39m tests/unit/chat-session.test.js [2m([22m[2m23 tests[22m[2m)[22m[33m 324[2mms[22m[39m
+[90mstdout[2m | tests/integration/doppler-inference.test.js[2m > [22m[2mDoppler Performance Metrics[2m > [22m[2mmeasures token generation speed
+[22m[39m[Doppler Performance] 14 tokens in 143ms = 97.9 tok/s
+
+[90mstdout[2m | tests/integration/doppler-inference.test.js[2m > [22m[2mDoppler Performance Metrics[2m > [22m[2mcalculates time-to-first-token (TTFT)
+[22m[39m[Doppler Performance] TTFT: 11ms
+
+[90mstdout[2m | tests/integration/doppler-inference.test.js[2m > [22m[2mGPU Requirements Documentation[2m > [22m[2mdocuments minimum GPU requirements
+[22m[39m
+=== GPU Requirements for Doppler Models ===
+
+Gemma 3 1B Q4_K_M:
+  - VRAM Required: 1.2 GB
+  - Min Tier: 3, Recommended: 2
+  - Notes: Works on integrated GPUs with 4GB+ shared memory
+
+Gemma 3 4B Q4_K_M:
+  - VRAM Required: 2.8 GB
+  - Min Tier: 2, Recommended: 2
+  - Notes: Requires discrete GPU or Apple Silicon
+
+Gemma 3 12B Q4_K_M:
+  - VRAM Required: 7.5 GB
+  - Min Tier: 1, Recommended: 1
+  - Notes: Requires 8GB+ VRAM or Apple Silicon with 16GB+ unified memory
+
+
+[90mstdout[2m | tests/integration/doppler-inference.test.js[2m > [22m[2mGPU Requirements Documentation[2m > [22m[2mdocuments WebGPU tier levels
+[22m[39m
+=== WebGPU Tier Levels ===
+
+Tier 1 (Unified Memory):
+  - Apple Silicon or similar unified memory architecture
+  - Max Model Size: 60 GB
+  - Features: memory64, subgroups, f16
+  - Examples: M1/M2/M3 Mac, Snapdragon X Elite
+
+Tier 2 (Memory64):
+  - Discrete GPU with WebGPU memory64 support
+  - Max Model Size: 40 GB (MoE models)
+  - Features: memory64, subgroups
+  - Examples: RTX 3090/4090, RX 7900 XTX
+
+Tier 3 (Basic):
+  - Entry-level WebGPU support
+  - Max Model Size: 8 GB
+  - Features: none
+  - Examples: Integrated Intel/AMD GPUs, GTX 1060
+
+
+ [32m✓[39m tests/integration/doppler-inference.test.js [2m([22m[2m16 tests[22m[2m)[22m[33m 307[2mms[22m[39m
+ [32m✓[39m tests/unit/native-delivery.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 262[2mms[22m[39m
+ [32m✓[39m tests/unit/partition-data-channel.test.js [2m([22m[2m20 tests[22m[2m)[22m[32m 272[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-routes.test.js [2m([22m[2m31 tests[22m[2m)[22m[32m 215[2mms[22m[39m
+ [32m✓[39m tests/unit/peer-introductions.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 218[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-document-search.test.js [2m([22m[2m14 tests[22m[2m)[22m[32m 218[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-discovery-contract.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 171[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-pack-job-channel.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 175[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-research-store.test.js [2m([22m[2m13 tests[22m[2m)[22m[32m 187[2mms[22m[39m
+ [32m✓[39m tests/unit/audit-logger.test.js [2m([22m[2m42 tests[22m[2m)[22m[32m 176[2mms[22m[39m
+ [32m✓[39m tests/unit/chat-scheduler.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 168[2mms[22m[39m
+ [32m✓[39m tests/unit/change-control-github.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 168[2mms[22m[39m
+ [32m✓[39m tests/unit/improvement-episode.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 137[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-pack-custody.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 153[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-control-plane.test.js [2m([22m[2m11 tests[22m[2m)[22m[32m 163[2mms[22m[39m
+ [32m✓[39m tests/unit/operation-participation-lifecycle.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 133[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-browser-lane-b.test.js [2m([22m[2m11 tests[22m[2m)[22m[32m 129[2mms[22m[39m
+ [32m✓[39m tests/integration/long-session.test.js [2m([22m[2m16 tests[22m[2m)[22m[32m 134[2mms[22m[39m
+ [32m✓[39m tests/unit/automatic-partition-lifecycle.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 128[2mms[22m[39m
+ [32m✓[39m tests/unit/self-collaboration.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 128[2mms[22m[39m
+ [32m✓[39m tests/unit/work-threads.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 123[2mms[22m[39m
+ [32m✓[39m tests/unit/poolday-css-layers.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 96[2mms[22m[39m
+ [32m✓[39m tests/integration/visual-change-passport.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 124[2mms[22m[39m
+[90mstdout[2m | tests/integration/websocket-routing.test.js[2m > [22m[2mWebSocket routing[2m > [22m[2mroutes signaling and agent bridge upgrades to the correct service
+[22m[39m[AgentBridge] Agent coordination server started on /agent-bridge
+
+[90mstdout[2m | tests/integration/websocket-routing.test.js[2m > [22m[2mWebSocket routing[2m > [22m[2mroutes signaling and agent bridge upgrades to the correct service
+[22m[39m[AgentBridge] New connection from: ::ffff:127.0.0.1
+
+[90mstdout[2m | tests/integration/websocket-routing.test.js[2m > [22m[2mWebSocket routing[2m > [22m[2mroutes signaling and agent bridge upgrades to the correct service
+[22m[39m[AgentBridge] Agent registered: claude-1791807240008-q8gq8aydl (probe-agent)
+
+[90mstdout[2m | tests/integration/websocket-routing.test.js[2m > [22m[2mWebSocket routing[2m > [22m[2mcloses active agent bridge clients during shutdown and clears heartbeat timers
+[22m[39m[AgentBridge] Agent coordination server started on /agent-bridge
+
+[90mstdout[2m | tests/integration/websocket-routing.test.js[2m > [22m[2mWebSocket routing[2m > [22m[2mcloses active agent bridge clients during shutdown and clears heartbeat timers
+[22m[39m[AgentBridge] New connection from: ::ffff:127.0.0.1
+
+[90mstdout[2m | tests/integration/websocket-routing.test.js[2m > [22m[2mWebSocket routing[2m > [22m[2mcloses active agent bridge clients during shutdown and clears heartbeat timers
+[22m[39m[AgentBridge] Agent registered: claude-1791807240035-qf0l48qit (probe-agent)
+
+ [32m✓[39m tests/integration/websocket-routing.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 116[2mms[22m[39m
+ [32m✓[39m tests/unit/doppler-optimization-ui.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 106[2mms[22m[39m
+ [32m✓[39m tests/unit/zero-ui.test.js [2m([22m[2m11 tests[22m[2m)[22m[32m 94[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-evidence-network.test.js [2m([22m[2m28 tests[22m[2m)[22m[32m 97[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-complete-forecast.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 96[2mms[22m[39m
+ [32m✓[39m tests/integration/signaling-server.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 98[2mms[22m[39m
+ [32m✓[39m tests/unit/catscan.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 98[2mms[22m[39m
+ [32m✓[39m tests/unit/document-comparison.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 97[2mms[22m[39m
+ [32m✓[39m tests/unit/distributed-reference-model.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 94[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-adapter-execution.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 78[2mms[22m[39m
+ [32m✓[39m tests/unit/change-passport.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 98[2mms[22m[39m
+ [32m✓[39m tests/unit/cloud-access-build.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 101[2mms[22m[39m
+ [32m✓[39m tests/integration/change-passport-action.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 92[2mms[22m[39m
+ [32m✓[39m tests/unit/boot-seed.test.js [2m([22m[2m18 tests[22m[2m)[22m[32m 78[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-research-routes.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 103[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-rendezvous.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 81[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-adapter-pack.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 84[2mms[22m[39m
+ [32m✓[39m tests/unit/boot-wizard-state.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 75[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-pack-session.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 81[2mms[22m[39m
+ [32m✓[39m tests/unit/introduction-bootstrap.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 76[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-home-nav.test.js [2m([22m[2m24 tests[22m[2m)[22m[32m 82[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-home-record.test.js [2m([22m[2m22 tests[22m[2m)[22m[32m 70[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-research-lifecycle.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 69[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-bayesian-job.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 63[2mms[22m[39m
+ [32m✓[39m tests/unit/di-container.test.js [2m([22m[2m21 tests[22m[2m)[22m[32m 62[2mms[22m[39m
+ [32m✓[39m tests/integration/json-body-middleware.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 69[2mms[22m[39m
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mInitialization[2m > [22m[2mshould load existing tree from VFS
+[22m[39m[INFO] [KnowledgeTree] Loaded existing tree { levels: [33m1[39m, totalNodes: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTree Building[2m > [22m[2mshould build tree from documents
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTree Building[2m > [22m[2mshould build tree from documents
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m4[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTree Building[2m > [22m[2mshould build tree from documents
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTree Building[2m > [22m[2mshould build tree from documents
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m7[39m, durationMs: [33m3[39m }
+
+[90mstderr[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTree Building[2m > [22m[2mshould reject building with insufficient documents
+[22m[39m[WARN] [KnowledgeTree] Not enough documents for tree { count: [33m1[39m, minimum: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTree Building[2m > [22m[2mshould create summaries for higher levels
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTree Building[2m > [22m[2mshould create summaries for higher levels
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m5[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTree Building[2m > [22m[2mshould create summaries for higher levels
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTree Building[2m > [22m[2mshould create summaries for higher levels
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m8[39m, durationMs: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould return relevant results for queries
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould return relevant results for queries
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m4[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould return relevant results for queries
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould return relevant results for queries
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m7[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould search all tree levels by default
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould search all tree levels by default
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m4[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould search all tree levels by default
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould search all tree levels by default
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m7[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould emit query event
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould emit query event
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m4[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould emit query event
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mBasic Query[2m > [22m[2mshould emit query event
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m7[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mIncremental Updates (addDocument)[2m > [22m[2mshould add document to existing tree
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mIncremental Updates (addDocument)[2m > [22m[2mshould add document to existing tree
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mIncremental Updates (addDocument)[2m > [22m[2mshould add document to existing tree
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m1[39m }
+
+[90mstderr[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mIncremental Updates (addDocument)[2m > [22m[2mshould create tree if none exists
+[22m[39m[WARN] [KnowledgeTree] Not enough documents for tree { count: [33m1[39m, minimum: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mIncremental Updates (addDocument)[2m > [22m[2mshould add document with timestamp to temporal index
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mIncremental Updates (addDocument)[2m > [22m[2mshould add document with timestamp to temporal index
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mIncremental Updates (addDocument)[2m > [22m[2mshould add document with timestamp to temporal index
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTemporal Indexing[2m > [22m[2mshould track node timestamps
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTemporal Indexing[2m > [22m[2mshould track node timestamps
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTemporal Indexing[2m > [22m[2mshould track node timestamps
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m0[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTemporal Indexing[2m > [22m[2mshould query by time range
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTemporal Indexing[2m > [22m[2mshould query by time range
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mTemporal Indexing[2m > [22m[2mshould query by time range
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m0[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould combine semantic and temporal scoring
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould combine semantic and temporal scoring
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m5[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould combine semantic and temporal scoring
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+ [32m✓[39m tests/integration/llm-client.test.js [2m([22m[2m36 tests[22m[2m)[22m[32m 54[2mms[22m[39m
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould combine semantic and temporal scoring
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m8[39m, durationMs: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould apply time range filter
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould apply time range filter
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m5[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould apply time range filter
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould apply time range filter
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m8[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould emit hybrid query event
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould emit hybrid query event
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m5[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould emit hybrid query event
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mHybrid Retrieval[2m > [22m[2mshould emit hybrid query event
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m8[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould detect task type from query
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould detect task type from query
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m5[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould detect task type from query
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould detect task type from query
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m8[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould return general for unrecognized queries
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould return general for unrecognized queries
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m5[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould return general for unrecognized queries
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould return general for unrecognized queries
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m8[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould boost anticipated context
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould boost anticipated context
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m5[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould boost anticipated context
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould boost anticipated context
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m8[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould emit anticipatory query event
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould emit anticipatory query event
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m5[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould emit anticipatory query event
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould emit anticipatory query event
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m8[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAdaptive Forgetting (Ebbinghaus)[2m > [22m[2mshould compute retention score
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAdaptive Forgetting (Ebbinghaus)[2m > [22m[2mshould compute retention score
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAdaptive Forgetting (Ebbinghaus)[2m > [22m[2mshould compute retention score
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m0[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAdaptive Forgetting (Ebbinghaus)[2m > [22m[2mshould prune decayed nodes
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAdaptive Forgetting (Ebbinghaus)[2m > [22m[2mshould prune decayed nodes
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAdaptive Forgetting (Ebbinghaus)[2m > [22m[2mshould prune decayed nodes
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m0[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAdaptive Forgetting (Ebbinghaus)[2m > [22m[2mshould prune decayed nodes
+[22m[39m[INFO] [KnowledgeTree] Configuration updated
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAdaptive Forgetting (Ebbinghaus)[2m > [22m[2mshould prune decayed nodes
+[22m[39m[INFO] [KnowledgeTree] Pruned decayed nodes { pruned: [33m1[39m, originalCount: [33m4[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAccess Tracking[2m > [22m[2mshould record access when querying
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAccess Tracking[2m > [22m[2mshould record access when querying
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mAccess Tracking[2m > [22m[2mshould record access when querying
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m0[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mConfiguration[2m > [22m[2mshould allow configuration updates
+[22m[39m[INFO] [KnowledgeTree] Configuration updated
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mConfiguration[2m > [22m[2mshould return stats with temporal info
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mConfiguration[2m > [22m[2mshould return stats with temporal info
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mConfiguration[2m > [22m[2mshould return stats with temporal info
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mClear and Reset[2m > [22m[2mshould clear tree and temporal index
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mClear and Reset[2m > [22m[2mshould clear tree and temporal index
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mClear and Reset[2m > [22m[2mshould clear tree and temporal index
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mClear and Reset[2m > [22m[2mshould delete VFS files on clear
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mClear and Reset[2m > [22m[2mshould delete VFS files on clear
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mClear and Reset[2m > [22m[2mshould delete VFS files on clear
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mClear and Reset[2m > [22m[2mshould emit clear event
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mClear and Reset[2m > [22m[2mshould emit clear event
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mClear and Reset[2m > [22m[2mshould emit clear event
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m0[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mK-Means Clustering[2m > [22m[2mshould cluster similar documents together
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mK-Means Clustering[2m > [22m[2mshould cluster similar documents together
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m6[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mK-Means Clustering[2m > [22m[2mshould cluster similar documents together
+[22m[39m[INFO] [KnowledgeTree] Building level 2... { nodesAtLevel: [33m2[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mK-Means Clustering[2m > [22m[2mshould cluster similar documents together
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m3[39m, totalNodes: [33m9[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mPersistence[2m > [22m[2mshould persist tree to VFS
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mPersistence[2m > [22m[2mshould persist tree to VFS
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mPersistence[2m > [22m[2mshould persist tree to VFS
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m1[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mPersistence[2m > [22m[2mshould persist temporal index to VFS
+[22m[39m[INFO] [KnowledgeTree] Embedding documents...
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mPersistence[2m > [22m[2mshould persist temporal index to VFS
+[22m[39m[INFO] [KnowledgeTree] Building level 1... { nodesAtLevel: [33m3[39m }
+
+[90mstdout[2m | tests/unit/knowledge-tree.test.js[2m > [22m[2mKnowledgeTree[2m > [22m[2mPersistence[2m > [22m[2mshould persist temporal index to VFS
+[22m[39m[INFO] [KnowledgeTree] Build complete { levels: [33m2[39m, totalNodes: [33m4[39m, durationMs: [33m1[39m }
+
+ [32m✓[39m tests/unit/knowledge-tree.test.js [2m([22m[2m32 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+(node:3432287) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3432287) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:3432287) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ [32m✓[39m tests/unit/native-release-storage.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 56[2mms[22m[39m
+ [32m✓[39m tests/unit/registry-contract.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 56[2mms[22m[39m
+ [32m✓[39m tests/unit/evidence-facade.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 47[2mms[22m[39m
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2minit[2m > [22m[2mshould load rules from VFS if store exists
+[22m[39m[INFO] [RuleEngine] Loaded 1 rules, 0 agent rules, 0 constraints
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2maddRule[2m > [22m[2mshould add a new rule
+[22m[39m[DEBUG] [RuleEngine] Added rule: rule_mv57rrn1_j4n0xsoj
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2maddRule[2m > [22m[2mshould update existing rule with same ID
+[22m[39m[DEBUG] [RuleEngine] Added rule: my-rule
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2maddRule[2m > [22m[2mshould update existing rule with same ID
+[22m[39m[DEBUG] [RuleEngine] Added rule: my-rule
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2maddRule[2m > [22m[2mshould emit event when rule is added
+[22m[39m[DEBUG] [RuleEngine] Added rule: rule_mv57rrn3_z909hm2c
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mremoveRule[2m > [22m[2mshould remove a user rule
+[22m[39m[DEBUG] [RuleEngine] Added rule: rule_mv57rrn4_efk0jxu2
+
+[90mstderr[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mremoveRule[2m > [22m[2mshould not remove builtin rules
+[22m[39m[WARN] [RuleEngine] Cannot remove builtin rule: builtin-isa-transitive
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2msetRuleEnabled[2m > [22m[2mshould enable/disable a rule
+[22m[39m[DEBUG] [RuleEngine] Added rule: rule_mv57rrn6_x41j8mqt
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2minfer[2m > [22m[2mshould derive facts using rules
+[22m[39m[INFO] [RuleEngine] Inferred 1 new facts in 1 iterations
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mRule Induction[2m > [22m[2minduceRule[2m > [22m[2mshould induce a rule from pattern
+[22m[39m[INFO] [RuleEngine] Induced new rule: induced_mv57rrna_ix4rcovw
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mRule Induction[2m > [22m[2minduceRule[2m > [22m[2mshould set lower priority for induced rules
+[22m[39m[INFO] [RuleEngine] Induced new rule: induced_mv57rrna_s37zvfe0
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mRule Induction[2m > [22m[2mlearnFromExamples[2m > [22m[2mshould induce rules from sufficient examples
+[22m[39m[INFO] [RuleEngine] Induced new rule: induced_mv57rrnb_2qtbxzcc
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mPolicy Enforcement[2m > [22m[2maddPolicy[2m > [22m[2mshould add a policy
+[22m[39m[INFO] [RuleEngine] Added policy: policy_mv57rrnc_chsjx6xp
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mPolicy Enforcement[2m > [22m[2mremovePolicy[2m > [22m[2mshould remove a user policy
+[22m[39m[INFO] [RuleEngine] Added policy: policy_mv57rrnc_sgkptb2m
+
+[90mstderr[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mPolicy Enforcement[2m > [22m[2mremovePolicy[2m > [22m[2mshould not remove builtin policies
+[22m[39m[WARN] [RuleEngine] Cannot remove builtin policy: builtin-substrate-approval
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mPolicy Enforcement[2m > [22m[2mcheckPolicy[2m > [22m[2mshould detect policy violations
+[22m[39m[INFO] [RuleEngine] Added policy: policy_mv57rrne_wfqahdcf
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mPolicy Enforcement[2m > [22m[2mcheckPolicy[2m > [22m[2mshould require approval for matching policies
+[22m[39m[INFO] [RuleEngine] Added policy: policy_mv57rrne_61ckj1jd
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mPolicy Enforcement[2m > [22m[2mcheckPolicy[2m > [22m[2mshould detect substrate modifications
+[22m[39m[INFO] [RuleEngine] Added policy: policy_mv57rrne_nqprbgki
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mPolicy Enforcement[2m > [22m[2menforcePolicy[2m > [22m[2mshould call onDenied for denied actions
+[22m[39m[INFO] [RuleEngine] Added policy: policy_mv57rrnf_7kocdkkw
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mVFS Persistence[2m > [22m[2msaveRulesToVFS[2m > [22m[2mshould save rules to VFS file
+[22m[39m[INFO] [RuleEngine] Saved 1 rules to /rules/custom-rules.json
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mVFS Persistence[2m > [22m[2msavePoliciesToVFS[2m > [22m[2mshould save policies to VFS file
+[22m[39m[INFO] [RuleEngine] Saved 1 policies to /rules/policies/custom-policies.json
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mVFS Persistence[2m > [22m[2mexportRules/importRules[2m > [22m[2mshould export and import rules
+[22m[39m[DEBUG] [RuleEngine] Added rule: export-test
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mVFS Persistence[2m > [22m[2mexportRules/importRules[2m > [22m[2mshould export and import rules
+[22m[39m[INFO] [RuleEngine] Cleared all rules
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mVFS Persistence[2m > [22m[2mexportRules/importRules[2m > [22m[2mshould export and import rules
+[22m[39m[INFO] [RuleEngine] Imported 1 rules, 0 agent rules, 0 constraints, 0 policies
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mVFS Persistence[2m > [22m[2mexportRules/importRules[2m > [22m[2mshould merge on import by default
+[22m[39m[DEBUG] [RuleEngine] Added rule: existing
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mVFS Persistence[2m > [22m[2mexportRules/importRules[2m > [22m[2mshould merge on import by default
+[22m[39m[INFO] [RuleEngine] Imported 1 rules, 0 agent rules, 0 constraints, 0 policies
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mVFS Persistence[2m > [22m[2mexportRules/importRules[2m > [22m[2mshould replace on import when merge=false
+[22m[39m[DEBUG] [RuleEngine] Added rule: to-replace
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mVFS Persistence[2m > [22m[2mexportRules/importRules[2m > [22m[2mshould replace on import when merge=false
+[22m[39m[INFO] [RuleEngine] Imported 1 rules, 0 agent rules, 0 constraints, 0 policies
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mgetStats[2m > [22m[2mshould return correct statistics
+[22m[39m[DEBUG] [RuleEngine] Added rule: rule_mv57rrni_0htb0tx4
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mgetStats[2m > [22m[2mshould return correct statistics
+[22m[39m[INFO] [RuleEngine] Added policy: policy_mv57rrni_yh04ysaq
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mclear[2m > [22m[2mshould clear all rules and keep builtins
+[22m[39m[DEBUG] [RuleEngine] Added rule: user-rule
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mclear[2m > [22m[2mshould clear all rules and keep builtins
+[22m[39m[INFO] [RuleEngine] Cleared all rules
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mHITL Integration[2m > [22m[2mshould request approval for induced rules in HITL mode
+[22m[39m[INFO] [RuleEngine] Induced new rule (approved): induced_mv57rrnj_3pd4qfzk
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2maddAgentRule[2m > [22m[2mshould add a new agent rule
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: arule_mv57rrnk_6al0veh0 (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2maddAgentRule[2m > [22m[2mshould sort rules by priority (descending)
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: low-priority (priority: 10)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2maddAgentRule[2m > [22m[2mshould sort rules by priority (descending)
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: high-priority (priority: 100)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2maddAgentRule[2m > [22m[2mshould update existing rule with same ID
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: my-rule (priority: 10)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2maddAgentRule[2m > [22m[2mshould update existing rule with same ID
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: my-rule (priority: 20)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2mremoveAgentRule[2m > [22m[2mshould remove a user agent rule
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: arule_mv57rrnm_0bka97p5 (priority: 50)
+
+[90mstderr[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2mremoveAgentRule[2m > [22m[2mshould not remove builtin agent rules
+[22m[39m[WARN] [RuleEngine] Cannot remove builtin agent rule: builtin-high-cycle-warning
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2mgetAgentRules[2m > [22m[2mshould filter by tags
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: tagged-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2mgetAgentRules[2m > [22m[2mshould filter by tags
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: untagged-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2mgetAgentRules[2m > [22m[2mshould only return enabled rules
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: disabled-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAgent Rules[2m > [22m[2msetAgentRuleEnabled[2m > [22m[2mshould enable/disable an agent rule
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: arule_mv57rrnn_3kaoeflw (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match equality conditions
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: arule_mv57rrno_11t2hs0a (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match comparison operators
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: gt-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match comparison operators
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: gte-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match nested path values
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: nested-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match logical AND conditions
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: and-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match logical OR conditions
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: or-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match NOT conditions
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: not-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match contains operator
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: contains-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match regex operator
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: regex-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match exists operator
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: exists-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mCondition Matching[2m > [22m[2mshould match in operator
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: in-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAction Execution[2m > [22m[2mshould execute log action
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: log-action-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAction Execution[2m > [22m[2mshould execute log action
+[22m[39m[INFO] [RuleEngine:Action] Action executed!
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAction Execution[2m > [22m[2mshould execute emit action
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: emit-action-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAction Execution[2m > [22m[2mshould execute addFact action
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: fact-action-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAction Execution[2m > [22m[2mshould support template interpolation in actions
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: template-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAction Execution[2m > [22m[2mshould support template interpolation in actions
+[22m[39m[INFO] [RuleEngine:Action] Hello, Agent! Cycle: 5
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAction Execution[2m > [22m[2mshould execute sequence of actions
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: sequence-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAction Execution[2m > [22m[2mshould execute sequence of actions
+[22m[39m[INFO] [RuleEngine:Action] First
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAction Execution[2m > [22m[2mshould execute sequence of actions
+[22m[39m[INFO] [RuleEngine:Action] Second
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mAction Execution[2m > [22m[2mshould execute sequence of actions
+[22m[39m[INFO] [RuleEngine:Action] Third
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould return evaluation results
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: eval-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould respect stopOnFirst option
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: first-rule (priority: 100)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould respect stopOnFirst option
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: second-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould respect maxRules option
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: rule-0 (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould respect maxRules option
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: rule-1 (priority: 49)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould respect maxRules option
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: rule-2 (priority: 48)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould respect maxRules option
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: rule-3 (priority: 47)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould respect maxRules option
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: rule-4 (priority: 46)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould respect once flag
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: once-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould respect once flag
+[22m[39m[INFO] [RuleEngine:Action] once
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould emit events on rule evaluation
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: event-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mevaluateAgentRules[2m > [22m[2mshould emit events on rule evaluation
+[22m[39m[INFO] [RuleEngine:Action] event
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mregisterActionHandler[2m > [22m[2mshould register a custom action handler
+[22m[39m[DEBUG] [RuleEngine] Registered action handler: customAction
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mregisterActionHandler[2m > [22m[2mshould register a custom action handler
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: custom-action-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mStats with Agent Rules[2m > [22m[2mshould include agent rule stats
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: arule_mv57rro2_r0y3yzq7 (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mExport/Import with Agent Rules[2m > [22m[2mshould export and import agent rules
+[22m[39m[DEBUG] [RuleEngine] Added agent rule: export-agent-rule (priority: 50)
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mExport/Import with Agent Rules[2m > [22m[2mshould export and import agent rules
+[22m[39m[INFO] [RuleEngine] Cleared all rules
+
+[90mstdout[2m | tests/unit/rule-engine.test.js[2m > [22m[2mRuleEngine[2m > [22m[2mExport/Import with Agent Rules[2m > [22m[2mshould export and import agent rules
+[22m[39m[INFO] [RuleEngine] Imported 0 rules, 1 agent rules, 0 constraints, 0 policies
+
+ [32m✓[39m tests/unit/rule-engine.test.js [2m([22m[2m74 tests[22m[2m)[22m[32m 48[2mms[22m[39m
+ [32m✓[39m tests/unit/module-metadata.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-room-projection.test.js [2m([22m[2m21 tests[22m[2m)[22m[32m 56[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-public-protein-evidence.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 47[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-pack-operation.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+ [32m✓[39m tests/integration/webrtc-swarm.test.js [2m([22m[2m15 tests[22m[2m)[22m[32m 45[2mms[22m[39m
+ [32m✓[39m tests/integration/agent-surface-contract.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 41[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-adapter-publication.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-operation-planning.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 41[2mms[22m[39m
+ [32m✓[39m tests/unit/boot-library-loading.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-local-session-reuse.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m tests/unit/toast.test.js [2m([22m[2m36 tests[22m[2m | [22m[33m18 skipped[39m[2m)[22m[32m 35[2mms[22m[39m
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2minit[2m > [22m[2mshould initialize successfully
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2minit[2m > [22m[2mshould emit policy:loaded event
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2minit[2m > [22m[2mshould emit policy:loaded event
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2minit[2m > [22m[2mshould default to block enforcement mode
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse simple deny rule
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse simple allow rule
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse AND conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse OR conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse NOT conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse startsWith method
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse endsWith method
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse contains method
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse matches (regex) method
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse comparison operators
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse nested property paths
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse complex nested conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse boolean literals
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse number literals
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould parse string literals with escapes
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mparsePolicyDSL[2m > [22m[2mshould throw on invalid DSL
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mvalidateDSL[2m > [22m[2mshould validate correct DSL
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mDSL Parsing[2m > [22m[2mvalidateDSL[2m > [22m[2mshould return error for invalid DSL
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicyFromDSL[2m > [22m[2mshould add a policy from DSL string
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicyFromDSL[2m > [22m[2mshould add a policy from DSL string
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7i_ywqdy0ai (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicyFromDSL[2m > [22m[2mshould emit policy:added event
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicyFromDSL[2m > [22m[2mshould emit policy:added event
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7i_fvrz50xe (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicy[2m > [22m[2mshould add a policy from object
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicy[2m > [22m[2mshould add a policy from object
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7j_yjn71f6w
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicy[2m > [22m[2mshould support legacy format with tool/argsPattern
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicy[2m > [22m[2mshould support legacy format with tool/argsPattern
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7j_5bn30a5w
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicy[2m > [22m[2mshould update existing policy with same ID
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicy[2m > [22m[2mshould update existing policy with same ID
+[22m[39m[INFO] [PolicyEngine] Added policy: test-policy (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2maddPolicy[2m > [22m[2mshould update existing policy with same ID
+[22m[39m[INFO] [PolicyEngine] Added policy: test-policy (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2mremovePolicy[2m > [22m[2mshould remove a policy
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2mremovePolicy[2m > [22m[2mshould remove a policy
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7k_0b5wa1tv (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2mremovePolicy[2m > [22m[2mshould return false for non-existent policy
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2mremovePolicy[2m > [22m[2mshould emit policy:removed event
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2mremovePolicy[2m > [22m[2mshould emit policy:removed event
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7l_p54gxdrx (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2msetPolicyEnabled[2m > [22m[2mshould enable/disable a policy
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2msetPolicyEnabled[2m > [22m[2mshould enable/disable a policy
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7m_s9pa802k (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2msetPolicyEnabled[2m > [22m[2mshould exclude disabled policies from getPolicies
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Management[2m > [22m[2msetPolicyEnabled[2m > [22m[2mshould exclude disabled policies from getPolicies
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7m_9ekpwx91 (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould allow tool when no policies match
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould deny tool when deny policy matches
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould deny tool when deny policy matches
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7o_hlt0k37a (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould allow tool when allow policy matches first
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould allow tool when allow policy matches first
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7o_se34g1w5 (allow)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould allow tool when allow policy matches first
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7o_nx0ntutv (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould check args conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould check args conditions
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7p_q6opk7z8 (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould emit policy:violation event
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould emit policy:violation event
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7p_i6v7gisy (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould emit policy:enforced event when blocking
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould emit policy:enforced event when blocking
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7q_far8vqey (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould log violations to AuditLogger
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould log violations to AuditLogger
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7r_m4tp828z (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould match contains operator
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould match contains operator
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7s_6l612plr (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould match regex operator
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould match regex operator
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7t_dy7mdy2p (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould handle undefined paths gracefully
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mcheck[2m > [22m[2mshould handle undefined paths gracefully
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7t_sidvt2wn (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould block in block mode
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould block in block mode
+[22m[39m[INFO] [PolicyEngine] Enforcement mode set to: block
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould block in block mode
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7u_pcr5uf8o (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould warn but allow in warn mode
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould warn but allow in warn mode
+[22m[39m[INFO] [PolicyEngine] Enforcement mode set to: warn
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould warn but allow in warn mode
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7u_fmvpdryf (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould allow and just log in audit mode
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould allow and just log in audit mode
+[22m[39m[INFO] [PolicyEngine] Enforcement mode set to: audit
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould allow and just log in audit mode
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7u_9t1ckxnr (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould emit policy:mode_changed event
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould emit policy:mode_changed event
+[22m[39m[INFO] [PolicyEngine] Enforcement mode set to: warn
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mPolicy Checking[2m > [22m[2mEnforcement Modes[2m > [22m[2mshould reject invalid enforcement mode
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mCondition Compilation[2m > [22m[2mcompileCondition[2m > [22m[2mshould compile literal conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mCondition Compilation[2m > [22m[2mcompileCondition[2m > [22m[2mshould compile path conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mCondition Compilation[2m > [22m[2mcompileCondition[2m > [22m[2mshould compile comparison conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mCondition Compilation[2m > [22m[2mcompileCondition[2m > [22m[2mshould compile AND conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mCondition Compilation[2m > [22m[2mcompileCondition[2m > [22m[2mshould compile OR conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mCondition Compilation[2m > [22m[2mcompileCondition[2m > [22m[2mshould compile NOT conditions
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mVFS Integration[2m > [22m[2mshould load policies from VFS on init
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mVFS Integration[2m > [22m[2mshould load policies from VFS on init
+[22m[39m[INFO] [PolicyEngine] Loaded 1 policies from VFS
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mVFS Integration[2m > [22m[2mshould load policies from VFS on init
+[22m[39m[INFO] [PolicyEngine] Initialized with 1 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mVFS Integration[2m > [22m[2mshould save policies to VFS
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mVFS Integration[2m > [22m[2mshould save policies to VFS
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7y_dcp0tlt0 (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mVFS Integration[2m > [22m[2mshould save policies to VFS
+[22m[39m[INFO] [PolicyEngine] Saved 1 policies to /policies/custom.json
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mExport/Import[2m > [22m[2mshould export policies
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mExport/Import[2m > [22m[2mshould export policies
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt7z_rpihnv6q (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mExport/Import[2m > [22m[2mshould import policies with merge
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mExport/Import[2m > [22m[2mshould import policies with merge
+[22m[39m[INFO] [PolicyEngine] Added policy: existing-policy (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mExport/Import[2m > [22m[2mshould import policies with merge
+[22m[39m[INFO] [PolicyEngine] Imported 1 policies, skipped 0
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mExport/Import[2m > [22m[2mshould import policies with replace
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mExport/Import[2m > [22m[2mshould import policies with replace
+[22m[39m[INFO] [PolicyEngine] Added policy: to-replace (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mExport/Import[2m > [22m[2mshould import policies with replace
+[22m[39m[INFO] [PolicyEngine] Imported 1 policies, skipped 0
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mStatistics[2m > [22m[2mshould return accurate stats
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mStatistics[2m > [22m[2mshould return accurate stats
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt81_rjy8c9bd (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mStatistics[2m > [22m[2mshould return accurate stats
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt81_khqid93e (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mStatistics[2m > [22m[2mshould return accurate stats
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt81_614k2x7s (allow)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mClear[2m > [22m[2mshould clear all policies
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mClear[2m > [22m[2mshould clear all policies
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt81_kjvr6xbx (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mClear[2m > [22m[2mshould clear all policies
+[22m[39m[INFO] [PolicyEngine] Cleared all policies
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mClear[2m > [22m[2mshould emit policy:cleared event
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mClear[2m > [22m[2mshould emit policy:cleared event
+[22m[39m[INFO] [PolicyEngine] Cleared all policies
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mComplex Policy Scenarios[2m > [22m[2mshould handle multiple deny policies
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mComplex Policy Scenarios[2m > [22m[2mshould handle multiple deny policies
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt83_tw7nj8fr (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mComplex Policy Scenarios[2m > [22m[2mshould handle multiple deny policies
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt83_yc7jeosc (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mComplex Policy Scenarios[2m > [22m[2mshould support complex URL validation policy
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mComplex Policy Scenarios[2m > [22m[2mshould support complex URL validation policy
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt83_bey1p2lm (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mComplex Policy Scenarios[2m > [22m[2mshould support file path protection policy
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mComplex Policy Scenarios[2m > [22m[2mshould support file path protection policy
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt83_7mqw8e5n (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mComplex Policy Scenarios[2m > [22m[2mshould handle priority-based policy ordering
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mComplex Policy Scenarios[2m > [22m[2mshould handle priority-based policy ordering
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt84_gmmhurq6 (deny)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mComplex Policy Scenarios[2m > [22m[2mshould handle priority-based policy ordering
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt84_i18m520v (allow)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mArgument Sanitization[2m > [22m[2mshould redact sensitive fields in violations
+[22m[39m[INFO] [PolicyEngine] Initialized with 0 policies (mode: block)
+
+[90mstdout[2m | tests/unit/policy-engine.test.js[2m > [22m[2mPolicyEngine[2m > [22m[2mArgument Sanitization[2m > [22m[2mshould redact sensitive fields in violations
+[22m[39m[INFO] [PolicyEngine] Added policy: policy_mv57rt84_hsxhouo7 (deny)
+
+ [32m✓[39m tests/unit/policy-engine.test.js [2m([22m[2m65 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-document-delegation.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+ [32m✓[39m tests/unit/conversation-permission.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+ [32m✓[39m tests/unit/webrtc-swarm.test.js [2m([22m[2m44 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mInitialization[2m > [22m[2mshould initialize with empty state
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mInitialization[2m > [22m[2mshould load existing index from VFS
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m2[39m, sessions: [33m1[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mInitialization[2m > [22m[2mshould create directory on init
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mStore Operations[2m > [22m[2mshould store a message and return episode ID
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mStore Operations[2m > [22m[2mshould reject messages that are too short
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mStore Operations[2m > [22m[2mshould generate embedding for stored message
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mStore Operations[2m > [22m[2mshould emit store event
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mStore Operations[2m > [22m[2mshould store batch of messages
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mStore Operations[2m > [22m[2mshould persist to VFS
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mStore Operations[2m > [22m[2mshould track session in manifest
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetrieval Operations[2m > [22m[2mshould retrieve episode by ID
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetrieval Operations[2m > [22m[2mshould return null for unknown ID
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetrieval Operations[2m > [22m[2mshould get recent episodes
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetrieval Operations[2m > [22m[2mshould get episodes by session
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mSemantic Search[2m > [22m[2mshould search by semantic similarity
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mSemantic Search[2m > [22m[2mshould include similarity scores in results
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mSemantic Search[2m > [22m[2mshould filter by minimum similarity
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mSemantic Search[2m > [22m[2mshould filter by session
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mSemantic Search[2m > [22m[2mshould emit search event
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mTemporal Contiguity Search[2m > [22m[2mshould boost temporally adjacent results
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mTemporal Contiguity Search[2m > [22m[2mshould respect contiguity window
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetention & Forgetting (Ebbinghaus)[2m > [22m[2mshould compute retention score for recent episodes
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetention & Forgetting (Ebbinghaus)[2m > [22m[2mshould have lower retention for older episodes
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetention & Forgetting (Ebbinghaus)[2m > [22m[2mshould boost retention with access count
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetention & Forgetting (Ebbinghaus)[2m > [22m[2mshould prune low-retention episodes
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetention & Forgetting (Ebbinghaus)[2m > [22m[2mshould prune low-retention episodes
+[22m[39m[INFO] [EpisodicMemory] Configuration updated
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetention & Forgetting (Ebbinghaus)[2m > [22m[2mshould prune low-retention episodes
+[22m[39m[INFO] [EpisodicMemory] Pruned by retention: { pruned: [33m1[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetention & Forgetting (Ebbinghaus)[2m > [22m[2mshould emit pruned event
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetention & Forgetting (Ebbinghaus)[2m > [22m[2mshould emit pruned event
+[22m[39m[INFO] [EpisodicMemory] Configuration updated
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mRetention & Forgetting (Ebbinghaus)[2m > [22m[2mshould emit pruned event
+[22m[39m[INFO] [EpisodicMemory] Pruned by retention: { pruned: [33m1[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mContext Enrichment[2m > [22m[2mshould enrich context with relevant episodes
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mContext Enrichment[2m > [22m[2mshould preserve original context
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mContext Enrichment[2m > [22m[2mshould return original context on error
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstderr[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mContext Enrichment[2m > [22m[2mshould return original context on error
+[22m[39m[WARN] [EpisodicMemory] Enrichment failed: Embedding failed
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mConfiguration[2m > [22m[2mshould allow configuration updates
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mConfiguration[2m > [22m[2mshould allow configuration updates
+[22m[39m[INFO] [EpisodicMemory] Configuration updated
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mConfiguration[2m > [22m[2mshould return stats
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mClear and Reset[2m > [22m[2mshould clear all episodes
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mClear and Reset[2m > [22m[2mshould clear all episodes
+[22m[39m[INFO] [EpisodicMemory] Cleared
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mClear and Reset[2m > [22m[2mshould emit cleared event
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mClear and Reset[2m > [22m[2mshould emit cleared event
+[22m[39m[INFO] [EpisodicMemory] Cleared
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mClear and Reset[2m > [22m[2mshould delete VFS files
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mClear and Reset[2m > [22m[2mshould delete VFS files
+[22m[39m[INFO] [EpisodicMemory] Cleared
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mAccess Tracking[2m > [22m[2mshould increment access count on get
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+[90mstdout[2m | tests/unit/episodic-memory.test.js[2m > [22m[2mEpisodicMemory[2m > [22m[2mAccess Tracking[2m > [22m[2mshould increment access count on search
+[22m[39m[INFO] [EpisodicMemory] Initialized { totalEpisodes: [33m0[39m, sessions: [33m0[39m }
+
+ [32m✓[39m tests/unit/episodic-memory.test.js [2m([22m[2m36 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-doppler-runtime.test.js [2m([22m[2m23 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-adapter-routes.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+ [32m✓[39m tests/unit/document-answer-evaluation.test.js [2m([22m[2m22 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-document-answer.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+ [32m✓[39m tests/unit/swarm-signaling-independence.test.js [2m([22m[2m15 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-discovery-candidate-action.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 43[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-sequence-workload.test.js [2m([22m[2m14 tests[22m[2m)[22m[32m 35[2mms[22m[39m
+ [32m✓[39m tests/unit/partition-runner.test.js [2m([22m[2m24 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+ [32m✓[39m tests/integration/public-inference-admission.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+ [32m✓[39m tests/unit/poolday-audit.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+ [32m✓[39m tests/integration/reflection-system.test.js [2m([22m[2m31 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-adjudication-experiment.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mInitialization[2m > [22m[2mshould initialize successfully
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mInitialization[2m > [22m[2mshould initialize dependent modules
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mHybrid Query[2m > [22m[2mshould query all memory sources
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mHybrid Query[2m > [22m[2mshould return combined results with scores
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mHybrid Query[2m > [22m[2mshould sort results by combined score
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mHybrid Query[2m > [22m[2mshould respect topK limit
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mHybrid Query[2m > [22m[2mshould include metadata in response
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mHybrid Query[2m > [22m[2mshould emit query event
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mScore Weighting[2m > [22m[2mshould apply semantic weight
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mScore Weighting[2m > [22m[2mshould apply custom weights
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mScore Weighting[2m > [22m[2mshould apply retention weighting
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mTemporal Contiguity[2m > [22m[2mshould boost temporally adjacent results
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mTemporal Contiguity[2m > [22m[2mshould mark results with hasContiguity
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mRecency Boost[2m > [22m[2mshould boost recent results
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould detect debug task type
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould detect implement task type
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould detect refactor task type
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould detect test task type
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould return general for unrecognized queries
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould apply anticipatory boost when enabled
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mAnticipatory Retrieval[2m > [22m[2mshould skip anticipatory for general queries
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mContext Enrichment[2m > [22m[2mshould enrich context with relevant memories
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mContext Enrichment[2m > [22m[2mshould preserve original context
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mContext Enrichment[2m > [22m[2mshould return original context when no results
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mContext Enrichment[2m > [22m[2mshould respect maxTokens limit
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mQuick Search[2m > [22m[2mshould perform semantic-only search
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mQuick Search[2m > [22m[2mshould not query knowledge tree or episodic
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mRecent Activity[2m > [22m[2mshould get recent activity from all sources
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mRecent Activity[2m > [22m[2mshould include source in results
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mRecent Activity[2m > [22m[2mshould sort by timestamp
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mError Handling[2m > [22m[2mshould handle embedding failure gracefully
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstderr[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mError Handling[2m > [22m[2mshould handle embedding failure gracefully
+[22m[39m[WARN] [HybridRetrieval] Embedding failed: Embedding failed
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mError Handling[2m > [22m[2mshould handle knowledge tree failure gracefully
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstderr[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mError Handling[2m > [22m[2mshould handle knowledge tree failure gracefully
+[22m[39m[WARN] [HybridRetrieval] Knowledge tree search failed: Tree search failed
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mError Handling[2m > [22m[2mshould handle episodic memory failure gracefully
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstderr[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mError Handling[2m > [22m[2mshould handle episodic memory failure gracefully
+[22m[39m[WARN] [HybridRetrieval] Episodic search failed: Episodic failed
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mConfiguration[2m > [22m[2mshould allow configuration updates
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mConfiguration[2m > [22m[2mshould allow configuration updates
+[22m[39m[INFO] [HybridRetrieval] Configuration updated
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mConfiguration[2m > [22m[2mshould update weight configuration
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mConfiguration[2m > [22m[2mshould update weight configuration
+[22m[39m[INFO] [HybridRetrieval] Configuration updated
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mConfiguration[2m > [22m[2mshould return stats
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mQuery History[2m > [22m[2mshould track query history
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+[90mstdout[2m | tests/unit/hybrid-retrieval.test.js[2m > [22m[2mHybridRetrieval[2m > [22m[2mQuery History[2m > [22m[2mshould update last query timestamp
+[22m[39m[INFO] [HybridRetrieval] Initialized
+
+ [32m✓[39m tests/unit/hybrid-retrieval.test.js [2m([22m[2m38 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/self-bridge.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m tests/integration/gepa-optimizer.test.js [2m([22m[2m22 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/tools/create-tool.test.js [2m([22m[2m11 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-realized-action-value.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/unit/core-hardening.test.js [2m([22m[2m62 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+ [32m✓[39m tests/unit/work-contracts.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+ [32m✓[39m tests/unit/work-partitions-lifecycle.test.js [2m([22m[2m45 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+ [32m✓[39m tests/integration/replay-engine.test.js [2m([22m[2m41 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/response-parser.test.js [2m([22m[2m62 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-adapter-canary-publication.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m tests/unit/zero-goals.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-executable-pack.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/integration/vfs.test.js [2m([22m[2m36 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+ [32m✓[39m tests/unit/network-controls.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m tests/unit/native-participant.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-pack-operation-policy.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/normalization-diagnostic-arguments.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+ [32m✓[39m tests/unit/independent-numerical-reference.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/change-passport-ui.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+ [32m✓[39m tests/unit/message-list.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+ [32m✓[39m tests/unit/doppler-operation-provider.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/integration/diagnostic-strategy.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m tests/unit/doppler-partition-contract.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/partition-summary.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-pack-job-policy.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-scientific-policy-promotion.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+ [32m✓[39m tests/unit/browser-apis.test.js [2m([22m[2m26 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-firestore-peer-room.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+[90mstdout[2m | tests/unit/trained-adapter-admission.test.js[2m > [22m[2mtrained adapter admission[2m > [22m[2mqueues an always-human request even when global security is autonomous
+[22m[39m[INFO] [HITL] Initialized in autonomous mode
+[INFO] [HITL] Approval required: Promote unit adapter (approval_mv57rzxe_cahy21p5)
+[INFO] [HITL] Approved: Promote unit adapter
+
+[90mstdout[2m | tests/unit/trained-adapter-admission.test.js[2m > [22m[2mtrained adapter admission[2m > [22m[2mblocks activation until the queued human promotion completes
+[22m[39m[INFO] [NeuralCompiler] Initialized
+
+ [32m✓[39m tests/unit/trained-adapter-admission.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/verification-manager.test.js [2m([22m[2m50 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/gepa-engines.test.js [2m([22m[2m37 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/document-view-lifecycle.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-lifecycle.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32m✓[39m tests/unit/chat-thread-grants.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-theme.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-contract.test.js [2m([22m[2m15 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+ [32m✓[39m tests/unit/utils-core.test.js [2m([22m[2m59 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+[90mstderr[2m | tests/unit/event-bus.test.js[2m > [22m[2mEventBus[2m > [22m[2memit[2m > [22m[2mshould continue emitting to other listeners if one throws
+[22m[39m[ERROR] [EventBus] Error in test:event Error: Listener error
+    at [90m/home/x/deco/reploid/[39mtests/unit/event-bus.test.js:100:15
+    at Mock [90m(file:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/spy[24m/dist/index.js:332:34[90m)[39m
+    at Object.emit [90m(/home/x/deco/reploid/[39mself/infrastructure/event-bus.js:44:17[90m)[39m
+    at [90m/home/x/deco/reploid/[39mtests/unit/event-bus.test.js:107:16
+    at [90mfile:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:302:11
+    at [90mfile:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:1903:26
+    at [90mfile:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2326:20
+    at new Promise (<anonymous>)
+    at runWithCancel [90m(file:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2323:10[90m)[39m
+    at [90mfile:///home/x/deco/reploid/[39mnode_modules/[4mvitest[24m/node_modules/[4m@vitest/runner[24m/dist/chunk-artifact.js:2305:20
+
+[90mstdout[2m | tests/unit/event-bus.test.js[2m > [22m[2mEventBus[2m > [22m[2mSubscription Tracking[2m > [22m[2mshould unsubscribe all listeners for a module
+[22m[39m[DEBUG] [EventBus] Unsubscribed module: TestModule
+
+[90mstdout[2m | tests/unit/event-bus.test.js[2m > [22m[2mEventBus[2m > [22m[2mSubscription Tracking[2m > [22m[2mshould not affect other modules when unsubscribing
+[22m[39m[DEBUG] [EventBus] Unsubscribed module: Module1
+
+[90mstdout[2m | tests/unit/event-bus.test.js[2m > [22m[2mEventBus[2m > [22m[2mMemory Management[2m > [22m[2mshould not leak listeners when properly unsubscribed
+[22m[39m[DEBUG] [EventBus] Unsubscribed module: TestModule
+
+ [32m✓[39m tests/unit/event-bus.test.js [2m([22m[2m19 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/tool-runner.test.js [2m([22m[2m22 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-config-contract.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/mesh-peer-identity.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-protein-investigation.test.js [2m([22m[2m16 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-device-identity.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/context-manager.test.js [2m([22m[2m39 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/peer-pack-execution-proof.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+ [32m✓[39m tests/unit/schema-validator.test.js [2m([22m[2m62 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-research-cycle.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/p2p-transport.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/surface-claim-index.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/observability.test.js [2m([22m[2m24 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-release-evidence.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-participation-profile.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/partition-step-receiver.test.js [2m([22m[2m23 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+ [32m✓[39m tests/unit/work-partition-capsule-admission.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/self-instance.test.js [2m([22m[2m14 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/execution-ribbon.test.js [2m([22m[2m11 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+ [32m✓[39m tests/unit/layer-verification.test.js [2m([22m[2m20 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/rate-limiter.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-model-artifacts.test.js [2m([22m[2m18 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/cloud-build-context.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-browser-release-identity.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/tool-offer-channel.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-identity.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/integration/rsi-loop.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-coordinator-release-identity.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-pack-release-policy.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-capsule-artifact-cache.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+ [32m✓[39m tests/unit/tools/write-file.test.js [2m([22m[2m15 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/integration/prompt-memory.test.js [2m([22m[2m25 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/execution-engine.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/goal-step.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-protein-uncertainty-campaign.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/security/validator-quarantine.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/belief-planner.test.js [2m([22m[2m15 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/swarm-sync.test.js [2m([22m[2m33 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/work-resident-provider.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+ [32m✓[39m tests/unit/change-passport-improvement-adapter.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32m✓[39m tests/unit/work-generation-completion.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/p2p-transport-lifecycle.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/chat-workspace.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-model-cache-integrity.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-pack-data-channel.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/integration/tool-runner.test.js [2m([22m[2m13 tests[22m[2m | [22m[33m8 skipped[39m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-critical-user-journeys.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/partition-placement.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+ [32m✓[39m tests/unit/tools/grep.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-artifact-router.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+ [32m✓[39m tests/unit/tools/edit-file.test.js [2m([22m[2m20 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/self-image-export.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-browser-qualification.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/p2p-signaling.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/swarm-credential-renewal.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/tools/promote.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/zero-access.test.js [2m([22m[2m11 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/tools/find.test.js [2m([22m[2m19 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/generated-registry-output.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/utils.test.js [2m([22m[2m26 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-discovery-action-value.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/doppler-runtime-service.test.js [2m([22m[2m11 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/work-partition-capsule-source.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/tools/read-file.test.js [2m([22m[2m16 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/integration/genesis-snapshot.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-scientific-fitness.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/state-manager.test.js [2m([22m[2m16 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/worker-manager.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/conversation-list.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/swarm-rtc-config.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/doppler-reploid-provider.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/physical-webgpu-browser.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/cooperative-reference-binding.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-firebase-auth.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-model-promotion.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/work-adapter.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/critical-user-journeys.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+ [32m✓[39m tests/unit/placement-beliefs.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/integration/arena-harness.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/integration/fsm.test.js [2m([22m[2m18 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/partition-generation-policy.test.js [2m([22m[2m13 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-sdk.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-rtc-config.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/design-system-css.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/change-passport-sdk.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-contribution-state.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/piece-acquisition.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/surface-intents.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/tool-executor.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/security/promotion-gate-tamper.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/change-control-triggers.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/self-boot-shell.test.js [2m([22m[2m14 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/run-replay-bundle.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-room-1-pilot.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/remote-generation-requests.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-browser-smoke-status.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/change-passport-pilot.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/integration/boot-goal-generator.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/doppler-local-models.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/browser-library-config.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/clockwork-promotion-policy.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32m✓[39m tests/unit/distributed-numerical-policy.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/tools/list-files.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-research-panels.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-artifact-origin.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/change-control-firestore-store.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-network.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/public-inference-guard.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/network-canary-custody.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/boot-services.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/security/self-approval-block.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-turn-credentials.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/openclaw-audit.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-coordinator-transitions.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/runtime-config-sync.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32m✓[39m tests/unit/zero-gemini-function.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/schema-registry.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/vfs-module-loader.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/work-session.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/tools/load-module.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/browser-library-cancellation.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/telemetry-timeline.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/genesis-integrity.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/showcase-curation.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-doppler-browser-observation.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/persona-manager.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/signaling-config.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/tool-writer.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-firestore-rate-limit.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/agent-loop-policies.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/unit/counted-lines.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32m✓[39m tests/agent-logic-pure.test.js [2m([22m[2m18 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/deploy-surface-layout.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/partition-discovery-invalidation.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/gpu-startup-observation.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32m✓[39m tests/unit/tool-surfaces.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-requester-controls.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/doppler-base-resolution.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+ [32m✓[39m tests/unit/firestore-rules.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-retry-policy.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 2[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-room-record-projection.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-peer-pack-browser.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32m✓[39m tests/unit/pool-provider-startup.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [2m[90m↓[39m[22m tests/integration/doppler-installed-generation.test.js [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/integration/doppler-pack-handoff.test.js [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+ [2m[90m↓[39m[22m tests/integration/neural-compiler-lora.test.js [2m([22m[2m1 test[22m[2m | [22m[33m1 skipped[39m[2m)[22m
+
+[2m Test Files [22m [1m[32m292 passed[39m[22m[2m | [22m[33m3 skipped[39m[90m (295)[39m
+[2m      Tests [22m [1m[32m3164 passed[39m[22m[2m | [22m[33m29 skipped[39m[90m (3193)[39m
+[2m   Start at [22m 08:13:34
+[2m   Duration [22m 67.52s[2m (transform 4.19s, setup 0ms, import 14.93s, tests 36.62s, environment 40.03s)[22m
+
