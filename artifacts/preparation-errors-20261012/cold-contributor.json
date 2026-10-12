@@ -1,0 +1,1721 @@
+{
+  "scope": "Physical public network with two local host-source overrides; accepted runtime pin unchanged",
+  "startedAt": "2026-10-12T18:15:35.203Z",
+  "url": "https://replo.id/",
+  "phases": [
+    {
+      "at": "2026-10-12T18:15:52.743Z",
+      "phase": "Sharing",
+      "progress": "Waiting for another contributor",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:15:54.749Z",
+      "phase": "Sharing",
+      "progress": "Waiting for another contributor",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:15:56.766Z",
+      "phase": "Loading",
+      "progress": "Waiting for another contributor",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:15:58.791Z",
+      "phase": "Loading",
+      "progress": "Downloading manifest.json: 100%",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:00.798Z",
+      "phase": "Failed",
+      "progress": "No peer offers the required verified model piece",
+      "message": "No peer offers the required verified model piece",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:03.857Z",
+      "phase": "Sharing",
+      "progress": "Waiting for another contributor",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:05.862Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:07.866Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:09.995Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:12.002Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:14.007Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:16.013Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:18.021Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:20.146Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:22.150Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:24.154Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:26.159Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:28.166Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:30.170Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:32.174Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:34.180Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:36.186Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:38.196Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:40.273Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:42.282Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:44.288Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:46.296Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:48.303Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:50.309Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:52.316Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:54.324Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:56.328Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:16:58.427Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:00.438Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:02.446Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:04.453Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:06.461Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:08.467Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:10.488Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:12.495Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:14.601Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:16.606Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:18.614Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:20.620Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:22.627Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:24.635Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:26.642Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:28.649Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:30.658Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:32.664Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:34.669Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:36.674Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:38.707Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:40.716Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:42.722Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:44.780Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:46.785Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:48.793Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:50.799Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:52.802Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:54.809Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:56.817Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:17:58.829Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:00.833Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:02.837Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:04.842Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:06.853Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:08.861Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:10.868Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:12.874Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:14.884Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:16.892Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:18.900Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:20.908Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:22.913Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:24.916Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:26.922Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:28.926Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:30.932Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:32.938Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:34.943Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:36.949Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:38.952Z",
+      "phase": "Loading",
+      "progress": "Receiving required model pieces",
+      "message": "",
+      "sharingFiles": "false"
+    },
+    {
+      "at": "2026-10-12T18:18:40.956Z",
+      "phase": "Ready",
+      "progress": "",
+      "message": "",
+      "sharingFiles": "false"
+    }
+  ],
+  "requests": [],
+  "supplierBefore": {
+    "operation": "inspect",
+    "passed": true,
+    "phase": "ready",
+    "active": 0,
+    "unsettled": 0,
+    "files": {
+      "sharing": true,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "retainedFiles": 2,
+      "receiptCount": 0
+    }
+  },
+  "supplierOff": {
+    "operation": "files-off",
+    "passed": true,
+    "phase": "ready",
+    "active": 0,
+    "unsettled": 0,
+    "files": {
+      "sharing": false,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "retainedFiles": 2,
+      "receiptCount": 0
+    }
+  },
+  "sourceOverrides": [
+    {
+      "path": "host/work-partitions.js",
+      "source": "/** Host composition of explicit manifest or signed Capsule residents and verified pieces. */\nimport { createResidentPartition } from '../vendor/reploid/mesh/index.js';\nimport { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_KERNEL_BASE_URL } from '../config/doppler-local-models.js';\nimport { resolvePartitionGeneration } from '../config/partition-generation.js';\nimport policy from '../config/partition-policy.json' with { type: 'json' };\nimport { prepareLocalPackRelease } from '../pool/pack-release-policy.js';\nimport { assertWorkResidentCapsule } from './work-partition-capsule.js';\nimport { createSignedResidentFactory } from '../vendor/reploid/mesh/partitions/signed-resident-factory.js';\nimport { createPartitionTokenizerGuard } from './work-partition-tokenizer-guard.js';\n\nexport async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress, registerCleanup }) {\n  const model = { ...selected, generation: resolvePartitionGeneration(selected) };\n  const openedAt = performance.now();\n  globalThis.__DOPPLER_KERNEL_BASE_PATH__ = DOPPLER_KERNEL_BASE_URL;\n  const runtime = await import(DOPPLER_PARTITIONS_MODULE_URL);\n  await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });\n  const acquisitionStarted = performance.now();\n  const source = await files.preparePartitionSource(selected, { signal, onProgress });\n  const manifest = source.manifest;\n  let resident = null, release = null, capsuleVerification = null;\n  let sourceSettled = false, releaseSettled = false;\n  const sessions = new Set();\n  const trackSession = session => { sessions.add(session); return () => sessions.delete(session); };\n  const closeSources = async failures => {\n    if (!sourceSettled) {\n      try { await source.storage.close(); sourceSettled = true; } catch (error) { failures.push(error); }\n    }\n    if (release && !releaseSettled) {\n      try { await release.close(); releaseSettled = true; } catch (error) { failures.push(error); }\n    }\n  };\n  let cleaning = null;\n  const cleanupOwner = { close() {\n    return cleaning ||= (async () => {\n      const failures = [];\n      try { await resident?.close(); } catch (error) { failures.push(error); }\n      for (const session of sessions) {\n        try { await session.close(); sessions.delete(session); } catch (error) { failures.push(error); }\n      }\n      await closeSources(failures);\n      if (failures.length === 1) throw failures[0];\n      if (failures.length) throw new AggregateError(failures, 'Partition preparation cleanup failed');\n      releaseCleanup?.();\n    })().catch(error => { cleaning = null; throw error; });\n  } };\n  const releaseCleanup = registerCleanup?.(cleanupOwner);\n  const tokenizer = createPartitionTokenizerGuard(source.storage);\n  try {\n    signal?.throwIfAborted();\n    const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,\n      splitLayer: selected.partitionSplitLayer,\n      activationDtype: manifest.inference.session.compute.defaults.activationDtype });\n    const planId = runtime.hashLayerPartitionPlan(plan);\n    let factory;\n    if (selected.capsule !== undefined) {\n      if (!source.artifactStore || !selected.packOpenOptions || !selected.executablePack) {\n        throw new Error('Signed resident requires an explicit Capsule, release policy and pinned artifact source');\n      }\n      release = await prepareLocalPackRelease({ model });\n      const { openCapsule } = await import(DOPPLER_MODULE_URL);\n      factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,\n        openCapsule, model, artifactStore: source.artifactStore, release,\n        assertSession: assertWorkResidentCapsule, closeSources, trackSession,\n        onVerification: value => { capsuleVerification = value; } });\n    } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,\n      runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },\n        inference: { session: { kvcache: { maxSeqLen: model.generation.maxSeqLen },\n          prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },\n      createStorage: async () => tokenizer.storage });\n    resident = createResidentPartition({ runtime: factory, model, plan, planId, index,\n      participantId, limits: policy.limits });\n    await resident.prepare({ approved: true, signal });\n    tokenizer.assertAvailable();\n    const preparation = { openMs: performance.now() - openedAt,\n      acquisitionAndMaterializationMs: performance.now() - acquisitionStarted,\n      memoryAtOpen: runtime.inspectDeviceMemory() };\n    return { runtime, model, plan, planId, resident,\n      getReceipt: () => ({ ...(selected.capsule === undefined ? source.getReceipt() : { sourceAcquisition: source.getReceipt() }),\n        preparation, memory: runtime.inspectDeviceMemory(),\n        openingMode: selected.capsule === undefined ? 'pinned-manifest' : 'signed-capsule', capsuleVerification }) };\n  } catch (error) {\n    const openingError = tokenizer.explain(error);\n    const failures = [openingError];\n    try { await cleanupOwner.close(); } catch (cleanup) { failures.push(cleanup); }\n    if (failures.length > 1) throw new AggregateError(failures, 'Partition opening and cleanup failed');\n    throw openingError;\n  }\n}\n"
+    },
+    {
+      "path": "host/work-partition-tokenizer-guard.js",
+      "source": "/** Keep an authoritative tokenizer acquisition failure visible during resident opening. */\nexport function createPartitionTokenizerGuard(storage) {\n  let failure = null, guarded = storage;\n  for (const name of ['loadTokenizerJson', 'loadTokenizerModel']) {\n    if (typeof storage[name] !== 'function') continue;\n    if (guarded === storage) guarded = { ...storage };\n    guarded[name] = async (...args) => {\n      try { return await storage[name](...args); }\n      catch (error) { failure ||= { error }; throw error; }\n    };\n  }\n  return Object.freeze({\n    storage: guarded,\n    assertAvailable() { if (failure) throw failure.error; },\n    explain(error) {\n      if (!failure || error === failure.error) return error;\n      const cause = failure.error;\n      return new AggregateError([cause, error], cause?.message || String(cause), { cause });\n    }\n  });\n}\n"
+    }
+  ],
+  "withoutSupplier": {
+    "at": "2026-10-12T18:16:00.810Z",
+    "phase": "Failed",
+    "progress": "No peer offers the required verified model piece",
+    "message": "No peer offers the required verified model piece",
+    "sharingFiles": "false"
+  },
+  "restore": {
+    "operation": "files-on",
+    "passed": true,
+    "phase": "ready",
+    "active": 0,
+    "unsettled": 0,
+    "files": {
+      "sharing": true,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "retainedFiles": 2,
+      "receiptCount": 0
+    }
+  },
+  "ready": {
+    "at": "2026-10-12T18:18:40.963Z",
+    "phase": "Ready",
+    "progress": "",
+    "message": "",
+    "sharingFiles": "false"
+  },
+  "memory": {
+    "scope": "device-gpu-buffers",
+    "maxBytes": 1420000000,
+    "liveBytes": 296010000,
+    "peakBytes": 497336720,
+    "allocations": 211,
+    "rejected": 0,
+    "categories": {
+      "weights": 285497344,
+      "attention": 0,
+      "recurrent": 0,
+      "other": 10512656
+    },
+    "labels": [
+      {
+        "label": "q4k_model.language_model.layers.12.linear_attn.out_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.12.linear_attn.in_proj_z.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.in_proj_a.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.in_proj_b.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.conv1d.weight_65536",
+        "category": "weights",
+        "bytes": 65536,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.dt_bias_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.A_log_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.linear_attn.norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.12.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.12.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.12.linear_attn.in_proj_qkv.weight_3538944",
+        "category": "weights",
+        "bytes": 3538944,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.12.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.12.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.12.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.A_log_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.in_proj_a.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.in_proj_b.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.conv1d.weight_65536",
+        "category": "weights",
+        "bytes": 65536,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.linear_attn.dt_bias_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.13.linear_attn.out_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.13.linear_attn.in_proj_z.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.13.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "q4k_model.language_model.layers.13.linear_attn.in_proj_qkv.weight_3538944",
+        "category": "weights",
+        "bytes": 3538944,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.13.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.13.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.13.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.conv1d.weight_65536",
+        "category": "weights",
+        "bytes": 65536,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.dt_bias_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.in_proj_a.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.A_log_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.in_proj_b.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.linear_attn.norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.14.linear_attn.out_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.14.linear_attn.in_proj_z.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.14.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "q4k_model.language_model.layers.14.linear_attn.in_proj_qkv.weight_3538944",
+        "category": "weights",
+        "bytes": 3538944,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.14.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.14.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.14.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.q_norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.self_attn.k_norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.15.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "q4k_model.language_model.layers.15.self_attn.q_proj.weight_2359296",
+        "category": "weights",
+        "bytes": 2359296,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.15.self_attn.k_proj.weight_327680",
+        "category": "weights",
+        "bytes": 327680,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.15.self_attn.v_proj.weight_327680",
+        "category": "weights",
+        "bytes": 327680,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.15.self_attn.o_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.15.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.15.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.15.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.16.linear_attn.in_proj_qkv.weight_3538944",
+        "category": "weights",
+        "bytes": 3538944,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.dt_bias_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.A_log_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.in_proj_a.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.in_proj_b.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.linear_attn.conv1d.weight_65536",
+        "category": "weights",
+        "bytes": 65536,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.16.linear_attn.in_proj_z.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.16.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "q4k_model.language_model.layers.16.linear_attn.out_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.16.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.16.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.16.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.dt_bias_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.A_log_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.in_proj_a.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.in_proj_b.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.linear_attn.conv1d.weight_65536",
+        "category": "weights",
+        "bytes": 65536,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.17.linear_attn.out_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.17.linear_attn.in_proj_z.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.17.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "q4k_model.language_model.layers.17.linear_attn.in_proj_qkv.weight_3538944",
+        "category": "weights",
+        "bytes": 3538944,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.17.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.17.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.17.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.in_proj_a.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.in_proj_b.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.conv1d.weight_65536",
+        "category": "weights",
+        "bytes": 65536,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.dt_bias_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.linear_attn.A_log_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.18.linear_attn.out_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.18.linear_attn.in_proj_z.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.18.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "q4k_model.language_model.layers.18.linear_attn.in_proj_qkv.weight_3538944",
+        "category": "weights",
+        "bytes": 3538944,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.18.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.18.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.18.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.q_norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.self_attn.k_norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.19.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "q4k_model.language_model.layers.19.self_attn.q_proj.weight_2359296",
+        "category": "weights",
+        "bytes": 2359296,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.19.self_attn.k_proj.weight_327680",
+        "category": "weights",
+        "bytes": 327680,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.19.self_attn.v_proj.weight_327680",
+        "category": "weights",
+        "bytes": 327680,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.19.self_attn.o_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.19.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.19.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.19.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.A_log_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.20.linear_attn.in_proj_z.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.in_proj_a.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.in_proj_b.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.conv1d.weight_65536",
+        "category": "weights",
+        "bytes": 65536,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.linear_attn.dt_bias_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.20.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "model.language_model.layers.20.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.20.linear_attn.in_proj_qkv.weight_3538944",
+        "category": "weights",
+        "bytes": 3538944,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.20.linear_attn.out_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.layers.20.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.20.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.20.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.in_proj_a.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.in_proj_b.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.conv1d.weight_65536",
+        "category": "weights",
+        "bytes": 65536,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.dt_bias_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.A_log_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.linear_attn.norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.21.linear_attn.in_proj_z.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.21.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "q4k_model.language_model.layers.21.linear_attn.in_proj_qkv.weight_3538944",
+        "category": "weights",
+        "bytes": 3538944,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.21.linear_attn.out_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.21.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.21.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.21.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.in_proj_a.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.in_proj_b.weight_32768",
+        "category": "weights",
+        "bytes": 32768,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.A_log_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.conv1d.weight_65536",
+        "category": "weights",
+        "bytes": 65536,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.linear_attn.dt_bias_256",
+        "category": "weights",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.22.linear_attn.in_proj_z.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.22.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "q4k_model.language_model.layers.22.linear_attn.in_proj_qkv.weight_3538944",
+        "category": "weights",
+        "bytes": 3538944,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.22.linear_attn.out_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.22.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.22.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.22.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.input_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.q_norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.self_attn.k_norm.weight_512",
+        "category": "weights",
+        "bytes": 512,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.layers.23.post_attention_layernorm.weight_2048",
+        "category": "weights",
+        "bytes": 4096,
+        "count": 2
+      },
+      {
+        "label": "q4k_model.language_model.layers.23.self_attn.q_proj.weight_2359296",
+        "category": "weights",
+        "bytes": 2359296,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.23.self_attn.v_proj.weight_327680",
+        "category": "weights",
+        "bytes": 327680,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.23.self_attn.k_proj.weight_327680",
+        "category": "weights",
+        "bytes": 327680,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.23.self_attn.o_proj.weight_1179648",
+        "category": "weights",
+        "bytes": 1179648,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.23.mlp.up_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.23.mlp.down_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "q4k_model.language_model.layers.23.mlp.gate_proj.weight_2097152",
+        "category": "weights",
+        "bytes": 2097152,
+        "count": 1
+      },
+      {
+        "label": "model.language_model.norm.weight_2048",
+        "category": "weights",
+        "bytes": 2048,
+        "count": 1
+      },
+      {
+        "label": "raw_model.language_model.lm_head.weight_143065088",
+        "category": "weights",
+        "bytes": 143065088,
+        "count": 1
+      },
+      {
+        "label": "decode_hidden",
+        "category": "other",
+        "bytes": 4096,
+        "count": 1
+      },
+      {
+        "label": "decode_attn_output",
+        "category": "other",
+        "bytes": 4096,
+        "count": 1
+      },
+      {
+        "label": "decode_ffn_intermediate",
+        "category": "other",
+        "bytes": 14336,
+        "count": 1
+      },
+      {
+        "label": "decode_hidden_alt",
+        "category": "other",
+        "bytes": 4096,
+        "count": 1
+      },
+      {
+        "label": "finiteness_status",
+        "category": "other",
+        "bytes": 16,
+        "count": 1
+      },
+      {
+        "label": "rope_precompute_data_256",
+        "category": "other",
+        "bytes": 256,
+        "count": 1
+      },
+      {
+        "label": "rope_cos_1048576",
+        "category": "other",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "rope_sin_1048576",
+        "category": "other",
+        "bytes": 1048576,
+        "count": 1
+      },
+      {
+        "label": "rope_cos_4194304",
+        "category": "other",
+        "bytes": 4194304,
+        "count": 1
+      },
+      {
+        "label": "rope_sin_4194304",
+        "category": "other",
+        "bytes": 4194304,
+        "count": 1
+      }
+    ]
+  },
+  "passed": true,
+  "stopped": true,
+  "detached": {
+    "operation": "detach",
+    "passed": true,
+    "phase": "ready",
+    "active": 0,
+    "unsettled": 0,
+    "files": {
+      "sharing": true,
+      "suppliedBytes": 307887776,
+      "pending": 0,
+      "retainedFiles": 2,
+      "receiptCount": 0
+    }
+  },
+  "finishedAt": "2026-10-12T18:18:41.728Z"
+}

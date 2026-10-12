@@ -67,6 +67,52 @@ it.each(['plan', 'hash', 'factory', 'resident'])('closes acquired storage when %
   expect(resident.prepare).not.toHaveBeenCalled();
 });
 
+it.each([false, true])('preserves missing-supplier failure when tokenizer loader masks it (fallback=%s)', async fallback => {
+  const missing = new Error('No authorized supplier offers the required tokenizer piece');
+  const wrapped = new Error('Bundled tokenizer not found. Clear browser storage and re-download.');
+  source.storage.loadTokenizerJson = vi.fn().mockRejectedValue(missing);
+  resident.prepare.mockImplementation(async () => {
+    const storage = await ports.factory.mock.calls[0][0].createStorage();
+    await storage.loadTokenizerJson().catch(() => {});
+    if (!fallback) throw wrapped;
+  });
+  await expect(loadWorkPartition(files, selected, 0, controls)).rejects.toMatchObject({ message: missing.message });
+  expect(source.storage.close).toHaveBeenCalledOnce();
+  expect(resident.close).toHaveBeenCalledOnce();
+});
+
+it('retains tokenizer acquisition and cleanup failures without claiming settlement', async () => {
+  const missing = new Error('No authorized supplier offers the required tokenizer piece');
+  const wrapped = new Error('Bundled tokenizer not found');
+  const cleanup = new Error('Device cleanup failed');
+  source.storage.loadTokenizerJson = vi.fn().mockRejectedValue(missing);
+  resident.prepare.mockImplementation(async () => {
+    const storage = await ports.factory.mock.calls[0][0].createStorage();
+    await storage.loadTokenizerJson().catch(() => {});
+    throw wrapped;
+  });
+  resident.close.mockRejectedValue(cleanup);
+  const released = vi.fn(); controls.registerCleanup = vi.fn(() => released);
+  await expect(loadWorkPartition(files, selected, 0, controls)).rejects.toMatchObject({
+    name: 'AggregateError', errors: [expect.objectContaining({ cause: missing, errors: [missing, wrapped] }), cleanup],
+  });
+  expect(released).not.toHaveBeenCalled();
+  expect(source.storage.close).toHaveBeenCalledOnce();
+});
+
+it('keeps unrelated execution failure when tokenizer acquisition succeeds', async () => {
+  const failure = new Error('Execution device unavailable');
+  const json = { vocabulary: 'fixture' };
+  source.storage.loadTokenizerJson = vi.fn().mockResolvedValue(json);
+  resident.prepare.mockImplementation(async () => {
+    const storage = await ports.factory.mock.calls[0][0].createStorage();
+    expect(await storage.loadTokenizerJson()).toBe(json);
+    throw failure;
+  });
+  await expect(loadWorkPartition(files, selected, 0, controls)).rejects.toBe(failure);
+  expect(source.storage.loadTokenizerJson).toHaveBeenCalledOnce();
+});
+
 it('settles storage even when resident cleanup fails and retains both failures', async () => {
   const failed = new Error('opening rejected'), cleanup = new Error('resident cleanup rejected');
   resident.prepare.mockRejectedValue(failed); resident.close.mockRejectedValue(cleanup);

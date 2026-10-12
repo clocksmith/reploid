@@ -6,6 +6,7 @@ import policy from '../config/partition-policy.json' with { type: 'json' };
 import { prepareLocalPackRelease } from '../pool/pack-release-policy.js';
 import { assertWorkResidentCapsule } from './work-partition-capsule.js';
 import { createSignedResidentFactory } from '../vendor/reploid/mesh/partitions/signed-resident-factory.js';
+import { createPartitionTokenizerGuard } from './work-partition-tokenizer-guard.js';
 
 export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress, registerCleanup }) {
   const model = { ...selected, generation: resolvePartitionGeneration(selected) };
@@ -43,6 +44,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
     })().catch(error => { cleaning = null; throw error; });
   } };
   const releaseCleanup = registerCleanup?.(cleanupOwner);
+  const tokenizer = createPartitionTokenizerGuard(source.storage);
   try {
     signal?.throwIfAborted();
     const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
@@ -64,10 +66,11 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
       runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: model.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
-      createStorage: async () => source.storage });
+      createStorage: async () => tokenizer.storage });
     resident = createResidentPartition({ runtime: factory, model, plan, planId, index,
       participantId, limits: policy.limits });
     await resident.prepare({ approved: true, signal });
+    tokenizer.assertAvailable();
     const preparation = { openMs: performance.now() - openedAt,
       acquisitionAndMaterializationMs: performance.now() - acquisitionStarted,
       memoryAtOpen: runtime.inspectDeviceMemory() };
@@ -76,9 +79,10 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
         preparation, memory: runtime.inspectDeviceMemory(),
         openingMode: selected.capsule === undefined ? 'pinned-manifest' : 'signed-capsule', capsuleVerification }) };
   } catch (error) {
-    const failures = [error];
+    const openingError = tokenizer.explain(error);
+    const failures = [openingError];
     try { await cleanupOwner.close(); } catch (cleanup) { failures.push(cleanup); }
     if (failures.length > 1) throw new AggregateError(failures, 'Partition opening and cleanup failed');
-    throw error;
+    throw openingError;
   }
 }
