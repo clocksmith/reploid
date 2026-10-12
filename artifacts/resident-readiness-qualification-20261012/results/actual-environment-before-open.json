@@ -1,0 +1,16 @@
+{
+  "observedAt": "2026-10-12T23:01:35.469Z",
+  "pid": 2152012,
+  "node": "v22.22.1",
+  "fixtureReady": true,
+  "residentPresent": false,
+  "environment": {
+    "MESA_SHADER_CACHE_DIR": "/var/tmp/reploid-readiness-private-mesa-pflfOW",
+    "MESA_SHADER_CACHE_DISABLE": null,
+    "XDG_CACHE_HOME": null,
+    "RADV_DEBUG": null,
+    "VK_DRIVER_FILES": null,
+    "VK_ICD_FILENAMES": null,
+    "AMD_VULKAN_ICD": null
+  }
+}

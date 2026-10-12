@@ -1,0 +1,16 @@
+{
+  "at": "2026-10-12T23:27:59.373Z",
+  "schema": "reploid.numerical-test-delivery/v1",
+  "testDeliveryHash": "sha256:397f4efbf47a8300660fa2e8b11761a3586c0d537044037d904aef255097ed3e",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "snapshotFiles": 2011,
+  "installedFiles": 1976,
+  "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+  "applicationQualification": false,
+  "cache": {
+    "path": "/var/tmp/reploid-readiness-private-mesa-pflfOW",
+    "files": 136,
+    "bytes": 6416940,
+    "retained": true
+  }
+}

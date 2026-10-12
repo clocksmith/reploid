@@ -1,0 +1,7 @@
+{
+  "at": "2026-10-12T23:21:10.521Z",
+  "pid": 79473,
+  "cmd": "node --input-type=module",
+  "cwd": "p79473\nfcwd\nn/Users/xyz/deco/reploid\n",
+  "reason": "Qualification controller settled/ownedproviderreleased; close only passive observer connection so native process may exit naturally. No provider process was killed."
+}

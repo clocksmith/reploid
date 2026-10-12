@@ -1,0 +1,2848 @@
+{
+  "schema": "reploid.resident-readiness-result/v1",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "tolerance": 0.001,
+  "maxAllocatedBytes": 1420000000,
+  "ordinaryStageDeadlineMs": 300000,
+  "diagnosticOperationCeilingMs": 1200000,
+  "directions": [
+    {
+      "direction": 0,
+      "scope": "Direct resident numerical fixture; not ordinary mesh or signed admission",
+      "prefixes": [
+        {
+          "request": 0,
+          "step": 0,
+          "tokenId": 9419,
+          "stopReason": null,
+          "maxDifference": 8.399647413170896e-7,
+          "maxDifferenceIndex": 38493,
+          "matches": true
+        },
+        {
+          "request": 0,
+          "step": 1,
+          "tokenId": 248046,
+          "stopReason": "eos-token",
+          "maxDifference": 6.15752007604442e-7,
+          "maxDifferenceIndex": 11,
+          "matches": true
+        },
+        {
+          "request": 1,
+          "step": 0,
+          "tokenId": 19,
+          "stopReason": null,
+          "maxDifference": 7.122407730264513e-7,
+          "maxDifferenceIndex": 32897,
+          "matches": true
+        },
+        {
+          "request": 1,
+          "step": 1,
+          "tokenId": 248046,
+          "stopReason": "eos-token",
+          "maxDifference": 8.902515347131157e-7,
+          "maxDifferenceIndex": 318,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 0,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 9.465929977636733e-7,
+          "maxDifferenceIndex": 1919,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 1,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 9.511217982094422e-7,
+          "maxDifferenceIndex": 13,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 2,
+          "tokenId": 17,
+          "stopReason": null,
+          "maxDifference": 8.68015469279726e-7,
+          "maxDifferenceIndex": 40,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 3,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.162583912645459e-7,
+          "maxDifferenceIndex": 13,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 4,
+          "tokenId": 18,
+          "stopReason": null,
+          "maxDifference": 8.71407298319582e-7,
+          "maxDifferenceIndex": 17,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 5,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 5.736278545498408e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 6,
+          "tokenId": 19,
+          "stopReason": null,
+          "maxDifference": 7.928766692089084e-7,
+          "maxDifferenceIndex": 1076,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 7,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.735741682779462e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 8,
+          "tokenId": 20,
+          "stopReason": null,
+          "maxDifference": 8.880480919515321e-7,
+          "maxDifferenceIndex": 1076,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 9,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.18186271342347e-7,
+          "maxDifferenceIndex": 220,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 10,
+          "tokenId": 21,
+          "stopReason": null,
+          "maxDifference": 6.088153909900029e-7,
+          "maxDifferenceIndex": 1076,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 11,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 8.808601243970315e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 12,
+          "tokenId": 22,
+          "stopReason": null,
+          "maxDifference": 7.976590090663649e-7,
+          "maxDifferenceIndex": 22,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 13,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 9.029354934853018e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 14,
+          "tokenId": 23,
+          "stopReason": null,
+          "maxDifference": 8.974647514037315e-7,
+          "maxDifferenceIndex": 220,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 15,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 6.479467806741468e-7,
+          "maxDifferenceIndex": 248046,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 16,
+          "tokenId": 24,
+          "stopReason": null,
+          "maxDifference": 9.431464889075869e-7,
+          "maxDifferenceIndex": 248069,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 17,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 6.020213518809214e-7,
+          "maxDifferenceIndex": 248046,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 18,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.76104393243304e-7,
+          "maxDifferenceIndex": 27733,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 19,
+          "tokenId": 15,
+          "stopReason": null,
+          "maxDifference": 6.868741131427214e-7,
+          "maxDifferenceIndex": 220,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 20,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 8.416379735365354e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 21,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.7671555236661334e-7,
+          "maxDifferenceIndex": 4277,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 22,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 7.527730794265608e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 23,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 5.66631417342478e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 24,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 5.008885572976851e-7,
+          "maxDifferenceIndex": 220,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 25,
+          "tokenId": 17,
+          "stopReason": null,
+          "maxDifference": 7.055716224613207e-7,
+          "maxDifferenceIndex": 15,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 26,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 4.758145006888981e-7,
+          "maxDifferenceIndex": 478,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 27,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 7.735567919553432e-7,
+          "maxDifferenceIndex": 1076,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 28,
+          "tokenId": 18,
+          "stopReason": null,
+          "maxDifference": 7.37632763758711e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 29,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.353005955224035e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 30,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.943657643252664e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 31,
+          "tokenId": 19,
+          "stopReason": null,
+          "maxDifference": 8.45685566019938e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 32,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 5.022872180404647e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 33,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.989301132241053e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 34,
+          "tokenId": 20,
+          "stopReason": null,
+          "maxDifference": 8.834450042627395e-7,
+          "maxDifferenceIndex": 21,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 35,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.852569972044421e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 36,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.765196788270032e-7,
+          "maxDifferenceIndex": 16077,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 37,
+          "tokenId": 21,
+          "stopReason": null,
+          "maxDifference": 9.196834902525097e-7,
+          "maxDifferenceIndex": 20,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 38,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.017729615199642e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 39,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.763602685642354e-7,
+          "maxDifferenceIndex": 32228,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 40,
+          "tokenId": 22,
+          "stopReason": null,
+          "maxDifference": 6.057156873851e-7,
+          "maxDifferenceIndex": 23,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 41,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 6.90009414938686e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 42,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 6.659978630807473e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 43,
+          "tokenId": 23,
+          "stopReason": null,
+          "maxDifference": 8.981626429260814e-7,
+          "maxDifferenceIndex": 220,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 44,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 8.844390428919269e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 45,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 8.330828507041588e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 46,
+          "tokenId": 24,
+          "stopReason": null,
+          "maxDifference": 8.883623330291357e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 47,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 6.82579010202744e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 48,
+          "tokenId": 17,
+          "stopReason": null,
+          "maxDifference": 4.766864023508788e-7,
+          "maxDifferenceIndex": 57,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 49,
+          "tokenId": 15,
+          "stopReason": null,
+          "maxDifference": 9.520044947919359e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 50,
+          "tokenId": 248046,
+          "stopReason": "eos-token",
+          "maxDifference": 9.168414152327387e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        }
+      ],
+      "stages": [
+        {
+          "request": 0,
+          "step": 0,
+          "group0": {
+            "startedAt": "2026-10-12T23:15:42.701Z",
+            "completedAt": "2026-10-12T23:15:49.996Z",
+            "elapsedMs": 7294.663457999937
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:15:49.996Z",
+            "completedAt": "2026-10-12T23:16:53.090Z",
+            "elapsedMs": 63093.68741700007
+          }
+        },
+        {
+          "request": 0,
+          "step": 1,
+          "group0": {
+            "startedAt": "2026-10-12T23:16:53.121Z",
+            "completedAt": "2026-10-12T23:16:53.596Z",
+            "elapsedMs": 474.89320799999405
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:16:53.596Z",
+            "completedAt": "2026-10-12T23:16:55.407Z",
+            "elapsedMs": 1810.6326669999398
+          }
+        },
+        {
+          "request": 1,
+          "step": 0,
+          "group0": {
+            "startedAt": "2026-10-12T23:17:04.211Z",
+            "completedAt": "2026-10-12T23:17:12.216Z",
+            "elapsedMs": 8004.560749999946
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:17:12.216Z",
+            "completedAt": "2026-10-12T23:17:16.336Z",
+            "elapsedMs": 4120.400250000064
+          }
+        },
+        {
+          "request": 1,
+          "step": 1,
+          "group0": {
+            "startedAt": "2026-10-12T23:17:16.372Z",
+            "completedAt": "2026-10-12T23:17:16.849Z",
+            "elapsedMs": 476.6547919999575
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:17:16.849Z",
+            "completedAt": "2026-10-12T23:17:17.476Z",
+            "elapsedMs": 627.1309999999357
+          }
+        },
+        {
+          "request": 2,
+          "step": 0,
+          "group0": {
+            "startedAt": "2026-10-12T23:17:23.871Z",
+            "completedAt": "2026-10-12T23:18:37.901Z",
+            "elapsedMs": 74030.38075000001
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:18:37.901Z",
+            "completedAt": "2026-10-12T23:19:09.323Z",
+            "elapsedMs": 31421.16704099998
+          }
+        },
+        {
+          "request": 2,
+          "step": 1,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:09.357Z",
+            "completedAt": "2026-10-12T23:19:10.033Z",
+            "elapsedMs": 675.766958000022
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:10.033Z",
+            "completedAt": "2026-10-12T23:19:10.684Z",
+            "elapsedMs": 651.6821249999339
+          }
+        },
+        {
+          "request": 2,
+          "step": 2,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:10.721Z",
+            "completedAt": "2026-10-12T23:19:11.372Z",
+            "elapsedMs": 650.5244170000078
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:11.372Z",
+            "completedAt": "2026-10-12T23:19:11.962Z",
+            "elapsedMs": 590.5274170000339
+          }
+        },
+        {
+          "request": 2,
+          "step": 3,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:11.973Z",
+            "completedAt": "2026-10-12T23:19:12.636Z",
+            "elapsedMs": 663.6695420000469
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:12.636Z",
+            "completedAt": "2026-10-12T23:19:13.260Z",
+            "elapsedMs": 623.9706250000745
+          }
+        },
+        {
+          "request": 2,
+          "step": 4,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:13.270Z",
+            "completedAt": "2026-10-12T23:19:13.924Z",
+            "elapsedMs": 654.22120800009
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:13.924Z",
+            "completedAt": "2026-10-12T23:19:14.528Z",
+            "elapsedMs": 603.4978750000009
+          }
+        },
+        {
+          "request": 2,
+          "step": 5,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:14.535Z",
+            "completedAt": "2026-10-12T23:19:15.192Z",
+            "elapsedMs": 657.0239170000423
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:15.192Z",
+            "completedAt": "2026-10-12T23:19:15.871Z",
+            "elapsedMs": 678.2865000000456
+          }
+        },
+        {
+          "request": 2,
+          "step": 6,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:15.891Z",
+            "completedAt": "2026-10-12T23:19:16.544Z",
+            "elapsedMs": 652.8632920000236
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:16.544Z",
+            "completedAt": "2026-10-12T23:19:17.218Z",
+            "elapsedMs": 674.0245409999043
+          }
+        },
+        {
+          "request": 2,
+          "step": 7,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:17.230Z",
+            "completedAt": "2026-10-12T23:19:17.894Z",
+            "elapsedMs": 663.5971660000505
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:17.894Z",
+            "completedAt": "2026-10-12T23:19:18.492Z",
+            "elapsedMs": 598.0432919999585
+          }
+        },
+        {
+          "request": 2,
+          "step": 8,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:18.501Z",
+            "completedAt": "2026-10-12T23:19:19.175Z",
+            "elapsedMs": 673.6086249999935
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:19.175Z",
+            "completedAt": "2026-10-12T23:19:19.769Z",
+            "elapsedMs": 593.6020830000052
+          }
+        },
+        {
+          "request": 2,
+          "step": 9,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:19.778Z",
+            "completedAt": "2026-10-12T23:19:20.458Z",
+            "elapsedMs": 680.5045840000967
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:20.458Z",
+            "completedAt": "2026-10-12T23:19:21.171Z",
+            "elapsedMs": 712.7380000000121
+          }
+        },
+        {
+          "request": 2,
+          "step": 10,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:21.180Z",
+            "completedAt": "2026-10-12T23:19:21.847Z",
+            "elapsedMs": 667.294292000006
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:21.847Z",
+            "completedAt": "2026-10-12T23:19:22.487Z",
+            "elapsedMs": 639.5930420000805
+          }
+        },
+        {
+          "request": 2,
+          "step": 11,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:22.493Z",
+            "completedAt": "2026-10-12T23:19:23.163Z",
+            "elapsedMs": 669.8956670000916
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:23.163Z",
+            "completedAt": "2026-10-12T23:19:23.750Z",
+            "elapsedMs": 587.3265420000535
+          }
+        },
+        {
+          "request": 2,
+          "step": 12,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:23.761Z",
+            "completedAt": "2026-10-12T23:19:24.433Z",
+            "elapsedMs": 672.56012499996
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:24.433Z",
+            "completedAt": "2026-10-12T23:19:25.005Z",
+            "elapsedMs": 571.4132499999832
+          }
+        },
+        {
+          "request": 2,
+          "step": 13,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:25.014Z",
+            "completedAt": "2026-10-12T23:19:25.684Z",
+            "elapsedMs": 669.8540420000209
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:25.684Z",
+            "completedAt": "2026-10-12T23:19:26.553Z",
+            "elapsedMs": 868.8666669999948
+          }
+        },
+        {
+          "request": 2,
+          "step": 14,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:26.560Z",
+            "completedAt": "2026-10-12T23:19:27.234Z",
+            "elapsedMs": 673.5722920000553
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:27.234Z",
+            "completedAt": "2026-10-12T23:19:28.038Z",
+            "elapsedMs": 804.0180420000106
+          }
+        },
+        {
+          "request": 2,
+          "step": 15,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:28.042Z",
+            "completedAt": "2026-10-12T23:19:28.717Z",
+            "elapsedMs": 674.920792000019
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:28.717Z",
+            "completedAt": "2026-10-12T23:19:29.630Z",
+            "elapsedMs": 913.4180829999968
+          }
+        },
+        {
+          "request": 2,
+          "step": 16,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:29.639Z",
+            "completedAt": "2026-10-12T23:19:30.306Z",
+            "elapsedMs": 666.7571250000037
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:30.306Z",
+            "completedAt": "2026-10-12T23:19:31.125Z",
+            "elapsedMs": 819.0664590001106
+          }
+        },
+        {
+          "request": 2,
+          "step": 17,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:31.134Z",
+            "completedAt": "2026-10-12T23:19:31.807Z",
+            "elapsedMs": 672.8116660001688
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:31.807Z",
+            "completedAt": "2026-10-12T23:19:32.702Z",
+            "elapsedMs": 894.4048339999281
+          }
+        },
+        {
+          "request": 2,
+          "step": 18,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:32.711Z",
+            "completedAt": "2026-10-12T23:19:33.390Z",
+            "elapsedMs": 679.0155420000665
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:33.390Z",
+            "completedAt": "2026-10-12T23:19:34.175Z",
+            "elapsedMs": 785.1973340001423
+          }
+        },
+        {
+          "request": 2,
+          "step": 19,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:34.182Z",
+            "completedAt": "2026-10-12T23:19:34.857Z",
+            "elapsedMs": 675.3237079998944
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:34.857Z",
+            "completedAt": "2026-10-12T23:19:35.588Z",
+            "elapsedMs": 730.6969999999274
+          }
+        },
+        {
+          "request": 2,
+          "step": 20,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:35.597Z",
+            "completedAt": "2026-10-12T23:19:36.275Z",
+            "elapsedMs": 678.4744170000777
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:36.275Z",
+            "completedAt": "2026-10-12T23:19:37.208Z",
+            "elapsedMs": 933.2878749999218
+          }
+        },
+        {
+          "request": 2,
+          "step": 21,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:37.218Z",
+            "completedAt": "2026-10-12T23:19:37.895Z",
+            "elapsedMs": 677.6109580001794
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:37.895Z",
+            "completedAt": "2026-10-12T23:19:38.523Z",
+            "elapsedMs": 627.9771249999758
+          }
+        },
+        {
+          "request": 2,
+          "step": 22,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:38.530Z",
+            "completedAt": "2026-10-12T23:19:39.211Z",
+            "elapsedMs": 681.4493329999968
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:39.211Z",
+            "completedAt": "2026-10-12T23:19:39.809Z",
+            "elapsedMs": 598.1089159999974
+          }
+        },
+        {
+          "request": 2,
+          "step": 23,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:39.818Z",
+            "completedAt": "2026-10-12T23:19:40.498Z",
+            "elapsedMs": 680.4967910000123
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:40.498Z",
+            "completedAt": "2026-10-12T23:19:41.199Z",
+            "elapsedMs": 700.7691659999546
+          }
+        },
+        {
+          "request": 2,
+          "step": 24,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:41.207Z",
+            "completedAt": "2026-10-12T23:19:41.895Z",
+            "elapsedMs": 688.2413749999832
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:41.895Z",
+            "completedAt": "2026-10-12T23:19:42.566Z",
+            "elapsedMs": 670.8428330000024
+          }
+        },
+        {
+          "request": 2,
+          "step": 25,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:42.570Z",
+            "completedAt": "2026-10-12T23:19:43.249Z",
+            "elapsedMs": 678.4935409999453
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:43.249Z",
+            "completedAt": "2026-10-12T23:19:43.867Z",
+            "elapsedMs": 618.3454169998877
+          }
+        },
+        {
+          "request": 2,
+          "step": 26,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:43.877Z",
+            "completedAt": "2026-10-12T23:19:44.566Z",
+            "elapsedMs": 689.2026659999974
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:44.566Z",
+            "completedAt": "2026-10-12T23:19:45.269Z",
+            "elapsedMs": 702.9960000000428
+          }
+        },
+        {
+          "request": 2,
+          "step": 27,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:45.278Z",
+            "completedAt": "2026-10-12T23:19:45.969Z",
+            "elapsedMs": 691.2538330000825
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:45.969Z",
+            "completedAt": "2026-10-12T23:19:47.056Z",
+            "elapsedMs": 1086.1972919998225
+          }
+        },
+        {
+          "request": 2,
+          "step": 28,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:47.065Z",
+            "completedAt": "2026-10-12T23:19:47.781Z",
+            "elapsedMs": 715.9683749999385
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:47.781Z",
+            "completedAt": "2026-10-12T23:19:48.534Z",
+            "elapsedMs": 753.2497089998797
+          }
+        },
+        {
+          "request": 2,
+          "step": 29,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:48.539Z",
+            "completedAt": "2026-10-12T23:19:49.221Z",
+            "elapsedMs": 682.3205409999937
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:49.221Z",
+            "completedAt": "2026-10-12T23:19:50.246Z",
+            "elapsedMs": 1024.4712910000235
+          }
+        },
+        {
+          "request": 2,
+          "step": 30,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:50.255Z",
+            "completedAt": "2026-10-12T23:19:50.953Z",
+            "elapsedMs": 698.3610000000335
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:50.953Z",
+            "completedAt": "2026-10-12T23:19:51.855Z",
+            "elapsedMs": 901.2754999999888
+          }
+        },
+        {
+          "request": 2,
+          "step": 31,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:51.864Z",
+            "completedAt": "2026-10-12T23:19:52.556Z",
+            "elapsedMs": 691.6959160000551
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:52.556Z",
+            "completedAt": "2026-10-12T23:19:53.409Z",
+            "elapsedMs": 853.0010410000104
+          }
+        },
+        {
+          "request": 2,
+          "step": 32,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:53.418Z",
+            "completedAt": "2026-10-12T23:19:54.109Z",
+            "elapsedMs": 691.375207999954
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:54.109Z",
+            "completedAt": "2026-10-12T23:19:54.728Z",
+            "elapsedMs": 619.3245419999585
+          }
+        },
+        {
+          "request": 2,
+          "step": 33,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:54.737Z",
+            "completedAt": "2026-10-12T23:19:55.427Z",
+            "elapsedMs": 689.875708000036
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:55.427Z",
+            "completedAt": "2026-10-12T23:19:56.074Z",
+            "elapsedMs": 646.7896249999758
+          }
+        },
+        {
+          "request": 2,
+          "step": 34,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:56.078Z",
+            "completedAt": "2026-10-12T23:19:56.761Z",
+            "elapsedMs": 683.0519999999087
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:56.761Z",
+            "completedAt": "2026-10-12T23:19:57.375Z",
+            "elapsedMs": 613.7381659999955
+          }
+        },
+        {
+          "request": 2,
+          "step": 35,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:57.383Z",
+            "completedAt": "2026-10-12T23:19:58.079Z",
+            "elapsedMs": 695.6855839998461
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:58.079Z",
+            "completedAt": "2026-10-12T23:19:58.682Z",
+            "elapsedMs": 603.2258750000037
+          }
+        },
+        {
+          "request": 2,
+          "step": 36,
+          "group0": {
+            "startedAt": "2026-10-12T23:19:58.690Z",
+            "completedAt": "2026-10-12T23:19:59.393Z",
+            "elapsedMs": 703.0092499998864
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:19:59.393Z",
+            "completedAt": "2026-10-12T23:20:00.029Z",
+            "elapsedMs": 635.8366249999963
+          }
+        },
+        {
+          "request": 2,
+          "step": 37,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:00.037Z",
+            "completedAt": "2026-10-12T23:20:00.730Z",
+            "elapsedMs": 693.293958999915
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:00.730Z",
+            "completedAt": "2026-10-12T23:20:01.373Z",
+            "elapsedMs": 642.8707080001477
+          }
+        },
+        {
+          "request": 2,
+          "step": 38,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:01.381Z",
+            "completedAt": "2026-10-12T23:20:02.082Z",
+            "elapsedMs": 700.2429580001626
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:02.082Z",
+            "completedAt": "2026-10-12T23:20:02.720Z",
+            "elapsedMs": 638.3590840001125
+          }
+        },
+        {
+          "request": 2,
+          "step": 39,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:02.729Z",
+            "completedAt": "2026-10-12T23:20:03.431Z",
+            "elapsedMs": 702.0750420000404
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:03.431Z",
+            "completedAt": "2026-10-12T23:20:04.054Z",
+            "elapsedMs": 622.9547079999465
+          }
+        },
+        {
+          "request": 2,
+          "step": 40,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:04.058Z",
+            "completedAt": "2026-10-12T23:20:04.751Z",
+            "elapsedMs": 692.9632500000298
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:04.751Z",
+            "completedAt": "2026-10-12T23:20:05.369Z",
+            "elapsedMs": 617.4639580000658
+          }
+        },
+        {
+          "request": 2,
+          "step": 41,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:05.378Z",
+            "completedAt": "2026-10-12T23:20:06.086Z",
+            "elapsedMs": 708.4600410000421
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:06.086Z",
+            "completedAt": "2026-10-12T23:20:06.718Z",
+            "elapsedMs": 631.8380829999223
+          }
+        },
+        {
+          "request": 2,
+          "step": 42,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:06.727Z",
+            "completedAt": "2026-10-12T23:20:07.435Z",
+            "elapsedMs": 707.7663340000436
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:07.435Z",
+            "completedAt": "2026-10-12T23:20:08.061Z",
+            "elapsedMs": 626.0351249999367
+          }
+        },
+        {
+          "request": 2,
+          "step": 43,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:08.065Z",
+            "completedAt": "2026-10-12T23:20:08.770Z",
+            "elapsedMs": 704.5073750000447
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:08.770Z",
+            "completedAt": "2026-10-12T23:20:09.374Z",
+            "elapsedMs": 604.1484579998069
+          }
+        },
+        {
+          "request": 2,
+          "step": 44,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:09.383Z",
+            "completedAt": "2026-10-12T23:20:10.089Z",
+            "elapsedMs": 706.1913330000825
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:10.089Z",
+            "completedAt": "2026-10-12T23:20:10.727Z",
+            "elapsedMs": 637.6200830000453
+          }
+        },
+        {
+          "request": 2,
+          "step": 45,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:10.736Z",
+            "completedAt": "2026-10-12T23:20:11.441Z",
+            "elapsedMs": 705.5422499999404
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:11.441Z",
+            "completedAt": "2026-10-12T23:20:12.085Z",
+            "elapsedMs": 643.7436249998864
+          }
+        },
+        {
+          "request": 2,
+          "step": 46,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:12.089Z",
+            "completedAt": "2026-10-12T23:20:12.792Z",
+            "elapsedMs": 702.7107079999987
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:12.792Z",
+            "completedAt": "2026-10-12T23:20:13.421Z",
+            "elapsedMs": 629.6087080000434
+          }
+        },
+        {
+          "request": 2,
+          "step": 47,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:13.428Z",
+            "completedAt": "2026-10-12T23:20:14.142Z",
+            "elapsedMs": 714.01654099999
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:14.142Z",
+            "completedAt": "2026-10-12T23:20:14.821Z",
+            "elapsedMs": 678.7945000000764
+          }
+        },
+        {
+          "request": 2,
+          "step": 48,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:14.831Z",
+            "completedAt": "2026-10-12T23:20:15.543Z",
+            "elapsedMs": 712.3327919999138
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:15.543Z",
+            "completedAt": "2026-10-12T23:20:16.317Z",
+            "elapsedMs": 773.4341249999125
+          }
+        },
+        {
+          "request": 2,
+          "step": 49,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:16.327Z",
+            "completedAt": "2026-10-12T23:20:17.044Z",
+            "elapsedMs": 717.8627500000875
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:17.044Z",
+            "completedAt": "2026-10-12T23:20:17.697Z",
+            "elapsedMs": 652.8316659999546
+          }
+        },
+        {
+          "request": 2,
+          "step": 50,
+          "group0": {
+            "startedAt": "2026-10-12T23:20:17.706Z",
+            "completedAt": "2026-10-12T23:20:18.415Z",
+            "elapsedMs": 708.861082999967
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:20:18.415Z",
+            "completedAt": "2026-10-12T23:20:19.066Z",
+            "elapsedMs": 650.8813749998808
+          }
+        }
+      ],
+      "maxStageMs": 74030.38075000001,
+      "maxDifference": 9.520044947919359e-7,
+      "participants": [
+        {
+          "group": 0,
+          "surface": "browser-webgpu",
+          "platform": "mac.lan",
+          "provider": {
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+            "platform": "MacIntel",
+            "adapter": {
+              "vendor": "apple",
+              "architecture": "metal-3",
+              "device": "unknown",
+              "description": ""
+            }
+          },
+          "preparationTiming": {
+            "startedAt": "2026-10-12T23:02:02.086Z",
+            "completedAt": "2026-10-12T23:02:07.235Z",
+            "elapsedMs": 5148.271333999999
+          },
+          "peakAllocatedBytes": 765059392
+        },
+        {
+          "group": 1,
+          "surface": "node-webgpu",
+          "platform": "x@128.tail995236.ts.net:node-dawn",
+          "nativePid": 2152012,
+          "provider": {
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "rdna-3",
+              "device": "radeon-8060s-graphics-radv-strix-halo-",
+              "description": "radv: Mesa 26.0.3-1ubuntu1"
+            }
+          },
+          "preparationTiming": {
+            "startedAt": "2026-10-12T23:02:07.494Z",
+            "completedAt": "2026-10-12T23:15:42.608Z",
+            "elapsedMs": 815081.314583
+          },
+          "peakAllocatedBytes": 398727376
+        }
+      ],
+      "settlement": [
+        {
+          "barriers": 1,
+          "activeBuffers": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 60946944,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "deviceCategories": {
+            "weights": 0,
+            "attention": 0,
+            "recurrent": 0,
+            "other": 60952624
+          },
+          "deviceLiveBytes": 60952624,
+          "observationErrors": [],
+          "deviceEvents": []
+        },
+        {
+          "barriers": 1,
+          "activeBuffers": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 62261760,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "deviceCategories": {
+            "weights": 0,
+            "attention": 0,
+            "recurrent": 0,
+            "other": 62267392
+          },
+          "deviceLiveBytes": 62267392,
+          "observationErrors": [],
+          "deviceEvents": []
+        }
+      ],
+      "nativeHostSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true,
+        "pid": 2152012
+      },
+      "deviceObservations": [
+        {
+          "deviceEvents": []
+        },
+        {
+          "deviceEvents": []
+        }
+      ],
+      "cleanupErrors": []
+    },
+    {
+      "direction": 1,
+      "scope": "Direct resident numerical fixture; not ordinary mesh or signed admission",
+      "prefixes": [
+        {
+          "request": 0,
+          "step": 0,
+          "tokenId": 9419,
+          "stopReason": null,
+          "maxDifference": 8.399647413170896e-7,
+          "maxDifferenceIndex": 38493,
+          "matches": true
+        },
+        {
+          "request": 0,
+          "step": 1,
+          "tokenId": 248046,
+          "stopReason": "eos-token",
+          "maxDifference": 6.15752007604442e-7,
+          "maxDifferenceIndex": 11,
+          "matches": true
+        },
+        {
+          "request": 1,
+          "step": 0,
+          "tokenId": 19,
+          "stopReason": null,
+          "maxDifference": 7.122407730264513e-7,
+          "maxDifferenceIndex": 32897,
+          "matches": true
+        },
+        {
+          "request": 1,
+          "step": 1,
+          "tokenId": 248046,
+          "stopReason": "eos-token",
+          "maxDifference": 8.902515347131157e-7,
+          "maxDifferenceIndex": 318,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 0,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 9.465929977636733e-7,
+          "maxDifferenceIndex": 1919,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 1,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 9.511217982094422e-7,
+          "maxDifferenceIndex": 13,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 2,
+          "tokenId": 17,
+          "stopReason": null,
+          "maxDifference": 8.68015469279726e-7,
+          "maxDifferenceIndex": 40,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 3,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.162583912645459e-7,
+          "maxDifferenceIndex": 13,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 4,
+          "tokenId": 18,
+          "stopReason": null,
+          "maxDifference": 8.71407298319582e-7,
+          "maxDifferenceIndex": 17,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 5,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 5.736278545498408e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 6,
+          "tokenId": 19,
+          "stopReason": null,
+          "maxDifference": 7.928766692089084e-7,
+          "maxDifferenceIndex": 1076,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 7,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.735741682779462e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 8,
+          "tokenId": 20,
+          "stopReason": null,
+          "maxDifference": 8.880480919515321e-7,
+          "maxDifferenceIndex": 1076,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 9,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.18186271342347e-7,
+          "maxDifferenceIndex": 220,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 10,
+          "tokenId": 21,
+          "stopReason": null,
+          "maxDifference": 6.088153909900029e-7,
+          "maxDifferenceIndex": 1076,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 11,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 8.808601243970315e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 12,
+          "tokenId": 22,
+          "stopReason": null,
+          "maxDifference": 7.976590090663649e-7,
+          "maxDifferenceIndex": 22,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 13,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 9.029354934853018e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 14,
+          "tokenId": 23,
+          "stopReason": null,
+          "maxDifference": 8.974647514037315e-7,
+          "maxDifferenceIndex": 220,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 15,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 6.479467806741468e-7,
+          "maxDifferenceIndex": 248046,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 16,
+          "tokenId": 24,
+          "stopReason": null,
+          "maxDifference": 9.431464889075869e-7,
+          "maxDifferenceIndex": 248069,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 17,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 6.020213518809214e-7,
+          "maxDifferenceIndex": 248046,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 18,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.76104393243304e-7,
+          "maxDifferenceIndex": 27733,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 19,
+          "tokenId": 15,
+          "stopReason": null,
+          "maxDifference": 6.868741131427214e-7,
+          "maxDifferenceIndex": 220,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 20,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 8.416379735365354e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 21,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.7671555236661334e-7,
+          "maxDifferenceIndex": 4277,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 22,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 7.527730794265608e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 23,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 5.66631417342478e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 24,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 5.008885572976851e-7,
+          "maxDifferenceIndex": 220,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 25,
+          "tokenId": 17,
+          "stopReason": null,
+          "maxDifference": 7.055716224613207e-7,
+          "maxDifferenceIndex": 15,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 26,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 4.758145006888981e-7,
+          "maxDifferenceIndex": 478,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 27,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 7.735567919553432e-7,
+          "maxDifferenceIndex": 1076,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 28,
+          "tokenId": 18,
+          "stopReason": null,
+          "maxDifference": 7.37632763758711e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 29,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.353005955224035e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 30,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.943657643252664e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 31,
+          "tokenId": 19,
+          "stopReason": null,
+          "maxDifference": 8.45685566019938e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 32,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 5.022872180404647e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 33,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.989301132241053e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 34,
+          "tokenId": 20,
+          "stopReason": null,
+          "maxDifference": 8.834450042627395e-7,
+          "maxDifferenceIndex": 21,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 35,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.852569972044421e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 36,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.765196788270032e-7,
+          "maxDifferenceIndex": 16077,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 37,
+          "tokenId": 21,
+          "stopReason": null,
+          "maxDifference": 9.196834902525097e-7,
+          "maxDifferenceIndex": 20,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 38,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 7.017729615199642e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 39,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 4.763602685642354e-7,
+          "maxDifferenceIndex": 32228,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 40,
+          "tokenId": 22,
+          "stopReason": null,
+          "maxDifference": 6.057156873851e-7,
+          "maxDifferenceIndex": 23,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 41,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 6.90009414938686e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 42,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 6.659978630807473e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 43,
+          "tokenId": 23,
+          "stopReason": null,
+          "maxDifference": 8.981626429260814e-7,
+          "maxDifferenceIndex": 220,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 44,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 8.844390428919269e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 45,
+          "tokenId": 16,
+          "stopReason": null,
+          "maxDifference": 8.330828507041588e-7,
+          "maxDifferenceIndex": 16,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 46,
+          "tokenId": 24,
+          "stopReason": null,
+          "maxDifference": 8.883623330291357e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 47,
+          "tokenId": 198,
+          "stopReason": null,
+          "maxDifference": 6.82579010202744e-7,
+          "maxDifferenceIndex": 271,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 48,
+          "tokenId": 17,
+          "stopReason": null,
+          "maxDifference": 4.766864023508788e-7,
+          "maxDifferenceIndex": 57,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 49,
+          "tokenId": 15,
+          "stopReason": null,
+          "maxDifference": 9.520044947919359e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        },
+        {
+          "request": 2,
+          "step": 50,
+          "tokenId": 248046,
+          "stopReason": "eos-token",
+          "maxDifference": 9.168414152327387e-7,
+          "maxDifferenceIndex": 198,
+          "matches": true
+        }
+      ],
+      "stages": [
+        {
+          "request": 0,
+          "step": 0,
+          "group0": {
+            "startedAt": "2026-10-12T23:21:58.739Z",
+            "completedAt": "2026-10-12T23:22:02.175Z",
+            "elapsedMs": 3435.8827920000003
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:22:02.175Z",
+            "completedAt": "2026-10-12T23:22:09.818Z",
+            "elapsedMs": 7642.5558329999985
+          }
+        },
+        {
+          "request": 0,
+          "step": 1,
+          "group0": {
+            "startedAt": "2026-10-12T23:22:09.835Z",
+            "completedAt": "2026-10-12T23:22:10.087Z",
+            "elapsedMs": 251.83658400000058
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:22:10.087Z",
+            "completedAt": "2026-10-12T23:22:10.866Z",
+            "elapsedMs": 779.599041999998
+          }
+        },
+        {
+          "request": 1,
+          "step": 0,
+          "group0": {
+            "startedAt": "2026-10-12T23:22:16.139Z",
+            "completedAt": "2026-10-12T23:22:19.679Z",
+            "elapsedMs": 3540.127124999999
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:22:19.679Z",
+            "completedAt": "2026-10-12T23:22:28.024Z",
+            "elapsedMs": 8344.623040999999
+          }
+        },
+        {
+          "request": 1,
+          "step": 1,
+          "group0": {
+            "startedAt": "2026-10-12T23:22:28.041Z",
+            "completedAt": "2026-10-12T23:22:28.341Z",
+            "elapsedMs": 299.54929200000333
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:22:28.341Z",
+            "completedAt": "2026-10-12T23:22:29.138Z",
+            "elapsedMs": 797.5995000000039
+          }
+        },
+        {
+          "request": 2,
+          "step": 0,
+          "group0": {
+            "startedAt": "2026-10-12T23:22:35.253Z",
+            "completedAt": "2026-10-12T23:23:04.569Z",
+            "elapsedMs": 29316.336583999997
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:23:04.569Z",
+            "completedAt": "2026-10-12T23:24:18.854Z",
+            "elapsedMs": 74284.59850000001
+          }
+        },
+        {
+          "request": 2,
+          "step": 1,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:18.870Z",
+            "completedAt": "2026-10-12T23:24:19.241Z",
+            "elapsedMs": 371.0722919999971
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:19.241Z",
+            "completedAt": "2026-10-12T23:24:20.240Z",
+            "elapsedMs": 998.9360829999787
+          }
+        },
+        {
+          "request": 2,
+          "step": 2,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:20.256Z",
+            "completedAt": "2026-10-12T23:24:20.618Z",
+            "elapsedMs": 362.17191699999967
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:20.618Z",
+            "completedAt": "2026-10-12T23:24:21.606Z",
+            "elapsedMs": 987.4647080000141
+          }
+        },
+        {
+          "request": 2,
+          "step": 3,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:21.614Z",
+            "completedAt": "2026-10-12T23:24:22.132Z",
+            "elapsedMs": 518.7085000000079
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:22.132Z",
+            "completedAt": "2026-10-12T23:24:23.109Z",
+            "elapsedMs": 976.272500000021
+          }
+        },
+        {
+          "request": 2,
+          "step": 4,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:23.124Z",
+            "completedAt": "2026-10-12T23:24:23.492Z",
+            "elapsedMs": 367.7188749999914
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:23.492Z",
+            "completedAt": "2026-10-12T23:24:24.475Z",
+            "elapsedMs": 983.1963340000075
+          }
+        },
+        {
+          "request": 2,
+          "step": 5,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:24.478Z",
+            "completedAt": "2026-10-12T23:24:24.853Z",
+            "elapsedMs": 374.9400000000023
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:24.853Z",
+            "completedAt": "2026-10-12T23:24:25.842Z",
+            "elapsedMs": 988.5921249999956
+          }
+        },
+        {
+          "request": 2,
+          "step": 6,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:25.845Z",
+            "completedAt": "2026-10-12T23:24:26.217Z",
+            "elapsedMs": 371.8505409999925
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:26.217Z",
+            "completedAt": "2026-10-12T23:24:27.208Z",
+            "elapsedMs": 991.1646249999758
+          }
+        },
+        {
+          "request": 2,
+          "step": 7,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:27.211Z",
+            "completedAt": "2026-10-12T23:24:27.591Z",
+            "elapsedMs": 379.669790999993
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:27.591Z",
+            "completedAt": "2026-10-12T23:24:28.576Z",
+            "elapsedMs": 985.0434580000001
+          }
+        },
+        {
+          "request": 2,
+          "step": 8,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:28.583Z",
+            "completedAt": "2026-10-12T23:24:28.961Z",
+            "elapsedMs": 377.1087079999852
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:28.961Z",
+            "completedAt": "2026-10-12T23:24:29.945Z",
+            "elapsedMs": 984.6522920000134
+          }
+        },
+        {
+          "request": 2,
+          "step": 9,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:29.948Z",
+            "completedAt": "2026-10-12T23:24:30.325Z",
+            "elapsedMs": 376.3511249999865
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:30.325Z",
+            "completedAt": "2026-10-12T23:24:31.319Z",
+            "elapsedMs": 994.398749999993
+          }
+        },
+        {
+          "request": 2,
+          "step": 10,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:31.322Z",
+            "completedAt": "2026-10-12T23:24:31.700Z",
+            "elapsedMs": 378.06420799999614
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:31.700Z",
+            "completedAt": "2026-10-12T23:24:32.699Z",
+            "elapsedMs": 998.9930409999797
+          }
+        },
+        {
+          "request": 2,
+          "step": 11,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:32.702Z",
+            "completedAt": "2026-10-12T23:24:33.209Z",
+            "elapsedMs": 506.6519580000022
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:33.209Z",
+            "completedAt": "2026-10-12T23:24:34.230Z",
+            "elapsedMs": 1021.4576249999809
+          }
+        },
+        {
+          "request": 2,
+          "step": 12,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:34.234Z",
+            "completedAt": "2026-10-12T23:24:34.613Z",
+            "elapsedMs": 379.2002500000235
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:34.613Z",
+            "completedAt": "2026-10-12T23:24:35.600Z",
+            "elapsedMs": 987.2229590000061
+          }
+        },
+        {
+          "request": 2,
+          "step": 13,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:35.604Z",
+            "completedAt": "2026-10-12T23:24:35.982Z",
+            "elapsedMs": 378.65895799998543
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:35.982Z",
+            "completedAt": "2026-10-12T23:24:36.984Z",
+            "elapsedMs": 1001.1010829999868
+          }
+        },
+        {
+          "request": 2,
+          "step": 14,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:36.987Z",
+            "completedAt": "2026-10-12T23:24:37.370Z",
+            "elapsedMs": 383.0012090000091
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:37.370Z",
+            "completedAt": "2026-10-12T23:24:38.368Z",
+            "elapsedMs": 998.1541670000006
+          }
+        },
+        {
+          "request": 2,
+          "step": 15,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:38.371Z",
+            "completedAt": "2026-10-12T23:24:38.755Z",
+            "elapsedMs": 384.05574999999953
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:38.755Z",
+            "completedAt": "2026-10-12T23:24:39.753Z",
+            "elapsedMs": 998.1829169999983
+          }
+        },
+        {
+          "request": 2,
+          "step": 16,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:39.756Z",
+            "completedAt": "2026-10-12T23:24:40.146Z",
+            "elapsedMs": 389.58883299998706
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:40.146Z",
+            "completedAt": "2026-10-12T23:24:41.137Z",
+            "elapsedMs": 990.8339580000029
+          }
+        },
+        {
+          "request": 2,
+          "step": 17,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:41.139Z",
+            "completedAt": "2026-10-12T23:24:41.523Z",
+            "elapsedMs": 384.0727499999921
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:41.523Z",
+            "completedAt": "2026-10-12T23:24:42.523Z",
+            "elapsedMs": 999.732583999983
+          }
+        },
+        {
+          "request": 2,
+          "step": 18,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:42.526Z",
+            "completedAt": "2026-10-12T23:24:42.895Z",
+            "elapsedMs": 368.90137499998673
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:42.895Z",
+            "completedAt": "2026-10-12T23:24:43.890Z",
+            "elapsedMs": 994.8702919999778
+          }
+        },
+        {
+          "request": 2,
+          "step": 19,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:43.893Z",
+            "completedAt": "2026-10-12T23:24:44.268Z",
+            "elapsedMs": 374.58508299998357
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:44.268Z",
+            "completedAt": "2026-10-12T23:24:45.275Z",
+            "elapsedMs": 1007.588334
+          }
+        },
+        {
+          "request": 2,
+          "step": 20,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:45.278Z",
+            "completedAt": "2026-10-12T23:24:45.659Z",
+            "elapsedMs": 381.5983750000014
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:45.659Z",
+            "completedAt": "2026-10-12T23:24:46.660Z",
+            "elapsedMs": 1000.4360000000161
+          }
+        },
+        {
+          "request": 2,
+          "step": 21,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:46.663Z",
+            "completedAt": "2026-10-12T23:24:47.043Z",
+            "elapsedMs": 380.62495899997884
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:47.043Z",
+            "completedAt": "2026-10-12T23:24:48.053Z",
+            "elapsedMs": 1009.4783339999849
+          }
+        },
+        {
+          "request": 2,
+          "step": 22,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:48.057Z",
+            "completedAt": "2026-10-12T23:24:48.436Z",
+            "elapsedMs": 379.6641660000023
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:48.436Z",
+            "completedAt": "2026-10-12T23:24:49.444Z",
+            "elapsedMs": 1007.6484999999811
+          }
+        },
+        {
+          "request": 2,
+          "step": 23,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:49.447Z",
+            "completedAt": "2026-10-12T23:24:49.822Z",
+            "elapsedMs": 374.54966699998477
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:49.822Z",
+            "completedAt": "2026-10-12T23:24:50.832Z",
+            "elapsedMs": 1010.1047499999986
+          }
+        },
+        {
+          "request": 2,
+          "step": 24,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:50.835Z",
+            "completedAt": "2026-10-12T23:24:51.223Z",
+            "elapsedMs": 388.2932079999882
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:51.223Z",
+            "completedAt": "2026-10-12T23:24:52.233Z",
+            "elapsedMs": 1010.1668749999953
+          }
+        },
+        {
+          "request": 2,
+          "step": 25,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:52.236Z",
+            "completedAt": "2026-10-12T23:24:52.617Z",
+            "elapsedMs": 380.7739579999761
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:52.617Z",
+            "completedAt": "2026-10-12T23:24:53.631Z",
+            "elapsedMs": 1013.9765829999815
+          }
+        },
+        {
+          "request": 2,
+          "step": 26,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:53.634Z",
+            "completedAt": "2026-10-12T23:24:54.012Z",
+            "elapsedMs": 377.70866600002046
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:54.012Z",
+            "completedAt": "2026-10-12T23:24:55.015Z",
+            "elapsedMs": 1002.8626250000088
+          }
+        },
+        {
+          "request": 2,
+          "step": 27,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:55.018Z",
+            "completedAt": "2026-10-12T23:24:55.398Z",
+            "elapsedMs": 380.3512080000073
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:55.398Z",
+            "completedAt": "2026-10-12T23:24:56.401Z",
+            "elapsedMs": 1003.0981250000186
+          }
+        },
+        {
+          "request": 2,
+          "step": 28,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:56.404Z",
+            "completedAt": "2026-10-12T23:24:57.071Z",
+            "elapsedMs": 666.6869580000057
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:57.071Z",
+            "completedAt": "2026-10-12T23:24:58.110Z",
+            "elapsedMs": 1038.580833999993
+          }
+        },
+        {
+          "request": 2,
+          "step": 29,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:58.114Z",
+            "completedAt": "2026-10-12T23:24:58.506Z",
+            "elapsedMs": 392.6035839999968
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:58.506Z",
+            "completedAt": "2026-10-12T23:24:59.519Z",
+            "elapsedMs": 1012.925332999992
+          }
+        },
+        {
+          "request": 2,
+          "step": 30,
+          "group0": {
+            "startedAt": "2026-10-12T23:24:59.523Z",
+            "completedAt": "2026-10-12T23:24:59.977Z",
+            "elapsedMs": 454.6490000000049
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:24:59.977Z",
+            "completedAt": "2026-10-12T23:25:00.992Z",
+            "elapsedMs": 1014.9368749999849
+          }
+        },
+        {
+          "request": 2,
+          "step": 31,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:01.008Z",
+            "completedAt": "2026-10-12T23:25:01.397Z",
+            "elapsedMs": 389.35370799998054
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:01.397Z",
+            "completedAt": "2026-10-12T23:25:02.408Z",
+            "elapsedMs": 1010.7908330000064
+          }
+        },
+        {
+          "request": 2,
+          "step": 32,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:02.411Z",
+            "completedAt": "2026-10-12T23:25:02.796Z",
+            "elapsedMs": 384.56983300001593
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:02.796Z",
+            "completedAt": "2026-10-12T23:25:03.808Z",
+            "elapsedMs": 1011.7602499999921
+          }
+        },
+        {
+          "request": 2,
+          "step": 33,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:03.811Z",
+            "completedAt": "2026-10-12T23:25:04.211Z",
+            "elapsedMs": 400.3056670000078
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:04.211Z",
+            "completedAt": "2026-10-12T23:25:05.223Z",
+            "elapsedMs": 1012.2627919999941
+          }
+        },
+        {
+          "request": 2,
+          "step": 34,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:05.227Z",
+            "completedAt": "2026-10-12T23:25:05.622Z",
+            "elapsedMs": 395.8287919999857
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:05.622Z",
+            "completedAt": "2026-10-12T23:25:06.673Z",
+            "elapsedMs": 1050.237083999993
+          }
+        },
+        {
+          "request": 2,
+          "step": 35,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:06.685Z",
+            "completedAt": "2026-10-12T23:25:07.077Z",
+            "elapsedMs": 392.16125000000466
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:07.077Z",
+            "completedAt": "2026-10-12T23:25:08.112Z",
+            "elapsedMs": 1034.8862910000025
+          }
+        },
+        {
+          "request": 2,
+          "step": 36,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:08.131Z",
+            "completedAt": "2026-10-12T23:25:08.681Z",
+            "elapsedMs": 549.4380419999943
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:08.681Z",
+            "completedAt": "2026-10-12T23:25:09.698Z",
+            "elapsedMs": 1017.7241670000076
+          }
+        },
+        {
+          "request": 2,
+          "step": 37,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:09.701Z",
+            "completedAt": "2026-10-12T23:25:10.088Z",
+            "elapsedMs": 386.3338750000112
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:10.088Z",
+            "completedAt": "2026-10-12T23:25:11.098Z",
+            "elapsedMs": 1010.5397079999966
+          }
+        },
+        {
+          "request": 2,
+          "step": 38,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:11.101Z",
+            "completedAt": "2026-10-12T23:25:11.563Z",
+            "elapsedMs": 461.4417910000193
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:11.563Z",
+            "completedAt": "2026-10-12T23:25:12.593Z",
+            "elapsedMs": 1030.2419999999984
+          }
+        },
+        {
+          "request": 2,
+          "step": 39,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:12.596Z",
+            "completedAt": "2026-10-12T23:25:13.006Z",
+            "elapsedMs": 410.0609579999873
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:13.006Z",
+            "completedAt": "2026-10-12T23:25:14.036Z",
+            "elapsedMs": 1029.7145829999936
+          }
+        },
+        {
+          "request": 2,
+          "step": 40,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:14.039Z",
+            "completedAt": "2026-10-12T23:25:14.432Z",
+            "elapsedMs": 392.1403339999961
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:14.432Z",
+            "completedAt": "2026-10-12T23:25:15.452Z",
+            "elapsedMs": 1020.1591670000053
+          }
+        },
+        {
+          "request": 2,
+          "step": 41,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:15.455Z",
+            "completedAt": "2026-10-12T23:25:15.895Z",
+            "elapsedMs": 440.5109170000069
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:15.895Z",
+            "completedAt": "2026-10-12T23:25:16.921Z",
+            "elapsedMs": 1025.2233749999723
+          }
+        },
+        {
+          "request": 2,
+          "step": 42,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:16.924Z",
+            "completedAt": "2026-10-12T23:25:17.319Z",
+            "elapsedMs": 395.5495419999934
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:17.320Z",
+            "completedAt": "2026-10-12T23:25:18.355Z",
+            "elapsedMs": 1035.3838329999999
+          }
+        },
+        {
+          "request": 2,
+          "step": 43,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:18.358Z",
+            "completedAt": "2026-10-12T23:25:18.755Z",
+            "elapsedMs": 396.5894590000098
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:18.755Z",
+            "completedAt": "2026-10-12T23:25:19.788Z",
+            "elapsedMs": 1032.8999159999948
+          }
+        },
+        {
+          "request": 2,
+          "step": 44,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:19.791Z",
+            "completedAt": "2026-10-12T23:25:20.358Z",
+            "elapsedMs": 566.715292000008
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:20.358Z",
+            "completedAt": "2026-10-12T23:25:21.389Z",
+            "elapsedMs": 1031.151582999999
+          }
+        },
+        {
+          "request": 2,
+          "step": 45,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:21.392Z",
+            "completedAt": "2026-10-12T23:25:21.791Z",
+            "elapsedMs": 399.02745900000446
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:21.791Z",
+            "completedAt": "2026-10-12T23:25:22.827Z",
+            "elapsedMs": 1035.9835829999938
+          }
+        },
+        {
+          "request": 2,
+          "step": 46,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:22.830Z",
+            "completedAt": "2026-10-12T23:25:23.230Z",
+            "elapsedMs": 399.7497089999961
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:23.230Z",
+            "completedAt": "2026-10-12T23:25:24.262Z",
+            "elapsedMs": 1032.0737500000105
+          }
+        },
+        {
+          "request": 2,
+          "step": 47,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:24.265Z",
+            "completedAt": "2026-10-12T23:25:24.662Z",
+            "elapsedMs": 397.70616699999664
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:24.662Z",
+            "completedAt": "2026-10-12T23:25:25.695Z",
+            "elapsedMs": 1032.6637080000073
+          }
+        },
+        {
+          "request": 2,
+          "step": 48,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:25.698Z",
+            "completedAt": "2026-10-12T23:25:26.098Z",
+            "elapsedMs": 400.0320419999771
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:26.098Z",
+            "completedAt": "2026-10-12T23:25:27.127Z",
+            "elapsedMs": 1029.3537500000093
+          }
+        },
+        {
+          "request": 2,
+          "step": 49,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:27.130Z",
+            "completedAt": "2026-10-12T23:25:27.533Z",
+            "elapsedMs": 403.3509999999951
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:27.533Z",
+            "completedAt": "2026-10-12T23:25:28.580Z",
+            "elapsedMs": 1046.0698339999944
+          }
+        },
+        {
+          "request": 2,
+          "step": 50,
+          "group0": {
+            "startedAt": "2026-10-12T23:25:28.582Z",
+            "completedAt": "2026-10-12T23:25:28.992Z",
+            "elapsedMs": 409.4284580000094
+          },
+          "group1": {
+            "startedAt": "2026-10-12T23:25:28.992Z",
+            "completedAt": "2026-10-12T23:25:30.035Z",
+            "elapsedMs": 1043.363583999977
+          }
+        }
+      ],
+      "maxStageMs": 74284.59850000001,
+      "maxDifference": 9.520044947919359e-7,
+      "participants": [
+        {
+          "group": 0,
+          "surface": "browser-webgpu",
+          "platform": "mac.lan",
+          "provider": {
+            "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+            "platform": "MacIntel",
+            "adapter": {
+              "vendor": "apple",
+              "architecture": "metal-3",
+              "device": "unknown",
+              "description": ""
+            }
+          },
+          "preparationTiming": {
+            "startedAt": "2026-10-12T23:21:49.744Z",
+            "completedAt": "2026-10-12T23:21:52.979Z",
+            "elapsedMs": 3233.753125
+          },
+          "peakAllocatedBytes": 398727376
+        },
+        {
+          "group": 1,
+          "surface": "node-webgpu",
+          "platform": "x@128.tail995236.ts.net:node-dawn",
+          "nativePid": 2371726,
+          "provider": {
+            "adapter": {
+              "vendor": "amd",
+              "architecture": "rdna-3",
+              "device": "radeon-8060s-graphics-radv-strix-halo-",
+              "description": "radv: Mesa 26.0.3-1ubuntu1"
+            }
+          },
+          "preparationTiming": {
+            "startedAt": "2026-10-12T23:21:53.125Z",
+            "completedAt": "2026-10-12T23:21:58.679Z",
+            "elapsedMs": 5553.5136250000005
+          },
+          "peakAllocatedBytes": 765059392
+        }
+      ],
+      "settlement": [
+        {
+          "barriers": 1,
+          "activeBuffers": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 62261760,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "deviceCategories": {
+            "weights": 0,
+            "attention": 0,
+            "recurrent": 0,
+            "other": 62267392
+          },
+          "deviceLiveBytes": 62267392,
+          "observationErrors": [],
+          "deviceEvents": []
+        },
+        {
+          "barriers": 1,
+          "activeBuffers": 0,
+          "resources": {
+            "retainedModel": {
+              "bytes": 0,
+              "count": 0
+            },
+            "active": {
+              "bytes": 0,
+              "count": 0
+            },
+            "reusable": {
+              "bytes": 60946944,
+              "count": 64
+            },
+            "deferredCleanup": {
+              "bytes": 0,
+              "count": 0
+            }
+          },
+          "deviceCategories": {
+            "weights": 0,
+            "attention": 0,
+            "recurrent": 0,
+            "other": 60952624
+          },
+          "deviceLiveBytes": 60952624,
+          "observationErrors": [],
+          "deviceEvents": []
+        }
+      ],
+      "nativeHostSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true,
+        "pid": 2371726
+      },
+      "deviceObservations": [
+        {
+          "deviceEvents": []
+        },
+        {
+          "deviceEvents": []
+        }
+      ],
+      "cleanupErrors": []
+    }
+  ],
+  "cold": {
+    "scope": "New empty private Mesa cache only; other cache layers uncontrolled",
+    "pipeline": {
+      "start": {
+        "id": 8,
+        "operation": "createComputePipelineAsync",
+        "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128
+        },
+        "at": "2026-10-12T23:03:18.708Z",
+        "status": "started"
+      },
+      "end": {
+        "id": 8,
+        "operation": "createComputePipelineAsync",
+        "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128
+        },
+        "at": "2026-10-12T23:15:41.832Z",
+        "status": "completed"
+      },
+      "elapsedMs": 743124
+    },
+    "firstSampledResident": "2026-10-12T23:15:42.268Z",
+    "readyWhileRequiredPipelinePending": 0,
+    "maxObservedRssBytes": 10260791296,
+    "maxObservedMaxRssKiB": 10092656,
+    "samples": 1090,
+    "observerErrors": 42,
+    "limitation": "Sampled resident readiness, not UI advertisement; document CPU and existing public activity overlapped. Native cold compilation remains slow. Passive observer detached after provider release.",
+    "observerErrorDisposition": "42 samples after provider disposal report Cannot find context with specified id; raw observations retained. Observer stopped afterward to release its inspector connection; both native processes then exited naturally with code0."
+  },
+  "notEstablished": [
+    "Signed Capsule opening and selective acquisition",
+    "Ordinary installed CLI mesh advertisement and conversation",
+    "Document usefulness",
+    "Concurrent 1588-token acceptance",
+    "Fast cold startup",
+    "Release promotion"
+  ]
+}

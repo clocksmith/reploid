@@ -1,0 +1,14 @@
+{
+  "pid": 2371726,
+  "observedAt": "2026-10-12T23:22:08.948Z",
+  "scope": "Direction1 environment after launch; sharedcache unchanged, not cold qualification",
+  "environment": {
+    "MESA_SHADER_CACHE_DIR": null,
+    "MESA_SHADER_CACHE_DISABLE": null,
+    "XDG_CACHE_HOME": null,
+    "RADV_DEBUG": null,
+    "VK_DRIVER_FILES": null,
+    "VK_ICD_FILENAMES": null,
+    "AMD_VULKAN_ICD": null
+  }
+}

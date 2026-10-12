@@ -1,0 +1,128 @@
+[
+  {
+    "file": "actual-environment-before-open.json",
+    "sourceBytes": 419,
+    "sourceSha256": "cf8d57f204fcf0dbc90e89bfc72d23061e4b9d851353d362f2f704258c1830bc",
+    "retainedBytes": 419,
+    "retainedSha256": "cf8d57f204fcf0dbc90e89bfc72d23061e4b9d851353d362f2f704258c1830bc"
+  },
+  {
+    "file": "direction-1-environment.json",
+    "sourceBytes": 398,
+    "sourceSha256": "eb3c92621408e8f7cbf17b21463b0287cfa2363f5cc7b147779ef68f9a21c04b",
+    "retainedBytes": 398,
+    "retainedSha256": "eb3c92621408e8f7cbf17b21463b0287cfa2363f5cc7b147779ef68f9a21c04b"
+  },
+  {
+    "file": "interference-events.jsonl.gz",
+    "sourceBytes": 161,
+    "sourceSha256": "02b1e65b70f2e996dad29280b3c338927582ad5aaaee754c0ce7fb01a8130428",
+    "retainedBytes": 166,
+    "retainedSha256": "2ae9a45d45dde6603e87d54cb85b6f7a71a2f6c4ff74ab54bcf6a07515174cf6"
+  },
+  {
+    "file": "local-infrastructure-stop.json",
+    "sourceBytes": 428,
+    "sourceSha256": "c6d94ad4f346b08fbf5d71d64e847c1af40d5366a66b30e8a7e305cc432715cf",
+    "retainedBytes": 428,
+    "retainedSha256": "c6d94ad4f346b08fbf5d71d64e847c1af40d5366a66b30e8a7e305cc432715cf"
+  },
+  {
+    "file": "local-server.log.gz",
+    "sourceBytes": 125,
+    "sourceSha256": "a513000ad0bddb6e467355c4033322a4ee294729f96df90ea742941d6367b58c",
+    "retainedBytes": 114,
+    "retainedSha256": "e3aa5a9703fa86564c0b8dda2036dcea75cc31b7536cd74df2ea64bf3effbf94"
+  },
+  {
+    "file": "native-direction-0.controller.log.gz",
+    "sourceBytes": 384,
+    "sourceSha256": "4e40fe98022b9c4cf1590dfd466a429ee60a981d6eacc1539c3a19f454775337",
+    "retainedBytes": 147,
+    "retainedSha256": "50bee7d912e715f56e38b06b1772d85728b36a110449812f79114e8e5224b433"
+  },
+  {
+    "file": "native-direction-0.exit.json",
+    "sourceBytes": 29,
+    "sourceSha256": "66c15d4a73d8aea1e4f32e8b62bd0272483acf862c882e06d54ae3c79185feb8",
+    "retainedBytes": 29,
+    "retainedSha256": "66c15d4a73d8aea1e4f32e8b62bd0272483acf862c882e06d54ae3c79185feb8"
+  },
+  {
+    "file": "native-direction-0.json.gz",
+    "sourceBytes": 205853404,
+    "sourceSha256": "8e0611c8a71bfebc862a1451a77cbec5ca4d260991468c7484162ecac191a174",
+    "retainedBytes": 60429606,
+    "retainedSha256": "3183858a56ee2e0e7866914294e0f40b3145e20346b849325ae8fe1f57c98b05"
+  },
+  {
+    "file": "native-direction-0.log.gz",
+    "sourceBytes": 4884,
+    "sourceSha256": "343cea97620a696e88a7ee81b9ab14cdc415b5ae697a8ec28896f1a93c3bb7d1",
+    "retainedBytes": 2114,
+    "retainedSha256": "9d705da364af86d34e8692afd3d2961792ff1fdfa5b8af15df5c68148b4d7e5b"
+  },
+  {
+    "file": "native-direction-1.controller.log.gz",
+    "sourceBytes": 384,
+    "sourceSha256": "16ae1774d2350150e517f1a9df50df38e1f5c9ed1447db89f7ebbc63929b1acb",
+    "retainedBytes": 146,
+    "retainedSha256": "a6375862f6d3b86eae2b0c99989585e1f0e5e24e6f1c29b497190a05f650a760"
+  },
+  {
+    "file": "native-direction-1.exit.json",
+    "sourceBytes": 29,
+    "sourceSha256": "dfb2dbbcce37abd3913ca8d93478b8359ce8db540bacdada7c17a8a7e87f4013",
+    "retainedBytes": 29,
+    "retainedSha256": "dfb2dbbcce37abd3913ca8d93478b8359ce8db540bacdada7c17a8a7e87f4013"
+  },
+  {
+    "file": "native-direction-1.json.gz",
+    "sourceBytes": 205851828,
+    "sourceSha256": "44a8f6e1db4ea66749761f1bab136717cb7dd0665d7df4490e1d33c48e8f84f6",
+    "retainedBytes": 60394666,
+    "retainedSha256": "a28f62934dca11a19b5b1b79b201241235dd845e9e8a46377c43a6ba058b2195"
+  },
+  {
+    "file": "native-direction-1.log.gz",
+    "sourceBytes": 4945,
+    "sourceSha256": "397201b4fb849f740c9b6caa807062b35d7cdf1f513d5ef867b900c80c426c0a",
+    "retainedBytes": 2158,
+    "retainedSha256": "a2f7d66c74b01c4a992b2ba1808ab02af1e708346b79b615acf595348f6549b8"
+  },
+  {
+    "file": "observer-stop.json",
+    "sourceBytes": 325,
+    "sourceSha256": "6ebaa5932d8dbb6fc28c3d6e7175013a10766131905721a32870c41859d7d1a8",
+    "retainedBytes": 325,
+    "retainedSha256": "6ebaa5932d8dbb6fc28c3d6e7175013a10766131905721a32870c41859d7d1a8"
+  },
+  {
+    "file": "post-local-verification.json",
+    "sourceBytes": 458,
+    "sourceSha256": "3b34baae0f9b7b802dd03fdc8edc74a5fdc124c5aa30d810fb963f8843b4467a",
+    "retainedBytes": 458,
+    "retainedSha256": "3b34baae0f9b7b802dd03fdc8edc74a5fdc124c5aa30d810fb963f8843b4467a"
+  },
+  {
+    "file": "post-remote-verification.json",
+    "sourceBytes": 599,
+    "sourceSha256": "1e7bce30e76e2322b8f23093939bba8ace2af1e8cec98e759fc5e163c6fb929f",
+    "retainedBytes": 599,
+    "retainedSha256": "1e7bce30e76e2322b8f23093939bba8ace2af1e8cec98e759fc5e163c6fb929f"
+  },
+  {
+    "file": "preparation-observations.jsonl.gz",
+    "sourceBytes": 6024881,
+    "sourceSha256": "e37d1e75ac60bd37e7c0ee92cf4101da2de68337b8d60570c1970048890e092d",
+    "retainedBytes": 64729,
+    "retainedSha256": "287cec8ef6a09d78198ec915010342a59ee467a3b9ab58b5f87522ecd2d8c6d6"
+  },
+  {
+    "file": "remote-server-stop.json",
+    "sourceBytes": 235,
+    "sourceSha256": "b24c060b366bb0b5827d337f66252e07cda0c9909c22db55c85350dad343861b",
+    "retainedBytes": 235,
+    "retainedSha256": "b24c060b366bb0b5827d337f66252e07cda0c9909c22db55c85350dad343861b"
+  }
+]

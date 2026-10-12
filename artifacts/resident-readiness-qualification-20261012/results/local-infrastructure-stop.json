@@ -1,0 +1,17 @@
+{
+  "at": "2026-10-12T23:28:15.182Z",
+  "rows": [
+    {
+      "pid": 79430,
+      "cmd": "node delivery-server.js",
+      "signal": "SIGTERM",
+      "scope": "taskowned idle infrastructure only"
+    },
+    {
+      "pid": 79435,
+      "cmd": "ssh -N -o ExitOnForwardFailure=yes -L127.0.0.1:29429:127.0.0.1:29429 x@128.tail995236.ts.net",
+      "signal": "SIGTERM",
+      "scope": "taskowned idle infrastructure only"
+    }
+  ]
+}
