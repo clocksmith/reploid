@@ -1,0 +1,87 @@
+{
+  "sourceSha256": "a7a4368d236576ef896d72ff16f5426ca19354d0958cd32fff6afb533644812b",
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "File has 25 functions (max 20) - consider modularizing",
+    "Nesting depth of 6 exceeds 5 - refactor nested code",
+    "Warning in /vendor/reploid/mesh/partitions/partition-discovery.js: Path traversal pattern detected (../) - potential security risk",
+    "Nesting depth of 7 exceeds 5 - refactor nested code"
+  ],
+  "events": [
+    {
+      "type": "complexity",
+      "timestamp": 1791778620810,
+      "metric": "functions",
+      "value": 25,
+      "threshold": 20,
+      "message": "File has 25 functions (max 20) - consider modularizing",
+      "path": "/vendor/reploid/mesh/partitions/automatic-partitions.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791778620810,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/vendor/reploid/mesh/partitions/automatic-partitions.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791778620811,
+      "path": "/vendor/reploid/mesh/partitions/partition-discovery.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791778620811,
+      "metric": "nesting",
+      "value": 7,
+      "threshold": 5,
+      "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "path": "/vendor/reploid/mesh/partitions/partition-discovery.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/vendor/reploid/mesh/partitions/partition-discovery.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 25,
+        "threshold": 20,
+        "message": "File has 25 functions (max 20) - consider modularizing",
+        "path": "/vendor/reploid/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/mesh/partitions/partition-discovery.js"
+      }
+    ],
+    "filesAnalyzed": 2
+  }
+}

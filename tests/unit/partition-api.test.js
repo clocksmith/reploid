@@ -615,6 +615,33 @@ describe('automatic cooperative placement', () => {
     expect(result.execution.activationBytes).toBeGreaterThan(0);
     expect((await run('reuse')).content).toBe(result.content);
     expect(loaded).toHaveLength(2);
+    // Cached discovery can still say ready after an authoritative entry refresh
+    // observes a stopped/restarting contributor. Do not leave that hint usable.
+    const inputNetwork = registry.get('0').get('reploid-partitions-input');
+    const connectInput = inputNetwork.connect.bind(inputNetwork);
+    const approvalBeforeUnavailable = controls.requestApproval;
+    const unavailableApproval = vi.fn(approvalBeforeUnavailable);
+    controls.requestApproval = unavailableApproval;
+    const refreshUnavailable = vi.spyOn(inputNetwork, 'connect').mockImplementation(async remoteId => {
+      const entry = await connectInput(remoteId);
+      return { ...entry, async refresh(options) {
+        const state = await entry.refresh(options);
+        return { ...state, ready: false, descriptor: { ...state.descriptor, models: [] } };
+      } };
+    });
+    const availabilityChanges = [];
+    const unsubscribeAvailability = meshes[0].subscribe(models => availabilityChanges.push(models));
+    try {
+      expect(meshes[0].getModels().some(m => m.availability === 'ready')).toBe(true);
+      await expect(run('stale-discovery')).rejects.toThrow('No prepared');
+      expect(unavailableApproval).not.toHaveBeenCalled();
+      expect(availabilityChanges.at(-1).some(m => m.availability === 'ready')).toBe(false);
+      expect(meshes[0].getModels().some(m => m.availability === 'ready')).toBe(false);
+    } finally {
+      refreshUnavailable.mockRestore(); unsubscribeAvailability(); controls.requestApproval = approvalBeforeUnavailable;
+    }
+    await vi.waitFor(() => expect(meshes[0].getModels().some(m => m.availability === 'ready')).toBe(true));
+    expect((await run('explicit-after-readiness')).content).toBe(result.content);
     // Human review may outlive discovery readiness without expiring consent.
     const normalApproval = controls.requestApproval;
     controls.requestApproval = async preview => {
