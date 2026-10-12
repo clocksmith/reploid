@@ -74,3 +74,45 @@ No new numerical/model-quality acceptance, simultaneous long-prompt acceptance,
 physical-phone observation or arbitrary-NAT claim follows. Both existing native
 contributors were ready, idle and settled at final inspection; both loopback
 inspectors were closed. Existing public browser contributors remained running.
+
+## Deployed repair and updated contributors
+
+Reploid `76ec3d3a` was deployed to Firebase Hosting. The public verifier fetched
+all 1,909 declared files and confirmed bundle
+`e86de5b8587889aeb95cb3d83f80a8b9919d8b5e83ec369c646ab04e1b21ebaa`.
+This deploy keeps the accepted runtime pin; it does not promote a numerical candidate.
+
+The current UI uses explicit Send/Retry to authorize one verified request. The
+old public harness waited for a removed checkbox even though its first request
+completed `$36`. Its failed receipt is retained. The updated public test asserts
+`kind: once`, `source: send`, exact model/plan, input participant and output recipient
+against the actual execution, then checks `$36`/`$48` and zero HTTP weight requests.
+
+Both native hosts were replaced sequentially after idle/settled compute stop.
+Their new outside-checkout delivery manifest is
+`d99cb971c56ca0c2009fe4302f5a3d15c8eb668a4d1abd4e54c5da48db878f35`.
+All 86 application entries and all 1,897 installed Doppler files match retained
+artifacts on both machines. Unchanged installed dependencies were reused; this is
+not a new npm-registry acquisition control. The public native/native conversation
+passes with x input and Suby output, without selected peers or requester weights.
+
+Both browser launchers were also restarted with their retained profiles against
+https://replo.id/. Final observed processes:
+
+| Machine | Native | Browser |
+|---|---:|---:|
+| x@128 | 1535668 | 1550690 |
+| clocksmith@suby | 4086709 | 4088018 |
+
+Native final observations are ready, active=0, unsettledOwners=0. Browser observations
+are Ready, but retain a peer-connection warning; do not interpret these snapshots
+as every observed channel being healthy. Browser input/output peak allocations are
+862,828,944 / 497,336,720 bytes respectively. Inspectors are detached.
+
+The subsequent public concurrent test observes both attempts executing, switches
+threads, cancels the first, and requires the second to finish with exactly 1–20.
+It passes, preserving the cancelled partial. Reloading and selecting the saved
+survivor restores its exact messages and unsent draft without redispatch. The
+initial harness incorrectly expected the thread-specific draft on the default
+new-thread screen; that failure is retained. This is a short-prompt lifecycle
+control, not the required simultaneous 1,588-token/signed qualification.
