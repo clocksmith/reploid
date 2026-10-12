@@ -1,0 +1,99 @@
+{
+  "schema": "reploid.available-typed-token-preflight/v1",
+  "weightsLoaded": false,
+  "modelGenerated": false,
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "sourceCount": 3,
+      "sourcePromptTokens": [
+        946,
+        1031,
+        1085
+      ],
+      "sourceMaxTokens": 512,
+      "finalPromptTokensEmptyProbe": 785,
+      "minimumPromptTotal": 3847,
+      "headroomBeforeActualToolOutputs": 4345,
+      "caveat": "Actual calls/results and any validator correction require additional prompt charges; runtime must enforce every admission. Empty probes are not semantic passes."
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "sourceCount": 3,
+      "sourcePromptTokens": [
+        976,
+        1061,
+        1115
+      ],
+      "sourceMaxTokens": 512,
+      "finalPromptTokensEmptyProbe": 900,
+      "minimumPromptTotal": 4052,
+      "headroomBeforeActualToolOutputs": 4140,
+      "caveat": "Actual calls/results and any validator correction require additional prompt charges; runtime must enforce every admission. Empty probes are not semantic passes."
+    },
+    {
+      "id": "contractor-comparison",
+      "sourceCount": 3,
+      "sourcePromptTokens": [
+        1001,
+        1079,
+        1245
+      ],
+      "sourceMaxTokens": 512,
+      "finalPromptTokensEmptyProbe": 789,
+      "minimumPromptTotal": 4114,
+      "headroomBeforeActualToolOutputs": 4078,
+      "caveat": "Actual calls/results and any validator correction require additional prompt charges; runtime must enforce every admission. Empty probes are not semantic passes."
+    },
+    {
+      "id": "contractor-retained-correction",
+      "sourceCount": 3,
+      "sourcePromptTokens": [
+        1066,
+        1144,
+        1310
+      ],
+      "sourceMaxTokens": 512,
+      "finalPromptTokensEmptyProbe": 1863,
+      "minimumPromptTotal": 5383,
+      "headroomBeforeActualToolOutputs": 2809,
+      "caveat": "Actual calls/results and any validator correction require additional prompt charges; runtime must enforce every admission. Empty probes are not semantic passes."
+    },
+    {
+      "id": "fresh-printing-balance",
+      "sourceCount": 1,
+      "sourcePromptTokens": [
+        819
+      ],
+      "sourceMaxTokens": 1536,
+      "finalPromptTokensEmptyProbe": 311,
+      "minimumPromptTotal": 1130,
+      "headroomBeforeActualToolOutputs": 7062,
+      "caveat": "Actual calls/results and any validator correction require additional prompt charges; runtime must enforce every admission. Empty probes are not semantic passes."
+    },
+    {
+      "id": "fresh-schedule-condition",
+      "sourceCount": 1,
+      "sourcePromptTokens": [
+        639
+      ],
+      "sourceMaxTokens": 1536,
+      "finalPromptTokensEmptyProbe": 298,
+      "minimumPromptTotal": 937,
+      "headroomBeforeActualToolOutputs": 7255,
+      "caveat": "Actual calls/results and any validator correction require additional prompt charges; runtime must enforce every admission. Empty probes are not semantic passes."
+    },
+    {
+      "id": "fresh-included-credit-conflict",
+      "sourceCount": 1,
+      "sourcePromptTokens": [
+        880
+      ],
+      "sourceMaxTokens": 1536,
+      "finalPromptTokensEmptyProbe": 333,
+      "minimumPromptTotal": 1213,
+      "headroomBeforeActualToolOutputs": 6979,
+      "caveat": "Actual calls/results and any validator correction require additional prompt charges; runtime must enforce every admission. Empty probes are not semantic passes."
+    }
+  ]
+}

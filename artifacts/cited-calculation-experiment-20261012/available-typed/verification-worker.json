@@ -1,0 +1,55 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/artifacts/cited-calculation-experiment-20261012/available-typed/adapter.js": "136ac378b4db61e8cb13bc985aeabc282f428360196bfe1c7fd925c7c770419b",
+    "/artifacts/cited-calculation-experiment-20261012/available-typed/adapter.test.js": "a6c6ebe0c6dab7ea2dd92bea5eca9777c71ded417f159e7b2baac19614618f9a"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /artifacts/cited-calculation-experiment-20261012/available-typed/adapter.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/available-typed/adapter.test.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837704499,
+        "path": "/artifacts/cited-calculation-experiment-20261012/available-typed/adapter.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837704502,
+        "path": "/artifacts/cited-calculation-experiment-20261012/available-typed/adapter.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/available-typed/adapter.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/available-typed/adapter.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [],
+      "filesAnalyzed": 2
+    }
+  }
+}
