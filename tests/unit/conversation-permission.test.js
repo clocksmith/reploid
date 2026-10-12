@@ -1,7 +1,22 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
+import { attachmentInput, comparisonSources } from '../../self/host/document-comparison.js';
+import { renderPermissionSummary, updatePermissionSummary } from '../../self/ui/components/permission-card.js';
 
 describe('Conversation disclosure review', () => {
+  it('renders attachment passages safely without hiding the exact approved payload', () => {
+    const root = document.createElement('div'); root.innerHTML = renderPermissionSummary();
+    const input = [{ role: 'user', content: attachmentInput('Compare quotes', [{ name: 'Quote.txt', text: '<img src=x onerror=alert(1)> $42' }]) }];
+    updatePermissionSummary(root, { input, technical: { input }, getSources: comparisonSources, recipient: 'Peer A', scope: 'Messages' });
+    expect(root.querySelector('[data-permission-content]').textContent).toContain('Quote.txt');
+    expect(root.querySelector('[data-permission-content]').textContent).not.toContain('reploid-document-sources');
+    expect(root.querySelector('img')).toBeNull();
+    expect(root.querySelector('[data-permission-review]').open).toBe(false);
+    expect(JSON.parse(root.querySelector('pre').textContent).input).toEqual(input);
+    root.querySelector('[data-permission-content] details').open = true;
+    updatePermissionSummary(root, { input, technical: { input }, getSources: comparisonSources });
+    expect(root.querySelector('[data-permission-content] details').open).toBe(true);
+  });
   it('shows both partition recipients and their disclosure roles before approval', () => {
     const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace();
     const model = { id: 'model', name: 'Model', identity: 'sha256:model', availability: 'ready' };

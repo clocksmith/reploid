@@ -70,6 +70,14 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
     };
     const unsubscribeRibbon = host.chat.subscribe(state => ribbon.update(state));
     detachRibbon = () => { unsubscribeRibbon(); ribbon.dispose(); };
+    if (['home', 'network'].includes(routeId)) {
+      const settings = mount.querySelector('[data-pool-settings]');
+      settings.dataset.railSettings = '';
+      const section = settings.querySelector('section');
+      inspectorRoot.querySelector('[data-inspector-pane="settings"]').append(...section.childNodes);
+      section.hidden = true;
+      settings.querySelector('summary').onclick = event => { event.preventDefault(); inspector.toggle('settings', event.currentTarget); };
+    }
     theme.sync(); void refreshChanges();
     const content = mount.querySelector('.pool-route-content');
     const bindNavigation = () => bindPoolRouteControls(mount, render);

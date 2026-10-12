@@ -1,3 +1,4 @@
+import { updateExecutionActivity } from './execution-activity.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 
 import { updateMessageMarkdown } from '../components/message-markdown.js';
@@ -11,17 +12,17 @@ function failureLabel(attempt) {
   return 'This answer could not finish.';
 }
 
-export function createMessageList(stream, { getSources, positions = new Map() } = {}) {
+export function createMessageList(stream, { getSources, positions = new Map(), scrollContainer = stream } = {}) {
   const rows = new Map();
   let selected;
   return {
-    update(thread, { usable, busy }) {
+    update(thread, { usable, busy, state }) {
       const changed = selected !== thread?.id;
       if (changed) {
-        if (selected) positions.set(selected, stream.scrollTop);
+        if (selected) positions.set(selected, scrollContainer.scrollTop);
         selected = thread?.id; stream.replaceChildren();
       }
-      const nearBottom = stream.scrollHeight - stream.scrollTop - stream.clientHeight < 80;
+      const nearBottom = scrollContainer.scrollHeight - scrollContainer.scrollTop - scrollContainer.clientHeight < 80;
       const selection = stream.ownerDocument.getSelection?.();
       const selecting = selection && !selection.isCollapsed && stream.contains(selection.anchorNode);
       let targets = new Map();
@@ -33,8 +34,8 @@ export function createMessageList(stream, { getSources, positions = new Map() } 
         if (!row) {
           row = stream.ownerDocument.createElement('article'); row.dataset.messageId = messageId;
           row.className = `chat-message-row is-${message.role === 'user' ? 'user' : 'assistant'}`;
-          row.innerHTML = '<span class="chat-message-author"></span><div class="chat-message-content"></div><div class="chat-message-actions"></div>';
-          row.firstElementChild.textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
+          row.innerHTML = '<details class="chat-execution-activity" data-execution-activity hidden><summary></summary><div data-activity-detail></div></details><span class="chat-message-author"></span><div class="chat-message-content"></div><div class="chat-message-actions"></div>';
+          row.querySelector('.chat-message-author').textContent = message.role === 'user' ? 'You' : 'Assistant'; rows.set(id, row);
         }
         const body = row.querySelector('.chat-message-content');
         const source = message.role === 'user' && getSources?.(message.content);
@@ -48,6 +49,7 @@ export function createMessageList(stream, { getSources, positions = new Map() } 
           if (body.dataset.source !== markup) { body.innerHTML = markup; body.dataset.source = markup; }
         } else updateMessageMarkdown(body, message.content, targets);
         const attempt = thread.attempts.find(item => item.id === message.attemptId);
+        if (message.role === 'assistant') updateExecutionActivity(row.querySelector('[data-execution-activity]'), { ...state, activeThread: { ...thread, attempts: attempt ? [attempt] : [] } });
         const failed = message.role === 'assistant' && attempt && ['failed', 'cancelled', 'interrupted'].includes(attempt.status);
         const retryable = failed && attempt.id === thread.attempts.at(-1)?.id && !busy;
         const actions = row.querySelector('.chat-message-actions');
@@ -62,9 +64,9 @@ export function createMessageList(stream, { getSources, positions = new Map() } 
         if (row.parentElement !== stream) stream.append(row);
       }
       for (const child of [...stream.children]) if (!visible.has(`${thread?.id}:${child.dataset.messageId}`)) child.remove();
-      if (changed) stream.scrollTop = positions.get(selected) ?? stream.scrollHeight;
-      else if (nearBottom && !selecting) stream.scrollTop = stream.scrollHeight;
+      if (changed) scrollContainer.scrollTop = positions.get(selected) ?? scrollContainer.scrollHeight;
+      else if (nearBottom && !selecting) scrollContainer.scrollTop = scrollContainer.scrollHeight;
     },
-    dispose() { if (selected) positions.set(selected, stream.scrollTop); rows.clear(); }
+    dispose() { if (selected) positions.set(selected, scrollContainer.scrollTop); rows.clear(); }
   };
 }

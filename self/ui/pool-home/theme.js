@@ -53,7 +53,7 @@ export function bindThemeSelector(root, { storage = globalThis.localStorage, med
   let disclosures = [];
   const sync = () => {
     disclosures.forEach(item => item.dispose());
-    disclosures = [...root.querySelectorAll('[data-pool-settings]')].map(panel => bindDisclosure({
+    disclosures = [...root.querySelectorAll('[data-pool-settings]:not([data-rail-settings])')].map(panel => bindDisclosure({
       root: panel, trigger: panel.querySelector('summary'), panel: panel.querySelector('section'), native: true
     }));
     return applyTheme(root, choice, system ? () => system : undefined);

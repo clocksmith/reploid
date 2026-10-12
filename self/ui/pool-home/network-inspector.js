@@ -1,3 +1,4 @@
+import { interfaceIcon } from '../components/interface-icons.js';
 /** One projection of conversation execution, participant availability, and device contribution. */
 import { renderSharingControls, renderConnectionControl, bindNetworkControls } from './network-controls.js';
 import { bindDialog } from '../components/dialog.js';
@@ -7,11 +8,12 @@ import { projectExecutionRibbon, routeMarkup, detailMarkup } from './execution-r
 
 export function renderNetworkInspector() {
   return `<dialog class="network-inspector pool-surface" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
-    <header class="chat-network-heading"><h2 id="network-inspector-title">Network</h2><button class="pool-button" type="button" data-close-inspector>Close</button></header>
+    <header class="chat-network-heading"><h2 id="network-inspector-title">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close network and settings">${interfaceIcon('close')}</button></header>
     <nav class="network-inspector-tabs" aria-label="Network sections">
-      <button class="pool-button" type="button" data-inspector-section="conversation">This conversation</button>
-      <button class="pool-button" type="button" data-inspector-section="participants">Participants <span data-mesh-peers></span></button>
-      <button class="pool-button" type="button" data-inspector-section="device">This device</button>
+      <button class="pool-button" type="button" data-inspector-section="conversation" aria-label="This conversation" title="This conversation">${interfaceIcon('activity')}</button>
+      <button class="pool-button" type="button" data-inspector-section="participants" aria-label="Participants" title="Participants">${interfaceIcon('peers')}<span data-mesh-peers class="chat-visually-hidden"></span></button>
+      <button class="pool-button" type="button" data-inspector-section="device" aria-label="This device" title="This device">${interfaceIcon('device')}</button>
+      <button class="pool-button" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}</button>
     </nav>
     <section data-inspector-pane="conversation" aria-label="This conversation">
       <div class="execution-ribbon-route" data-inspector-route></div>
@@ -21,7 +23,7 @@ export function renderNetworkInspector() {
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
     <section data-inspector-pane="participants" aria-label="Available participants" hidden>
-      ${renderConnectionControl()}<ul class="network-peer-list" data-insp-device-list></ul>
+      ${renderConnectionControl()}<p class="network-readiness" data-peer-readiness></p><ul class="network-peer-list" data-insp-device-list></ul>
       <button class="pool-button" type="button" data-mesh-invite hidden>Copy private invitation</button>
     </section>
     <section data-inspector-pane="device" aria-label="This device" hidden>
@@ -29,6 +31,7 @@ export function renderNetworkInspector() {
       <button class="pool-button" type="button" data-model-setup>Run on this device</button>
       <details data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
     </section>
+    <section data-inspector-pane="settings" aria-label="Settings" hidden></section>
     <p data-network-message role="status" hidden></p><p data-inspector-error role="alert" hidden></p>
   </dialog>
   <dialog class="chat-model-setup pool-surface" data-model-dialog aria-labelledby="model-setup-title">
@@ -41,7 +44,14 @@ export function renderNetworkInspector() {
 
 export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized } = {}) {
   const find = selector => root.querySelector(selector);
-  const panel = find('[data-contextual-inspector]'), dialog = bindDialog(panel);
+  const panel = find('[data-contextual-inspector]');
+  const surface = root.closest('.pool-home');
+  let opener;
+  const dialog = {
+    open(focus, trigger) { opener = trigger; if (!panel.open) panel.show(); surface?.setAttribute('data-right-rail-open', ''); focus?.focus(); },
+    close() { panel.close(); surface?.removeAttribute('data-right-rail-open'); opener?.focus?.({ preventScroll: true }); },
+    dispose() { if (panel.open) panel.close(); surface?.removeAttribute('data-right-rail-open'); }
+  };
   const controller = new AbortController(), options = { signal: controller.signal };
   const network = bindNetworkControls(panel, session, { getInviteUrl });
   const modelDialog = bindDialog(find('[data-model-dialog]'));
@@ -58,6 +68,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const grant = event.target.closest('[data-revoke-grant]');
     if (grant) void act(() => session.revokeGrant(session.getState().selectedId, grant.dataset.revokeGrant));
   }, options);
+  panel.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); dialog.close(); } }, options);
   on('[data-close-inspector]', 'click', () => dialog.close());
   const unsubscribe = session.subscribe(state => {
     const view = projectExecutionRibbon(state), key = JSON.stringify([view.execution, view.status, view.model, view.attempt?.id, view.attempt?.createdAt, view.attempt?.error, view.totalMs]);
@@ -112,6 +123,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     }
   });
   return {
+    toggle(section = 'settings', opener) { if (panel.open) dialog.close(); else { select(section); dialog.open(null, opener); } },
     open(section = 'participants', opener) { select(section); dialog.open(panel.querySelector(`[data-inspector-section="${section}"]`), opener); },
     close: () => dialog.close(),
     dispose() { disposed = true; metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }

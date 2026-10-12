@@ -30,14 +30,15 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
           <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
         </div></details>
       </header>
-      <div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
+      <div class="chat-transcript" data-chat-transcript><div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <section class="chat-approval" data-chat-approval hidden aria-label="Review before sending">
-        <h2>Review before sending</h2><p>Other people’s computers will process what you share.</p>${renderPermissionSummary()}
+        <div class="chat-approval-body"><h2>Review before sending</h2>${renderPermissionSummary()}</div>
+        <div class="chat-approval-actions">
         <label><input type="checkbox" data-approval-consent> <span data-approval-description>Share this exact input with this peer as public data</span></label>
         <label data-approval-remember-label hidden><input type="checkbox" data-approval-remember> <span data-approval-remember-description>Also allow future messages and attached text in this thread to this recipient, using this model, until revoked</span></label>
-        <div class="chat-network-actions"><button class="btn pool-button btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn pool-button btn-ghost" type="button" data-approval-decline>Decline</button></div>
+        <div class="chat-network-actions"><button class="btn pool-button btn-primary" type="button" data-approval-send disabled>Approve and send</button><button class="btn pool-button btn-ghost" type="button" data-approval-decline>Decline</button></div></div>
       </section>
-      <p class="chat-error" role="alert" data-chat-error hidden></p>
+      </div><p class="chat-error" role="alert" data-chat-error hidden></p>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
         <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="Ask a question…"></textarea></div>
@@ -79,11 +80,19 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   let files = [], fileRevision = 0, reading = false, approvalKey = '';
   viewState.positions ??= new Map(); viewState.seen ??= new Map();
   const threads = createConversationList(find('[data-thread-list]'), viewState.seen, { getSources: session.getDocumentSources });
-  const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions });
+  const messages = createMessageList(find('[data-message-stream]'), { getSources: session.getDocumentSources, positions: viewState.positions, scrollContainer: find('[data-chat-transcript]') });
   const actions = find('[data-conversation-actions]');
   const actionsPanel = bindDisclosure({ root: actions, trigger: actions.querySelector('summary'), panel: actions.querySelector('div'), native: true });
   const drawer = find('[data-thread-dialog]'), sidebar = find('[data-thread-sidebar]');
   const threadDialog = bindDialog(drawer);
+  const surface = container.closest('.pool-home');
+  const railToggle = surface?.querySelector('[data-toggle-thread-rail]');
+  const setThreads = open => {
+    viewState.threadsOpen = open; container.toggleAttribute('data-threads-open', open);
+    railToggle?.setAttribute('aria-expanded', String(open));
+  };
+  setThreads(viewState.threadsOpen ?? false);
+  railToggle?.addEventListener('click', () => setThreads(!container.hasAttribute('data-threads-open')), options);
   const closeThreads = () => { threadDialog.close(); container.prepend(sidebar); };
   drawer.addEventListener('close', () => container.prepend(sidebar), options);
   onResize();
@@ -183,7 +192,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
-    messages.update(thread, { usable: usable && !thread?.closed, busy });
+    messages.update(thread, { usable: usable && !thread?.closed, busy, state });
     if (find('[data-model-picker]').open) updatePicker(state);
     const pending = attempt?.approval, key = pending ? JSON.stringify([thread.id, attempt.id, pending]) : '';
     const partitionRecipients = pending?.disclosure === 'partition-activations-and-tokens'
@@ -202,6 +211,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       ? 'Also allow future messages and attached text in this thread to these computers, using this model, until revoked'
       : 'Also allow future messages and attached text in this thread to this recipient, using this model, until revoked';
     find('[data-chat-approval]').hidden = !pending;
+    find('[data-composer-area]').hidden = !!pending;
     if (pending) {
       updatePermissionSummary(find('[data-chat-approval]'), {
         recipient: `${partitionRecipients ? 'Recipients: ' + partitionRecipients.map(peerLabel).join(' → ')
@@ -211,7 +221,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
           : pending.disclosure === 'partition-activations'
           ? 'Model data derived from the input below leaves this device. Approval applies to this request.'
           : 'The messages and attached text below leave this device. Approval applies to this request.',
-        input: pending.input,
+        input: pending.input, getSources: session.getDocumentSources,
         technical: { recipient: pending.peerId, recipients: partitionRecipients || undefined,
           model: pending.modelId || thread.model.id, modelIdentity: pending.modelIdentity || thread.model.identity,
           planId: pending.planId, disclosure: pending.disclosure,
