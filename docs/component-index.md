@@ -9,7 +9,7 @@ Recursive authority charters discovered from the repository root.
 | Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible deployment inputs and service boundaries. |
 | Documentation | [`docs/CATSCAN.md`](CATSCAN.md) | Reploid | Keep product intent, contracts, mechanisms, claims, and current evidence discoverable without conflating their authority. |
 | Browser Runtime | [`self/CATSCAN.md`](../self/CATSCAN.md) | Reploid | Boot the selected Reploid surface in a browser with explicit configuration, recoverable state, and inspectable authority boundaries. |
-| Hosted Services | [`server/CATSCAN.md`](../server/CATSCAN.md) | Reploid | Provide bounded authentication, rendezvous, relay, proxy, and compatibility services without becoming authority for browser-local claims. |
+| Hosted Services | [`server/CATSCAN.md`](../server/CATSCAN.md) | Reploid | Bounded authentication, discovery, relay, proxy and native participation without authority over browser claims. |
 | Verification Evidence | [`tests/CATSCAN.md`](../tests/CATSCAN.md) | Reploid | Produce reproducible evidence about declared behavior, boundaries, regressions, and failure handling. |
 | Change Passport Documentation | [`docs/change-passport/CATSCAN.md`](change-passport/CATSCAN.md) | Documentation | Preserve Change Passport as an inactive commercial alternative with independent workflow, evidence, and decision-state contracts. |
 | Poolday Product Contracts | [`docs/poolday/CATSCAN.md`](poolday/CATSCAN.md) | Documentation | Define Reploid's network product through voluntary storage, computation, agent work and evaluated improvement. Standalone usefulness belongs to participants. |
