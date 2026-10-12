@@ -3065,13 +3065,13 @@
     },
     {
       "path": "ui/pool-home/conversation-list.js",
-      "byteLength": 3050,
-      "sha256": "sha256:762d65be8df2486894150a549042904ebd5044da01d03c187f59d8beaf654dec"
+      "byteLength": 3220,
+      "sha256": "sha256:2b5c57d61b9b695f6baf6b0bec31986aa2ceda0fe8d1d01d1eb937b419c75bb9"
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 25764,
-      "sha256": "sha256:71520fdb3c1cd3f3f1ae87ffb00b35c9ba33ec92d3595b97cc65046388565f1d"
+      "byteLength": 25808,
+      "sha256": "sha256:8f953ab0294534648716fb140cbf000b34b230470676d484ac36ac6fd588e658"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -9441,7 +9441,7 @@
     {
       "path": "vendor/reploid/package-assets.json",
       "byteLength": 30232,
-      "sha256": "sha256:3e2827e9f2582cbed7fd57f0d2ab73087f1faa284e754b26df435bf57e5768e3"
+      "sha256": "sha256:bf13fcb5a876ac98bbfb664d8aaf098ea3b6d8dc82fceb1704ce0e7e9d899c18"
     },
     {
       "path": "vendor/reploid/rules/contribution.rules.json",
@@ -9520,8 +9520,8 @@
     },
     {
       "path": "vendor/reploid/transport/swarm.js",
-      "byteLength": 45689,
-      "sha256": "sha256:45d359a0af3186143cce7a2555628f0f6a8e1068b44caaf718a3fb0ffc2836a4"
+      "byteLength": 46273,
+      "sha256": "sha256:a435e3fa5c736ecc5c09da0b21fe3c38010c0b0e19ede5fdb3be5584a1d134b1"
     },
     {
       "path": "vendor/reploid/transport/tool-offer-channel.js",
@@ -9529,5 +9529,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:f99260044a90f747e7211732bc581c0c4e37cdef48eaee8c4b7b60062e72a1bc"
+  "bundleHash": "sha256:ca8880f1ee4312070d7a634f1706529bec8d0a74f434d3aca0a3a67014ddbcb8"
 }
