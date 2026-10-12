@@ -1,0 +1,1 @@
+{"at": 1791829939.2639704, "path": "/home/x/.local/share/reploid/public-native/cache-budget-20261012/custody-budget.sqlite", "record": {"schema": "reploid.custody-supply-budget/v1", "maxBytes": 4294967296, "reservedBytes": 469762048}, "scope": "read-only observation of actual model-piece reservations; no renewal"}

@@ -1,0 +1,1 @@
+{"newPid": 3391808, "cwd": "/home/x/deco/reploid", "args": ["node", "scripts/run-mesh-contributor.js", "--url", "https://replo.id/", "--model", "qwen-3-5-0-8b-q4k-ehaf16", "--profile", "/home/x/.local/share/reploid/public-compute", "--contribute", "compute"], "log": "/home/x/.local/state/reploid/public-browser-budget-restored-20261012.log", "at": 1791830444.77638}

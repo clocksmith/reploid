@@ -1,0 +1,43 @@
+{
+  "at": 1791829720.961228,
+  "native": {
+    "pid": 3220061,
+    "running": true,
+    "directory": "/var/tmp/reploid-budget-persistence-installed/reploid",
+    "phase": "ready",
+    "placement": [
+      "peer:688e732256ab83155c54f72e",
+      "peer:57adcc49bae5ed5eefe8fbf1"
+    ],
+    "active": 0,
+    "unsettledOwners": 0,
+    "descriptor": {
+      "schema": "doppler.resident-partition/v1",
+      "ready": true,
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+      "index": 0,
+      "layerRange": [
+        0,
+        11
+      ],
+      "residentWeightBytes": 650989568,
+      "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+    }
+  },
+  "browser": {
+    "pid": 3238171,
+    "running": true,
+    "state": {
+      "phase": "Ready",
+      "progress": "",
+      "error": ""
+    },
+    "memory": {
+      "maxBytes": 1420000000,
+      "liveBytes": 296010000,
+      "peakBytes": 497336720
+    }
+  }
+}

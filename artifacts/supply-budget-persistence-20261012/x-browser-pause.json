@@ -1,0 +1,1 @@
+{"pid": 3238171, "cwd": "/home/x/deco/reploid", "args": ["node", "scripts/run-mesh-contributor.js", "--url", "https://replo.id/", "--model", "qwen-3-5-0-8b-q4k-ehaf16", "--profile", "/home/x/.local/share/reploid/public-compute", "--contribute", "compute"], "at": 1791830334.983032, "exitedAt": 1791830335.0833356}

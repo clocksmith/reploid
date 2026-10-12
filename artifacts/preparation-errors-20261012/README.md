@@ -36,3 +36,13 @@ repair is tracked separately and no lifetime usage is inferred from that counter
 Boundary effects: host tokenizer-source failures now survive runtime fallback;
 no package pin, permission, model, scheduler or precision changes. Deployment and
 native installation are separate from this source-override evidence.
+
+## Published application repair
+
+Source bundle `ba1ca4e2` is deployed at https://replo.id/ as
+`68b3997b26dd569a9a2744a6789dcabb6af68d6bd389c941c1d59f62a811be02`.
+`deploy.log` records the release; `served.log` verifies all 1,912 served files.
+`deployed-conversation.json` records a fresh automatic browser/native request and
+follow-up ($36/$48), bound per-Send authorization and zero requester weight
+downloads. The full suite passed 3,192 tests with 29 skips before this release.
+The later paired-frame source work is not included in that deployed identity.

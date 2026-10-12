@@ -1,0 +1,1 @@
+{"pid": 4189137, "cwd": "/home/clocksmith/deco/reploid", "args": ["node", "scripts/run-mesh-contributor.js", "--url", "https://replo.id/", "--profile", "/home/clocksmith/.local/share/reploid/public-compute", "--model", "qwen-3-5-0-8b-q4k-ehaf16", "--contribute", "compute", "--browser", "chromium"], "at": 1791830335.7493865, "exitedAt": 1791830335.9501784}
