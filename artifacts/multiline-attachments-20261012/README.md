@@ -23,3 +23,10 @@ modules, with three warnings and no errors (`worker.json`). The generated
 1,905-file browser manifest verifies as
 `13f20122b9510e27d1aa87847259b8bb7c78e05ff05e3878479162e868ee69c0`.
 No deployment or dependency update occurred.
+
+The actual local requester then reloaded this bundle. All 17 saved threads and
+drafts were byte-identical across the reload (`actual-requester-return.json`).
+This check performed no inference. Hosting preparation copied 1,906 files; fresh
+HTTP verification matched every one of the 1,905 manifest entries against the
+same bundle identity (`hosting.log`, `served-local.log`). This is localhost
+verification, not public deployment.
