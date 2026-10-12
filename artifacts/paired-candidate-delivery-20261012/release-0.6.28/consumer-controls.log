@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 /private/var/tmp/reploid-candidate-0.6.28-browser-20261012
+
+ ✓ tests/unit/native-delivery.test.js (2 tests) 176ms
+ ✓ tests/unit/doppler-partition-contract.test.js (4 tests) 10ms
+
+ Test Files  2 passed (2)
+      Tests  6 passed (6)
+   Start at  17:41:57
+   Duration  405ms (transform 79ms, setup 0ms, import 193ms, tests 186ms, environment 168ms)
+

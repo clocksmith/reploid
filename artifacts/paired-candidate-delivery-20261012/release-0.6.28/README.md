@@ -21,6 +21,10 @@ The [preparation record](browser-preparation.json),
 identities and command results. Installation and synchronization logs are also
 retained. Dependency audit notices were not repaired by unrelated upgrades.
 
+The isolated candidate also passes all six existing native-delivery and public
+partition-contract unit controls; [their output](consumer-controls.log) is
+retained. These exercise delivery/contract behavior without opening a GPU.
+
 This is packaging evidence only. The catalog still uses its original verified
 manifests; it does not yet select a qualified signed Capsule carrying the paired
 execution graph. Signed report/catalog preparation requires the remaining
