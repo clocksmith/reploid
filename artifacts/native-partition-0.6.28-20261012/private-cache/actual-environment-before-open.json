@@ -1,0 +1,22 @@
+{
+  "pid": 1714510,
+  "environment": {
+    "MESA_SHADER_CACHE_DIR": "/var/tmp/reploid-native-private-mesa-0.6.28-8m5y91ze",
+    "MESA_SHADER_CACHE_DISABLE": null,
+    "MESA_SHADER_CACHE_SHOW_STATS": null,
+    "MESA_DISK_CACHE_SINGLE_FILE": null,
+    "MESA_DISK_CACHE_MULTI_FILE": null,
+    "MESA_DISK_CACHE_DATABASE": null,
+    "MESA_DISK_CACHE_READ_ONLY_FOZ_DBS": null,
+    "MESA_DISK_CACHE_READ_ONLY_FOZ_DBS_DYNAMIC_LIST": null,
+    "MESA_DISK_CACHE_COMBINE_RW_WITH_RO_FOZ": null,
+    "XDG_CACHE_HOME": null,
+    "RADV_DEBUG": null,
+    "VK_DRIVER_FILES": null,
+    "VK_ICD_FILENAMES": null,
+    "AMD_VULKAN_ICD": null
+  },
+  "residentPresent": false,
+  "gpuPresent": false,
+  "node": "v22.22.1"
+}
