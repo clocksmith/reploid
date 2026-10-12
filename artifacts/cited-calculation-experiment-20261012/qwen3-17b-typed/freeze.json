@@ -1,0 +1,43 @@
+{
+  "schema": "reploid.qwen3-17b-typed-freeze/v1",
+  "status": "frozen before model output",
+  "parentRejectedRevision": "2f996368",
+  "files": {
+    "README.md": "dafcb76015260c98b91fb935bec967cdcccad2e2febdcdecf2f73c5c71fbffd5",
+    "budget.py": "677b82021d3bc55c0723c3d33f54c0ed296156f9016cf3a25d3414aac2aac965",
+    "budget_test.py": "bcaf08816fa45cf69c5823074a67394fa225b53787f1bb0672e6a8209d7d7c2b",
+    "preflight.py": "6d4650aa2b767170f0a57e3c102d8650998a1e57b4eebee3c7751eae6865ce95",
+    "prior-evidence.json": "b8855b41d3f6f6851012880cc82d2e7bdcf584934ffc3d2ff4511a1daba8102a",
+    "protocol.py": "752fd337a44451e04777cc6c3c01747f8556197e02d24250d965e8fe6cd1ffa4",
+    "protocol_test.py": "ca9e756356fafabb65d9ec103fef94d67bdfcfb394df658e4b1b12ebfe438c23",
+    "run.py": "b860f2aa34dce4973c3a9d8e99a377f3594d16dad615580a726ee00b20f0ec83",
+    "suite.json": "b9f82c071ead333fc59f70f2749b83a8ff89426a7f8c9f0656ebdc06731dd821",
+    "template-binding.json": "068bdc0fe20372c54fcc5bf35c81ed148d0886d0f60cda6e036e408fe75454a7",
+    "token-preflight.json": "145de558e32c363996fbfb8d13cd46fbefab4cf7e2de1211c802d11a75b2fe02"
+  },
+  "reusedSources": {
+    "artifacts/cited-calculation-experiment-20261012/calculate.js": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+    "self/host/document-comparison.js": "7d80ae3314b2be989b74a3eecc54d0ebfe4d1f190d7f3bad263f4a80c58c3e42",
+    "packages/reploid/src/agent/tool-runner.js": "f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a",
+    "artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.js": "895ee7097bf495dba7497f2bbf3a880ae2309e4bcc4a0c30569201991525bb39",
+    "artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.js": "bd2fcf11e685b9368b65fa7dcdba213d82172a824040a1d82e8349b25a83421b",
+    "artifacts/cited-calculation-experiment-20261012/typed-requests/adapter.js": "66f6d566141a61232799ac6c47db1b8e7a95c74441c107a0f8e40cbb3742be50",
+    "artifacts/cited-calculation-experiment-20261012/typed-requests/adapter.test.js": "f983d5ab9a368c0bfd7df9c5be0029bf3a9d6a34a2608c38e21c65ff30b6bfeb",
+    "artifacts/cited-calculation-experiment-20261012/typed-requests/verification-worker.json": "ffc801ef09b047deaf5e1f4016101c298aeb8dcf79af8ffb0b34fe5c56eb6959"
+  },
+  "sourceLoaderSha256": "3e1dd96f7e338a48a0c778e7d9b2b20f0c9c2982ff9a59194d03774ed42da483",
+  "sourceEvaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "additionalDopplerSources": {},
+  "model": "Qwen/Qwen3-1.7B",
+  "sourceRevision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "policy": "Same nonthinking greedy repetition1.0 and F16KV source evaluation; original1.7B weights/template and protocol differ.",
+  "budgets": {
+    "generatedTokens": 4096,
+    "promptPlusGeneratedTokens": 8192,
+    "rawOutputUtf16": 16000,
+    "extractionMaxTokens": 1536
+  },
+  "criteria": "All seven parent cases, exact original final histories, and factual/citation/tool-attribution criteria unchanged. Two prior independent holdouts remain locked.",
+  "stopping": "First structural/tool/completion/budget failure; later cases unrun. One explicit validator correction only after initial natural completion, within original source and aggregate allowances.",
+  "launch": "Only after parent review; x128 taskset4-7 fourCPUthreads nice10, noGPU, no model download."
+}
