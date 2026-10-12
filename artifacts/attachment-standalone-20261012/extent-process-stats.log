@@ -1,0 +1,49 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+[536.9ms][doppler] Resolving model
+[538.0ms][doppler] Fetching manifest
+[575.9ms][doppler] Loading weights
+[583.9ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[584.0ms][Config] Using manifest-first config (source of truth)
+[588.1ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[588.2ms][Pipeline] Vision capable: imageTokenId=248056
+[589.4ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[589.9ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[590.5ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[775.5ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[1065.3ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[1065.7ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1092.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=8192, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=8192
+[1093.5ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1140.6ms][ShardCache] Custom shard loader configured
+[1141.1ms][Loader] Initializing...
+[1169.1ms][HeapManager] Allocated segment 0: 1024MB
+[1169.3ms][HeapManager] Segmented heap: 1GB per segment
+[1169.3ms][HeapManager] Initialized with strategy: SEGMENTED
+[1169.5ms][Loader] Initialized (f16, subgroups)
+[1170.3ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[1172.1ms][Loader] [0.0s] Memory (start): | RSS=245.98 MB (heap=63.89 MB/97.89 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1173.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1398.7ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1399.1ms][Loader] Layers: 0-23
+[1613.0ms][Loader] Layers: 24 complete (0.21s)
+[1668.7ms][Loader] Complete: 890.16 MB in 0.49s (1.76 GB/s)
+[1670.3ms][Loader] [0.5s] Memory (complete): | RSS=290.07 MB (heap=75.73 MB/109.64 MB, external=1.02 GB, arrayBuffers=1.01 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1683.9ms][Pipeline] Model loaded successfully (1104ms)
+[1687.6ms][doppler] Model ready
+[1737.6ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[1746.2ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+[1825.8ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[1844.8ms][ExpertCache] Cache cleared
+[1845.6ms][Pipeline] Unloaded
+[1851.0ms][GPU] Device lost: device was destroyed, Reason: destroyed
+{"executionPass":false,"settled":true,"error":"Error: GPU memory budget exceeded: silu_output_1835008 requires 1835008 bytes; 1419175032 live, 1420000000 allowed.\n    at device.createBuffer (file:///var/tmp/reploid-attachment-extent-20261012/node_modules/doppler-gpu/src/memory/device-budget.js:24:27)\n    at BufferPool.acquire (file:///var/tmp/reploid-attachment-extent-20261012/node_modules/doppler-gpu/src/memory/buffer-pool.js:258:27)\n    at acquireBuffer (file:///var/tmp/reploid-attachment-extent-20261012/node_modules/doppler-gpu/src/memory/buffer-pool.js:778:19)\n    at recordSiLU (file:///var/tmp/reploid-attachment-extent-20261012/node_modules/doppler-gpu/src/gpu/kernels/silu.js:387:34)\n    at async doSiLU (file:///var/tmp/reploid-attachment-extent-20261012/node_modules/doppler-gpu/src/inference/pipelines/text/ops.js:173:7)","cases":[]}
+file:///var/tmp/reploid-attachment-extent-20261012/extent-replay.mjs:81
+if (!receipt.executionPass || !receipt.settled) throw new Error('Diagnostic failed; see retained receipt');
+                                                      ^
+
+Error: Diagnostic failed; see retained receipt
+    at file:///var/tmp/reploid-attachment-extent-20261012/extent-replay.mjs:81:55
+
+Node.js v22.22.1
