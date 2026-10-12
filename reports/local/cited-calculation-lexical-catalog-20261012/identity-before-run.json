@@ -1,0 +1,88 @@
+{
+  "schema": "reploid.lexical-catalog-executing-identity/v1",
+  "frozenRevision": "d2ee4d54",
+  "freezeSha256": "d94e23926c760968cc5d966c18778402033ab8b2fb80c00a80ec16a13af84222",
+  "allFrozenFilesAndReusedIdentitiesMatch": true,
+  "files": {
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/GRAMMAR.md": {
+      "sha256": "e04d0b8cd8e514612b2893a90e57f37f400e0aaf57dc58c3911e09fe6a4b2636",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/README.md": {
+      "sha256": "6cc589cd811193d1352daebed7093432b5c0148b88214de15367a22d5d55a964",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.js": {
+      "sha256": "bd2fcf11e685b9368b65fa7dcdba213d82172a824040a1d82e8349b25a83421b",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.test.js": {
+      "sha256": "8557ff140568d69258ba927cba687cca902502a9316a9eb3e179bcfb622c3d34",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/holdouts.json": {
+      "sha256": "ec98d50af54ea835f5971946f7238651f2183c0e43ab22077167da459c654b37",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/preflight.py": {
+      "sha256": "37eaf27cc772394cea675c6556b896bf8f27a9a8526b9cddb61554afb296efa5",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/protocol.py": {
+      "sha256": "a9efb2cba8a900cc6bbbabb41e53c7d598b49a5359e614185fc7c6c3bac27079",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/protocol_test.py": {
+      "sha256": "970644da3ae278a34b32aef1481f8f402f8017c40a3a6e5cb915d4336a97c630",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/run.py": {
+      "sha256": "a89e9c5b84a84be006bdfeaedcdbd143c8d6c663c27116beb3e6abe34d04c213",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/suite.json": {
+      "sha256": "4ce9c2ec0db57cfb3b81e6666cce8cce02f21dac10f2d2dd90415aa3ac84b589",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/template-binding.json": {
+      "sha256": "22cc56128a81ed47b1d51901183b62a4c71d69d8007f1902d8b756db5684dacd",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/token-preflight.json": {
+      "sha256": "519c9b8f25d2144bc874b67509e60f3eeaa40aa4b8523bf2ef073e761a703d5d",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/tools.json": {
+      "sha256": "4c2482fb9d09f9873fe8b6024adb257bc8f7224bddbdaafc2ad57641111ec1b5",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/lexical-catalog/verification-worker.json": {
+      "sha256": "441e227a2de401cf564ec14d35c42aeb76ad1b01a4041f1d51fdb9e3ac0d0839",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/calculate.js": {
+      "sha256": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/self/host/document-comparison.js": {
+      "sha256": "7d80ae3314b2be989b74a3eecc54d0ebfe4d1f190d7f3bad263f4a80c58c3e42",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/reploid/packages/reploid/src/agent/tool-runner.js": {
+      "sha256": "f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/doppler/tools/qwen35-original-weight-generation.py": {
+      "sha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
+      "matchesFreeze": true
+    },
+    "/home/x/deco/doppler/tools/lib/source_task_quality.py": {
+      "sha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+      "matchesFreeze": true
+    },
+    "/var/tmp/doppler-qwen35-2b-source-20261011/tokenizer_config.json": {
+      "sha256": "49e2b6e395f959f077f1e992b338919c0d4a9732fc6e613995e06557f843500c",
+      "matchesFreeze": true
+    }
+  }
+}

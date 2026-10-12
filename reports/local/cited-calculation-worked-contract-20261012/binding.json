@@ -1,0 +1,38 @@
+{
+  "schema": "reploid.worked-tool-contract-run/v1",
+  "frozenRevision": "3251d780",
+  "host": "x@128.tail995236.ts.net",
+  "command": [
+    "nice",
+    "-n",
+    "10",
+    "python3",
+    "-u",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/worked-tool-contract/run.py",
+    "--doppler",
+    "/home/x/deco/doppler",
+    "--source",
+    "/var/tmp/doppler-qwen35-2b-source-20261011",
+    "--deployed",
+    "/home/x/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
+    "--suite",
+    "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/worked-tool-contract/suite.json",
+    "--out",
+    "/home/x/deco/reploid/reports/local/cited-calculation-worked-contract-20261012/result.json",
+    "--threads",
+    "4"
+  ],
+  "environment": {
+    "PYTHONPATH": "/tmp/doppler-reference-deps",
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4"
+  },
+  "status": "completed",
+  "startedAtUtc": "2026-10-12T18:19:34.465106+00:00",
+  "remoteReploidRevision": "9f7ea2974e131c582aa94652ec101e4c96128c8a",
+  "remoteDopplerRevision": "031460598c5adfd48e6cfac5170f8c1fa4c1f1b7",
+  "pid": 3150613,
+  "exitCode": 0,
+  "elapsedSeconds": 652.904072528705,
+  "finishedAtUtc": "2026-10-12T18:30:27.369180+00:00"
+}
