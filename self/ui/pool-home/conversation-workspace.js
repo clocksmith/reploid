@@ -178,22 +178,32 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     messages.update(thread, { usable: usable && !thread?.closed, busy });
     if (find('[data-model-picker]').open) updatePicker(state);
     const pending = attempt?.approval, key = pending ? JSON.stringify([thread.id, attempt.id, pending]) : '';
+    const partitionRecipients = pending?.disclosure === 'partition-activations-and-tokens'
+      && Array.isArray(pending.input?.recipients) ? pending.input.recipients : null;
+    const peerLabel = id => `Peer ${String(id).replace(/^peer:/, '').slice(0, 8)}`;
     if (key !== approvalKey) {
       approvalKey = key; find('[data-approval-consent]').checked = false; find('[data-approval-remember]').checked = false;
     }
-    find('[data-approval-description]').textContent = pending?.disclosure === 'partition-activations'
+    find('[data-approval-description]').textContent = partitionRecipients
+      ? 'Share messages and derived model data with these computers for this request'
+      : pending?.disclosure === 'partition-activations'
       ? 'Share model activations derived from this input with this peer as public data'
       : 'Share this exact input with this peer as public data';
     find('[data-approval-remember-label]').hidden = !pending?.reusable;
     find('[data-chat-approval]').hidden = !pending;
     if (pending) {
       updatePermissionSummary(find('[data-chat-approval]'), {
-        recipient: `Recipient: Peer ${pending.peerId.slice(0, 8)} · ${thread.model.name || pending.modelId}`,
-        scope: pending.disclosure === 'partition-activations'
+        recipient: `${partitionRecipients ? 'Recipients: ' + partitionRecipients.map(peerLabel).join(' → ')
+          : 'Recipient: ' + peerLabel(pending.peerId)} · ${thread.model.name || pending.modelId}`,
+        scope: partitionRecipients
+          ? `Your messages go to ${peerLabel(partitionRecipients[0])}. Derived model data and tokens go to ${peerLabel(partitionRecipients[1])}. Approval applies to this request.`
+          : pending.disclosure === 'partition-activations'
           ? 'Model data derived from the input below leaves this device. Approval applies to this request.'
           : 'The messages and attached text below leave this device. Approval applies to this request.',
         input: pending.input,
-        technical: { recipient: pending.peerId, model: pending.modelId || thread.model.id, disclosure: pending.disclosure,
+        technical: { recipient: pending.peerId, recipients: partitionRecipients || undefined,
+          model: pending.modelId || thread.model.id, modelIdentity: pending.modelIdentity || thread.model.identity,
+          planId: pending.planId, disclosure: pending.disclosure,
           input: pending.input, options: pending.options, limits: pending.limits, expiresAt: pending.expiresAt, approvalId: pending.id }
       });
     }

@@ -2,6 +2,26 @@ import { describe, it, expect, vi } from 'vitest';
 import { renderConversationWorkspace, bindConversationWorkspace } from '../../self/ui/pool-home/conversation-workspace.js';
 
 describe('Conversation disclosure review', () => {
+  it('shows both partition recipients and their disclosure roles before approval', () => {
+    const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace();
+    const model = { id: 'model', name: 'Model', identity: 'sha256:model', availability: 'ready' };
+    const recipients = ['peer:0b4018c83a3f71679522bb52', 'peer:6fef3a618f40d5acfc712941'];
+    const approval = { id: 'partition-preview', peerId: recipients[0], modelIdentity: model.identity,
+      planId: 'sha256:plan', disclosure: 'partition-activations-and-tokens',
+      input: { messages: [{ role: 'user', content: 'Three tickets' }], recipients } };
+    const thread = { id: 'thread', model, messages: [], attempts: [{ id: 'attempt', status: 'approval', approval }] };
+    const state = { selectedId: thread.id, activeThread: thread, threads: [thread], models: [model], runningIds: ['thread'], network: {} };
+    const approve = vi.fn();
+    const dispose = bindConversationWorkspace(root, { getState: () => state,
+      subscribe: fn => { fn(state); return () => {}; }, approve });
+    const recipientText = root.querySelector('[data-permission-recipient]').textContent;
+    expect(recipientText).toContain('0b4018c8'); expect(recipientText).toContain('6fef3a61');
+    expect(root.querySelector('[data-permission-scope]').textContent).toContain('model data and tokens');
+    expect(root.querySelector('[data-approval-description]').textContent).toContain('these computers');
+    const details = JSON.parse(root.querySelector('[data-permission-technical]').textContent);
+    expect(details.recipients).toEqual(recipients); expect(details.modelIdentity).toBe(model.identity);
+    expect(approve).not.toHaveBeenCalled(); dispose();
+  });
   it('shows readable contents, resets consent when the payload changes, and never grants on render', () => {
     const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace();
     const model = { id: 'model', name: 'Model', availability: 'ready' };
