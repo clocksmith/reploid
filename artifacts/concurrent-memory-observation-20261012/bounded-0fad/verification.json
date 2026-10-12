@@ -1,0 +1,21 @@
+{
+  "scope": "CPU-only pre-output verification on Mac and x128; no GPU work",
+  "testDeliverySha256": "5296c627db4dbbed5a776d8c0e0332153d8b1f63dd7d42cae7afd5915155c61b",
+  "fixtureFiles": 2011,
+  "installedArchiveFiles": 1976,
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "unchanged": [
+    {
+      "path": "tests/fixtures/distributed-memory-requests.json",
+      "sha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e"
+    },
+    {
+      "path": "self/config/work-profile.json",
+      "sha256": "cf49115a229ae17aed1e424a41336340b125b474f72907ba03d20482bb32648c"
+    },
+    {
+      "path": "self/config/partition-policy.json",
+      "sha256": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235"
+    }
+  ]
+}
