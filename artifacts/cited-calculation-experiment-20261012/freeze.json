@@ -1,0 +1,36 @@
+{
+  "schema": "reploid.cited-calculation-freeze/v1",
+  "createdAt": "2026-10-12",
+  "status": "frozen before model generation; independent review pending",
+  "reploidCommit": "c6c35618a5d32f0581dff98f14af1b3f4ce7a263",
+  "originalSuite": "../doppler/artifacts/qwen35-2b-nonthinking-documents-20261012/neutral-suite.json",
+  "originalSuiteSha256": "d8d53f02879fccc42cae16af6012b2b9faed614227ef7d4bf75611adaf3f729c",
+  "originalFourCasesUnchanged": true,
+  "freshCases": [
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "files": {
+    "calculate.js": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+    "calculate.test.js": "18b6a19b29469afd5461b358cf01f5e932b521d0dd1e2dfaaf478eb69126d90e",
+    "run.py": "488cc79b8c7e9b98a428f5bc9fe6e0ccaab93203892923d45a4b38d205402c77",
+    "suite.json": "11327ff08dc1f0284acf59e03751b8cdd9167213316aa34d1b75bd29b94f0cee"
+  },
+  "sourceLoaderSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
+  "sourceEvaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "modelId": "Qwen/Qwen3.5-2B",
+  "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "budgets": {
+    "generatedTokens": 4096,
+    "promptPlusGeneratedTokens": 8192,
+    "rawOutputUtf16": 16000,
+    "extractionMaxTokens": 1536
+  },
+  "scope": "Artifact-only source application reasoning diagnostic; all previous pure generation configurations rejected; no conversion or runtime approval.",
+  "reusedSourceHashes": {
+    "self/host/document-comparison.js": "7d80ae3314b2be989b74a3eecc54d0ebfe4d1f190d7f3bad263f4a80c58c3e42",
+    "packages/reploid/src/agent/tool-runner.js": "f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a"
+  },
+  "answerToolTransport": "Append JSON calculation result as delimited untrusted data to latest user turn; original content remains prefix, prior ordered turns unchanged. It is not system instruction content."
+}

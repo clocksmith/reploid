@@ -1,0 +1,96 @@
+{
+  "scope": "Static/AST verification only",
+  "sources": {
+    "/artifacts/cited-calculation-experiment-20261012/calculate.js": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+    "/artifacts/cited-calculation-experiment-20261012/calculate.test.js": "18b6a19b29469afd5461b358cf01f5e932b521d0dd1e2dfaaf478eb69126d90e"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /artifacts/cited-calculation-experiment-20261012/calculate.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/calculate.js:14: Dynamic property write detected: [whole, fraction = ''] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/calculate.js:76: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/calculate.test.js: Path traversal pattern detected (../) - potential security risk",
+      "6 lines exceed 200 characters"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791805583157,
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791805583158,
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [whole, fraction = ''] - verify input sanitization",
+        "line": 14,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791805583158,
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 76,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791805583160,
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791805583160,
+        "metric": "line_length",
+        "value": 6,
+        "threshold": 5,
+        "message": "6 lines exceed 200 characters",
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.test.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/calculate.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/calculate.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 6,
+          "threshold": 5,
+          "message": "6 lines exceed 200 characters",
+          "path": "/artifacts/cited-calculation-experiment-20261012/calculate.test.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

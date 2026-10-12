@@ -1,0 +1,111 @@
+{
+  "scope": "Static/AST verification of new diagnostic handlers only",
+  "result": {
+    "passed": false,
+    "errors": [
+      "Security Violation in /artifacts/cited-calculation-experiment-20261012/calculate.js: child_process operations are forbidden"
+    ],
+    "warnings": [
+      "Warning in /artifacts/cited-calculation-experiment-20261012/calculate.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/calculate.js:14: Dynamic property write detected: [whole, fraction = ''] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/calculate.js:76: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/calculate.test.js: Path traversal pattern detected (../) - potential security risk",
+      "6 lines exceed 200 characters"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791805432585,
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791805432585,
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791805432585,
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [whole, fraction = ''] - verify input sanitization",
+        "line": 14,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791805432585,
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 76,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791805432588,
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791805432588,
+        "metric": "line_length",
+        "value": 6,
+        "threshold": 5,
+        "message": "6 lines exceed 200 characters",
+        "path": "/artifacts/cited-calculation-experiment-20261012/calculate.test.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/calculate.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/calculate.js",
+          "patternId": "child_process",
+          "category": "process",
+          "message": "child_process operations are forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/calculate.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 6,
+          "threshold": 5,
+          "message": "6 lines exceed 200 characters",
+          "path": "/artifacts/cited-calculation-experiment-20261012/calculate.test.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    },
+    "reason": "Verification Failed"
+  }
+}
