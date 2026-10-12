@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
-const paths = ['browser-partition-memory-completion', 'native-partition-endpoint', 'native-partition-process', 'resident-opening-observer', 'prepare-partition-memory', 'partition-attempt-cleanup', 'partition-diagnostic-selection'].map(name => `tests/fixtures/${name}.js`);
+const paths = ['browser-partition-memory-completion', 'native-partition-endpoint', 'native-partition-process', 'resident-opening-observer', 'prepare-partition-memory', 'partition-attempt-cleanup', 'partition-diagnostic-selection', 'native-provider-observation'].map(name => `tests/fixtures/${name}.js`);
 const snapshot = Object.fromEntries(paths.map(path => ['/testing/' + path, fs.readFileSync(path, 'utf8')]));
 const sources = Object.fromEntries(Object.entries(snapshot).map(([path, code]) => [path, crypto.createHash('sha256').update(code).digest('hex')]));
 let result;

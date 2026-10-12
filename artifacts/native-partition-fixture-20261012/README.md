@@ -64,3 +64,12 @@ installed-preflight.mjs`; its runtime helper delivery is bound separately.
 unrelated physical split reset. It records connected native file supply and
 advertised readiness, plus a browser relay heartbeat. Neither establishes that
 the public GPU remains usable. Public processes were not signaled or restarted.
+
+The initial provider-only preflight reached native Dawn but failed while hashing
+`linux-vdso.so.1`, a kernel virtual mapping without a file. Its exact controller
+and failure are retained as `provider-preflight-vdso-failed.mjs` and
+`provider-preflight-vdso-failure.json`. The owned process was terminated after
+attempted cleanup; this run does not claim natural settlement. No device or
+model was requested. The observer now records that exact virtual mapping
+separately and still rejects missing file-backed libraries or unknown relative
+library names. `native-provider-controls.log` verifies both dispositions.

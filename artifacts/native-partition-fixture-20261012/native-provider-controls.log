@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/native-provider-observation.test.js (2 tests) 4ms
+ ✓ tests/unit/native-partition-endpoint.test.js (5 tests) 128ms
+
+ Test Files  2 passed (2)
+      Tests  7 passed (7)
+   Start at  17:23:18
+   Duration  253ms (transform 26ms, setup 0ms, import 52ms, tests 132ms, environment 115ms)
+
