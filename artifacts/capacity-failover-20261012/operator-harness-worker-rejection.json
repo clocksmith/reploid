@@ -1,0 +1,344 @@
+{
+  "schema": "reploid.forecast-sdk-verification/v1",
+  "at": "2026-10-12T15:33:33.220Z",
+  "kind": "Actual classic Verification Worker static/AST analysis; no inference or adoption claim",
+  "sources": [
+    {
+      "path": "server/native-model-files.js",
+      "hash": "sha256:8241b3b07b5f80b22bdeec1fc5d1c62626c2a298d580c48e4f1243a108ec4d62"
+    },
+    {
+      "path": "server/native-participant.js",
+      "hash": "sha256:92c7a795492e9204f7bc7200424fbce9641f5753ee7ecfcba86cb6b0beadd142"
+    },
+    {
+      "path": "tests/unit/native-model-files.test.js",
+      "hash": "sha256:5b9d8c4c22a8338d0a343f6f096742ccb9ff629354ec4063d4d1c0ad04fe76a4"
+    },
+    {
+      "path": "artifacts/capacity-failover-20261012/native-control.js",
+      "hash": "sha256:58ea60e3ac7cdced7cfab7e69909cf23b3ad06f7c9550fe80c81f30f6983175a"
+    },
+    {
+      "path": "artifacts/capacity-failover-20261012/conversation.js",
+      "hash": "sha256:daf7bf63215d82ab671d1411123e69d6ec8b9268f0f75445c04dc88ea8e173da"
+    },
+    {
+      "path": "artifacts/capacity-failover-20261012/cold-contributor.js",
+      "hash": "sha256:aeaf89ca6312ae0b489364bdf54ac96124362a31ff2b4c157ed9e3703800b155"
+    }
+  ],
+  "result": {
+    "passed": false,
+    "errors": [
+      "Security Violation in /artifacts/capacity-failover-20261012/native-control.js: process.exit is forbidden",
+      "Structural Issue in /artifacts/capacity-failover-20261012/native-control.js:9: Network request to non-allowlisted URL: http://127.0.0.1:9229/json/list",
+      "Security Violation in /artifacts/capacity-failover-20261012/conversation.js: Direct localStorage access forbidden - use StateManager",
+      "Security Violation in /artifacts/capacity-failover-20261012/conversation.js: process.exit is forbidden",
+      "Security Violation in /artifacts/capacity-failover-20261012/cold-contributor.js: child_process operations are forbidden",
+      "Security Violation in /artifacts/capacity-failover-20261012/cold-contributor.js: process.exit is forbidden"
+    ],
+    "warnings": [
+      "Warning in /server/native-model-files.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 37 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "Warning in /server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /server/native-participant.js:39: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /server/native-participant.js:313: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "Warning in /server/native-participant.js:26: Suspicious variable name: requireValue - may indicate code execution",
+      "File has 38 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/native-model-files.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/native-model-files.test.js:35: Dynamic property write detected: [i] - verify input sanitization",
+      "Warning in /tests/unit/native-model-files.test.js:38: Dynamic property write detected: [left,right] - verify input sanitization",
+      "Warning in /artifacts/capacity-failover-20261012/native-control.js:36: Suspicious variable name: evaluate - may indicate code execution",
+      "Warning in /artifacts/capacity-failover-20261012/cold-contributor.js:5: Suspicious variable name: exec - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213203,
+        "path": "/server/native-model-files.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819213205,
+        "metric": "functions",
+        "value": 37,
+        "threshold": 20,
+        "message": "File has 37 functions (max 20) - consider modularizing",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819213205,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213208,
+        "path": "/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213209,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 39,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213209,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+        "line": 313,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213209,
+        "path": "/server/native-participant.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: requireValue - may indicate code execution",
+        "line": 26,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819213210,
+        "metric": "functions",
+        "value": 38,
+        "threshold": 20,
+        "message": "File has 38 functions (max 20) - consider modularizing",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819213210,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213213,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213213,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [i] - verify input sanitization",
+        "line": 35,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213213,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [left,right] - verify input sanitization",
+        "line": 38,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213214,
+        "path": "/artifacts/capacity-failover-20261012/native-control.js",
+        "patternId": "process_exit",
+        "category": "process",
+        "message": "process.exit is forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213214,
+        "path": "/artifacts/capacity-failover-20261012/native-control.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: evaluate - may indicate code execution",
+        "line": 36,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213214,
+        "path": "/artifacts/capacity-failover-20261012/native-control.js",
+        "patternId": "non_allowlisted_url",
+        "category": "structural",
+        "message": "Network request to non-allowlisted URL: http://127.0.0.1:9229/json/list",
+        "line": 9,
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213215,
+        "path": "/artifacts/capacity-failover-20261012/conversation.js",
+        "patternId": "localstorage",
+        "category": "storage",
+        "message": "Direct localStorage access forbidden - use StateManager",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213215,
+        "path": "/artifacts/capacity-failover-20261012/conversation.js",
+        "patternId": "process_exit",
+        "category": "process",
+        "message": "process.exit is forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213216,
+        "path": "/artifacts/capacity-failover-20261012/cold-contributor.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213216,
+        "path": "/artifacts/capacity-failover-20261012/cold-contributor.js",
+        "patternId": "process_exit",
+        "category": "process",
+        "message": "process.exit is forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819213216,
+        "path": "/artifacts/capacity-failover-20261012/cold-contributor.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 5,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/server/native-model-files.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/server/native-participant.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/native-model-files.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/capacity-failover-20261012/native-control.js",
+          "patternId": "process_exit",
+          "category": "process",
+          "message": "process.exit is forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/artifacts/capacity-failover-20261012/conversation.js",
+          "patternId": "localstorage",
+          "category": "storage",
+          "message": "Direct localStorage access forbidden - use StateManager",
+          "severity": "error"
+        },
+        {
+          "path": "/artifacts/capacity-failover-20261012/conversation.js",
+          "patternId": "process_exit",
+          "category": "process",
+          "message": "process.exit is forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/artifacts/capacity-failover-20261012/cold-contributor.js",
+          "patternId": "child_process",
+          "category": "process",
+          "message": "child_process operations are forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/artifacts/capacity-failover-20261012/cold-contributor.js",
+          "patternId": "process_exit",
+          "category": "process",
+          "message": "process.exit is forbidden",
+          "severity": "error"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 37,
+          "threshold": 20,
+          "message": "File has 37 functions (max 20) - consider modularizing",
+          "path": "/server/native-model-files.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/server/native-model-files.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 38,
+          "threshold": 20,
+          "message": "File has 38 functions (max 20) - consider modularizing",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/server/native-participant.js"
+        }
+      ],
+      "filesAnalyzed": 6
+    },
+    "reason": "Verification Failed"
+  }
+}

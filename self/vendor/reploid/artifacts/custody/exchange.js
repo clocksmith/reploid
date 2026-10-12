@@ -251,7 +251,8 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       const replacement = structuredClone(artifacts);
       // Revoke old grants, but publish only the complete replacement. A transient
       // empty inventory can make peers reject acquisition of a still-offered file.
-      revokeSupply(); offered = replacement; reserved = 0; supply = true; announce(); notify();
+      // Inventory changes and stop/restart do not renew this owner's allowance.
+      revokeSupply(); offered = replacement; supply = true; announce(); notify();
     },
     stopSupply,
     async acquire(artifact, { signal, range = null }) {

@@ -1,0 +1,628 @@
+{
+  "schema": "reploid.native-status-verification/v1",
+  "at": "2026-10-12T15:40:47.307Z",
+  "kind": "Actual classic Verification Worker static/AST analysis; no inference or adoption claim",
+  "sources": [
+    {
+      "path": "packages/reploid/src/artifacts/custody/exchange.js",
+      "hash": "sha256:db43d57238a4d7b4f8a84636799ce6548cd2b301c911efb17acdb276ccfd1ced"
+    },
+    {
+      "path": "tests/unit/custody-exchange.test.js",
+      "hash": "sha256:1d57e5abe6f08e69f423e8bdf2d399c7fd08ca56b3a014c88de4be21a560962f"
+    },
+    {
+      "path": "server/native-model-files.js",
+      "hash": "sha256:8241b3b07b5f80b22bdeec1fc5d1c62626c2a298d580c48e4f1243a108ec4d62"
+    },
+    {
+      "path": "server/native-participant.js",
+      "hash": "sha256:ebf1b0b42202f5f7e86812fbb7156fb6c6a8bd817a9d58e93de9fb362a1e7fa9"
+    },
+    {
+      "path": "tests/unit/native-model-files.test.js",
+      "hash": "sha256:5b9d8c4c22a8338d0a343f6f096742ccb9ff629354ec4063d4d1c0ad04fe76a4"
+    },
+    {
+      "path": "self/host/work-partitions.js",
+      "hash": "sha256:56dcf5aa01ee6299f860ddf40bcb0f41acdefd39231ecd3b0795b2be6ffe1e32"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/automatic-partitions.js",
+      "hash": "sha256:f1e2afea8cecf652249689e223902b35f0da739e76bd3ca3c0b6936cb3665a26"
+    },
+    {
+      "path": "tests/unit/automatic-partition-lifecycle.test.js",
+      "hash": "sha256:01b19d133eee1098ff99a9afc337bf6a7afc0b1a5856aca3a53d149d3caa62b1"
+    },
+    {
+      "path": "tests/unit/work-partitions-lifecycle.test.js",
+      "hash": "sha256:9fb195c0dc68459417d60d953e37bc22bf914cc685bc45a8704f3a879d665de6"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "File has 39 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/custody-exchange.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/custody-exchange.test.js:34: Dynamic property write detected: [i] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:35: Dynamic property write detected: [left, right] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:56: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:72: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:84: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:94: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:102: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:119: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:133: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:143: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:156: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:176: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:192: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:208: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:220: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:230: Dynamic property write detected: [a, b, c] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:246: Dynamic property write detected: [a, b, c] - verify input sanitization",
+      "Warning in /tests/unit/custody-exchange.test.js:278: Dynamic property write detected: [a, b, c] - verify input sanitization",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /server/native-model-files.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 37 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "Warning in /server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /server/native-participant.js:39: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /server/native-participant.js:314: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "Warning in /server/native-participant.js:26: Suspicious variable name: requireValue - may indicate code execution",
+      "File has 38 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/native-model-files.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/native-model-files.test.js:35: Dynamic property write detected: [i] - verify input sanitization",
+      "Warning in /tests/unit/native-model-files.test.js:38: Dynamic property write detected: [left,right] - verify input sanitization",
+      "Warning in /host/work-partitions.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "File has 26 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/automatic-partition-lifecycle.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/work-partitions-lifecycle.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 8 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "complexity",
+        "timestamp": 1791819647286,
+        "metric": "functions",
+        "value": 39,
+        "threshold": 20,
+        "message": "File has 39 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/artifacts/custody/exchange.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819647286,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/artifacts/custody/exchange.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647289,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [i] - verify input sanitization",
+        "line": 34,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [left, right] - verify input sanitization",
+        "line": 35,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 56,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 72,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 84,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 94,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 102,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 119,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 133,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 143,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 156,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 176,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 192,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 208,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 220,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b, c] - verify input sanitization",
+        "line": 230,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b, c] - verify input sanitization",
+        "line": 246,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647290,
+        "path": "/tests/unit/custody-exchange.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b, c] - verify input sanitization",
+        "line": 278,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819647290,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/tests/unit/custody-exchange.test.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647293,
+        "path": "/server/native-model-files.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819647293,
+        "metric": "functions",
+        "value": 37,
+        "threshold": 20,
+        "message": "File has 37 functions (max 20) - consider modularizing",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819647293,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647295,
+        "path": "/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647295,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 39,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647295,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+        "line": 314,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647295,
+        "path": "/server/native-participant.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: requireValue - may indicate code execution",
+        "line": 26,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819647296,
+        "metric": "functions",
+        "value": 38,
+        "threshold": 20,
+        "message": "File has 38 functions (max 20) - consider modularizing",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819647296,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647297,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647298,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [i] - verify input sanitization",
+        "line": 35,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647298,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [left,right] - verify input sanitization",
+        "line": 38,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647298,
+        "path": "/host/work-partitions.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819647298,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/host/work-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819647300,
+        "metric": "functions",
+        "value": 26,
+        "threshold": 20,
+        "message": "File has 26 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819647300,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647301,
+        "path": "/tests/unit/automatic-partition-lifecycle.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791819647302,
+        "path": "/tests/unit/work-partitions-lifecycle.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791819647302,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/tests/unit/work-partitions-lifecycle.test.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/tests/unit/custody-exchange.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/server/native-model-files.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/server/native-participant.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/native-model-files.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/host/work-partitions.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/automatic-partition-lifecycle.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/work-partitions-lifecycle.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 39,
+          "threshold": 20,
+          "message": "File has 39 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/artifacts/custody/exchange.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/artifacts/custody/exchange.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/tests/unit/custody-exchange.test.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 37,
+          "threshold": 20,
+          "message": "File has 37 functions (max 20) - consider modularizing",
+          "path": "/server/native-model-files.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/server/native-model-files.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 38,
+          "threshold": 20,
+          "message": "File has 38 functions (max 20) - consider modularizing",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/host/work-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 26,
+          "threshold": 20,
+          "message": "File has 26 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/tests/unit/work-partitions-lifecycle.test.js"
+        }
+      ],
+      "filesAnalyzed": 9
+    }
+  }
+}

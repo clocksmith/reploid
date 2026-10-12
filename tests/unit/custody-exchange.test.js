@@ -14,10 +14,10 @@ function channelPair() {
   });
   return channels;
 }
-async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {} } = {}) {
+async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {} } = {}) {
   const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [], requests = [];
   const file = { path: 'shard.bin', role: 'model-weights', sizeBytes: 5, hash: (await sha256Hex(bytes)).slice(7), hashAlgorithm: 'sha256' };
-  const policy = { maxTransfers: 2, maxPeers, maxAcquisitionAttempts: 4, maxSupplyBytes: 100, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
+  const policy = { maxTransfers: 2, maxPeers, maxAcquisitionAttempts: 4, maxSupplyBytes, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
     channel: { maxFrameBytes: 128, maxControlBytes: 4096, maxChunkBytes: 2,
       maxBufferedBytes: 8192, maxPendingRequests: 2, maxTransferBytes: 1048576, timeoutMs: 1000 } };
   const reads = vi.fn(async () => bytes.slice());
@@ -51,6 +51,22 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, c
   }
   return { owners, file, bytes, reads, receipts, stores, requests, close: () => owners.forEach(owner => owner.close()) };
 }
+
+it('cannot renew the supply allowance by refreshing inventory or stopping and restarting', async () => {
+  const f = await fixture({ maxSupplyBytes: 5 }), [a, b] = f.owners;
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    await a.acquire(f.file, { signal: new AbortController().signal });
+    for (const stop of [false, true]) {
+      if (stop) b.stopSupply();
+      b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+      expect(b.getState().suppliedBytes).toBe(5);
+      await expect(a.acquire(f.file, { signal: new AbortController().signal })).rejects.toThrow();
+      expect(b.getState().suppliedBytes).toBe(5);
+    }
+    expect(f.reads).toHaveBeenCalledOnce();
+  } finally { await f.close(); }
+});
 
 it.each([[0, 250], [250, 0]])('acquires signed files in both directions with peer clock offsets %d/%d', async (firstOffset, secondOffset) => {
   const f = await fixture({ clockOffsets: [firstOffset, secondOffset] }), [a, b] = f.owners;

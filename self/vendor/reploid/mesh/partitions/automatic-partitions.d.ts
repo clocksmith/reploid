@@ -44,7 +44,8 @@ export function createAutomaticPartitions(options: {
   }): PartitionNetwork<T>;
   loadProgram(model: ChatModel, index: 0 | 1, controls: { signal: AbortSignal; participantId: string;
     /** Retained if loading rejects; a successful returned resident assumes this ownership. */
-    registerCleanup(owner: { close(): void | Promise<void> }): void;
+    /** Release the registration only after this owner's cleanup succeeds. */
+    registerCleanup(owner: { close(): void | Promise<void> }): () => void;
     onProgress(value: unknown): void }): Promise<{ runtime: PartitionRuntime; model: ChatModel;
       plan: PartitionPlan; planId: string; resident: ResidentPartition; getReceipt?(): unknown }>;
   onChange?(state: AutomaticPartitionState & { progress?: unknown }): void;
