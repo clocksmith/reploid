@@ -1,13 +1,13 @@
 {
   "scope": "Actual Worker existing /testing/ capability for physical fixture tooling only",
   "sources": {
-    "/testing/tests/fixtures/browser-partition-memory-completion.js": "9e0e9ee381faf17661c3de043ba7216fc75ca85ddbc52957e6e6e8a317f482f6",
+    "/testing/tests/fixtures/browser-partition-memory-completion.js": "5522a741301459778632f2044efb31db43fdc06002f85771a607d68891e8338d",
     "/testing/tests/fixtures/native-partition-endpoint.js": "0e23638ccc95650da3ea0523f9cd8a4baf86a12c32232fcc5e9171ebe681d919",
     "/testing/tests/fixtures/native-partition-process.js": "d59c3c2f841dc20f01dd3598357d8457d551e2ce2a22f7adbcae19a2cb4abd02",
     "/testing/tests/fixtures/resident-opening-observer.js": "67100632f58c6596ed8149fb286573e0fc356b94f0da9779622a3161e67231b4",
     "/testing/tests/fixtures/prepare-partition-memory.js": "bfe3d36bbc8f39073839777b89c38b4429058e260043c2facdecbe425ac5fa45",
     "/testing/tests/fixtures/partition-attempt-cleanup.js": "a48b8179114e9c33cde0dd01d588bb7b0ad1c5e0434735880a8f1e1a5afb4557",
-    "/testing/tests/fixtures/partition-diagnostic-selection.js": "a811975b1e4739da9ece5f2548d87163d84a1023e244536e74d8e17f41012a89",
+    "/testing/tests/fixtures/partition-diagnostic-selection.js": "b881943127dc2ce45b48eeb562d572bd2cc5a33d05d48c13be0e45ad527bb88f",
     "/testing/tests/fixtures/native-provider-observation.js": "ece1784bedc5cfe3de79a8f4ee8462c8844777dbf393eba927c9bd9a5e41601b"
   },
   "result": {
@@ -34,7 +34,7 @@
     "events": [
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791840198623,
+        "timestamp": 1791840994620,
         "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
         "patternId": "path_traversal",
         "category": "filesystem",
@@ -43,7 +43,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791840198624,
+        "timestamp": 1791840994621,
         "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -53,7 +53,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791840198624,
+        "timestamp": 1791840994621,
         "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -63,7 +63,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791840198624,
+        "timestamp": 1791840994621,
         "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -73,7 +73,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791840198624,
+        "timestamp": 1791840994621,
         "path": "/testing/tests/fixtures/browser-partition-memory-completion.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -83,7 +83,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791840198627,
+        "timestamp": 1791840994624,
         "metric": "lines",
         "value": 578,
         "threshold": 500,
@@ -92,7 +92,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791840198627,
+        "timestamp": 1791840994624,
         "metric": "functions",
         "value": 29,
         "threshold": 20,
@@ -101,7 +101,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791840198627,
+        "timestamp": 1791840994624,
         "metric": "nesting",
         "value": 11,
         "threshold": 5,
@@ -110,7 +110,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791840198630,
+        "timestamp": 1791840994626,
         "path": "/testing/tests/fixtures/native-partition-endpoint.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -120,7 +120,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791840198630,
+        "timestamp": 1791840994626,
         "metric": "nesting",
         "value": 6,
         "threshold": 5,
@@ -129,7 +129,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791840198633,
+        "timestamp": 1791840994629,
         "path": "/testing/tests/fixtures/resident-opening-observer.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -139,7 +139,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791840198633,
+        "timestamp": 1791840994629,
         "metric": "nesting",
         "value": 6,
         "threshold": 5,
@@ -148,7 +148,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791840198635,
+        "timestamp": 1791840994632,
         "path": "/testing/tests/fixtures/prepare-partition-memory.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -158,7 +158,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791840198635,
+        "timestamp": 1791840994632,
         "path": "/testing/tests/fixtures/prepare-partition-memory.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -168,7 +168,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791840198635,
+        "timestamp": 1791840994632,
         "path": "/testing/tests/fixtures/prepare-partition-memory.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -178,7 +178,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791840198635,
+        "timestamp": 1791840994632,
         "metric": "nesting",
         "value": 8,
         "threshold": 5,

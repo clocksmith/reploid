@@ -81,3 +81,12 @@ libraries (including the WebGPU native binary) and a separate kernel vDSO entry.
 No GPUDevice, shader, model or inference was requested. Owned PID1066650 closed
 the provider and exited naturally with code0. The exact fixture binding is
 `provider-preflight-binding.json`; the failed predecessor remains retained.
+
+The existing concurrent lifecycle phase is now admitted for the native adapter;
+no additional execution mechanism was needed. `native-concurrent-cpu.log`
+contains 14 focused controls, including the unchanged concurrent harness driven
+through actual owned Node inspector calls in both input/output roles with
+explicit synthetic residents. It verifies 1,588 input IDs, overlapping attempt
+states, submitted cancellation, unchanged surviving tokens, fresh retry, byte
+forwarding and closure. This is CPU adapter evidence, not physical long-prompt
+acceptance. The original physical budgets and lifecycle assertions are unchanged.
