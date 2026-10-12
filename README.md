@@ -1,221 +1,101 @@
 # Reploid
 
-[![Test Suite](https://img.shields.io/github/actions/workflow/status/clocksmith/reploid/test.yml?branch=main&label=tests)](https://github.com/clocksmith/reploid/actions/workflows/test.yml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+A network where people and agents combine models, tools, storage, and compute.
+Chat is the first interface; each participant controls contribution and disclosure.
 
-Reploid lets people and agents use intelligence beyond one device’s capacity.
-Participating computers share verified model pieces and execute complementary
-parts of one model; cooperating agents contribute tools and approaches. Chat is
-the first interface to this network. Each participant controls its contribution
-and disclosure. These are product goals; qualification is recorded separately.
+**[Try Reploid](https://replo.id/)** · [Get started](docs/QUICK-START.md) · [Documentation](docs/INDEX.md)
 
-<picture>
-  <source media="(max-width: 640px)" srcset="docs/diagrams/readme-architecture-mobile.svg" />
-  <img src="docs/diagrams/readme-architecture.svg" alt="A requester without model weights receives an answer from two contributors executing different parts of one model; dotted links supply model pieces." />
-</picture>
+## Get started
 
-The diagram illustrates partitioned execution; model availability, disclosure
-permissions, and qualified peers determine which requests can run. Reploid
-coordinates work; Doppler owns model computation; Poolday connects participants.
-[Technical diagrams: components and recovery](#technical-architecture).
+From a repository checkout, install and start the browser application:
 
-**[Try Reploid](https://replo.id/)** · [Run locally](#how-to-use-reploid)
-
-Open a conversation and choose an available model. Local inference needs WebGPU
-and model files; peer execution needs another eligible, connected participant.
-
-Zero is its minimal starting configuration; X extends Zero with explicit
-capabilities and supporting blueprints. Poolday supplies optional discovery,
-artifact exchange, bounded peer computation, recovery, and reusable experience.
-Evaluation, approval, and activation are separately authorized roles.
-Change Passport remains an inactive alternative; Research Room-1 is an optional
-scientific workflow with its own evidence and admission requirements.
-
-## Who uses it
-
-Repository mission, value, and durable strategy live in [GOALS.md](GOALS.md).
-Poolday's user workflow and evidence boundary live in its
-[product intent](docs/poolday/product-intent.md).
-
-The repository serves:
-
-- Humans and agents pursuing bounded goals through authorized tools and models.
-- Experimenters testing capability acquisition and recursive improvement in Zero or X.
-- Public protein catalog curators testing a disputed family or domain annotation.
-- Research Room requesters, compute contributors, and accountable reviewers.
-- Runtime and product contributors working on browser execution and room state.
-- Security and claim reviewers checking records, relay boundaries, and evidence.
-- Researchers designing the future active-science workflow.
-
-## How to use Reploid
-
-Install and start the local browser surface:
-
-```bash
+```sh
 npm install
 npm start
 ```
 
-Open `http://localhost:8000`, or use [replo.id](https://replo.id/).
+Open `http://localhost:8000`. Choose an available model, ask a question, and review
+recipients before sharing inputs. A prepared peer can execute without requester
+weight downloads. Local execution separately requires WebGPU and model files.
 
-1. Start a conversation and select an available model. Discovery runs through the
-   configured public mesh; public participation requires no invitation, room setup
-   or manual computer selection.
-2. Ask a question. Before remote execution, review the actual recipients and
-   disclosure scope. Declining keeps the conversation usable.
-3. Receive the answer in that conversation. A prepared peer path requires no
-   requester weight downloads. If no eligible path is ready, the model remains
-   unavailable; downloading weights to run on this device is a separate choice.
-4. Start other conversations independently. Stop affects its identified attempt.
-   After an interruption, keep the partial answer and explicitly retry in a new
-   attempt; do not assume GPU continuation state survives.
-5. Optionally contribute storage or compute with explicit limits. Contribution
-   preparation is separate from using capacity already prepared by other peers.
-
-See the [network quick start](docs/QUICK-START.md) and
-[conversation acceptance contract](docs/chat-mvp.md).
-Partition execution is implemented; complete numerical and application
-qualification remains open. Evaluated tool improvement is a distinct workflow,
-with independent evaluation and operator adoption rather than automatic mutation.
-
-The product surface is:
-
-| Surface | Route | Use |
-| --- | --- | --- |
-| [Reploid](docs/poolday/product-intent.md) | `/` | Agents, models, shared tasks, contribution, and tested improvements together. |
-| Zero | `/zero` | Minimal self-loading configuration for problem-solving and improvement experiments. |
-| X | `/x` | Zero with prepared executable extensions and supporting blueprints. |
-
-Poolday is an internal name for optional peer infrastructure, not a separate
-public product. Zero's current inference default is the server proxy, with
-optional local Doppler execution; a browser agent does not imply offline inference.
-Cloud-provider and substrate setup belongs to the [Zero/X compatibility guide](docs/zero-x-quick-start.md).
-Private invitations and evaluated tool changes belong to the scoped
-[collaboration workflow](docs/work-collaboration.md). Existing signed `Pack`
-protocols retain their own catalog and verification rules; they are not another
-name for every current Doppler artifact.
+Conversations remain independent. After interruption, keep the partial answer
+and explicitly retry. Storage and compute contribution are optional, with their
+own permissions and limits. See the [conversation contract](docs/chat-mvp.md).
 
 ## Technical architecture
 
-The component view follows source at `071616b0`. These diagrams describe the
-ordinary distributed conversation, not a qualification result. See the
-[architecture guide](docs/open-mesh-architecture.md#technical-diagrams) for source owners and details.
-
 ### Component ownership
 
-The two-partition path has three cooperating flows: discover and admit a request,
-prepare only the assigned model pieces, then exchange activations and selected
-tokens until generation stops. Solid arrows carry work or data; dotted arrows
-report availability. Each executor retains its own generation state.
+Reploid coordinates; Doppler computes; Poolday transport connects participants.
+This diagram shows the two-partition path, not a deployment qualification.
 
-![Ten Reploid components connect conversations, discovery, placement, verified piece custody, and two physical executors. Activations travel forward and selected tokens return through the generation loop.](docs/diagrams/technical-architecture.svg)
+```mermaid
+flowchart TB
+    USER["Conversation<br/>requester needs no model weights"] --> COORD["Reploid<br/>discover, authorize and assign"]
+    COORD --> A["Contributor A<br/>Doppler partition 0"]
+    COORD --> B["Contributor B<br/>Doppler partition 1"]
+    STORE["Verified model pieces"] -->|assigned pieces| A
+    STORE -->|assigned pieces| B
+    A -->|activations| B
+    B -->|selected token for next step| A
+    B -->|identified output| COORD
+    COORD -->|stream answer| USER
+    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
+    classDef resource fill:#edf3ff,stroke:#2563eb,color:#111827
+    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
+    class COORD contract
+    class STORE resource
+    class A,B compute
+```
 
-[Open the diagram at full size](docs/diagrams/technical-architecture.svg).
-
-Model pieces travel to contributors, never to the requester on this path.
-[Poolday transport](packages/reploid/src/transport/) carries authorized peer
-messages and bytes. Reploid sequences the loop; Doppler owns layer computation,
-sampling, stopping, and valid continuation state. Stop closes the identified
-attempt on both executors; retained weights can serve later attempts.
+Storage sharing, whole requests, model partitions, and agent subtasks retain
+distinct contracts. Introduction or transport access grants no compute or
+input-disclosure permission.
 
 ### Attempt failure and recovery
 
-Retry creates a new attempt. Partial output survives failure; other conversations
-remain independent, and connection loss does not prove remote GPU completion.
+Every attempt has its own identity, output, and cancellation boundary.
 
 ```mermaid
-stateDiagram-v2
-    [*] --> Queued
-    Queued --> Approval: disclosure needed
-    Approval --> Queued: approved
-    Approval --> Failed: declined or expired
-    Queued --> Loading: preparation
-    Queued --> Executing: prepared path
-    Loading --> Executing
-    Loading --> Failed: preparation error
-    Executing --> Completed: valid complete response
-    Executing --> Failed: participant loss or execution error
-    Approval --> Cancelling: Stop
-    Queued --> Cancelling: Stop
-    Loading --> Cancelling: Stop
-    Executing --> Cancelling: Stop
-    Cancelling --> Cancelled: execution promise settles
-    Failed --> [*]
-    Cancelled --> [*]
-    Completed --> [*]
-    note right of Failed
-        Keep partial answer and error.
-        Explicit Retry creates a new attempt ID.
-        Other conversations remain independent.
-    end note
+flowchart TB
+    ADMIT["Authorize and admit attempt"] --> RUN["Prepare and execute"]
+    RUN -->|complete| DONE["Retain answer<br/>and outcome"]
+    RUN -->|Stop| CANCEL["Cancel identified work<br/>await owned cleanup"]
+    CANCEL --> STOPPED["Keep partial answer<br/>and stop reason"]
+    RUN -->|error or peer loss| PARTIAL["Keep partial answer<br/>and error"]
+    PARTIAL -->|explicit Retry| NEW["New authorized attempt"]
+    STOPPED -->|explicit Retry| NEW
+    NEW --> ADMIT
+    classDef contract fill:#f3edff,stroke:#7c3aed,color:#111827
+    classDef resource fill:#edf3ff,stroke:#2563eb,color:#111827
+    classDef compute fill:#fff0f3,stroke:#e11d48,color:#111827
+    class ADMIT,NEW contract
+    class DONE,STOPPED,PARTIAL resource
+    class RUN,CANCEL compute
 ```
 
-## Evidence and current surfaces
+A lost connection does not prove GPU cleanup. Restart creates a new attempt;
+saved outcomes do not restore model execution state. Other conversations keep
+their own progress and histories.
 
-The [surface claim index](docs/status/surface-claim-index.json) owns the current
-support claims and their evidence paths.
+## Evidence
 
-| Claim row | Current boundary |
-| --- | --- |
-| `local-execution` | A configured local executor runs slots in the current browser. |
-| `peer-slot-placement` | Opted-in slots may run on joined peers; joining does not expose local inference without a local executor. |
-| `browser-provider-roles` | Requesters and providers exchange assignments, outputs, and receipts through peer rooms. |
-| `signaling` | Same-browser rooms can use `BroadcastChannel`; cross-host WebRTC uses signaling for rendezvous. |
-| `sealed-credentials` | `npm start` can build sealed access windows; client artifacts omit the plaintext key. |
-| `public-mesh` | Blocked as a signaling-free claim while cross-host rendezvous requires signaling. |
+Partition execution is implemented; complete numerical and application
+qualification remains open. The [surface claim index](docs/status/surface-claim-index.json)
+records supported scopes and unresolved gates. Cross-host rendezvous still
+requires signaling; a receipt alone does not prove honest execution.
 
-The peer-execution path provides receipt-backed browser inference. Its claimed
-local model execution and browser agent state stay in the browser; explicitly
-selected cloud providers have their own execution boundary. Services may handle
-authentication, rendezvous, policy enforcement, receipt anchors, and ledger
-projections; they do not perform the claimed browser-local model execution.
-The current enabled scientific peer catalog covers public protein inputs and
-the pinned ESM-2 contract; that scope does not define every Reploid task.
-
-## Limits and status
-
-Reploid does not claim hardware attestation, independently trustworthy
-browser/GPU execution, or guaranteed honest providers. Relay acknowledgement proves receipt of a relay
-record, not execution truth. Capability claims require their declared evidence;
-ordinary networking and experimental use do not establish improvement. Learned
-routing and scientific-policy promotion retain their specific admission gates.
-Read the claim index row before repeating a capability statement.
-
-## Repository map
-
-- [`packages/reploid/`](packages/reploid/): reusable chat, mesh, transport, custody and agent implementation
-- [`self/host/`](self/host/): browser service composition, storage and runtime ports
-- [`self/ui/`](self/ui/): presentation and actions backed by package-owned state
-- [`self/`](self/): browser boot profiles and Zero/X substrate, VFS and tools
-- [`docs/`](docs/): product intent, claims, security, architecture, and operator guides
-- [`deploy/`](deploy/): deployment and access-window tooling
-- [`doppler/`](doppler/): vendored or paired Doppler integration surface
-- [`examples/showcase/`](examples/showcase/): demonstrations and recorded runs
-- [`package.json`](package.json): package metadata and local commands
-
-## Intent and component authority
-
-- [GOALS.md](GOALS.md) owns the repository mission, value, and durable strategic goals.
-- [CATSCAN.md](CATSCAN.md) is the root component charter. Child charters narrow its authority for independently meaningful components.
-- The generated [component index](docs/component-index.md) lists every charter, parent, and target.
-- [AGENTS.md](AGENTS.md) defines how code agents discover and obey the charter chain.
-- The [workspace CATSCAN protocol](https://github.com/clocksmith/ouroboros/blob/main/deco/docs/catscan.md) defines the shared shape and precedence rules.
-
-Run `npm run catscan:chain -- <path>` to print the charter chain for a target file. Run `npm run verify:catscan` to validate fields, parents, links, evidence paths, identifiers, size, and the generated index.
+Improvement is a separate workflow: independently evaluate changes, authorize
+reversible adoption, then measure results. Model confidence never grants authority.
+See [improvement episodes](docs/rsi-improvement-episodes.md).
 
 ## Read next
 
-- [Repository goals](GOALS.md)
-- [Root component charter](CATSCAN.md)
-- [Component index](docs/component-index.md)
-- [Documentation index](docs/INDEX.md)
-- [Poolday product intent](docs/poolday/product-intent.md)
-- [Discovery Contract](docs/poolday/discovery-contract.md)
-- [Poolday claims and non-claims](docs/poolday/claims-and-nonclaims.md)
-- [Security model](docs/SECURITY.md)
-- [RSI improvement episodes](docs/rsi-improvement-episodes.md)
-- [Doppler](https://github.com/clocksmith/doppler)
+- [Architecture](docs/open-mesh-architecture.md) — coordination, custody, and recovery.
+- [Security](docs/SECURITY.md) — permission and trust boundaries.
+- [Zero and X](docs/zero-x-quick-start.md) — optional agent configurations.
+- [Goals](GOALS.md) · [Contributing](AGENTS.md) — priorities and component ownership.
 
 ## License
 
-[MIT License](LICENSE). The package metadata also declares `MIT`.
+[MIT](LICENSE).
