@@ -1,0 +1,121 @@
+{
+  "scope": "Actual Verification Worker static analysis under its existing /testing/ process capability. These are trusted Node-only physical test controllers and their existing packaging verifier, not deployed browser modules. This does not change browser authority or erase the earlier unclassified-path rejection.",
+  "workerSha256": "4c324ea5faa7b2d1ab34ad0ceac38f16852041155a4d4798048dd847cf9d38d8",
+  "sources": [
+    {
+      "path": "scripts/package-hosting.js",
+      "workerPath": "/testing/scripts/package-hosting.js",
+      "sha256": "ace99902b0226b3ca13383925efdaf8c733e2d7456d3a3aef18625d5f4185419"
+    },
+    {
+      "path": "artifacts/cleanup-failure-20261012/active-controller.mjs",
+      "workerPath": "/testing/artifacts/cleanup-failure-20261012/active-controller.mjs",
+      "sha256": "2d6a437ee7a4c4a91e6cb1aaeb5b5fed3fb1b4af171e6b66e693baf935de0ce3"
+    },
+    {
+      "path": "artifacts/cleanup-failure-20261012/signed-preflight.js",
+      "workerPath": "/testing/artifacts/cleanup-failure-20261012/signed-preflight.js",
+      "sha256": "1438c4def6ebf8b8bc61d0b2bb849cee5ad33e66c49518787111711624919aa4"
+    },
+    {
+      "path": "artifacts/cleanup-failure-20261012/signed-preflight.test.js",
+      "workerPath": "/testing/artifacts/cleanup-failure-20261012/signed-preflight.test.js",
+      "sha256": "a967c9ec51cee8780d9ece947443acd32cf82a1eeaaa54a2d1c21b6a3b4b569c"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/scripts/package-hosting.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/scripts/package-hosting.js:14: Suspicious variable name: exec - may indicate code execution",
+      "Warning in /testing/artifacts/cleanup-failure-20261012/signed-preflight.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/artifacts/cleanup-failure-20261012/signed-preflight.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837278793,
+        "path": "/testing/scripts/package-hosting.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837278794,
+        "path": "/testing/scripts/package-hosting.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 14,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837278799,
+        "path": "/testing/artifacts/cleanup-failure-20261012/signed-preflight.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791837278803,
+        "path": "/testing/artifacts/cleanup-failure-20261012/signed-preflight.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791837278803,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/testing/artifacts/cleanup-failure-20261012/signed-preflight.test.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/scripts/package-hosting.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/artifacts/cleanup-failure-20261012/signed-preflight.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/artifacts/cleanup-failure-20261012/signed-preflight.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/testing/artifacts/cleanup-failure-20261012/signed-preflight.test.js"
+        }
+      ],
+      "filesAnalyzed": 3
+    }
+  }
+}

@@ -147,3 +147,11 @@ is absent; the logged run above executed it. `signed-reader-binding.json` binds
 the actual candidate reader/composition source. The separate existing Doppler
 `tests/runtime/resident-piece-acquisition.test.js` exercises signed runtime opening
 and its honest post-read receipt. Neither check supplies real-model qualification.
+
+The later `signed-runner-worker-testing.json` records the same actual Verification
+Worker using its existing `/testing/` process capability for the trusted Node-only
+controller, preflight/tests, and reused hosting verifier. All four files pass
+static analysis with five warnings. Exact source hashes and the worker hash are
+bound in the receipt. The original unclassified-path rejection remains in
+`signed-runner-worker.json`; no validator rule or deployed browser authority was
+changed. This tooling check does not establish physical signed acceptance.
