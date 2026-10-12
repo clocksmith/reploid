@@ -1,4 +1,4 @@
-/** Two physical browsers, installed package, exact retained requests, full decode.
+/** Physical browser/native executors, installed package, exact retained requests, full decode.
  * Local verified bytes and Node tensor forwarding are not P2P acquisition proof. */
 import assert from 'node:assert/strict';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -7,6 +7,9 @@ import { hostname } from 'node:os';
 import { resolve } from 'node:path';
 import { loadPairedPartitionFixture, assertPartitionTraversal } from './paired-partition-binding.js';
 import { runConcurrentPartitionMemory } from './concurrent-partition-memory.js';
+import { selectPartitionDiagnostic } from './partition-diagnostic-selection.js';
+import { observePartitionAttemptCleanup } from './partition-attempt-cleanup.js';
+import { connectNativePartitionEndpoint } from './native-partition-endpoint.js';
 import { preparePartitionMemory } from './prepare-partition-memory.js';
 import { verifyNumericalTestDelivery } from './numerical-test-delivery.js';
 import { observeResidentOpening } from './resident-opening-observer.js';
@@ -50,12 +53,9 @@ const pairedBinding = await loadPairedPartitionFixture({
   archivePath: resolve(import.meta.dirname, '../..', packageIdentity.spec.replace(/^file:/, '')),
   referenceIdentity: reference?.modelIdentity || retainedModelIdentity
 });
-const probePrompt = process.env.REPLOID_DIAGNOSTIC_PROMPT === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_PROMPT);
-const probeStep = process.env.REPLOID_DIAGNOSTIC_STEP === undefined ? null : Number(process.env.REPLOID_DIAGNOSTIC_STEP);
-if (probePrompt !== null || probeStep !== null) {
-  assert(Number.isSafeInteger(probePrompt) && probePrompt >= 0 && Number.isSafeInteger(probeStep) && probeStep >= 0);
-  assert(reference?.expected[probePrompt]?.steps[probeStep], 'Selected frozen boundary is missing');
-}
+const { prompt: probePrompt, step: probeStep, promptOnly } = selectPartitionDiagnostic({
+  prompt: process.env.REPLOID_DIAGNOSTIC_PROMPT, step: process.env.REPLOID_DIAGNOSTIC_STEP, reference
+});
 const generation = reference?.generation || { ...requests[0].model.generation, ...profile.generation, ...policy.generation,
   maxSeqLen: policy.maxSeqLen };
 assert(generation.maxTokens <= policy.limits.maxTokens);
@@ -71,13 +71,19 @@ const cases = capacityModel ? [{ request: { ...requests[0], model: { ...capacity
   ? [{ request: requests[0], tokens: 494 }, { request: requests[1], tokens: 1588 }, { request: requests[1], tokens: 1588 }]
   : [{ request: requests[1], tokens: 1588, cancel: true }, { request: requests[1], tokens: 1588 }];
 if (phase === 'cancel-only') cases.splice(1);
-assert(output && process.env.REPLOID_EXECUTOR_WS);
+const nativeEndpoint = process.env.REPLOID_NATIVE_EXECUTOR_WS || null;
+assert(output && (nativeEndpoint || process.env.REPLOID_EXECUTOR_WS));
 const reverse = process.env.REPLOID_REFERENCE_REVERSE === '1';
 const referenceHost = process.env.REPLOID_REFERENCE_HOST || null;
+if (nativeEndpoint) assert(phase === 'reference' && !referenceHost, 'Native adapter currently qualifies only the frozen split reference');
 assert(!referenceHost || (reference && ['mac', 'linux'].includes(referenceHost) && !reverse));
 if (referenceHost) assert.equal(process.platform, 'darwin', 'The physical controller must be the Mac; its remote executor is Linux');
 const local = await chromium.launch(physicalWebGpuBrowserOptions(process.platform));
-const remote = await connectPhysicalBrowser(chromium, process.env.REPLOID_EXECUTOR_WS);
+let remote;
+try {
+  remote = nativeEndpoint ? await connectNativePartitionEndpoint(nativeEndpoint)
+    : await connectPhysicalBrowser(chromium, process.env.REPLOID_EXECUTOR_WS);
+} catch (error) { await local.close(); throw error; }
 const contexts = [], pages = [], runs = [], descriptors = [];
 const distributedControls = [];
 let cleanupFailure = null;
@@ -92,16 +98,18 @@ const evidence = { scope: reference
   partitionHosts: hostNames.map((host, slot) => ({ index: reverse ? 1 - slot : slot, host })),
   tokenSequence: reference ? 'Frozen reference token IDs, with sampled tokens checked separately' : null,
   observationTarget: probePrompt === null ? null : { prompt: probePrompt, step: probeStep,
-    scope: 'Selected from the retained four-control comparison; not necessarily the first frozen-reference failure' },
+    scope: promptOnly ? 'One complete original request; no boundary capture or auxiliary unsplit execution'
+      : 'Selected from the retained four-control comparison; not necessarily the first frozen-reference failure' },
   testDelivery, pairedBinding, requestFixtureSha256: createHash('sha256').update(raw).digest('hex'), phase, runs, descriptors };
 try {
   for (const [slot, browser] of hostBrowsers.entries()) {
     const index = reverse ? 1 - slot : slot;
     const context = await browser.newContext(); contexts.push(context);
     const page = await context.newPage(); pages.push(page);
-    await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000').href);
+    if (browser.native) await browser.open();
+    else await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000').href);
     const openingObserver = pairedBinding ? await observeResidentOpening(page, {
-      runtimeBaseUrl: await page.evaluate(async () => {
+      runtimeBaseUrl: browser.native ? browser.identity.fixture.runtimeBaseUrl : await page.evaluate(async () => {
         const config = await import('/config/doppler-local-models.js');
         return new URL('./', new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href)).href;
       }),
@@ -110,7 +118,7 @@ try {
     }) : null;
     let prepared;
     try {
-    prepared = await page.evaluate(preparePartitionMemory, { config: await page.evaluate(async () => {
+    prepared = await page.evaluate(preparePartitionMemory, { config: browser.native ? browser.identity.fixture.config : await page.evaluate(async () => {
       const config = await import('/config/doppler-local-models.js');
       return { DOPPLER_PACKAGE_VERSION: config.DOPPLER_PACKAGE_VERSION, DOPPLER_PARTITIONS_MODULE_URL: new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href).href,
         DOPPLER_KERNEL_BASE_URL: new URL(config.DOPPLER_KERNEL_BASE_URL, location.href).href };
@@ -118,8 +126,11 @@ try {
       modelSource: (browser === remote ? process.env.REPLOID_PEER_MODEL_BASE_URL : null)
         || process.env.REPLOID_MODEL_BASE_URL || 'http://127.0.0.1:9230/' });
     if (openingObserver) prepared.openingObservation = await openingObserver.finish();
+    if (browser.native) prepared.nativeProvider = await page.evaluate(() => __nativePartitionFixture.observeProvider());
     } finally { await openingObserver?.close(); }
-    descriptors.push({ ...prepared, platform: hostNames[slot], browser: browser.version() });
+    descriptors.push({ ...prepared, platform: hostNames[slot],
+      ...(browser.native ? { surface: 'node-webgpu', node: browser.identity.node, nativeHost: browser.identity.fixture }
+        : { surface: 'browser-webgpu', browser: browser.version() }) });
     console.log(JSON.stringify({ prepared: index, bytes: prepared.afterPreparation.device.liveBytes }));
   }
   assert.equal(descriptors[0].planId, descriptors[1].planId, 'Both executors must use the exact same plan');
@@ -217,15 +228,13 @@ try {
       else throw error;
     }
     finally {
-      row.beforeClose = []; row.chunks = [];
-      for (const page of pages) {
-        row.beforeClose.push(await page.evaluate(() => memorySnapshot()));
-        await page.evaluate(identity => resident.closeAttempt({ identity }), identity);
-        row.after.push(await page.evaluate(() => settleMemory()));
-        row.chunks.push(await page.evaluate(() => chunks));
-      }
+      Object.assign(row, await observePartitionAttemptCleanup(pages, identity));
       await writeFile(output, JSON.stringify(evidence));
+      if (row.cleanupErrors.length && !row.error) {
+        throw new AggregateError(row.cleanupErrors.map(error => new Error(error.message)), 'Attempt cleanup failed');
+      }
     }
+
     if (testCase.cancel) {
       assert(row.cancelled, 'Cancellation must reject before generation completes');
       row.allocationRejections = [];
@@ -273,7 +282,7 @@ try {
     attempt: 0, parameters: { step: 0 }, messages: cases[0].request.messages,
     prefillTokenIds: distributedControls[0].tokenIds, priorTokenIds: [],
     group1: distributedControls[0].steps[0], frozen: cases[0].expected.steps[0] });
-  if (first && (!referenceHost || completeControl) && (referenceHost || process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1')) {
+  if (!nativeEndpoint && !promptOnly && first && (!referenceHost || completeControl) && (referenceHost || process.env.REPLOID_REQUIRE_NUMERICAL_TOLERANCE === '1')) {
     const probeLayer = Number(process.env.REPLOID_DIAGNOSTIC_LAYER ?? 0);
     assert(Number.isSafeInteger(probeLayer) && probeLayer >= 0, 'Invalid diagnostic layer');
     evidence.unsplitFirstDivergence = { scope: 'Same installed package, model, prompt tokens and generation; independent 6 GB diagnostics, excluded from constrained capacity proof', runs: [] };
@@ -550,8 +559,19 @@ try {
       firstOperatorDifference: evidence.unsplitFirstDivergence.operatorComparison.find(row => row.maxDifference > 0) }));
     }
   }
+  evidence.deviceObservations = await Promise.all(pages.map(page => page.evaluate(() => ({
+    deviceEvents: globalThis.partitionDeviceEvents || [], snapshot: globalThis.memorySnapshot?.()
+  })).catch(error => ({ error: error.message }))));
   await writeFile(output, JSON.stringify(evidence));
   for (const context of contexts) await context.close();
-  await local.close(); await remote.close();
-  if (cleanupFailure) throw cleanupFailure;
+  await local.close();
+  try {
+    const closed = await remote.close();
+    if (nativeEndpoint) evidence.nativeHostSettlement = { ...closed, pid: remote.identity.pid };
+  } catch (error) {
+    if (nativeEndpoint) evidence.nativeHostSettlement = { pid: remote.identity.pid, ownedProviderReleased: false, error: error.message };
+    cleanupFailure ||= error;
+  }
+  await writeFile(output, JSON.stringify(evidence));
+  if (cleanupFailure && !evidence.failure) throw cleanupFailure;
 }

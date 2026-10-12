@@ -1,0 +1,56 @@
+// @vitest-environment node
+import { test, expect, vi } from 'vitest';
+import { createHash, webcrypto } from 'node:crypto';
+import { preparePartitionMemory } from '../fixtures/prepare-partition-memory.js';
+
+test('device loss remains observable when the global device and pool disappear', async () => {
+  const names = ['__nativePartitionFixture', '__DOPPLER_KERNEL_BASE_PATH__', 'gpuValidationErrors',
+    'partitionDeviceEvents', 'partitionGpuSubmissions', 'resident', 'chunks', 'observePrefill', 'abortOnSubmit', 'encodeBytes', 'memorySnapshot', 'settleMemory', 'rejectOversizedAllocation'];
+  const prior = new Map(names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
+  const bytes = new TextEncoder().encode(JSON.stringify({ modelId: 'test', architecture: {},
+    inference: { session: { compute: { defaults: { activationDtype: 'f32' } } } } }));
+  const identity = 'sha256:' + createHash('sha256').update(bytes).digest('hex');
+  const submitted = [], dispatched = [];
+  let lose, lost = false;
+  const device = { lost: new Promise(resolve => { lose = resolve; }), addEventListener() {},
+    queue: { submit: buffers => submitted.push(buffers), onSubmittedWorkDone: async () => { if (lost) throw Error('queue lost'); } },
+    createBindGroup: () => ({}), createComputePipeline: () => ({}), createComputePipelineAsync: async () => ({}),
+    createCommandEncoder: () => ({ beginComputePass: () => ({ setPipeline() {}, setBindGroup() {},
+      dispatchWorkgroups: (...args) => dispatched.push(args), dispatchWorkgroupsIndirect() {} }), finish: () => ({}) }) }; 
+  const runtime = { createLayerPartitionPlan: () => ({}), hashLayerPartitionPlan: () => 'test-plan',
+    configureDeviceMemoryBudget: async () => {}, inspectDeviceMemory: () => ({ liveBytes: 12 }),
+    createManifestResidentPartitionFactory: () => ({ openResidentPartition: async () => ({ getDescriptor: () => ({ ready: true }) }) }) };
+  const modules = { 'partitions.js': runtime,
+    'device.js': { getDevice: () => lost ? null : device, getKernelCapabilities: () => ({}) },
+    'buffer-pool.js': { getBufferPool: () => { if (lost) throw Error('pool lost');
+      return { getStats: () => ({ activeBuffers: 0 }), getLabelStats: () => [] }; } },
+    'artifact-storage-context.js': { createHttpArtifactStorageContext: () => ({}) } };
+  vi.stubGlobal('crypto', webcrypto);
+  vi.stubGlobal('fetch', async () => ({ arrayBuffer: async () => bytes.buffer }));
+  globalThis.__nativePartitionFixture = { importModule: async url => modules[url.split('/').at(-1)] };
+  try {
+    await preparePartitionMemory({ model: { identity, generation: { maxSeqLen: 32 } }, index: 0,
+      modelSource: 'https://fixture/', config: { DOPPLER_PARTITIONS_MODULE_URL: 'https://fixture/src/partitions.js' },
+      policy: { maxGpuBufferBytes: 1420000000 } });
+    const pipeline = await device.createComputePipelineAsync({ label: 'test pipeline', compute: { entryPoint: 'main', constants: { WIDTH: 8 } } });
+    const encoder = device.createCommandEncoder({ label: 'test encoder' });
+    const group = device.createBindGroup({ entries: [{ binding: 0, resource: { buffer: { label: 'layer12.weight', size: 64 }, offset: 4, size: 32 } }] });
+    const pass = encoder.beginComputePass(); pass.setPipeline(pipeline); pass.setBindGroup(0, group); pass.dispatchWorkgroups(3);
+    const buffer = encoder.finish(); device.queue.submit((function* () { yield buffer; })());
+    expect(submitted).toEqual([[buffer]]); expect(dispatched).toEqual([[3, undefined, undefined]]);
+    expect(globalThis.memorySnapshot().submissions[0].commandBuffers[0]).toMatchObject({ label: 'test encoder',
+      commands: [{ pipeline: { label: 'test pipeline', entryPoint: 'main', constants: { WIDTH: 8 } }, bindings: { 0: [{ binding: 0, bufferLabel: 'layer12.weight', bufferBytes: 64, offset: 4, size: 32 }] }, workgroups: [3, 1, 1] }] });
+    expect(globalThis.memorySnapshot().pool.activeBuffers).toBe(0);
+    lost = true; lose({ reason: 'unknown', message: 'actual device failure' }); await Promise.resolve();
+    const snapshot = globalThis.memorySnapshot();
+    expect(snapshot.device.liveBytes).toBe(12);
+    expect(snapshot.pool).toBeNull();
+    expect(snapshot.observationErrors).toContainEqual({ operation: 'pool', message: 'pool lost' });
+    expect(snapshot.deviceEvents).toContainEqual(expect.objectContaining({ type: 'device-lost', message: 'actual device failure' }));
+    await expect(globalThis.settleMemory()).rejects.toThrow('queue lost');
+    expect(globalThis.memorySnapshot().deviceEvents).toContainEqual(expect.objectContaining({ type: 'queue-failed', message: 'queue lost' }));
+  } finally {
+    vi.unstubAllGlobals();
+    for (const [name, descriptor] of prior) { if (descriptor) Object.defineProperty(globalThis, name, descriptor); else delete globalThis[name]; }
+  }
+});
