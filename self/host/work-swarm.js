@@ -23,6 +23,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const options = networkOptions({ Utils: utils, EventBus: eventBus }, { enabled: true });
   let consumer = null, supplier = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
   let connection = null, introductionAssistance = false;
+  let connectionFailure = null;
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
   let automaticAllowed = options.autoConnect !== false;
   const requests = new Map();
@@ -40,7 +41,8 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   });
   let contributor = null, stoppingContribution = null, contributionEpoch = 0;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
-  const getState = () => ({ introductionAssistance, sharing, stopping, connecting, paused, error, models: LOCAL_DOPPLER_MODELS,
+  const getState = () => ({ introductionAssistance, sharing, stopping, connecting, paused,
+    error: error || connectionFailure?.message || '', models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
     partitionPeers: partitionMesh?.getState?.()?.capabilities || [],
     contribution: { ...contribution }, limits: { maxInboundJobs: contribution.partition ? partitionPolicy.limits.maxConcurrentAttempts : 1, maxOutputTokens: profile.generation.maxTokens },
@@ -48,11 +50,21 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     offers: peerOffers?.getState() || null });
   const notify = () => onChange(getState());
   for (const event of ['swarm:bootstrap-error', 'swarm:connection-failed']) eventBus.on(event, detail => {
-    if (!closed && !paused) { error = detail.message; notify(); }
+    if (!closed && !paused) {
+      connectionFailure = { message: detail.message, peerId: event === 'swarm:connection-failed' ? detail.peerId : null };
+      notify();
+    }
   });
   const peerOffers = evolution ? createWorkPeerOffers({ storage, evolution, roomId: options.config.value.mesh.roomId,
     getTransport: () => consumerTransport, onChange: notify }) : null;
-  eventBus.on('swarm:peer-connected', () => modelFiles?.announce());
+  eventBus.on('swarm:peer-connected', detail => {
+    if (closed || paused) return;
+    if (detail.peerId && connectionFailure?.peerId === detail.peerId) {
+      connectionFailure = null;
+      notify();
+    }
+    modelFiles?.announce();
+  });
   const build = (model, peerId, execution = null) => {
     const version = generation;
     let signingIdentity = null;
@@ -127,7 +139,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const connectOnce = async () => {
     if (closed) throw new Error('Text swarm is closed');
     const version = generation;
-    connecting = true; error = ''; notify();
+    connecting = true; error = ''; connectionFailure = null; notify();
     try {
       if (!consumer) {
         const peerId = await peerOffers?.acquire();
@@ -235,6 +247,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     if (!automatic) { paused = true; storage?.setItem('REPLOID_SWARM_ENABLED', 'false'); }
     if (disconnecting) return disconnecting;
     generation++;
+    connectionFailure = null;
     const contributionStop = stopContribution();
     const partitionStop = partitionMesh?.close(); partitionMesh = null;
     const fileStop = modelFiles?.close(); modelFiles = null;

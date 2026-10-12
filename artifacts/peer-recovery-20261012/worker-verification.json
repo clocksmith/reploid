@@ -1,0 +1,118 @@
+{
+  "schema": "reploid.native-status-verification/v1",
+  "at": "2026-10-12T16:04:14.460Z",
+  "kind": "Actual classic Verification Worker static/AST analysis; no inference or adoption claim",
+  "sources": [
+    {
+      "path": "self/host/work-swarm.js",
+      "hash": "sha256:3587113297e438e0dd4e987b30122a8f1b05ba07fab17382042e2a7267d6f3cb"
+    },
+    {
+      "path": "tests/unit/work-swarm-lifecycle.test.js",
+      "hash": "sha256:052f27bde9b72549d1d201235668f7668da84ac7414e5df23222595f9b63dda6"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /host/work-swarm.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 35 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/work-swarm-lifecycle.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791821054453,
+        "path": "/host/work-swarm.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791821054455,
+        "metric": "functions",
+        "value": 35,
+        "threshold": 20,
+        "message": "File has 35 functions (max 20) - consider modularizing",
+        "path": "/host/work-swarm.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791821054455,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/host/work-swarm.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791821054457,
+        "path": "/tests/unit/work-swarm-lifecycle.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791821054458,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/tests/unit/work-swarm-lifecycle.test.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/host/work-swarm.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/work-swarm-lifecycle.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 35,
+          "threshold": 20,
+          "message": "File has 35 functions (max 20) - consider modularizing",
+          "path": "/host/work-swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/host/work-swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/tests/unit/work-swarm-lifecycle.test.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}
