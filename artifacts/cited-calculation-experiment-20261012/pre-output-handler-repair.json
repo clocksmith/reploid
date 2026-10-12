@@ -1,0 +1,38 @@
+{
+  "schema": "reploid.pre-output-handler-repair/v1",
+  "reviewer": "native_participation",
+  "outputsRead": false,
+  "beforeSha256": "66cc37ffad2ec26f53d3ae484b5e8754109789d0b027e36f722f89179288173a",
+  "observedBefore": "All five invalid fact shapes accepted by facts-only calculation",
+  "cases": [
+    {
+      "kind": "money",
+      "value": "10%",
+      "quote": "10%"
+    },
+    {
+      "kind": "percent",
+      "value": "$10",
+      "quote": "$10"
+    },
+    {
+      "kind": "money",
+      "value": "$10%",
+      "quote": "$10%"
+    },
+    {
+      "kind": "number",
+      "value": "one",
+      "quote": "twenty-one"
+    },
+    {
+      "kind": "date",
+      "value": "February 31",
+      "quote": "February 31"
+    }
+  ],
+  "repair": "Reject explicit unit/kind conflict, partial hyphenated number words, and invalid calendar dates before operation consumption. Frozen full semantic quality criteria unchanged.",
+  "afterSha256": "1b27c727e9a4b5daf6b7b3b6cbb3f3c887370cc72071d989d1e3f5185300f27a",
+  "regressionCommand": "node artifacts/cited-calculation-experiment-20261012/calculate.test.js",
+  "result": "passed"
+}

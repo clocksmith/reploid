@@ -1,0 +1,32 @@
+import assert from 'node:assert/strict';
+import { attachmentInput } from '../../self/host/document-comparison.js';
+import { calculate, runCalculation } from './calculate.js';
+const messages = [{ role: 'user', content: attachmentInput('Allow $500 for five units.', [{ name: 'terms', text: 'Units cost $17.25 each. Deposit is 20%. Start January 28 with three weeks planned. Leap start February 20 with two weeks planned.' }]) }];
+const f = (id, kind, value, quote, source = 'D1:P1') => ({ id, kind, value, quote, source });
+const facts = [f('unit', 'money', '$17.25', 'Units cost $17.25 each.'), f('count', 'number', 'five', 'five units.', 'U0'), f('budget', 'money', '$500', 'Allow $500', 'U0'), f('percent', 'percent', '20%', 'Deposit is 20%.'), f('start', 'date', 'January 28', 'Start January 28'), f('duration', 'weeks', 'three', 'three weeks planned.')];
+const operations = [{ id: 'total', op: 'multiply', args: ['unit', 'count'] }, { id: 'remainder', op: 'subtract', args: ['budget', 'total'] }, { id: 'deposit', op: 'percent', args: ['total', 'percent'] }, { id: 'finish', op: 'addCalendarDuration', args: ['start', 'duration'] }];
+const plan = { facts, operations };
+assert.deepEqual(calculate(plan, messages).results.map(x => x.value), ['86.25', '413.75', '17.25', 'february 18 (year unspecified)']);
+assert.deepEqual(calculate(plan, messages).results[0].sources, ['D1:P1', 'U0']);
+const bad = change => { const p = structuredClone(plan); change(p); assert.throws(() => calculate(p, messages)); };
+bad(p => { p.facts[0].source = 'D9:P1'; });
+bad(p => { p.facts[0].quote = 'Units cost $71.25 each.'; });
+bad(p => { p.facts[0].value = '7'; });
+bad(p => { p.facts[0].id = 'count'; });
+bad(p => { p.operations[0].args[1] = 5; });
+bad(p => { p.operations[0].op = 'eval'; });
+bad(p => { p.operations[0].op = 'divide'; });
+bad(p => { p.operations[0].op = 'add'; });
+bad(p => { p.operations[0].args[1] = 'future'; });
+assert.throws(() => calculate({ facts: [f('large', 'number', '100000000000000000000', '100000000000000000000', 'U0')], operations: [] }, [{ role: 'user', content: '100000000000000000000' }]), /bounds/);
+assert.throws(() => calculate({ facts: [f('start', 'date', 'February 20', 'Leap start February 20'), f('duration', 'weeks', 'two', 'two weeks planned.')], operations: [{ id: 'end', op: 'addCalendarDuration', args: ['start', 'duration'] }] }, messages), /Missing year/);
+assert.throws(() => calculate({ facts: [f('x', 'money', '$500', 'Allow $500', 'U1')], operations: [] }, [...messages, { role: 'assistant', content: 'Allow $500' }]), /Citation quote mismatch/);
+assert.throws(() => calculate({ facts: [], operations: Array(31).fill({}) }, messages), /bounds/);
+for (const [kind, value, quote, error] of [['money', '$10%', '$10%', /unit/], ['money', '10%', '10%', /unit/], ['percent', '$10', '$10', /unit/], ['number', '10', '$10', /Partial/], ['money', '10', '10%', /Partial/], ['number', 'one', 'twenty-one', /Partial/], ['date', 'February 31', 'February 31', /Invalid calendar/]]) {
+  assert.throws(() => calculate({ facts: [f('bad', kind, value, quote, 'U0')], operations: [] }, [{ role: 'user', content: quote }]), error);
+}
+await assert.rejects(runCalculation(plan, messages, { authorized: false }), /denied/);
+const controller = new AbortController(); controller.abort();
+await assert.rejects(runCalculation(plan, messages, { signal: controller.signal }), /abort/i);
+assert.deepEqual((await runCalculation(plan, messages)).results, calculate(plan, messages).results);
+console.log('Citation, arithmetic, calendar, unit, bound, authorization and cancellation checks passed. These do not establish semantic extraction quality.');

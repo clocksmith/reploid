@@ -1,0 +1,31 @@
+{
+  "kind": "Independent pre-output review",
+  "outputsRead": false,
+  "freezeSha256": "1319a9c85e3ffd52615007309ed13536b2ee197398d1d697b52c1a9ce2592a85",
+  "files": {
+    "calculate.js": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+    "calculate.test.js": "18b6a19b29469afd5461b358cf01f5e932b521d0dd1e2dfaaf478eb69126d90e",
+    "run.py": "488cc79b8c7e9b98a428f5bc9fe6e0ccaab93203892923d45a4b38d205402c77",
+    "suite.json": "11327ff08dc1f0284acf59e03751b8cdd9167213316aa34d1b75bd29b94f0cee"
+  },
+  "originalFourCasesExact": true,
+  "freshCasesReviewed": [
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "actualBeforeCounterexamples": 5,
+  "additionalUnitOmissionCounterexamples": 2,
+  "allSevenRejectAfterRepair": true,
+  "handlerChecks": "node artifacts/cited-calculation-experiment-20261012/calculate.test.js passed",
+  "observations": [
+    "Original ordered messages and four semantic rubrics remain unchanged; three fresh cases separately check tax uncertainty, conditional schedule and included allowance/conflicting removal terms.",
+    "Handler only validates literal quoted spans, units, bounded exact arithmetic and declared calendar domain. Semantic correctness and completeness still require independent manual review.",
+    "Every final derived amount/date must map to a successful tool result using semantically correct source operands; empty or irrelevant plans cannot qualify a lucky model answer.",
+    "Both calls charge repeated input tokens and all generated tokens; exact tool-result-augmented user message is tokenized before its admission. Aggregate budgets remain4096generated/8192prompt-plus-generated/16000rawUTF16.",
+    "Tool results and their quoted source text remain delimited user data, not elevated system instructions.",
+    "Tool rejection remains explicit and cannot produce complete=true; an explanatory answer after rejection is not a successful tool-assisted result.",
+    "EOS, natural completion, correct amounts, conditions, contradictions, source attribution and citations all remain required; numerical keyword presence is insufficient."
+  ],
+  "disposition": "Ready for one frozen source diagnostic; no model-quality acceptance or production promotion. No outputs existed or were inspected during this review."
+}
