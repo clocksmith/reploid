@@ -1,0 +1,25 @@
+{
+  "scope": "Offline UI loading with WebGPU explicitly disabled, not physical phone or network inference acceptance",
+  "launchArgs": [
+    "--disable-gpu",
+    "--disable-blink-features=WebGPU"
+  ],
+  "errors": [],
+  "views": [
+    {
+      "name": "desktop",
+      "gpuAvailable": true,
+      "composerVisible": true,
+      "viewportWidth": 1280,
+      "documentWidth": 1280
+    },
+    {
+      "name": "phone",
+      "gpuAvailable": true,
+      "composerVisible": true,
+      "viewportWidth": 390,
+      "documentWidth": 390
+    }
+  ],
+  "complete": true
+}

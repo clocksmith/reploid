@@ -48,3 +48,18 @@ package. Its already-running direct resident control remains separately bound
 evidence; it cannot qualify ordinary CLI catalog integration. The canonical
 synchronization used here updates both package and catalog mirrors. No running
 artifact was changed, and this new native delivery has not yet executed inference.
+
+## Offline browser loading
+
+Fresh Playwright contexts loaded the exact hosting directory at desktop
+1280×800 and phone-sized 390×844 viewports, with external traffic blocked.
+The composer rendered, document width matched the viewport, and no page errors
+occurred. Both owned browsers and static servers closed afterward. The
+[review](ui-smoke-review.json) links this limited check to the bundle identity;
+raw loading observations are retained alongside it.
+
+The requested GPU-disable flags did not remove `navigator.gpu`. Consequently,
+the raw driver's intended-disablement scope strings are not evidence that the
+API was absent. No inference was requested, but GPU API calls were not counted.
+This is not GPU-absence proof, a physical-phone test, a network conversation or
+complete visual acceptance. No runtime or UI source was changed by the smoke.
