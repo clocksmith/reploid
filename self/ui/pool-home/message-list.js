@@ -1,3 +1,4 @@
+import { interfaceIcon } from '../components/interface-icons.js';
 import { updateExecutionActivity } from './execution-activity.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 
@@ -59,7 +60,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
           actions.innerHTML = `${failed ? `<p role="status">${escape(failureLabel(attempt))}</p>${attempt.error ? `<details><summary>Technical details</summary><pre>${escape(attempt.error)}</pre></details>` : ''}` : ''}
             ${attempt?.retryOf ? '<small>New attempt</small>' : ''}
             ${retryable ? `<button type="button" class="pool-button" data-retry-attempt="${escape(attempt.id)}"${usable ? '' : ' disabled'}>Retry response</button><small>Starts a new attempt; keeps this response.</small>` : ''}
-            ${message.content ? '<button type="button" class="pool-button" data-copy-message>Copy</button>' : ''}`;
+            ${message.content ? `<button type="button" class="pool-button" data-copy-message aria-label="Copy response" title="Copy response">${interfaceIcon('copy')}</button>` : ''}`;
         }
         if (row.parentElement !== stream) stream.append(row);
       }

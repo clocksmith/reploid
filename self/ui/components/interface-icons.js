@@ -1,6 +1,11 @@
 /** Small shared line icons. Buttons retain their own accessible names. */
 export function interfaceIcon(name) {
   const paths = {
+    attach: '<path d="m8 13 7-7a3 3 0 0 1 4 4L9 20a5 5 0 0 1-7-7L13 2m-7 13 8-8"/>',
+    send: '<path d="M12 20V4m-6 6 6-6 6 6"/>',
+    stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',
+    more: '<circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/>',
+    copy: '<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
     close: '<path d="m6 6 12 12M18 6 6 18"/>',
     activity: '<path d="M3 12h4l3-7 4 14 3-7h4"/>',
     peers: '<circle cx="6" cy="6" r="3"/><circle cx="18" cy="6" r="3"/><circle cx="12" cy="18" r="3"/><path d="m7 9 4 6m6-6-4 6"/>',

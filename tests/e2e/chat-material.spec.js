@@ -32,6 +32,10 @@ async function installConversation(page, theme) {
       state.activeThread.messages[1].content = answer;
       listeners.forEach(callback => callback(state));
     };
+    window.setVisualMetrics = metrics => {
+      state.activeThread.attempts[0].execution.stepSummary = { metrics };
+      listeners.forEach(callback => callback(state));
+    };
     window.setVisualState = mode => {
       const busy = ['queued', 'loading', 'executing', 'approval', 'cancelling'].includes(mode);
       const empty = ['empty', 'unavailable', 'preparing'].includes(mode);
@@ -56,7 +60,7 @@ async function installConversation(page, theme) {
 
 const animation = (locator, pseudo = '::after') => locator.evaluate((node, pseudo) => getComputedStyle(node, pseudo).animationName, pseudo);
 
-test('compact ribbon keeps availability and attempt status visible', async ({ page }, info) => {
+test('compact chat keeps attempt status reachable and composer visible', async ({ page }, info) => {
   await page.setViewportSize({ width: 320, height: 460 });
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
@@ -64,10 +68,13 @@ test('compact ribbon keeps availability and attempt status visible', async ({ pa
   for (const [mode, label] of [['empty', 'No model ready'], ['queued', 'Queued'],
     ['executing', 'Executing'], ['cancelling', 'Stopping'], ['cancelled', 'Stopped']]) {
     await page.evaluate(mode => window.setVisualState(mode), mode);
-    const status = page.locator('[data-ribbon-status]');
-    await expect(status).toHaveText(label);
-    await expect(status).toBeVisible();
-    await expect(status).toBeInViewport();
+    const status = page.locator('[data-execution-activity]:not([hidden]) summary');
+    if (mode !== 'empty') {
+      await expect(status).toContainText(mode === 'executing' ? 'Generating' : label);
+      await expect(status).toBeVisible();
+      await status.scrollIntoViewIfNeeded();
+      await expect(status).toBeInViewport();
+    }
     if (mode === 'empty') {
       await expect(page.locator('[data-model-status]')).toBeHidden();
       await expect(page.locator('[data-message-stream]')).toBeEmpty();
@@ -149,7 +156,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await openParticipantControls(page);
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
     await page.locator('[data-inspector-section="device"]').click();
-    await expect(page.locator('[data-contextual-inspector]').getByText('This device', { exact: true })).toHaveCount(1);
+    await expect(page.locator('[data-contextual-inspector]').getByRole('button', { name: 'This device', exact: true })).toHaveCount(1);
     await openParticipantControls(page);
     await expect(page.locator('[data-mesh-connect]')).toBeVisible();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
@@ -190,7 +197,7 @@ test('reading and phone controls retain long answers, code, sources and a saved 
       + '```js\nconst amount = 42;\n```\n\n' + Array.from({ length: 30 }, (_, i) => `Paragraph ${i + 1}: Preserve the supplied conditions and explain each change clearly.\n\n`).join(''));
   });
   const stream = page.locator('[data-message-stream]');
-  await stream.evaluate(node => { node.scrollTop = 0; });
+  await page.locator('[data-chat-transcript]').evaluate(node => { node.scrollTop = 0; });
   await page.locator('[data-composer-input]').fill('Keep this draft while I read.');
   await expect(page.locator('[data-copy-code]')).toHaveText('Copy code');
   await page.locator('[data-source-reference]').click();
@@ -202,9 +209,9 @@ test('reading and phone controls retain long answers, code, sources and a saved 
   await page.setViewportSize({ width: 390, height: 460 });
   await expect(page.locator('[data-composer-input]')).toBeInViewport();
   await expect(page.locator('[data-thread-sidebar]')).not.toBeVisible();
-  await page.locator('[data-open-threads]').click();
-  await expect(page.locator('[data-thread-dialog]')).toBeVisible();
-  await page.locator('[data-close-threads]').click();
+  await page.locator('[data-toggle-thread-rail]').click();
+  await expect(page.locator('[data-thread-sidebar]')).toBeVisible();
+  await page.locator('[data-toggle-thread-rail]').click();
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft while I read.');
   await page.locator('[data-conversation-actions] > summary').click();
   await expect(page.locator('[data-network-header] [data-conversation-actions]')).toBeVisible();
@@ -224,7 +231,7 @@ test('bounded inspector and reduced viewport preserve a long conversation and co
   await page.evaluate(() => {
     const stream = document.querySelector('[data-message-stream]');
     for (let i = 0; i < 100; i++) { const p = document.createElement('p'); p.textContent = `Earlier message ${i}`; stream.append(p); }
-    stream.scrollTop = 100;
+    document.querySelector('[data-chat-transcript]').scrollTop = 100;
   });
   const before = await page.locator('[data-composer-area]').boundingBox();
   for (let i = 0; i < 3; i++) {
@@ -234,12 +241,12 @@ test('bounded inspector and reduced viewport preserve a long conversation and co
     await page.keyboard.press('Escape'); await expect(page.locator('[data-toggle-inspector]')).toBeFocused();
   }
   expect(await page.locator('[data-composer-area]').boundingBox()).toEqual(before);
-  expect(await page.locator('[data-message-stream]').evaluate(node => node.scrollTop)).toBe(100);
+  expect(await page.locator('[data-chat-transcript]').evaluate(node => node.scrollTop)).toBe(100);
   await page.setViewportSize({ width: 390, height: 460 });
   await page.locator('[data-composer-input]').focus();
   const composer = await page.locator('[data-composer-area]').boundingBox();
   expect(composer.y + composer.height).toBeLessThanOrEqual(460);
-  expect((await page.locator('[data-message-stream]').boundingBox()).height).toBeGreaterThanOrEqual(60);
+  expect((await page.locator('[data-chat-transcript]').boundingBox()).height).toBeGreaterThanOrEqual(60);
   await expect(page.locator('[data-composer-stop]')).toBeInViewport();
   await page.screenshot({ path: info.outputPath('reduced-viewport.png'), fullPage: true });
 });
@@ -257,7 +264,7 @@ test('keyboard-sized visual viewport compacts the workspace without resizing the
   expect(await page.evaluate(() => innerHeight)).toBe(844);
   const composer = await page.locator('[data-composer-area]').boundingBox();
   expect(composer.y + composer.height).toBeLessThanOrEqual(460);
-  expect((await page.locator('[data-message-stream]').boundingBox()).height).toBeGreaterThanOrEqual(60);
+  expect((await page.locator('[data-chat-transcript]').boundingBox()).height).toBeGreaterThanOrEqual(60);
   await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft');
   await page.screenshot({ path: info.outputPath('visual-viewport-keyboard.png'), fullPage: true });
   await page.evaluate(() => {
@@ -284,4 +291,22 @@ test('Verification Worker accepts the conversation presentation module', async (
   });
   expect(verification.passed, JSON.stringify(verification)).toBe(true);
   await info.attach('presentation-verification', { body: JSON.stringify(verification, null, 2), contentType: 'application/json' });
+});
+
+
+test('answer activity shows observed shares and preserves its disclosure during updates', async ({ page }, info) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto('/');
+  await expect(page.locator('[data-chat-workspace]')).toBeVisible();
+  await installConversation(page, 'dark');
+  await page.evaluate(() => window.setVisualState('executing'));
+  const activity = page.locator('[data-execution-activity]:not([hidden])');
+  await activity.locator('summary').click();
+  await expect(activity.locator('.chat-distribution')).toHaveCount(0);
+  await page.evaluate(() => window.setVisualMetrics({ localStepMs: { count: 4, total: 1000 }, remoteStepMs: { count: 4, total: 3000 } }));
+  await expect(activity).toHaveAttribute('open', '');
+  await expect(activity.getByRole('img')).toHaveAttribute('aria-label', 'Recorded step time share: Peer A 25%, Peer B 75%');
+  await expect(activity).toContainText('25% · 4.0 tok/s');
+  await expect(activity).toContainText('75% · 1.3 tok/s');
+  await page.screenshot({ path: info.outputPath('activity.png'), fullPage: true });
 });

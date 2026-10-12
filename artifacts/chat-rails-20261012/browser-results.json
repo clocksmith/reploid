@@ -1,0 +1,12 @@
+{
+  "scope": "Chromium presentation fixtures, not inference or physical phone acceptance",
+  "stats": {
+    "startTime": "2026-10-12T13:59:09.703Z",
+    "duration": 13371.091,
+    "expected": 17,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "errors": []
+}

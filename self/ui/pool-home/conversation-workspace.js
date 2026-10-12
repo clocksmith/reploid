@@ -1,3 +1,4 @@
+import { interfaceIcon } from '../components/interface-icons.js';
 import { createConversationList } from './conversation-list.js';
 import { updateModelSelect } from '../components/model-select.js';
 /** Conversation presentation; the host owns execution and disclosure. */
@@ -24,8 +25,8 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         <div class="chat-thread-info">
           <span class="chat-model-control pool-activity-edge" data-model-control><select class="pool-input pool-glass" id="chat-model" data-active-model-select aria-label="Model"></select><button class="pool-button" type="button" data-current-model aria-haspopup="dialog" hidden></button></span>
           </div>
-        <button class="btn pool-button btn-ghost" type="button" data-toggle-inspector aria-haspopup="dialog">Network <span data-mesh-peers>0 peers</span></button>
-        <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button">Actions</summary><div class="pool-surface">
+        <button class="btn pool-button btn-ghost" type="button" data-toggle-inspector aria-haspopup="dialog" aria-label="Inspect network" title="Network">${interfaceIcon('peers')}<span data-mesh-peers>0 peers</span></button>
+        <details class="chat-conversation-actions" data-conversation-actions><summary class="pool-button" aria-label="Conversation actions" title="Conversation actions">${interfaceIcon('more')}</summary><div class="pool-surface">
           <button class="pool-button" type="button" data-show-archived aria-pressed="false">Archived threads</button>
           <button class="btn pool-button btn-ghost" type="button" data-conversation-download hidden>Download conversation</button>
         </div></details>
@@ -44,11 +45,11 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         <div class="chat-composer-field pool-activity-edge" data-composer-field><textarea class="pool-input pool-glass pool-glass-focus" id="chat-message" data-composer-input rows="3" required placeholder="Ask a question…"></textarea></div>
         <p class="chat-setup-hint" id="chat-model-status" data-model-status role="status" hidden></p>
         <div class="chat-composer-toolbar">
-          <label class="btn pool-button btn-ghost chat-file-label pool-focus-within">Attach<input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
+          <label class="btn pool-button btn-ghost chat-file-label pool-focus-within" title="Attach files">${interfaceIcon('attach')}<span class="chat-visually-hidden">Attach files</span><input type="file" multiple data-composer-files accept=".txt,.md,.json,.js,.ts,.html,.css" /></label>
           <div class="chat-composer-submit">
-            <button class="btn pool-button btn-primary" type="submit" data-composer-send>Send</button>
+            <button class="btn pool-button btn-primary" type="submit" data-composer-send aria-label="Send" title="Send">${interfaceIcon('send')}</button>
             <button class="btn pool-button btn-ghost" type="button" data-retry-connection hidden>Retry connection</button>
-            <button class="btn pool-button btn-ghost" type="button" data-composer-stop hidden>Stop</button>
+            <button class="btn pool-button btn-ghost" type="button" data-composer-stop aria-label="Stop" title="Stop" hidden>${interfaceIcon('stop')}</button>
           </div>
         </div><p class="chat-attachment-help" data-attachment-help hidden>Text files: up to 8, 64 KB each, 128 KB total.</p><div class="chat-attachments" data-attachments-preview hidden></div>
       </form></footer>
@@ -202,13 +203,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       approvalKey = key; find('[data-approval-consent]').checked = false; find('[data-approval-remember]').checked = false;
     }
     find('[data-approval-description]').textContent = partitionRecipients
-      ? 'Share messages and derived model data with these computers for this request'
+      ? 'Allow this request to these contributors'
       : pending?.disclosure === 'partition-activations'
       ? 'Share model activations derived from this input with this peer as public data'
       : 'Share this exact input with this peer as public data';
     find('[data-approval-remember-label]').hidden = !pending?.reusable;
     find('[data-approval-remember-description]').textContent = partitionRecipients
-      ? 'Also allow future messages and attached text in this thread to these computers, using this model, until revoked'
+      ? 'Allow future messages and attachments in this thread to these contributors with this model, until revoked'
       : 'Also allow future messages and attached text in this thread to this recipient, using this model, until revoked';
     find('[data-chat-approval]').hidden = !pending;
     find('[data-composer-area]').hidden = !!pending;
