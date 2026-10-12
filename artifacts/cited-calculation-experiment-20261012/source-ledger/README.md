@@ -46,8 +46,8 @@ wrong subtotal and included/excluded interpretation. Rendering cannot grant
 semantic acceptance. The output limit rejects the whole report rather than
 silently truncating missing requirements.
 
-All 17 controls pass. The actual Verification Worker checks four files and
-passes with three warnings and no errors. Passing these controls does not
+All 17 controls pass. The actual Verification Worker checks six files and
+passes with five warnings and no errors. Passing these controls does not
 establish that a model chooses correct relations.
 
 The proposed later model experiment must reuse the existing evaluator/runner,

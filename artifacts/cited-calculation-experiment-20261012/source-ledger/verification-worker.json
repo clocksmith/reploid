@@ -4,7 +4,9 @@
     "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js": "a0b165ab304e2bb6160d20590dca647ac998191acc279b69bd9262ff19d299d2",
     "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.test.js": "f6e74f11cbf1cacbdc4f5673053602193ee1d8580265298c7f4258246a71f73f",
     "/artifacts/cited-calculation-experiment-20261012/source-ledger/render.js": "71f179d4aad098f30cc39dcb15bcaa90ab359ce250935fa6707f2b2502f6b9ee",
-    "/artifacts/cited-calculation-experiment-20261012/source-ledger/render.test.js": "edaca5ec407697ee8ade978e8d2c58754cd57f8deda6beb19b13e4dde8059ff7"
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/render.test.js": "edaca5ec407697ee8ade978e8d2c58754cd57f8deda6beb19b13e4dde8059ff7",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/experiment/prepare.js": "720f6920a33b3be107b6e4e1f7d450e6256a8ce4af4195d9c97088fe0b4a7e33",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/experiment/bridge.js": "0124792810b8840941d05defd75d1cabf4012e6c394fefa1844e107e450cf107"
   },
   "result": {
     "passed": true,
@@ -12,12 +14,14 @@
     "warnings": [
       "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js: Path traversal pattern detected (../) - potential security risk",
       "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js:95: Dynamic property write detected: [role] - verify input sanitization",
-      "Nesting depth of 8 exceeds 5 - refactor nested code"
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/experiment/prepare.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/experiment/bridge.js: Path traversal pattern detected (../) - potential security risk"
     ],
     "events": [
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791842927227,
+        "timestamp": 1791846170383,
         "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js",
         "patternId": "path_traversal",
         "category": "filesystem",
@@ -26,7 +30,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791842927228,
+        "timestamp": 1791846170384,
         "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -36,18 +40,50 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791842927229,
+        "timestamp": 1791846170386,
         "metric": "nesting",
         "value": 8,
         "threshold": 5,
         "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
         "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791846170395,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/experiment/prepare.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791846170396,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/experiment/bridge.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
       }
     ],
     "details": {
       "patternViolations": [
         {
           "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/experiment/prepare.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/experiment/bridge.js",
           "patternId": "path_traversal",
           "category": "filesystem",
           "message": "Path traversal pattern detected (../) - potential security risk",
@@ -64,7 +100,7 @@
           "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js"
         }
       ],
-      "filesAnalyzed": 4
+      "filesAnalyzed": 6
     }
   }
 }

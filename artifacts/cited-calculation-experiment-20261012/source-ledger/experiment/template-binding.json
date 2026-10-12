@@ -1,0 +1,9 @@
+{
+  "schema": "reploid.original-tool-template-binding/v1",
+  "modelId": "Qwen/Qwen3-1.7B",
+  "sourceRevision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "tokenizerConfigSha256": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
+  "templateSha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+  "sourceReceiptSha256": "eaf732de3eb6a2d4c754b3959269c2ef6aab0014e3becda960e08dd78b148c8a",
+  "protocol": "One official Qwen3 <tool_call> wrapper; strict JSON name SourceLedger and arguments budget/deadline/documents; no repair."
+}
