@@ -36,6 +36,7 @@ numerical/model-quality qualification.
 | Stop one browser conversation while another completes | [concurrency.json](concurrency.json), cancelled partial retained, other answer completes |
 | Attached invoice | Correct $900 amount, missing required passage citation, false attribution to the Total line; quality **fails** |
 | Native replaces stopped Mac contribution | [native-retry.json](native-retry.json), new approved attempt answers $36; prior failed attempt retained |
+| Empty Node cache acquires its partition and generates | [native-cold-conversation.json](native-cold-conversation.json), $36 then history-dependent $48, reusable scoped approval, no requester weight HTTP requests; [75-piece acquisition](../native-files-20261012/README.md) |
 | Native concurrent cancellation | [native-concurrency.json](native-concurrency.json), one cancelled, other answers $36 |
 | Human review exceeds readiness TTL | [delayed-approval.json](delayed-approval.json), 15,000 ms review then completed $36 with the same approved pair |
 | Close actual requester RTC input-owner connection | [rtc-recovery.json](rtc-recovery.json), new connection observed; all three other connections remain connected |
@@ -93,8 +94,30 @@ That diagnostic failure is not classified as a runtime or GPU failure.
    The regression failed before correction; 64 focused tests and the actual
    Verification Worker pass. The physical reuse/revoke/decline sequence passes.
 
+7. During real cold acquisition, the requester displayed “No model available”
+   and Retry connection despite an authenticated contributor advertising loading.
+   It now projects that observed preparation state for a matching catalog model;
+   Send stays disabled, the draft stays local, and unavailable/expired peers do
+   not count as preparation. The focused regression failed before repair;
+   19 UI unit checks and the actual Verification Worker pass. This repair's
+   preparing-state check is simulated; the source failure was physically observed.
+
+The combined Linux repository suite at `ce4ff445` passes 288 files / 3,112 tests,
+with 3 files / 29 tests skipped. `reploid-combined-unit-final-20261012.log.gz`
+retains the complete result. Its initial single charter-length failure is kept in
+`reploid-combined-unit-20261012.log.gz`; the charter was shortened before rerun.
+The subsequent preparing-state UI change has the focused checks above.
+
 ## Failed and invalid observations
 
+- [native-cold-preparation-timeout.json](native-cold-preparation-timeout.json)
+  retains the 180-second controller wait expiring while acquisition was still
+  progressing. No request had been submitted. Actual acquisition continued to
+  readiness; there was no origin fallback or budget increase.
+- [native-cold-url-classifier-failure.json](native-cold-url-classifier-failure.json)
+  records two completed correct answers but a false-positive weight request:
+  the controller mistook `piece-acquisition.js` for a weight-piece URL. The fixed
+  classifier requires a full 64-digit piece hash; repeating both requests passes.
 - [permission-revocation-unavailable.json](permission-revocation-unavailable.json)
   retains the hidden reusable-approval control.
 - [permission-decline-failure.json](permission-decline-failure.json) retains the

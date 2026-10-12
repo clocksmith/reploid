@@ -1,0 +1,10 @@
+{
+  "startedAt": "2026-10-12T03:31:13.131Z",
+  "nodePeer": "peer:843480182104ecfd53431f70",
+  "ok": false,
+  "error": "expect(locator).toHaveAttribute(expected) failed\n\nLocator:  locator('[data-model-control]')\nExpected: \"ready\"\nReceived: \"idle\"\nTimeout:  180000ms\n\nCall log:\n  - Expect \"to.have.attribute.value\" with timeout 180000ms\n  - waiting for locator('[data-model-control]')\n    183 × locator resolved to <span hidden=\"\" data-activity=\"idle\" data-model-control=\"\" class=\"chat-model-control pool-activity-edge\">…</span>\n        - unexpected value \"idle\"\n",
+  "modelRequests": [
+    "http://localhost:8000/vendor/reploid/artifacts/custody/piece-acquisition.js"
+  ],
+  "finishedAt": "2026-10-12T03:34:13.408Z"
+}
