@@ -21,8 +21,11 @@ module with warnings and no errors; its receipt also includes the parent's two
 UI files and does not qualify unrelated changes. Generated library and layer,
 loader, cycle and canonical delivery checks pass.
 
-Physical fault control remains to be run against the new served bytes: close one
-actual requester RTCPeerConnection, observe replacement and preserve other open
-channels, then submit a new authorized request. Local deliberate closure is not
-a reproduction of the original underlying network failure. Unit checks establish
-bounded repair behavior, not physical distributed release acceptance.
+Physical fault control passed against the regenerated requester: explicitly
+closing its actual input-owner RTCPeerConnection produced a replacement in
+2.23 seconds while all three other connections remained connected. This is a
+local deliberate closure, not a reproduction of the original network cause.
+A new follow-up completed using the retained conversation after reconnection.
+See [rtc-recovery.json](../live-conversation-20261012/rtc-recovery.json) and
+[after-rtc-recovery.json](../live-conversation-20261012/after-rtc-recovery.json).
+These checks establish this recovery path, not numerical release acceptance.

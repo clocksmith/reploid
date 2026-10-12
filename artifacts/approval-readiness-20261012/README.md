@@ -23,3 +23,8 @@ replacement while review is open. The test fixture polls every 50 ms instead of
 production timing, limits and grants are unchanged. Tests use injected execution.
 Physical control and actual Worker receipts are retained alongside this report
 when run; they do not establish numerical or model-quality qualification.
+
+The physical requester then waited 15 seconds before approving the unchanged
+Suby/browser + Linux/native pair and received the complete answer. See
+[delayed-approval.json](../live-conversation-20261012/delayed-approval.json).
+The actual Worker receipt accepts the current generated source with warnings.
