@@ -1,0 +1,71 @@
+{
+  "schema": "reploid.source-ledger-token-preflight/v1",
+  "weightsLoaded": false,
+  "modelGenerated": false,
+  "files": {
+    "suite.json": "59eabb91944111add15c7b69319e13486ebfb00a24e7f63b67c572db1f4fe0a4",
+    "inputs.json": "7cc9ad3143522d79152897fb433d3ba844367676a1a24734b815817764c59791",
+    "template-binding.json": "9b6c2ff0af91e28169d50f705ba3a9f96e5a20225aeafaff30084a5f8d2af92e",
+    "preflight.py": "3ed1622fa614d7bbb3e079bbc2c17571ea1b48bbfc21074a795fc938416f3a84"
+  },
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "promptTokens": 3218,
+      "admittedGeneratedTokenLimit": 4096,
+      "inputIdsSha256": "9c676fc764f401f3c58ce7777a413c65d0f2aea7508970504756824109dfd531",
+      "fullOrderedHistoryPreserved": true,
+      "admitted": true
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "promptTokens": 3333,
+      "admittedGeneratedTokenLimit": 4096,
+      "inputIdsSha256": "104c18063bad091b25e93135ba095849c9e30c237472c93b769b319c724b6627",
+      "fullOrderedHistoryPreserved": true,
+      "admitted": true
+    },
+    {
+      "id": "contractor-comparison",
+      "promptTokens": 3173,
+      "admittedGeneratedTokenLimit": 4096,
+      "inputIdsSha256": "ce20ae079f1268af643218a846e90b5905b82c7593f26058b26799fd4c769627",
+      "fullOrderedHistoryPreserved": true,
+      "admitted": true
+    },
+    {
+      "id": "contractor-retained-correction",
+      "promptTokens": 4247,
+      "admittedGeneratedTokenLimit": 3945,
+      "inputIdsSha256": "096f300ceec41871e4ddc0bf8190586bdb3db6be7fa047901f079ac5d6161020",
+      "fullOrderedHistoryPreserved": true,
+      "admitted": true
+    },
+    {
+      "id": "fresh-printing-balance",
+      "promptTokens": 1299,
+      "admittedGeneratedTokenLimit": 4096,
+      "inputIdsSha256": "51b5a3baff585b1dfe83356b20531af5d6b022b8a8d2ae283cc63b609c158dfb",
+      "fullOrderedHistoryPreserved": true,
+      "admitted": true
+    },
+    {
+      "id": "fresh-schedule-condition",
+      "promptTokens": 1159,
+      "admittedGeneratedTokenLimit": 4096,
+      "inputIdsSha256": "0a384b865bdd3a284b11091534f387661ca6ee151ade3bd560097832a6ff033d",
+      "fullOrderedHistoryPreserved": true,
+      "admitted": true
+    },
+    {
+      "id": "fresh-included-credit-conflict",
+      "promptTokens": 1358,
+      "admittedGeneratedTokenLimit": 4096,
+      "inputIdsSha256": "538e4167e57da2ea06d075ec2686808b4a3ff4cfd587a320bcca0d9244727edd",
+      "fullOrderedHistoryPreserved": true,
+      "admitted": true
+    }
+  ],
+  "allAdmitted": true,
+  "limits": "Actual generated tokens and raw output plus report characters remain checked after the one call. Admission is not semantic acceptance."
+}

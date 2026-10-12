@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import vm from 'node:vm';
 import crypto from 'node:crypto';
-const paths = ['adapter.js', 'adapter.test.js', 'render.js', 'render.test.js'].map(file => 'artifacts/cited-calculation-experiment-20261012/source-ledger/' + file);
+const paths = ['adapter.js', 'adapter.test.js', 'render.js', 'render.test.js', 'experiment/prepare.js', 'experiment/bridge.js'].map(file => 'artifacts/cited-calculation-experiment-20261012/source-ledger/' + file);
 const snapshot = Object.fromEntries(paths.map(path => ['/' + path, fs.readFileSync(path, 'utf8')]));
 const sources = Object.fromEntries(Object.entries(snapshot).map(([path, code]) => [path, crypto.createHash('sha256').update(code).digest('hex')]));
 let result;
