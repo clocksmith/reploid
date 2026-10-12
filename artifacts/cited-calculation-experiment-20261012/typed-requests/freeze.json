@@ -1,0 +1,45 @@
+{
+  "schema": "reploid.typed-request-freeze/v1",
+  "status": "frozen before model output",
+  "parentRejectedRevision": "47512bbf",
+  "files": {
+    "README.md": "b42cd237b458dbf11bb80f4388a60e0a033b9509dbe830ad1aa405e04dc5809f",
+    "adapter.js": "66f6d566141a61232799ac6c47db1b8e7a95c74441c107a0f8e40cbb3742be50",
+    "adapter.test.js": "f983d5ab9a368c0bfd7df9c5be0029bf3a9d6a34a2608c38e21c65ff30b6bfeb",
+    "budget.py": "677b82021d3bc55c0723c3d33f54c0ed296156f9016cf3a25d3414aac2aac965",
+    "budget_test.py": "bcaf08816fa45cf69c5823074a67394fa225b53787f1bb0672e6a8209d7d7c2b",
+    "preflight.py": "0a0103b13cc17b25d926fbc170750d1ba817f754407ffe4b2e98c8db65ff4f5b",
+    "protocol.py": "c33e2eed702fa47c42f557afeda94440a1322bd7593128fd9feaa1317e788d9a",
+    "protocol_test.py": "56d7c77c6dbcaddb9705cbb5359398fab787045ea1c5d2b45bd7e204908229d8",
+    "run.py": "b1a49bb34a4b571f74ffacc7205ea18644881aa3406be18dbbb84aa2f173da14",
+    "suite.json": "0b480308bc961ac384fb2d723f8ba4b77df2d281e18afe27340e46fa3e3f4cda",
+    "template-binding.json": "22cc56128a81ed47b1d51901183b62a4c71d69d8007f1902d8b756db5684dacd",
+    "token-preflight.json": "cafa4743131bfc9fb6f4ae375b50b91efe0e10552f3289246588217517a16e1f",
+    "verification-worker.json": "ffc801ef09b047deaf5e1f4016101c298aeb8dcf79af8ffb0b34fe5c56eb6959",
+    "verify-worker.js": "de476a2fb492cb04e5f107bc2de0a0973bef752964920929d2b7dba4b9e29dd6"
+  },
+  "reusedSources": {
+    "artifacts/cited-calculation-experiment-20261012/calculate.js": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+    "self/host/document-comparison.js": "7d80ae3314b2be989b74a3eecc54d0ebfe4d1f190d7f3bad263f4a80c58c3e42",
+    "packages/reploid/src/agent/tool-runner.js": "f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a",
+    "artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.js": "895ee7097bf495dba7497f2bbf3a880ae2309e4bcc4a0c30569201991525bb39",
+    "artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.js": "bd2fcf11e685b9368b65fa7dcdba213d82172a824040a1d82e8349b25a83421b"
+  },
+  "sourceLoaderSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
+  "sourceEvaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "additionalDopplerSources": {
+    "tools/qwen35-deployed-reference.py": "53efd11870619ee5aa6c5c24d378269100672ad999a0f0e1c47939c18d63d0a0"
+  },
+  "model": "Qwen/Qwen3.5-2B",
+  "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "policy": "Original source equations/F16KV, nonthinking, greedy, repetition1.0; no model/precision change.",
+  "budgets": {
+    "generatedTokens": 4096,
+    "promptPlusGeneratedTokens": 8192,
+    "rawOutputUtf16": 16000,
+    "extractionMaxTokens": 1536
+  },
+  "criteria": "All seven parent cases, exact original final histories, and factual/citation/tool-attribution criteria unchanged. Two prior independent holdouts remain locked.",
+  "stopping": "First structural/tool/completion/budget failure; later cases unrun. One explicit validator correction only after initial natural completion, within original source and aggregate allowances.",
+  "launch": "No source generation before parent review and coordinated CPU window. x128 four threads nice10, no GPU."
+}
