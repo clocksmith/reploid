@@ -1,0 +1,57 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/artifacts/cited-calculation-experiment-20261012/typed-requests/adapter.js": "66f6d566141a61232799ac6c47db1b8e7a95c74441c107a0f8e40cbb3742be50",
+    "/artifacts/cited-calculation-experiment-20261012/typed-requests/adapter.test.js": "f983d5ab9a368c0bfd7df9c5be0029bf3a9d6a34a2608c38e21c65ff30b6bfeb"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /artifacts/cited-calculation-experiment-20261012/typed-requests/adapter.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 8 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791836240694,
+        "path": "/artifacts/cited-calculation-experiment-20261012/typed-requests/adapter.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791836240696,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/artifacts/cited-calculation-experiment-20261012/typed-requests/adapter.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/typed-requests/adapter.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/artifacts/cited-calculation-experiment-20261012/typed-requests/adapter.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}
