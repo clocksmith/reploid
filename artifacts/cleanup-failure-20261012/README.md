@@ -135,3 +135,14 @@ without hitting its source breakpoint and supplies no reservation proof. It is
 retained as a diagnostic limitation, not a passing lifecycle assertion. Observe
 both resident owners from their actual creation boundaries in the next required
 integrated run rather than infer the original input ownership retrospectively.
+
+The next reservation-probe revision moved the breakpoint from the arrow-function
+creation statement into its body. Its observer callback then raced a second
+Debugger.resume and allowed the rejection to escape into the contributor host.
+`input-observer-resume-race.json` / `.log` retain that second diagnostic failure.
+The callback now catches an already-resumed error, but the observer is not
+qualified and was not run again. The original uninstrumented contribution
+command was restored as PID 4019648 with the same profile, recorded in
+`input-final-restoration.json`. No old input reservation-state claim follows.
+These failures belong to the ad hoc observer, not application shutdown logic;
+the observer must be isolated from the contributor process before future use.

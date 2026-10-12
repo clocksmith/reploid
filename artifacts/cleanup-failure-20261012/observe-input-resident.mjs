@@ -38,12 +38,12 @@ try {
            if(result.exceptionDetails)throw Error(JSON.stringify(result.exceptionDetails));
            clearTimeout(timer);resolve(result.result.value);
          } catch(e){clearTimeout(timer);reject(e);}
-         finally{await cdp.send('Debugger.resume');}
+         finally{await cdp.send('Debugger.resume').catch(()=>{});}
        });
      });
      await cdp.send('Debugger.enable');
-     bp=await cdp.send('Debugger.setBreakpointByUrl',{urlRegex:'/automatic-partitions\\.js$',lineNumber:26});
-     return await snapshot;
+     bp=await cdp.send('Debugger.setBreakpointByUrl',{urlRegex:'/automatic-partitions\\.js$',lineNumber:27});
+     const state=await snapshot; const script=await cdp.send('Debugger.getScriptSource',{scriptId:bp.locations[0].scriptId}); return {state,sourceSha256:process.getBuiltinModule('node:crypto').createHash('sha256').update(script.scriptSource).digest('hex'),locations:bp.locations};
    } finally {
      if(bp) await cdp.send('Debugger.removeBreakpoint',{breakpointId:bp.breakpointId}).catch(()=>{});
      await cdp.send('Debugger.resume').catch(()=>{});

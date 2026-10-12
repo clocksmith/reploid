@@ -1,0 +1,8 @@
+{
+  "stage": "Post-test reservation probe on restored, waiting contributor; no inference was active",
+  "cause": "Observer browser-CDP callback resumed an already-resumed debugger; uncaught callback promise rejected in contributor host process",
+  "oldPid": 4018571,
+  "fault": "diagnostic",
+  "repair": "Catch benign already-resumed protocol error in callback finally; no further live probe",
+  "qualification": "Unverified input reservation settlement; observer not accepted for future use without isolated validation"
+}

@@ -1,0 +1,10 @@
+{
+  "recordedAt": "2026-10-12T12:52:30.079405+00:00",
+  "pid": 4019648,
+  "profile": "/home/clocksmith/.local/share/reploid/live-compute-20261012",
+  "command": "node scripts/run-mesh-contributor.js --url http://localhost:8000/ --profile /home/clocksmith/.local/share/reploid/live-compute-20261012 --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium",
+  "diagnosticInspectorAttached": false,
+  "startedSuccessfully": true,
+  "sourceLogSha256": "aa87c6baff09b127a32fb43163b73a83b5dc539926258edce51a7f27794da197",
+  "qualification": "Restoration only. Old input reservations cannot be inspected after process termination."
+}
