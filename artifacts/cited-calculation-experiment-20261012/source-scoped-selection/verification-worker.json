@@ -1,0 +1,73 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.js": "895ee7097bf495dba7497f2bbf3a880ae2309e4bcc4a0c30569201991525bb39",
+    "/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.test.js": "49434df20d83835584c362e47882fcfbce1c61cdca1154e05a441ca9d211dce0",
+    "/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.full-history.js": "ace32ac53c545ec301b33f755d772db709c1d592f862b4262387ba03833f321d"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.full-history.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791834495654,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791834495657,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791834495659,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.full-history.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-scoped-selection/scope.full-history.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [],
+      "filesAnalyzed": 3
+    }
+  }
+}

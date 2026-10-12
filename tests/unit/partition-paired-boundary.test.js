@@ -1,14 +1,32 @@
-import { expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import { constants, runInThisContext } from 'node:vm';
+import { pathToFileURL } from 'node:url';
 import * as legacy from 'doppler-gpu/partitions';
 import fixture from '../fixtures/paired-activation-contract.json' with { type: 'json' };
 import { createLayerPartitionRunner } from '../../packages/reploid/src/mesh/partitions/partition-runner.js';
 import { createPartitionPeer } from '../../packages/reploid/src/mesh/partitions/partition-peer.js';
 import { partitionFingerprint } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
 
-// Frozen Doppler byte fixture, injected codecs: no inference or numerical qualification.
+// Optional exact-package codec replay; the application dependency remains unchanged.
+const providers = [['injected codecs', null]];
+if (process.env.DOPPLER_TEST_PACKAGE_ROOT) {
+  const root = path.resolve(process.env.DOPPLER_TEST_PACKAGE_ROOT);
+  const pkg = JSON.parse(readFileSync(path.join(root, 'package.json'), 'utf8'));
+  const entry = pkg.exports['./partitions'].import;
+  // Load the immutable external package with Node's ESM loader, outside Vite transforms.
+  const loadPackage = runInThisContext('(url) => import(url)', {
+    importModuleDynamically: constants.USE_MAIN_CONTEXT_DEFAULT_LOADER
+  });
+  providers.push(['installed package codecs', await loadPackage(pathToFileURL(path.resolve(root, entry)).href)]);
+}
+
+describe.each(providers)('%s', (_label, provider) => {
+// Frozen synthetic tensor, real Reploid orchestration. No GPU or numerical qualification.
 function setup(mutate = value => value, maxActivationBytes = 16384) {
   const original = Uint8Array.from(Buffer.from(fixture.bufferBase64, 'base64'));
-  const runtime = { ...legacy,
+  const runtime = provider ? { ...provider } : { ...legacy,
     getPartitionActivationContract(plan) {
       expect(plan).toEqual(fixture.plan); return fixture.contract;
     },
@@ -88,4 +106,6 @@ it.each([false,true,'scalar-fields'])('validates paired headers and preserves lo
     if(corrupt){await expect(response).rejects.toThrow();expect(executeGroup1).not.toHaveBeenCalled();}
     else{expect((await response).delta).toBe('ok');expect(executeGroup1).toHaveBeenCalledOnce();await a.closeAttempt({identity});}
   }finally{await Promise.all([a.close(),b.close()]);}
+});
+
 });

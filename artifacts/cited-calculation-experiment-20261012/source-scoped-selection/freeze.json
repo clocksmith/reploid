@@ -1,0 +1,46 @@
+{
+  "schema": "reploid.source-scoped-selection-freeze/v1",
+  "status": "frozen before model output",
+  "hypothesis": "Source-local operation selection prevents cross-bid conflation without changing source facts or final criteria.",
+  "parentRejectedRevision": "c50974b1",
+  "files": {
+    "README.md": "c7b357fd2a47bdfc8d9f1db75d6acb3da8627b4e5ddcd78af60fbf92829a45eb",
+    "budget.py": "9a2de8202f30224974c038a96ec31a7c041eee8a3f923a4de5ce69325ab9cd6c",
+    "budget_test.py": "d92ea0ce4700fe41a4aee2dd50310356406428954d513e3cb9ea88fd038d555d",
+    "preflight.py": "9e8098f24d4d6dce18d7566d59f0fc2ae32c55e09323b44c92ef4c74354b4004",
+    "protocol.py": "a9efb2cba8a900cc6bbbabb41e53c7d598b49a5359e614185fc7c6c3bac27079",
+    "run.py": "3ca61dd7f2ec8a36a54256bbdcc608180b09d0059b40672f7a7d00c6530e906b",
+    "scope.full-history.js": "ace32ac53c545ec301b33f755d772db709c1d592f862b4262387ba03833f321d",
+    "scope.js": "895ee7097bf495dba7497f2bbf3a880ae2309e4bcc4a0c30569201991525bb39",
+    "scope.test.js": "49434df20d83835584c362e47882fcfbce1c61cdca1154e05a441ca9d211dce0",
+    "suite.json": "384b103a050069c5f99de2b6040aa56f21258ef4c4f8d4ff5613c072300a3156",
+    "template-binding.json": "22cc56128a81ed47b1d51901183b62a4c71d69d8007f1902d8b756db5684dacd",
+    "token-preflight-full-history-rejected.json": "5fa1f849b974cb2cae7efb07610a663e0972cf3f138851fb93149ab5525d48ea",
+    "token-preflight.json": "2bda1cf031c5fe214072e190b163031b241ec73b5853bbd3f2692ad9500e74c3",
+    "tools.json": "4c2482fb9d09f9873fe8b6024adb257bc8f7224bddbdaafc2ad57641111ec1b5",
+    "verification-worker.json": "fe3cdc78786580b2246a2d573d5ba8b9df839d4fb8f529cafdb5c92c82d9094d",
+    "verify-worker.js": "54849565deb68361bf7d2b690354ef854984bf471da2baf0c8f7e44262b2fe37"
+  },
+  "reusedSources": {
+    "artifacts/cited-calculation-experiment-20261012/calculate.js": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+    "self/host/document-comparison.js": "7d80ae3314b2be989b74a3eecc54d0ebfe4d1f190d7f3bad263f4a80c58c3e42",
+    "packages/reploid/src/agent/tool-runner.js": "f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a"
+  },
+  "sourceLoaderSha256": "439da1f2097967dbe07cb0235eeffe83612f51b102b234ffb2a78b5f09e63a25",
+  "sourceEvaluatorSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+  "model": "Qwen/Qwen3.5-2B",
+  "sourceRevision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+  "policy": "Original source equations/F16KV, nonthinking, greedy, repetition1.0; no model/precision change.",
+  "budgets": {
+    "generatedTokens": 4096,
+    "promptPlusGeneratedTokens": 8192,
+    "rawOutputUtf16": 16000,
+    "extractionMaxTokens": 1536
+  },
+  "criteria": "All seven original cases, exact ordered final histories, and factual/citation criteria unchanged. Existing independent holdouts remain locked.",
+  "stopping": "Stop at first structural/tool/natural-completion/budget failure; remaining calls/cases unrun. Otherwise finish seven and manually review all criteria.",
+  "launch": "x128 CPU four threads nice10, no GPU; only after frozen-file verification.",
+  "additionalDopplerSources": {
+    "tools/qwen35-deployed-reference.py": "53efd11870619ee5aa6c5c24d378269100672ad999a0f0e1c47939c18d63d0a0"
+  }
+}

@@ -1,0 +1,57 @@
+[
+  {
+    "type": "function",
+    "function": {
+      "name": "Calculate",
+      "description": "Calculate from exact source literals in the appended catalog. Inputs are operations only, with catalog or earlier result aliases. Exact literal matching is not semantic attribution. Preserve unresolved conditions, exclusions and contradictions. One call only.",
+      "parameters": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "operations"
+        ],
+        "properties": {
+          "operations": {
+            "type": "array",
+            "maxItems": 30,
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "op",
+                "args"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                },
+                "op": {
+                  "type": "string",
+                  "enum": [
+                    "add",
+                    "subtract",
+                    "multiply",
+                    "percent",
+                    "addCalendarDuration"
+                  ]
+                },
+                "args": {
+                  "type": "array",
+                  "minItems": 2,
+                  "maxItems": 2,
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[a-z][a-z0-9_]{0,31}$"
+                  },
+                  "description": "Earlier fact/result IDs only; no literal amounts. Numeric add/subtract need matching kinds. multiply requires second kind number; percent requires second kind percent; calendar addition requires date then days/weeks."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,99 @@
+{
+  "schema": "reploid.source-scoped-token-preflight/v1",
+  "weightsLoaded": false,
+  "modelGenerated": false,
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "sourceCount": 3,
+      "sourcePromptTokens": [
+        1124,
+        1203,
+        1166
+      ],
+      "sourceMaxTokens": 512,
+      "finalPromptTokensEmptyProbe": 1313,
+      "minimumPromptTotal": 4806,
+      "headroomBeforeActualToolOutputs": 3386,
+      "caveat": "Actual generated calls and tool results enlarge the final prompt and are charged again; runtime must enforce every admission."
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "sourceCount": 3,
+      "sourcePromptTokens": [
+        1154,
+        1233,
+        1196
+      ],
+      "sourceMaxTokens": 512,
+      "finalPromptTokensEmptyProbe": 1428,
+      "minimumPromptTotal": 5011,
+      "headroomBeforeActualToolOutputs": 3181,
+      "caveat": "Actual generated calls and tool results enlarge the final prompt and are charged again; runtime must enforce every admission."
+    },
+    {
+      "id": "contractor-comparison",
+      "sourceCount": 3,
+      "sourcePromptTokens": [
+        1181,
+        1253,
+        1310
+      ],
+      "sourceMaxTokens": 512,
+      "finalPromptTokensEmptyProbe": 1319,
+      "minimumPromptTotal": 5063,
+      "headroomBeforeActualToolOutputs": 3129,
+      "caveat": "Actual generated calls and tool results enlarge the final prompt and are charged again; runtime must enforce every admission."
+    },
+    {
+      "id": "contractor-retained-correction",
+      "sourceCount": 3,
+      "sourcePromptTokens": [
+        1246,
+        1318,
+        1375
+      ],
+      "sourceMaxTokens": 512,
+      "finalPromptTokensEmptyProbe": 2413,
+      "minimumPromptTotal": 6352,
+      "headroomBeforeActualToolOutputs": 1840,
+      "caveat": "Actual generated calls and tool results enlarge the final prompt and are charged again; runtime must enforce every admission."
+    },
+    {
+      "id": "fresh-printing-balance",
+      "sourceCount": 1,
+      "sourcePromptTokens": [
+        992
+      ],
+      "sourceMaxTokens": 1536,
+      "finalPromptTokensEmptyProbe": 818,
+      "minimumPromptTotal": 1810,
+      "headroomBeforeActualToolOutputs": 6382,
+      "caveat": "Actual generated calls and tool results enlarge the final prompt and are charged again; runtime must enforce every admission."
+    },
+    {
+      "id": "fresh-schedule-condition",
+      "sourceCount": 1,
+      "sourcePromptTokens": [
+        916
+      ],
+      "sourceMaxTokens": 1536,
+      "finalPromptTokensEmptyProbe": 805,
+      "minimumPromptTotal": 1721,
+      "headroomBeforeActualToolOutputs": 6471,
+      "caveat": "Actual generated calls and tool results enlarge the final prompt and are charged again; runtime must enforce every admission."
+    },
+    {
+      "id": "fresh-included-credit-conflict",
+      "sourceCount": 1,
+      "sourcePromptTokens": [
+        1047
+      ],
+      "sourceMaxTokens": 1536,
+      "finalPromptTokensEmptyProbe": 840,
+      "minimumPromptTotal": 1887,
+      "headroomBeforeActualToolOutputs": 6305,
+      "caveat": "Actual generated calls and tool results enlarge the final prompt and are charged again; runtime must enforce every admission."
+    }
+  ]
+}
