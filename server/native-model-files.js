@@ -68,7 +68,8 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
 export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {} }) {
   const root = await fs.realpath(modelDirectory), cache = await createNativeArtifactCache({ directory: cacheDirectory });
   const pair = await createSigningKeyPair(), lifetime = new AbortController(), sources = new Set();
-  const receipts = [], retained = new Map(), operations = new Set(); let closed = false, shareController = null, closing = null;
+  const receipts = [], retained = new Map(), operations = new Set(), offeredFiles = new Map();
+  let closed = false, shareController = null, closing = null, suppliedModel = null;
   const own = operation => { operations.add(operation); operation.finally(() => operations.delete(operation)).catch(() => {}); return operation; };
   const readLocal = async (name, { offset, size, signal } = {}) => {
     signal?.throwIfAborted(); assert(/^[\w.-]+$/.test(name), 'Plain model filename required');
@@ -132,7 +133,13 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         limits: { maxConcurrent: policy.maxPieceAcquisitions, maxQueued: policy.maxQueuedPieceAcquisitions,
           maxPieceBytes: policy.maxArtifactBytes, timeoutMs: policy.channel.timeoutMs },
         cache: { get: id => cache.get(pieceFile(descriptors.get(id))),
-          put: async (id, bytes) => { const file = pieceFile(descriptors.get(id)); await cache.put(file, bytes, { signal }); retained.set(key(file), file); } },
+          put: async (id, bytes) => {
+            const file = pieceFile(descriptors.get(id)); await cache.put(file, bytes, { signal }); retained.set(key(file), file);
+            if (!closed && suppliedModel === model.identity) {
+              assert(offeredFiles.has(key(file)) || offeredFiles.size < policy.maxInventoryFiles, 'Native inventory limit exceeded');
+              offeredFiles.set(key(file), file); exchange.offer([...offeredFiles.values()]);
+            }
+          } },
         authorize: async () => !signal.aborted, foregroundIdle: async current => current.throwIfAborted(),
         verify: async (piece, bytes) => bytes.byteLength === piece.size && 'sha256:' + digest(bytes) === piece.identity,
         sources: piece => [
@@ -191,12 +198,14 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
           await verify(descriptor, bytes); await cache.put(descriptor, bytes, { signal });
           offered.push(descriptor); assert(offered.length <= policy.maxInventoryFiles, 'Native inventory limit exceeded');
         }
-        signal.throwIfAborted(); exchange.offer(offered); return getState();
+        signal.throwIfAborted(); offeredFiles.clear();
+        for (const file of offered) offeredFiles.set(key(file), file);
+        suppliedModel = model.identity; exchange.offer(offered); return getState();
       } finally { if (shareController === controller) shareController = null; }
     })()); },
-    stopSupply() { shareController?.abort(new Error('Native file contribution stopped')); exchange.stopSupply(); },
+    stopSupply() { suppliedModel = null; offeredFiles.clear(); shareController?.abort(new Error('Native file contribution stopped')); exchange.stopSupply(); },
     close() { return closing ||= (async () => {
-      closed = true; lifetime.abort(new Error('Native file host closed')); exchange.stopSupply();
+      closed = true; suppliedModel = null; offeredFiles.clear(); lifetime.abort(new Error('Native file host closed')); exchange.stopSupply();
       await Promise.allSettled([...operations]);
       const settled = await Promise.allSettled([...sources].map(source => Promise.resolve().then(() => source.storage.close()))
         .concat([Promise.resolve().then(() => exchange.close()), Promise.resolve().then(() => cache.close())]));
