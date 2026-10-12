@@ -151,6 +151,15 @@ These fixtures do not add numerical, physical-phone or human acceptance.
   selected after reload. Its stored draft was intact; the corrected control
   explicitly reopened that thread.
 
+## Prepared delivery bytes
+
+`npm run prepare:hosting` validates the exact accepted archive projection and
+produces 1,905 hosting files (1,904 assets plus the manifest). Fresh HTTP reads
+from the local server match every declared asset at bundle identity
+`5d67a79a402ad04a146fe3b7d5c43a33ac907a0c2fdc11722ace629e7a992ac8`.
+`hosting-preparation.log.gz` and `local-served-identity.log.gz` retain these checks.
+This is prepared local delivery, not a public deployment or runtime promotion.
+
 ## Still open
 
 Numerical acceptance remains failed against the approved F64 target at 0.001.
