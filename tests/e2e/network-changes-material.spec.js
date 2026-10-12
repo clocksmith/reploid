@@ -50,7 +50,9 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     const connection = page.getByRole('switch', { name: 'Connect to network', includeHidden: true });
     await expect(compute).toHaveAttribute('aria-checked', 'true');
     await compute.click();
-    await expect(page.locator('[data-tab-sharing-summary]')).toHaveText('No models shared by this tab');
+    await expect(page.locator('[data-tab-sharing-summary]')).toBeHidden();
+    await expect(compute).toHaveAttribute('aria-checked', 'false');
+    await expect(page.locator('[data-contrib-label]')).toHaveText('Not sharing');
     await compute.click();
     await expect(page.locator('[data-contrib-label]')).toHaveText('Ready');
     await expect(files).toHaveAttribute('aria-checked', 'false');
