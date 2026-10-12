@@ -1,0 +1,31 @@
+{
+  "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+  "archiveSha256": "8cae56b0748a5c66add985122d8bbf72b7492e2e0828f713f1b0d7425a59a4e5",
+  "sourceCommit": "f499ccc7",
+  "files": [
+    {
+      "path": "tests/fixtures/native-partition-endpoint.js",
+      "sha256": "0e23638ccc95650da3ea0523f9cd8a4baf86a12c32232fcc5e9171ebe681d919"
+    },
+    {
+      "path": "tests/fixtures/native-partition-process.js",
+      "sha256": "d59c3c2f841dc20f01dd3598357d8457d551e2ce2a22f7adbcae19a2cb4abd02"
+    },
+    {
+      "path": "tests/fixtures/native-provider-observation.js",
+      "sha256": "ece1784bedc5cfe3de79a8f4ee8462c8844777dbf393eba927c9bd9a5e41601b"
+    },
+    {
+      "path": "tests/fixtures/numerical-test-delivery.js",
+      "sha256": "eb6531431666fc7a022a8ebaf48f87e4ef7d3578b22b5e872a441f976ef683db"
+    },
+    {
+      "path": "provider-preflight.mjs",
+      "sha256": "902c081222a0945e4cd8201b1560375b6fc594606efa42287321e3a50401ef59"
+    },
+    {
+      "path": "package.json",
+      "sha256": "1239d4d885dcad42201a27ed9324f8f0f760b78700d8db9ced39a511cffe7eae"
+    }
+  ]
+}
