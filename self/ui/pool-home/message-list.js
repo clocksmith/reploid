@@ -43,7 +43,7 @@ export function createMessageList(stream, { getSources, positions = new Map() } 
         const source = message.role === 'user' && getSources?.(message.content);
         if (source) {
           targets = new Map();
-          const markup = escape(source.question.split('\n')[0]) + source.documents.map(document => `<details><summary>${escape(document.name)}</summary>`
+          const markup = escape(source.question) + source.documents.map(document => `<details><summary>${escape(document.name)}</summary>`
             + document.passages.map(passage => {
               const anchor = `source-${message.id}-${passage.id.replace(':', '-')}`; targets.set(passage.id, anchor);
               return `<p id="${escape(anchor)}" tabindex="-1"><strong>[${escape(passage.id)}]</strong> ${escape(passage.text)}</p>`;

@@ -1,0 +1,68 @@
+{
+  "sourceSha256": "75f755214c87c7e4fc36d64d2feae8cf43b0fb6d038db3bb32a40c8694f78f54",
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Warning in /ui/pool-home/message-list.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /ui/pool-home/message-list.js: innerHTML assignment is risky - consider textContent",
+    "Nesting depth of 6 exceeds 5 - refactor nested code"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791781149989,
+      "path": "/ui/pool-home/message-list.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791781149989,
+      "path": "/ui/pool-home/message-list.js",
+      "patternId": "innerhtml_assign",
+      "category": "dom",
+      "message": "innerHTML assignment is risky - consider textContent",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791781149989,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/ui/pool-home/message-list.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/ui/pool-home/message-list.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/message-list.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/ui/pool-home/message-list.js"
+      }
+    ],
+    "filesAnalyzed": 2
+  }
+}
