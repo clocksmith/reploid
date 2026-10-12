@@ -52,7 +52,7 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
               && (!description.capacity || Number.isSafeInteger(description.capacity.availableSlots)
                 && description.capacity.availableSlots >= 0 && Number.isSafeInteger(description.capacity.active)
                 && description.capacity.active >= 0 && typeof description.capacity.closed === 'boolean')
-              && ['idle', 'waiting', 'loading', 'ready', 'failed'].includes(description.phase),
+              && ['idle', 'waiting', 'loading', 'ready', 'stopping', 'failed'].includes(description.phase),
             'Partition capability identity or inventory mismatch');
             if (!closed) { peer.description = structuredClone(description); peer.observedAt = now(); peer.reason = null; }
           } catch { peer.description = null; peer.reason = 'description-unavailable'; }

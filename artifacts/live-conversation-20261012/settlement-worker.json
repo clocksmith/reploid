@@ -1,0 +1,231 @@
+{
+  "sourceSha256": "054f04c0045dfe98bbeb08b723a4ac2fef7d6d31a6c680d658c9f48badf2cd89",
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Warning in /host/work-swarm.js: Path traversal pattern detected (../) - potential security risk",
+    "File has 34 functions (max 20) - consider modularizing",
+    "Nesting depth of 8 exceeds 5 - refactor nested code",
+    "Warning in /ui/pool-home/network-controls.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /ui/pool-home/network-controls.js: innerHTML assignment is risky - consider textContent",
+    "File has 24 functions (max 20) - consider modularizing",
+    "Nesting depth of 6 exceeds 5 - refactor nested code",
+    "Warning in /vendor/reploid/mesh/partitions/partition-discovery.js: Path traversal pattern detected (../) - potential security risk",
+    "Nesting depth of 7 exceeds 5 - refactor nested code",
+    "Warning in /vendor/reploid/mesh/partitions/resident-partition.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /vendor/reploid/mesh/partitions/resident-partition.js:109: Dynamic property write detected: [method] - verify input sanitization",
+    "Warning in /vendor/reploid/mesh/partitions/resident-partition.js:113: Dynamic property write detected: [key] - verify input sanitization",
+    "Nesting depth of 6 exceeds 5 - refactor nested code"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791778129557,
+      "path": "/host/work-swarm.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791778129559,
+      "metric": "functions",
+      "value": 34,
+      "threshold": 20,
+      "message": "File has 34 functions (max 20) - consider modularizing",
+      "path": "/host/work-swarm.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791778129559,
+      "metric": "nesting",
+      "value": 8,
+      "threshold": 5,
+      "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "path": "/host/work-swarm.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791778129562,
+      "path": "/ui/pool-home/network-controls.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791778129562,
+      "path": "/ui/pool-home/network-controls.js",
+      "patternId": "innerhtml_assign",
+      "category": "dom",
+      "message": "innerHTML assignment is risky - consider textContent",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791778129565,
+      "metric": "functions",
+      "value": 24,
+      "threshold": 20,
+      "message": "File has 24 functions (max 20) - consider modularizing",
+      "path": "/vendor/reploid/mesh/partitions/automatic-partitions.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791778129565,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/vendor/reploid/mesh/partitions/automatic-partitions.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791778129566,
+      "path": "/vendor/reploid/mesh/partitions/partition-discovery.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791778129566,
+      "metric": "nesting",
+      "value": 7,
+      "threshold": 5,
+      "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "path": "/vendor/reploid/mesh/partitions/partition-discovery.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791778129567,
+      "path": "/vendor/reploid/mesh/partitions/resident-partition.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791778129567,
+      "path": "/vendor/reploid/mesh/partitions/resident-partition.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [method] - verify input sanitization",
+      "line": 109,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791778129567,
+      "path": "/vendor/reploid/mesh/partitions/resident-partition.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [key] - verify input sanitization",
+      "line": 113,
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791778129567,
+      "metric": "nesting",
+      "value": 6,
+      "threshold": 5,
+      "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "path": "/vendor/reploid/mesh/partitions/resident-partition.js"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/host/work-swarm.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/network-controls.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/ui/pool-home/network-controls.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "path": "/vendor/reploid/mesh/partitions/partition-discovery.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/vendor/reploid/mesh/partitions/resident-partition.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 34,
+        "threshold": 20,
+        "message": "File has 34 functions (max 20) - consider modularizing",
+        "path": "/host/work-swarm.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/host/work-swarm.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 24,
+        "threshold": 20,
+        "message": "File has 24 functions (max 20) - consider modularizing",
+        "path": "/vendor/reploid/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/mesh/partitions/partition-discovery.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/mesh/partitions/resident-partition.js"
+      }
+    ],
+    "filesAnalyzed": 5
+  }
+}

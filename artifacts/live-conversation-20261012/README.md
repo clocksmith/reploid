@@ -160,6 +160,37 @@ from the local server match every declared asset at bundle identity
 `hosting-preparation.log.gz` and `local-served-identity.log.gz` retain these checks.
 This is prepared local delivery, not a public deployment or runtime promotion.
 
+## Contribution settlement and explicit recovery
+
+Component: automatic partition contribution, resident ownership, and its existing
+Network controls. Intent: preserved. Failed cleanup retains the owner and charged
+reservations; overlapping stops share settlement. A cancelled loader cannot
+retire a replacement, and replacement admission stays closed until cleanup succeeds.
+The existing panel offers **Retry stopping** after failed cleanup. A successful
+retry clears only its own error. Boundary effects: shared partition lifecycle,
+browser host state, and its presentation; Doppler and its accepted archive are unchanged.
+
+Three automatic-owner regressions and one resident-disposal regression failed
+before the fix. The UI retry regression also failed before implementation.
+The retained `*-before.log.gz` files show these failures. The canonical focused
+run passes **74 tests across six files** (`contribution-settlement-final.log.gz`),
+**12 Chromium interaction checks** pass (`settlement-browser.log.gz`), architecture
+checks pass (`settlement-layers.log.gz`), and the actual Verification Worker passes
+with 13 warnings and no errors (`settlement-worker.json`). Cleanup failure is
+injected in these focused tests; no physical GPU driver failure is claimed.
+
+The physical Mac contributor was stopped during a Suby/Mac answer. It settled to
+Not sharing, retained the partial answer, and was explicitly enabled again.
+The immediate retry encountered stale ready presentation and failed before
+approval: `contribution-stop-readiness-failure.json` retains that observation.
+A later explicit approved retry completed, retaining prior messages exactly:
+`contribution-stop-retry.json`. Its `ok` field establishes lifecycle completion,
+not answer quality: the answer wrongly describes an online cloud service as an
+offline backup. That remains a model-quality failure. Controllers are retained.
+`settlement-owner-return.json` separately records the fresh recipient approval
+and correct $72 follow-up after contributor reload. These runs use the accepted
+pin and pinned-manifest opening; they are not a frozen signed release sequence.
+
 ## Still open
 
 Numerical acceptance remains failed against the approved F64 target at 0.001.

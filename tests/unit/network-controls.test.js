@@ -2,6 +2,31 @@ import { describe, it, expect, vi } from 'vitest';
 import { projectNetworkPeers, bindNetworkControls, renderConnectionControl,
   renderSharingControls } from '../../self/ui/pool-home/network-controls.js';
 
+it('offers cleanup retry instead of enabling contribution while an owner remains unsettled', async () => {
+  const state = { models: [], network: { sharing: false, stopping: false,
+    contribution: { phase: 'failed', unsettledOwners: 1 } } };
+  let update;
+  const session = { getState: () => state, setSharing: vi.fn(),
+    subscribe: listener => { update = listener; listener(state); return () => {}; } };
+  const root = document.createElement('div');
+  root.innerHTML = renderConnectionControl() + renderSharingControls()
+    + '<ul data-insp-device-list></ul><span data-network-message></span>'
+    + '<button data-mesh-invite></button><span data-mesh-peers></span>';
+  const dispose = bindNetworkControls(root, session);
+  try {
+    expect(root.querySelector('[data-contrib-label]').textContent).toBe('Cleanup not confirmed');
+    expect(root.querySelector('[data-toggle-contribution]').disabled).toBe(true);
+    const retry = root.querySelector('[data-retry-contribution-stop]');
+    expect(retry.hidden).toBe(false); retry.click(); await Promise.resolve();
+    expect(session.setSharing).toHaveBeenCalledWith(false, '', false);
+    state.network.stopping = true; update(state); expect(retry.disabled).toBe(true);
+    state.network.stopping = false; state.network.contribution = { phase: 'idle', unsettledOwners: 0 }; update(state);
+    expect(retry.hidden).toBe(true);
+    expect(root.querySelector('[data-toggle-contribution]').disabled).toBe(false);
+    expect(root.querySelector('[data-contrib-label]').textContent).toBe('Not sharing');
+  } finally { dispose(); }
+});
+
 describe('network connection action', () => {
   it.each([
     ['connected', 'disconnected', 'disconnect', 'connect'],
