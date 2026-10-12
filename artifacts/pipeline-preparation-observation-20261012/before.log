@@ -1,0 +1,26 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/partition-memory-observation.test.js (1 test | 1 failed) 4ms
+   × device loss remains observable when the global device and pool disappear 4ms
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  17:56:06
+   Duration  84ms (transform 14ms, setup 0ms, import 21ms, tests 4ms, environment 0ms)
+
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/partition-memory-observation.test.js > device loss remains observable when the global device and pool disappear
+TypeError: undefined is not iterable (cannot read property Symbol(Symbol.iterator))
+ ❯ tests/unit/partition-memory-observation.test.js:46:67
+     44|     expect(shaderModule.getCompilationInfo()).toBe(infoResult);
+     45|     await infoResult;
+     46|     expect(globalThis.memorySnapshot().pipelinePreparationEvents).toCo…
+       |                                                                   ^
+     47|       operation: 'getCompilationInfo', status: 'completed', label: 'te…
+     48|     expect(() => device.createShaderModule({ label: 'reject-module', c…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
