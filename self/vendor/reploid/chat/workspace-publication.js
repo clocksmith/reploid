@@ -13,7 +13,8 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
   assert(typeof conversationId === 'string' && conversationId && conversationId.length <= 256 && epoch(writerEpoch), 'Invalid publication owner identity');
   assert(store?.schema === 'reploid.transactional-chat-store/v1' && typeof store.transact === 'function'
     && typeof store.read === 'function', 'Transactional history adapter required');
-  for (const method of ['metadataDigest', 'validateResidentAttemptIdentity', 'canonicalGenerationIdentity', 'validateExecutionPublication']) {
+  for (const method of ['metadataDigest', 'validateResidentAttemptIdentity', 'canonicalGenerationIdentity',
+    'validateExecutionPublication', 'validateAdmissionPublication']) {
     assert(typeof doppler?.[method] === 'function', `Canonical Doppler contract required: ${method}`);
   }
   assert(typeof authenticateCommit === 'function' && typeof authorize === 'function', 'Current authorization and authenticated commit ports required');
@@ -52,6 +53,15 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
     assert(found, 'Unknown publication attempt'); return found;
   };
   const key = value => JSON.stringify([value.coordinatorEpoch, value.attemptId, value.sequence]);
+  const admissionOnly = value => value.schema === 'doppler.admission-publication/v1';
+  const validatePublication = (value, attempt) => {
+    if (admissionOnly(value)) {
+      assert(attempt.cursor === null && attempt.nextSequence === 0, 'Admission-only publication cannot follow execution');
+      return doppler.validateAdmissionPublication(value, attempt.identity, attempt.generationPolicy, attempt.vocabSize);
+    }
+    return doppler.validateExecutionPublication(value, attempt.identity,
+      attempt.generationPolicy, attempt.vocabSize, attempt.cursor);
+  };
   return Object.freeze({
     async claimWriter(expectedEpoch) {
       assert(expectedEpoch === null || epoch(expectedEpoch), 'Invalid previous writer epoch');
@@ -97,11 +107,10 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
       permission('publish', admitted.identity);
       const prior = saved.records.find(record => key(record.publication) === key(publication));
       if (prior) assert(prior.publication.publicationDigest === publicationDigest, 'Publication key collision');
-      else doppler.validateExecutionPublication(publication, admitted.identity,
-        admitted.generationPolicy, admitted.vocabSize, admitted.cursor);
+      else validatePublication(publication, admitted);
       // Transport signatures keep their existing canonicalization. The immutable
       // authentication digest locates evidence owned by that authenticated port.
-      for (const ack of publication.acknowledgments) {
+      for (const ack of admissionOnly(publication) ? [] : publication.acknowledgments) {
         const stage = admitted.identity.stages.find(item => item.stageId === ack.stageId);
         assert(await authenticateCommit(copy(ack), copy(stage), copy(admitted.identity)) === true,
           'Unauthenticated stage commit');
@@ -118,8 +127,7 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
         assert(current.status === 'live' && now() <= current.deadlineAt, 'Publication attempt is cancelled, retired or expired');
         assert(publication.sequence === current.nextSequence && publication.previousPublicationDigest === history.head,
           'Publication sequence or durable head mismatch');
-        const validated = doppler.validateExecutionPublication(publication, current.identity,
-          current.generationPolicy, current.vocabSize, current.cursor);
+        const validated = validatePublication(publication, current);
         assert(history.records.length < limits.maxPublications, 'Publication history is full');
         const receipt = { schema: 'reploid.publication-receipt/v1', conversationId, writerEpoch,
           index: history.records.length, coordinatorEpoch: publication.coordinatorEpoch, attemptId: publication.attemptId,
@@ -127,8 +135,12 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
         receipt.receiptDigest = doppler.metadataDigest(receipt.schema, receipt);
         history.records.push({ publication: validated, receipt });
         history.head = publicationDigest;
-        current.cursor = validated.successor; current.nextSequence++;
-        if (validated.successor.terminal) current.status = 'completed';
+        current.nextSequence++;
+        if (admissionOnly(validated)) current.status = 'completed';
+        else {
+          current.cursor = validated.successor;
+          if (validated.successor.terminal) current.status = 'completed';
+        }
         return copy(receipt);
       });
     },
