@@ -1,0 +1,11 @@
+{
+  "startedAt": "2026-10-12T22:14:31.104246+00:00",
+  "startedUnixSeconds": 1791843271.104374,
+  "command": [
+    "sh",
+    "/var/tmp/reploid-native-preparation-0.6.28-20261012/run-native-reference.sh"
+  ],
+  "finishedAt": "2026-10-12T22:15:17.598379+00:00",
+  "finishedUnixSeconds": 1791843317.5984042,
+  "exitCode": 0
+}
