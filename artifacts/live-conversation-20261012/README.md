@@ -1,0 +1,100 @@
+# Ordinary distributed conversation — 2026-10-12
+
+The actual conversation interface completed browser/browser and browser/native
+requests. This is local physical integration evidence, not a public deployment or
+numerical/model-quality qualification.
+
+## Executed configurations
+
+- Requester: headed Chrome on Mac, `http://localhost:8000/`, persistent profile
+  `live-requester-20261012`. No model-origin/shard requests were observed by the
+  request controllers. The requester never contributes or opens Doppler weights.
+- File supplier: separate browser/profile on Mac, verified local model files.
+- Input partition: Chromium on the physical Suby computer, layers 0–11,
+  participant `peer:0b4018c83a3f71679522bb52`.
+- Initial output partition: Chrome on Mac, layers 12–23,
+  participant `peer:dd8252a3cc6dfe8aa08b10e6` after the diagnostic restart.
+- Replacement output partition: actual Node on x@128 with Dawn/AMD Vulkan,
+  participant `peer:6fef3a618f40d5acfc712941`. It does not launch a browser.
+  [Native ownership, package and provider receipts](../native-participant-20261012/README.md).
+- Standard Doppler 0.6.27 archive remains SHA-256
+  `9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc`.
+- Model: `qwen-3-5-0-8b-q4k-ehaf16`, identity
+  `sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9`.
+- Plan: `sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0`.
+- Initial application manifest: `sha256:f99260044a90f747e7211732bc581c0c4e37cdef48eaee8c4b7b60062e72a1bc`.
+  Final requester manifest after the repairs:
+  `sha256:4715180537328cad94623d85eef6f70855f4c0675b269cde289fd8b9a21d4c92`.
+  Contributors remained loaded during requester fixes; these observations are
+  deliberately not claimed as a frozen identical-build release sequence.
+
+## Results and limits
+
+| Observation | Retained result |
+| --- | --- |
+| Two browser participants stream an answer and follow-up | [requester.json](requester.json), complete; follow-up's explanation is inaccurate |
+| Stop one browser conversation while another completes | [concurrency.json](concurrency.json), cancelled partial retained, other answer completes |
+| Attached invoice | Correct $900 amount, missing required passage citation, false attribution to the Total line; quality **fails** |
+| Native replaces stopped Mac contribution | [native-retry.json](native-retry.json), new approved attempt answers $36; prior failed attempt retained |
+| Native concurrent cancellation | [native-concurrency.json](native-concurrency.json), one cancelled, other answers $36 |
+| Human review exceeds readiness TTL | [delayed-approval.json](delayed-approval.json), 15,000 ms review then completed $36 with the same approved pair |
+| Close actual requester RTC input-owner connection | [rtc-recovery.json](rtc-recovery.json), new connection observed; all three other connections remain connected |
+| Follow-up after RTC reconnection | [after-rtc-recovery.json](after-rtc-recovery.json), same history yields correct $48 for four tickets |
+| Return to saved conversation | [return.json](return.json), messages and thread draft retained; source disclosure, Copy and phone drawer work |
+
+The phone check uses a 390 × 844 browser viewport. It is not a physical phone or
+an unfamiliar-user session. Reopening the saved thread restores its draft;
+automatic selection of that thread on reload is not claimed.
+
+Native resident weights were 285,497,344 bytes; its observed accounted peak was
+497,336,720 bytes. These short-request results do **not** replace the frozen
+1,588-token memory sequence or measure total process RAM. Native requests settled
+and weights remained resident between them; provider receipts retain the details.
+
+## Broken boundaries repaired
+
+1. The operator launcher still selected removed UI controls. It now uses the
+   current device inspector and explicit contribution switch.
+2. A failed direct peer was removed permanently while signaling stayed healthy.
+   The transport now uses its existing bounded discovery rejoin to reacquire the
+   admitted peer list, preserving healthy direct channels and never replaying work.
+3. Readiness expired during human approval. The requester now refreshes readiness
+   after approval, freezes reviewed inputs, retains consent expiry, and rejects a
+   changed model/plan/recipient pair without sending the input.
+4. Attachment serialization appeared in thread labels. Labels now use the same
+   parsed question projection as messages; execution inputs remain unchanged.
+5. Partition approval visually showed only one recipient. It now displays both
+   recipient labels and their disclosure roles; technical details retain exact
+   identities and the model/plan binding.
+
+Focused regressions failed before their respective repairs. Transport, partition,
+conversation and actual Verification Worker results are retained alongside this
+receipt. The preparation observer also now resumes only its own breakpoint; an
+initial conflicting diagnostic attachment terminated its owned Mac launcher.
+That diagnostic failure is not classified as a runtime or GPU failure.
+
+## Failed and invalid observations
+
+- [preparation-timeout.json](preparation-timeout.json) and
+  [second-preparation-timeout.json](second-preparation-timeout.json) retain the
+  unavailable-model runs before connection recovery. Restart/reload restored the
+  path before the transport repair; those restarts alone did not prove a fix.
+- [native-approval-visibility-failure.json](native-approval-visibility-failure.json)
+  records the missing visible second recipient. Exact identities were present in
+  collapsed technical details, so it is a presentation failure, not evidence of
+  an unauthorized recipient.
+- `native-conversation.json` is **not an acceptance receipt**: its polling followed
+  the thread's latest attempt and could observe a later retry. Use `native-retry.json`
+  and the later attempt-ID-bound controls instead. The failed original attempt
+  reports `Refresh an available entry before requesting execution`.
+- A return-controller initially expected the previous thread to be automatically
+  selected after reload. Its stored draft was intact; the corrected control
+  explicitly reopened that thread.
+
+## Still open
+
+Numerical acceptance remains failed against the approved F64 target at 0.001.
+Document usefulness/citations remain unqualified. Opening here uses verified
+pinned manifests, not signed Capsule physical opening. Both-placement release
+acceptance, the exact long-prompt lifecycle sequence on a replacement archive,
+and deployment remain open in the [canonical TODO](../../TODO.md).

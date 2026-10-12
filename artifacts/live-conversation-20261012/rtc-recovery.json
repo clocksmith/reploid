@@ -1,0 +1,41 @@
+{
+  "startedAt": "2026-10-12T03:04:32.359Z",
+  "scope": "Actual requester RTC connection close, not cable or signaling outage",
+  "fault": {
+    "before": [
+      {
+        "labels": [
+          "reploid",
+          "reploid-partitions-control"
+        ]
+      },
+      {
+        "labels": [
+          "reploid",
+          "reploid-partitions-control"
+        ]
+      },
+      {
+        "labels": [
+          "reploid",
+          "reploid-partitions-control"
+        ]
+      },
+      {
+        "labels": [
+          "reploid",
+          "reploid-partitions-control",
+          "reploid-partitions-input"
+        ]
+      }
+    ],
+    "closedState": "closed"
+  },
+  "survivors": [
+    "connected",
+    "connected",
+    "connected"
+  ],
+  "ok": true,
+  "finishedAt": "2026-10-12T03:04:34.591Z"
+}

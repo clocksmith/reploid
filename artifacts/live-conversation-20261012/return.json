@@ -1,0 +1,15 @@
+{
+  "ok": true,
+  "historyThreads": 4,
+  "draft": "Keep this question for my next visit.",
+  "title": "According to the attached invoice, how much remains to pay? Cite the invoice.",
+  "copied": "Based on the provided invoice text (ID: D1), the amount remaining to be paid is **$900**. This figure is explicitly stated in the \"Total\" line of the document alongside the other financial details.",
+  "phoneComposer": {
+    "x": 32.5,
+    "y": 612.515625,
+    "width": 325,
+    "height": 119.390625
+  },
+  "phoneIsEmulation": true,
+  "at": "2026-10-12T03:01:08.901Z"
+}
