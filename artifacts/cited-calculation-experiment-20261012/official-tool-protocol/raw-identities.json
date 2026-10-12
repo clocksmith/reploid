@@ -1,10 +1,22 @@
 {
   "schema": "reploid.retained-source-evidence/v1",
-  "status": "partial run, first completed extraction only",
+  "status": "stopped after first complete rejected case; remaining six unrun",
   "files": {
     "result-fresh-bathroom-comparison-extract.json.gz": {
       "uncompressedSha256": "993270a0bd54eafd82168f7c682b73d949c744a0527c86eb607a0ec950a08224",
       "compressedSha256": "64ca4f032b6afeeba59fbf0ee339211473c6fe485712c248c097b57c02b215e9"
+    },
+    "result-fresh-bathroom-comparison-answer.json.gz": {
+      "uncompressedSha256": "93b09f69176fd59b5428a0b8c827ad4a9e0f7102d8b1df24f17b1f080323c3d2",
+      "compressedSha256": "3e2f42bb50fd20e6410b1e1ef046649e3ab5fd5f30acc7890bccd8acba2b3cad"
+    },
+    "result.json.gz": {
+      "uncompressedSha256": "fc263571f87c7c41b03e1764bf0748606fc7329d62d020c6d18ccbe10d722811",
+      "compressedSha256": "233cf300a20660050da6d027412dd074da9d24846a847b14ba8f220fcd5f6eb3"
+    },
+    "run.log.gz": {
+      "uncompressedSha256": "42263ea239c2d1a44dff355d51f30a5dc4c9f0e5f1c684818129f4f4808cb01d",
+      "compressedSha256": "30b61c2f25fea733603c26aec7d3f0b3e1d0a4404b292c6828a829a94ab0b171"
     }
   }
 }

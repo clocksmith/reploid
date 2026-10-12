@@ -1,0 +1,39 @@
+{
+  "schema": "reploid.executed-tool-prompt-audit/v1",
+  "modelOutputsRepaired": false,
+  "checks": [
+    {
+      "text": "^[a-z][a-z0-9_]{0,31}$",
+      "inActualExecutedExtractionPrompt": true
+    },
+    {
+      "text": "Exact full numeric or date lexeme",
+      "inActualExecutedExtractionPrompt": true
+    },
+    {
+      "text": "Earlier fact/result IDs only",
+      "inActualExecutedExtractionPrompt": true
+    },
+    {
+      "text": "Numeric add/subtract need matching kinds",
+      "inActualExecutedExtractionPrompt": true
+    },
+    {
+      "text": "calendar addition requires date then days/weeks",
+      "inActualExecutedExtractionPrompt": true
+    },
+    {
+      "text": "addCalendarDuration",
+      "inActualExecutedExtractionPrompt": true
+    },
+    {
+      "text": "Do not add an included allowance",
+      "inActualExecutedExtractionPrompt": true
+    }
+  ],
+  "finalNoRetryInstructionPresent": true,
+  "actualToolFailurePresent": true,
+  "contractGap": "Handler requires globally unique fact/result IDs. Schema declares separate id/source fields, lowercase ID patterns and earlier-ID references, but does not explicitly state uniqueness in prose. This ambiguity is retained; it does not explain invalid JSON, money values of included, or date operands used for add/multiply.",
+  "expressibility": "Separate cited facts can represent a money amount, percent, date and duration; add/subtract/multiply/percent/addCalendarDuration can express the required calculations. Pre-output generic tests establish ordinary examples, not model extraction or semantic attribution.",
+  "upstreamDownstreamMismatch": "Executed official schema/template -> correct envelope with malformed operations JSON -> strict parse rejection before handler. Final prompt includes actual failure and no-retry instruction -> same malformed tool text, never executed again."
+}

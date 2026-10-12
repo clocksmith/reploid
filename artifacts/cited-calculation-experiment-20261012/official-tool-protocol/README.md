@@ -1,6 +1,10 @@
 # Official tool protocol control
 
-Status: frozen before output; independent review passed in `independent-review.json`. This is a separate source application experiment, not production integration or model qualification.
+Status: rejected after one complete case; the other six cases were stopped without output. The freeze and independent review preceded generation. This is a separate source application experiment, not production integration or model qualification.
+
+The official envelope was emitted, but its operations array lacked a closing bracket, so parsing rejected it before calculation. Raw arguments also violated numeric and identifier requirements. The final call repeated the invalid tool call byte-for-byte instead of answering; no second tool was executed. Both calls naturally reached EOS and used 1422 generated tokens, 3504 prompt tokens counting repeated history, and 4080 raw UTF-16 units: 4926 total charged tokens, within the unchanged limits. Budget compliance does not qualify the missing answer.
+
+`review.json` records the rejection and six unrun cases. `prompt-contract-audit.json` traces the executed prompt through raw output to strict rejection and retains one schema ambiguity: global ID uniqueness was enforced but not explicitly described in prose. Numeric lexeme, identifier spelling, date-operation and matching-unit rules were present in the actual prompt. No output repair or third candidate followed. Raw receipts, log, hashes, exact command and boundary-stop identity are retained beside this file.
 
 The preceding configuration failed its first two attempted cases: malformed comma-separated facts and then repeated facts until the extraction cap. Its remaining five cases were stopped without output. None of those failures are repaired or removed.
 
