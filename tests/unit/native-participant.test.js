@@ -40,7 +40,7 @@ describe('native host boundary', () => {
     const files = { preparePartitionSource: vi.fn() };
     await expect(openNativePartition({ model: { id: 'signed', capsule: {} }, nativeGpu, files,
       signal: new AbortController().signal, index: 0, participantId: 'native' }))
-      .rejects.toThrow('Native signed Capsule opening is not configured');
+      .rejects.toThrow('Signed native resident requires');
     expect(nativeGpu).not.toHaveBeenCalled();
     expect(files.preparePartitionSource).not.toHaveBeenCalled();
   });

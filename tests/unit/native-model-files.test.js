@@ -54,6 +54,24 @@ it('persists only requested verified pieces and reopens them without a supplier'
     finally { await reopened.storage.close(); }
   } finally { await source.storage.close(); }
 });
+it('binds Capsule artifact reads to catalog identities and complete authenticated piece ranges', async () => {
+  const f = await fixture(); await f.share();
+  const source = await f.owners[0].preparePartitionSource(f.model);
+  const metadata = f.model.source.files[0], artifact = { ...metadata, hash: 'sha256:' + metadata.hash };
+  const weights = source.manifest.shards[0];
+  const shard = { path: weights.filename, hash: 'sha256:' + weights.hash, sizeBytes: weights.size };
+  try {
+    expect(await source.artifactStore.readArtifact(artifact)).toEqual(new Uint8Array(await fs.readFile(path.join(f.directories[0], metadata.path))));
+    await expect(source.artifactStore.readArtifact({ ...artifact, hash: 'sha256:' + '0'.repeat(64) })).rejects.toThrow('pinned catalog');
+    await expect(source.artifactStore.readArtifact(shard)).rejects.toThrow('piece ranges');
+    await expect(source.artifactStore.readArtifactRange(shard, 1, 2)).rejects.toThrow('complete pinned piece');
+    expect(await source.artifactStore.readArtifactRange(shard, 0, 4)).toEqual(new Uint8Array(f.chunks[0]));
+    expect(await fs.readdir(f.cacheDirectories[0])).not.toContain('sha256-' + hash(f.chunks[1]));
+    const controller = new AbortController(); controller.abort(new Error('Stopped'));
+    await expect(source.artifactStore.readArtifactRange(shard, 4, 4, { signal: controller.signal })).rejects.toThrow();
+  } finally { await source.storage.close(); }
+  await expect(source.artifactStore.readArtifact(artifact)).rejects.toThrow('closed');
+});
 it('requires separate supply approval and revokes inventory without closing compute sources', async () => {
   const f = await fixture(); await expect(f.owners[1].share(f.model, false)).rejects.toThrow('separately');
   await f.share(); expect(f.owners[1].getState().sharing).toBe(true); f.owners[1].stopSupply();

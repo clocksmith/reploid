@@ -169,8 +169,35 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
         catch (cleanup) { throw new AggregateError([error, cleanup], 'Native source opening and cleanup failed'); }
         throw error;
       }
-      const source = { manifest: opened.manifest,
+      let sourceClosed = false;
+      const admittedFile = artifact => {
+        assert(!sourceClosed && !closed, 'Partition artifact source is closed');
+        const shard = data.manifest.shards.find(row => row.filename === artifact.path);
+        const file = model.source.files.find(row => row.path === artifact.path)
+          || (shard && { path: shard.filename, role: 'model-weights', sizeBytes: shard.size,
+            hash: shard.hash, hashAlgorithm: data.manifest.hashAlgorithm });
+        assert(file && file.sizeBytes === artifact.sizeBytes && 'sha256:' + file.hash === artifact.hash
+          && file.hashAlgorithm === 'sha256', 'Capsule artifact differs from the pinned catalog source');
+        return file;
+      };
+      const artifactStore = Object.freeze({
+        async readArtifact(artifact, controls = {}) {
+          const file = admittedFile(artifact);
+          assert(!data.manifest.shards.some(row => row.filename === file.path), 'Native weights require complete pinned piece ranges');
+          return readMetadata(file, AbortSignal.any([signal, controls.signal].filter(Boolean)));
+        },
+        async readArtifactRange(artifact, offset, size, controls = {}) {
+          admittedFile(artifact);
+          const piece = data.index.files.find(file => file.path === artifact.path)?.pieces
+            .find(piece => piece.offset === offset && piece.size === size);
+          assert(piece, 'Capsule range is not a complete pinned piece');
+          return acquisition.acquire({ ...piece, path: artifact.path }, {
+            ...controls, signal: AbortSignal.any([signal, controls.signal].filter(Boolean)) });
+        }
+      });
+      const source = { manifest: opened.manifest, artifactStore,
         storage: { ...opened.storage, async close() {
+          sourceClosed = true;
           signal.removeEventListener('abort', abort);
           try {
             const settled = await Promise.allSettled([Promise.resolve().then(() => acquisition.close()), Promise.resolve().then(() => opened.storage.close())]);

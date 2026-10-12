@@ -92,12 +92,19 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
     if (!program) {
       placement = selected; phase = 'loading'; error = null; notify();
       const selectedOffer = offer;
-      preparing = loadProgram(selectedOffer, selected.indexOf(identity.peerId), {
+      const preparationOwners = new Set();
+      preparing = Promise.resolve().then(() => loadProgram(selectedOffer, selected.indexOf(identity.peerId), {
         signal: AbortSignal.any([lifetime.signal, contributionController.signal]), participantId: identity.peerId,
+        registerCleanup(owner) {
+          assert(typeof owner?.close === 'function', 'Preparation cleanup owner must expose close');
+          preparationOwners.add(owner);
+        },
         onProgress: value => { error = null; progress = value; notify(); }
-      });
+      }));
       try {
         program = await preparing;
+        // A returned resident now owns successful preparation. Pending loading
+        // remains stoppable; only rejected cleanup becomes unsettled ownership.
         // Stop/close own retirement after this tick settles. A late loader may
         // not retire a newer contribution or race another cleanup caller.
         if (closed || offer !== selectedOffer) return;
@@ -109,7 +116,10 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
             contributor: program.resident.index === 1 ? program.resident : null, limits: config.executionChannel,
             receiverLimits: config.receiver, descriptorTtlMs: config.inputLimits.descriptorTtlMs }) });
         phase = 'ready'; progress = null; notify();
-      } catch (cause) { phase = 'failed'; error = cause.message; notify(); throw cause; }
+      } catch (cause) {
+        for (const owner of preparationOwners) unsettledOwners.add(owner);
+        phase = 'failed'; error = cause.message; notify(); throw cause;
+      }
       finally { preparing = null; }
     }
     if (program && phase === 'waiting') { phase = 'ready'; progress = null; notify(); }

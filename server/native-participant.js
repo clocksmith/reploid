@@ -3,12 +3,13 @@
  */
 import fs from 'node:fs/promises';
 import { createNativeModelFiles } from './native-model-files.js';
+import { openNativeReleaseCheckpoints } from './native-release-storage.js';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { createAutomaticPartitions, createLegacyGenerationMesh, createPartitionNetwork, createResidentPartition } from '../packages/reploid/src/mesh/index.js';
+import { createAutomaticPartitions, createLegacyGenerationMesh, createPartitionNetwork, createResidentPartition, createSignedResidentFactory } from '../packages/reploid/src/mesh/index.js';
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../packages/reploid/src/transport/index.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
 import { resolveConfig } from '../packages/reploid/src/config/index.js';
@@ -17,6 +18,8 @@ import policy from '../self/config/partition-policy.json' with { type: 'json' };
 import profile from '../self/config/reploid-library.json' with { type: 'json' };
 import bootstrap from '../self/config/swarm-bootstrap.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../self/config/partition-generation.js';
+import { prepareLocalPackRelease } from '../self/pool/pack-release-policy.js';
+import { assertWorkResidentCapsule } from '../self/host/work-partition-capsule.js';
 
 const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
@@ -126,21 +129,57 @@ export function createNativeGpuHost(loadProvider) {
   });
 }
 
-export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId, files, onProgress = () => {} }) {
-  requireValue(selected.capsule === undefined, 'Native signed Capsule opening is not configured');
+export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
+  files, releaseDirectory, registerCleanup, onProgress = () => {} }) {
+  if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
+    'Signed native resident requires release policy, checkpoint directory and pinned artifact source');
+  const configured = { ...selected, generation: resolvePartitionGeneration(selected) };
   const runtime = await import('doppler-gpu/partitions');
   await nativeGpu(); signal.throwIfAborted();
   await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
   const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files });
-  let resident;
+  let resident, release = null, capsuleVerification = null, sourceSettled = false, releaseSettled = false;
+  const sessions = new Set();
+  const trackSession = session => { sessions.add(session); return () => sessions.delete(session); };
+  const closeSources = async failures => {
+    if (!sourceSettled) {
+      try { await source.storage.close(); sourceSettled = true; } catch (error) { failures.push(error); }
+    }
+    if (release && !releaseSettled) {
+      try { await release.close(); releaseSettled = true; } catch (error) { failures.push(error); }
+    }
+  };
+  let cleaning = null;
+  const cleanupOwner = { close() {
+    return cleaning ||= (async () => {
+      const failures = [];
+      try { await resident?.close(); } catch (error) { failures.push(error); }
+      for (const session of sessions) {
+        try { await session.close(); sessions.delete(session); } catch (error) { failures.push(error); }
+      }
+      await closeSources(failures);
+      if (failures.length === 1) throw failures[0];
+      if (failures.length) throw new AggregateError(failures, 'Native preparation cleanup failed');
+    })().catch(error => { cleaning = null; throw error; });
+  } };
+  registerCleanup?.(cleanupOwner);
   try {
-    const manifest = source.manifest, configured = { ...selected, generation: resolvePartitionGeneration(selected) };
+    signal.throwIfAborted();
+    const manifest = source.manifest;
     const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
       splitLayer: selected.partitionSplitLayer, activationDtype: manifest.inference.session.compute.defaults.activationDtype });
     const planId = runtime.hashLayerPartitionPlan(plan);
-    // The accepted archive has no signed-piece Capsule opener. This explicit
-    // development path never advertises signed-release qualification.
-    const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: selected.identity,
+    let factory;
+    if (selected.capsule !== undefined) {
+      requireValue(source.artifactStore, 'Signed native resident requires a pinned artifact source');
+      release = await prepareLocalPackRelease({ model: configured,
+        openCheckpoints: () => openNativeReleaseCheckpoints({ directory: releaseDirectory }) });
+      const { openCapsule } = await import('doppler-gpu');
+      factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,
+        openCapsule, model: configured, artifactStore: source.artifactStore, release,
+        assertSession: assertWorkResidentCapsule, closeSources, trackSession,
+        onVerification: value => { capsuleVerification = value; } });
+    } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: selected.identity,
       runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: configured.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
@@ -149,11 +188,13 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
     onProgress({ stage: 'opening', message: 'Opening native assigned partition' });
     await resident.prepare({ approved: true, signal });
     return { runtime, model: configured, plan, planId, resident,
-      getReceipt: () => ({ ...source.getReceipt(), host: 'node', openingMode: 'pinned-manifest', memory: runtime.inspectDeviceMemory() }) };
+      getReceipt: () => ({ ...(selected.capsule === undefined ? source.getReceipt() : { sourceAcquisition: source.getReceipt() }),
+        host: 'node', openingMode: selected.capsule === undefined ? 'pinned-manifest' : 'signed-capsule',
+        capsuleVerification, memory: runtime.inspectDeviceMemory() }) };
   } catch (error) {
-    const settled = await Promise.allSettled([resident?.close(), source.storage.close()]);
-    const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
-    if (failures.length) throw new AggregateError([error, ...failures], 'Native opening and cleanup failed');
+    const failures = [error];
+    try { await cleanupOwner.close(); } catch (cleanup) { failures.push(cleanup); }
+    if (failures.length > 1) throw new AggregateError(failures, 'Native opening and cleanup failed');
     throw error;
   }
 }
@@ -212,6 +253,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         networks.add(network); return network;
       },
       loadProgram: (selected, index, controls) => openNativePartition({ model: selected, index, modelDirectory,
+        releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
         nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls }), onChange
     });
     return Object.freeze({ identity: identity.peerId, getState: () => partitions.getState(),
