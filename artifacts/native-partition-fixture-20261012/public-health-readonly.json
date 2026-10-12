@@ -1,0 +1,68 @@
+{
+  "observedAt": "2026-10-12T21:17:51.071848+00:00",
+  "scope": "Read-only existing process/log inspection after separate GPU reset; no inference, inspection signal or restart; reported readiness does not establish working GPU",
+  "hosts": [
+    {
+      "pid": 3379363,
+      "alive": true,
+      "log": "/home/x/.local/state/reploid/public-native-budget-restart-20261012.log",
+      "modified": 1791839871.1709132,
+      "deviceLossLines": [],
+      "lastPartitionState": {
+        "phase": "ready",
+        "error": null,
+        "offering": true,
+        "attempts": [],
+        "unsettledOwners": 0
+      },
+      "stateKeys": [
+        "event",
+        "phase",
+        "error",
+        "progress",
+        "offering",
+        "modelId",
+        "placement",
+        "placementDecision",
+        "capabilities",
+        "descriptor",
+        "acquisition",
+        "models",
+        "reservations",
+        "attempts",
+        "unsettledOwners"
+      ],
+      "reservationType": "dict",
+      "network": {
+        "connectionState": "connected",
+        "peerCount": 5
+      },
+      "files": {
+        "sharing": true,
+        "suppliedBytes": 637534208,
+        "pending": 0,
+        "supplyBudgetError": null
+      }
+    },
+    {
+      "pid": 3391808,
+      "alive": true,
+      "log": "/home/x/.local/state/reploid/public-browser-budget-restored-20261012.log",
+      "modified": 1791839421.4473991,
+      "deviceLossLines": [],
+      "lastRelay": {
+        "event": "relay-credentials",
+        "status": 200,
+        "receivedAt": "2026-10-12T21:10:21.448Z",
+        "issuedAt": "2026-10-12T21:10:21.325Z",
+        "expiresAt": "2026-10-12T21:20:21.325Z"
+      },
+      "lastReadyMemory": {
+        "maxBytes": 1420000000,
+        "liveBytes": 296010000,
+        "peakBytes": 497336720,
+        "rejected": 0
+      }
+    }
+  ]
+}
