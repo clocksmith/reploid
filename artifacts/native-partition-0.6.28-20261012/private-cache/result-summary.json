@@ -580,6 +580,7 @@
     "API-boundary timing does not separate Dawn pipeline translation from driver compiler work.",
     "Original916.5s failure retained. Ordinary300s execution deadline unchanged; diagnostic20min operation bound unchanged.",
     "First output timestamps are external log observations; mtime and arrival are retained separately.",
-    "No new runtime code was used in this run; readiness correction0ac64fa2 needs separate candidate qualification."
+    "No new runtime code was used in this run; readiness correction0ac64fa2 needs separate candidate qualification.",
+    "Local Mac CPU readiness tests and source/type/dependency checks overlapped after both residents were ready, while native recurrent pipeline creation was pending. No extra GPU submissions were introduced."
   ]
 }

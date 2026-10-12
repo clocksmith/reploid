@@ -22,7 +22,9 @@ actual loaded Dawn/RADV hashes matched the freeze. The cache gained files and
 is preserved. Shared caches were neither cleared nor changed; other caches are
 not asserted cold. [Mesa documentation](https://docs.mesa3d.org/envvars.html#envvar-MESA_SHADER_CACHE_DIR)
 defines the variable. Existing document CPU work on cores4–7 continued, so this
-is a controlled diagnostic, not an exclusive performance benchmark.
+is a controlled diagnostic, not an exclusive performance benchmark. Local Mac
+CPU readiness tests and source checks also overlapped after both residents were
+ready while the native pipeline was pending; they introduced no GPU work.
 
 Maximum observed process RSS was9,789,652,992bytes; sampled process high-water
 was9,902,841,856bytes. These are distinct from GPU buffer allocation peaks:
