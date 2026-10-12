@@ -551,7 +551,7 @@ const WebRTCSwarm = {
       negotiationTimers.set(remote, setTimeout(() => {
         negotiationTimers.delete(remote);
         if (_peers.get(remote) === peer && peer.dataChannel?.readyState !== 'open') {
-          removePeer(remote);
+          recoverPeer(remote, peer);
           EventBus.emit('swarm:connection-failed', { peerId: remote, message: 'Peer connection unavailable; check the invitation route and ICE/relay configuration' });
         }
       }, policy.webrtc.connectTimeoutMs));
@@ -622,7 +622,7 @@ const WebRTCSwarm = {
         // ICE disconnected can recover. The existing heartbeat deadline bounds
         // liveness; do not destroy open custody/partition channels prematurely.
         if (connection.connectionState === 'failed' || connection.connectionState === 'closed') {
-          removePeer(remotePeerId);
+          recoverPeer(remotePeerId, peer);
         }
       };
 
@@ -692,7 +692,7 @@ const WebRTCSwarm = {
         // Preserve transient ICE recovery under the same heartbeat deadline as
         // outgoing connections. Terminal states still retire the peer now.
         if (connection.connectionState === 'failed' || connection.connectionState === 'closed') {
-          removePeer(remotePeerId);
+          recoverPeer(remotePeerId, peer);
         }
       };
 
@@ -789,7 +789,7 @@ const WebRTCSwarm = {
       dataChannel.onclose = () => {
         if (_peers.get(remotePeerId) !== peer) return;
         logger.info(`[WebRTCSwarm] Data channel closed with ${remotePeerId}`);
-        removePeer(remotePeerId);
+        recoverPeer(remotePeerId, peer);
       };
     };
 
@@ -839,6 +839,16 @@ const WebRTCSwarm = {
       }
       _pendingIceCandidates.delete(remotePeerId);
       _latencyByPeer.delete(remotePeerId);
+    };
+
+    // A healthy rendezvous does not emit another peer-joined event after an ICE
+    // connection fails. Rejoin through its existing bounded backoff to obtain a
+    // fresh admitted peer list; connectToPeer preserves still-open channels.
+    // This restores transport only. Retired requests are never replayed here.
+    const recoverPeer = (remotePeerId, peer) => {
+      if (_peers.get(remotePeerId) !== peer) return;
+      removePeer(remotePeerId);
+      if (!peer.exchange && peer.transport !== 'signaling-relay') scheduleReconnect();
     };
 
     /**
@@ -1039,7 +1049,7 @@ const WebRTCSwarm = {
         for (const [peerId, peer] of _peers) {
           if (now - peer.lastSeen > PEER_TIMEOUT) {
             logger.warn(`[WebRTCSwarm] Peer ${peerId} is stale, removing`);
-            removePeer(peerId);
+            recoverPeer(peerId, peer);
             EventBus.emit('swarm:peer-timeout', { peerId });
           }
         }

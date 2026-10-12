@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/swarm-credential-renewal.test.js (1 test) 6ms
+ ✓ tests/unit/swarm-signaling-independence.test.js (15 tests) 20ms
+ ✓ tests/unit/swarm-rtc-config.test.js (3 tests) 5ms
+ ✓ tests/unit/webrtc-swarm.test.js (44 tests) 21ms
+
+ Test Files  4 passed (4)
+      Tests  63 passed (63)
+   Start at  22:51:34
+   Duration  415ms (transform 303ms, setup 0ms, import 472ms, tests 52ms, environment 597ms)
+

@@ -1,0 +1,47 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/swarm-signaling-independence.test.js (15 tests | 1 failed) 19ms
+   ✓ keeps direct traffic and heartbeats after signaling close, removes dependent relay routes 5ms
+   ✓ keeps direct traffic and heartbeats after signaling error, removes dependent relay routes 1ms
+   ✓ allows transient ICE recovery within the liveness deadline (incoming=false) 1ms
+   ✓ allows transient ICE recovery within the liveness deadline (incoming=true) 1ms
+   ✓ still retires an unresponsive disconnected peer at the existing deadline (incoming=false) 1ms
+   ✓ still retires an unresponsive disconnected peer at the existing deadline (incoming=true) 0ms
+   ✓ retires a peer immediately on failed during ICE interruption 0ms
+   ✓ retires a peer immediately on closed during ICE interruption 0ms
+   ✓ retires a peer immediately on manual during ICE interruption 1ms
+   ✓ retains direct peers across directory departure and rejoin without replacing their channels 2ms
+   ✓ admits through an injected introduction adapter without a WebSocket or company credential port 0ms
+   ✓ admits only registered bounded job channels and closes them on peer shutdown 1ms
+   ✓ creates dedicated job channels with the existing reliable ordered delivery contract 0ms
+   × rejoins discovery after terminal RTC failure and replaces only the failed channel 4ms
+   ✓ cancels terminal peer recovery on explicit disconnect 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/swarm-signaling-independence.test.js > rejoins discovery after terminal RTC failure and replaces only the failed channel
+AssertionError: expected [ Socket{ readyState: 1, …(5) } ] to have a length of 2 but got 1
+
+- Expected
++ Received
+
+- 2
++ 1
+
+ ❯ tests/unit/swarm-signaling-independence.test.js:218:23
+    216|       await vi.advanceTimersByTimeAsync(100);
+    217|     }
+    218|     expect(f.sockets).toHaveLength(2);
+       |                       ^
+    219|     expect(healthy.close).not.toHaveBeenCalled();
+    220|     f.sockets[1].onopen();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 14 passed (15)
+   Start at  22:51:07
+   Duration  307ms (transform 41ms, setup 0ms, import 54ms, tests 19ms, environment 165ms)
+

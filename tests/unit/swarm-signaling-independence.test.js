@@ -199,3 +199,42 @@ it('creates dedicated job channels with the existing reliable ordered delivery c
     expect(() => f.swarm.openDataChannel('direct', 'reploid-jobs')).toThrow('duplicate auxiliary');
   } finally { f.swarm.disconnect(); }
 });
+
+it('rejoins discovery after terminal RTC failure and replaces only the failed channel', async () => {
+  vi.useFakeTimers();
+  const f = fixture();
+  try {
+    await f.open();
+    await f.sockets[0].receive({ type: 'offer', peerId: 'healthy', offer: { type: 'offer', sdp: '' } });
+    const healthy = f.connections[1];
+    healthy.ondatachannel({ channel: healthy.channel }); healthy.channel.onopen();
+    f.connections[0].connectionState = 'failed'; f.connections[0].onconnectionstatechange();
+    expect(f.connections[0].close).toHaveBeenCalledOnce();
+    for (let i = 0; i < 10; i++) {
+      healthy.channel.onmessage({ data: JSON.stringify({ protocolVersion: 1, type: 'pong',
+        peerId: 'healthy', timestamp: i, payload: { ts: Date.now() }, payloadSize: 0 }) });
+      await vi.advanceTimersByTimeAsync(100);
+    }
+    expect(f.sockets).toHaveLength(2);
+    expect(healthy.close).not.toHaveBeenCalled();
+    f.sockets[1].onopen();
+    await f.sockets[1].receive({ type: 'joined', peerId: 'local', roomId: 'test', peers: ['direct', 'healthy'] });
+    expect(f.connections).toHaveLength(3);
+    f.connections[2].channel.onopen();
+    expect(f.swarm.getConnectedPeers().map(peer => peer.id).sort()).toEqual(['direct', 'healthy']);
+    expect(healthy.close).not.toHaveBeenCalled();
+    // Recovery restores transport capacity, without replaying application requests.
+    expect(f.connections[2].channel.send.mock.calls.map(([message]) => JSON.parse(message).type)).toEqual(['sync-request']);
+  } finally { f.swarm.disconnect(); }
+});
+
+it('cancels terminal peer recovery on explicit disconnect', async () => {
+  vi.useFakeTimers();
+  const f = fixture();
+  await f.open();
+  f.connections[0].connectionState = 'failed'; f.connections[0].onconnectionstatechange();
+  f.swarm.disconnect();
+  await vi.advanceTimersByTimeAsync(5000);
+  expect(f.sockets).toHaveLength(1);
+  expect(f.connections).toHaveLength(1);
+});
