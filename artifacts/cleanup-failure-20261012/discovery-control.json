@@ -1,0 +1,258 @@
+[
+  {
+    "frozen": false,
+    "messages": [
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Cannot send to 59332ca9-b4b7-4bb0-881b-58accf211f65: not connected"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Cannot send to 59332ca9-b4b7-4bb0-881b-58accf211f65: not connected"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Cannot send to 570f90df-d0b0-40a6-ba5f-0548735e34ef: not connected"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Cannot send to 17f0f985-6806-4f65-9966-b69a1d41638e: not connected"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Cannot send to 570f90df-d0b0-40a6-ba5f-0548735e34ef: not connected"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Cannot send to 17f0f985-6806-4f65-9966-b69a1d41638e: not connected"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Cannot send to 570f90df-d0b0-40a6-ba5f-0548735e34ef: not connected"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Cannot send to 17f0f985-6806-4f65-9966-b69a1d41638e: not connected"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Cannot send to 17f0f985-6806-4f65-9966-b69a1d41638e: not connected"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Cannot send to 17f0f985-6806-4f65-9966-b69a1d41638e: not connected"
+      }
+    ],
+    "sockets": [
+      {
+        "url": "ws://localhost:8000/swarm?scope=public&roomId=reploid-swarm-public",
+        "sent": [
+          {
+            "type": "join",
+            "keys": [
+              "type",
+              "peerId",
+              "roomId",
+              "token",
+              "metadata"
+            ]
+          },
+          {
+            "type": "offer",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "offer"
+            ]
+          },
+          {
+            "type": "offer",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "offer"
+            ]
+          },
+          {
+            "type": "offer",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "offer"
+            ]
+          },
+          {
+            "type": "ice-candidate",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "candidate"
+            ]
+          },
+          {
+            "type": "ice-candidate",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "candidate"
+            ]
+          },
+          {
+            "type": "ice-candidate",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "candidate"
+            ]
+          },
+          {
+            "type": "ice-candidate",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "candidate"
+            ]
+          }
+        ],
+        "received": [
+          {
+            "type": "welcome",
+            "keys": [
+              "type",
+              "timestamp",
+              "path",
+              "localOnly"
+            ]
+          },
+          {
+            "type": "joined",
+            "keys": [
+              "type",
+              "peerId",
+              "roomId",
+              "peers",
+              "timestamp"
+            ]
+          },
+          {
+            "type": "answer",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "timestamp",
+              "answer"
+            ]
+          },
+          {
+            "type": "answer",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "timestamp",
+              "answer"
+            ]
+          },
+          {
+            "type": "ice-candidate",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "timestamp",
+              "candidate"
+            ]
+          },
+          {
+            "type": "ice-candidate",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "timestamp",
+              "candidate"
+            ]
+          },
+          {
+            "type": "answer",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "timestamp",
+              "answer"
+            ]
+          },
+          {
+            "type": "ice-candidate",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "timestamp",
+              "candidate"
+            ]
+          },
+          {
+            "type": "ice-candidate",
+            "keys": [
+              "type",
+              "peerId",
+              "targetPeer",
+              "timestamp",
+              "candidate"
+            ]
+          }
+        ]
+      }
+    ],
+    "text": "7\n7\nReploid\nNo model ready\n7\n7\nThreads\nNew thread\nNetwork\n3 peers\nActions\nMessage\nAttach\nSend\nRetry connection"
+  },
+  {
+    "frozen": true,
+    "messages": [
+      {
+        "type": "error",
+        "text": "WebSocket connection to 'ws://localhost:8000/swarm?scope=public&roomId=reploid-swarm-public' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Signaling failed: Event"
+      },
+      {
+        "type": "error",
+        "text": "WebSocket connection to 'ws://localhost:8000/swarm?scope=public&roomId=reploid-swarm-public' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Signaling failed: Event"
+      },
+      {
+        "type": "error",
+        "text": "WebSocket connection to 'ws://localhost:8000/swarm?scope=public&roomId=reploid-swarm-public' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Signaling failed: Event"
+      },
+      {
+        "type": "error",
+        "text": "WebSocket connection to 'ws://localhost:8000/swarm?scope=public&roomId=reploid-swarm-public' failed: Error in connection establishment: net::ERR_BLOCKED_BY_LOCAL_NETWORK_ACCESS_CHECKS"
+      },
+      {
+        "type": "warning",
+        "text": "[WARN] [WebRTCSwarm] Signaling failed: Event"
+      }
+    ],
+    "sockets": [],
+    "text": "7\n7\nReploid\nFinding capacity\n7\n7\nThreads\nNew thread\nNetwork\n0 peers\nActions\nStart a conversation\n\nAsk a question or attach a document.\n\nMessage\n\nFinding available models…\n\nAttach\nSend"
+  }
+]

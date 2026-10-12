@@ -1,0 +1,12 @@
+{
+  "startedAt": "2026-10-12T12:11:06.118Z",
+  "sourceCommit": "f7757a81",
+  "scope": "Physical browser resident cleanup rejection and explicit UI Retry stopping; pinned-manifest opening",
+  "fault": "Reject the first armed resident close before releasing resources; retry calls the original close",
+  "resources": [],
+  "ok": false,
+  "error": "Error: expect(received).toBe(expected) // Object.is equality\n\nExpected: true\nReceived: false\n    at Proxy.<anonymous> (/Users/xyz/deco/reploid/node_modules/playwright/lib/matchers/expect.js:213:24)\n    at file:///Users/xyz/deco/reploid/artifacts/cleanup-failure-20261012/controller.mjs:17:45\n    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)",
+  "screen": "",
+  "finishedAt": "2026-10-12T12:11:06.537Z",
+  "contextClosed": true
+}
