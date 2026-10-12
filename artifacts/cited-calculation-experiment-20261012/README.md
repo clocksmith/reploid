@@ -1,6 +1,6 @@
 # Cited calculation experiment
 
-Status: preparing the frozen experiment; no model output, qualification or production change.
+Status: frozen and independently reviewed before generation in `82603086`. One seven-case CPU source run is active; no qualification or production change.
 
 Component: Reploid document reasoning. Intent: preserved. Pure generation configurations remain rejected. This tests a different application workflow, not another sampling or wording campaign.
 
@@ -31,3 +31,9 @@ The original four ordered conversations and complete review criteria are retaine
 4. Manual review of every unchanged factual/citation/natural-completion requirement, fresh holdouts and actual closed-loop followup before any implementation transfer.
 
 Boundary effects: none in production. No new permissions, scheduler, model mathematics, runtime archive or package pin.
+
+## Running receipt and reproduction
+
+`run-binding.json` records the exact command, environment, host and process identity. The supervisor writes final exit status to the same remote binding. Live output is `/home/x/deco/reploid/reports/local/cited-calculation-experiment-20261012/result.json`; `run.log` and per-case extract/answer JSON files retain incremental output. Inspect these read-only. Do not rerun a failed case or change policy while the frozen run is active.
+
+The source checkpoint is already verified locally on x128. Reproduce the command in the binding from `/home/x/deco/reploid` with its explicit environment, after coordinating the CPU window. Reproduction is diagnostic, not a way to select a favorable answer.
