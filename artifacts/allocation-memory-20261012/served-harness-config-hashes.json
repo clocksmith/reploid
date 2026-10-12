@@ -1,0 +1,9 @@
+{
+  "tests/fixtures/browser-partition-memory-completion.js": "6053a0eccc6fb54a728b7a0e7856ca85b400960a38d1f0cdffd2eb5225624c98",
+  "tests/fixtures/distributed-memory-requests.json": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+  "tests/fixtures/physical-webgpu-browser.js": "a65b4a0ea9de414fe149d1ec0b70c018d72f98c412b0244744d511139163e0d7",
+  "self/config/doppler-package.json": "5f993010c94963ffda5fb65f079f3fd9f87a0729e4a7e0440d32d69082e61d55",
+  "self/config/chat-models.json": "1d5e76f1a2259ef8641b325f6422c9ab48a83dd28528dae45abdddb708aa97d5",
+  "self/config/partition-policy.json": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235",
+  "self/config/work-profile.json": "cf49115a229ae17aed1e424a41336340b125b474f72907ba03d20482bb32648c"
+}
