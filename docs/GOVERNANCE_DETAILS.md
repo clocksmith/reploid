@@ -590,15 +590,17 @@ the product.
 
 ## Authority and supporting references
 
-This document is the repository-level authority for mission, value, and
-strategic goals. Narrower product contracts, scientific non-claims, target
-object design, current status, and executable policy live in:
+[GOALS.md](../GOALS.md) owns repository mission, value, and strategic goals.
+This document retains supporting requirements under that direction and the root
+[INTENT.md](../INTENT.md) and [CATSCAN.md](../CATSCAN.md). Narrower product
+contracts, scientific non-claims, target object design, current status, and
+executable policy live in:
 
 - [`docs/poolday/product-intent.md`](poolday/product-intent.md)
 - [`docs/poolday/claims-and-nonclaims.md`](poolday/claims-and-nonclaims.md)
 - [`docs/poolday/discovery-contract.md`](poolday/discovery-contract.md)
 - [`docs/change-passport/product-intent.md`](change-passport/product-intent.md)
-- [`docs/change-passport/implementation-plan.md`](change-passport/runtime-contract.md)
+- [`docs/change-passport/runtime-contract.md`](change-passport/runtime-contract.md)
 - [`docs/rsi-improvement-episodes.md`](rsi-improvement-episodes.md)
 - [`docs/status/surface-claim-index.json`](status/surface-claim-index.json)
 - [`self/pool/pool-config.json`](../self/pool/pool-config.json)

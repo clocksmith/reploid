@@ -23,7 +23,7 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 ## Core Documentation
 
 ### Architecture
-- **[Open mesh architecture](./open-mesh-architecture.md)** - Requested chat experience, discovery, authenticated pieces, automatic placement, Doppler execution, recovery, resource bounds and ordered acceptance gates; design, not release evidence
+- **[Open mesh architecture](./open-mesh-architecture.md)** - Requested chat experience, discovery, authenticated pieces, automatic placement, Doppler execution, recovery, resource bounds and acceptance requirements; design, not release evidence
 - **[docs/system-architecture.md](./system-architecture.md)** - Agent and VFS substrate architecture
 - **[Reploid, Doppler, and Doe diagram](./diagrams/reploid-diagram/README.md)** - Editable interactive views of intended relationships, operations, improvement and recovery; not implementation evidence
 - **[Blueprint inventory](../self/blueprints/canonical-inventory.md)** - Generated sitemap of maintained architectural decisions; file enumeration belongs to the [source inventory](../self/config/module-inventory.json)
@@ -77,7 +77,6 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 - **[docs/zero/critical-user-journeys.md](./zero/critical-user-journeys.md)** - Human-readable Zero journey status
 - **[docs/status/x-critical-user-journeys.json](./status/x-critical-user-journeys.json)** - Canonical X user outcomes, evidence, limitations, and remaining work
 - **[docs/x/critical-user-journeys.md](./x/critical-user-journeys.md)** - Human-readable X journey status
-- **[docs/browser-inference-pool.md](./browser-inference-pool.md)** - Poolday docs/internal contract for the public Reploid browser inference surface
 - **[docs/poolday/claims-and-nonclaims.md](./poolday/claims-and-nonclaims.md)** - Poolday claim boundary
 - **[docs/poolday/threat-model.md](./poolday/threat-model.md)** - Poolday adversaries, trust boundaries, and evidence
 - **[docs/poolday/receipt-schema.md](./poolday/receipt-schema.md)** - Provider receipts and requester acceptances
@@ -207,7 +206,7 @@ does not create Markdown blueprints unless a module introduces an architectural 
 - `./self/infrastructure/` - Support services
 - `./self/ui/` - Proto UI
 - `./self/blueprints/` - Architectural specifications
-- `docs/` - Human-facing documentation. Internal module system invariants and migration checklist live in the private wrapper repo.
+- `docs/` - Human-facing documentation. Component ownership and invariants live in the applicable CATSCAN chain; [TODO.md](../TODO.md) owns active implementation work.
 
 **External Links:**
 - [DOPPLER](https://github.com/clocksmith/doppler) - WebGPU inference engine (separate repo)
