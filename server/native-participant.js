@@ -1,0 +1,256 @@
+/** Native Node host for the same authenticated partition protocol as the browser.
+ * No browser, model arithmetic, placement policy, or whole-request fallback lives here.
+ */
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { createHash } from 'node:crypto';
+import { EventEmitter } from 'node:events';
+import { pathToFileURL, fileURLToPath } from 'node:url';
+import { parseArgs } from 'node:util';
+import { createAutomaticPartitions, createLegacyGenerationMesh, createPartitionNetwork, createResidentPartition } from '../packages/reploid/src/mesh/index.js';
+import { createSwarmTransport, createRoomIntroductionAdmission } from '../packages/reploid/src/transport/index.js';
+import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
+import { resolveConfig } from '../packages/reploid/src/config/index.js';
+import models from '../self/config/chat-models.json' with { type: 'json' };
+import policy from '../self/config/partition-policy.json' with { type: 'json' };
+import profile from '../self/config/reploid-library.json' with { type: 'json' };
+import bootstrap from '../self/config/swarm-bootstrap.json' with { type: 'json' };
+import { resolvePartitionGeneration } from '../self/config/partition-generation.js';
+
+const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
+const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
+const events = () => {
+  const emitter = new EventEmitter();
+  return { emit: (...args) => emitter.emit(...args), on(name, handler) {
+    emitter.on(name, handler); return () => emitter.off(name, handler);
+  } };
+};
+
+/** node-webrtc exposes UINT16_MAX for unspecified SCTP retransmission limits.
+ * Normalize that provider representation at the host boundary, not in the
+ * shared protocol's reliable-channel requirement. */
+export function normalizeNativeDataChannel(channel) {
+  for (const key of ['maxRetransmits', 'maxPacketLifeTime']) {
+    if (channel[key] === 65535) Object.defineProperty(channel, key, { value: null, configurable: true });
+  }
+  return channel;
+}
+
+export function createNativeRtcAdapter(rtc) {
+  class RTCPeerConnection extends rtc.RTCPeerConnection {
+    constructor(...args) {
+      super(...args);
+      this.addEventListener('datachannel', event => normalizeNativeDataChannel(event.channel));
+    }
+    createDataChannel(...args) { return normalizeNativeDataChannel(super.createDataChannel(...args)); }
+  }
+  return { ...rtc, RTCPeerConnection };
+}
+
+/** Read only complete authenticated pieces requested by Doppler's public reader. */
+export async function openNativeModelSource({ model, modelDirectory, signal, runtime }) {
+  const root = await fs.realpath(modelDirectory);
+  const read = async (name, offset, size) => {
+    signal?.throwIfAborted();
+    requireValue(/^[a-zA-Z0-9_.-]+$/.test(name), 'Model file must be a plain filename');
+    const filename = await fs.realpath(path.join(root, name));
+    requireValue(path.dirname(filename) === root, 'Model file escapes its approved directory');
+    const handle = await fs.open(filename, 'r');
+    try {
+      const stat = await handle.stat();
+      requireValue(stat.isFile(), 'Model source must be a regular file');
+      if (offset === undefined) return new Uint8Array(await handle.readFile());
+      requireValue(Number.isSafeInteger(offset) && offset >= 0 && Number.isSafeInteger(size) && size > 0
+        && offset + size <= stat.size, 'Model piece exceeds its file');
+      const bytes = new Uint8Array(size);
+      let received = 0;
+      while (received < size) {
+        signal?.throwIfAborted();
+        const result = await handle.read(bytes, received, size - received, offset + received);
+        requireValue(result.bytesRead > 0, 'Model piece read was truncated'); received += result.bytesRead;
+      }
+      signal?.throwIfAborted(); return bytes;
+    } finally { await handle.close(); }
+  };
+  const manifestBytes = await read('manifest.json');
+  requireValue(hash(manifestBytes) === model.identity, 'Native manifest differs from the approved catalog');
+  const descriptor = model.source.files.find(row => row.role === 'model-piece-index');
+  requireValue(descriptor?.hashAlgorithm === 'sha256', 'Native model requires a pinned piece index');
+  // Catalog metadata is bundled with the application; the weight directory need
+  // not contain a second hand-maintained copy of it.
+  const indexBytes = descriptor.url?.startsWith('/config/model-pieces/')
+    ? new Uint8Array(await fs.readFile(new URL('../self' + descriptor.url, import.meta.url)))
+    : await read(descriptor.path);
+  requireValue(hash(indexBytes) === 'sha256:' + descriptor.hash, 'Native piece index differs from the approved catalog');
+  return runtime.createVerifiedPieceStorage({ manifestBytes, indexBytes, indexIdentity: 'sha256:' + descriptor.hash,
+    signal, acquire: piece => read(piece.path, piece.offset, piece.size) });
+}
+
+/** The standalone host owns the Node provider and the only device in this
+ * process. Final close follows resident settlement; stopping contribution alone
+ * keeps the provider reusable. No private Doppler imports are needed. */
+export function createNativeGpuHost(loadProvider) {
+  let opening = null, closing = null, restore = null;
+  return Object.freeze({
+    open() {
+      if (closing) throw new Error('Native GPU host is closing');
+      if (!opening) opening = (async () => {
+        requireValue(!globalThis.navigator?.gpu, 'Native GPU host cannot replace a borrowed provider');
+        const provider = await loadProvider();
+        const saved = new Map(Object.keys(provider.globals).concat('navigator')
+          .map(key => [key, Object.getOwnPropertyDescriptor(globalThis, key)]));
+        restore = () => { for (const [key, descriptor] of saved) {
+          if (descriptor) Object.defineProperty(globalThis, key, descriptor); else delete globalThis[key];
+        } };
+        try {
+          Object.assign(globalThis, provider.globals);
+          Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { gpu: provider.create(['backend=vulkan']) } });
+        } catch (error) { restore(); restore = null; throw error; }
+      })().catch(error => { opening = null; throw error; });
+      return opening;
+    },
+    close() {
+      return closing ||= (async () => {
+        await opening?.catch(() => {});
+        if (!restore) return;
+        const { getDevice, destroyBufferPool } = await import('doppler-gpu/tooling');
+        const device = getDevice();
+        // All owned residents must already be settled. Destroying this process's
+        // device is never used as cancellation of another participant.
+        if (device) { await device.queue.onSubmittedWorkDone(); destroyBufferPool(device); device.destroy(); }
+        restore(); restore = null;
+      })();
+    }
+  });
+}
+
+export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId, onProgress = () => {} }) {
+  const runtime = await import('doppler-gpu/partitions');
+  await nativeGpu(); signal.throwIfAborted();
+  await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
+  const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime });
+  let resident;
+  try {
+    const manifest = source.manifest, configured = { ...selected, generation: resolvePartitionGeneration(selected) };
+    const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
+      splitLayer: selected.partitionSplitLayer, activationDtype: manifest.inference.session.compute.defaults.activationDtype });
+    const planId = runtime.hashLayerPartitionPlan(plan);
+    // The accepted archive has no signed-piece Capsule opener. This explicit
+    // development path never advertises signed-release qualification.
+    const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: selected.identity,
+      runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
+        inference: { session: { kvcache: { maxSeqLen: configured.generation.maxSeqLen },
+          prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
+      createStorage: async () => source.storage });
+    resident = createResidentPartition({ runtime: factory, model: configured, plan, planId, index, participantId, limits: policy.limits });
+    onProgress({ stage: 'opening', message: 'Opening native assigned partition' });
+    await resident.prepare({ approved: true, signal });
+    return { runtime, model: configured, plan, planId, resident,
+      getReceipt: () => ({ ...source.getReceipt(), host: 'node', openingMode: 'pinned-manifest', memory: runtime.inspectDeviceMemory() }) };
+  } catch (error) {
+    const settled = await Promise.allSettled([resident?.close(), source.storage.close()]);
+    const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
+    if (failures.length) throw new AggregateError([error, ...failures], 'Native opening and cleanup failed');
+    throw error;
+  }
+}
+
+export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
+  signalingUrl, roomId, roomToken, nativeGpu, onChange = () => {}, logger = console }) {
+  requireValue(identity?.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId,
+    'Native participant requires its own valid signing identity');
+  requireValue(typeof rtc?.RTCPeerConnection === 'function' && typeof WebSocket === 'function', 'Native WebRTC and WebSocket required');
+  requireValue(model && modelDirectory && typeof nativeGpu === 'function', 'Explicit native model, directory and GPU provider required');
+  const endpoint = new URL(signalingUrl);
+  endpoint.searchParams.set('scope', roomId === bootstrap.publicRoomId ? 'public' : 'private');
+  endpoint.searchParams.set('roomId', roomId);
+  const config = resolveConfig({ profile: profile.profile, overrides: {
+    mesh: { enabled: true, executeJobs: false, roomId },
+    webrtc: { signalingUrl: endpoint.href, broadcastRoomId: roomId, transportOrder: ['webrtc'] }
+  } });
+  const eventBus = events(), bridge = events(), utils = { logger, generateId: () => crypto.randomUUID() };
+  const admission = roomId === bootstrap.publicRoomId ? null : createRoomIntroductionAdmission({ roomId, token: roomToken });
+  let transport, partitions, closePromise, closed = false, gpuPromise;
+  const networks = new Set();
+  const mesh = createLegacyGenerationMesh({ config, ports: {
+    instanceId: 'node:' + identity.peerId, modelConfig: null, utils, eventBus, events: bridge,
+    identity: { ensure: async () => identity, save: async () => {}, sync: async () => {},
+      rotate: async () => { throw new Error('Stop the native participant before rotating its identity'); } },
+    authorize: async request => !closed && request.action === 'mesh.connect',
+    generate: async () => { throw new Error('Native whole-request fallback is disabled'); },
+    createTransport: () => transport = createSwarmTransport({ config, Utils: utils, EventBus: eventBus,
+      WebSocket, RTCPeerConnection: rtc.RTCPeerConnection, RTCSessionDescription: rtc.RTCSessionDescription,
+      RTCIceCandidate: rtc.RTCIceCandidate,
+      getSessionId: () => identity.peerId, getRoomCredentials: () => ({ roomId, token: roomToken }),
+      introductions: { getIdentity: () => identity, ...(admission ? { createAdmission: admission.create } : {}),
+        authorize: async request => !closed && request.roomId === roomId && request.action !== 'forward'
+          && (!admission || (!request.contact && !request.from) || await admission.verify(request.contact || request.from)) }
+    })
+  } });
+  const close = () => closePromise ||= (async () => {
+    closed = true;
+    const results = await Promise.allSettled([partitions?.close(), ...[...networks].map(network => network.close())]);
+    try { await mesh.close(); } catch (error) { results.push({ status: 'rejected', reason: error }); }
+    const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
+    if (failures.length) throw new AggregateError(failures, 'Native contribution did not settle cleanly');
+  })();
+  try {
+    await mesh.connect();
+    partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], policy,
+      peers: () => transport.getConnectedPeers().map(peer => ({ ...peer, localTransportId: transport._getPeerId() })),
+      createNetwork(options) {
+        const network = createPartitionNetwork({ ...options, transport,
+          verifyPeer: async (peerId, signal) => {
+            try { return await mesh.verifyPeerIdentity(peerId, signal); }
+            catch (error) { logger.warn('Native participant identity verification failed', peerId, error.message); throw error; }
+          } });
+        networks.add(network); return network;
+      },
+      loadProgram: (selected, index, controls) => openNativePartition({ model: selected, index, modelDirectory,
+        nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), ...controls }), onChange
+    });
+    return Object.freeze({ identity: identity.peerId, getState: () => partitions.getState(),
+      contribute: approved => partitions.contribute(model.id, approved), stop: () => partitions.stop(), close,
+      getNetworkState: () => mesh.getSwarmSnapshot() });
+  } catch (error) { try { await close(); } catch (cleanup) { throw new AggregateError([error, cleanup], 'Native startup and cleanup failed'); } throw error; }
+}
+
+async function main() {
+  const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
+    'ws-module', 'gpu-module', 'signaling-url', 'room', 'room-token', 'origin'].map(key => [key, { type: 'string' }]).concat([
+      ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
+  requireValue(values.contribute || values['connect-only'], 'Choose --contribute explicitly or --connect-only');
+  for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module', 'gpu-module']) requireValue(values[name], '--' + name + ' is required');
+  const identityFile = path.resolve(values['identity-file']);
+  let identity;
+  try { identity = JSON.parse(await fs.readFile(identityFile, 'utf8')); }
+  catch (error) { if (error.code !== 'ENOENT') throw error;
+    identity = await createSigningIdentity({ algorithm: 'Ed25519' });
+    await fs.mkdir(path.dirname(identityFile), { recursive: true, mode: 0o700 });
+    await fs.writeFile(identityFile, JSON.stringify(identity), { flag: 'wx', mode: 0o600 }); }
+  const importModule = value => {
+    requireValue(path.isAbsolute(value) || ['@roamhq/wrtc', 'ws', 'webgpu'].includes(value),
+      'Native modules require an operator-selected absolute local path or supported package name');
+    return import(path.isAbsolute(value) ? pathToFileURL(value).href : value);
+  };
+  const [rtcModule, wsModule] = await Promise.all([importModule(values['rtc-module']), importModule(values['ws-module'])]);
+  const rtc = createNativeRtcAdapter(rtcModule.default || rtcModule);
+  const Socket = wsModule.default || wsModule.WebSocket;
+  class HostWebSocket extends Socket { constructor(url) { super(url, { origin: values.origin || 'http://localhost:8000' }); } }
+  const model = models.find(row => row.id === values.model); requireValue(model, 'Model is absent from the application catalog');
+  const gpuHost = createNativeGpuHost(() => importModule(values['gpu-module']));
+  const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
+    WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
+    roomId: values.room || bootstrap.publicRoomId, roomToken: values['room-token'] || bootstrap.publicJoinMarker,
+    nativeGpu: () => gpuHost.open(), onChange: state => console.log(JSON.stringify({ event: 'partition-state', ...state })) });
+  const timer = setInterval(() => console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState() })), policy.pollMs);
+  const stop = async () => { clearInterval(timer); await participant.close(); await gpuHost.close(); };
+  process.once('SIGINT', stop); process.once('SIGTERM', stop);
+  console.log(JSON.stringify({ event: 'native-initialized', participantId: identity.peerId, modelId: model.id }));
+  if (values.contribute) {
+    try { await participant.contribute(true); } catch (error) { await stop(); throw error; }
+  }
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  await main();
+}

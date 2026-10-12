@@ -7,7 +7,7 @@ Parent: [Reploid](../CATSCAN.md)
 Provide bounded authentication, rendezvous, relay, proxy, and compatibility services without becoming authority for browser-local claims.
 
 ## Authority
-- Owns hosted request handling, server-side validation, signaling, relay, and external-service adapters.
+- Owns hosted request handling, server-side validation, signaling, relay, external-service adapters, and native participant host composition.
 - Does not own claimed browser execution, exactly-once delivery, scientific validity, or Research Room decisions.
 
 ## Scope
@@ -27,10 +27,13 @@ Outputs:
 - Relay acknowledgement proves receipt of that relay record, not final acceptance.
 - Authentication and transport success cannot be represented as model or scientific validity.
 - Hosted failures remain explicit.
+- Native hosts reuse browser participant contracts. Doppler owns computation; native adapters own provider lifetime, authorized files and observed settlement.
+- Native receipts retain opening mode and runtime/provider identities; support is separately qualified.
 - `/swarm` is bounded discovery only: exact origins, namespace admission, destination membership, heartbeat and unjoined expiry. No application relay or virtual inference peers; origin is not authentication.
 
 ## Acceptance
 - Signaling and public-inference admission preserve their declared boundaries.
+- Native host selection, verified local pieces and provider settlement: [native host tests](../tests/unit/native-participant.test.js).
 - Evidence: [public discovery tests](../tests/integration/public-swarm-server.test.js).
 - Evidence: [signaling integration tests](../tests/integration/signaling-server.test.js) and [public inference admission tests](../tests/integration/public-inference-admission.test.js).
 
