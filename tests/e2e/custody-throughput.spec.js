@@ -13,6 +13,7 @@ test('measures signed chunk pipelining with an unchanged payload and physical co
   }
   const pages = await Promise.all(contexts.map(context => context.newPage()));
   const errors = [], modelRequests = [];
+  const namespace = 'custody-test-' + crypto.randomUUID(), token = crypto.randomUUID();
   try {
     for (const page of pages) {
       page.on('pageerror', error => errors.push(error.message));
@@ -20,7 +21,7 @@ test('measures signed chunk pipelining with an unchanged payload and physical co
       page.on('request', request => { if (/\/vendor\/doppler\/|huggingface/.test(request.url())) modelRequests.push(request.url()); });
       // A real HTTP document retains Chrome's loopback address-space identity;
       // fulfilling the navigation synthetically causes LNA to block WebSocket.
-      await page.goto('/config/chat-files.json');
+      await page.goto('/config/chat-files.json?swarm=' + namespace + '&swarmToken=' + token);
       await page.evaluate(async () => {
         const { createSwarmTransport } = await import('/vendor/reploid/transport/index.js');
         const { createLegacyNetworkOptions } = await import('/capabilities/communication/library-adapter.js');
@@ -32,6 +33,8 @@ test('measures signed chunk pipelining with an unchanged payload and physical co
         const { createSigningKeyPair, exportPublicKey, sha256Hex } = await import('/pool/inference-receipt.js');
         const { hashDopplerEvidence } = await import('/pool/executable-pack.js');
         const policy = await (await fetch('/config/chat-files.json')).json();
+        const { openBrowserSupplyBudget } = await import('/infrastructure/custody-supply-budget.js');
+        const supplyBudget = await openBrowserSupplyBudget({ maxBytes: policy.maxSupplyBytes, allowInitialize: true, name: 'custody-test-' + crypto.randomUUID() });
         const utils = Utils.factory({}), events = EventBus.factory({ Utils: utils });
         const transport = createSwarmTransport(createLegacyNetworkOptions({ Utils: utils, EventBus: events, peerId: crypto.randomUUID() }));
         await transport.init();
@@ -43,7 +46,7 @@ test('measures signed chunk pipelining with an unchanged payload and physical co
         const create = maxPendingRequests => createCustodyExchange({ transport, policy: { ...policy,
           channel: { ...policy.channel, maxPendingRequests } },
           identity: { peerId: transport._getPeerId(), publicKey, privateKey: pair.privateKey },
-          ports: { createSupplier: createPeerPackSupplier, createStore: options => createPeerPackArtifactStore({ ...options, maxConcurrentChunks: window.fixture.maxConcurrentChunks }),
+          ports: { supplyBudget, createSupplier: createPeerPackSupplier, createStore: options => createPeerPackArtifactStore({ ...options, maxConcurrentChunks: window.fixture.maxConcurrentChunks }),
             createChannel: createPeerPackDataChannel, hash: hashDopplerEvidence, hashBytes: sha256Hex,
             readArtifact: async () => bytes.slice(),
             verifyArtifact: async (file, data) => { if (await sha256Hex(data) !== 'sha256:' + file.hash) throw new Error('integrity'); },

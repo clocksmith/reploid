@@ -4,6 +4,7 @@ test('actual swarm channels exchange signed synthetic files in both directions w
   const contexts = await Promise.all([browser.newContext(), browser.newContext()]);
   const pages = await Promise.all(contexts.map(context => context.newPage()));
   const errors = [], modelRequests = [];
+  const namespace = 'custody-test-' + crypto.randomUUID(), token = crypto.randomUUID();
   try {
     for (const [index, page] of pages.entries()) {
       page.on('pageerror', error => errors.push(error.message));
@@ -11,7 +12,7 @@ test('actual swarm channels exchange signed synthetic files in both directions w
       page.on('request', request => { if (/\/vendor\/doppler\/|huggingface/.test(request.url())) modelRequests.push(request.url()); });
       // A real HTTP document retains Chrome's loopback address-space identity;
       // fulfilling the navigation synthetically causes LNA to block WebSocket.
-      await page.goto('/config/chat-files.json');
+      await page.goto('/config/chat-files.json?swarm=' + namespace + '&swarmToken=' + token);
       await page.evaluate(async clockOffset => {
         const { createSwarmTransport } = await import('/vendor/reploid/transport/index.js');
         const { createLegacyNetworkOptions } = await import('/capabilities/communication/library-adapter.js');
@@ -24,6 +25,8 @@ test('actual swarm channels exchange signed synthetic files in both directions w
         const { hashDopplerEvidence } = await import('/pool/executable-pack.js');
         const { openPeerPackFileCheckpoints } = await import('/infrastructure/pack-transfer-storage.js');
         const policy = await (await fetch('/config/chat-files.json')).json();
+        const { openBrowserSupplyBudget } = await import('/infrastructure/custody-supply-budget.js');
+        const supplyBudget = await openBrowserSupplyBudget({ maxBytes: policy.maxSupplyBytes, allowInitialize: true, name: 'custody-test-' + crypto.randomUUID() });
         const utils = Utils.factory({}), events = EventBus.factory({ Utils: utils });
         const transport = createSwarmTransport(createLegacyNetworkOptions({ Utils: utils, EventBus: events, peerId: crypto.randomUUID() }));
         await transport.init();
@@ -34,7 +37,7 @@ test('actual swarm channels exchange signed synthetic files in both directions w
         const checkpoints = await openPeerPackFileCheckpoints({ name: 'custody-eviction-contract', maxBytes: bytes.length });
         const exchange = createCustodyExchange({ transport, policy,
           identity: { peerId: transport._getPeerId(), publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey },
-          ports: { now: () => Date.now() + clockOffset,
+          ports: { supplyBudget, now: () => Date.now() + clockOffset,
             createSupplier: createPeerPackSupplier, createStore: createPeerPackArtifactStore,
             createChannel: createPeerPackDataChannel, hash: hashDopplerEvidence, hashBytes: sha256Hex,
             readArtifact: async () => bytes.slice(),

@@ -5,6 +5,7 @@ import { createPeerPackSupplier, createPeerPackArtifactStore } from '../pool/pee
 import { createPeerPackDataChannel } from '../pool/peer-pack-data-channel.js';
 import { createSigningKeyPair, exportPublicKey, sha256Hex } from '../pool/inference-receipt.js';
 import { hashDopplerEvidence } from '../pool/executable-pack.js';
+import { openBrowserSupplyBudget } from '../infrastructure/custody-supply-budget.js';
 import { openPeerPackFileCheckpoints } from '../infrastructure/pack-transfer-storage.js';
 import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_STORAGE_TOOLING_URL, LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
 import policy from '../config/chat-files.json' with { type: 'json' };
@@ -21,7 +22,17 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
   let activePieces = 0;
   const pinned = new Set(), lastUsed = new Map();
   const retainedPieces = new Map();
-  let supplyController = null, sharedModel = null;
+  let supplyController = null, sharedModel = null, budget = null, budgetOpening = null, budgetError = null;
+  const supplyBudget = { getState: () => budget?.getState() || null,
+    reserve(bytes) { if (!budget) throw budgetError || new Error('Persistent file contribution budget unavailable'); return budget.reserve(bytes); } };
+  const prepareBudget = folder => budgetOpening ||= (async () => {
+    try {
+      let empty = true;
+      for await (const entry of folder.entries()) { empty = false; break; }
+      budget = await openBrowserSupplyBudget({ maxBytes: policy.maxSupplyBytes, allowInitialize: empty });
+      if (closed) budget.close();
+    } catch (cause) { budgetError = cause; }
+  })();
   const lifetime = new AbortController(), operations = new Set(), receipts = [];
   const own = operation => {
     operations.add(operation); operation.finally(() => operations.delete(operation)).catch(() => {}); return operation;
@@ -48,6 +59,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
   });
   const getState = () => ({ ...(exchange?.getState() || { sharing: false, suppliedBytes: 0, pending: 0, peers: [] }),
     model: sharedModel && { ...sharedModel },
+    supplyBudgetError: budgetError && { code: budgetError.code || 'CUSTODY_BUDGET_STORAGE', message: budgetError.message },
     preparing, error, progress: structuredClone(progress), receivedBytes: receipts.reduce((sum, item) => sum + item.receivedBytes, 0),
     verifiedFiles: receipts.flatMap(item => item.completed || []).map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })),
     limits: getFileContributionLimits() });
@@ -67,6 +79,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
     const namespace = await navigator.storage.getDirectory();
     lifetime.signal.throwIfAborted();
     directory = await namespace.getDirectoryHandle('reploid-chat-artifacts-v1', { create: true });
+    await prepareBudget(directory);
     lifetime.signal.throwIfAborted();
     return directory;
   };
@@ -180,7 +193,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
       checkpoints = await openPeerPackFileCheckpoints({ maxBytes: policy.maxCheckpointBytes });
       const identity = { peerId: transport._getPeerId(), publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey };
       lifetime.signal.throwIfAborted();
-      exchange = createCustodyExchange({ transport, identity, policy, ports: {
+      exchange = createCustodyExchange({ transport, identity, policy, ports: { supplyBudget,
         createSupplier: createPeerPackSupplier, createStore: createPeerPackArtifactStore, createChannel: createPeerPackDataChannel,
         readArtifact: (file, controls) => read(file, { ...controls, originOnly: true }), verifyArtifact: check,
         commitArtifact: (file, bytes, { signal }) => persist(file, bytes, signal),
@@ -297,7 +310,8 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
       const signal = AbortSignal.any([lifetime.signal, supplyController.signal]); notify();
       const onProgress = value => { progress = value; notify(); };
       try {
-        await attach(); signal.throwIfAborted();
+        await attach(); await root(); signal.throwIfAborted();
+        if (budgetError) throw budgetError;
         const { files } = await modelFiles(model, signal, onProgress);
         if (retainedOnly) {
           const inventory = [];
@@ -326,7 +340,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
       closed = true; lifetime.abort(new Error('File exchange closed')); const retiring = exchange?.close();
       await attaching?.catch(() => {}); await exchange?.close(); await retiring;
       await Promise.allSettled([...operations]);
-      checkpoints?.close(); exchange = null; lastFile = null;
+      await budgetOpening; budget?.close(); checkpoints?.close(); exchange = null; lastFile = null;
     }
   });
 }

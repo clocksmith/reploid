@@ -1,6 +1,7 @@
 import { resolvePartitionArtifactSource } from '../self/host/work-partition-artifact-source.js';
 /** Filesystem host ports for the existing signed custody protocol. No origin downloads. */
 import fs from 'node:fs/promises';
+import { openNativeSupplyBudget } from './native-supply-budget.js';
 import { constants } from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
@@ -68,6 +69,11 @@ export async function createNativeArtifactCache({ directory, maxBytes = policy.m
 
 export async function createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange = () => {} }) {
   const root = await fs.realpath(modelDirectory), cache = await createNativeArtifactCache({ directory: cacheDirectory });
+  let budget = null, budgetError = null;
+  try { budget = await openNativeSupplyBudget({ directory: cacheDirectory, maxBytes: policy.maxSupplyBytes }); }
+  catch (error) { budgetError = error; }
+  const supplyBudget = { getState: () => budget?.getState() || null,
+    reserve: bytes => { if (!budget) throw budgetError; return budget.reserve(bytes); } };
   const pair = await createSigningKeyPair(), lifetime = new AbortController(), sources = new Set();
   const receipts = [], retained = new Map(), operations = new Set(), offeredFiles = new Map();
   let closed = false, shareController = null, closing = null, suppliedModel = null;
@@ -93,7 +99,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   const observe = receipt => { receipts.push(receipt); if (receipts.length > policy.maxReceipts) receipts.shift(); onChange(); };
   const contracts = createCustodyContracts({ hashDopplerEvidence, validateExecutablePack, executablePacksMatch, sha256Hex, signCanonical, verifyCanonicalSignature });
   const exchange = createCustodyExchange({ transport, identity: { peerId: transport._getPeerId(),
-    publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey }, policy, ports: {
+    publicKey: await exportPublicKey(pair.publicKey), privateKey: pair.privateKey }, policy, ports: { supplyBudget,
     createSupplier: contracts.createPeerPackSupplier, createStore: contracts.createPeerPackArtifactStore,
     createChannel: createPeerPackDataChannel, hash: hashDopplerEvidence, hashBytes: sha256Hex,
     readArtifact: async file => { const bytes = await cache.get(file); assert(bytes, 'Advertised native bytes are unavailable'); return bytes; },
@@ -124,6 +130,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       index: JSON.parse(new TextDecoder().decode(indexBytes)) };
   };
   const getState = ({ includeReceipts = true } = {}) => ({ ...exchange.getState(), cache: cache.getState(),
+    supplyBudgetError: budgetError && { code: budgetError.code || 'CUSTODY_BUDGET_STORAGE', message: budgetError.message },
     retainedFiles: retained.size, receiptCount: receipts.length,
     ...(includeReceipts ? { receipts: structuredClone(receipts) } : {}) });
   exchange.announce();
@@ -206,6 +213,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     })()); },
     share(model, approved) { return own((async () => {
       assert(approved === true && !closed, 'Approve file contribution separately from compute');
+      if (budgetError) throw budgetError;
       assert(!shareController, 'File inventory preparation already active');
       const controller = new AbortController(); shareController = controller;
       const signal = AbortSignal.any([lifetime.signal, controller.signal]);
@@ -232,7 +240,7 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       closed = true; suppliedModel = null; offeredFiles.clear(); lifetime.abort(new Error('Native file host closed')); exchange.stopSupply();
       await Promise.allSettled([...operations]);
       const settled = await Promise.allSettled([...sources].map(source => Promise.resolve().then(() => source.storage.close()))
-        .concat([Promise.resolve().then(() => exchange.close()), Promise.resolve().then(() => cache.close())]));
+        .concat([Promise.resolve().then(() => exchange.close()), Promise.resolve().then(() => cache.close()), Promise.resolve().then(() => budget?.close())]));
       const failures = settled.filter(result => result.status === 'rejected').map(result => result.reason);
       if (failures.length) throw new AggregateError(failures, 'Native artifact source cleanup failed');
     })(); }

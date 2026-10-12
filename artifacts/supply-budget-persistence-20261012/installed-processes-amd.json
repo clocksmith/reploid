@@ -1,0 +1,26 @@
+{
+  "artifact": {
+    "directory": "/var/tmp/reploid-budget-persistence-installed/reploid",
+    "archiveSha256": "69a27ef81e093ec614be40670ef13d7e206113bd3fd54596fa092899cd7e4af8",
+    "manifestSha256": "cb24f3c654738b36f3461f418ab0e2e38b43892ec4b13dac84771b456263293b"
+  },
+  "node": "v22.22.1",
+  "required": [
+    "server/native-supply-budget.js",
+    "packages/reploid/src/artifacts/custody/supply-budget.js"
+  ],
+  "first": {
+    "schema": "reploid.custody-supply-budget/v1",
+    "maxBytes": 10,
+    "reservedBytes": 7
+  },
+  "second": {
+    "error": "CUSTODY_BUDGET_LIMIT"
+  },
+  "third": {
+    "schema": "reploid.custody-supply-budget/v1",
+    "maxBytes": 10,
+    "reservedBytes": 10
+  },
+  "scope": "Installed artifact adapter, three separate processes. No inference/GPU/public supplier or pin change."
+}

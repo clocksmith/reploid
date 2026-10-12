@@ -14,7 +14,7 @@ function channelPair() {
   });
   return channels;
 }
-async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {} } = {}) {
+async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {}, supplyBudgets = [] } = {}) {
   const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [], requests = [];
   const file = { path: 'shard.bin', role: 'model-weights', sizeBytes: 5, hash: (await sha256Hex(bytes)).slice(7), hashAlgorithm: 'sha256' };
   const policy = { maxTransfers: 2, maxPeers, maxAcquisitionAttempts: 4, maxSupplyBytes, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
@@ -23,6 +23,9 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, m
   const reads = vi.fn(async () => bytes.slice());
   for (let i = 0; i < count; i++) {
     const pair = await createSigningKeyPair();
+    let durableReserved = 0;
+    const supplyBudget = supplyBudgets[i] || { getState: () => ({ reservedBytes: durableReserved, maxBytes: maxSupplyBytes }),
+      async reserve(bytes) { if (durableReserved + bytes > maxSupplyBytes) throw new Error('File contribution limit reached'); durableReserved += bytes; return this.getState(); } };
     const checkpoints = new Map();
     const transport = { getConnectedPeers: () => stores.map((_, index) => ({ id: String(index) })).filter(peer => peer.id !== String(i)),
       onMessage: (type, handler) => stores[i].set(type, handler),
@@ -36,7 +39,7 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, m
     };
     owners.push(createCustodyExchange({ transport, identity: { peerId: String(i), privateKey: pair.privateKey, publicKey: await exportPublicKey(pair.publicKey) },
       policy: { ...policy, grantMs: grantMs[i] ?? policy.grantMs },
-      ports: { now: () => Date.now() + (clockOffsets[i] || 0),
+      ports: { supplyBudget, now: () => Date.now() + (clockOffsets[i] || 0),
         createSupplier: options => { supplierGrant(options.authorization, i); return createPeerPackSupplier(options); }, createStore: createPeerPackArtifactStore,
         createChannel: createPeerPackDataChannel, readArtifact: (file, controls) => reads(file, controls, i),
         async verifyArtifact(descriptor, data) { if (await sha256Hex(data) !== 'sha256:' + descriptor.hash) throw new Error('integrity'); },
@@ -288,4 +291,14 @@ it('releases staging bytes after verified persistence and never retries a local 
     await expect(a.acquire(f.file, { signal: new AbortController().signal })).rejects.toThrow('Verified file could not be retained');
     expect(f.reads).toHaveBeenCalledOnce();
   } finally { f.close(); }
+});
+
+it('persists the supply reservation before reading bytes or issuing a grant', async () => {
+  const reserve = vi.fn(async () => { throw new Error('Durable budget unavailable'); });
+  const f = await fixture({ supplyBudgets: [null, { getState: () => ({ reservedBytes: 0, maxBytes: 100 }), reserve }] });
+  try {
+    f.owners[1].offer([f.file]); await vi.waitFor(() => expect(f.owners[0].has(f.file)).toBe(true));
+    await expect(f.owners[0].acquire(f.file, { signal: new AbortController().signal })).rejects.toThrow('Durable budget unavailable');
+    expect(reserve).toHaveBeenCalledWith(5); expect(f.reads).not.toHaveBeenCalled();
+  } finally { await Promise.all(f.owners.map(owner => owner.close())); }
 });

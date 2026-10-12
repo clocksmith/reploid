@@ -16,6 +16,11 @@ export interface CustodyExchangePolicy {
 type Supplier = Awaited<ReturnType<typeof createPeerPackSupplier>>;
 type Store = Awaited<ReturnType<typeof createPeerPackArtifactStore>>;
 export interface CustodyExchangePorts {
+  /** Required for supply, not acquisition. Durable atomic reservations never refund uncertainty. */
+  supplyBudget?: {
+    getState(): { reservedBytes: number; maxBytes: number } | null;
+    reserve(bytes: number): Promise<{ reservedBytes: number; maxBytes: number }>;
+  };
   /** Host wall clock; defaults to Date.now. */
   now?(): number;
   createSupplier: typeof createPeerPackSupplier;

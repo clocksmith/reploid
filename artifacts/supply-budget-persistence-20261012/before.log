@@ -1,0 +1,59 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/custody-exchange.test.js (19 tests | 1 failed) 1382ms
+   ✓ cannot renew the supply allowance by refreshing inventory or stopping and restarting 68ms
+   ✓ acquires signed files in both directions with peer clock offsets 0/250 57ms
+   ✓ acquires signed files in both directions with peer clock offsets 250/0 59ms
+   ✓ clips a supplier grant to the requester allowance while preserving signed verification 55ms
+   ✓ rejects a correctly signed supplier grant that expands the requested expiry 54ms
+   ✓ acquires only an authenticated range of an approved file and rejects invalid ranges 58ms
+   ✓ acquires verified bytes through signed custody only after independent file contribution and releases transfer slots 118ms
+   ✓ retains cumulative supply accounting across acquisitions and fails closed after shutdown 56ms
+   ✓ ignores malformed inventories and rejects invalid descriptors before allocating a transfer 2ms
+   ✓ stop while artifact verification is pending does not publish a late custody grant 106ms
+   ✓ replaces an approved inventory without advertising a false withdrawal 170ms
+   ✓ replacing an inventory revokes a pending grant even when the file remains offered 110ms
+   ✓ resumes an interrupted acquisition from verified checkpoints under a fresh grant 60ms
+   ✓ coalesces auxiliary channel creation for simultaneous transfers in both directions 60ms
+   ✓ recovers from supplier failure through another authorized supplier without an origin 58ms
+   ✓ does not exceed acquisition slots while streams are active or dispatch a fallback after cancellation 104ms
+   ✓ bounds inventory retention independently of connected peer count 54ms
+   ✓ releases staging bytes after verified persistence and never retries a local storage failure on another supplier 64ms
+   × persists the supply reservation before reading bytes or issuing a grant 65ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/custody-exchange.test.js > persists the supply reservation before reading bytes or issuing a grant
+AssertionError: promise resolved "Uint8Array[ 1, 2, 3, 4, 5 ]" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
+- }
++ Uint8Array [
++   1,
++   2,
++   3,
++   4,
++   5,
++ ]
+
+ ❯ tests/unit/custody-exchange.test.js:301:88
+    299|   try {
+    300|     f.owners[1].offer([f.file]); await vi.waitFor(() => expect(f.owner…
+    301|     await expect(f.owners[0].acquire(f.file, { signal: new AbortContro…
+       |                                                                                        ^
+    302|     expect(reserve).toHaveBeenCalledWith(5); expect(f.reads).not.toHav…
+    303|   } finally { await Promise.all(f.owners.map(owner => owner.close()));…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 18 passed (19)
+   Start at  14:13:52
+   Duration  1.72s (transform 83ms, setup 0ms, import 111ms, tests 1.38s, environment 169ms)
+

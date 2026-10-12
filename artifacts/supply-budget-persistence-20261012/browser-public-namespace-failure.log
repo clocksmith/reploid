@@ -1,0 +1,46 @@
+
+Running 4 tests using 1 worker
+
+(node:13301) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:13301) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/custody-budget.spec.js:11:1 › strict durable reservations survive reload and cannot be renewed by another tab (352ms)
+  ✓  2 [chromium] › tests/e2e/custody-budget.spec.js:22:1 › corrupt and missing existing browser ledgers fail closed (72ms)
+  ✓  3 [chromium] › tests/e2e/custody-budget.spec.js:37:1 › legacy caches cannot silently initialize allowance and closed persistence rejects reservations (77ms)
+[INFO] [WebRTCSwarm] Initializing - peerId: d85235d5-5276-4f22-b3ff-86fc95cd1f19, room: reploid-swarm-public
+[INFO] [WebRTCSwarm] Initializing - peerId: d3fddd6d-0e36-4bcc-ada5-0c5caa04c8ef, room: reploid-swarm-public
+[ERROR] [WebRTCSwarm] Data channel error with d3fddd6d-0e36-4bcc-ada5-0c5caa04c8ef: RTCErrorEvent
+  ✘  4 [chromium] › tests/e2e/custody-exchange.spec.js:3:1 › actual swarm channels exchange signed synthetic files in both directions with distinct clocks and no channel glare (29.7s)
+
+
+  1) [chromium] › tests/e2e/custody-exchange.spec.js:3:1 › actual swarm channels exchange signed synthetic files in both directions with distinct clocks and no channel glare 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m1[39m
+    Received: [31m6[39m
+
+    Call Log:
+    - Timeout 30000ms exceeded while waiting on the predicate
+
+      47 |       }, index * 250);
+      48 |     }
+    > 49 |     for (const page of pages) await expect.poll(() => page.evaluate(() => window.fixture.transport.getConnectedPeers().length)).toBe(1);
+         |                               ^
+      50 |     for (const page of pages) await page.evaluate(() => window.fixture.exchange.offer([window.fixture.descriptor]));
+      51 |     for (const page of pages) await expect.poll(() => page.evaluate(() => window.fixture.exchange.has(window.fixture.descriptor))).toBe(true);
+      52 |     // Reproduce the restart boundary: the supplier still has the file, but
+        at /Users/xyz/deco/reploid/tests/e2e/custody-exchange.spec.js:49:31
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/custody-exchange-actual-sw-2fe43-clocks-and-no-channel-glare-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/custody-exchange-actual-sw-2fe43-clocks-and-no-channel-glare-chromium/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › tests/e2e/custody-exchange.spec.js:3:1 › actual swarm channels exchange signed synthetic files in both directions with distinct clocks and no channel glare 
+  3 passed (31.0s)
