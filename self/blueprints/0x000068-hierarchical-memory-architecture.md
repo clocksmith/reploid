@@ -453,33 +453,33 @@ const recall = async (query, topK = 5) => {
 ## 6. Implementation Pathway
 
 ### Phase 1: Core MemoryManager
-- [ ] Implement MemoryManager module
-- [ ] Working Memory tier (context window - 8K tokens)
-- [ ] Eviction with recursive summarization (temp=0)
-- [ ] VFS persistence to `/memory/episodes/`
+- Implement MemoryManager module
+- Working Memory tier (context window - 8K tokens)
+- Eviction with recursive summarization (temp=0)
+- VFS persistence to `/memory/episodes/`
 
 ### Phase 2: Episodic Memory
-- [ ] Full message storage (VFS `/memory/episodes/full.jsonl`)
-- [ ] Temporal indexing via EmbeddingStore
-- [ ] Hybrid retrieval: summary + semantic search
+- Full message storage (VFS `/memory/episodes/full.jsonl`)
+- Temporal indexing via EmbeddingStore
+- Hybrid retrieval: summary + semantic search
 
 ### Phase 3: RAPTOR Knowledge Tree
-- [ ] Implement hierarchical clustering (simple k-means)
-- [ ] Recursive summarization to build tree levels
-- [ ] Collapsed tree retrieval (search ALL levels)
-- [ ] Persist tree structure in VFS `/memory/knowledge/tree.json`
-- [ ] Incremental updates (add documents without full rebuild)
+- Implement hierarchical clustering (simple k-means)
+- Recursive summarization to build tree levels
+- Collapsed tree retrieval (search ALL levels)
+- Persist tree structure in VFS `/memory/knowledge/tree.json`
+- Incremental updates (add documents without full rebuild)
 
 ### Phase 4: Enhanced Retrieval
-- [ ] Temporal contiguity boost
-- [ ] Anticipatory retrieval (predict future needs based on task)
-- [ ] Adaptive forgetting curves (not just LRU)
+- Temporal contiguity boost
+- Anticipatory retrieval (predict future needs based on task)
+- Adaptive forgetting curves (not just LRU)
 
 ### Phase 5: Integration & Testing
-- [ ] Wire into agent-loop for automatic context management
-- [ ] Benchmark: memory reuse rate (target >50%)
-- [ ] Benchmark: context reconstruction accuracy (target >90%)
-- [ ] Long-session tests (100+ turns without degradation)
+- Wire into agent-loop for automatic context management
+- Benchmark: memory reuse rate (target >50%)
+- Benchmark: context reconstruction accuracy (target >90%)
+- Long-session tests (100+ turns without degradation)
 
 ---
 
@@ -551,7 +551,7 @@ const recall = async (query, topK = 5) => {
 
 ### Related Blueprints
 - [0x00005F: Semantic Memory](0x00005F-semantic-memory.md)
-- [0x00003A: Context Management](0x00003B-context-management.md)
+- [0x00003A: Context Management](0x00003A-context-management.md)
 - [0x00005E: Embedding Store](0x00005E-embedding-store.md)
 - [0x000060: Knowledge Graph](0x000060-knowledge-graph.md)
 

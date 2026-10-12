@@ -62,12 +62,12 @@ Core components:
    - For mismatches, emit toast + audit log entry detailing expected vs actual hash.
    - Auto-capture tampered code to `/vfs/security/quarantine/<module>.js` for analysis.
 
-### 4. Verification Checklist
-- [ ] Hash mismatch detection triggers warning and prevents module execution.
-- [ ] `signAllModules` skips non-JS artifacts gracefully.
-- [ ] Signatures file stored with metadata (type: security, category: signatures).
-- [ ] Unit tests cover valid signature, hash mismatch, missing signature cases.
-- [ ] Browser compatibility confirmed (Web Crypto availability).
+### 4. Verification requirements
+- Hash mismatch detection triggers warning and prevents module execution.
+- `signAllModules` skips non-JS artifacts gracefully.
+- Signatures file stored with metadata (type: security, category: signatures).
+- Unit tests cover valid signature, hash mismatch, missing signature cases.
+- Browser compatibility confirmed (Web Crypto availability).
 
 ### 5. Extension Opportunities
 - Move to asymmetric signatures (Ed25519) with offline private key.

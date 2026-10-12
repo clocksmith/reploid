@@ -479,7 +479,7 @@ describe('DogsParserBrowser', () => {
 
 ---
 
-## Future Enhancements
+## Optional contract extensions
 
 ### Base64 Encoding Support
 Currently marked but not implemented:

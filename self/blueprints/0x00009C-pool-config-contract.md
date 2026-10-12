@@ -28,7 +28,7 @@ Browser and server adapters load JSON differently, then call this pure factory w
 ### 3. Implementation Notes
 Never mutate imported JSON. Keep aliases referentially consistent and reject incomplete launch, policy, transport, and deployment contracts before use.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Browser and server adapters share one validator
 - [x] Returned config and policy values are deeply frozen
 - [x] Cross-environment config tests pass

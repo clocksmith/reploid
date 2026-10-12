@@ -423,12 +423,12 @@ if (typeof window !== 'undefined') {
 - **Origin Validation**: BroadcastChannel provides same-origin isolation automatically
 - **Message Validation**: Validate message structure before processing to prevent errors
 
-### 4. Verification Checklist
-- [ ] Multiple tabs share state without infinite loops.
-- [ ] Opening new tab triggers `tab:joined` event in existing tabs.
-- [ ] Closing tab emits `tab-leaving` (requires beforeunload support).
-- [ ] BroadcastChannel absence logged and module returns false (no errors).
-- [ ] `requestLock` resolves promise even when not initialised (single-tab).
+### 4. Verification requirements
+- Multiple tabs share state without infinite loops.
+- Opening new tab triggers `tab:joined` event in existing tabs.
+- Closing tab emits `tab-leaving` (requires beforeunload support).
+- BroadcastChannel absence logged and module returns false (no errors).
+- `requestLock` resolves promise even when not initialised (single-tab).
 
 ### 5. Extension Opportunities
 - Implement leader election to designate one tab as “primary executor”.

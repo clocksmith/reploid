@@ -48,7 +48,7 @@ be promoted from Reploid, Doppler, or M3T4 evidence alone.
 - A receipt hash alone is insufficient. Reploid recomputes the receipt's
   canonical digest and checks the source revision pinned by the trusted entry.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Ordinary Zero replay promotion is unchanged.
 - [x] Doppler or M3T4 evidence alone cannot promote a Clockwork claim.
 - [x] Candidate, challenge, gate, source, and receipt mismatches fail closed.

@@ -10,7 +10,7 @@
 
 **Owned Source Files:** `boot-helpers/iframe-bridge.js`
 
-**Former Blueprint Paths:** `self/blueprints/0x000072-agent-bridge.md`, `self/blueprints/0x000072-agent-bridge.md`
+**Former Blueprint Paths:** `self/blueprints/0x000072-agent-bridge.md`
 **Objective:** Define the authenticated JSON-RPC WebSocket coordination server used by browser and agent processes for discovery, direct messaging, task delegation, shared context, and liveness.
 
 **Target Module:** `AgentBridge`
@@ -84,7 +84,7 @@ A periodic monitor closes agents whose `lastSeen` exceeds `agentTimeout`, remove
 
 `getStats()` returns active-agent, active-task, and shared-context counts plus bounded agent and task projections. `server/proxy.js` exposes that projection at `GET /api/agent-bridge/stats`.
 
-## 8. Verification checklist
+## 8. Verification requirements
 
 - [x] Upgrade routing is owned by the shared HTTP server.
 - [x] Local-only, origin, and remote-token checks fail closed.
@@ -92,6 +92,6 @@ A periodic monitor closes agents whose `lastSeen` exceeds `agentTimeout`, remove
 - [x] Registration, broadcast, direct messaging, capability queries, task delegation, task updates, shared context, and heartbeats are implemented.
 - [x] Task updates are assignee-bound.
 - [x] Stale agents time out and shutdown clears timers and sockets.
-- [ ] Add focused unit coverage for access policy, JSON-RPC errors, task authorization, and timeout cleanup.
+- Add focused unit coverage for access policy, JSON-RPC errors, task authorization, and timeout cleanup.
 
 *Last updated: August 2026*

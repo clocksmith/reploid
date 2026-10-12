@@ -108,7 +108,7 @@ establish neither correct computation nor intelligence. Whole-job execution does
 not establish partitioning. These goals are targets, not claims that the integrated
 system works today. Preserve separate scientific and commercial acceptance boundaries.
 
-Execution experiments: [network plan](docs/poolday/executable-intelligence-network-plan.md).
+Execution contracts: [open mesh architecture](docs/open-mesh-architecture.md).
 Authority and qualification: [INTENT.md](INTENT.md), [CATSCAN.md](CATSCAN.md),
 [GOVERNANCE_DETAILS.md](docs/GOVERNANCE_DETAILS.md), and the
 [claim index](docs/status/surface-claim-index.json).

@@ -685,7 +685,7 @@ describe('GenesisSnapshot', () => {
 
 ---
 
-## Future Enhancements
+## Optional contract extensions
 
 ### Genesis Branches
 Support multiple genesis snapshots:

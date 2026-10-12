@@ -28,7 +28,7 @@ This dependency-free domain primitive is consumed by both browser receipt code a
 ### 3. Implementation Notes
 Do not add browser or Node APIs. Any serialization change is a signed-record compatibility change and requires cross-environment hash tests.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Browser and server use the same canonicalizer
 - [x] Object keys sort recursively and arrays retain order
 - [x] Pool contract and module-system verification pass

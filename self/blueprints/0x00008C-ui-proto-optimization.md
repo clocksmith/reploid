@@ -31,7 +31,7 @@ The panel reads `DopplerOptimizer` state and subscribes to optimization events. 
 - Receipt JSON remains inspectable without rewriting the evidence into prose.
 - The panel supports narrow columns with a horizontally scrollable result table.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Accepted and rejected rows render in unit tests
 - [x] Malformed contract JSON cannot start a run
 - [x] Promotion flows through ToolRunner and canary activation

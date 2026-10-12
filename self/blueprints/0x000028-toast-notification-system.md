@@ -13,7 +13,7 @@
 The unreferenced legacy implementation was removed during the September 2026
 branch integration. This retained design is not current executable evidence.
 
-**Former Blueprint Paths:** `self/blueprints/0x000028-toast-notification-system.md`, `self/blueprints/0x000028-toast-notification-system.md`
+**Former Blueprint Paths:** `self/blueprints/0x000028-toast-notification-system.md`
 **Objective:** Define the behavioural contract for non-blocking toast notifications that surface agent status to users without halting workflows.
 
 **Target Upgrade:** TSTN (`toast-notifications.js`)
@@ -198,12 +198,12 @@ const widget = {
      - `{ element: 'toast-notifications-widget', displayName, icon, category }`
      - No `updateInterval` in widget object (handled internally in connectedCallback)
 
-### 4. Verification Checklist
-- [ ] Repeated init calls do not duplicate container.
-- [ ] Toasts are clickable and remove themselves without throwing.
-- [ ] Rapid bursts (10+) stay performant (no dropped frames).
-- [ ] Colors/icons match severity guidelines.
-- [ ] `clearAll()` empties queue immediately (useful on persona switch).
+### 4. Verification requirements
+- Repeated init calls do not duplicate container.
+- Toasts are clickable and remove themselves without throwing.
+- Rapid bursts (10+) stay performant (no dropped frames).
+- Colors/icons match severity guidelines.
+- `clearAll()` empties queue immediately (useful on persona switch).
 
 ### 5. Extension Opportunities
 - Allow stacking positions (bottom-left for mobile).

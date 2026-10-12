@@ -226,12 +226,12 @@ const widget = {
 6. **Alerts (Future)**
    - Hook into `ToastNotifications` to warn when error rate rises above threshold.
 
-### 4. Verification Checklist
-- [ ] Metrics initialise when tool first used.
-- [ ] Success/error counts match actual events.
-- [ ] Durations update even if tool invoked multiple times simultaneously.
-- [ ] Reports list top/slow/problematic tools sorted correctly.
-- [ ] Reset wipes metrics and restarts session timer.
+### 4. Verification requirements
+- Metrics initialise when tool first used.
+- Success/error counts match actual events.
+- Durations update even if tool invoked multiple times simultaneously.
+- Reports list top/slow/problematic tools sorted correctly.
+- Reset wipes metrics and restarts session timer.
 
 ### 5. Extension Opportunities
 - Persist metrics to reflections for long-term trend analysis.

@@ -41,3 +41,8 @@ the strongest executable user-level evidence currently present.
 
 Remaining work belongs only in the registry's `openWork` collection. Blueprint
 checklists and architecture prose do not own current journey status.
+
+`openWork` records describe journey acceptance gaps, not a second execution
+queue. [TODO.md](../../TODO.md) selects implementation; a selected item links
+back to the existing journey and evidence IDs. Unselected gaps remain visible
+without authorizing another campaign.

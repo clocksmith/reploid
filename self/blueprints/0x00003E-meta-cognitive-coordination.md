@@ -98,14 +98,14 @@ requireApproval: false  // Auto-apply meta-improvements (RISKY!)
 **Auto-apply** (current):
 - [x] True autonomous improvement
 - [x] Fast iteration
-- [ ] Risk of runaway self-modification
-- [ ] Potential infinite loops
+- Risk of runaway self-modification
+- Potential infinite loops
 
 **Manual approval**:
 - [x] Safe (human in loop)
 - [x] Controlled evolution
-- [ ] Not truly autonomous
-- [ ] Slow (waits for human)
+- Not truly autonomous
+- Slow (waits for human)
 
 **Current choice:** Auto-apply for patterns with confidence > 70%
 **Safety mechanism:** Limit to 3 improvements per session
@@ -594,14 +594,14 @@ Tracks all improvements for debugging.
 - [x] Tracks improvement history
 
 **Integration:**
-- [ ] Works in autonomous mode
-- [ ] Manual approval UI functional
-- [ ] Efficiency trends visualized
+- Works in autonomous mode
+- Manual approval UI functional
+- Efficiency trends visualized
 
 **Long-term:**
-- [ ] Improves success rate over time
-- [ ] Self-adjusts thresholds
-- [ ] Learns optimal improvement strategies
+- Improves success rate over time
+- Self-adjusts thresholds
+- Learns optimal improvement strategies
 
 ---
 

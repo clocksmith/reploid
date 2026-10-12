@@ -37,7 +37,7 @@ Pack identity excludes mutable discovery state. `active`, `cached`, and
 `fetchable` belong to provider requirements. Only `active` satisfies the runtime
 execution gate.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Exact bytes, base model, runtime, and evidence are hash-bound
 - [x] Shadow packs fail promoted verification
 - [x] Runtime and discovery state use distinct predicates

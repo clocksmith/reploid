@@ -28,7 +28,7 @@ The verifier composes participation-profile signature validation with root role
 delegation validation. Peer messages supply their signed envelope identity;
 hosted requests supply the same claims directly.
 
-### 3. Verification Checklist
+### 3. Verification requirements
 - [x] Peer and hosted paths share the verifier
 - [x] Capability escalation fails
 - [x] Advertised resource limits cannot exceed signed consent

@@ -10,7 +10,7 @@
 
 **Owned Source Files:** None
 
-**Former Blueprint Paths:** `self/blueprints/0x000076-chat-panel.md`, `self/blueprints/0x000076-chat-panel.md`
+**Former Blueprint Paths:** `self/blueprints/0x000076-chat-panel.md`
 **Objective:** Main chat interface panel for agent conversation with full message history and streaming support.
 
 **Target Module:** `ChatPanel`

@@ -28,7 +28,7 @@ Ledger reason policy comes from Pool config; signing comes from the peer protoco
 ### 3. Implementation Notes
 Event identity prefers the signed message hash and uses a stable semantic fallback only for legacy local records.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Accepted agreements create balanced provider/requester events
 - [x] Duplicate events do not change projection
 - [x] Local ledger UI and peer tests pass

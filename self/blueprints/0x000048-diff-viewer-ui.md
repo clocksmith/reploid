@@ -13,7 +13,7 @@
 The unreferenced legacy implementation was removed during the September 2026
 branch integration. This retained design is not current executable evidence.
 
-**Former Blueprint Paths:** `self/blueprints/0x000048-diff-viewer-ui.md`, `self/blueprints/0x000048-diff-viewer-ui.md`
+**Former Blueprint Paths:** `self/blueprints/0x000048-diff-viewer-ui.md`
 **Objective:** Provide rich visual diff comparison with syntax highlighting, approval controls, and export capabilities for code changes.
 
 **Target Upgrade:** DIFF (`diff-viewer-ui.js`)
@@ -382,24 +382,24 @@ const widget = {
 
 15. **Test** Shadow DOM rendering, EventBus subscription/cleanup, closure access to diff state, statistics tracking
 
-### 4. Verification Checklist
+### 4. Verification requirements
 
-- [ ] DOGS parsing extracts operation, file_path, content correctly
-- [ ] MODIFY operations fetch old content from StateManager
-- [ ] Side-by-side diff renders with correct line alignment
-- [ ] Syntax highlighting applies for all supported languages
-- [ ] Approval checkboxes toggle correctly, stats update
-- [ ] Approve All / Reject All work across all changes
-- [ ] Apply Approved emits `proposal:approved` with filtered changes
-- [ ] Confirmation modal appears before applying changes
-- [ ] Cancel emits `proposal:cancelled` and clears viewer
-- [ ] Copy to Clipboard works with visual feedback
-- [ ] Export Markdown downloads file with correct content
-- [ ] Web Share API works on supported platforms
-- [ ] Widget displays current diff stats when active
-- [ ] Widget displays session summary when idle
-- [ ] Widget tracks all-time statistics correctly
-- [ ] Widget event listeners clean up on disconnect
+- DOGS parsing extracts operation, file_path, content correctly
+- MODIFY operations fetch old content from StateManager
+- Side-by-side diff renders with correct line alignment
+- Syntax highlighting applies for all supported languages
+- Approval checkboxes toggle correctly, stats update
+- Approve All / Reject All work across all changes
+- Apply Approved emits `proposal:approved` with filtered changes
+- Confirmation modal appears before applying changes
+- Cancel emits `proposal:cancelled` and clears viewer
+- Copy to Clipboard works with visual feedback
+- Export Markdown downloads file with correct content
+- Web Share API works on supported platforms
+- Widget displays current diff stats when active
+- Widget displays session summary when idle
+- Widget tracks all-time statistics correctly
+- Widget event listeners clean up on disconnect
 
 ### 5. Extension Opportunities
 

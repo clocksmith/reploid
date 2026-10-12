@@ -32,7 +32,7 @@ Persist every candidate, accepted or rejected receipt, selection decision, promo
 - Boot restores only pointers in `active` state. A stale `canary` pointer never activates implicitly.
 - Canary rejection restores the previous pointer or the base runtime and writes a rollback receipt.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Candidate and receipt persistence has unit coverage
 - [x] Evaluation failures remain visible and the search continues
 - [x] Promotion requires exact candidate bytes and human approval

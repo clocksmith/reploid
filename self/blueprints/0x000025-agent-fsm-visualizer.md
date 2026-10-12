@@ -125,12 +125,12 @@ Key components:
    - Provide node tooltips with visit counts and current status.
    - Emit toast notifications via EventBus for user feedback.
 
-### 4. Verification Checklist
-- [ ] All valid transitions appear; invalid ones never render.
-- [ ] Active state glows or pulses, updating within one frame.
-- [ ] Zoom/pan resets gracefully; double-click resets transform.
-- [ ] Works with partial history (e.g., just booted).
-- [ ] Handles FSM schema changes (new states) by regenerating nodes dynamically.
+### 4. Verification requirements
+- All valid transitions appear; invalid ones never render.
+- Active state glows or pulses, updating within one frame.
+- Zoom/pan resets gracefully; double-click resets transform.
+- Works with partial history (e.g., just booted).
+- Handles FSM schema changes (new states) by regenerating nodes dynamically.
 
 ### 5. Extension Opportunities
 - **Timeline View**: stack state changes on a horizontal axis for historical replay.

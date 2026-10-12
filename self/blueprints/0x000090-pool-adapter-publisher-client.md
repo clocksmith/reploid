@@ -34,7 +34,7 @@ append mutable origin URL lists while publishing.
 The client does not build packs, store adapter bytes, approve requester use, or
 activate Doppler. Those authorities remain in their owning modules.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Publisher role and signing key are explicit
 - [x] SDK routes carry signed artifacts only
 - [x] Revocation resolves the original publication before signing

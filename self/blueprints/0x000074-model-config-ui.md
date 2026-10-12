@@ -10,7 +10,7 @@
 
 **Owned Source Files:** None
 
-**Former Blueprint Paths:** `self/blueprints/0x000074-model-config-ui.md`, `self/blueprints/0x000074-model-config-ui.md`
+**Former Blueprint Paths:** `self/blueprints/0x000074-model-config-ui.md`
 **Objective:** Pre-boot configuration screen for selecting and configuring LLM providers before agent initialization.
 
 **Target Module:** `ModelConfig`

@@ -37,7 +37,7 @@ Do not add a separate decorative state lamp or duplicate the written state.
   without color.
 - Show hour, day, and recent-work metrics only when data exists.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Non-contributing tabs render no global status
 - [x] Contributing tabs expose state through text and `data-contribution-state`
 - [x] Status presentation contains no redundant decorative state lamp

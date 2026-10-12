@@ -407,24 +407,24 @@ const widget = {
 
 18. **Test** Blob URL creation/cleanup, module proxy behavior, reload with state preservation, error rollback, profiling accuracy
 
-### 4. Verification Checklist
+### 4. Verification requirements
 
-- [ ] `createModule()` loads source from VFS and returns working proxy
-- [ ] `loadModuleFromSource()` creates Blob URL, imports, cleans up
-- [ ] `wrapModuleSource()` detects and wraps exports correctly
-- [ ] Export detection regex finds functions, variables, classes
-- [ ] Module proxy always returns latest module version properties
-- [ ] `reloadModule()` updates registry, increments version, notifies callbacks
-- [ ] Reload rollback restores old module on error
-- [ ] VFS watcher triggers auto-reload on module modification
-- [ ] Update callbacks receive (newModule, oldModule) correctly
-- [ ] `patchFunction()` replaces function, provides rollback
-- [ ] `profileModule()` measures call counts and execution times accurately
-- [ ] `executeSafe()` runs code in isolated context
-- [ ] `cleanup()` clears all registries and removes listeners
-- [ ] Widget displays active modules, versions, source paths
-- [ ] Widget calculates total reloads correctly
-- [ ] Widget cleanup button works
+- `createModule()` loads source from VFS and returns working proxy
+- `loadModuleFromSource()` creates Blob URL, imports, cleans up
+- `wrapModuleSource()` detects and wraps exports correctly
+- Export detection regex finds functions, variables, classes
+- Module proxy always returns latest module version properties
+- `reloadModule()` updates registry, increments version, notifies callbacks
+- Reload rollback restores old module on error
+- VFS watcher triggers auto-reload on module modification
+- Update callbacks receive (newModule, oldModule) correctly
+- `patchFunction()` replaces function, provides rollback
+- `profileModule()` measures call counts and execution times accurately
+- `executeSafe()` runs code in isolated context
+- `cleanup()` clears all registries and removes listeners
+- Widget displays active modules, versions, source paths
+- Widget calculates total reloads correctly
+- Widget cleanup button works
 
 ### 5. Extension Opportunities
 

@@ -98,7 +98,7 @@ qualify AMPLIFY, ESMC, or Nucleotide Transformer. Scientific fitness and license
 admission remain separate gates. A candidate stays disabled until every required
 gate has evidence.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 
 - [x] Exact model-contract identity binds qualification evidence
 - [x] Required browser recovery and integrity checks are explicit
@@ -111,7 +111,7 @@ gate has evidence.
 - [x] Release verification rejects dirty Git state and deployed browser-byte drift
 - [x] Hosted readiness and release verification bind Cloud Run commit, image, platform revision, and runtime bytes
 - [x] Release verification preserves every lane report and attachment in one bound evidence index
-- [ ] Persist clean-release browser evidence for ESM-2
-- [ ] Run authentic browser qualification for each candidate
+- Persist clean-release browser evidence for ESM-2
+- Run authentic browser qualification for each candidate
 
 *Last updated: August 2026*

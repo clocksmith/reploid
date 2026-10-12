@@ -26,11 +26,9 @@ Inputs:
 
 Outputs:
 - The alternative workflow in [product intent](product-intent.md).
-- Ordered repository deltas and gates in the [implementation plan](implementation-plan.md).
+- Interface, custody, deployment, and release gates in the [runtime contract](runtime-contract.md).
 - The external comparison boundary in the [pilot charter](pilot-charter.md)
   and machine-readable [pilot manifest](pilot-manifest.json).
-- Deployment configuration and custody boundaries in the
-  [runtime contract](runtime-contract.md).
 
 ## Invariants
 
@@ -44,7 +42,7 @@ Outputs:
 ## Acceptance
 
 - The documents remain linked from the documentation index and goals.
-- Every implementation milestone names code owners, tests, and live evidence.
+- Support claims name code owners, tests, and scoped live evidence.
 - Evidence: [CATSCAN tests](../../tests/unit/catscan.test.js).
 - Pilot freeze evidence: [pilot gate tests](../../tests/unit/change-passport-pilot.test.js).
 

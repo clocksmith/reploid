@@ -174,12 +174,12 @@ const widget = {
    - Consider pruning old `apiCalls` to avoid unbounded growth (e.g., keep last 30 days).
    - Persist aggregated totals for long-term history (per-day sums).
 
-### 4. Verification Checklist
-- [ ] Logging cloud API call with usage updates cost totals and emits `cost:updated`.
-- [ ] Rate limit warnings trigger when limit exceeded and cooldown respected.
-- [ ] Hybrid/local flows map to appropriate provider stats (no double-counting).
-- [ ] Session restore from `StateManager` seeds previous totals.
-- [ ] Report values match manual calculations for sample data.
+### 4. Verification requirements
+- Logging cloud API call with usage updates cost totals and emits `cost:updated`.
+- Rate limit warnings trigger when limit exceeded and cooldown respected.
+- Hybrid/local flows map to appropriate provider stats (no double-counting).
+- Session restore from `StateManager` seeds previous totals.
+- Report values match manual calculations for sample data.
 
 ### 5. Extension Opportunities
 - Integrate with `ToastNotifications` for budget alerts.

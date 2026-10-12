@@ -35,7 +35,7 @@ Every payload is scoped to the assignment and peer pair. Successful assembly
 returns acquisition evidence suitable for the provider receipt. This is artifact
 transfer, not tensor, layer, attention, or KV sharding.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 - [x] Missing, duplicate, corrupt, and wrong-peer chunks fail closed
 - [x] Final bytes match the promoted adapter identity
 - [x] Transfer receipt identifies the seeding peer and assignment

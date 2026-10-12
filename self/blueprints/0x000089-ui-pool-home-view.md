@@ -49,7 +49,7 @@ renders escaped state and emits controls that those modules bind.
 - Compatibility routes do not appear as additional navigation destinations.
 - Network state remains understandable without opening another surface.
 
-### 4. Verification Checklist
+### 4. Verification requirements
 
 - [x] Three-destination navigation has DOM and browser geometry tests
 - [x] Narrow mobile routes remain free of horizontal clipping

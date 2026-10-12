@@ -113,14 +113,14 @@ Key pipeline stages:
    - Emit `EventBus.emit('ast:parse:error')` for error logging.
    - Display errors in widget panel with code snippets.
 
-### 4. Verification Checklist
-- [ ] Handles valid ES2023 syntax (class fields, optional chaining).
-- [ ] Gracefully surfaces parse errors with descriptive toast/logs.
-- [ ] Node colours/shapes match `NODE_STYLES`.
-- [ ] Zoom/pan works smoothly without losing focus.
-- [ ] Large files (1k+ nodes) remain interactive (<100ms render updates).
+### 4. Verification requirements
+- Handles valid ES2023 syntax (class fields, optional chaining).
+- Gracefully surfaces parse errors with descriptive toast/logs.
+- Node colours/shapes match `NODE_STYLES`.
+- Zoom/pan works smoothly without losing focus.
+- Large files (1k+ nodes) remain interactive (<100ms render updates).
 
-### 5. Extension Ideas
+### 5. Optional contract extensions
 - Integrate with `MetricsProto` to colour nodes by cyclomatic complexity.
 - Add search bar to highlight nodes by identifier or type.
 - Export AST snapshots for documentation or diffing.
