@@ -1,6 +1,10 @@
+// @vitest-environment node
 import { beforeEach, afterEach, expect, it, vi } from 'vitest';
 import { createHash } from 'node:crypto';
-const ports = vi.hoisted(() => ({ models: [], createStorage: vi.fn(), computeHash: vi.fn() }));
+import { pathToFileURL } from 'node:url';
+import path from 'node:path';
+import { assertSignedPreparation } from '../../artifacts/cleanup-failure-20261012/signed-preflight.js';
+const ports = vi.hoisted(() => ({ models: [], createStorage: vi.fn(), computeHash: vi.fn(), exchange: vi.fn() }));
 vi.mock('../../self/config/doppler-local-models.js', () => ({
   LOCAL_DOPPLER_MODELS: ports.models, DOPPLER_BROWSER_RUNTIME_VERSION: '0.6.27',
   DOPPLER_PARTITIONS_MODULE_URL: '../vendor/doppler/0.6.27/src/partitions.js',
@@ -9,6 +13,8 @@ vi.mock('../../self/config/doppler-local-models.js', () => ({
 }));
 vi.mock('../../self/vendor/doppler/0.6.27/src/partitions.js', () => ({ createVerifiedPieceStorage: ports.createStorage }));
 vi.mock('../../self/vendor/doppler/0.6.27/src/tooling-exports/storage.js', () => ({ computeHash: ports.computeHash }));
+vi.mock('../../self/vendor/reploid/artifacts/custody/exchange.js', () => ({ createCustodyExchange: ports.exchange }));
+vi.mock('../../self/infrastructure/pack-transfer-storage.js', () => ({ openPeerPackFileCheckpoints: async () => ({ close: async () => {} }) }));
 import { createWorkModelFiles } from '../../self/host/work-model-files.js';
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const bytes = value => new TextEncoder().encode(JSON.stringify(value));
@@ -87,4 +93,49 @@ it('maps Rig model artifacts through the signed manifest directory, without base
     model.capsule.artifacts[1] = artifact;
   }
   await source.storage.close();
+});
+
+it.skipIf(!process.env.DOPPLER_SIGNED_READER_PACKAGE)('uses actual signed-reader counters after host artifactStore acquisition bypasses manifest storage', async () => {
+  const packageRoot = path.resolve(process.env.DOPPLER_SIGNED_READER_PACKAGE);
+  const load = name => import(/* @vite-ignore */ pathToFileURL(path.join(packageRoot, 'src', name)).href);
+  const runtime = await load('partitions.js');
+  const { createVerifiedCapsuleArtifactStore } = await load('client/runtime/verified-capsule-artifact-store.js');
+  ports.createStorage.mockImplementation(runtime.createVerifiedPieceStorage);
+  const manifestFile = model.source.files.find(file => file.role === 'model-manifest');
+  const indexFile = model.source.files.find(file => file.role === 'model-piece-index');
+  const asArtifact = (file, role, artifactId) => ({ artifactId, role, path: file.path,
+    hash: 'sha256:' + file.hash, sizeBytes: file.sizeBytes });
+  model.partitionPlan = { modelId: model.id };
+  model.capsule = { modelId: model.id, program: { manifestArtifactId: 'manifest', pieceIndexArtifactId: 'pieces', weightArtifactIds: ['weights'] },
+    artifacts: [asArtifact(manifestFile, 'manifest', 'manifest'), asArtifact(indexFile, 'piece-index', 'pieces'), artifact] };
+  cache.delete('sha256-' + hash(weight.slice(0, 2)));
+  const acquire = vi.fn(async () => weight.slice(0, 2));
+  ports.exchange.mockReturnValue({ announce() {}, has: () => true, acquire, getState: () => ({}), close: async () => {} });
+  files = createWorkModelFiles({ getTransport: () => ({ onDataChannel() {}, _getPeerId: () => 'synthetic-peer' }),
+    fetchImpl: vi.fn(() => { throw Error('Origin must not be used'); }) });
+  await files.attach();
+  const source = await files.preparePartitionSource(model, {});
+  const signedStore = createVerifiedCapsuleArtifactStore(model.capsule, source.artifactStore);
+  try {
+    await signedStore.enableResidentPieces();
+    expect(signedStore.getPieceVerification().verifiedBytes).toBe(0);
+    expect(signedStore.getPieceVerification().ranges).toEqual([]);
+    expect([...await signedStore.readArtifactRange(artifact, 0, 1)]).toEqual([1]);
+    const actual = { openingMode: 'signed-capsule', plan: model.partitionPlan,
+      descriptor: { modelIdentity: model.identity }, acquisition: source.getReceipt(),
+      capsuleVerification: { artifactVerificationScope: 'resident-pieces', capsule: model.capsule,
+        pieceVerification: { ...signedStore.getPieceVerification(), observation: 'resident-opening' } } };
+    expect(actual.acquisition.verifiedBytes).toBe(0);
+    expect(actual.acquisition.custody.peerBytes).toBe(2);
+    expect(actual.acquisition.custody.transfers).toBe(1);
+    expect(actual.capsuleVerification.pieceVerification.verifiedBytes).toBe(2);
+    expect(actual.capsuleVerification.pieceVerification.ranges).toEqual([{ path: 'weights.bin', offset: 0, size: 2,
+      identity: 'sha256:' + hash(weight.slice(0, 2)) }]);
+    expect(acquire).toHaveBeenCalledOnce();
+    expect(() => assertSignedPreparation(actual, model)).not.toThrow();
+    expect(() => assertSignedPreparation({ ...actual, acquisition: { ...actual.acquisition,
+      custody: { peerBytes: 0, transfers: 0, cacheBytes: 2 } } }, model)).toThrow();
+    expect(() => assertSignedPreparation({ ...actual, capsuleVerification: { ...actual.capsuleVerification,
+      pieceVerification: { ...actual.capsuleVerification.pieceVerification, verifiedBytes: 0 } } }, model)).toThrow();
+  } finally { await signedStore.close(); await source.storage.close(); await files.close(); }
 });

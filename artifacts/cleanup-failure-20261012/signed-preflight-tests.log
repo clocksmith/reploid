@@ -2,79 +2,79 @@ TAP version 13
 # Subtest: synthetic bindings prove preflight mechanics only; no browser or qualification creation
 ok 1 - synthetic bindings prove preflight mechanics only; no browser or qualification creation
   ---
-  duration_ms: 45.482875
+  duration_ms: 42.520625
   type: 'test'
   ...
 # Subtest: rejects missing report before physical launch
 ok 2 - rejects missing report before physical launch
   ---
-  duration_ms: 26.381625
+  duration_ms: 29.369916
   type: 'test'
   ...
 # Subtest: rejects wrong archive bytes before physical launch
 ok 3 - rejects wrong archive bytes before physical launch
   ---
-  duration_ms: 11.51275
+  duration_ms: 11.821167
   type: 'test'
   ...
 # Subtest: rejects wrong vendor despite intact pin before physical launch
 ok 4 - rejects wrong vendor despite intact pin before physical launch
   ---
-  duration_ms: 21.328917
+  duration_ms: 21.537125
   type: 'test'
   ...
 # Subtest: rejects wrong app bytes before physical launch
 ok 5 - rejects wrong app bytes before physical launch
   ---
-  duration_ms: 22.247958
+  duration_ms: 22.521917
   type: 'test'
   ...
 # Subtest: rejects changed capture before physical launch
 ok 6 - rejects changed capture before physical launch
   ---
-  duration_ms: 22.665375
+  duration_ms: 23.887041
   type: 'test'
   ...
 # Subtest: rejects changed independent reference before physical launch
 ok 7 - rejects changed independent reference before physical launch
   ---
-  duration_ms: 21.23975
+  duration_ms: 21.607042
   type: 'test'
   ...
 # Subtest: rejects changed provider before physical launch
 ok 8 - rejects changed provider before physical launch
   ---
-  duration_ms: 24.56525
+  duration_ms: 24.460917
   type: 'test'
   ...
 # Subtest: rejects wrong partition binding before physical launch
 ok 9 - rejects wrong partition binding before physical launch
   ---
-  duration_ms: 23.188792
+  duration_ms: 24.810583
   type: 'test'
   ...
 # Subtest: rejects historical output overwrite before physical launch
 ok 10 - rejects historical output overwrite before physical launch
   ---
-  duration_ms: 12.767
+  duration_ms: 12.061625
   type: 'test'
   ...
 # Subtest: rejects weakened tolerance before physical launch
 ok 11 - rejects weakened tolerance before physical launch
   ---
-  duration_ms: 21.784459
+  duration_ms: 22.740166
   type: 'test'
   ...
 # Subtest: actual preparation must show signed selective acquisition, not merely Ready
 ok 12 - actual preparation must show signed selective acquisition, not merely Ready
   ---
-  duration_ms: 12.179875
+  duration_ms: 12.39925
   type: 'test'
   ...
 # Subtest: retained archive8 uses unmodified raw-hex producer binding
 ok 13 - retained archive8 uses unmodified raw-hex producer binding
   ---
-  duration_ms: 0.651708
+  duration_ms: 0.642792
   type: 'test'
   ...
 1..13
@@ -85,4 +85,4 @@ ok 13 - retained archive8 uses unmodified raw-hex producer binding
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 320.626834
+# duration_ms 319.573042

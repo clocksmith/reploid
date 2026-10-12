@@ -99,9 +99,9 @@ test('actual preparation must show signed selective acquisition, not merely Read
   const f = await fixture();
   try {
     const observed = { openingMode: 'signed-capsule', plan: f.model.partitionPlan,
-      descriptor: { modelIdentity: f.model.identity }, acquisition: { verifiedBytes: 16 },
+      descriptor: { modelIdentity: f.model.identity }, acquisition: { verifiedBytes: 0, custody: { peerBytes: 16, transfers: 1 } },
       capsuleVerification: { artifactVerificationScope: 'resident-pieces', capsule: f.model.capsule,
-        pieceVerification: { mode: 'signed-piece-index', manifestIdentity: f.model.identity, indexArtifactId: 'pieces', ranges: [{}] } } };
+        pieceVerification: { mode: 'signed-piece-index', observation: 'resident-opening', pieces: ['synthetic'], verifiedBytes: 16, manifestIdentity: f.model.identity, indexArtifactId: 'pieces', ranges: [{}] } } };
     assertSignedPreparation(observed, f.model);
     for (const patch of [{ openingMode: 'pinned-manifest' }, { acquisition: { verifiedBytes: 0 } }, { capsuleVerification: null }]) {
       assert.throws(() => assertSignedPreparation({ ...observed, ...patch }, f.model));

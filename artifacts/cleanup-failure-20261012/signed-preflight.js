@@ -101,10 +101,14 @@ export function assertSignedPreparation(observed, model) {
   const verification = observed.capsuleVerification;
   assert.equal(verification?.artifactVerificationScope, 'resident-pieces');
   assert.equal(verification.pieceVerification?.mode, 'signed-piece-index');
+  assert.equal(verification.pieceVerification.observation, 'resident-opening');
   assert.equal(verification.pieceVerification.manifestIdentity, model.identity);
   assert.deepEqual(verification.capsule, model.capsule);
   assert.equal(verification.pieceVerification.indexArtifactId, model.capsule.program.pieceIndexArtifactId);
   assert(Array.isArray(verification.pieceVerification.ranges) && verification.pieceVerification.ranges.length > 0, 'Actual assigned ranges required');
-  assert(observed.acquisition?.verifiedBytes > 0, 'Fresh verified selective acquisition required');
+  assert(verification.pieceVerification.pieces?.length > 0, 'Actual verified piece identities required');
+  assert(verification.pieceVerification.verifiedBytes > 0, 'Signed reader must verify actual bytes');
+  const custody = observed.acquisition?.custody;
+  assert(custody?.peerBytes > 0 && custody.transfers > 0, 'Fresh peer acquisition required; cache reuse alone is insufficient');
   assert.equal(observed.descriptor.modelIdentity, model.identity);
 }

@@ -2,7 +2,7 @@
   "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
   "sources": {
     "/scripts/package-hosting.js": "ace99902b0226b3ca13383925efdaf8c733e2d7456d3a3aef18625d5f4185419",
-    "/artifacts/cleanup-failure-20261012/signed-preflight.js": "dc4d748aa591a4cd8aa7ffb3344aae722f3f2c06ffb2e5f77da7ac2c8b81ba7e"
+    "/artifacts/cleanup-failure-20261012/signed-preflight.js": "1438c4def6ebf8b8bc61d0b2bb849cee5ad33e66c49518787111711624919aa4"
   },
   "result": {
     "passed": false,
@@ -18,7 +18,7 @@
     "events": [
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791836289280,
+        "timestamp": 1791836540480,
         "path": "/scripts/package-hosting.js",
         "patternId": "path_traversal",
         "category": "filesystem",
@@ -27,7 +27,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791836289280,
+        "timestamp": 1791836540480,
         "path": "/scripts/package-hosting.js",
         "patternId": "child_process",
         "category": "process",
@@ -36,7 +36,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791836289280,
+        "timestamp": 1791836540480,
         "path": "/scripts/package-hosting.js",
         "patternId": "process_exit",
         "category": "process",
@@ -45,7 +45,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791836289280,
+        "timestamp": 1791836540481,
         "path": "/scripts/package-hosting.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -55,7 +55,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791836289286,
+        "timestamp": 1791836540486,
         "path": "/artifacts/cleanup-failure-20261012/signed-preflight.js",
         "patternId": "path_traversal",
         "category": "filesystem",
