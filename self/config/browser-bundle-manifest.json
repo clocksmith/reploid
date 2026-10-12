@@ -3070,8 +3070,8 @@
     },
     {
       "path": "ui/pool-home/conversation-workspace.js",
-      "byteLength": 25808,
-      "sha256": "sha256:8f953ab0294534648716fb140cbf000b34b230470676d484ac36ac6fd588e658"
+      "byteLength": 26646,
+      "sha256": "sha256:307478418a431e818b8b2ac5859e1fb36bc286d1bd309a4c5b7ca4dff92f6778"
     },
     {
       "path": "ui/pool-home/document-search.js",
@@ -9529,5 +9529,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:ca8880f1ee4312070d7a634f1706529bec8d0a74f434d3aca0a3a67014ddbcb8"
+  "bundleHash": "sha256:1f1bba0312b9ab4b871a9a9d83f5e229077b5df204da5803b042c8190f53164e"
 }
