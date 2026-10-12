@@ -11,10 +11,17 @@ test('device loss remains observable when the global device and pool disappear',
     inference: { session: { compute: { defaults: { activationDtype: 'f32' } } } } }));
   const identity = 'sha256:' + createHash('sha256').update(bytes).digest('hex');
   const submitted = [], dispatched = [];
+  let infoResult = Promise.resolve({ messages: [] });
+  let pipelineResult = Promise.resolve({});
+  const shaderModule = { getCompilationInfo: () => infoResult };
+  const originalFailure = new Error('provider preparation failure');
   let lose, lost = false;
   const device = { lost: new Promise(resolve => { lose = resolve; }), addEventListener() {},
     queue: { submit: buffers => submitted.push(buffers), onSubmittedWorkDone: async () => { if (lost) throw Error('queue lost'); } },
-    createBindGroup: () => ({}), createComputePipeline: () => ({}), createComputePipelineAsync: async () => ({}),
+    createShaderModule(descriptor) { if (descriptor.label === 'reject-module') throw originalFailure; return shaderModule; },
+    createBindGroup: () => ({}),
+    createComputePipeline(descriptor) { if (descriptor.label === 'reject-sync-pipeline') throw originalFailure; return {}; },
+    createComputePipelineAsync: () => pipelineResult,
     createCommandEncoder: () => ({ beginComputePass: () => ({ setPipeline() {}, setBindGroup() {},
       dispatchWorkgroups: (...args) => dispatched.push(args), dispatchWorkgroupsIndirect() {} }), finish: () => ({}) }) }; 
   const runtime = { createLayerPartitionPlan: () => ({}), hashLayerPartitionPlan: () => 'test-plan',
@@ -32,7 +39,46 @@ test('device loss remains observable when the global device and pool disappear',
     await preparePartitionMemory({ model: { identity, generation: { maxSeqLen: 32 } }, index: 0,
       modelSource: 'https://fixture/', config: { DOPPLER_PARTITIONS_MODULE_URL: 'https://fixture/src/partitions.js' },
       policy: { maxGpuBufferBytes: 1420000000 } });
-    const pipeline = await device.createComputePipelineAsync({ label: 'test pipeline', compute: { entryPoint: 'main', constants: { WIDTH: 8 } } });
+    const descriptor = { label: 'test pipeline', compute: { entryPoint: 'main', constants: { WIDTH: 8 } } };
+    expect(device.createShaderModule({ label: 'test shader', code: 'source' })).toBe(shaderModule);
+    expect(shaderModule.getCompilationInfo()).toBe(infoResult);
+    await infoResult;
+    expect(globalThis.memorySnapshot().pipelinePreparationEvents).toContainEqual(expect.objectContaining({
+      operation: 'getCompilationInfo', status: 'completed', label: 'test shader' }));
+    expect(() => device.createShaderModule({ label: 'reject-module', code: 'source' })).toThrow(originalFailure);
+    expect(() => device.createComputePipeline({ ...descriptor, label: 'reject-sync-pipeline' })).toThrow(originalFailure);
+    let finish;
+    pipelineResult = new Promise(resolve => { finish = resolve; });
+    const returned = device.createComputePipelineAsync(descriptor);
+    expect(returned).toBe(pipelineResult);
+    expect(globalThis.memorySnapshot().pendingPipelinePreparation).toEqual([
+      expect.objectContaining({ operation: 'createComputePipelineAsync', status: 'started', entryPoint: 'main' })]);
+    finish({});
+    const pipeline = await returned;
+    expect(globalThis.memorySnapshot().pendingPipelinePreparation).toEqual([]);
+    pipelineResult = Promise.reject(originalFailure);
+    const rejected = device.createComputePipelineAsync({ ...descriptor, label: 'rejected pipeline' });
+    expect(rejected).toBe(pipelineResult);
+    await expect(rejected).rejects.toBe(originalFailure);
+    infoResult = Promise.reject(originalFailure);
+    expect(shaderModule.getCompilationInfo()).toBe(infoResult);
+    await expect(infoResult).rejects.toBe(originalFailure);
+    for (const operation of ['createShaderModule', 'createComputePipeline', 'createComputePipelineAsync', 'getCompilationInfo']) {
+      expect(globalThis.memorySnapshot().pipelinePreparationEvents).toContainEqual(expect.objectContaining({
+        operation, status: 'rejected', message: originalFailure.message }));
+    }
+    expect(globalThis.memorySnapshot().pendingPipelinePreparation).toEqual([]);
+    let finishPending;
+    pipelineResult = new Promise(resolve => { finishPending = resolve; });
+    const pending = device.createComputePipelineAsync({ ...descriptor, label: 'retained pending' });
+    for (let index = 0; index < 70; index++) device.createComputePipeline({ ...descriptor, label: `bounded ${index}` });
+    expect(globalThis.memorySnapshot().pipelinePreparationEvents).toHaveLength(128);
+    expect(globalThis.memorySnapshot().pendingPipelinePreparation).toEqual([
+      expect.objectContaining({ label: 'retained pending', status: 'started' })]);
+    finishPending({}); await pending;
+    Object.freeze(shaderModule);
+    expect(device.createShaderModule({ label: 'readonly module', code: 'source' })).toBe(shaderModule);
+    expect(globalThis.memorySnapshot().observationErrors).toContainEqual(expect.objectContaining({ operation: 'createShaderModule' }));
     const encoder = device.createCommandEncoder({ label: 'test encoder' });
     const group = device.createBindGroup({ entries: [{ binding: 0, resource: { buffer: { label: 'layer12.weight', size: 64 }, offset: 4, size: 32 } }] });
     const pass = encoder.beginComputePass(); pass.setPipeline(pipeline); pass.setBindGroup(0, group); pass.dispatchWorkgroups(3);

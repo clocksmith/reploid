@@ -29,6 +29,41 @@ export async function preparePartitionMemory({ model, index, modelSource, paired
       globalThis.partitionGpuSubmissions = [];
       const preparedDevice = getDevice();
       const pipelineMetadata = new WeakMap(), commandMetadata = new WeakMap(), bindingMetadata = new WeakMap();
+      const preparationEvents = [], preparationObservationErrors = [], pendingPreparation = new Map();
+      let preparationCount = 0;
+      const observePreparation = (operation, details, invoke, asynchronous, retain = value => value) => {
+        const id = preparationCount++;
+        const started = { id, operation, ...details, at: new Date().toISOString(), status: 'started' };
+        const record = event => { preparationEvents.push(event); if (preparationEvents.length > 128) preparationEvents.shift(); };
+        pendingPreparation.set(id, started); record(started);
+        const complete = (status, error) => {
+          pendingPreparation.delete(id);
+          record({ id, operation, ...details, at: new Date().toISOString(), status,
+            ...(status === 'rejected' ? { errorName: error?.name ?? null, message: error?.message ?? String(error) } : {}) });
+        };
+        let result;
+        try { result = invoke(); }
+        catch (error) { complete('rejected', error); throw error; }
+        const retainObserved = value => {
+          try { retain(value); }
+          catch (error) { preparationObservationErrors.push({ operation, message: error.message }); }
+        };
+        if (asynchronous) {
+          result.then(value => { retainObserved(value); complete('completed'); }, error => complete('rejected', error));
+        } else { retainObserved(result); complete('completed'); }
+        return result;
+      };
+      if (typeof preparedDevice.createShaderModule === 'function') {
+        const create = preparedDevice.createShaderModule.bind(preparedDevice);
+        preparedDevice.createShaderModule = descriptor => observePreparation('createShaderModule',
+          { label: descriptor.label ?? null, codeLength: descriptor.code?.length ?? null },
+          () => create(descriptor), false, module => {
+            if (typeof module.getCompilationInfo !== 'function') return;
+            const get = module.getCompilationInfo.bind(module);
+            module.getCompilationInfo = (...args) => observePreparation('getCompilationInfo',
+              { label: descriptor.label ?? null }, () => get(...args), true);
+          });
+      }
       let submissionCount = 0;
       if (typeof preparedDevice.createBindGroup === 'function') {
         const create = preparedDevice.createBindGroup.bind(preparedDevice);
@@ -44,10 +79,10 @@ export async function preparePartitionMemory({ model, index, modelSource, paired
         if (typeof preparedDevice[method] !== 'function') continue;
         const create = preparedDevice[method].bind(preparedDevice);
         preparedDevice[method] = descriptor => {
-          const retain = pipeline => { pipelineMetadata.set(pipeline, { label: descriptor.label ?? null,
-            entryPoint: descriptor.compute.entryPoint, constants: { ...descriptor.compute.constants } }); return pipeline; };
-          const result = create(descriptor);
-          return method.endsWith('Async') ? result.then(retain) : retain(result);
+          const details = { label: descriptor.label ?? null, entryPoint: descriptor.compute.entryPoint,
+            constants: { ...descriptor.compute.constants } };
+          return observePreparation(method, details, () => create(descriptor), method.endsWith('Async'),
+            pipeline => pipelineMetadata.set(pipeline, details));
         };
       }
       if (typeof preparedDevice.createCommandEncoder === 'function') {
@@ -91,7 +126,8 @@ export async function preparePartitionMemory({ model, index, modelSource, paired
       globalThis.memorySnapshot = () => {
         const snapshot = { device: null, pool: null, activeLabels: null,
           gpuValidationErrors: [...gpuValidationErrors], deviceEvents: [...partitionDeviceEvents],
-          submissions: [...partitionGpuSubmissions], observationErrors: [] };
+          submissions: [...partitionGpuSubmissions], pipelinePreparationEvents: [...preparationEvents],
+          pendingPipelinePreparation: [...pendingPreparation.values()], observationErrors: [...preparationObservationErrors] };
         for (const [operation, read] of [
           ['device', () => runtime.inspectDeviceMemory()], ['pool', () => getBufferPool().getStats()],
           ['activeLabels', () => getBufferPool().getLabelStats()]
