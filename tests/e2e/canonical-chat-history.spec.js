@@ -5,11 +5,81 @@ test.beforeEach(async ({ page }) => {
   await page.route('http://127.0.0.1:5199/**', async route => {
     const name = new URL(route.request().url()).pathname;
     if (name === '/') return route.fulfill({ contentType: 'text/html', body: '<!doctype html><title>History transactions</title>' });
+    if (name.startsWith('/doppler/') && process.env.DOPPLER_SOURCE_ROOT) {
+      return route.fulfill({ contentType: name.endsWith('.json') ? 'application/json' : 'text/javascript',
+        body: await readFile(process.env.DOPPLER_SOURCE_ROOT + '/src/' + name.slice('/doppler/'.length)) });
+    }
     if (!['/host/chat-history.js', '/core/verification-worker.js', '/core/vendor/acorn.js'].includes(name)
       && !name.startsWith('/vendor/reploid/')) return route.abort();
     return route.fulfill({ contentType: name.endsWith('.json') ? 'application/json' : 'text/javascript', body: await readFile('self' + name) });
   });
   await page.goto('http://127.0.0.1:5199/');
+});
+
+test('canonical publication races and unknown receipts reconcile through actual IndexedDB', async ({ page }) => {
+  test.skip(!process.env.DOPPLER_SOURCE_ROOT, 'Explicit Doppler source checkout required; accepted package stays unchanged');
+  const generationPolicy = JSON.parse(await readFile(process.env.DOPPLER_SOURCE_ROOT + '/tests/fixtures/canonical-generation-policy.json', 'utf8'));
+  const result = await page.evaluate(async generationPolicy => {
+    const [{ openChatHistory }, { createConversationPublication }, doppler] = await Promise.all([
+      import('/host/chat-history.js'), import('/vendor/reploid/chat/workspace-publication.js'), import('/doppler/partitions.js'),
+    ]);
+    const options = { name: 'canonical-publication-' + crypto.randomUUID(), maxConversations: 1,
+      maxConversationBytes: 1000000, openTimeoutMs: 1000 };
+    const a = await openChatHistory(options), b = await openChatHistory(options);
+    const hash = 'sha256:' + 'a'.repeat(64), other = 'sha256:' + 'b'.repeat(64), epoch = '0'.repeat(32);
+    const generation = doppler.canonicalGenerationIdentity(generationPolicy, hash, 100);
+    const stage = { stageId: hash, participantId: 'p', participantEpoch: epoch, deviceEpoch: epoch, residentId: 'r', partitionIndex: 0, executionId: hash };
+    const identity = { schema: 'doppler.resident-attempt/v2', attemptId: 'cancel-first', requesterId: 'q', inputDigest: hash,
+      authorizationScope: hash, routeId: hash, generationId: generation.generationId, coordinatorEpoch: epoch,
+      publisherEpoch: epoch, routeKind: 'two-stage-layer', stages: [stage, { ...stage, stageId: other, partitionIndex: 1 }] };
+    const makePublication = attempt => {
+      const value = { schema: 'doppler.execution-publication/v2', attemptId: attempt.attemptId, coordinatorEpoch: epoch,
+        attemptDigest: doppler.residentAttemptDigest(attempt), sequence: 0, expectedRevision: null, baseCursorId: null,
+        previousPublicationDigest: null, acceptedTokenIds: [3], tokenRange: { start: 0, end: 1 },
+        successor: doppler.bootstrapResidentCursor([1, 2], 3, generationPolicy, 100, generation.generationId),
+        delta: { text: 'saved', outputDigest: hash }, stoppingOutcome: null };
+      value.decisionId = doppler.residentPublicationDecisionDigest(value);
+      value.acknowledgments = attempt.stages.map(item => ({ schema: 'doppler.stage-commit/v1', stageId: item.stageId,
+        attemptDigest: value.attemptDigest, sequence: 0, baseCursorId: null, decisionId: value.decisionId,
+        successorCursorId: value.successor.cursorId, participantEpoch: epoch, deviceEpoch: epoch,
+        residentId: item.residentId, authenticationDigest: hash }));
+      return { ...value, publicationDigest: doppler.metadataDigest(value.schema, value) };
+    };
+    const ownerOptions = { conversationId: 'thread', writerEpoch: epoch, doppler, authorize: () => true,
+      authenticateCommit: async () => true, now: () => 10 };
+    let release, entered;
+    const hold = new Promise(resolve => { release = resolve; }), waiting = new Promise(resolve => { entered = resolve; });
+    const publisher = createConversationPublication({ ...ownerOptions, store: a,
+      authenticateCommit: async () => { entered(); await hold; return true; } });
+    const canceller = createConversationPublication({ ...ownerOptions, store: b });
+    await publisher.claimWriter(null);
+    const admission = attempt => ({ identity: attempt, generationPolicy, executionIdentity: hash, vocabSize: 100, deadlineAt: 1000 });
+    await publisher.admitAttempt(admission(identity));
+    const publishing = publisher.publish(makePublication(identity)).then(() => 'wrong', error => error.message);
+    await waiting; await canceller.cancel(identity.attemptId, epoch); release();
+    const cancelled = await publishing;
+    const visibleAfterCancel = (await publisher.readPublished(-1)).length;
+    const next = { ...identity, attemptId: 'publish-first' };
+    await publisher.admitAttempt(admission(next));
+    const publication = makePublication(next);
+    // Lose the response after the real transaction commits. Recovery must read
+    // that same record; no model or sampler is called by reconciliation.
+    const uncertain = createConversationPublication({ ...ownerOptions, store: { ...a,
+      async transact(...args) { await a.transact(...args); throw Error('lost commit response'); } } });
+    const unknown = await uncertain.publish(publication).then(() => 'wrong', error => error.message);
+    const fenced = await uncertain.readPublished(-1).then(() => false, () => true);
+    const reconciled = await uncertain.reconcile();
+    const receipts = await Promise.all([publisher.publish(publication), canceller.publish(publication)]);
+    await publisher.cancel(next.attemptId, epoch);
+    await a.close(); await b.close();
+    const reopened = await openChatHistory(options), history = await reopened.read('thread'); await reopened.close();
+    return { cancelled, visibleAfterCancel, unknown, fenced, records: reconciled.records.length,
+      receipts, durableRecords: history.records.length, text: history.records[0].publication.delta.text };
+  }, generationPolicy);
+  expect(result.cancelled).toContain('cancelled'); expect(result.visibleAfterCancel).toBe(0);
+  expect(result.unknown).toBe('lost commit response'); expect(result.fenced).toBe(true);
+  expect(result.records).toBe(1); expect(result.durableRecords).toBe(1); expect(result.text).toBe('saved');
+  expect(result.receipts[0]).toEqual(result.receipts[1]);
 });
 
 test('two connections serialize atomic history updates, retain aborted heads and enforce admission', async ({ page }) => {

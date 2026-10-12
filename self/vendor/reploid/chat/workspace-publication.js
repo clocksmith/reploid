@@ -21,6 +21,10 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
   assert(Object.keys(limits).length === 2 && ['maxAttempts', 'maxPublications'].every(key =>
     Number.isSafeInteger(limits[key]) && limits[key] > 0), 'Invalid publication retention bounds');
   let fenced = false;
+  const read = async () => {
+    try { return await store.read(conversationId); }
+    catch (error) { fenced = true; throw error; }
+  };
   const permission = (action, attempt = null) => assert(authorize({ conversationId, writerEpoch, action, attempt }) === true, 'Publication authority revoked');
   const historyFor = value => {
     const history = value ?? initial();
@@ -83,10 +87,11 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
     async publish(input) {
       assert(!fenced, 'Publication storage is fenced; reconcile its durable head');
       // Bound and fingerprint before copying the message or authenticating it.
+      doppler.metadataDigest('reploid.publication-input/v1', input);
       const { publicationDigest, ...body } = input;
       assert(publicationDigest === doppler.metadataDigest(body.schema, body), 'Publication fingerprint mismatch');
       const publication = copy(input);
-      const saved = historyFor(await store.read(conversationId));
+      const saved = historyFor(await read());
       writer(saved);
       const admitted = findAttempt(saved, publication.attemptId, publication.coordinatorEpoch);
       permission('publish', admitted.identity);
@@ -138,7 +143,7 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
     },
     async reconcile() {
       permission('read');
-      const history = historyFor(await store.read(conversationId));
+      const history = historyFor(await read());
       permission('read'); writer(history);
       fenced = false;
       return copy(history);
@@ -146,7 +151,9 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
     async readPublished(afterIndex) {
       assert(!fenced, 'Publication storage is fenced; reconcile its durable head');
       assert(Number.isSafeInteger(afterIndex) && afterIndex >= -1, 'Invalid delivery cursor');
-      const history = historyFor(await store.read(conversationId));
+      permission('read');
+      const history = historyFor(await read());
+      permission('read');
       const records = history.records.filter(item => item.receipt.index > afterIndex);
       for (const record of records) permission('replay', findAttempt(history,
         record.publication.attemptId, record.publication.coordinatorEpoch).identity);

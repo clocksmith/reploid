@@ -1,3 +1,5 @@
+export { createConversationPublication } from './workspace-publication.js';
+export type { TransactionalChatStore, PublicationReceipt } from './workspace-publication.js';
 export interface ChatModel {
   id: string;
   name: string;
