@@ -23,6 +23,14 @@ export function resolvePartitionArtifactSource(model, manifest, files, artifact)
   const file = files.find(row => row.path === sourcePath)
     || (shard && { path: shard.filename, role: 'model-weights', sizeBytes: shard.size,
       hash: shard.hash, hashAlgorithm: manifest.hashAlgorithm });
+  // Signed pieces authenticate the selected ranges. The Capsule's SHA256
+  // whole-artifact identity and the source manifest's BLAKE3 shard identity
+  // are distinct; retain the latter for custody instead of relabeling it.
+  if (model.capsule && shard && manifest.hashAlgorithm === 'blake3'
+    && artifact.role === 'weight-shard' && model.capsule.program.weightArtifactIds?.includes(artifact.artifactId)
+    && /^sha256:[a-f0-9]{64}$/.test(artifact.hash) && /^[a-f0-9]{64}$/.test(shard.hash)
+    && file?.role === 'model-weights' && file.hashAlgorithm === manifest.hashAlgorithm
+    && file.hash === shard.hash && file.sizeBytes === shard.size && artifact.sizeBytes === shard.size) return file;
   if (!file || file.sizeBytes !== artifact.sizeBytes || 'sha256:' + file.hash !== artifact.hash
     || file.hashAlgorithm !== 'sha256') reject();
   return file;

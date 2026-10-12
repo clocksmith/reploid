@@ -1,0 +1,17 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/self/host/work-partition-artifact-source.js": "0471d1367a3847025dd80d6a9d0f0116e2bcb2e46b4bcf0d7f9bbc6861f2e706"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "events": [],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 1
+    }
+  }
+}
