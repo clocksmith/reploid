@@ -35,6 +35,12 @@ for that native-only control and restored using their original profiles/consent;
 the operator scripts and process records are retained. Their earlier steady
 browser/browser conversation is in `steady-conversation.json`.
 
+`x-restored-ready.json` and `suby-restored-ready.json` confirm both restored
+browser processes reached Ready, and both installed native processes reported
+ready with zero active reservations and zero unsettled owners. The earlier
+`suby-restored.json` retains its still-loading observation. These are sampled
+process/status observations, not a continuous-availability guarantee.
+
 One request attempted during rolling preparation was rejected because the
 approved placement changed; `deployed-native-conversation.json` retains it.
 The old Suby browser launcher also exited on missing supply during the first
