@@ -63,6 +63,18 @@ describe('Execution ribbon interactions', () => {
     root = document.createElement('div'); root.innerHTML = renderExecutionRibbon(); document.body.append(root);
     binding = bindExecutionRibbon(root, { onInspect });
   }
+  it('shows attempts while leaving idle availability to the composer', () => {
+    mount();
+    const ribbon = root.querySelector('[data-execution-ribbon]');
+    const state = snapshot(split);
+    state.activeThread = null;
+    binding.update(state);
+    expect(ribbon.hidden).toBe(true);
+    binding.update(snapshot(split));
+    expect(ribbon.hidden).toBe(false);
+    binding.update(state);
+    expect(ribbon.hidden).toBe(true);
+  });
   it('keeps one quiet status and opens assigned execution details only on activation', () => {
     const inspect = vi.fn(); mount(inspect); binding.update(snapshot(split));
     const trigger = root.querySelector('[data-ribbon-trigger]');

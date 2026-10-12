@@ -56,7 +56,7 @@ async function installConversation(page, theme) {
 
 const animation = (locator, pseudo = '::after') => locator.evaluate((node, pseudo) => getComputedStyle(node, pseudo).animationName, pseudo);
 
-test('compact ribbon keeps availability and attempt status visible', async ({ page }, info) => {
+test('compact workspace presents availability once and keeps attempt status visible', async ({ page }, info) => {
   await page.setViewportSize({ width: 320, height: 460 });
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
@@ -66,8 +66,14 @@ test('compact ribbon keeps availability and attempt status visible', async ({ pa
     await page.evaluate(mode => window.setVisualState(mode), mode);
     const status = page.locator('[data-ribbon-status]');
     await expect(status).toHaveText(label);
-    await expect(status).toBeVisible();
-    await expect(status).toBeInViewport();
+    if (mode === 'empty') {
+      await expect(status).toBeHidden();
+      await expect(page.locator('[data-model-status]')).toBeVisible();
+      await expect(page.locator('[data-message-stream]')).toBeEmpty();
+    } else {
+      await expect(status).toBeVisible();
+      await expect(status).toBeInViewport();
+    }
     await expect(page.locator('[data-composer-input]')).toBeInViewport();
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
     const trigger = await page.locator('[data-ribbon-trigger]').boundingBox();

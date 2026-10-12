@@ -167,12 +167,12 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     const preparing = localPreparing || remotePreparing;
     modelStatus.textContent = thread?.closed ? 'Archived thread. Restore it to continue.' : localPreparing ? 'Downloading model…' + (Number.isFinite(state.localModel.progress?.progress) ? ' ' + Math.round(state.localModel.progress.progress * 100) + '%' : '')
       : state.localModel?.error && !usable ? 'Download failed: ' + state.localModel.error
-      : usable ? '' : state.network?.paused ? 'Disconnected. Reconnect to find available models.'
-      : remotePreparing ? 'A connected computer is preparing a model. Your draft stays here.'
+      : usable ? '' : state.network?.paused ? 'Disconnected. Reconnect to find a model.'
+      : remotePreparing ? 'A peer is preparing a model. Your draft stays here.'
       : ['loading', 'preparing'].includes(models.find(model => keyFor(model) === current)?.availability) ? 'This model is preparing…'
       : current ? 'This model is unavailable. Your draft stays here.'
-        : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding available models…'
-          : 'No model is available right now. Your draft stays here.';
+        : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding models…'
+          : 'No model available. Your draft stays here.';
     modelStatus.hidden = !modelStatus.textContent;
     find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';

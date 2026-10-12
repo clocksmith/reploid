@@ -37,7 +37,7 @@ export function projectExecutionRibbon(state) {
 }
 
 export function renderExecutionRibbon() {
-  return `<div class="execution-ribbon" data-execution-ribbon>
+  return `<div class="execution-ribbon" data-execution-ribbon hidden>
     <button class="execution-ribbon-trigger" type="button" aria-label="Inspect execution" aria-haspopup="dialog" data-ribbon-trigger>
       <span class="execution-ribbon-status" data-ribbon-status role="status"></span>
     </button>
@@ -90,6 +90,8 @@ export function bindExecutionRibbon(root, { onInspect = () => {} } = {}) {
   return {
     update(state) {
       const view = projectExecutionRibbon(state), changed = view.key !== key;
+      // Availability belongs beside the composer; this control describes an attempt.
+      ribbon.hidden = !view.attempt;
       if (changed) { key = view.key; lastResponse = view.response; stopPulse(); }
       find('[data-ribbon-status]').textContent = view.statusLabel;
       trigger.setAttribute('aria-label', `${view.statusLabel}. ${view.model ? view.model + ' on ' + view.executors.map(node => node.label).join(' and ') : 'No executor assigned'}. Execution details`);

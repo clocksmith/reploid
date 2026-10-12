@@ -8,9 +8,9 @@ export const renderConnectionControl = () => `<div class="network-sharing-row">
 </div>`;
 
 export const renderSharingControls = () => `<div class="network-sharing-row">
-          <div><strong>Help peers connect</strong><p>Forward connection invitations. This does not share conversations, model files, or compute.</p></div>
+          <div><strong>Help peers connect</strong><p>Forward invitations without sharing conversations, model files, or compute.</p></div>
           <button class="network-switch" type="button" role="switch" aria-label="Help peers connect" aria-checked="false" data-toggle-introductions><span></span></button>
-        </div><p class="network-sharing-summary" data-tab-sharing-summary role="status">No models shared by this tab</p>
+        </div><p class="network-sharing-summary" data-tab-sharing-summary role="status" hidden></p>
         <label>Model to share <select class="pool-input" data-contribution-model aria-label="Model to share"></select></label>
         <div class="network-sharing-row">
           <div><strong>Help answer requests <span data-contrib-label>Not sharing</span></strong>
@@ -21,7 +21,7 @@ export const renderSharingControls = () => `<div class="network-sharing-row">
         </div>
         <div class="network-sharing-row">
           <div><strong>Store and share model files <span data-file-contribution-label>Not sharing</span></strong>
-            <p>Model files can be downloaded and sent to peers. Conversations are not shared.</p><p data-file-limits></p>
+            <p>Download and send model files to peers. Conversations stay private.</p><p data-file-limits></p>
             <p data-file-progress role="status" hidden></p></div>
           <button class="network-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
         </div>`;
@@ -86,7 +86,7 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
       : discoveryState === 'awaiting-introduction' ? 'Needs an invitation'
       : discoveryState === 'retrying' ? 'Reconnecting…' : activeDiscovery ? 'Connected' : 'Disconnected';
     const message = find('[data-network-message]');
-    message.textContent = network.error || actionError || (network.connecting ? 'Connecting…' : ''); message.hidden = !message.textContent;
+    message.textContent = network.error || actionError || ''; message.hidden = !message.textContent;
     const cleanupPending = network.contribution?.unsettledOwners > 0;
     find('[data-contrib-label]').textContent = network.stopping ? 'Stopping' : cleanupPending ? 'Cleanup not confirmed' : network.sharing
       ? ({ loading: 'Loading', ready: 'Ready', executing: 'Executing', failed: 'Failed' }[network.contribution?.phase] || 'Sharing') : 'Not sharing';
@@ -116,7 +116,8 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
     if (network.sharing || network.stopping) sharing.push((sharedName || 'Selected model')
       + (contribution.partition ? ' · partition compute' : ' · compute'));
     if (sharingFiles) sharing.push((network.files?.model?.name || network.files?.model?.id || 'Model files') + ' · files');
-    find('[data-tab-sharing-summary]').textContent = sharing.length ? sharing.join(' / ') : 'No models shared by this tab';
+    find('[data-tab-sharing-summary]').textContent = sharing.join(' / ');
+    find('[data-tab-sharing-summary]').hidden = !sharing.length;
   };
   const unsubscribe = session.subscribe(render);
   on('[data-mesh-connect]', 'click', () => {
