@@ -8,6 +8,7 @@ import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-ru
 import { createChatExecution } from './chat-execution.js';
 import { projectChatCatalog, projectChatPlacements } from './chat-view.js';
 import { createChatDrafts } from './chat-drafts.js';
+import { createChatContext } from './chat-context.js';
 import { attachmentInput, comparisonInput, comparisonSources, comparisonExport, COMPARISON_CHECK } from './document-comparison.js';
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
@@ -130,6 +131,15 @@ export function createChatSession({
       return () => listeners.delete(listener);
     },
     refreshNetwork: notifyAll,
+    previewContextPrompt(selection, model = getSessionState().defaultModel) {
+      return createChatContext(selection, model, models);
+    },
+    setContextPrompt(threadId, selection) {
+      assertOpen();
+      const thread = workspace.getState().threads.find(item => item.id === threadId);
+      assert(thread, 'Conversation not found');
+      workspace.setSystemContext(threadId, createChatContext(selection, thread.model, models));
+    },
     async prepareLocalModel(modelId) {
       assertOpen();
       const model = models.find(item => item.id === modelId);
@@ -174,12 +184,13 @@ export function createChatSession({
         return await workspace.send(threadId, COMPARISON_CHECK, { select: false });
       } finally { comparisons.delete(threadId); notifyAll(); } })();
     },
-    createThread({ model = getSessionState().defaultModel, purpose = '', sharingScope = 'mesh' } = {}) {
+    createThread({ model = getSessionState().defaultModel, purpose = '', sharingScope = 'mesh', contextPrompt } = {}) {
       assertOpen();
       assert(model, 'Model required to create thread');
       return workspace.createThread({
         model,
         purpose,
+        systemContext: createChatContext(contextPrompt, model, models),
         permissions: { sharingScope }
       });
     },

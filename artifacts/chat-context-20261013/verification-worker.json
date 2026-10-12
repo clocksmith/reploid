@@ -1,0 +1,194 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/host/chat-context.js": "9becbb174dbbf714b567d8d50e8576018e471696f5b677e2fd063c3b39ab6322",
+    "/host/chat-session.js": "1fa4e148d42054fb885355c7d32389d83f05eab0058932426e1a60b2d6eb3c47",
+    "/ui/pool-home/conversation-workspace.js": "11251f5daa477626968025dcc28961af1b06354534f4686e194eac79ca64cd3d",
+    "/vendor/reploid/chat/workspace.js": "4f9731554efa9c511fbef6d711fc01c0710fa8bd1416668de2b219c965d6eccc"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /host/chat-context.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /host/chat-session.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /host/chat-session.js:64: Suspicious variable name: execution - may indicate code execution",
+      "File has 40 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /ui/pool-home/conversation-workspace.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 29 functions (max 20) - consider modularizing",
+      "14 lines exceed 200 characters",
+      "File has 41 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791832602345,
+        "path": "/host/chat-context.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791832602353,
+        "path": "/host/chat-session.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791832602354,
+        "path": "/host/chat-session.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execution - may indicate code execution",
+        "line": 64,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791832602355,
+        "metric": "functions",
+        "value": 40,
+        "threshold": 20,
+        "message": "File has 40 functions (max 20) - consider modularizing",
+        "path": "/host/chat-session.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791832602355,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/host/chat-session.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791832602362,
+        "path": "/ui/pool-home/conversation-workspace.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791832602365,
+        "metric": "functions",
+        "value": 29,
+        "threshold": 20,
+        "message": "File has 29 functions (max 20) - consider modularizing",
+        "path": "/ui/pool-home/conversation-workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791832602365,
+        "metric": "line_length",
+        "value": 14,
+        "threshold": 5,
+        "message": "14 lines exceed 200 characters",
+        "path": "/ui/pool-home/conversation-workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791832602371,
+        "metric": "functions",
+        "value": 41,
+        "threshold": 20,
+        "message": "File has 41 functions (max 20) - consider modularizing",
+        "path": "/vendor/reploid/chat/workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791832602371,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/vendor/reploid/chat/workspace.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/host/chat-context.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/host/chat-session.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/ui/pool-home/conversation-workspace.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 40,
+          "threshold": 20,
+          "message": "File has 40 functions (max 20) - consider modularizing",
+          "path": "/host/chat-session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/host/chat-session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 29,
+          "threshold": 20,
+          "message": "File has 29 functions (max 20) - consider modularizing",
+          "path": "/ui/pool-home/conversation-workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 14,
+          "threshold": 5,
+          "message": "14 lines exceed 200 characters",
+          "path": "/ui/pool-home/conversation-workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 41,
+          "threshold": 20,
+          "message": "File has 41 functions (max 20) - consider modularizing",
+          "path": "/vendor/reploid/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/vendor/reploid/chat/workspace.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}

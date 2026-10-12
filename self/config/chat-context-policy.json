@@ -1,0 +1,12 @@
+{
+  "id": "reploid.compact-context/v1",
+  "defaultEnabled": false,
+  "defaultMaxWords": 16,
+  "wordLimits": [
+    16,
+    32,
+    64
+  ],
+  "base": "You assist in Reploid. Inference may use authorized peers. Never invent model identity or execution details.",
+  "details": "Use supplied metadata; acknowledge unavailable details."
+}
