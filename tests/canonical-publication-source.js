@@ -114,4 +114,19 @@ for (const failure of ['before', 'after']) {
   await assert.rejects(f.owner.admitAttempt({ identity: { ...identity, attemptId: 'new' }, generationPolicy,
     executionIdentity: hash, vocabSize: 100, deadlineAt: 1000 }), /full/);
 }
-console.log('canonical publication source integration: route cardinality, duplicate keys, cancellation races, unknown writes, takeover, revocation and bounded retention passed');
+for (const policy of [{ ...generationPolicy, maxGeneratedTokens: 0 }, { ...generationPolicy, totalAcceptedTokenLimit: 2 }]) {
+  const f = fixture({ authenticateCommit: async () => { throw Error('Admission has no execution acknowledgments'); } });
+  const { generationId } = doppler.canonicalGenerationIdentity(policy, hash, 100);
+  const attempt = { ...identity, generationId };
+  await f.owner.claimWriter(null);
+  await f.owner.admitAttempt({ identity: attempt, generationPolicy: policy, executionIdentity: hash, vocabSize: 100, deadlineAt: 1000 });
+  const value = seal({ schema: 'doppler.admission-publication/v1', attemptId: attempt.attemptId, coordinatorEpoch: epoch,
+    attemptDigest: doppler.residentAttemptDigest(attempt), sequence: 0, expectedRevision: null, previousPublicationDigest: null,
+    result: doppler.admitResidentPrompt([1, 2], policy, 100, generationId) });
+  const receipt = await f.owner.publish(value);
+  assert.deepEqual(await f.owner.publish(value), receipt);
+  const saved = await f.owner.reconcile();
+  assert.equal(saved.attempts[0].status, 'completed'); assert.equal(saved.attempts[0].cursor, null);
+  assert.equal(saved.records[0].publication.result.acceptedTokenIds.length, 0);
+}
+console.log('canonical publication source integration: route/empty outcomes, duplicates, cancellation, unknown writes, takeover, revocation and retention passed');

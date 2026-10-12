@@ -356,13 +356,13 @@
     },
     {
       "path": "chat/workspace-publication.d.ts",
-      "bytes": 3421,
-      "sha256": "9ce7e2916c60cd06928fa6b3ccac52faa8e1cb09c1113e2987e1d00c6fc817be"
+      "bytes": 3730,
+      "sha256": "7613abaa84001292198bcc49f88518f07b1ec76704830f0703441c5188249f27"
     },
     {
       "path": "chat/workspace-publication.js",
-      "bytes": 10074,
-      "sha256": "6ed3734fe757f4da77d73868259fcffce1551d630c1c6cf1d4ef15740a546430"
+      "bytes": 10620,
+      "sha256": "7290f80a16ca1963359dcdfd0e31468be1aee4927b17ef2a41b5e001581660bb"
     },
     {
       "path": "chat/workspace.js",
