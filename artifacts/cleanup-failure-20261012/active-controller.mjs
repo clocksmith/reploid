@@ -2,16 +2,30 @@ import { chromium, expect } from '@playwright/test';
 import { readFile, writeFile, stat } from 'node:fs/promises';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-const root = '/var/tmp/reploid-cleanup-failure-20261012/self';
-const output = new URL('./active-result.json', import.meta.url);
-const receipt = { startedAt: new Date().toISOString(), sourceCommit: 'f7757a81',
+import { prepareSignedControl, assertSignedPreparation } from './signed-preflight.js';
+const config = process.argv[2] ? JSON.parse(await readFile(process.argv[2], 'utf8')) : null;
+const signed = config ? await prepareSignedControl(config) : null;
+const root = config?.selfRoot || '/var/tmp/reploid-cleanup-failure-20261012/self';
+const url = config?.url || 'http://localhost:8000/';
+const output = config?.output || new URL('./active-result.json', import.meta.url);
+const profile = config?.profile || '/var/tmp/reploid-cleanup-failure-20261012/profile';
+if (signed && await stat(profile).catch(() => null)) throw Error('Signed acquisition control requires a new empty browser profile');
+const receipt = { startedAt: new Date().toISOString(), sourceCommit: config?.sourceCommit || 'f7757a81', binding: signed?.binding || null,
   scope: 'Physical active conversation cleanup rejection, explicit Retry stopping and newly approved retry; pinned-manifest opening',
+  openingMode: signed ? 'signed-capsule' : 'pinned-manifest',
   fault: 'Reject the first armed resident close before releasing resources; retry calls the original close', resources: [] };
-const context = await chromium.launchPersistentContext('/var/tmp/reploid-cleanup-failure-20261012/profile', {
+if (signed) {
+  receipt.scope = 'Signed candidate physical selective acquisition and active cleanup failure/retry; no numerical qualification claim';
+  const servedCatalog = Buffer.from(await (await fetch(new URL('/config/chat-models.json', url))).arrayBuffer());
+  expect('sha256:' + createHash('sha256').update(servedCatalog).digest('hex')).toBe(config.catalog.sha256);
+  const servedApplication = Buffer.from(await (await fetch(new URL('/config/browser-bundle-manifest.json', url))).arrayBuffer());
+  expect('sha256:' + createHash('sha256').update(servedApplication).digest('hex')).toBe(config.application.sha256);
+}
+const context = await chromium.launchPersistentContext(profile, {
   channel: 'chrome', headless: true, serviceWorkers: 'block', args: ['--enable-unsafe-webgpu', '--use-angle=metal'] });
 const page = context.pages()[0] || await context.newPage();
-const requesterBrowser = await chromium.connectOverCDP('http://127.0.0.1:54307');
-const requester = requesterBrowser.contexts()[0].pages().find(p => p.url() === 'http://localhost:8000/');
+const requesterBrowser = await chromium.connectOverCDP(config?.requesterCdp || 'http://127.0.0.1:54307');
+const requester = requesterBrowser.contexts()[0].pages().find(p => p.url() === url);
 if (!requester) throw Error('Existing ordinary requester required');
 const history = () => requester.evaluate(() => JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')).threads);
 const thread = async () => (await history()).find(t => t.id === receipt.threadId);
@@ -19,7 +33,7 @@ const approve = async () => {
   await requester.locator('[data-approval-consent]').waitFor();
   const details = JSON.parse(await requester.locator('[data-permission-technical]').textContent());
   expect(JSON.stringify(details)).toContain(receipt.preparations.at(-1).participantId);
-  expect(JSON.stringify(details)).toContain('peer:39b36f733c5fe9229a0331ee');
+  expect(JSON.stringify(details)).toContain(config?.inputPeer || 'peer:39b36f733c5fe9229a0331ee');
   (receipt.approvals ||= []).push(details);
   await requester.locator('[data-approval-consent]').check();
   await requester.locator('[data-approval-send]').click();
@@ -28,10 +42,10 @@ requester.on('request', req => { if (/\.(?:safetensors|gguf|bin)(?:$|\?)/i.test(
 let closeCalled = false;
 try {
   const originalIndex = await readFile(path.join(root, 'pool-entry.html'));
-  const servedIndex = Buffer.from(await (await fetch('http://localhost:8000/')).arrayBuffer());
+  const servedIndex = Buffer.from(await (await fetch(url)).arrayBuffer());
   expect(servedIndex.equals(originalIndex)).toBe(true);
   receipt.documentSha256 = createHash('sha256').update(servedIndex).digest('hex');
-  await context.route('http://localhost:8000/**', async route => {
+  await context.route(new URL('/**', url).href, async route => {
     const u = new URL(route.request().url());
     // Preserve the real document response's local address-space classification.
     if (route.request().isNavigationRequest()) return route.continue();
@@ -50,8 +64,11 @@ try {
   await cdp.send('Debugger.enable');
   const breakpoint = await cdp.send('Debugger.setBreakpointByUrl', {
     urlRegex: '/host/work-partitions\\.js$', lineNumber: source.findIndex(line => line.includes('return { runtime, model, plan')) });
+  const poolSource = signed ? (await readFile(path.join(root, 'vendor/doppler/0.6.27/src/memory/buffer-pool.js'), 'utf8')).split('\n') : null;
+  const poolLine = poolSource ? poolSource.findIndex((line, index) => index > poolSource.findIndex(x => x.startsWith('export function getBufferPool(')) && line.includes('return pool;')) : 753;
+  if (signed && poolLine < 0) throw Error('Candidate pool observation boundary missing');
   const poolBreakpoint = await cdp.send('Debugger.setBreakpointByUrl', {
-    urlRegex: '/vendor/doppler/0\\.6\\.27/src/memory/buffer-pool\\.js$', lineNumber: 753 });
+    urlRegex: '/vendor/doppler/0\\.6\\.27/src/memory/buffer-pool\\.js$', lineNumber: poolLine });
   const observationErrors = [];
   page.on('console', msg => { if (msg.type() === 'error') (receipt.consoleErrors ||= []).push(msg.text()); });
   page.on('pageerror', error => (receipt.pageErrors ||= []).push(error.stack));
@@ -80,19 +97,21 @@ try {
             if (fault.armed) { fault.armed = false; fault.rejected++; return Promise.reject(new Error('Injected resident cleanup rejection before release')); }
             return owned.close();
           }});
-          return { participantId, descriptor: owned.getState().descriptor, preparation };
+          return { participantId, descriptor: owned.getState().descriptor, preparation, plan, acquisition: source.getReceipt(),
+            openingMode: selected.capsule === undefined ? 'pinned-manifest' : 'signed-capsule', capsuleVerification };
         })()`
       });
       if (observed.exceptionDetails) throw Error(JSON.stringify(observed.exceptionDetails));
+      if (signed) assertSignedPreparation(observed.result.value, signed.model);
       (receipt.preparations ||= []).push(observed.result.value);
     } catch (e) { observationErrors.push(e.stack); }
     finally { await cdp.send('Debugger.resume').catch(() => {}); }
   });
-  await page.goto('http://localhost:8000/');
+  await page.goto(url);
   await page.locator('[data-chat-workspace]').waitFor();
   await page.locator('[data-toggle-inspector]').click();
   await page.locator('[data-inspector-section="device"]').click();
-  await page.locator('[data-contribution-model]').selectOption('qwen-3-5-0-8b-q4k-ehaf16');
+  await page.locator('[data-contribution-model]').selectOption(config?.modelId || 'qwen-3-5-0-8b-q4k-ehaf16');
   await page.locator('[data-toggle-contribution]').click();
   await expect(page.locator('[data-contrib-label]')).toHaveText('Ready', { timeout: 180000 });
   expect(observationErrors).toEqual([]);

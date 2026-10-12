@@ -1,0 +1,14 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+stdout | tests/unit/hosting-file-set.test.js > Hosting dependency projection > copies exact archive bytes, removes stale output and rejects a changed vendored module
+[hosting] packaged 8 files as sha256:1e700ac9037881a8d1ae389b64fbb7f0bd6ae82873dbd34ab5ec6bc01858d7ab
+
+ ✓ tests/unit/hosting-file-set.test.js (3 tests) 483ms
+     ✓ excludes retired packages and declarations from the real runtime selection  409ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  16:18:09
+   Duration  645ms (transform 67ms, setup 0ms, import 98ms, tests 483ms, environment 0ms)
+

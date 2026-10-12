@@ -8,7 +8,7 @@ import { promisify } from 'node:util';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { collectModuleClosure, buildHostingFileSet, walkFiles } from '../../scripts/hosting-file-set.js';
-import { packageHosting } from '../../scripts/package-hosting.js';
+import { packageHosting, verifyHostingSource } from '../../scripts/package-hosting.js';
 import { buildBrowserBundleManifest, BROWSER_BUNDLE_DESCRIPTOR_PATH } from '../../self/pool/browser-release-identity.js';
 
 const fixtures = [];
@@ -75,6 +75,9 @@ describe('Hosting dependency projection', () => {
     const entries = await Promise.all(files.filter(name => name !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
       .map(async name => ({ path: name, bytes: new Uint8Array(await readFile(path.join(selfDir, name))) })));
     await put(selfDir, BROWSER_BUNDLE_DESCRIPTOR_PATH, JSON.stringify(await buildBrowserBundleManifest(entries)));
+    const verified = await verifyHostingSource(selfDir);
+    expect(verified.files).toEqual(files);
+    expect(verified.entries).toEqual(entries);
     const outputDir = path.join(root, 'output');
     await put(outputDir, 'retired.js', 'stale');
     const originalRemove = fs.rm.bind(fs);
@@ -92,6 +95,7 @@ describe('Hosting dependency projection', () => {
     expect(JSON.parse(await readFile(path.join(outputDir, BROWSER_BUNDLE_DESCRIPTOR_PATH))))
       .toEqual(await buildBrowserBundleManifest(entries));
     await expect(packageHosting({ selfDir, outputDir })).rejects.toThrow('Doppler asset differs from its archive');
+    await expect(verifyHostingSource(selfDir)).rejects.toThrow('Doppler asset differs from its archive');
     await put(selfDir, 'pool/pool-config.json', JSON.stringify({ browserRuntime: {
       dopplerModuleUrl: '/vendor/doppler/0.0.2/src/index.js',
       dopplerStorageModuleUrl: '/vendor/doppler/0.0.1/src/tooling-exports/storage.js'
