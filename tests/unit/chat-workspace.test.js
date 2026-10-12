@@ -163,6 +163,33 @@ describe('conversation workspace', () => {
     await app.close();
   });
 
+  it('never delivers a failed history write and fences later writes until storage reconciliation', async () => {
+    const gate = deferred(), seen = [];
+    let controls, request;
+    const { app, store } = fixture(async (input, ports) => {
+      request = input; controls = ports;
+      await gate.promise;
+      ports.onDelta({ ...result(input, ''), text: 'unpublished candidate', sequence: 0 });
+      return result(input, 'unpublished candidate');
+    });
+    const thread = app.createThread({ model });
+    app.subscribe(state => seen.push(state.threads[0]?.messages.at(-1)?.content));
+    const completion = app.send(thread, 'Hello');
+    const saved = structuredClone(store.load());
+    const save = vi.fn(() => { throw Error('Unknown write outcome'); }); store.save = save;
+    gate.resolve();
+    await expect(completion).rejects.toThrow('History storage failed');
+    expect(controls.signal.aborted).toBe(true);
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(seen).not.toContain('unpublished candidate');
+    expect(app.getState().threads).toEqual(saved.threads);
+    expect(app.getState().storageError).toBe('Unknown write outcome');
+    controls.onDelta({ ...result(request, ''), text: 'late', sequence: 1 });
+    expect(save).toHaveBeenCalledTimes(1);
+    expect(() => app.send(thread, 'Retry')).toThrow('History storage failed');
+    await app.close();
+  });
+
   it('rejects model or adapter substitution even when the displayed model name matches', async () => {
     const { app } = fixture(async request => ({ ...result(request, 'Wrong adapter'), adapterIdentities: [] }));
     const thread = app.createThread({ model: { ...model, adapters: [{ identity: 'sha256:' + 'b'.repeat(64) }] } });

@@ -1,0 +1,60 @@
+{
+  "schema": "reploid.canonical-topology-worker/v1",
+  "kind": "Browser Worker source analysis; GPU disabled; no topology execution qualification",
+  "sources": [
+    {
+      "path": "packages/reploid/src/chat/workspace.js",
+      "sha256": "a0dd3813eef0ed8e6011dc6ecf621b1bcec44595ee487f02029e2de40ebe76f1"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "File has 42 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "complexity",
+        "timestamp": 1791837551748,
+        "metric": "functions",
+        "value": 42,
+        "threshold": 20,
+        "message": "File has 42 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/chat/workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791837551748,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/chat/workspace.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 42,
+          "threshold": 20,
+          "message": "File has 42 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/chat/workspace.js"
+        }
+      ],
+      "filesAnalyzed": 1
+    }
+  }
+}
