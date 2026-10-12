@@ -132,7 +132,7 @@
   .reploid-chat-workspace > .chat-thread-sidebar { display: none; }
   .chat-mobile-threads { display: inline-flex; }
   .chat-conversation-area { min-height: 0; }
-  .chat-thread-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; }
+  .chat-thread-header { display: flex; }
   .chat-thread-header [data-open-threads] { justify-self: start; }
   .chat-thread-info { grid-column: 1; grid-row: 2; }
   .chat-thread-header .chat-conversation-actions { grid-column: 2; grid-row: 2; justify-self: end; }
@@ -213,7 +213,7 @@
 .pool-home .pool-primary-nav .execution-ribbon-status { max-width: 100%; min-height: var(--pool-px-44); gap: var(--pool-space-sm); }
 .pool-home .pool-primary-nav .execution-ribbon-status::before { content: ''; flex: none; width: var(--pool-px-6); height: var(--pool-px-6); border-radius: 50%; background: currentColor; }
 @media (max-width: 760px) {
-  .pool-home[data-chat-compact] .chat-thread-header { display: grid; }
+  .pool-home[data-chat-compact] .chat-thread-header { display: flex; }
   .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) .pool-primary-nav { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: var(--pool-space-sm); }
   .pool-home .pool-primary-nav > .execution-ribbon { grid-column: 2; grid-row: 1; }
   .pool-home .pool-primary-nav .pool-primary-actions { grid-column: 3; grid-row: 1; }
@@ -232,7 +232,7 @@
 .reploid-chat-workspace > .chat-thread-sidebar { display: none; }
 .reploid-chat-workspace[data-threads-open] { grid-template-columns: minmax(0, var(--pool-px-r15)) minmax(0, 1fr); }
 .reploid-chat-workspace[data-threads-open] > .chat-thread-sidebar { display: flex; }
-.chat-conversation-area { border: 0; box-shadow: none; background: none; padding: var(--pool-space-md); }
+.pool-home .chat-conversation-area.pool-surface { border: 0; box-shadow: none; background: none; padding: var(--pool-space-md); }
 .chat-execution-activity { color: var(--pool-surface-muted); font-size: var(--pool-text-sm); }
 .chat-execution-activity summary { cursor: pointer; padding-block: var(--pool-space-sm); }
 .chat-execution-activity ul { padding: 0; margin-block: var(--pool-space-sm); list-style: none; }
@@ -240,10 +240,24 @@
 .chat-distribution { display: flex; gap: var(--pool-px-2); height: var(--pool-px-6); overflow: hidden; border-radius: var(--pool-radius-control); margin-top: var(--pool-space-sm); }
 .chat-distribution span { flex-basis: 0; background: var(--pool-surface-ink); }
 .chat-distribution span:nth-child(even) { background: var(--pool-surface-muted); }
-.pool-home[data-right-rail-open] > .pool-route-content { margin-right: calc(var(--pool-px-r28) * 0.75); }
+.pool-home[data-right-rail-open] > .pool-route-content { width: calc(100% - var(--pool-px-r28) * 0.75); margin-right: calc(var(--pool-px-r28) * 0.75); }
 @media (max-width: 760px) {
   .pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) { padding-inline: var(--pool-space-sm); padding-top: var(--pool-px-64); }
-  .pool-home[data-right-rail-open] > .pool-route-content { margin-right: 0; }
+  .pool-home[data-right-rail-open] > .pool-route-content { width: 100%; margin-right: 0; }
   .reploid-chat-workspace[data-threads-open] { grid-template-columns: minmax(0, 1fr); }
   .reploid-chat-workspace[data-threads-open] > .chat-thread-sidebar { position: absolute; z-index: 5; inset: var(--pool-px-64) auto 0 var(--pool-space-sm); width: min(80vw, var(--pool-px-r15)); background: var(--pool-surface-raised); }
+}
+
+.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) .pool-primary-brand,
+.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) .pool-primary-actions { z-index: 10; }
+.pool-home .network-inspector { z-index: 8; }
+.pool-home .chat-thread-header [data-open-threads] { display: none; }
+
+/* A single toolbar row on phones leaves the transcript the available height. */
+.chat-conversation-actions > summary { display: flex; align-items: center; justify-content: center; list-style: none; }
+.chat-conversation-actions > summary::-webkit-details-marker { display: none; }
+@media (max-width: 760px) {
+  .chat-thread-header .chat-thread-info { flex: 1; min-width: 0; }
+  .chat-thread-header :is([data-toggle-inspector], .chat-conversation-actions > summary) { padding-inline: var(--pool-space-sm); }
+  .chat-thread-header [data-mesh-peers] { display: none; }
 }

@@ -72,7 +72,7 @@ describe('poolday home navigation', () => {
     for (const route of ['home', 'compute', 'records']) {
       const host = document.createElement('div');
       host.innerHTML = renderNav(route) + renderRoutePanel(route) + renderRouteDetail(route);
-      expect(host.querySelector('.pool-primary-brand').getAttribute('aria-label')).toBe('Reploid home');
+      expect(host.querySelector('.pool-primary-brand').getAttribute('aria-label')).toBe(route === 'home' ? 'Toggle threads' : 'Reploid home');
       expect(host.querySelector('.pool-primary-brand .pool-power-tower')).not.toBeNull();
       expect(host.textContent).not.toMatch(/\bpoolday\b/i);
       for (const node of host.querySelectorAll('[aria-label]')) expect(node.getAttribute('aria-label')).not.toMatch(/poolday/i);
@@ -175,7 +175,7 @@ describe('poolday home navigation', () => {
     expect(links.map(link => link.textContent)).toEqual(['Changes']);
     expect(links.map(link => new URL(link.href).pathname)).toEqual(['/improve']);
     expect(links.every(link => link.hasAttribute('data-pool-route-link'))).toBe(true);
-    expect(host.querySelector('[aria-label="Reploid home"]')).not.toBeNull();
+    expect(host.querySelector('[data-toggle-thread-rail]')).not.toBeNull();
   });
 
   it('keeps a path back from focused routes without legacy drawer chrome', () => {
@@ -265,7 +265,7 @@ describe('poolday home navigation', () => {
 
     expect(html).toContain('class="pool-nav-rail pool-primary-nav pool-surface"');
     expect((html.match(/class="pool-nav-link/g) || [])).toHaveLength(1);
-    expect(html).toContain('aria-label="Reploid home"');
+    expect(html).toContain('aria-label="Toggle threads"');
     const host = document.createElement('div'); host.innerHTML = html;
     expect(host.querySelector('[data-open-network]')).toBeNull();
     host.innerHTML = renderNav('records');

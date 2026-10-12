@@ -48,8 +48,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const surface = root.closest('.pool-home');
   let opener;
   const dialog = {
-    open(focus, trigger) { opener = trigger; if (!panel.open) panel.show(); surface?.setAttribute('data-right-rail-open', ''); focus?.focus(); },
-    close() { panel.close(); surface?.removeAttribute('data-right-rail-open'); opener?.focus?.({ preventScroll: true }); },
+    open(focus, trigger) { opener = trigger; opener?.setAttribute?.('aria-expanded', 'true'); if (!panel.open) panel.show(); surface?.setAttribute('data-right-rail-open', ''); focus?.focus(); },
+    close() { opener?.setAttribute?.('aria-expanded', 'false'); panel.close(); surface?.removeAttribute('data-right-rail-open'); opener?.focus?.({ preventScroll: true }); },
     dispose() { if (panel.open) panel.close(); surface?.removeAttribute('data-right-rail-open'); }
   };
   const controller = new AbortController(), options = { signal: controller.signal };
