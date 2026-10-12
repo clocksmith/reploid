@@ -21,6 +21,7 @@ import bootstrap from '../self/config/swarm-bootstrap.json' with { type: 'json' 
 import { resolvePartitionGeneration } from '../self/config/partition-generation.js';
 import { prepareLocalPackRelease } from '../self/pool/pack-release-policy.js';
 import { assertWorkResidentCapsule } from '../self/host/work-partition-capsule.js';
+import { createPartitionTokenizerGuard } from '../self/host/work-partition-tokenizer-guard.js';
 
 const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
@@ -165,6 +166,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
     })().catch(error => { cleaning = null; throw error; });
   } };
   const releaseCleanup = registerCleanup?.(cleanupOwner);
+  const tokenizer = createPartitionTokenizerGuard(source.storage);
   try {
     signal.throwIfAborted();
     const manifest = source.manifest;
@@ -185,19 +187,21 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
       runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: configured.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
-      createStorage: async () => source.storage });
+      createStorage: async () => tokenizer.storage });
     resident = createResidentPartition({ runtime: factory, model: configured, plan, planId, index, participantId, limits: policy.limits });
     onProgress({ stage: 'opening', message: 'Opening native assigned partition' });
     await resident.prepare({ approved: true, signal });
+    tokenizer.assertAvailable();
     return { runtime, model: configured, plan, planId, resident,
       getReceipt: () => ({ ...(selected.capsule === undefined ? source.getReceipt() : { sourceAcquisition: source.getReceipt() }),
         host: 'node', openingMode: selected.capsule === undefined ? 'pinned-manifest' : 'signed-capsule',
         capsuleVerification, memory: runtime.inspectDeviceMemory() }) };
   } catch (error) {
-    const failures = [error];
+    const openingError = tokenizer.explain(error);
+    const failures = [openingError];
     try { await cleanupOwner.close(); } catch (cleanup) { failures.push(cleanup); }
     if (failures.length > 1) throw new AggregateError(failures, 'Native opening and cleanup failed');
-    throw error;
+    throw openingError;
   }
 }
 
