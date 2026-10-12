@@ -1,0 +1,88 @@
+{
+  "at": "2026-10-12T14:11:38.205Z",
+  "scope": "Live browser discovery across hosted and loopback page origins",
+  "pages": [
+    {
+      "origin": "https://replo.id",
+      "connection": "Connected",
+      "peers": [
+        {
+          "identity": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "text": "Computer 1No model offeredIdentity2d390fa2-0fd1-4668-af83-25b0d5baa8bfConnected"
+        },
+        {
+          "identity": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "text": "Computer 2Qwen 3.5 0.8BIdentitye907c78d-ab06-42e1-af07-b6955d8c6036Partition 1 · failed"
+        },
+        {
+          "identity": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "text": "Computer 3Qwen 3.5 0.8BIdentity3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907cPartition 2 · ready"
+        },
+        {
+          "identity": "b7ffda2d-529e-442c-b50a-f97b5966d3b1",
+          "text": "Computer 4Qwen 3.5 0.8BIdentityb7ffda2d-529e-442c-b50a-f97b5966d3b1Partition 1 · failed"
+        },
+        {
+          "identity": "0762c10f-8537-4476-ab7c-230922ebb6a9",
+          "text": "Computer 5Qwen 3.5 0.8BIdentity0762c10f-8537-4476-ab7c-230922ebb6a9Partition 1 · ready"
+        }
+      ],
+      "weightRequests": [],
+      "errors": [],
+      "sockets": [
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public"
+      ]
+    },
+    {
+      "origin": "http://localhost:49374",
+      "connection": "Reconnecting…",
+      "peers": [
+        {
+          "text": "No peers connected yet"
+        }
+      ],
+      "weightRequests": [],
+      "errors": [],
+      "sockets": [
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public",
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public"
+      ]
+    }
+  ],
+  "passed": false,
+  "error": "page.waitForFunction: Timeout 45000ms exceeded."
+}

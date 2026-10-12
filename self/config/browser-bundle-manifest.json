@@ -1070,8 +1070,8 @@
     },
     {
       "path": "capabilities/communication/library-adapter.js",
-      "byteLength": 2730,
-      "sha256": "sha256:370242d25accd72308f14cb376e21950081a3fd5626e13ca56ec15c5f0d32eaf"
+      "byteLength": 2842,
+      "sha256": "sha256:916de4b2b38621fe298a9ca7f8c1ba4f59736324a84f31accd87e28bdbb3ea76"
     },
     {
       "path": "capabilities/communication/signaling-config.js",
@@ -1080,8 +1080,8 @@
     },
     {
       "path": "capabilities/communication/swarm-join-policy.js",
-      "byteLength": 2268,
-      "sha256": "sha256:9a45dd55ef87a26df19f44af554929d10f77f362e04f194f0aa694ec8bd56628"
+      "byteLength": 2305,
+      "sha256": "sha256:658f858e5b985d2a6f4401b8446b17c79f7218d51c45596187615d870fa7a35a"
     },
     {
       "path": "capabilities/communication/swarm-sync.js",
@@ -1237,6 +1237,11 @@
       "path": "config/doppler-package.json",
       "byteLength": 285,
       "sha256": "sha256:8f2f73df2b77ad3047f87640f43844a98b21fd1b8861d09109a5e088feda036f"
+    },
+    {
+      "path": "config/firebase-public.json",
+      "byteLength": 183,
+      "sha256": "sha256:969ee9619fde47307264776b501c761d25d6db4ef21abcba17b51cfc8ba374e4"
     },
     {
       "path": "config/genesis-levels.json",
@@ -2210,8 +2215,8 @@
     },
     {
       "path": "pool/firebase-auth.js",
-      "byteLength": 2664,
-      "sha256": "sha256:677c2c7e22cb98d1b01d2fdb849795a91b929a48cde983b1e5d79bf6181d976e"
+      "byteLength": 2804,
+      "sha256": "sha256:3f3d61667a929450ef1e6ef3b0c1daf8d240ec751595b88950bca74a7ecd3b82"
     },
     {
       "path": "pool/forecast-workload.js",
@@ -9549,5 +9554,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:5d9139e722fb1c84b5c7ac5af7108ff55816a32fc4c25cc4fdb9ff59931694ef"
+  "bundleHash": "sha256:6f7a4f88f15f62bae7d1a68b89d3fe450267de4732c0c5d016250ef1ed9c34c1"
 }

@@ -1,0 +1,425 @@
+{
+  "at": "2026-10-12T14:16:12.972Z",
+  "scope": "Live browser discovery across hosted and loopback page origins",
+  "pages": [
+    {
+      "origin": "https://replo.id",
+      "connection": "Connected",
+      "peers": [
+        {
+          "identity": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "text": "Computer 1No model offeredIdentity2d390fa2-0fd1-4668-af83-25b0d5baa8bfConnected"
+        },
+        {
+          "identity": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "text": "Computer 2Qwen 3.5 0.8BIdentity3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907cPartition 2 · ready"
+        },
+        {
+          "identity": "b7ffda2d-529e-442c-b50a-f97b5966d3b1",
+          "text": "Computer 3Qwen 3.5 0.8BIdentityb7ffda2d-529e-442c-b50a-f97b5966d3b1Partition 1 · failed"
+        },
+        {
+          "identity": "0762c10f-8537-4476-ab7c-230922ebb6a9",
+          "text": "Computer 4Qwen 3.5 0.8BIdentity0762c10f-8537-4476-ab7c-230922ebb6a9Partition 1 · ready"
+        },
+        {
+          "identity": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "text": "Computer 5Qwen 3.5 0.8BIdentitye907c78d-ab06-42e1-af07-b6955d8c6036Partition 1 · failed"
+        }
+      ],
+      "weightRequests": [],
+      "errors": [
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected"
+      ],
+      "sockets": [
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public"
+      ],
+      "signaling": [
+        {
+          "sent": "join",
+          "peerId": "3844f40e-12c5-41b2-80ad-779a66f00368",
+          "roomId": "reploid-swarm-public"
+        },
+        {
+          "type": "welcome"
+        },
+        {
+          "type": "joined",
+          "peerId": "3844f40e-12c5-41b2-80ad-779a66f00368"
+        },
+        {
+          "type": "answer",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "answer",
+          "peerId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c"
+        },
+        {
+          "type": "answer",
+          "peerId": "e907c78d-ab06-42e1-af07-b6955d8c6036"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "e907c78d-ab06-42e1-af07-b6955d8c6036"
+        },
+        {
+          "type": "answer",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        }
+      ]
+    },
+    {
+      "origin": "http://localhost:50237",
+      "connection": "Connected",
+      "peers": [
+        {
+          "identity": "3844f40e-12c5-41b2-80ad-779a66f00368",
+          "text": "Contributor 1No model offered\n      DetailsConnected3844f40e-12c5-41b2-80ad-779a66f00368Connected"
+        },
+        {
+          "identity": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "text": "Contributor 2No model offered\n      DetailsConnected2d390fa2-0fd1-4668-af83-25b0d5baa8bfConnected"
+        },
+        {
+          "identity": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "text": "Contributor 3Qwen 3.5 0.8B\n      DetailsPartition 2 · ready3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907cReady"
+        },
+        {
+          "identity": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "text": "Contributor 4Qwen 3.5 0.8B\n      DetailsPartition 1 · failede907c78d-ab06-42e1-af07-b6955d8c6036Unavailable"
+        },
+        {
+          "identity": "0762c10f-8537-4476-ab7c-230922ebb6a9",
+          "text": "Contributor 5Qwen 3.5 0.8B\n      DetailsPartition 1 · ready0762c10f-8537-4476-ab7c-230922ebb6a9Ready"
+        },
+        {
+          "identity": "b7ffda2d-529e-442c-b50a-f97b5966d3b1",
+          "text": "Contributor 6No model offered\n      DetailsConnectedb7ffda2d-529e-442c-b50a-f97b5966d3b1Connected"
+        }
+      ],
+      "weightRequests": [],
+      "errors": [
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 2d390fa2-0fd1-4668-af83-25b0d5baa8bf: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 2d390fa2-0fd1-4668-af83-25b0d5baa8bf: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected"
+      ],
+      "sockets": [
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public"
+      ],
+      "signaling": [
+        {
+          "sent": "join",
+          "peerId": "d45765eb-0f46-4ae4-8140-4e026b4e35b6",
+          "roomId": "reploid-swarm-public"
+        },
+        {
+          "type": "welcome"
+        },
+        {
+          "type": "joined",
+          "peerId": "d45765eb-0f46-4ae4-8140-4e026b4e35b6"
+        },
+        {
+          "type": "answer",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "answer",
+          "peerId": "e907c78d-ab06-42e1-af07-b6955d8c6036"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "e907c78d-ab06-42e1-af07-b6955d8c6036"
+        },
+        {
+          "type": "answer",
+          "peerId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "e907c78d-ab06-42e1-af07-b6955d8c6036"
+        },
+        {
+          "type": "answer",
+          "peerId": "3844f40e-12c5-41b2-80ad-779a66f00368"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "3844f40e-12c5-41b2-80ad-779a66f00368"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c"
+        },
+        {
+          "type": "answer",
+          "peerId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf"
+        }
+      ]
+    },
+    {
+      "origin": "http://127.0.0.1:50238",
+      "connection": "Connected",
+      "peers": [
+        {
+          "identity": "3844f40e-12c5-41b2-80ad-779a66f00368",
+          "text": "Contributor 1No model offered\n      DetailsConnected3844f40e-12c5-41b2-80ad-779a66f00368Connected"
+        },
+        {
+          "identity": "d45765eb-0f46-4ae4-8140-4e026b4e35b6",
+          "text": "Contributor 2No model offered\n      DetailsConnectedd45765eb-0f46-4ae4-8140-4e026b4e35b6Connected"
+        },
+        {
+          "identity": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "text": "Contributor 3No model offered\n      DetailsConnected2d390fa2-0fd1-4668-af83-25b0d5baa8bfConnected"
+        },
+        {
+          "identity": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "text": "Contributor 4Qwen 3.5 0.8B\n      DetailsPartition 2 · ready3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907cReady"
+        },
+        {
+          "identity": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "text": "Contributor 5Qwen 3.5 0.8B\n      DetailsPartition 1 · failede907c78d-ab06-42e1-af07-b6955d8c6036Unavailable"
+        },
+        {
+          "identity": "b7ffda2d-529e-442c-b50a-f97b5966d3b1",
+          "text": "Contributor 6Qwen 3.5 0.8B\n      DetailsPartition 1 · failedb7ffda2d-529e-442c-b50a-f97b5966d3b1Unavailable"
+        },
+        {
+          "identity": "0762c10f-8537-4476-ab7c-230922ebb6a9",
+          "text": "Contributor 7Qwen 3.5 0.8B\n      DetailsPartition 1 · ready0762c10f-8537-4476-ab7c-230922ebb6a9Ready"
+        }
+      ],
+      "weightRequests": [],
+      "errors": [
+        "[WARN] [WebRTCSwarm] Cannot send to d45765eb-0f46-4ae4-8140-4e026b4e35b6: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 2d390fa2-0fd1-4668-af83-25b0d5baa8bf: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to d45765eb-0f46-4ae4-8140-4e026b4e35b6: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 2d390fa2-0fd1-4668-af83-25b0d5baa8bf: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 2d390fa2-0fd1-4668-af83-25b0d5baa8bf: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to e907c78d-ab06-42e1-af07-b6955d8c6036: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to b7ffda2d-529e-442c-b50a-f97b5966d3b1: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 0762c10f-8537-4476-ab7c-230922ebb6a9: not connected",
+        "[WARN] [WebRTCSwarm] Cannot send to 2d390fa2-0fd1-4668-af83-25b0d5baa8bf: not connected"
+      ],
+      "sockets": [
+        "wss://reploid-swarm.reploid.workers.dev/swarm?scope=public&roomId=reploid-swarm-public"
+      ],
+      "signaling": [
+        {
+          "sent": "join",
+          "peerId": "6f01217a-e713-44f6-9e87-9d0ca6d4c110",
+          "roomId": "reploid-swarm-public"
+        },
+        {
+          "type": "welcome"
+        },
+        {
+          "type": "joined",
+          "peerId": "6f01217a-e713-44f6-9e87-9d0ca6d4c110"
+        },
+        {
+          "type": "answer",
+          "peerId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c"
+        },
+        {
+          "type": "answer",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "0762c10f-8537-4476-ab7c-230922ebb6a9"
+        },
+        {
+          "type": "answer",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        },
+        {
+          "type": "answer",
+          "peerId": "e907c78d-ab06-42e1-af07-b6955d8c6036"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        },
+        {
+          "type": "ice-candidate",
+          "peerId": "b7ffda2d-529e-442c-b50a-f97b5966d3b1"
+        }
+      ]
+    }
+  ],
+  "commonReadyParticipants": [
+    "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+    "0762c10f-8537-4476-ab7c-230922ebb6a9"
+  ],
+  "passed": true
+}

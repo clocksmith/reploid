@@ -1,5 +1,6 @@
+import publicFirebaseConfig from '../config/firebase-public.json' with { type: 'json' };
 /**
- * @fileoverview Optional Firebase Auth bootstrap for hosted pool pages.
+ * @fileoverview Firebase Auth bootstrap for hosted and local public-network pages.
  */
 
 const DEFAULT_FIREBASE_APP_MODULE_URL = 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
@@ -9,13 +10,13 @@ let bootstrapPromise = null;
 
 const isLoopbackHost = () => {
   const hostname = String(globalThis.location?.hostname || '').toLowerCase();
-  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1';
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1' || hostname === '[::1]';
 };
 
 const getConfig = async () => {
   if (globalThis.REPLOID_FIREBASE_CONFIG) return globalThis.REPLOID_FIREBASE_CONFIG;
   if (globalThis.REPLOID_POOL_FIREBASE_CONFIG) return globalThis.REPLOID_POOL_FIREBASE_CONFIG;
-  if (isLoopbackHost()) return null;
+  if (isLoopbackHost()) return publicFirebaseConfig;
   if (typeof fetch !== 'function') return null;
   try {
     const response = await fetch('/__/firebase/init.json', { cache: 'no-store' });

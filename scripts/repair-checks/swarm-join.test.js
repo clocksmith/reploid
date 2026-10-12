@@ -280,3 +280,14 @@ test('WebRTC carries request cancellation to the peer job owner', async () => {
     assert.deepEqual(transport.getConnectedPeers(), []);
   } finally { transport.disconnect(); }
 });
+
+
+test('public loopback clients select the same rendezvous as hosted clients at every port', () => {
+  for (const href of ['http://localhost:5173/', 'https://localhost:9443/', 'http://127.0.0.1:32100/', 'http://[::1]:8001/']) {
+    const page = { href }; const selected = resolveSwarmJoin({ location: page, storage: storage({}), policy });
+    assert.equal(resolveSwarmSignalingUrl({ location: page, policy, join: selected }), policy.signalingUrl + '?scope=public&roomId=' + policy.publicRoomId);
+  }
+  const page = { href: 'http://localhost:5173/?swarm=fixture&swarmToken=' + 'a'.repeat(32) };
+  const selected = resolveSwarmJoin({ location: page, storage: storage({}), policy });
+  assert.equal(resolveSwarmSignalingUrl({ location: page, policy, join: selected }), 'ws://localhost:5173/swarm?scope=private&roomId=reploid-swarm-fixture');
+});

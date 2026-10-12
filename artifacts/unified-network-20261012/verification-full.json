@@ -1,0 +1,118 @@
+{
+  "schema": "reploid.loopback-verification/v1",
+  "at": "2026-10-12T14:04:48.750Z",
+  "kind": "Actual classic Verification Worker static/AST analysis; no inference or adoption claim",
+  "sources": [
+    {
+      "path": "server/swarm-origin-policy.js",
+      "hash": "sha256:4f0bc1beb49c9e86aad8ae22cc8001653b720b4c12e3ad7b718747b026f2eb84"
+    },
+    {
+      "path": "server/cloudflare/index.js",
+      "hash": "sha256:c0fb89bff0a598917942ac8b9a2252db01db971d9d900be3e63877c8cbf86569"
+    },
+    {
+      "path": "server/cloudflare/room.js",
+      "hash": "sha256:9e119fcb5238edb40bb74eb37e32a747f9dabd3be6c93666f2f0817038ff86ab"
+    },
+    {
+      "path": "server/public-swarm-server.js",
+      "hash": "sha256:b369aec4b6898e53758155aa67cc5c6139583fb43a84331e71f92376c4592ac3"
+    }
+  ],
+  "result": {
+    "passed": false,
+    "errors": [
+      "Security Violation in /server/cloudflare/room.js: child_process operations are forbidden"
+    ],
+    "warnings": [
+      "Warning in /server/cloudflare/index.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /server/cloudflare/room.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /server/cloudflare/room.js:48: Dynamic property write detected: [client, server] - verify input sanitization",
+      "Warning in /server/public-swarm-server.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791813888743,
+        "path": "/server/cloudflare/index.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791813888746,
+        "path": "/server/cloudflare/room.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791813888746,
+        "path": "/server/cloudflare/room.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791813888746,
+        "path": "/server/cloudflare/room.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [client, server] - verify input sanitization",
+        "line": 48,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791813888747,
+        "path": "/server/public-swarm-server.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/server/cloudflare/index.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/server/cloudflare/room.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/server/cloudflare/room.js",
+          "patternId": "child_process",
+          "category": "process",
+          "message": "child_process operations are forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/server/public-swarm-server.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [],
+      "filesAnalyzed": 4
+    },
+    "reason": "Verification Failed"
+  }
+}
