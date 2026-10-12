@@ -21,11 +21,13 @@
     "4"
   ],
   "output": "/home/x/deco/reploid/reports/local/cited-calculation-experiment-20261012/result.json",
-  "status": "running",
+  "status": "completed",
   "environment": {
     "PYTHONPATH": "/tmp/doppler-reference-deps",
     "OPENBLAS_NUM_THREADS": "4",
     "OMP_NUM_THREADS": "4"
   },
-  "pid": 3125077
+  "pid": 3125077,
+  "exitCode": -15,
+  "disposition": "Stopped at second-case terminal extraction by explicit parent instruction; remaining five cases unrun"
 }

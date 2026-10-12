@@ -1,6 +1,6 @@
 # Cited calculation experiment
 
-Status: frozen and independently reviewed before generation in `82603086`. One seven-case CPU source run is active; no qualification or production change.
+Status: frozen and independently reviewed before generation in `82603086`. The run stopped at the second-case boundary after both attempted cases failed; five cases remain unrun. No qualification or production change.
 
 Component: Reploid document reasoning. Intent: preserved. Pure generation configurations remain rejected. This tests a different application workflow, not another sampling or wording campaign.
 
@@ -37,3 +37,7 @@ Boundary effects: none in production. No new permissions, scheduler, model mathe
 `run-binding.json` records the exact command, environment, host and process identity. The supervisor writes final exit status to the same remote binding. Live output is `/home/x/deco/reploid/reports/local/cited-calculation-experiment-20261012/result.json`; `run.log` and per-case extract/answer JSON files retain incremental output. Inspect these read-only. Do not rerun a failed case or change policy while the frozen run is active.
 
 The source checkpoint is already verified locally on x128. Reproduce the command in the binding from `/home/x/deco/reploid` with its explicit environment, after coordinating the CPU window. Reproduction is diagnostic, not a way to select a favorable answer.
+
+## Disposition
+
+`review.json` records the two rejected cases and five unrun cases. The first extraction returned malformed JSON; its answer invented successful tool receipts and retained factual/citation failures. The second extraction repeated date facts until its1536-token cap. The parent explicitly stopped this admitted-failing configuration at that boundary. All raw reports and logs are retained compressed with original hashes. The separately identified `official-tool-protocol/` candidate uses the checkpoint's actual tool template; it has no output yet.

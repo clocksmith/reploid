@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-12T12:04:10.445734+00:00",
+  "pid": 3125077,
+  "reason": "Parent requested stop after current second case; failed extraction also terminates a case without answer",
+  "lastCompletedCase": "fresh-bathroom-correction",
+  "phase": "extract",
+  "stopReason": "max-tokens",
+  "remainingDisposition": "unrun, neither failures nor passes"
+}
