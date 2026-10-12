@@ -1,0 +1,21 @@
+{
+  "scope": "Inactive diagnostic fixture observation delta, not a runtime or numerical change",
+  "parentReploidRevision": "eea2baf4",
+  "activeNativeDeliveryUnchanged": "92a2a7faa9de26b926e05870a82a25114b308127a375d741de5d8322a9b0ba2b",
+  "runtimeArchiveUnchanged": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "physicalRunLaunched": false,
+  "files": [
+    {
+      "path": "tests/fixtures/prepare-partition-memory.js",
+      "sha256": "8975cec83efccf9b7dd78b4d4da9aca463146ab716145cf268b30d6604815573"
+    },
+    {
+      "path": "tests/unit/partition-memory-observation.test.js",
+      "sha256": "e7de38b74f0415d796c28371e274bce64ba88e00da7b2396625aee17dd7f33e9"
+    },
+    {
+      "path": "artifacts/pipeline-preparation-observation-20261012/verify-worker.js",
+      "sha256": "aca14ea682f9c94f4d5c9415d3667dc63ffe32805ce7de84855c877247a65a53"
+    }
+  ]
+}
