@@ -1,0 +1,165 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/concurrent-partition-memory.test.js (7 tests | 7 failed) 18ms
+     × keeps two actual attempt states live, cancels one, verifies survivor and fresh retry 6ms
+     × rejects missing or failed device observations {"deviceEvents":[{"type":"device-lost"}]} 4ms
+     × rejects missing or failed device observations {"observationErrors":[{"operation":"device"}]} 2ms
+     × rejects missing or failed device observations {"deviceEvents":null} 1ms
+     × rejects a changed surviving answer and still closes every attempt 2ms
+     × does not accept completed work as successful cancellation 2ms
+     × records failed ownership and closes the unrelated survivor despite a failed close 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 7 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/concurrent-partition-memory.test.js > long concurrent physical-controller assertions (synthetic GPU only) > keeps two actual attempt states live, cancels one, verifies survivor and fresh retry
+AssertionError: Executor device was lost
++ actual - expected
+
++ undefined
+- false
+
+
+simple
+
+ ❯ checkMemory tests/fixtures/concurrent-partition-memory.js:13:14
+     11|       assert(item.device.liveBytes <= 1420000000, 'Executor allocation…
+     12|       assert(item.device.peakBytes <= 1420000000, 'Peak executor alloc…
+     13|       assert.equal(item.device.lost, false, 'Executor device was lost'…
+       |              ^
+     14|     }
+     15|   };
+ ❯ step tests/fixtures/concurrent-partition-memory.js:89:7
+ ❯ finish tests/fixtures/concurrent-partition-memory.js:95:76
+ ❯ runConcurrentPartitionMemory tests/fixtures/concurrent-partition-memory.js:103:5
+ ❯ tests/unit/concurrent-partition-memory.test.js:56:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯
+
+ FAIL  tests/unit/concurrent-partition-memory.test.js > long concurrent physical-controller assertions (synthetic GPU only) > rejects missing or failed device observations {"deviceEvents":[{"type":"device-lost"}]}
+ FAIL  tests/unit/concurrent-partition-memory.test.js > long concurrent physical-controller assertions (synthetic GPU only) > rejects missing or failed device observations {"deviceEvents":null}
+AssertionError: expected [Function] to throw error including 'Executor device event' but got 'Executor device was lost\n+ actual - …'
+
+- Expected
++ Received
+
+- Executor device event
++ Executor device was lost
++ + actual - expected
++
++ + undefined
++ - false
++
+
+ ❯ tests/unit/concurrent-partition-memory.test.js:72:41
+     70|     [{ deviceEvents: null }, 'Executor device event']
+     71|   ])('rejects missing or failed device observations %j', async (option…
+     72|     await expect(fixture(options).run()).rejects.toThrow(message);
+       |                                         ^
+     73|   });
+     74|   it('rejects a changed surviving answer and still closes every attemp…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯
+
+ FAIL  tests/unit/concurrent-partition-memory.test.js > long concurrent physical-controller assertions (synthetic GPU only) > rejects missing or failed device observations {"observationErrors":[{"operation":"device"}]}
+AssertionError: expected [Function] to throw error including 'Executor memory observation' but got 'Executor device was lost\n+ actual - …'
+
+- Expected
++ Received
+
+- Executor memory observation
++ Executor device was lost
++ + actual - expected
++
++ + undefined
++ - false
++
+
+ ❯ tests/unit/concurrent-partition-memory.test.js:72:41
+     70|     [{ deviceEvents: null }, 'Executor device event']
+     71|   ])('rejects missing or failed device observations %j', async (option…
+     72|     await expect(fixture(options).run()).rejects.toThrow(message);
+       |                                         ^
+     73|   });
+     74|   it('rejects a changed surviving answer and still closes every attemp…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/7]⎯
+
+ FAIL  tests/unit/concurrent-partition-memory.test.js > long concurrent physical-controller assertions (synthetic GPU only) > rejects a changed surviving answer and still closes every attempt
+AssertionError: expected [Function] to throw error including 'Surviving answer changed' but got 'Executor device was lost\n+ actual - …'
+
+- Expected
++ Received
+
+- Surviving answer changed
++ Executor device was lost
++ + actual - expected
++
++ + undefined
++ - false
++
+
+ ❯ tests/unit/concurrent-partition-memory.test.js:76:29
+     74|   it('rejects a changed surviving answer and still closes every attemp…
+     75|     const test = fixture({ corruptSurvivor: true });
+     76|     await expect(test.run()).rejects.toThrow('Surviving answer changed…
+       |                             ^
+     77|     expect(test.live.every(item => item.size === 0)).toBe(true);
+     78|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/7]⎯
+
+ FAIL  tests/unit/concurrent-partition-memory.test.js > long concurrent physical-controller assertions (synthetic GPU only) > does not accept completed work as successful cancellation
+AssertionError: expected [Function] to throw error including 'Submitted cancellation must reject' but got 'Executor device was lost\n+ actual - …'
+
+- Expected
++ Received
+
+- Submitted cancellation must reject
++ Executor device was lost
++ + actual - expected
++
++ + undefined
++ - false
++
+
+ ❯ tests/unit/concurrent-partition-memory.test.js:81:29
+     79|   it('does not accept completed work as successful cancellation', asyn…
+     80|     const test = fixture({ ignoreAbort: true });
+     81|     await expect(test.run()).rejects.toThrow('Submitted cancellation m…
+       |                             ^
+     82|     expect(test.live.every(item => item.size === 0)).toBe(true);
+     83|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/7]⎯
+
+ FAIL  tests/unit/concurrent-partition-memory.test.js > long concurrent physical-controller assertions (synthetic GPU only) > records failed ownership and closes the unrelated survivor despite a failed close
+AssertionError: expected [Function] to throw error including 'Attempt close failed' but got 'Executor device was lost\n+ actual - …'
+
+- Expected
++ Received
+
+- Attempt close failed
++ Executor device was lost
++ + actual - expected
++
++ + undefined
++ - false
++
+
+ ❯ tests/unit/concurrent-partition-memory.test.js:86:29
+     84|   it('records failed ownership and closes the unrelated survivor despi…
+     85|     const test = fixture({ rejectClose: true });
+     86|     await expect(test.run()).rejects.toThrow('Attempt close failed');
+       |                             ^
+     87|     expect(test.events.some(([kind, id]) => kind === 'close' && id.end…
+     88|     expect(test.runs[1].closed).toBe(false);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/7]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  7 failed (7)
+   Start at  18:22:53
+   Duration  111ms (transform 14ms, setup 0ms, import 20ms, tests 18ms, environment 0ms)
+
