@@ -1,0 +1,26 @@
+{
+  "schema": "reploid.available-typed-run/v1",
+  "frozenRevision": "9375da21",
+  "host": "x@128.tail995236.ts.net",
+  "sourcePid": 596858,
+  "wrapperPid": 596857,
+  "status": "running",
+  "startedAtUtc": "2026-10-12T20:44:07.322070+00:00",
+  "environment": {
+    "PYTHONPATH": "/tmp/doppler-reference-deps",
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4"
+  },
+  "nice": 10,
+  "threads": 4,
+  "cpuAffinity": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "gpu": false,
+  "evidenceDirectory": "/home/x/deco/reploid/reports/local/cited-calculation-available-20261013",
+  "freezeSha256": "2245d08c88139aa665f95440ea4bce4aabfacca2dec1020de0b2825d5b17235e",
+  "restartPolicy": "No unchanged rerun; preserve first structural failure and unrun cases."
+}

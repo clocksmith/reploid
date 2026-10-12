@@ -6,4 +6,8 @@ import type { Store } from '../artifacts/store.js';
 export function createIndexedDbStore(options: {
   databaseName: string; storeName: string; version: number; openTimeoutMs: number;
   indexedDB?: IDBFactory; keyPath?: string | null;
-}): Store & { init(): Promise<boolean> };
+}): Store & {
+  init(): Promise<boolean>;
+  transactEntry<State, Result>(key: string, reducer: (state: State | null) => { state: State; result: Result },
+    limits: { maxEntries: number; maxBytes: number }): Promise<Result>;
+};

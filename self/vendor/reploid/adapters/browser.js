@@ -68,6 +68,45 @@ export function createIndexedDbStore({ databaseName, storeName, version, openTim
       if (keyPath !== null && data[keyPath] !== String(key)) throw new Error('IndexedDB key-path mismatch');
       await transaction('readwrite', store => keyPath === null ? store.put(data, String(key)) : store.put(data));
     },
+    async transactEntry(key, reducer, { maxEntries, maxBytes }) {
+      if (keyPath !== null || typeof key !== 'string' || !key || typeof reducer !== 'function'
+        || !Number.isSafeInteger(maxEntries) || maxEntries < 1 || !Number.isSafeInteger(maxBytes) || maxBytes < 1) {
+        throw new Error('Entry transactions require an explicit bounded key store and synchronous reducer');
+      }
+      const database = await open();
+      if (closed) throw new Error('Store is closed');
+      return new Promise((resolve, reject) => {
+        const tx = database.transaction(storeName, 'readwrite', { durability: 'strict' });
+        transactions.add(tx);
+        let result, failure;
+        tx.oncomplete = () => { transactions.delete(tx); resolve(structuredClone(result)); };
+        tx.onabort = () => { transactions.delete(tx); reject(failure || tx.error || new Error('Entry transaction aborted')); };
+        tx.onerror = () => {}; // Settle only on the transaction's final event.
+        if (tx.durability !== 'strict') {
+          failure = new Error('Strict IndexedDB durability is unsupported'); tx.abort(); return;
+        }
+        const store = tx.objectStore(storeName), reading = store.get(key);
+        reading.onsuccess = () => {
+          const counting = store.count();
+          counting.onsuccess = () => {
+            try {
+              if (reading.result === undefined && counting.result >= maxEntries) throw new Error('Entry admission is full');
+              const next = reducer(structuredClone(reading.result ?? null));
+              if (next && typeof next.then === 'function') {
+                Promise.resolve(next).catch(() => {}); throw new Error('Entry reducers must be synchronous');
+              }
+              if (!next || typeof next !== 'object' || !Object.hasOwn(next, 'state') || !Object.hasOwn(next, 'result')
+                || Object.keys(next).length !== 2) throw new Error('Entry reducer must return state and result');
+              const state = snapshotJson(next.state), encoded = JSON.stringify(state);
+              if (encoded === undefined || new TextEncoder().encode(encoded).byteLength > maxBytes) {
+                throw new Error('Entry exceeds its byte admission');
+              }
+              result = structuredClone(next.result); store.put(state, key);
+            } catch (error) { failure = error; tx.abort(); }
+          };
+        };
+      });
+    },
     async delete(key) { await transaction('readwrite', store => store.delete(String(key))); return true; },
     async keys(prefix = '') { return (await transaction('readonly', store => store.getAllKeys())).map(String).filter(key => key.startsWith(prefix)).sort(); },
     async close() { closed = true; cancelOpen?.(); for (const tx of transactions) { try { tx.abort(); } catch {} } transactions.clear(); if (opening) await opening.catch(() => {}); db?.close(); db = null; }
