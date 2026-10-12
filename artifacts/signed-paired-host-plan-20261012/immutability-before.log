@@ -1,0 +1,127 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/work-partition-plan.test.js (4 tests) 3ms
+ ❯ tests/unit/work-partitions-lifecycle.test.js (63 tests | 4 failed) 24ms
+   ✓ requires a session cleanup owner before constructing a signed factory 1ms
+     × preserves an explicit provider-produced paired plan instead of rebuilding a scalar plan 5ms
+     × snapshots the explicit plan before asynchronous acquisition 2ms
+     ✓ rejects unrelated declared plan before acquisition 1ms
+     ✓ rejects unrelated declared plan before acquisition 0ms
+     ✓ settles acquired storage when provider rejects the declared plan geometry 0ms
+     ✓ closes acquired storage when plan setup rejects 0ms
+     ✓ closes acquired storage when hash setup rejects 0ms
+     ✓ closes acquired storage when factory setup rejects 0ms
+     ✓ closes acquired storage when resident setup rejects 0ms
+     ✓ preserves missing-supplier failure when tokenizer loader masks it (fallback=false) 0ms
+     ✓ preserves missing-supplier failure when tokenizer loader masks it (fallback=true) 0ms
+     ✓ retains tokenizer acquisition and cleanup failures without claiming settlement 0ms
+     ✓ keeps unrelated execution failure when tokenizer acquisition succeeds 0ms
+     ✓ settles storage even when resident cleanup fails and retains both failures 0ms
+     ✓ retains storage cleanup failure alongside the original opening failure 0ms
+     ✓ honors cancellation after source acquisition before opening a resident 0ms
+     ✓ transfers successful storage ownership to the resident factory 0ms
+     ✓ uses signed opening only when explicitly configured and passes pinned custody without changing trust 1ms
+     ✓ never falls back to manifest execution for incomplete signed configuration 0ms
+     ✓ rejects changed release authorization before resident computation 0ms
+     ✓ closes a signed session rejected by current release admission 0ms
+     ✓ settles signed source and release owners even when GPU session cleanup fails 0ms
+     ✓ preserves operation failure and post-operation revocation together 0ms
+     ✓ settles signed source and release exactly once after failed preparation cleanup 0ms
+     ✓ concurrent signed close callers await the same settled cleanup 0ms
+     ✓ retries failed session cleanup without reclosing settled owners 0ms
+     ✓ retries failed source cleanup without reclosing settled owners 0ms
+     ✓ retries failed release cleanup without reclosing settled owners 0ms
+     ✓ hands failed admission cleanup to the preparation owner until the unreturned session settles 0ms
+     ✓ passes explicit generation to admission and uses its context for owned cache allocation 0ms
+     ✓ rejects unsupported explicit generation before acquiring model files or GPU resources 0ms
+     × preserves an explicit provider-produced paired plan instead of rebuilding a scalar plan 1ms
+     × snapshots the explicit plan before asynchronous acquisition 1ms
+     ✓ rejects unrelated declared plan before acquisition 0ms
+     ✓ rejects unrelated declared plan before acquisition 0ms
+     ✓ settles acquired storage when provider rejects the declared plan geometry 0ms
+     ✓ closes acquired storage when plan setup rejects 0ms
+     ✓ closes acquired storage when hash setup rejects 0ms
+     ✓ closes acquired storage when factory setup rejects 0ms
+     ✓ closes acquired storage when resident setup rejects 0ms
+     ✓ preserves missing-supplier failure when tokenizer loader masks it (fallback=false) 0ms
+     ✓ preserves missing-supplier failure when tokenizer loader masks it (fallback=true) 0ms
+     ✓ retains tokenizer acquisition and cleanup failures without claiming settlement 0ms
+     ✓ keeps unrelated execution failure when tokenizer acquisition succeeds 0ms
+     ✓ settles storage even when resident cleanup fails and retains both failures 0ms
+     ✓ retains storage cleanup failure alongside the original opening failure 0ms
+     ✓ honors cancellation after source acquisition before opening a resident 0ms
+     ✓ transfers successful storage ownership to the resident factory 0ms
+     ✓ uses signed opening only when explicitly configured and passes pinned custody without changing trust 0ms
+     ✓ never falls back to manifest execution for incomplete signed configuration 1ms
+     ✓ rejects changed release authorization before resident computation 0ms
+     ✓ closes a signed session rejected by current release admission 0ms
+     ✓ settles signed source and release owners even when GPU session cleanup fails 0ms
+     ✓ preserves operation failure and post-operation revocation together 0ms
+     ✓ settles signed source and release exactly once after failed preparation cleanup 0ms
+     ✓ concurrent signed close callers await the same settled cleanup 0ms
+     ✓ retries failed session cleanup without reclosing settled owners 0ms
+     ✓ retries failed source cleanup without reclosing settled owners 0ms
+     ✓ retries failed release cleanup without reclosing settled owners 0ms
+     ✓ hands failed admission cleanup to the preparation owner until the unreturned session settles 0ms
+     ✓ passes explicit generation to admission and uses its context for owned cache allocation 0ms
+     ✓ rejects unsupported explicit generation before acquiring model files or GPU resources 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > browser resident opening > preserves an explicit provider-produced paired plan instead of rebuilding a scalar plan
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > native resident opening > preserves an explicit provider-produced paired plan instead of rebuilding a scalar plan
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/unit/work-partitions-lifecycle.test.js:75:40
+     73|   expect(ports.resident.mock.calls[0][0].plan).toEqual(plan);
+     74|   expect(ports.resident.mock.calls[0][0].plan).not.toBe(plan);
+     75|   expect(Object.isFrozen(result.plan)).toBe(true);
+       |                                        ^
+     76|   expect(Object.isFrozen(result.plan.partitions)).toBe(true);
+     77|   expect(Object.isFrozen(result.plan.partitions[0])).toBe(true);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > browser resident opening > snapshots the explicit plan before asynchronous acquisition
+Error: Declared partition plan differs from the selected model or split
+ ❯ assertWorkPartitionSelection self/host/work-partition-plan.js:9:11
+      7|   if (!plan || plan.modelId !== selected.id
+      8|     || selected.partitionSplitLayer !== undefined && plan.splitLayer !…
+      9|     throw new Error('Declared partition plan differs from the selected…
+       |           ^
+     10|   }
+     11| }
+ ❯ createWorkPartitionPlan self/host/work-partition-plan.js:14:3
+ ❯ Module.loadWorkPartition self/host/work-partitions.js:52:41
+ ❯ tests/unit/work-partitions-lifecycle.test.js:90:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > native resident opening > snapshots the explicit plan before asynchronous acquisition
+Error: Declared partition plan differs from the selected model or split
+ ❯ assertWorkPartitionSelection self/host/work-partition-plan.js:9:11
+      7|   if (!plan || plan.modelId !== selected.id
+      8|     || selected.partitionSplitLayer !== undefined && plan.splitLayer !…
+      9|     throw new Error('Declared partition plan differs from the selected…
+       |           ^
+     10|   }
+     11| }
+ ❯ createWorkPartitionPlan self/host/work-partition-plan.js:14:3
+ ❯ Module.openNativePartition server/native-participant.js:175:41
+ ❯ tests/unit/work-partitions-lifecycle.test.js:90:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  4 failed | 63 passed (67)
+   Start at  15:58:54
+   Duration  285ms (transform 164ms, setup 0ms, import 305ms, tests 27ms, environment 0ms)
+

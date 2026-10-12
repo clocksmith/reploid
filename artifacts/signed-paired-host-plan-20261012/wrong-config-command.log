@@ -1,0 +1,23 @@
+✘ [ERROR] Could not resolve "/Users/xyz/deco/reploid/vitest.config.js"
+
+failed to load config from /Users/xyz/deco/reploid/vitest.config.js
+
+⎯⎯⎯⎯⎯⎯⎯ Startup Error ⎯⎯⎯⎯⎯⎯⎯⎯
+Error: Build failed with 1 error:
+error: Could not resolve "/Users/xyz/deco/reploid/vitest.config.js"
+    at failureErrorWithLog (/Users/xyz/deco/reploid/node_modules/esbuild/lib/main.js:1752:15)
+    at /Users/xyz/deco/reploid/node_modules/esbuild/lib/main.js:1211:25
+    at runOnEndCallbacks (/Users/xyz/deco/reploid/node_modules/esbuild/lib/main.js:1592:45)
+    at buildResponseToResult (/Users/xyz/deco/reploid/node_modules/esbuild/lib/main.js:1209:7)
+    at /Users/xyz/deco/reploid/node_modules/esbuild/lib/main.js:1236:16
+    at responseCallbacks.<computed> (/Users/xyz/deco/reploid/node_modules/esbuild/lib/main.js:886:9)
+    at handleIncomingPacket (/Users/xyz/deco/reploid/node_modules/esbuild/lib/main.js:941:12)
+    at Socket.readFromStdout (/Users/xyz/deco/reploid/node_modules/esbuild/lib/main.js:864:7)
+    at Socket.emit (node:events:519:28)
+    at addChunk (node:internal/streams/readable:561:12) {
+  errors: [Getter/Setter],
+  warnings: [Getter/Setter]
+}
+
+
+

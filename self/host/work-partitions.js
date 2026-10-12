@@ -6,9 +6,11 @@ import policy from '../config/partition-policy.json' with { type: 'json' };
 import { prepareLocalPackRelease } from '../pool/pack-release-policy.js';
 import { assertWorkResidentCapsule } from './work-partition-capsule.js';
 import { createSignedResidentFactory } from '../vendor/reploid/mesh/partitions/signed-resident-factory.js';
+import { snapshotWorkPartitionSelection, createWorkPartitionPlan } from './work-partition-plan.js';
 import { createPartitionTokenizerGuard } from './work-partition-tokenizer-guard.js';
 
 export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress, registerCleanup }) {
+  selected = snapshotWorkPartitionSelection(selected);
   const model = { ...selected, generation: resolvePartitionGeneration(selected) };
   const openedAt = performance.now();
   globalThis.__DOPPLER_KERNEL_BASE_PATH__ = DOPPLER_KERNEL_BASE_URL;
@@ -47,9 +49,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   const tokenizer = createPartitionTokenizerGuard(source.storage);
   try {
     signal?.throwIfAborted();
-    const plan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
-      splitLayer: selected.partitionSplitLayer,
-      activationDtype: manifest.inference.session.compute.defaults.activationDtype });
+    const plan = createWorkPartitionPlan(runtime, manifest, selected);
     const planId = runtime.hashLayerPartitionPlan(plan);
     let factory;
     if (selected.capsule !== undefined) {

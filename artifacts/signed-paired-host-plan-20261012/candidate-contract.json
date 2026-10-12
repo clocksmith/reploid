@@ -1,0 +1,21 @@
+{
+  "scope": "Actual candidate package CPU codec, frozen synthetic plan; no physical or numerical qualification",
+  "packagePath": "/Users/xyz/deco/doppler/reports/local/paired-intermediates-20261012/model-3/package",
+  "packageFiles": {
+    "src/partitions.js": "693567e51cf9adad2461c072baed005fe8f59cebf87a69cd8211efc25d56851f",
+    "src/inference/pipelines/text/layer-partition-contract.js": "3be011ac291cf19235304fb08655b82ff5e7e44540521702ae3887cdd7e65b51",
+    "src/inference/pipelines/text/resident-partition-contract.js": "4b7b54f465b385fdaa0a394db86a7860d16a5035831eae7e51c1cb4a5c02874f"
+  },
+  "fixtureSha256": "776317a0624a12400a2eef79c33a5dba5ba38f7dc58a746ad82d46e8469475b5",
+  "hostSha256": "49aa4dbcb13d79e50aa2fa8e3457de8241c3acc86afbfcd2d1e0fb4cf3ccfa26",
+  "planHash": "sha256:db08d9c0ae2fa2e770184cfd9529586271a65777e8fdd0de092b1d419606531a",
+  "contract": {
+    "schema": "doppler.activation-tensor/v2",
+    "dtype": "f32",
+    "hiddenSize": 1024,
+    "precision": "two-f32",
+    "components": 2,
+    "elementStrideBytes": 8
+  },
+  "passed": true
+}

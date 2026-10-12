@@ -3,7 +3,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const ports = vi.hoisted(() => ({
-  signedFactory: vi.fn(), openCapsule: vi.fn(), release: vi.fn(), budget: vi.fn(), plan: vi.fn(), hash: vi.fn(), factory: vi.fn(), resident: vi.fn(), memory: vi.fn(),
+  validatePlan: vi.fn(), activationContract: vi.fn(), validateFrame: vi.fn(), signedFactory: vi.fn(), openCapsule: vi.fn(), release: vi.fn(), budget: vi.fn(), plan: vi.fn(), hash: vi.fn(), factory: vi.fn(), resident: vi.fn(), memory: vi.fn(),
 }));
 vi.mock('../../self/config/doppler-local-models.js', () => ({
   DOPPLER_MODULE_URL: '../vendor/doppler/0.6.27/src/index.js',
@@ -13,7 +13,8 @@ vi.mock('../../self/config/doppler-local-models.js', () => ({
 vi.mock('../../self/vendor/doppler/0.6.27/src/partitions.js', () => ({
   createResidentPartitionFactory: ports.signedFactory, configureDeviceMemoryBudget: ports.budget, createLayerPartitionPlan: ports.plan,
   hashLayerPartitionPlan: ports.hash, createManifestResidentPartitionFactory: ports.factory,
-  inspectDeviceMemory: ports.memory,
+  inspectDeviceMemory: ports.memory, resolveLayerPartition: ports.validatePlan,
+  getPartitionActivationContract: ports.activationContract, validateActivationFrameForPlan: ports.validateFrame,
 }));
 vi.mock('../../self/host/work-partition-capsule.js', () => ({ assertWorkResidentCapsule: async () => {} }));
 vi.mock('../../self/vendor/doppler/0.6.27/src/index.js', () => ({ openCapsule: ports.openCapsule }));
@@ -22,7 +23,8 @@ vi.mock('../../self/vendor/reploid/mesh/index.js', () => ({ createResidentPartit
 vi.mock('doppler-gpu/partitions', () => ({
   createResidentPartitionFactory: ports.signedFactory, configureDeviceMemoryBudget: ports.budget,
   createLayerPartitionPlan: ports.plan, hashLayerPartitionPlan: ports.hash,
-  createManifestResidentPartitionFactory: ports.factory, inspectDeviceMemory: ports.memory,
+  createManifestResidentPartitionFactory: ports.factory, inspectDeviceMemory: ports.memory, resolveLayerPartition: ports.validatePlan,
+  getPartitionActivationContract: ports.activationContract, validateActivationFrameForPlan: ports.validateFrame,
 }));
 vi.mock('doppler-gpu', () => ({ openCapsule: ports.openCapsule }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async importOriginal => ({
@@ -57,6 +59,50 @@ beforeEach(() => {
   ports.plan.mockReturnValue({ partitions: [] }); ports.hash.mockReturnValue('plan');
   ports.factory.mockReturnValue({}); ports.resident.mockReturnValue(resident);
   ports.memory.mockReturnValue({ allocatedBytes: 16 });
+});
+
+it('preserves an explicit provider-produced paired plan instead of rebuilding a scalar plan', async () => {
+  const plan = { schema: 'doppler.layer-partition-contract/v2', modelId: 'fixture', splitLayer: 2,
+    activationDtype: 'f32', activationPrecision: 'two-f32', activationComponents: 2, activationElementStrideBytes: 8,
+    partitions: [{ index: 0 }, { index: 1 }] };
+  ports.activationContract.mockReturnValue({ dtype: 'f32', precision: 'two-f32', components: 2, elementStrideBytes: 8 });
+  const result = await loadWorkPartition(files, { ...selected, partitionPlan: plan }, 0, controls);
+  expect(ports.plan).not.toHaveBeenCalled();
+  expect(ports.validatePlan).toHaveBeenCalledWith(source.manifest, { plan, index: 0 });
+  expect(ports.hash).toHaveBeenCalledWith(plan);
+  expect(ports.resident.mock.calls[0][0].plan).toEqual(plan);
+  expect(ports.resident.mock.calls[0][0].plan).not.toBe(plan);
+  expect(Object.isFrozen(result.plan)).toBe(true);
+  expect(Object.isFrozen(result.plan.partitions)).toBe(true);
+  expect(Object.isFrozen(result.plan.partitions[0])).toBe(true);
+  expect(() => { result.plan.partitions[0].index = 9; }).toThrow();
+  await result.resident.close();
+});
+
+it('snapshots the explicit plan before asynchronous acquisition', async () => {
+  const plan = { modelId: 'fixture', splitLayer: 2, partitions: [{ index: 0 }] };
+  ports.activationContract.mockReturnValue({ dtype: 'f32', precision: 'two-f32', components: 2, elementStrideBytes: 8 });
+  files.preparePartitionSource.mockImplementation(async () => {
+    plan.partitions[0].index = 9;
+    plan.splitLayer = 1;
+    return source;
+  });
+  const result = await loadWorkPartition(files, { ...selected, partitionPlan: plan }, 0, controls);
+  expect(result.plan.partitions[0].index).toBe(0);
+  expect(result.plan.splitLayer).toBe(2);
+  await result.resident.close();
+});
+
+it.each([{ modelId: 'different', splitLayer: 2 }, { modelId: 'fixture', splitLayer: 1 }])('rejects unrelated declared plan before acquisition', async plan => {
+  await expect(loadWorkPartition(files, { ...selected, partitionPlan: plan }, 0, controls)).rejects.toThrow(/declared partition plan/i);
+  expect(files.preparePartitionSource).not.toHaveBeenCalled();
+});
+
+it('settles acquired storage when provider rejects the declared plan geometry', async () => {
+  ports.validatePlan.mockImplementation(() => { throw new Error('Partition plan does not match the model manifest'); });
+  await expect(loadWorkPartition(files, { ...selected, partitionPlan: { modelId: 'fixture', splitLayer: 2 } }, 0, controls)).rejects.toThrow('match the model manifest');
+  expect(source.storage.close).toHaveBeenCalledOnce();
+  expect(ports.resident).not.toHaveBeenCalled();
 });
 
 it.each(['plan', 'hash', 'factory', 'resident'])('closes acquired storage when %s setup rejects', async boundary => {
