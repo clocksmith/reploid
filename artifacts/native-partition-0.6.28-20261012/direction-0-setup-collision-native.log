@@ -1,0 +1,23 @@
+Debugger listening on ws://127.0.0.1:29329/e74bd4ec-58b8-4451-befb-f81518fced00
+For help, see: https://nodejs.org/en/docs/inspector
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Changed delivery member: provider-preflight.json
++ actual - expected
+
++ 'bc84982013dc81add794af5fc52c8dce034815d8d3c420ae896fb82948a0ed89'
+- 'faa3ebe0d9236ebad79de24ee0669097db2608b324b17fbada484a0e799a306d'
+
+    at verifyNumericalTestDelivery (file:///var/tmp/reploid-native-split-0.6.28-20261012/tests/fixtures/numerical-test-delivery.js:23:12)
+    at async file:///var/tmp/reploid-native-split-0.6.28-20261012/tests/fixtures/native-partition-process.js:21:18 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'bc84982013dc81add794af5fc52c8dce034815d8d3c420ae896fb82948a0ed89',
+  expected: 'faa3ebe0d9236ebad79de24ee0669097db2608b324b17fbada484a0e799a306d',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

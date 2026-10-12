@@ -1,0 +1,12 @@
+{
+  "startedAt": "2026-10-12T22:00:53.160301+00:00",
+  "startedUnixSeconds": 1791842453.160436,
+  "command": [
+    "sh",
+    "/var/tmp/reploid-native-split-0.6.28-20261012/run-native-reference.sh",
+    "1"
+  ],
+  "finishedAt": "2026-10-12T22:01:38.752708+00:00",
+  "finishedUnixSeconds": 1791842498.752738,
+  "exitCode": 0
+}

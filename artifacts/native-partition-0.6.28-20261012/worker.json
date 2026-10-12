@@ -1,0 +1,15 @@
+{
+  "scope": "Existing testing capability, no GPU",
+  "sourceSha256": "9b2a41c457851eac1934aa9d9d78607494d8791e7ea5bb64f10968407df88097",
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "events": [],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 0
+    }
+  }
+}
