@@ -1,0 +1,36 @@
+{
+  "scope": "Outside-checkout standard native delivery install and catalog/package identity only; no GPU, model acquisition, inference or signed admission",
+  "nativeTgzSha256": "46af2517eedad71819ba796a3444347db8baf176d8a34c63a08ddeab3ed2aec5",
+  "nativeDeliverySha256": "32fa4e3f1e2ad3c7a1c6624078310255a2fa4c9d8d43a0ff457637dcc47bd04d",
+  "nativeFilesVerified": 95,
+  "archiveSha256": "102fd0c4900c6744fb7d103a4b3609365b57e8538657bd47b8dfd8e7ac3469e7",
+  "installedRuntimeFilesVerified": 1976,
+  "pin": {
+    "name": "doppler-gpu",
+    "version": "0.6.28",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "integrity": "sha512-75IXAvUkyImRGiMIA+WNNefuiUAtZ2tLP93Aj6W7p7SAiHC0MfOxhK4xKZr1ykEEgOEH6RRZF5DbbkPInoJ7lA=="
+  },
+  "catalogRuntimeVersions": [
+    {
+      "path": "enabledModels[0].runtimeVersion",
+      "value": "0.6.28"
+    }
+  ],
+  "enabledModelIds": [
+    "esm2-t12-35m-ur50d-f32-af32"
+  ],
+  "nativeInstallDirectory": "/var/tmp/reploid-native-canonical-0.6.28-20261012/reploid",
+  "cliHelpPassed": true,
+  "catalogQualification": "Existing catalog remains prior manifest; no paired/signed candidate catalog installed",
+  "launchModelId": "esm2-t12-35m-ur50d-f32-af32",
+  "qwenCatalogEntry": [
+    {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "enabled": false,
+      "manifestHash": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+      "runtimeVersion": null
+    }
+  ]
+}
