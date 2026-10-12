@@ -1755,8 +1755,13 @@
     },
     {
       "path": "host/work-model-files.js",
-      "byteLength": 21488,
-      "sha256": "sha256:3b5ee7ac5bad395d6f4989d06e563d5f28b18d207a6904533aaf4eb1954a82b5"
+      "byteLength": 21494,
+      "sha256": "sha256:bdd780b6966f99d25eaf4c2b02d174d87cb5e36e6e1a9c7dece8b582ec5e730f"
+    },
+    {
+      "path": "host/work-partition-artifact-source.js",
+      "byteLength": 2030,
+      "sha256": "sha256:1839c94b05e61b879267624d37bc92d91b29a7aedd2bf126f5fe2ef45b937e08"
     },
     {
       "path": "host/work-partition-capsule.js",
@@ -9534,5 +9539,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:fec0154900bdd95a2f9ee6f313db8bbc34805fb201a9392d1ef407156d632ba0"
+  "bundleHash": "sha256:a1a0ca6c52b4e9cce001c5931feb7524f776529060495aaa94e1995756e8d083"
 }

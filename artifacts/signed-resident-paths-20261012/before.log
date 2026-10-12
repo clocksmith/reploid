@@ -1,0 +1,59 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/work-partition-capsule-source.test.js (4 tests | 1 failed) 9ms
+   ✓ provides pinned metadata and complete cached pieces without requiring an external signal 3ms
+   ✓ rejects changed artifact identities, undeclared files and non-piece ranges before acquisition 1ms
+   ✓ propagates cancellation before retained piece reads 0ms
+   × maps Rig model artifacts through the signed manifest directory, without basename fallback 3ms
+ ❯ tests/unit/native-model-files.test.js (11 tests | 1 failed) 537ms
+   ✓ persists only requested verified pieces and reopens them without a supplier 159ms
+   ✓ binds Capsule artifact reads to catalog identities and complete authenticated piece ranges 42ms
+   ✓ requires separate supply approval and revokes inventory without closing compute sources 46ms
+   ✓ rejects a corrupt supplier and uses another already authorized supplier 55ms
+   ✓ rejects expanded signed-custody grant metadata before committing bytes 37ms
+   ✓ cancels an in-flight acquisition without committing its incomplete piece 35ms
+   ✓ enforces cache budget, rejects symlinks and leaves no partial committed file on cancellation 4ms
+   ✓ quarantines a corrupted retained piece and reacquires verified bytes from an authorized supplier 44ms
+   ✓ attempts cache settlement even when custody close rejects and retains both failures 8ms
+   ✓ offers newly acquired pieces only while their model has approved supply 67ms
+   × maps signed Rig paths to exact manifest-relative native piece sources 39ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-model-files.test.js > maps signed Rig paths to exact manifest-relative native piece sources
+Error: Capsule artifact differs from the pinned catalog source
+ ❯ assert server/native-model-files.js:12:50
+     10| import policy from '../self/config/chat-files.json' with { type: 'json…
+     11|
+     12| const assert = (ok, message) => { if (!ok) throw new Error(message); };
+       |                                                  ^
+     13| const digest = bytes => createHash('sha256').update(bytes).digest('hex…
+     14| const key = file => { assert(file.hashAlgorithm === 'sha256' && /^[a-f…
+ ❯ admittedFile server/native-model-files.js:179:9
+ ❯ Object.readArtifact server/native-model-files.js:185:24
+ ❯ tests/unit/native-model-files.test.js:167:44
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/work-partition-capsule-source.test.js > maps Rig model artifacts through the signed manifest directory, without basename fallback
+Error: Capsule artifact differs from the pinned catalog source
+ ❯ assert self/host/work-model-files.js:13:50
+     11| export const getFileContributionLimits = () => ({ storedBytes: policy.…
+     12|
+     13| const assert = (ok, message) => { if (!ok) throw new Error(message); };
+       |                                                  ^
+     14| const decoder = new TextDecoder('utf-8', { fatal: true });
+     15|
+ ❯ admittedFile self/host/work-model-files.js:246:9
+ ❯ Object.readArtifact self/host/work-model-files.js:252:23
+ ❯ tests/unit/work-partition-capsule-source.test.js:80:42
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 13 passed (15)
+   Start at  08:09:04
+   Duration  666ms (transform 132ms, setup 0ms, import 178ms, tests 546ms, environment 156ms)
+

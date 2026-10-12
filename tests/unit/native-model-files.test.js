@@ -152,3 +152,27 @@ it('offers newly acquired pieces only while their model has approved supply', as
     expect(f.owners[0].getState().sharing).toBe(false);
   } finally { await source.storage.close(); await reader.storage.close(); }
 });
+
+it('maps signed Rig paths to exact manifest-relative native piece sources', async () => {
+  const f = await fixture(); await f.share();
+  const metadata = f.model.source.files[0];
+  const manifestArtifact = { artifactId: 'manifest', role: 'manifest', path: 'artifacts/model/manifest.json',
+    hash: 'sha256:' + metadata.hash, sizeBytes: metadata.sizeBytes };
+  const whole = Buffer.concat(f.chunks);
+  const artifact = { artifactId: 'weights', role: 'weight-shard', path: 'artifacts/model/weights.bin',
+    hash: 'sha256:' + hash(whole), sizeBytes: whole.length };
+  f.model.capsule = { program: { manifestArtifactId: 'manifest' }, artifacts: [manifestArtifact, artifact] };
+  const source = await f.owners[0].preparePartitionSource(f.model);
+  try {
+    expect(hash(await source.artifactStore.readArtifact(manifestArtifact))).toBe(metadata.hash);
+    expect(await source.artifactStore.readArtifactRange(artifact, 0, 4)).toEqual(new Uint8Array(f.chunks[0]));
+    await expect(source.artifactStore.readArtifact(artifact)).rejects.toThrow('piece ranges');
+    for (const changed of [{ ...artifact, path: 'other/weights.bin' }, { ...artifact, hash: 'sha256:' + '0'.repeat(64) },
+      { ...artifact, path: 'artifacts/model/../weights.bin' }]) {
+      f.model.capsule.artifacts[1] = changed;
+      await expect(source.artifactStore.readArtifactRange(changed, 0, 4)).rejects.toThrow('pinned catalog');
+      f.model.capsule.artifacts[1] = artifact;
+    }
+    await expect(source.artifactStore.readArtifactRange(artifact, 1, 2)).rejects.toThrow('complete pinned piece');
+  } finally { await source.storage.close(); }
+});

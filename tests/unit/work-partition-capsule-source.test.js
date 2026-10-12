@@ -69,3 +69,22 @@ it('propagates cancellation before retained piece reads', async () => {
   await expect(source.artifactStore.readArtifactRange(artifact, 0, 2, { signal: controller.signal })).rejects.toThrow('cancelled piece');
   await source.storage.close();
 });
+
+it('maps Rig model artifacts through the signed manifest directory, without basename fallback', async () => {
+  const metadata = model.source.files[0];
+  const manifestArtifact = { artifactId: 'manifest', role: 'manifest', path: 'artifacts/model/manifest.json',
+    hash: 'sha256:' + metadata.hash, sizeBytes: metadata.sizeBytes };
+  artifact = { ...artifact, path: 'artifacts/model/weights.bin' };
+  model.capsule = { program: { manifestArtifactId: 'manifest' }, artifacts: [manifestArtifact, artifact] };
+  const source = await files.preparePartitionSource(model, {});
+  expect(hash(await source.artifactStore.readArtifact(manifestArtifact))).toBe(metadata.hash);
+  expect([...await source.artifactStore.readArtifactRange(artifact, 0, 2)]).toEqual([1, 2]);
+  await expect(source.artifactStore.readArtifact(artifact)).rejects.toThrow('piece ranges');
+  for (const path of ['other/weights.bin', 'artifacts/model/../weights.bin', 'artifacts/model/nested/weights.bin']) {
+    const changed = { ...artifact, path };
+    model.capsule.artifacts[1] = changed;
+    await expect(source.artifactStore.readArtifactRange(changed, 0, 2)).rejects.toThrow('pinned catalog');
+    model.capsule.artifacts[1] = artifact;
+  }
+  await source.storage.close();
+});
