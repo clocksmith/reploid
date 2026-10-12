@@ -1,0 +1,15 @@
+
+
+Independent protocol example, unrelated to the user documents. Do not reuse its operands, source IDs, or results in the user task. Source [D4:P1]: Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.
+A valid call is:
+<tool_call>
+<function=Calculate>
+<parameter=facts>
+[{"id": "demo_price", "kind": "money", "quote": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.", "source": "D4:P1", "value": "$13.70"}, {"id": "demo_count", "kind": "number", "quote": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.", "source": "D4:P1", "value": "seven"}, {"id": "demo_limit", "kind": "money", "quote": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.", "source": "D4:P1", "value": "$413"}, {"id": "demo_start", "kind": "date", "quote": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.", "source": "D4:P1", "value": "February 4"}, {"id": "demo_duration", "kind": "days", "quote": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.", "source": "D4:P1", "value": "six"}]
+</parameter>
+<parameter=operations>
+[{"args": ["demo_price", "demo_count"], "id": "demo_total", "op": "multiply"}, {"args": ["demo_limit", "demo_total"], "id": "demo_left", "op": "subtract"}, {"args": ["demo_start", "demo_duration"], "id": "demo_finish", "op": "addCalendarDuration"}]
+</parameter>
+</function>
+</tool_call>
+Its operation results are demo_total=95.9, demo_left=317.1 and demo_finish=February 10 (year unspecified). Operand and result IDs are unique aliases; source is a passage ID. A result alias can be an input to a later operation. Qualitative clauses are not numeric facts. This example demonstrates protocol only; the current task still requires its own cited operands and reasoning.

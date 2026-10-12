@@ -1,0 +1,78 @@
+{
+  "schema": "reploid.independent-tool-contract-example/v1",
+  "source": {
+    "id": "D4:P1",
+    "text": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days."
+  },
+  "plan": {
+    "facts": [
+      {
+        "id": "demo_price",
+        "kind": "money",
+        "source": "D4:P1",
+        "quote": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.",
+        "value": "$13.70"
+      },
+      {
+        "id": "demo_count",
+        "kind": "number",
+        "source": "D4:P1",
+        "quote": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.",
+        "value": "seven"
+      },
+      {
+        "id": "demo_limit",
+        "kind": "money",
+        "source": "D4:P1",
+        "quote": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.",
+        "value": "$413"
+      },
+      {
+        "id": "demo_start",
+        "kind": "date",
+        "source": "D4:P1",
+        "quote": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.",
+        "value": "February 4"
+      },
+      {
+        "id": "demo_duration",
+        "kind": "days",
+        "source": "D4:P1",
+        "quote": "Order seven labels at $13.70 each, with a spending limit of $413. Planned start February 4; allow six days.",
+        "value": "six"
+      }
+    ],
+    "operations": [
+      {
+        "id": "demo_total",
+        "op": "multiply",
+        "args": [
+          "demo_price",
+          "demo_count"
+        ]
+      },
+      {
+        "id": "demo_left",
+        "op": "subtract",
+        "args": [
+          "demo_limit",
+          "demo_total"
+        ]
+      },
+      {
+        "id": "demo_finish",
+        "op": "addCalendarDuration",
+        "args": [
+          "demo_start",
+          "demo_duration"
+        ]
+      }
+    ]
+  },
+  "expectedGenericUnitResults": [
+    "95.9",
+    "317.1",
+    "february 10 (year unspecified)"
+  ],
+  "notEvaluationFacts": true
+}
