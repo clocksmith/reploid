@@ -7,10 +7,11 @@ import { chromium } from 'playwright';
 
 const { values } = parseArgs({ options: {
   url: { type: 'string' }, profile: { type: 'string' }, model: { type: 'string' },
-  contribute: { type: 'string' }, 'model-directory': { type: 'string' }, help: { type: 'boolean' }
+  contribute: { type: 'string' }, 'model-directory': { type: 'string' },
+  browser: { type: 'string', default: 'chrome' }, help: { type: 'boolean' }
 } });
 if (values.help) {
-  console.log('node scripts/run-mesh-contributor.js --url https://replo.id/ --profile PATH --model MODEL_ID --contribute compute|files [--model-directory PATH]');
+  console.log('node scripts/run-mesh-contributor.js --url https://replo.id/ --profile PATH --model MODEL_ID --contribute compute|files [--model-directory PATH] [--browser chrome|chromium]');
   process.exit(0);
 }
 if (!values.url || !values.profile || !values.model || !['compute', 'files'].includes(values.contribute)) {
@@ -19,9 +20,10 @@ if (!values.url || !values.profile || !values.model || !['compute', 'files'].inc
 const url = new URL(values.url);
 if (url.protocol !== 'https:' && !['localhost', '127.0.0.1'].includes(url.hostname)) throw Error('Hosted contribution requires HTTPS');
 if (values['model-directory'] && values.contribute !== 'files') throw Error('Local seed bytes require explicit file contribution');
+if (!['chrome', 'chromium'].includes(values.browser)) throw Error('--browser must be chrome or chromium');
 const profile = path.resolve(values.profile);
 await mkdir(profile, { recursive: true });
-const context = await chromium.launchPersistentContext(profile, { channel: 'chrome', headless: true,
+const context = await chromium.launchPersistentContext(profile, { channel: values.browser, headless: true,
   args: process.platform === 'darwin' ? ['--enable-unsafe-webgpu', '--use-angle=metal']
     : ['--enable-unsafe-webgpu', '--enable-features=Vulkan', '--use-angle=vulkan', '--disable-gpu-sandbox'] });
 let stopping = false, timer;
@@ -81,13 +83,16 @@ try {
   await page.goto(url.href);
   await page.locator('[data-chat-workspace]').waitFor();
   await page.locator('[data-toggle-inspector]').click();
+  await page.locator('[data-inspector-section="device"]').click();
   await page.locator('[data-contribution-model]').selectOption(selected.id);
   const files = values.contribute === 'files';
   const toggle = files ? '[data-toggle-file-contribution]' : '[data-toggle-contribution]';
   const label = files ? '[data-file-contribution-label]' : '[data-contrib-label]';
-  const consent = files ? '[data-file-contribution-consent]' : '[data-contribution-consent]';
-  await page.locator('details').filter({ has: page.locator(toggle) }).locator('summary').click();
-  await page.locator(consent).check(); await page.locator(toggle).click();
+  // The explicit CLI contribution choice authorizes the existing UI switch.
+  // Current controls have no separate disclosure or consent checkbox.
+  if (await page.locator(toggle).getAttribute('aria-checked') !== 'true') {
+    await page.locator(toggle).click();
+  }
   console.log(JSON.stringify({ event: 'contribution-authorized', url: url.href, model: selected.id,
     modelIdentity: selected.identity, contribution: values.contribute, profile }));
   const identity = await page.evaluate(() => Object.keys(localStorage)
