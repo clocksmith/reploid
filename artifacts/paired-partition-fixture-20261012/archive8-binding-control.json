@@ -1,0 +1,149 @@
+{
+  "scope": "CPU-only real archive8 public plan and source-fact binding; no physical or signed execution claim",
+  "binding": {
+    "bindingSha256": "8c43b86f2e6c2decb9f089ce86a060a5cf2ab888e976c553dfae15e30dcdfcdb",
+    "archiveSha256": "8ea1767fb61d9009dd257c4065a6acfdbaaf80fa733145898307ed35da0e7f20",
+    "manifestIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+    "graphSha256": "36b7799edce21590e5846909ddaeea99be05cccaf87b65264d7281b2497fb0f3",
+    "frozenModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+    "weightsTokenizerAndSourceFactsUnchanged": true,
+    "executionGraphChanged": true,
+    "scope": "Test-only paired execution binding; not qualification or adoption",
+    "activation": {
+      "activationPrecision": "two-f32",
+      "activationComponents": 2,
+      "activationElementStrideBytes": 8
+    },
+    "session": {
+      "intermediatePrecision": "two-f32",
+      "linearRecurrentStatePrecision": "two-f32"
+    }
+  },
+  "legacyPlan": {
+    "schema": "doppler.layer-partition-contract/v1",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "totalLayers": 24,
+    "hiddenSize": 1024,
+    "vocabSize": 248320,
+    "splitLayer": 12,
+    "activationDtype": "f32",
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          11
+        ],
+        "layerCount": 12,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32"
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          12,
+          23
+        ],
+        "layerCount": 12,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32"
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "pairedPlan": {
+    "schema": "doppler.layer-partition-contract/v2",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "totalLayers": 24,
+    "hiddenSize": 1024,
+    "vocabSize": 248320,
+    "splitLayer": 12,
+    "activationDtype": "f32",
+    "activationPrecision": "two-f32",
+    "activationComponents": 2,
+    "activationElementStrideBytes": 8,
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          11
+        ],
+        "layerCount": 12,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          12,
+          23
+        ],
+        "layerCount": 12,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 1024,
+          "dtype": "f32",
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 248320,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "legacyPlanId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+  "pairedPlanId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872"
+}
