@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /** Native Node host for the same authenticated partition protocol as the browser.
  * No browser, model arithmetic, placement policy, or whole-request fallback lives here.
  */
@@ -278,7 +279,22 @@ export function createNativeShutdown(participant, gpuHost) {
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'signaling-url', 'room', 'room-token', 'origin', 'cache-directory'].map(key => [key, { type: 'string' }]).concat([
-      ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
+      ['help', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
+  if (values.help) {
+    console.log(`Reploid native participant (Node 22.13 or newer)
+Usage: reploid-participant --connect-only|--share-files|--contribute
+  --model <catalog id> --model-directory <read-only weights directory>
+  --identity-file <private state/identity.json>
+  --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
+  [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
+  [--room <namespace>] [--room-token <join marker>] [--origin <allowed origin>]
+
+File sharing and compute are separate explicit choices; both may be enabled.
+Compute requires --gpu-module. Missing assigned pieces use authenticated peers.
+SIGINT/SIGTERM stop admission, settle work and release owned resources.
+Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider.`);
+    return;
+  }
   requireValue(values.contribute || values['share-files'] || values['connect-only'], 'Choose --contribute, --share-files or --connect-only explicitly');
   if (values.contribute) requireValue(values['gpu-module'], '--gpu-module is required for compute');
   for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');

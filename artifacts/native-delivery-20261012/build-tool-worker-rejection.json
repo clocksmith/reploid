@@ -1,0 +1,132 @@
+{
+  "sourceSha256": "8f26e7c316f0340c3a1bb4b4dd652357c3b421267e829f29434669a761c1c851",
+  "passed": false,
+  "errors": [
+    "Security Violation in /scripts/package-native.js: child_process operations are forbidden"
+  ],
+  "warnings": [
+    "Warning in /server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+    "Warning in /server/native-participant.js:39: Dynamic property write detected: [key] - verify input sanitization",
+    "Warning in /server/native-participant.js:313: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+    "Warning in /server/native-participant.js:26: Suspicious variable name: requireValue - may indicate code execution",
+    "File has 38 functions (max 20) - consider modularizing",
+    "Nesting depth of 7 exceeds 5 - refactor nested code",
+    "Warning in /scripts/package-native.js:12: Suspicious variable name: exec - may indicate code execution"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791780389042,
+      "path": "/server/native-participant.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791780389042,
+      "path": "/server/native-participant.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [key] - verify input sanitization",
+      "line": 39,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791780389042,
+      "path": "/server/native-participant.js",
+      "patternId": "dynamic_property_write",
+      "category": "structural",
+      "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "line": 313,
+      "severity": "warning"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791780389042,
+      "path": "/server/native-participant.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: requireValue - may indicate code execution",
+      "line": 26,
+      "severity": "warning"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791780389043,
+      "metric": "functions",
+      "value": 38,
+      "threshold": 20,
+      "message": "File has 38 functions (max 20) - consider modularizing",
+      "path": "/server/native-participant.js"
+    },
+    {
+      "type": "complexity",
+      "timestamp": 1791780389043,
+      "metric": "nesting",
+      "value": 7,
+      "threshold": 5,
+      "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "path": "/server/native-participant.js"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791780389045,
+      "path": "/scripts/package-native.js",
+      "patternId": "child_process",
+      "category": "process",
+      "message": "child_process operations are forbidden",
+      "severity": "error"
+    },
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791780389045,
+      "path": "/scripts/package-native.js",
+      "patternId": "suspicious_variable_name",
+      "category": "structural",
+      "message": "Suspicious variable name: exec - may indicate code execution",
+      "line": 12,
+      "severity": "warning"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "path": "/scripts/package-native.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      }
+    ],
+    "complexityWarnings": [
+      {
+        "type": "complexity",
+        "metric": "functions",
+        "value": 38,
+        "threshold": 20,
+        "message": "File has 38 functions (max 20) - consider modularizing",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/server/native-participant.js"
+      }
+    ],
+    "filesAnalyzed": 2
+  },
+  "reason": "Verification Failed"
+}

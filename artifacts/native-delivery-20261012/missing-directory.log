@@ -1,0 +1,25 @@
+[WebRTCSwarm] Initializing - peerId: 7632eda4-5113-460a-8f7f-688fc8d33a56, room: reploid-swarm-public
+[WebRTCSwarm] Connecting to ws://127.0.0.1:18200/swarm?scope=public&roomId=reploid-swarm-public
+[WebRTCSwarm] Received welcome from signaling server
+[WebRTCSwarm] Joined room reploid-swarm-public, existing peers: 4
+[WebRTCSwarm] Connecting to peer: 59332ca9-b4b7-4bb0-881b-58accf211f65
+[SwarmTransport] Using WebRTC transport via WebRTCSwarm
+[WebRTCSwarm] Cannot send to 59332ca9-b4b7-4bb0-881b-58accf211f65: not connected
+[WebRTCSwarm] Connecting to peer: 570f90df-d0b0-40a6-ba5f-0548735e34ef
+node:internal/fs/promises:1162
+  return await PromisePrototypeThen(
+         ^
+
+Error: ENOENT: no such file or directory, realpath './weights'
+    at async Object.realpath (node:internal/fs/promises:1162:10)
+    at async createNativeModelFiles (file:///var/tmp/reploid-native-installed-8n7b1i/reploid/server/native-model-files.js:69:16)
+    at async createNativeParticipant (file:///var/tmp/reploid-native-installed-8n7b1i/reploid/server/native-participant.js:245:33)
+    at async main (file:///var/tmp/reploid-native-installed-8n7b1i/reploid/server/native-participant.js:319:23)
+    at async file:///var/tmp/reploid-native-installed-8n7b1i/reploid/server/native-participant.js:344:3 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'realpath',
+  path: './weights'
+}
+
+Node.js v22.22.1

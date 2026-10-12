@@ -1,0 +1,27 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/native-delivery.test.js (2 tests | 1 failed) 86ms
+   ✓ rejects undeclared native dependencies instead of emitting an incomplete installer 1ms
+   × delivers the same native source and all catalog metadata outside the checkout without loading providers 85ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-delivery.test.js > delivers the same native source and all catalog metadata outside the checkout without loading providers
+AssertionError: expected [ …(81) ] to include 'self/config/model-manifests/18fe30e2c…'
+ ❯ tests/unit/native-delivery.test.js:33:85
+     31|   const catalog = JSON.parse(contents.get('self/config/chat-models.jso…
+     32|   for (const model of catalog) for (const file of model.source?.files …
+     33|     if (/^\/config\/model-(manifests|pieces)\//.test(file.url || '')) …
+       |                                                                                     ^
+     34|   }
+     35|   const directory = await fs.mkdtemp(path.join(os.tmpdir(), 'native-de…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  00:48:55
+   Duration  172ms (transform 16ms, setup 0ms, import 26ms, tests 86ms, environment 0ms)
+

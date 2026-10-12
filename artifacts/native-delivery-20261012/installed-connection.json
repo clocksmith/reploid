@@ -1,0 +1,60 @@
+{
+  "directory": "/var/tmp/reploid-native-installed-8n7b1i/reploid",
+  "pid": 2926069,
+  "node": "v22.22.1",
+  "manifestSha256": "d936fa93c95ed6a27b73ce064f2b09f43b7ec124bbf07820317aa95ddd32fb6c",
+  "archiveSha256": "e3ef5e4cf637f5c8be4a79b2dcc11a052295f8b018337d4946518a879c918262",
+  "participantId": "peer:38d9adfc51569c9e615a2e44",
+  "authenticatedCapabilities": [
+    {
+      "participantId": "peer:39b36f733c5fe9229a0331ee",
+      "available": true,
+      "phase": "ready"
+    },
+    {
+      "participantId": "peer:f52b791ad3b682079b337b8d",
+      "available": true,
+      "phase": "ready"
+    },
+    {
+      "participantId": "peer:0093b2491363f4e873615b11",
+      "available": true,
+      "phase": "idle"
+    },
+    {
+      "participantId": "peer:86e5fb60393099db02649f92",
+      "available": true,
+      "phase": "idle"
+    }
+  ],
+  "phase": "idle",
+  "offering": false,
+  "files": {
+    "sharing": false,
+    "suppliedBytes": 0,
+    "pending": 0,
+    "retainedFiles": 0
+  },
+  "mappedGpuProvider": false,
+  "dependencies": {
+    "doppler-gpu": {
+      "version": "0.6.27",
+      "path": "/var/tmp/reploid-native-installed-8n7b1i/reploid/node_modules/doppler-gpu/package.json"
+    },
+    "@roamhq/wrtc": {
+      "version": "0.10.0",
+      "path": "/var/tmp/reploid-native-installed-8n7b1i/reploid/node_modules/@roamhq/wrtc/package.json"
+    },
+    "ws": {
+      "version": "8.21.0",
+      "path": "/var/tmp/reploid-native-installed-8n7b1i/reploid/node_modules/ws/package.json"
+    },
+    "webgpu": {
+      "version": "0.4.0",
+      "path": "/var/tmp/reploid-native-installed-8n7b1i/reploid/node_modules/webgpu/package.json"
+    }
+  },
+  "processExited": true,
+  "weightsFiles": [],
+  "cacheFiles": []
+}
