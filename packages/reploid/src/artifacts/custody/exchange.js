@@ -6,6 +6,11 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
   }
   const { createSupplier, createStore, createChannel, readArtifact, verifyArtifact, hash, hashBytes, checkpoints } = ports;
   const now = ports.now || Date.now;
+  const budgetState = (state = ports.supplyBudget?.getState()) => {
+    if (!state || state.maxBytes !== policy.maxSupplyBytes || !Number.isSafeInteger(state.reservedBytes)
+      || state.reservedBytes < 0 || state.reservedBytes > state.maxBytes) throw new Error('Persistent file contribution budget unavailable');
+    return state;
+  };
   const peers = new Map(), pending = new Map(), suppliers = new Map(), channels = new Map(), channelWaiters = new Map();
   const lifetime = new AbortController();
   const operations = new Set();
@@ -127,8 +132,13 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       const selected = rangeDescriptor(descriptor, message.range);
       if (!Number.isSafeInteger(descriptor.sizeBytes) || descriptor.sizeBytes > policy.maxArtifactBytes
         || reserved + selected.sizeBytes > policy.maxSupplyBytes) throw new Error('File contribution limit reached');
-      const epoch = supplyEpoch; preparing++; reserved += selected.sizeBytes;
+      const epoch = supplyEpoch; preparing++;
       try {
+        budgetState();
+        const reservation = await ports.supplyBudget.reserve(selected.sizeBytes);
+        reserved = Math.max(reserved, budgetState(reservation).reservedBytes);
+        budgetState(); live();
+        if (!supply || epoch !== supplyEpoch) throw new Error('File contribution stopped');
         let bytes = await readArtifact(descriptor, { signal: lifetime.signal });
         await verifyArtifact(descriptor, bytes); live();
         if (message.range) {
@@ -243,11 +253,12 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
   };
   return Object.freeze({
     announce,
-    getState: () => { connected(); return { sharing: supply, suppliedBytes: reserved, pending: acquiring, peers: [...peers.keys()] }; },
+    getState: () => { connected(); return { sharing: supply, suppliedBytes: Math.max(reserved, ports.supplyBudget?.getState()?.reservedBytes || 0), pending: acquiring, peers: [...peers.keys()] }; },
     has: artifact => candidates(artifact).length > 0,
     offer(artifacts) {
       if (!Array.isArray(artifacts) || artifacts.length > policy.maxInventoryFiles || !artifacts.every(valid)) throw new Error('Invalid file inventory');
       live();
+      reserved = budgetState().reservedBytes;
       const replacement = structuredClone(artifacts);
       // Revoke old grants, but publish only the complete replacement. A transient
       // empty inventory can make peers reject acquisition of a still-offered file.

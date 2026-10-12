@@ -1,0 +1,16 @@
+
+Running 5 tests using 1 worker
+
+(node:13685) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:13685) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium] › tests/e2e/custody-budget.spec.js:11:1 › strict durable reservations survive reload and cannot be renewed by another tab (171ms)
+  ✓  2 [chromium] › tests/e2e/custody-budget.spec.js:22:1 › corrupt and missing existing browser ledgers fail closed (76ms)
+  ✓  3 [chromium] › tests/e2e/custody-budget.spec.js:37:1 › legacy caches cannot silently initialize allowance and closed persistence rejects reservations (66ms)
+  ✓  4 [chromium] › tests/e2e/custody-budget.spec.js:47:1 › an aborted real IndexedDB reservation is unconfirmed and cannot authorize supply (75ms)
+[INFO] [WebRTCSwarm] Initializing - peerId: bb6fed1e-4a4f-4fa8-ac01-4546750ffb05, room: reploid-swarm-custody-test-287e4687-60db-4469-ae8c-82586358b00d
+[INFO] [WebRTCSwarm] Initializing - peerId: 7a4108bf-42dd-4718-b88c-9f58bdb10c97, room: reploid-swarm-custody-test-287e4687-60db-4469-ae8c-82586358b00d
+  ✓  5 [chromium] › tests/e2e/custody-exchange.spec.js:3:1 › actual swarm channels exchange signed synthetic files in both directions with distinct clocks and no channel glare (394ms)
+
+  5 passed (1.4s)
