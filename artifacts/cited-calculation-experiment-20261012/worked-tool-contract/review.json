@@ -1,0 +1,105 @@
+{
+  "schema": "reploid.worked-contract-source-review/v1",
+  "frozenRevision": "3251d780",
+  "status": "rejected; automatic predeclared stop after first complete case",
+  "passed": false,
+  "attemptedCases": 1,
+  "passedCases": 0,
+  "failedCases": 1,
+  "unrunCases": [
+    "fresh-bathroom-correction",
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "modelIdentity": {
+    "source": "Qwen/Qwen3.5-2B",
+    "revision": "15852e8c16360a2fea060d615a32b45270f8a8fc",
+    "policy": {
+      "maxTokens": 4096,
+      "maxSeqLen": 8192,
+      "temperature": 0,
+      "topP": 1,
+      "topK": 1,
+      "repetitionPenalty": 1.0,
+      "repetitionPenaltyWindow": 0,
+      "presencePenalty": 0,
+      "useChatTemplate": true,
+      "suppressTokenIds": [],
+      "stopSequences": []
+    },
+    "thinking": false
+  },
+  "case": {
+    "id": "fresh-bathroom-comparison",
+    "extraction": {
+      "stopReason": "eos",
+      "promptTokens": 1979,
+      "generatedTokens": 1039,
+      "officialEnvelopeAndJsonParsed": true,
+      "calculatorAccepted": false,
+      "error": "Invalid or duplicate fact ID",
+      "successfulCalculations": 0
+    },
+    "final": {
+      "stopReason": "eos",
+      "promptTokens": 2444,
+      "generatedTokens": 933,
+      "containsToolCall": true,
+      "sameExactTextAsExtraction": false,
+      "additionalToolExecuted": false,
+      "failure": "Repeated invalid fact/operation plan, with some operations omitted, instead of final answer or honest tool-failure explanation."
+    },
+    "counts": {
+      "generatedTokens": 1972,
+      "promptTokens": 4423,
+      "totalChargedTokens": 6395,
+      "rawOutputUtf16": 5393,
+      "withinBudgets": true
+    },
+    "criteria": [
+      {
+        "criterion": "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+        "status": "failed",
+        "reason": "No final answer or successful derived tool result. Repeated tool arguments do not satisfy required costs, conditions, conflict handling and cited conclusions."
+      },
+      {
+        "criterion": "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+        "status": "failed",
+        "reason": "No final answer or successful derived tool result. Repeated tool arguments do not satisfy required costs, conditions, conflict handling and cited conclusions."
+      },
+      {
+        "criterion": "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+        "status": "failed",
+        "reason": "No final answer or successful derived tool result. Repeated tool arguments do not satisfy required costs, conditions, conflict handling and cited conclusions."
+      },
+      {
+        "criterion": "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+        "status": "failed",
+        "reason": "No final answer or successful derived tool result. Repeated tool arguments do not satisfy required costs, conditions, conflict handling and cited conclusions."
+      },
+      {
+        "criterion": "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges.",
+        "status": "not exercised",
+        "reason": "No deposit amount asserted in an answer; optional condition cannot qualify missing answer."
+      }
+    ]
+  },
+  "observedBoundary": {
+    "upstream": "Actual executed prompt includes unrelated validated example, unique operand/result alias rule, numeric-only fact rule, original sources and unchanged tool schema.",
+    "downstream": "Parsed model arguments still use passage IDs as operand IDs, repeat D3:P3, label excluded as number, strip $ from500 and invent400 from40%, and propose invalid arity/units across unrelated contractors. First handler guard rejects IDs; later defects are observations, not repaired execution.",
+    "finalInput": "Actual tool failure plus no-retry instruction retained in final prompt; no hidden retry or output rewrite.",
+    "unrelatedExampleLeakageObserved": false,
+    "evaluatorSerializationDefectEstablished": false,
+    "syntaxImprovement": "JSON parsed in this candidate whereas prior control lacked a closing bracket. This is insufficient for semantic or application qualification."
+  },
+  "execution": {
+    "sourceExitCode": 0,
+    "elapsedSeconds": 652.904072528705,
+    "generatedTokensPerSecondIncludingLoadingPrefillAndTools": 3.0203518142602808,
+    "scope": "CPU nice10/four threads, no GPU; elapsed includes source loading/two prefills/reporting and concurrent correctness workloads, not an inference performance benchmark."
+  },
+  "disposition": "No production integration, pin/model/precision change or deployment. Six cases including followups remain unrun under predeclared rule, not presumed failures. Further hypothesis requires separate review."
+}

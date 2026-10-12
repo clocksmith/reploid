@@ -1,0 +1,21 @@
+{
+  "schema": "reploid.worked-contract-retained-evidence/v1",
+  "files": {
+    "result.json.gz": {
+      "uncompressedSha256": "9a8613d3bc9682128b0a7340320da686f9e5cc612d8fe0a78488954ead832ac0",
+      "compressedSha256": "9593504dd5b9c62a074af2f02915dae93e5b64a2f2e6fa7b71bd304abff8a3f5"
+    },
+    "result-fresh-bathroom-comparison-extract.json.gz": {
+      "uncompressedSha256": "ff121c9aa4883291fc02461457562f8659747bb2470718890c4865d8a48884b0",
+      "compressedSha256": "b814eeb74509b49740649051e1518479e7e2a173afe42698c2098cecebf94b97"
+    },
+    "result-fresh-bathroom-comparison-answer.json.gz": {
+      "uncompressedSha256": "b61d8878ae3962cfbb320f422dd9b5655c5e7b5301ead04db78f430f10fe735f",
+      "compressedSha256": "a12eb869c665f389f2e3eccfa57b08a486e806e5aaa01a1414b94459ca77d40e"
+    },
+    "run.log.gz": {
+      "uncompressedSha256": "0edce7aa83298aed2528a6e8d6e1f8dfa0ccb21cda11c9b7c9c9ef522dda6b10",
+      "compressedSha256": "bdacdb699a856138ecbda640f9c26e3b786f3dbef6e5122632c960567561121b"
+    }
+  }
+}
