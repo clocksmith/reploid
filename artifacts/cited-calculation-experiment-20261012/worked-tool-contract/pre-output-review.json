@@ -1,0 +1,20 @@
+{
+  "schema": "reploid.worked-contract-pre-output-review/v1",
+  "reviewer": "parent /root",
+  "scope": [
+    "freeze.json",
+    "example.json",
+    "example-validation.json",
+    "run.py"
+  ],
+  "disposition": "Bounded CPU experiment approved, not model qualification. Preserve strict parser, aggregate charging and declared structural stop.",
+  "notClaimed": "Parent did not independently check source-api-audit or full seven-case suite diff. Owning agent executed the exact-equality assertions in validate_example.py and source API audit; retained passing receipts remain separately attributed.",
+  "files": {
+    "freeze.json": "7b939440a6345e6a9aa4848c0051970eb99f0a769c8a8994e2fa28914dc559ce",
+    "example.json": "d0ad18b0cf57d6f7b249aa0242f38942d3a167ead8972a97b367ed4ad2143790",
+    "example-validation.json": "785947c46656c5388f3a6e68a8ae9583439b1fdb263b23b430c0887c7857e4ac",
+    "run.py": "e8f5bc2f2d1e1963cd0b5745b389d3d47fc4ea7d54704e37551a9e32bd35cf3a"
+  },
+  "outputsAtReview": "none",
+  "frozenRevision": "3251d780"
+}
