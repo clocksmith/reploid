@@ -23,8 +23,11 @@ numerical/model-quality qualification.
   `sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9`.
 - Plan: `sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0`.
 - Initial application manifest: `sha256:f99260044a90f747e7211732bc581c0c4e37cdef48eaee8c4b7b60062e72a1bc`.
-  Final requester manifest after the repairs:
+  Requester manifest after the permission repairs:
   `sha256:4715180537328cad94623d85eef6f70855f4c0675b269cde289fd8b9a21d4c92`.
+  After the remote-preparation repair and for the final return:
+  `sha256:5d67a79a402ad04a146fe3b7d5c43a33ac907a0c2fdc11722ace629e7a992ac8`
+  (1,904 served files freshly verified).
   Contributors remained loaded during requester fixes; these observations are
   deliberately not claimed as a frozen identical-build release sequence.
 
@@ -37,6 +40,7 @@ numerical/model-quality qualification.
 | Attached invoice | Correct $900 amount, missing required passage citation, false attribution to the Total line; quality **fails** |
 | Native replaces stopped Mac contribution | [native-retry.json](native-retry.json), new approved attempt answers $36; prior failed attempt retained |
 | Empty Node cache acquires its partition and generates | [native-cold-conversation.json](native-cold-conversation.json), $36 then history-dependent $48, reusable scoped approval, no requester weight HTTP requests; [75-piece acquisition](../native-files-20261012/README.md) |
+| Browser replaces stopped native output owner | [output-owner-return.json](output-owner-return.json), new output identity requires fresh approval; same conversation correctly answers $60 for five tickets and preserves every earlier message |
 | Native concurrent cancellation | [native-concurrency.json](native-concurrency.json), one cancelled, other answers $36 |
 | Human review exceeds readiness TTL | [delayed-approval.json](delayed-approval.json), 15,000 ms review then completed $36 with the same approved pair |
 | Close actual requester RTC input-owner connection | [rtc-recovery.json](rtc-recovery.json), new connection observed; all three other connections remain connected |
@@ -107,6 +111,15 @@ with 3 files / 29 tests skipped. `reploid-combined-unit-final-20261012.log.gz`
 retains the complete result. Its initial single charter-length failure is kept in
 `reploid-combined-unit-20261012.log.gz`; the charter was shortened before rerun.
 The subsequent preparing-state UI change has the focused checks above.
+
+The final browser check passes all 12 scripted interaction/layout cases in
+`conversation-acceptance.spec.js` and `conversation-repair.spec.js`, including
+the actual Verification Worker. `browser-conversation-pass.log.gz` retains the
+result. The first run failed five cases: its permission fixture omitted the
+second recipient, and its visual fixture mounted a second inspector without
+detaching the real host. Both fixtures now follow the actual host contract;
+assertions remain intact. `browser-fixture-failures.log.gz` preserves that run.
+These fixtures do not add numerical, physical-phone or human acceptance.
 
 ## Failed and invalid observations
 

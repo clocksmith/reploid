@@ -18,10 +18,12 @@ async function mount(page, { available = true } = {}) {
       subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
       async generate(request, controls) {
         const ids = { threadId: request.threadId, attemptId: request.attemptId };
-        const approved = await controls.requestApproval({ ...ids, id: crypto.randomUUID(), peerId: 'fixture-recipient',
-          recipientIdentity: model.partition.participantB, participantA: model.partition.participantA,
+        const approved = await controls.requestApproval({ ...ids, id: crypto.randomUUID(), peerId: model.partition.participantA,
+          recipientIdentity: model.partition.participantA, participantA: model.partition.participantA,
+          participantB: model.partition.participantB,
           planId: model.partition.planId, operation: 'generate-partition', disclosure: 'partition-activations-and-tokens',
-          modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], input: request.messages,
+          modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],
+          input: { messages: request.messages, recipients: [model.partition.participantA, model.partition.participantB] },
           expiresAt: Date.now() + 60000 });
         if (!approved) throw Error('Disclosure declined');
         controls.signal.throwIfAborted();
