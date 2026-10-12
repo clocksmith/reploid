@@ -1,0 +1,125 @@
+{
+  "schema": "reploid.available-typed-review/v1",
+  "qualified": false,
+  "disposition": "rejected",
+  "attemptedCases": 1,
+  "passedCases": 0,
+  "caseId": "fresh-bathroom-comparison",
+  "phase": "extract-D2 correction",
+  "calls": [
+    {
+      "phase": "extract-D1",
+      "attempt": 0,
+      "promptTokens": 946,
+      "generatedTokens": 68,
+      "stopReason": "eos"
+    },
+    {
+      "phase": "extract-D2",
+      "attempt": 0,
+      "promptTokens": 1031,
+      "generatedTokens": 67,
+      "stopReason": "eos"
+    },
+    {
+      "phase": "extract-D2",
+      "attempt": 1,
+      "promptTokens": 1164,
+      "generatedTokens": 67,
+      "stopReason": "eos"
+    }
+  ],
+  "promptTokens": 3141,
+  "generatedTokens": 202,
+  "totalChargedTokens": 3343,
+  "rawOutputUtf16": 609,
+  "withinBudgets": true,
+  "executedArithmeticOperations": 2,
+  "finalAnswerGenerated": false,
+  "correctionCount": 1,
+  "elapsedSeconds": 176.390173,
+  "timingScope": "Observed CPU elapsed, not controlled performance.",
+  "boundaryResult": "Unavailable calendar family omitted; first request passes typed admission and exact arithmetic. This is not a full task gain.",
+  "observations": [
+    "D1 selected8400 minus25% of8400, yielding6300 after deposit with2100 intermediate. Required budget headroom1600 was not requested.",
+    "D2 both attempts omit required nullable multiplier fields. Actual validator rejects Invalid money term before execution.",
+    "D2 selected included allowance500 as an extra addition and September20 date alias as a money term. Correction changes its sign from subtract to add but not shape/type.",
+    "No failed plan was partially executed or rewritten."
+  ],
+  "contractFriction": "Description calls multiplier optional while schema requires a nullable multiplier field. Making omission explicitly legal would not fix the observed date-as-money or included-allowance selection; no further candidate was run.",
+  "failure": "Typed request/tool rejected: Invalid money term",
+  "semanticReview": [
+    {
+      "criterion": "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+      "established": false,
+      "reason": "No final answer; required complete factual/citation evidence absent."
+    },
+    {
+      "criterion": "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+      "established": false,
+      "reason": "No final answer; required complete factual/citation evidence absent."
+    },
+    {
+      "criterion": "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+      "established": false,
+      "reason": "No final answer; required complete factual/citation evidence absent."
+    },
+    {
+      "criterion": "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+      "established": false,
+      "reason": "No final answer; required complete factual/citation evidence absent."
+    },
+    {
+      "criterion": "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges.",
+      "established": false,
+      "reason": "No final answer; required complete factual/citation evidence absent."
+    }
+  ],
+  "unrunSourceDocuments": [
+    "D3"
+  ],
+  "unrunCases": [
+    "fresh-bathroom-correction",
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "holdouts": "Two existing independent holdouts remain locked and unrun.",
+  "outputRepair": false,
+  "productionAdoption": false,
+  "modelScope": "Original Qwen3-1.7B source only. This result neither qualifies deployed0.8B nor changes Doppler arithmetic/runtime/numerical acceptance.",
+  "rawEvidence": [
+    {
+      "path": "result.json.gz",
+      "sha256": "eaf777b728b6279f6d9e8a723bd3b20b741b3850544756412c18c988baef1cb0",
+      "uncompressedSha256": "4a510d1ae6c5e48b4000f4c2945a00a400cd9cc261093aee936ca88dc026e80a",
+      "uncompressedBytes": 70751
+    },
+    {
+      "path": "result-fresh-bathroom-comparison-extract-D1-0.json.gz",
+      "sha256": "a7197343173e086734a1dde260e465ad8f964c1b3423e345fa5e79ed2d32c1d6",
+      "uncompressedSha256": "b8ba9b088c8fcd1e5a90c3165922af212b86f27f37d4b91516b60832cbc1f9ba",
+      "uncompressedBytes": 15497
+    },
+    {
+      "path": "result-fresh-bathroom-comparison-extract-D2-0.json.gz",
+      "sha256": "08180ef4ad6d29b043ee1addcb5af6b9279dcc97d9ed0f25694fab60c5dca8f1",
+      "uncompressedSha256": "9bee2d151507e28beb5f90bfd9de64b8a7ce9062604765852389d421cea1b0ee",
+      "uncompressedBytes": 16329
+    },
+    {
+      "path": "result-fresh-bathroom-comparison-extract-D2-1.json.gz",
+      "sha256": "ce2c8fbb1d2911dd504f2d10307336b6e1f1c4d9fba1d242d2ff6b0d9efb5155",
+      "uncompressedSha256": "7a5355ac4ba2ed9db1cd094b4f43785220b43017424445963e69c802f18ae5d7",
+      "uncompressedBytes": 18406
+    },
+    {
+      "path": "run.log.gz",
+      "sha256": "6bdd6cda8a5fb5e118ccb47342607a3be7416fc2b2190b5fe9a5d95a0bc80547",
+      "uncompressedSha256": "38015ce13f3c6516512b00b13acb8938d64d5b24c0cc00ff77179ad7a41eb5e4",
+      "uncompressedBytes": 2311
+    }
+  ]
+}
