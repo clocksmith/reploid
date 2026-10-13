@@ -1,0 +1,46 @@
+
+Running 1 test using 1 worker
+
+(node:75177) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:75177) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:62:3 › light one rail centers all four controls and opens each panel at 1440px (10.2s)
+[31mTesting stopped early after 1 maximum allowed failures.[39m
+
+
+  1) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:62:3 › light one rail centers all four controls and opens each panel at 1440px 
+
+    [31mTest timeout of 10000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-conversation-actions]')
+    Expected: hidden
+    Received: visible
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 30000ms[22m
+    [2m  - waiting for locator('[data-conversation-actions]')[22m
+    [2m    14 × locator resolved to <details data-conversation-actions="" class="chat-conversation-actions">…</details>[22m
+    [2m       - unexpected value "visible"[22m
+
+
+      65 |     const rail = page.locator('[data-thread-sidebar]');
+      66 |     await expect(page.locator('[data-thread-list]')).toBeHidden();
+    > 67 |     await expect(page.locator('[data-conversation-actions]')).toBeHidden();
+         |                                                               ^
+      68 |     await expect(page.locator('.pool-power-tower:visible')).toHaveCount(1);
+      69 |     await expect(page.locator('[data-pool-settings] > summary')).toBeHidden();
+      70 |     const controls = await measureControls(page);
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:67:63
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/single-chat-rail-20261013/before/chat-rail-layout-light-one-dd9e4--opens-each-panel-at-1440px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/single-chat-rail-20261013/before/chat-rail-layout-light-one-dd9e4--opens-each-panel-at-1440px-chromium-swiftshader/error-context.md
+
+  1 failed
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:62:3 › light one rail centers all four controls and opens each panel at 1440px 
+  1 error was not a part of any test, see above for details

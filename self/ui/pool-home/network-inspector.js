@@ -9,7 +9,6 @@ import { projectExecutionRibbon, routeMarkup, detailMarkup } from './execution-r
 
 export function renderNetworkInspector() {
   return `<aside class="chat-network-rail pool-surface" data-network-rail aria-label="Network and settings">
-    <div class="chat-rail-heading" data-settings-rail-slot></div>
     <button class="pool-button chat-network-toggle" type="button" data-toggle-inspector aria-haspopup="dialog" aria-expanded="false" aria-label="Inspect network" title="Network">${interfaceIcon('peers')}<span class="chat-rail-label" data-mesh-peers>0 computers</span></button>
     <dialog class="network-inspector pool-surface" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 id="network-inspector-title">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close network and settings">${interfaceIcon('close')}</button></header>
@@ -47,22 +46,32 @@ export function renderNetworkInspector() {
 }
 
 export function bindNetworkInspector(root, session, { getInviteUrl, loadSpecialized } = {}) {
-  const find = selector => root.querySelector(selector);
+  const rail = root.querySelector('[data-network-rail]');
+  const find = selector => rail.querySelector(selector) || root.querySelector(selector);
   const panel = find('[data-contextual-inspector]');
+  const toggle = find('[data-toggle-inspector]');
   const surface = root.closest('.pool-home');
-  const rail = find('[data-network-rail]');
   const usesRails = ['home', 'network'].includes(surface?.dataset.poolRouteId);
-  const settings = usesRails ? surface.querySelector('.pool-primary-actions') : null;
-  const settingsParent = settings?.parentElement;
-  if (settings) {
-    find('[data-settings-rail-slot]').append(settings);
-    settings.querySelector('summary').insertAdjacentHTML('beforeend', '<span class="chat-rail-label" data-rail-settings-label>Settings</span>');
+  const settings = usesRails ? surface.querySelector('[data-pool-settings]') : null;
+  const settingsSection = settings?.querySelector('section');
+  const settingsChildren = settingsSection ? [...settingsSection.childNodes] : [];
+  if (settingsSection) {
+    find('[data-inspector-pane="settings"]').append(...settingsChildren);
+    settingsSection.hidden = true;
   }
+  let onRailOpen = null;
   let opener;
   const dialog = {
-    open(focus, trigger) { opener = trigger; opener?.setAttribute?.('aria-expanded', 'true'); if (!panel.open) panel.show(); surface?.setAttribute('data-right-rail-open', ''); rail.dataset.expanded = ''; find('[data-toggle-inspector]').setAttribute('aria-expanded', 'true'); focus?.focus(); },
-    close() { opener?.setAttribute?.('aria-expanded', 'false'); panel.close(); surface?.removeAttribute('data-right-rail-open'); delete rail.dataset.expanded; find('[data-toggle-inspector]').setAttribute('aria-expanded', 'false'); opener?.focus?.({ preventScroll: true }); },
-    dispose() { if (panel.open) panel.close(); surface?.removeAttribute('data-right-rail-open'); settings?.querySelector('[data-rail-settings-label]')?.remove(); if (settings && settingsParent) settingsParent.append(settings); }
+    open(focus, trigger) {
+      onRailOpen?.(); opener = trigger || toggle;
+      opener.setAttribute('aria-expanded', 'true');
+      surface?.setAttribute('data-network-panel-open', ''); rail.dataset.expanded = '';
+      toggle.setAttribute('aria-expanded', 'true');
+      if (!panel.open) panel.show();
+      (focus || opener).focus({ preventScroll: true });
+    },
+    close({ restoreFocus = true } = {}) { const wasOpen = panel.open; opener?.setAttribute?.('aria-expanded', 'false'); panel.close(); surface?.removeAttribute('data-network-panel-open'); delete rail.dataset.expanded; toggle.setAttribute('aria-expanded', 'false'); if (wasOpen && restoreFocus) opener?.focus?.({ preventScroll: true }); },
+    dispose() { if (panel.open) panel.close(); surface?.removeAttribute('data-network-panel-open'); if (settingsSection) { settingsSection.append(...settingsChildren); settingsSection.hidden = false; } }
   };
   const controller = new AbortController(), options = { signal: controller.signal };
   const network = bindNetworkControls(panel, session, { getInviteUrl });
@@ -80,8 +89,10 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const grant = event.target.closest('[data-revoke-grant]');
     if (grant) void act(() => session.revokeGrant(session.getState().selectedId, grant.dataset.revokeGrant));
   }, options);
-  rail.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); dialog.close(); } }, options);
-  on('[data-toggle-inspector]', 'click', event => { if (panel.open) dialog.close(); else { select('participants'); dialog.open(null, event.currentTarget); } });
+  const onEscape = event => { if (event.key === 'Escape' && panel.open) { event.preventDefault(); event.stopPropagation(); dialog.close(); } };
+  rail.addEventListener('keydown', onEscape, options);
+  toggle.addEventListener('keydown', onEscape, options);
+  toggle.addEventListener('click', event => { if (panel.open) dialog.close(); else { select('participants'); dialog.open(null, event.currentTarget); } }, options);
   on('[data-close-inspector]', 'click', () => dialog.close());
   const unsubscribe = session.subscribe(snapshot => {
     const state = withComputerLabels(snapshot, session);
@@ -137,12 +148,24 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     }
   });
   return {
+    mountRail(panelSlot, triggerSlot, onOpen) {
+      if (!panelSlot || !triggerSlot) return () => {};
+      const railParent = rail.parentElement, railNext = rail.nextSibling;
+      const triggerParent = toggle.parentElement, triggerNext = toggle.nextSibling;
+      panelSlot.append(rail); triggerSlot.append(toggle); rail.dataset.mounted = '';
+      onRailOpen = onOpen;
+      return () => {
+        dialog.close({ restoreFocus: false }); onRailOpen = null; delete rail.dataset.mounted;
+        triggerParent.insertBefore(toggle, triggerNext?.parentNode === triggerParent ? triggerNext : null);
+        railParent.insertBefore(rail, railNext?.parentNode === railParent ? railNext : null);
+      };
+    },
     toggle(section = 'settings', opener) {
       if (panel.open && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();
       else { select(section); dialog.open(null, opener); }
     },
     open(section = 'participants', opener) { select(section); dialog.open(panel.querySelector(`[data-inspector-section="${section}"]`), opener); },
-    close: () => dialog.close(),
+    close: options => dialog.close(options),
     dispose() { disposed = true; metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }
   };
 }

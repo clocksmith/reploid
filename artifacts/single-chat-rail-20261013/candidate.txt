@@ -1,0 +1,113 @@
+
+Running 21 tests using 1 worker
+
+[1A[2K(node:76173) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:76173) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › light one rail centers all four controls and opens each panel at 1440px
+[1A[2K[2/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › light one rail centers all four controls and opens each panel at 390px
+[1A[2K[3/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › light one rail centers all four controls and opens each panel at 320px
+[1A[2K[4/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › dark one rail centers all four controls and opens each panel at 1440px
+[1A[2K[5/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › dark one rail centers all four controls and opens each panel at 390px
+[1A[2K[6/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › dark one rail centers all four controls and opens each panel at 320px
+[1A[2K[7/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:136:3 › light shared chat column follows the single panel at 1440px
+[1A[2K[8/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:136:3 › dark shared chat column follows the single panel at 1440px
+[1A[2K[9/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:136:3 › light shared chat column follows the single panel at 900px
+[1A[2K[10/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:136:3 › dark shared chat column follows the single panel at 900px
+[1A[2K[11/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:136:3 › light shared chat column follows the single panel at 390px
+[1A[2K[12/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:136:3 › dark shared chat column follows the single panel at 390px
+[1A[2K[13/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:136:3 › light shared chat column follows the single panel at 320px
+[1A[2K[14/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:136:3 › dark shared chat column follows the single panel at 320px
+[1A[2K[15/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:167:3 › light keyboard focus and marble switches at 1440px
+[1A[2K[16/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:167:3 › light keyboard focus and marble switches at 320px
+[1A[2K[17/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:167:3 › dark keyboard focus and marble switches at 1440px
+[1A[2K[18/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:167:3 › dark keyboard focus and marble switches at 320px
+[1A[2K[19/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:195:1 › Verification Worker accepts changed presentation modules
+[1A[2K[20/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:208:33 › shared shell inspector survives mounting and route return at 1440px
+[1A[2K  1) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:208:33 › shared shell inspector survives mounting and route return at 1440px 
+
+    [31mTest timeout of 15000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('.pool-home')
+    Expected: [32m"dark"[39m
+    Received: [31m""[39m
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 30000ms[22m
+    [2m  - waiting for locator('.pool-home')[22m
+    [2m    18 × locator resolved to <main class="pool-home" data-pool-route-id="home" data-network-panel-open="">…</main>[22m
+    [2m       - unexpected value "null"[22m
+
+
+      237 |   await expect(page.locator('[data-pool-theme-choice="dark"]')).toBeVisible();
+      238 |   await page.locator('[data-pool-theme-choice="dark"]').click();
+    > 239 |   await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-theme','dark');
+          |                                            ^
+      240 |   await page.evaluate(()=>{window.railState.network.consumer.peers.pop();window.emitRailState();});
+      241 |   await page.locator('[data-inspector-section="participants"]').click();
+      242 |   await expect(page.locator('[data-peer-readiness]')).toBeVisible();
+        at /private/var/tmp/reploid-single-rail-xq5kinea/tests/e2e/chat-rail-layout.spec.js:239:44
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/chat-rail-layout-shared-sh-f8121--and-route-return-at-1440px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/chat-rail-layout-shared-sh-f8121--and-route-return-at-1440px-chromium-swiftshader/error-context.md
+
+
+[1A[2K(node:76295) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:76295) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[21/21] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:208:33 › shared shell inspector survives mounting and route return at 320px
+[1A[2K  2) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:208:33 › shared shell inspector survives mounting and route return at 320px 
+
+    [31mTest timeout of 15000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveAttribute[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('.pool-home')
+    Expected: [32m"dark"[39m
+    Received: [31m""[39m
+
+    Call log:
+    [2m  - Expect "toHaveAttribute" with timeout 30000ms[22m
+    [2m  - waiting for locator('.pool-home')[22m
+    [2m    15 × locator resolved to <main class="pool-home" data-pool-route-id="home" data-network-panel-open="">…</main>[22m
+    [2m       - unexpected value "null"[22m
+
+
+      237 |   await expect(page.locator('[data-pool-theme-choice="dark"]')).toBeVisible();
+      238 |   await page.locator('[data-pool-theme-choice="dark"]').click();
+    > 239 |   await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-theme','dark');
+          |                                            ^
+      240 |   await page.evaluate(()=>{window.railState.network.consumer.peers.pop();window.emitRailState();});
+      241 |   await page.locator('[data-inspector-section="participants"]').click();
+      242 |   await expect(page.locator('[data-peer-readiness]')).toBeVisible();
+        at /private/var/tmp/reploid-single-rail-xq5kinea/tests/e2e/chat-rail-layout.spec.js:239:44
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/chat-rail-layout-shared-sh-e4d12-g-and-route-return-at-320px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/chat-rail-layout-shared-sh-e4d12-g-and-route-return-at-320px-chromium-swiftshader/error-context.md
+
+
+[1A[2K[31mTesting stopped early after 2 maximum allowed failures.[39m
+
+[1A[2K  2 failed
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:208:33 › shared shell inspector survives mounting and route return at 1440px 
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:208:33 › shared shell inspector survives mounting and route return at 320px 
+  19 passed (58.7s)
+  1 error was not a part of any test, see above for details

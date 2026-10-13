@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/network-controls.test.js (6 tests) 87ms
+ ✓ tests/unit/pool-home-nav.test.js (25 tests) 68ms
+ ✓ tests/unit/conversation-workspace.test.js (20 tests) 1096ms
+
+ Test Files  3 passed (3)
+      Tests  51 passed (51)
+   Start at  14:16:09
+   Duration  1.97s (transform 1.09s, setup 0ms, import 1.50s, tests 1.25s, environment 770ms)
+
