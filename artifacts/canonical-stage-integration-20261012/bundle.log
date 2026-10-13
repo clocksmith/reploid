@@ -1,0 +1,5 @@
+
+> reploid@0.1.0 build:browser-bundle
+> node scripts/build-browser-bundle-manifest.js
+
+[browser-bundle] Wrote /Users/xyz/deco/reploid/self/config/browser-bundle-manifest.json with 1920 served files as sha256:9e0fbd49f57422b6f3156ebf1520e8d36a46467e499570610e63e4c386d67cf0

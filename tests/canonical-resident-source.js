@@ -65,7 +65,7 @@ function fixture({ index = 0, canonical = true, sessionChange = x => x } = {}) {
   await f.owner.admitCanonicalPrompt({ ...request, tokenIds: [1, 2] });
   await f.owner.executeCanonicalGroup1(request);
   assert.deepEqual(f.calls, ['admit', 'b']);
-  assert.throws(() => f.owner.commitCanonicalTransition({ identity }), /Only partition A/);
+  await assert.rejects(f.owner.commitCanonicalTransition({ identity }), /Only partition A/);
   await f.owner.close();
 }
 {
