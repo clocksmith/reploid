@@ -164,6 +164,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
               inputTokenIds: [...input], generation: settings, continuation: continuations[stage], activation,
               executionGrant: authority.execution[stage], tokenContextGrant: authority.tokenContext[stage],
               ...(stage > 0 ? { incomingActivationGrant: authority.activation[stage - 1] } : {}),
+              ...(stage < devices.length - 1 ? { outgoingActivationGrant: authority.activation[stage] } : {}),
               ...(stage === devices.length - 1 ? { outputGrant: authority.output } : {}),
               signal: combined }));
             combined.throwIfAborted();

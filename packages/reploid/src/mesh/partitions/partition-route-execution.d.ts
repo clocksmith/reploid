@@ -23,7 +23,7 @@ export interface OrderedStageDevice {
     generation: Record<string, unknown> & { maxTokens: number }; executionGrant: object; signal: AbortSignal }): Promise<OrderedReservation>;
   executeStage(options: OrderedStageBinding & OrderedStep & { inputTokenIds: number[];
     generation: Record<string, unknown> & { maxTokens: number }; continuation: unknown; activation?: unknown;
-    executionGrant: object; tokenContextGrant: object; incomingActivationGrant?: object; outputGrant?: object; signal: AbortSignal }): Promise<OrderedStageResult>;
+    executionGrant: object; tokenContextGrant: object; incomingActivationGrant?: object; outgoingActivationGrant?: object; outputGrant?: object; signal: AbortSignal }): Promise<OrderedStageResult>;
   closeAttempt(options: OrderedStageBinding): Promise<void>;
 }
 export interface OrderedRouteLimits {

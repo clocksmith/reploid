@@ -110,4 +110,18 @@ describe('ordered ordinary route (injected numerical execution)', () => {
     expect(f.runner.getState()).toMatchObject({ active: 0, unsettled: 0 });
   });
 
+  it('binds both transfer permissions at middle stages and allows a contributing node to request', async () => {
+    const f = fixture(4);
+    const result = await f.runner.execute({ ...f.request,
+      identity: { ...f.request.identity, requesterId: f.route.stages[2].participantId } });
+    expect(result.content).toBe('012');
+    for (let stage = 0; stage < 4; stage++) {
+      const [request] = f.stages[stage].executeStage.mock.calls[0];
+      expect(request.incomingActivationGrant).toEqual(stage ? f.request.grants.activation[stage - 1] : undefined);
+      expect(request.outgoingActivationGrant).toEqual(stage < 3 ? f.request.grants.activation[stage] : undefined);
+    }
+    const output = f.authorize.mock.calls.map(([value]) => value).find(value => value.action === 'mesh.transfer_partition_output');
+    expect(output.recipients).toEqual(['node-3', 'node-0', 'node-2']);
+  });
+
 });
