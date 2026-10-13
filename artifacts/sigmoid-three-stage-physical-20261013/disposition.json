@@ -1,0 +1,132 @@
+{
+  "schema": "reploid.ordered-preparation-disposition/v1",
+  "at": "2026-10-13T16:46:04.893Z",
+  "runtimeArchive": "c643cd25b0d7a868c0e14e4d758983c78380456d923ed2b4a7b4f8b30065c705",
+  "nativeArchive": "10121d79ae77d4d1bb95cec54893df238c94435e5234e3000cf5cbd01b1e77a9",
+  "delivery": "353627181a18225c0da81eb441a69a9fed99100905d8a9b7ce8903d5a7da61bd",
+  "scope": "Three-stage load-only prerequisite. No numerical prefixes executed; no ordered signed report generated.",
+  "mac": {
+    "pid": 61581,
+    "prepared": true,
+    "initialExecutionIdentity": "sha256:7addf431c95894376fef3ba6da7e59076201cf95e1dbf3e1c7917d2086372aa8",
+    "settlement": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 558257664,
+        "count": 64
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    }
+  },
+  "amd": {
+    "pid": 851434,
+    "prepared": false,
+    "failure": "load-only-stage-1 exceeded 300000ms; completion and ownership unknown",
+    "pending": [
+      {
+        "id": 8,
+        "operation": "createComputePipelineAsync",
+        "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+        "entryPoint": "main",
+        "constants": {
+          "WORKGROUP_SIZE": 128
+        },
+        "at": "2026-10-13T16:36:03.470Z",
+        "status": "started"
+      }
+    ],
+    "devicePeakBytes": 113881408,
+    "cleanupFailure": "Closed resident still owns weights\n\n114 !== 0\n",
+    "providerError": "close-provider exceeded 10000ms; completion and ownership unknown",
+    "resourcesAtCleanup": {
+      "retainedModel": {
+        "bytes": 94953472,
+        "count": 114
+      },
+      "active": {
+        "bytes": 2097152,
+        "count": 2
+      },
+      "reusable": {
+        "bytes": 256,
+        "count": 1
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    },
+    "termination": "SIGTERM after bounded cleanup failed; process absence confirmed, not a passing GPU cleanup"
+  },
+  "suby": {
+    "pid": 824408,
+    "providerOpened": false,
+    "processExited": true,
+    "scope": "Unopened fixture closed; no model preflight or numerical claim"
+  },
+  "limits": {
+    "operationMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000,
+    "deviceBytes": 1420000000
+  },
+  "observability": "Pipeline creation observed before opening. Queue observer is installed after opening, so empty submission arrays cannot establish zero preparation dispatches.",
+  "performanceIsolation": false,
+  "qualification": false,
+  "evidence": {
+    "amd-load-preflight.json": {
+      "bytes": 946100,
+      "sha256": "252184ae549dd1c25455a6f1dd331b5374c3279049a8888a93fb62d3384cf716"
+    },
+    "amd-operator-stop.json": {
+      "bytes": 663,
+      "sha256": "5b9851e14d648bc60185586625bfb1db2a76e790ee86b4717e2e22ea7436a902"
+    },
+    "final-process-inventory.json": {
+      "bytes": 2341,
+      "sha256": "5e26c11c59e8b595799dc346cb238a50ce4154ad6ffe559a76c3a9fa6bdecd41"
+    },
+    "load-preflight.js": {
+      "bytes": 6873,
+      "sha256": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a"
+    },
+    "mac-load-preflight.json": {
+      "bytes": 220306,
+      "sha256": "cd8bd39a8f55bdef5fbdeb9f5c4260489d1a5259cefa669a7b24e6736dcdf7f5"
+    },
+    "preflight-binding.json": {
+      "bytes": 757,
+      "sha256": "55c1b860598d8ca2990504b7f29d83a627c953a01c5643053836cf3c0b52d566"
+    },
+    "process-inventory.json": {
+      "bytes": 1852,
+      "sha256": "906088f3753c108735b5c610bbe1766370c396dc688c100e5175f36ecdecac1f"
+    },
+    "reservation.json": {
+      "bytes": 686,
+      "sha256": "ac1bdddb600a6df77156efc2e7ba6f40b85fd7be9cf3af14c9844d7f8e149f98"
+    },
+    "startup-binding.json": {
+      "bytes": 471,
+      "sha256": "9f4ebdc004a103dfad0deb8c2dd45699e5418500510722466288d2fa2a603ed5"
+    },
+    "startup-config.json": {
+      "bytes": 549,
+      "sha256": "d97808e54123a778c65da78366ece213a9a9587aed8c9608d9c9bb3b1b2f439c"
+    },
+    "suby-unopened-close.json": {
+      "bytes": 1699,
+      "sha256": "f16dec71d391d193dc3edb45affc30299246347981ab897dc5cf7e510441e71e"
+    }
+  }
+}

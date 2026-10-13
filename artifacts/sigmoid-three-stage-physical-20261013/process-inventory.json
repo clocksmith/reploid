@@ -1,0 +1,22 @@
+{
+  "mac": {
+    "observedAt": "2026-10-13T16:34:23.508776+00:00",
+    "processes": [
+      "34460     1 S    03-16:02:06 /Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    ]
+  },
+  "amd": {
+    "observedAt": "2026-10-13T16:34:23.912919+00:00",
+    "processes": [
+      "4103868       1 Rsl     14:30:46 node server/native-participant.js --contribute --share-files --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/x/.local/share/reploid/public-native/weights --cache-directory /home/x/.local/share/reploid/public-native/cache-budget-20261012 --identity-file /home/x/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+      "4121371       1 Ssl     14:29:10 node scripts/run-mesh-contributor.js --url https://replo.id/ --model qwen-3-5-0-8b-q4k-ehaf16 --profile /home/x/.local/share/reploid/public-compute --contribute compute"
+    ]
+  },
+  "suby": {
+    "observedAt": "2026-10-13T16:34:24.408179+00:00",
+    "processes": [
+      " 297260       1 Rsl     14:30:24 node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo.id --signaling-url wss://reploid-swarm.reploid.workers.dev/swarm",
+      " 299769       1 Ssl     14:27:09 node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+    ]
+  }
+}

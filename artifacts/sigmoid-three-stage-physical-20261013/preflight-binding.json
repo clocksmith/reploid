@@ -1,0 +1,14 @@
+{
+  "schema": "reploid.ordered-load-preflight-binding/v1",
+  "snapshotHash": "353627181a18225c0da81eb441a69a9fed99100905d8a9b7ce8903d5a7da61bd",
+  "archiveHash": "c643cd25b0d7a868c0e14e4d758983c78380456d923ed2b4a7b4f8b30065c705",
+  "nativeArchiveHash": "10121d79ae77d4d1bb95cec54893df238c94435e5234e3000cf5cbd01b1e77a9",
+  "nativeDescriptorHash": "45362da009305e5c4513a171bc0952c47905a6520840e59419fca92737ea6d33",
+  "scriptSha256": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a",
+  "operation": "Load only through unchanged physical fixture owners; observe initial identity before any new numerical expectation freeze; no token execution",
+  "deadlines": {
+    "stageMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000
+  }
+}

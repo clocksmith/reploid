@@ -1,0 +1,11 @@
+{
+  "applicationDirectory": "/var/tmp/reploid-sigmoid-native-20261013/reploid",
+  "nativeDeliverySha256": "45362da009305e5c4513a171bc0952c47905a6520840e59419fca92737ea6d33",
+  "providerModule": "webgpu",
+  "testDelivery": {
+    "root": "/var/tmp/reploid-sigmoid-three-stage-20261013",
+    "bindingPath": "/var/tmp/reploid-sigmoid-three-stage-20261013/snapshot-binding.json",
+    "bindingSha256": "353627181a18225c0da81eb441a69a9fed99100905d8a9b7ce8903d5a7da61bd",
+    "archivePath": "/var/tmp/reploid-sigmoid-three-stage-20261013/archive.tgz"
+  }
+}

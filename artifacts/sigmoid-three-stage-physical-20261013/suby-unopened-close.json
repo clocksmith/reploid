@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-13T16:41:56.215Z",
+  "scope": "Unopened Suby fixture closed after AMD admission failed",
+  "identity": {
+    "node": "22.21.0",
+    "pid": 824408,
+    "platform": "linux",
+    "fixture": {
+      "schema": "reploid.native-partition-fixture/v1",
+      "nativeDeliverySha256": "45362da009305e5c4513a171bc0952c47905a6520840e59419fca92737ea6d33",
+      "testDelivery": {
+        "schema": "reploid.numerical-test-delivery/v1",
+        "testDeliveryHash": "sha256:353627181a18225c0da81eb441a69a9fed99100905d8a9b7ce8903d5a7da61bd",
+        "archiveSha256": "c643cd25b0d7a868c0e14e4d758983c78380456d923ed2b4a7b4f8b30065c705",
+        "snapshotFiles": 2575,
+        "installedFiles": 1976,
+        "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+        "applicationQualification": false
+      },
+      "runtimeBaseUrl": "file:///var/tmp/reploid-sigmoid-native-20261013/reploid/node_modules/doppler-gpu/src/",
+      "config": {
+        "DOPPLER_PARTITIONS_MODULE_URL": "file:///var/tmp/reploid-sigmoid-native-20261013/reploid/node_modules/doppler-gpu/src/partitions.js",
+        "DOPPLER_KERNEL_BASE_URL": "file:///var/tmp/reploid-sigmoid-native-20261013/reploid/node_modules/doppler-gpu/src/gpu/kernels/",
+        "DOPPLER_PACKAGE_VERSION": "0.6.28"
+      },
+      "provider": {
+        "module": "webgpu",
+        "version": "0.4.0",
+        "entrySha256": "18a44f1e81cd3697156e7ddd3456e9f0d346a0afabb76588379b5b2f6dca50b4",
+        "packageSha256": "808ca40c7fdacd112c4b1935dde1fbbbf4279ae11dbbae5ef5cd50b1c639222a"
+      }
+    }
+  },
+  "result": {
+    "closed": true,
+    "providerOpened": false,
+    "ownedProviderReleased": false
+  }
+}
