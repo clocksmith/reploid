@@ -4,12 +4,18 @@ import { createPartitionReservations } from './partition-reservations.js';
 import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
 
 /** Owns an explicitly contributed runtime session; never implements model computation. */
-export function createResidentPartition({ runtime, model, plan, planId, index, participantId, limits, onChange = () => {} }) {
+export function createResidentPartition({ runtime, model, plan, planId, index, participantId, limits,
+  canonicalGeneration, canonicalRuntime, onChange = () => {} }) {
   assert(typeof runtime?.openResidentPartition === 'function', 'Doppler resident partition API is unavailable');
   assert([0, 1].includes(index) && plan?.partitions?.[index] && model?.id === plan.modelId
     && /^sha256:[a-f0-9]{64}$/.test(model.identity) && typeof planId === 'string' && planId
     && typeof participantId === 'string' && participantId, 'Explicit resident partition allocation required');
-  const allocation = structuredClone({ model, plan, planId, index, participantId, limits });
+  assert(canonicalGeneration === undefined || typeof canonicalRuntime?.canonicalGenerationIdentity === 'function',
+    'Explicit canonical Doppler capability required');
+  const canonical = canonicalGeneration === undefined ? null : canonicalRuntime.canonicalGenerationIdentity(
+    canonicalGeneration.policy, canonicalGeneration.executionIdentity, plan.vocabSize);
+  const allocation = structuredClone({ model, plan, planId, index, participantId, limits,
+    ...(canonicalGeneration === undefined ? {} : { canonicalGeneration }) });
   const lifetime = new AbortController(), operations = new Set(), listeners = new Set([onChange]);
   const attempts = new Set();
   const reservations = createPartitionReservations({ limits, participantId, index });
@@ -33,6 +39,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     assert(actual?.schema === 'doppler.resident-partition/v1' && actual.ready === true
       && actual.modelId === allocation.model.id && actual.modelIdentity === allocation.model.identity
       && actual.generationDigest === generationDigest
+      && (actual.canonicalGenerationId ?? null) === (canonical?.generationId ?? null)
       && actual.planId === allocation.planId && actual.index === allocation.index
       && canonicalPartitionJson(actual.layerRange) === canonicalPartitionJson(allocation.plan.partitions[index].layerRange)
       && Number.isSafeInteger(actual.residentWeightBytes) && actual.residentWeightBytes > 0,
@@ -84,8 +91,13 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     operation.finally(() => operations.delete(operation)).catch(() => {});
     return operation;
   };
+  const canonicalInvoke = (method, request) => {
+    assert(canonical, 'Canonical resident execution was not allocated');
+    return invoke(method, request);
+  };
   return Object.freeze({
     id: participantId, index, getState: state, reserve,
+    getCanonicalGeneration: () => structuredClone(canonical),
     canAccept(identity) { return !lifetime.signal.aborted && ((phase === 'ready' || phase === 'draining')
       && attempts.has(identity?.attemptId) || phase === 'ready' && reservations.getState().availableSlots > 0); },
     subscribe(listener) { listeners.add(listener); listener(state()); return () => listeners.delete(listener); },
@@ -108,6 +120,13 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
           assert(['getDescriptor', 'getRecoveryCapabilities', 'tokenize', 'executeGroup0', 'executeGroup1',
             'closeAttempt', 'close'].every(method => typeof session?.[method] === 'function'),
           'Incomplete Doppler resident partition API');
+          if (canonical) {
+            assert(['getCanonicalGeneration', 'admitCanonicalPrompt', 'executeCanonicalGroup0',
+              'executeCanonicalGroup1', 'commitCanonicalTransition'].every(method => typeof session?.[method] === 'function'),
+            'Incomplete canonical Doppler resident capability');
+            assert(canonicalPartitionJson(session.getCanonicalGeneration()) === canonicalPartitionJson(canonical),
+              'Canonical Doppler generation differs from admitted allocation');
+          }
           const capabilities = session.getRecoveryCapabilities();
           assert(capabilities?.schema === 'doppler.resident-recovery/v1'
             && ['inputReplay', 'checkpointExport', 'checkpointImport'].every(key => capabilities[key] === false),
@@ -122,8 +141,12 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       return preparing;
     },
     tokenize(request) { assert(index === 0, 'Only partition A tokenizes'); return invoke('tokenize', request); },
-    executeGroup0(request) { assert(index === 0, 'This contributor is partition B'); return invoke('executeGroup0', request); },
-    executeGroup1(request) { assert(index === 1, 'This contributor is partition A'); return invoke('executeGroup1', request); },
+    executeGroup0(request) { assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 0, 'This contributor is partition B'); return invoke('executeGroup0', request); },
+    executeGroup1(request) { assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 1, 'This contributor is partition A'); return invoke('executeGroup1', request); },
+    admitCanonicalPrompt(request) { return canonicalInvoke('admitCanonicalPrompt', request); },
+    executeCanonicalGroup0(request) { assert(index === 0, 'This contributor is partition B'); return canonicalInvoke('executeCanonicalGroup0', request); },
+    executeCanonicalGroup1(request) { assert(index === 1, 'This contributor is partition A'); return canonicalInvoke('executeCanonicalGroup1', request); },
+    commitCanonicalTransition(request) { assert(index === 0, 'Only partition A commits the remote transition'); return canonicalInvoke('commitCanonicalTransition', request); },
     async closeAttempt({ identity }) {
       // Never free admission capacity before the runtime confirms cleanup.
       reservations.settling(identity);

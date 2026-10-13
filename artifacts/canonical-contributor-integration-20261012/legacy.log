@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/partition-runner.test.js (24 tests) 16ms
+ ✓ tests/unit/partition-api.test.js (41 tests) 3685ms
+     ✓ discovers cooperative executors with replica coverage=false  1686ms
+     ✓ discovers cooperative executors with replica coverage=true  1334ms
+
+ Test Files  2 passed (2)
+      Tests  65 passed (65)
+   Start at  21:22:59
+   Duration  4.20s (transform 164ms, setup 0ms, import 397ms, tests 3.70s, environment 368ms)
+
