@@ -1,0 +1,21 @@
+{
+  "scope": "Transcribed initial harness debugging; these early source versions were not frozen and are not production failures.",
+  "observations": [
+    {
+      "result": "No complete entry",
+      "cause": "Fixture plan omitted layerRange fields required by descriptor comparison; copied the declared layer ranges as existing cross-size fixture does."
+    },
+    {
+      "result": "20second test deadline then targeted4second gate wait failure",
+      "cause": "Both requesters selected first available entry because fixture discovery allowed incoming connectivity from both coordinators; test wrongly assumed selecting same model object pinned its advertised coordinator. Limited direct visibility symmetrically to exercise two actual independent entries; authorization still uses selected route."
+    },
+    {
+      "result": "Final shared stage had2active attempts immediately after requester cancellation instead of1",
+      "cause": "Requester cancellation acknowledgment precedes remote settlement. Control now waits for actual resident close before asserting survivor-only state."
+    },
+    {
+      "result": "Fixture final cleanup masked assertion with connection-loss debt",
+      "cause": "Parallel all-node teardown disconnected peers before coordinator settlement. Fixture cleanup now retires coordinator owners first, then stage/requester owners. Actual middle-withdrawal failure remains reproduced separately."
+    }
+  ]
+}

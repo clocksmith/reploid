@@ -1,0 +1,13 @@
+{
+  "scope": "Actual automatic owners with injected numerical stages, certificate verification and in-process channels. Not physical/model quality evidence.",
+  "head": "720d351425331d106c41962735fd9e8dfcb64b34",
+  "sources": {
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js": "0c228ad36bfdd382ea3a0ced2c283b6b4b0a002229dd1aa60fbddda8ad4fb110",
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.js": "406b15d7214c83183a4434a2cc03b2c81134bdc7b41e9f3f27a1a86ae95c4d17",
+    "packages/reploid/src/mesh/partitions/partition-route-network.js": "20fb8045b8f85e9d5e6ce29f6454d43c1d0d9c39a245e96797e83adc26a0a7ea",
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.js": "0b075bc0bc4a0de2fb1bb9d228bfc1082153762b09cf3c6de8a0b518a64b92b7",
+    "tests/fixtures/automatic-ordered-mesh.js": "152fc2c1734be1b0e951b36485f4bba7005c47c82c4830b051c8432fe38d27fa",
+    "tests/unit/automatic-ordered-isolation.test.js": "2b23e090dccbcb4841e18ac0e9c8ef13ab3f4839e79a515160774d8ecb76fef1"
+  },
+  "failure": "Graceful middle withdrawal locally settles but closes RPC before coordinator settlement receipt; old route cleanup stays unknown and blocks replacement."
+}

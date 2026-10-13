@@ -1,0 +1,81 @@
+{
+  "scope": "Actual Verification Worker AST analysis of automatic multiuser isolation controls; no model execution",
+  "at": "2026-10-13T16:26:19.853Z",
+  "sources": [
+    {
+      "name": "tests/fixtures/automatic-ordered-mesh.js",
+      "sha256": "5b928039dcd0c461a0cfe6fa4c176d10bc3ed1e4c5b93585584e6292e185b8f9"
+    },
+    {
+      "name": "tests/unit/automatic-ordered-isolation.test.js",
+      "sha256": "19db6866ae18c65cc132b1970e3f0443ae362927ee57834d06ebd6e938e7b83a"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /tests/fixtures/automatic-ordered-mesh.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/automatic-ordered-isolation.test.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791908779845,
+        "path": "/tests/fixtures/automatic-ordered-mesh.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791908779847,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/tests/fixtures/automatic-ordered-mesh.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791908779849,
+        "path": "/tests/unit/automatic-ordered-isolation.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/tests/fixtures/automatic-ordered-mesh.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/automatic-ordered-isolation.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/tests/fixtures/automatic-ordered-mesh.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

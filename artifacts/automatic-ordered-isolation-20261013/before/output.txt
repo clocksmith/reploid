@@ -1,0 +1,42 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+stdout | tests/unit/automatic-ordered-isolation.test.js > isolates distinct tasks through cancellation, replica join, middle withdrawal and freshly approved replacement
+PRIMARY AssertionError: expected 'peer:15c69f5f966ee89b5d3ac69c' to be 'peer:a75d6ed1c3500b8e30cae314' // Object.is equality
+    at __vite_ssr_import_0__.vi.waitFor.timeout (/Users/xyz/deco/reploid/tests/unit/automatic-ordered-isolation.test.js:45:91)
+    at Timeout.checkCallback (file:///Users/xyz/deco/reploid/node_modules/vitest/dist/chunks/test.DNmyFkvJ.js:3383:20)
+    at listOnTimeout (node:internal/timers:588:17)
+    at processTimers (node:internal/timers:523:7) {
+  actual: 'peer:15c69f5f966ee89b5d3ac69c',
+  expected: 'peer:a75d6ed1c3500b8e30cae314',
+  showDiff: true,
+  operator: 'strictEqual'
+}
+
+ × tests/unit/automatic-ordered-isolation.test.js > isolates distinct tasks through cancellation, replica join, middle withdrawal and freshly approved replacement 5403ms
+   → Ordered automatic cleanup remains unsettled
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/automatic-ordered-isolation.test.js > isolates distinct tasks through cancellation, replica join, middle withdrawal and freshly approved replacement
+AggregateError: Ordered automatic cleanup remains unsettled
+ ❯ packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:276:36
+    274|         const independent = await Promise.allSettled([closeOwner(entri…
+    275|         const failures = [...stopped, ...independent].filter(row => ro…
+    276|         if (failures.length) throw new AggregateError(failures, 'Order…
+       |                                    ^
+    277|         authority.close(); listeners.clear(); admissions.clear();
+    278|       })().catch(cause => { closing = null; throw cause; });
+ ❯ Object.close tests/fixtures/automatic-ordered-mesh.js:103:23
+ ❯ tests/unit/automatic-ordered-isolation.test.js:58:75
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { errors: [ { stack: 'AggregateError: Ordered chat settlement failed\n    at retire (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:81:63)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at processTimers (node:internal/timers:520:9)\n    at /Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:226:15\n    at async Promise.allSettled (index 0)\n    at /Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:273:25\n    at async Promise.allSettled (index 0)\n    at Object.close (/Users/xyz/deco/reploid/tests/fixtures/automatic-ordered-mesh.js:103:23)\n    at /Users/xyz/deco/reploid/tests/unit/automatic-ordered-isolation.test.js:58:75\n    at file:///Users/xyz/deco/reploid/node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20', message: 'Ordered chat settlement failed', errors: [ { stack: 'AggregateError: Ordered chat cleanup remains unsettled\n    at Object.close (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-ordered-chat.js:120:34)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at processTimers (node:internal/timers:520:9)\n    at closeOwner (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:75:22)\n    at async Promise.allSettled (index 0)\n    at retire (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:80:21)\n    at /Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:226:15\n    at async Promise.allSettled (index 0)\n    at /Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:273:25\n    at async Promise.allSettled (index 0)', message: 'Ordered chat cleanup remains unsettled', errors: [ { stack: 'AggregateError: Ordered route close remains unsettled\n    at Object.close (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:264:46)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at processTimers (node:internal/timers:520:9)\n    at async Promise.allSettled (index 0)\n    at Object.close (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-ordered-chat.js:117:23)\n    at closeOwner (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:75:22)\n    at async Promise.allSettled (index 0)\n    at retire (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:80:21)\n    at /Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:226:15\n    at async Promise.allSettled (index 0)', message: 'Ordered route close remains unsettled', errors: [ { stack: 'AggregateError: Ordered route cleanup remains unsettled\n    at /Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:74:46\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at processTimers (node:internal/timers:520:9)\n    at cleanup (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:76:18)\n    at async Promise.allSettled (index 0)\n    at Object.close (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:262:23)\n    at async Promise.allSettled (index 0)\n    at Object.close (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-ordered-chat.js:117:23)\n    at closeOwner (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:75:22)\n    at async Promise.allSettled (index 0)', message: 'Ordered route cleanup remains unsettled', errors: [ { stack: 'Error: A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.\n    at Object.request (/Users/xyz/deco/reploid/packages/reploid/src/transport/partition-data-channel.js:266:29)\n    at Object.closeAttempt (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-ordered-peer.js:198:35)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at processTimers (node:internal/timers:520:9)\n    at /Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:63:11\n    at async Promise.allSettled (index 0)\n    at /Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:61:23\n    at cleanup (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:76:18)\n    at async Promise.allSettled (index 0)\n    at Object.close (/Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:262:23)', message: 'A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.', code: 'CONNECTION_LOST', constructor: 'Function<Error>', name: 'Error', toString: 'Function<toString>' } ], code: 'CLEANUP_FAILED', constructor: 'Function<AggregateError>', name: 'AggregateError', toString: 'Function<toString>' } ], code: 'CLEANUP_FAILED', constructor: 'Function<AggregateError>', name: 'AggregateError', toString: 'Function<toString>' } ], constructor: 'Function<AggregateError>', name: 'AggregateError', toString: 'Function<toString>' } ], constructor: 'Function<AggregateError>', name: 'AggregateError', toString: 'Function<toString>' } ] }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  12:20:11
+   Duration  5.63s (transform 76ms, setup 0ms, import 163ms, tests 5.40s, environment 0ms)
+

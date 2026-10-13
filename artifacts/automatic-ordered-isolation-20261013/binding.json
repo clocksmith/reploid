@@ -1,0 +1,39 @@
+{
+  "scope": "Actual ordinary automatic/network/grants/chat/peer/runner owners; injected numerical tasks, certificate verifier and in-process channels. Source isolation proof only, no model usefulness/physical/canonical claim.",
+  "productionRevision": "73beb41ae949ddd0954849dd8abad7d5e67ca932",
+  "logicalParticipants": 8,
+  "routes": 2,
+  "stagesPerRoute": 3,
+  "sharedFinalResident": true,
+  "tasks": [
+    "Python double function",
+    "Closure explanation"
+  ],
+  "requesterModelLoaderCalls": 0,
+  "sourceHashes": {
+    "packages/reploid/src/mesh/partitions/automatic-partitions.js": "509b37223d583c5c98ba482862ab739272f67e3c760d5d48b68bced4f91e589d",
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js": "0c228ad36bfdd382ea3a0ced2c283b6b4b0a002229dd1aa60fbddda8ad4fb110",
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js": "cc4aeacc46682ec82fa849865e26b08d91e5ea59548360e8904e35dffe8a1056",
+    "packages/reploid/src/mesh/partitions/partition-route-network.js": "20fb8045b8f85e9d5e6ce29f6454d43c1d0d9c39a245e96797e83adc26a0a7ea",
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.js": "14c13520053b7b77cb20cbdcc6fc2943666fa5d94c2397605bc727c7a31c84e4",
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.js": "0b075bc0bc4a0de2fb1bb9d228bfc1082153762b09cf3c6de8a0b518a64b92b7",
+    "packages/reploid/src/mesh/partitions/partition-entry.js": "8bbc5694e0d1bff0705661df0272b8d4045a848d7225e82e9cf17c26cf5678ef",
+    "packages/reploid/src/mesh/partitions/partition-discovery.js": "221eb52d6d2ea6f4a3ffe24edd8359f6ebe53676fb7ad67707858eb7634c5ca2",
+    "packages/reploid/src/mesh/partitions/partition-placement.js": "bed32a084c2be1ff66e00d866e8ed7a9c47c6cdf938df3878a010237c9a01887",
+    "packages/reploid/src/mesh/partitions/partition-grants.js": "8210d8a1ea58463f27b236bbb22d1e1cd08a58ceb0e3eb8c361fa243b8325877",
+    "packages/reploid/src/mesh/partitions/partition-contract.js": "d0047768fb1376698a71bcbe35a7e8026dd6c1fea7f96e717878a96d58577f22",
+    "packages/reploid/src/mesh/partitions/partition-step-receiver.js": "2d903153b08b49c3bc88eccb3af2e5d4eaefe957c4c7cc43e32e2ef7bfcc0cce",
+    "packages/reploid/src/transport/partition-data-channel.js": "81f1a68711acae446d8e42c4f13728103b6003849892c8abba8279d1fa392fa5",
+    "tests/fixtures/ordered-partition-ports.js": "6b758df4b7cb8e4e4bf1bebcafcf4211fb32f4ce91fd1f53c0bbe92518957c21",
+    "tests/fixtures/automatic-ordered-mesh.js": "5b928039dcd0c461a0cfe6fa4c176d10bc3ed1e4c5b93585584e6292e185b8f9",
+    "tests/unit/automatic-ordered-isolation.test.js": "19db6866ae18c65cc132b1970e3f0443ae362927ee57834d06ebd6e938e7b83a"
+  },
+  "results": {
+    "tests": 47,
+    "passed": 47,
+    "failed": 0,
+    "sha256": "a626098ce18af08bb1c334623069aa9cfc69c3bf3f42c3adf093c1c78ee66199"
+  },
+  "workerSha256": "949fc5b969259d1bdcbfbce302973a4377890c3568755e4d36dbb50c9eded91b",
+  "independentReview": "Native participation owner reviewed fixture grants/auth/cleanup; no fake settlement or manual ledger clearing. Numerical ports remain injected."
+}
