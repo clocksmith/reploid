@@ -1,0 +1,53 @@
+{
+  "scope": "Post-run rejection audit; original expectations not rewritten, no report minted",
+  "rows": [
+    {
+      "platform": "mac.lan",
+      "browser": "155.0.8059.40",
+      "expectedBrowser": "155.0.8059.39",
+      "observedProvider": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "platform": "MacIntel",
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "unknown",
+          "description": ""
+        }
+      },
+      "expectedProvider": {
+        "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+        "platform": "MacIntel",
+        "adapter": {
+          "vendor": "apple",
+          "architecture": "metal-3",
+          "device": "unknown",
+          "description": ""
+        }
+      }
+    },
+    {
+      "platform": "x@128.tail995236.ts.net:node-dawn",
+      "browser": null,
+      "expectedBrowser": null,
+      "observedProvider": {
+        "adapter": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "radeon-8060s-graphics-radv-strix-halo-",
+          "description": "radv: Mesa 26.0.3-1ubuntu1"
+        }
+      },
+      "expectedProvider": {
+        "adapter": {
+          "vendor": "amd",
+          "architecture": "rdna-3",
+          "device": "radeon-8060s-graphics-radv-strix-halo-",
+          "description": "radv: Mesa 26.0.3-1ubuntu1"
+        }
+      },
+      "nativeProviderMatches": false,
+      "nodeMatches": true
+    }
+  ]
+}

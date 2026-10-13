@@ -1,0 +1,20 @@
+{
+  "scope": "Fresh adapter-only preflight; no GPUDevice, model, kernels or inference",
+  "at": "2026-10-13T13:14:42.304Z",
+  "host": "mac.lan",
+  "browser": "155.0.8059.40",
+  "executable": {
+    "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "sha256": "428dccc1a45819d23c5db4fb37388883f8d9ba64611cbd6c42395eac4a18b6a4"
+  },
+  "provider": {
+    "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+    "platform": "MacIntel",
+    "adapter": {
+      "vendor": "apple",
+      "architecture": "metal-3",
+      "device": "unknown",
+      "description": ""
+    }
+  }
+}
