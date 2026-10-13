@@ -198,6 +198,19 @@ describe('conversation workspace', () => {
     await app.close();
   });
 
+  it.each(['max-tokens', 'length', 'context-limit'])('retains %s output as incomplete instead of declaring success', async stopReason => {
+    const { app, store } = fixture(async (request, controls) => {
+      controls.onDelta({ ...result(request, ''), text: 'unfinished answer', sequence: 0 });
+      return { ...result(request, 'unfinished answer'), execution: { stopReason } };
+    });
+    const thread = app.createThread({ model });
+    const attempt = await app.send(thread, 'Explain the result');
+    expect(attempt.status).toBe('failed');
+    expect(attempt.error).toMatch(/limit.*incomplete/);
+    expect(store.load().threads[0].messages.at(-1)).toMatchObject({ content: 'unfinished answer', status: 'failed' });
+    await app.close();
+  });
+
   it('fails a stream with missing updates instead of silently joining incomplete text', async () => {
     const { app } = fixture(async (request, controls) => {
       controls.onDelta({ ...result(request, ''), text: 'missing prefix', sequence: 1 });

@@ -231,7 +231,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
         if (delivery.done) break;
       }
       return { content, tokenIds: outputTokens, logits, stopReason,
-        execution: { schema: 'reploid.mesh.partition-execution/v3', identity: binding, activationBytes, steps, settlement: receipt } };
+        execution: { schema: 'reploid.mesh.partition-execution/v3', identity: binding, activationBytes, steps, stopReason, settlement: receipt } };
     } catch (error) {
       failure = error;
       item.outcome = combined.aborted ? 'cancelled' : 'failed';

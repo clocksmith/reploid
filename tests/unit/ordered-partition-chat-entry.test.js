@@ -87,6 +87,21 @@ describe('ordinary ordered chat and requester entry with genuine grants and inje
       expect(f.f.stages[0].tokenize.mock.calls[1][0].messages).toEqual(followup.messages);
     } finally { await f.close(); }
   });
+  it.each(['eos-token', 'max-tokens', 'stop-sequence', 'context-limit'])('preserves runtime ending %s through ordered chat and requester summary', async reason => {
+    const f = await fixture(3, true);
+    const last = f.f.stages.at(-1), execute = last.executeStage.getMockImplementation();
+    last.executeStage.mockImplementation(async request => {
+      const result = await execute(request);
+      return result.done ? { ...result, stopReason: reason } : result;
+    });
+    try {
+      const result = await f.client.generate(f.request, f.controls);
+      expect(result.execution.stopReason).toBe(reason);
+      expect(result.content).toBe('012');
+      expect(result.execution.settlement.phase).toBe('completed');
+    } finally { await f.close(); }
+  });
+
   it('connects requester entry through real v4 grants, a remote middle activation and final peer response', async () => {
     const f = await fixture(3, true), deltas = [];
     try {

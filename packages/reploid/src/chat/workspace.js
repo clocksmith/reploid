@@ -219,8 +219,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
         if (transactional) await store.assertCurrentWriter();
         response.content = result.content;
         attempt.execution = copy(result.execution || attempt.execution);
-        assert(attempt.execution?.stopReason !== 'max-tokens',
-          'The answer reached its token limit and is incomplete. Its partial text is preserved; retry starts a new attempt.');
+        assert(!['max-tokens', 'length', 'context-limit'].includes(attempt.execution?.stopReason),
+          'The answer reached its generation limit and is incomplete. Its partial text is preserved; retry starts a new attempt.');
         assert(transactional || result.content.trim(), 'Invalid completed response');
         response.status = 'completed'; attempt.status = 'completed';
       } catch (error) {

@@ -12,7 +12,7 @@ export function summarizePartitionExecution(execution) {
       row.steps++; stages.set(stage.partitionIndex, row);
     }
     return structuredClone({ schema: 'reploid.mesh.partition-summary/v2', identity: execution.identity,
-      activationBytes: execution.activationBytes, settlement: execution.settlement,
+      activationBytes: execution.activationBytes, stopReason: execution.stopReason, settlement: execution.settlement,
       stepSummary: { count: execution.steps?.length || 0, stages: [...stages.values()], detail: 'aggregate; no per-step trace transferred' } });
   }
   if (execution.schema === 'reploid.mesh.canonical-partition-execution/v1') {
