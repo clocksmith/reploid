@@ -1,0 +1,134 @@
+{
+  "schema": "reploid.row-tag-token-preflight/v1",
+  "modelExecuted": false,
+  "weightsLoaded": false,
+  "files": {
+    "inputs.json": "4c7a68a0545d46fbdfa9695f9ed80080d0b910c94b1d286fe5504e30acd1d6a2",
+    "suite.json": "5c6c50868097f62b35980e95ee005a0b7f7819df604700e483b08f0faab04e8e",
+    "template-binding.json": "9b6c2ff0af91e28169d50f705ba3a9f96e5a20225aeafaff30084a5f8d2af92e",
+    "preflight.py": "c093ad22571837a75bf69103114b6ddf99eb26f617f0eb127a4fe450f330087e"
+  },
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "phases": {
+        "selection": {
+          "promptTokens": 2276,
+          "inputIdsSha256": "4f388df32a07a9cdcd1e434905b51a17848150f4d244edc186f47baee1316821"
+        },
+        "emptyAnswerControl": {
+          "promptTokens": 878,
+          "inputIdsSha256": "bfc58adad268b227018223a81a84972d9b325a574022603c610d36a7fee317a0"
+        }
+      },
+      "sumPromptsWithEmptyToolControl": 3154,
+      "remainingAtSelectionCapAndEmptyToolControl": 4014,
+      "evenEmptyControlFits": true,
+      "actualFinalAdmissionRequired": true
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "phases": {
+        "selection": {
+          "promptTokens": 2391,
+          "inputIdsSha256": "018c675e11738b8de8047f28080f4071e307ac289790e28b48277a00e10ea2a9"
+        },
+        "emptyAnswerControl": {
+          "promptTokens": 993,
+          "inputIdsSha256": "35c464c1d8f7ea83fd3421d93a0e67df754a345306d0b80705a480c54a02c29b"
+        }
+      },
+      "sumPromptsWithEmptyToolControl": 3384,
+      "remainingAtSelectionCapAndEmptyToolControl": 3784,
+      "evenEmptyControlFits": true,
+      "actualFinalAdmissionRequired": true
+    },
+    {
+      "id": "contractor-comparison",
+      "phases": {
+        "selection": {
+          "promptTokens": 2253,
+          "inputIdsSha256": "0dc0c09956d910da8ee8bc4e1dbec1a6127ea344441aafe1626686966e2e71af"
+        },
+        "emptyAnswerControl": {
+          "promptTokens": 883,
+          "inputIdsSha256": "96814c586b30eff4ad85dd1afd62109343c86a9752de2976b970fb1ee06cb4bc"
+        }
+      },
+      "sumPromptsWithEmptyToolControl": 3136,
+      "remainingAtSelectionCapAndEmptyToolControl": 4032,
+      "evenEmptyControlFits": true,
+      "actualFinalAdmissionRequired": true
+    },
+    {
+      "id": "contractor-retained-correction",
+      "phases": {
+        "selection": {
+          "promptTokens": 3327,
+          "inputIdsSha256": "03d63879bc9b114b7358a602a27314dc36e783c9267d6a7356cb7cd738667bc8"
+        },
+        "emptyAnswerControl": {
+          "promptTokens": 1957,
+          "inputIdsSha256": "dc161069ad77071c79085e1225ce109c33efa8c56b18ea0daca0567fee22b47f"
+        }
+      },
+      "sumPromptsWithEmptyToolControl": 5284,
+      "remainingAtSelectionCapAndEmptyToolControl": 1884,
+      "evenEmptyControlFits": true,
+      "actualFinalAdmissionRequired": true
+    },
+    {
+      "id": "fresh-printing-balance",
+      "phases": {
+        "selection": {
+          "promptTokens": 1051,
+          "inputIdsSha256": "86bd1293c18f107d1f1f58c725e83148a4365b6093a04ed6bf2f70b4f95992a7"
+        },
+        "emptyAnswerControl": {
+          "promptTokens": 407,
+          "inputIdsSha256": "017fc017a889d5e53caf4cabf0e1c668b5f39cb4cbc5bd48b137be1729823802"
+        }
+      },
+      "sumPromptsWithEmptyToolControl": 1458,
+      "remainingAtSelectionCapAndEmptyToolControl": 5710,
+      "evenEmptyControlFits": true,
+      "actualFinalAdmissionRequired": true
+    },
+    {
+      "id": "fresh-schedule-condition",
+      "phases": {
+        "selection": {
+          "promptTokens": 930,
+          "inputIdsSha256": "5b9f40f0109d1181b79a1e77e19d4d34e56822430d5a09c8c0c71627a0287179"
+        },
+        "emptyAnswerControl": {
+          "promptTokens": 392,
+          "inputIdsSha256": "bdcbfdc277b45a5dd16e6149a3d16bb380a0347530588fe7157d41b5dc96543a"
+        }
+      },
+      "sumPromptsWithEmptyToolControl": 1322,
+      "remainingAtSelectionCapAndEmptyToolControl": 5846,
+      "evenEmptyControlFits": true,
+      "actualFinalAdmissionRequired": true
+    },
+    {
+      "id": "fresh-included-credit-conflict",
+      "phases": {
+        "selection": {
+          "promptTokens": 1160,
+          "inputIdsSha256": "38db3f1bad39cbdb0cc13f38a861590085dd9694b5d95298b57f2024058a04c1"
+        },
+        "emptyAnswerControl": {
+          "promptTokens": 430,
+          "inputIdsSha256": "7075b71da4f075b0f2df95a753689eea5d254e5a58a4cb0c210849a3c616cb0a"
+        }
+      },
+      "sumPromptsWithEmptyToolControl": 1590,
+      "remainingAtSelectionCapAndEmptyToolControl": 5578,
+      "evenEmptyControlFits": true,
+      "actualFinalAdmissionRequired": true
+    }
+  ],
+  "allEmptyControlsFit": true,
+  "scope": "Empty tool response controls are not actual model outputs or upper-bound proofs. All actual final messages must be tokenized and charged before invocation. No history/input dropping, budget increase or guaranteed final allowance."
+}
