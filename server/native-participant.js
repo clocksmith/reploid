@@ -21,7 +21,8 @@ import profile from '../self/config/reploid-library.json' with { type: 'json' };
 import bootstrap from '../self/config/swarm-bootstrap.json' with { type: 'json' };
 import { resolvePartitionGeneration } from '../self/config/partition-generation.js';
 import { prepareLocalPackRelease } from '../self/pool/pack-release-policy.js';
-import { snapshotWorkPartitionSelection, createWorkPartitionPlan } from '../self/host/work-partition-plan.js';
+import { snapshotWorkPartitionSelection, createWorkPartitionPlan,
+  snapshotWorkPartitionStage, workOrderedResidentOptions } from '../self/host/work-partition-plan.js';
 import { assertWorkResidentCapsule } from '../self/host/work-partition-capsule.js';
 import { createPartitionTokenizerGuard } from '../self/host/work-partition-tokenizer-guard.js';
 
@@ -224,12 +225,14 @@ export function createNativeGpuHost(loadProvider) {
 }
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
-  files, releaseDirectory, registerCleanup, canonical = null, onProgress = () => {} }) {
+  files, releaseDirectory, registerCleanup, canonical = null, ordered = null, onProgress = () => {} }) {
   selected = snapshotWorkPartitionSelection(selected);
+  const stageBinding = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
     'Signed native resident requires release policy, checkpoint directory and pinned artifact source');
   const configured = { ...selected, generation: resolvePartitionGeneration(selected) };
   const runtime = await import('doppler-gpu/partitions');
+  const orderedOptions = workOrderedResidentOptions(runtime, stageBinding);
   if (canonical) {
     requireValue(typeof runtime.canonicalGenerationIdentity === 'function' && selected.canonicalGeneration
       && canonical.identity?.peerId === participantId && canonical.participantEpoch === canonical.epochs?.participantEpoch,
@@ -274,7 +277,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
   try {
     signal.throwIfAborted();
     const manifest = source.manifest;
-    const plan = createWorkPartitionPlan(runtime, manifest, selected);
+    const plan = createWorkPartitionPlan(runtime, manifest, selected, index);
     const planId = runtime.hashLayerPartitionPlan(plan);
     let canonicalOptions = {};
     if (canonical) {
@@ -306,7 +309,8 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
         inference: { session: { kvcache: { maxSeqLen: configured.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => tokenizer.storage });
-    resident = createResidentPartition({ runtime: factory, model: configured, plan, planId, index, participantId, limits: policy.limits, ...canonicalOptions });
+    resident = createResidentPartition({ runtime: factory, model: configured, plan, planId, index, participantId,
+      limits: policy.limits, ...canonicalOptions, ...orderedOptions });
     onProgress({ stage: 'opening', message: 'Opening native assigned partition' });
     if (canonical) { canonical.epochs.begin(ownerId); ownershipRecorded = true; }
     await resident.prepare({ approved: true, signal });
