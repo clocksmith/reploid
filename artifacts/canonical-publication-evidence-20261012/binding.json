@@ -1,0 +1,11 @@
+{
+  "scope": "Source contract, real cryptography and actual IndexedDB; GPU disabled, no physical inference or application activation",
+  "dopplerSourceCommit": "4e43ebbb209e52b30ce008dcfa757f27ac4696c5",
+  "sources": {
+    "packages/reploid/src/chat/workspace-publication.js": "0568c8ef40209063794757a4fc9d2f7690e0afbb84175ea880afdd7f6fc27002",
+    "packages/reploid/src/chat/workspace-publication.d.ts": "dce120480f45ea45adff447d8eb75d62c718cc98ada89a07cd4a727b9eb2d603",
+    "tests/canonical-publication-evidence-source.js": "0657fc3864b0593cd42b3affd5edb6ab75bef4472fc4e473273cd0ffae8233e6",
+    "tests/e2e/canonical-chat-history.spec.js": "7a7091dd2ff09b7b6e7eead20d85908468fb941a0f8bdaec988d0d74b0040bde",
+    "packages/reploid/src/config/index.js": "4f4b3494d4fff00021a3dd9c5b1710f903fe5fa7b6ac80a1abbe5955e481d1c9"
+  }
+}
