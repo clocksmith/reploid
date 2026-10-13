@@ -1,0 +1,39 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/native-data-channel-backpressure.test.js (5 tests | 1 failed) 13ms
+     × resumes the actual framing sender when native buffered bytes drain without an event 11ms
+     ✓ stops polling after timeout and never sends over the budget 1ms
+     ✓ stops polling after abort and never sends over the budget 1ms
+     ✓ stops polling after close and never sends over the budget 1ms
+     ✓ leaves an existing standard low-water event implementation unchanged 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-data-channel-backpressure.test.js > native custody backpressure > resumes the actual framing sender when native buffered bytes drain without an event
+AssertionError: expected Error: Pack channel: request cancelled or… to be undefined
+
+- Expected:
+undefined
+
++ Received:
+Error {
+  "message": "Pack channel: request cancelled or timed out",
+}
+
+ ❯ tests/unit/native-data-channel-backpressure.test.js:38:26
+     36|     await vi.advanceTimersByTimeAsync(100);
+     37|     const result = await pending;
+     38|     expect(result.error).toBeUndefined();
+       |                          ^
+     39|     expect(result.value.bytes).toEqual(bytes);
+     40|     expect(client.getReceipt().pendingRequests).toBe(0);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  07:47:04
+   Duration  292ms (transform 163ms, setup 0ms, import 215ms, tests 13ms, environment 0ms)
+
