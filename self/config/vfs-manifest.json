@@ -1893,6 +1893,7 @@
     "vendor/reploid/mesh/partitions/partition-discovery.js",
     "vendor/reploid/mesh/partitions/partition-entry-publication.js",
     "vendor/reploid/mesh/partitions/partition-entry.js",
+    "vendor/reploid/mesh/partitions/partition-generation-request.js",
     "vendor/reploid/mesh/partitions/partition-grants.js",
     "vendor/reploid/mesh/partitions/partition-link.js",
     "vendor/reploid/mesh/partitions/partition-network.js",

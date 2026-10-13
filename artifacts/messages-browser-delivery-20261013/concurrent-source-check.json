@@ -1,0 +1,11 @@
+{
+  "sourceCommit": "1848e7d8",
+  "matchedCommittedMembers": 209,
+  "earlierWorkingTreeChecks": "Layer, journey, module inventory and browser manifest checks passed before the next live-timing source edit began; Worker proof retained in verification.json.",
+  "laterWorkingTreeLayerCheck": {
+    "exitCode": 1,
+    "stdout": "\n> reploid@0.1.0 verify:layers\n> node scripts/verify-layers.js\n\n",
+    "stderr": "[\n  {\n    \"source\": \"self/vendor/reploid/chat/index.d.ts\",\n    \"reason\": \"generated delivery differs from canonical source\"\n  },\n  {\n    \"source\": \"self/vendor/reploid/chat/workspace.js\",\n    \"reason\": \"generated delivery differs from canonical source\"\n  },\n  {\n    \"source\": \"self/vendor/reploid/mesh/partitions/automatic-ordered-partitions.js\",\n    \"reason\": \"generated delivery differs from canonical source\"\n  },\n  {\n    \"source\": \"self/vendor/reploid/mesh/partitions/partition-entry.d.ts\",\n    \"reason\": \"generated delivery differs from canonical source\"\n  },\n  {\n    \"source\": \"self/vendor/reploid/mesh/partitions/partition-entry.js\",\n    \"reason\": \"generated delivery differs from canonical source\"\n  },\n  {\n    \"source\": \"self/vendor/reploid/mesh/partitions/partition-ordered-chat.js\",\n    \"reason\": \"generated delivery differs from canonical source\"\n  },\n  {\n    \"source\": \"self/vendor/reploid/mesh/partitions/partition-route-execution.d.ts\",\n    \"reason\": \"generated delivery differs from canonical source\"\n  },\n  {\n    \"source\": \"self/vendor/reploid/mesh/partitions/partition-route-execution.js\",\n    \"reason\": \"generated delivery differs from canonical source\"\n  },\n  {\n    \"source\": \"self/vendor/reploid/mesh/partitions/partition-summary.d.ts\",\n    \"reason\": \"generated delivery differs from canonical source\"\n  },\n  {\n    \"source\": \"self/vendor/reploid/mesh/partitions/partition-summary.js\",\n    \"reason\": \"generated delivery differs from canonical source\"\n  }\n]\n"
+  },
+  "disposition": "Pending live-timing source edits differ from this intentionally frozen committed delivery. They remain uncommitted and excluded; regenerate after their separate acceptance."
+}

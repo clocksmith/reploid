@@ -1,0 +1,47 @@
+{
+  "schema": "reploid.gate-native-independent-review/v1",
+  "passed": true,
+  "scope": "CPU-only exact unsigned installed candidate closure; no provider/model/ledger initialization or GPU work",
+  "applicationSource": "ffd4430aa4a68ca359423804cc8c26a1a655e7f0",
+  "dopplerSource": "33bd652a2d0c892d4dc597beb012c547ef9900fe",
+  "nativeArchiveSha256": "2a1f836bf29622d66c01cebd1fc71311b60f5c44f50530d6b67772ee39a0a590",
+  "nativeDescriptorSha256": "301766bbbad9d7d12f64a6bf8bd18d41d7949b5e7fe8f9ccb09debefc5b58806",
+  "runtimeArchiveSha256": "1cb2a5b8b7ebcefd6269b6a065fea0347c6471fe0c044479c78ef5b9f0c096eb",
+  "verified": {
+    "nativeDescriptorEntries": 111,
+    "nativeArchiveRegularFiles": 112,
+    "nativeArchiveMatchesInstalled": true,
+    "runtimeArchiveEntries": 1977,
+    "runtimeArchiveMatchesInstalled": true,
+    "runtimeArchiveMatchesCommittedDopplerBlobs": true,
+    "runtimePinSha512": true,
+    "catalogMatchesApplicationSource": true,
+    "catalogModels": 2,
+    "catalogContainsSignedOrOrderedEligibility": false
+  },
+  "configObservation": {
+    "path": "self/pool/pool-config.json",
+    "oldSourceHash": "fd1a267c992ddee1b51ba5717b6d183db9af3f2819369cf65e7500cc47e93095",
+    "retainedIntermediateReplacementHash": "da34b8f36c9db682bc34cfcf80890b545280097b7e14ca4c6ab06effa6015598",
+    "actualFinalSourceAndInstalledHash": "fec8a8bde4bdf2ae3907b1b08eadac1c945e4976bce86144689dcb2ce9756862",
+    "note": "Resolved: owner labels intermediate replacement hash and final generated hash separately; final hash matches independently read installed/source bytes."
+  },
+  "limitations": [
+    "Unsigned numerical-preparation base, not signed Capsule or physically qualified model",
+    "Application source intentionally excludes later Messages API1848e7d8; that independently tested package is distinct",
+    "No model answers, latency, cleanup, all-prefix accuracy, physical capacity or deployment established by closure equality"
+  ],
+  "todoReview": {
+    "scope": "DEV02 and DR6 preparation paragraphs only",
+    "accurate": "Installed Messages scope remains CPU/injected; independent158 and owner211 distinct. Operator error3.1086244689504383e-15 and bounded preparation/settlement match retained AMD disposition; whole-model all55, signed opening and concurrent lifecycle explicitly open. Local and Doppler commit links resolve.",
+    "noQualificationCheckboxClosed": true
+  },
+  "files": {
+    "binding.json": "cc36dcab14530dc504675b08f1776b26f0cd28de755f13b8f99e97ab817090bd",
+    "installed.json": "97fff4917084e0df4cb4a7b6a82f9e37cafc7b18c5afc325b24bea82875c27a9",
+    "config-override.json": "fae7a146f55e3132d56fee10f740baa12fe095cd334bed5fdce0501a27504e1e",
+    "verify-native.js": "6f3b9a2179d3123e011a8be4a1a364abe58d5484c3bf3a7f2b18b87cebad0eff",
+    "worker.json": "f09ac118e5a1bbcc4cdaf4ded728fc16b3141aa65d5bb46ed07326f203c58d17"
+  },
+  "conclusion": "No archive/installed/source binding blocker; intermediate/final config receipt distinction repaired without changing shipped bytes."
+}

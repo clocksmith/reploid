@@ -15186,12 +15186,13 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:0c228ad36bfdd382ea3a0ced2c283b6b4b0a002229dd1aa60fbddda8ad4fb110",
+      "sha256": "sha256:4c5cfe5957d1837b960cc88a02503628e5e45c16bcbd428809baa83f03132f49",
       "imports": [
         "./partition-chat.js",
         "./partition-contract.js",
         "./partition-discovery.js",
         "./partition-entry.js",
+        "./partition-generation-request.js",
         "./partition-grants.js",
         "./partition-peer.js",
         "./partition-placement.js",
@@ -15201,13 +15202,14 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:509b37223d583c5c98ba482862ab739272f67e3c760d5d48b68bced4f91e589d",
+      "sha256": "sha256:497a8b38592b98f2873fabb4f4c3c7534e96faa7d276259741c72e7e6381925a",
       "imports": [
         "./automatic-ordered-partitions.js",
         "./partition-chat.js",
         "./partition-contract.js",
         "./partition-discovery.js",
         "./partition-entry.js",
+        "./partition-generation-request.js",
         "./partition-grants.js",
         "./partition-peer.js",
         "./partition-placement.js"
@@ -15244,10 +15246,11 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-chat.js",
       "owner": "vendor",
-      "sha256": "sha256:4d9509fb1b316eb21171429b6f49a7fe71130c0c114198b95d2fdb9c7d75524b",
+      "sha256": "sha256:96d5893fa6e85dd75a4da77c135542c1a079fa0ccfa947fa0f6f143765c8ffb1",
       "imports": [
         "./partition-chat-canonical.js",
         "./partition-contract.js",
+        "./partition-generation-request.js",
         "./partition-ordered-chat.js",
         "./partition-runner.js"
       ]
@@ -15278,12 +15281,21 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-entry.js",
       "owner": "vendor",
-      "sha256": "sha256:8bbc5694e0d1bff0705661df0272b8d4045a848d7225e82e9cf17c26cf5678ef",
+      "sha256": "sha256:918b7b3b5e4095c3096cf0291178f1684f7a063786d848cbf3b8dc23c2b6de6c",
       "imports": [
         "../../transport/partition-data-channel.js",
         "./partition-contract.js",
         "./partition-entry-publication.js",
+        "./partition-generation-request.js",
         "./partition-summary.js"
+      ]
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-generation-request.js",
+      "owner": "vendor",
+      "sha256": "sha256:f6bc06d1491095119b768d3ef822991e10af98409bf5e795b2f32eea7d7a717e",
+      "imports": [
+        "./partition-contract.js"
       ]
     },
     {
@@ -15317,9 +15329,10 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-chat.js",
       "owner": "vendor",
-      "sha256": "sha256:0b075bc0bc4a0de2fb1bb9d228bfc1082153762b09cf3c6de8a0b518a64b92b7",
+      "sha256": "sha256:cef481c04b4238be438b1be79d3b07192a066631122827bfcf69bca7e28bd60c",
       "imports": [
         "./partition-contract.js",
+        "./partition-generation-request.js",
         "./partition-grants.js",
         "./partition-runner.js"
       ]

@@ -1,3 +1,4 @@
+import type { PartitionGenerationRequest, PartitionTokenUsage } from '../mesh/partitions/partition-generation-request.js';
 export { openCanonicalWorkspaceHistory } from './workspace-history.js';
 import type { CanonicalWorkspaceHistory } from './workspace-history.js';
 import type { CanonicalPublicationPort } from '../mesh/partitions/partition-canonical-execution.js';
@@ -34,6 +35,7 @@ export interface ChatMessage {
   attemptId?: string;
 }
 export interface ChatRequest {
+  generationRequest?:PartitionGenerationRequest;
   model: ChatModel;
   messages: Array<{ role: string; content: string }>;
   permissions: Record<string, unknown>;
@@ -51,7 +53,7 @@ export interface ChatThreadGrant {
 }
 export interface ChatResult extends ChatEnvelope {
   modelId: string; modelIdentity: string; adapterIdentities: string[];
-  content: string; execution?: Record<string, unknown>;
+  content: string; usage?:PartitionTokenUsage; execution?: Record<string, unknown>;
 }
 export interface ChatAttempt {
   publicationMode?: 'canonical';
@@ -86,6 +88,7 @@ export interface ChatState {
   limits: { maxThreads: number; maxMessageCharacters: number };
 }
 export interface ChatControls {
+  onUsage?(usage:ChatEnvelope & PartitionTokenUsage):void|Promise<void>;
   publication?:CanonicalPublicationPort;publisherEpoch?:string;onPublished?:(record:EntryPublicationRecord)=>Promise<void>;
   signal: AbortSignal;
   onDelta(envelope: ChatEnvelope & { text: string; sequence: number }): void;
