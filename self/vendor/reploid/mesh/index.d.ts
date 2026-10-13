@@ -15,6 +15,7 @@ export function createIntelligenceMesh(options: { config: ResolvedConfig; ports:
 
 export * from './partitions/resident-partition.js';
 export * from './partitions/partition-grants.js';
+export * from './partitions/partition-stage-commit.js';
 export * from './partitions/partition-peer.js';
 export * from './partitions/partition-network.js';
 export * from './partitions/partition-chat.js';

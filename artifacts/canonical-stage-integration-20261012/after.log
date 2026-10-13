@@ -1,0 +1,3 @@
+stage commitments: real transitions, ECDSA/Ed25519, full stage/attempt binding and tamper rejection passed
+contributor stage evidence: B signs after result, tampered B cannot mutate A, both real successors bind one decision
+canonical contributor: allocation, capability, identity, routing, FIFO and in-flight cleanup passed

@@ -1,0 +1,11 @@
+{
+  "scope": "CPU optional canonical source integration, not legacy failure repair or physical qualification",
+  "dopplerSource": "06fc2758",
+  "sha256": {
+    "packages/reploid/src/mesh/partitions/partition-stage-commit.js": "8c8607f4d69474f623e5648f3950c3114716c1a857d6062cf3a9990f0d1c4d29",
+    "packages/reploid/src/mesh/partitions/resident-partition.js": "7b9294c3950a6edc664a8027b2900bf9e44acea85c4b6211ec639e20b9e2cbfc",
+    "tests/canonical-stage-commit-source.js": "1929b81a0f0b377b4b7a59d15ba3702ee4df5aac4ac272a2c30054f3a70f48f8",
+    "tests/canonical-resident-source.js": "1ea3896d6b2ce9c612bff65517c0cdfcb6f2a7ab292fb2d6fbe9dba824ed3d5c"
+  },
+  "browserManifest": "Pending: unrelated UI edits appeared during generation; root instructed hold combined manifest for final owner freeze"
+}

@@ -561,13 +561,13 @@
     },
     {
       "path": "mesh/index.d.ts",
-      "bytes": 1432,
-      "sha256": "80fb793e04a19aad9fb2b88c1ffc70e4af629dd9d318626eb5e8e18fa09de8cf"
+      "bytes": 1488,
+      "sha256": "52ab4665ab85fa34891816130cb40dce841bf1228e6427cde546408c41cd5e66"
     },
     {
       "path": "mesh/index.js",
-      "bytes": 3180,
-      "sha256": "df6356ef0fae5f05605c5c1e681366351c4f36d8c3bf9be6df5f653aa5ac9300"
+      "bytes": 3236,
+      "sha256": "ec613d30de27c413eb9976d2e568966c3cef5a34fa63f59c565bb6ddf9af98c6"
     },
     {
       "path": "mesh/jobs/contracts.d.ts",
@@ -745,6 +745,16 @@
       "sha256": "335a2100e8d79133e3ec0e89ed25ab2333f616c48c42286653e9ade401d6070a"
     },
     {
+      "path": "mesh/partitions/partition-stage-commit.d.ts",
+      "bytes": 3039,
+      "sha256": "b08739a4b6c64262298eb4bdb4e66b7dcd7d9329288e5bc849221e4179379fc0"
+    },
+    {
+      "path": "mesh/partitions/partition-stage-commit.js",
+      "bytes": 7472,
+      "sha256": "8c8607f4d69474f623e5648f3950c3114716c1a857d6062cf3a9990f0d1c4d29"
+    },
+    {
       "path": "mesh/partitions/partition-step-receiver.d.ts",
       "bytes": 1113,
       "sha256": "42dc220ccc2bb61326c6f3170e9564582e9079f86daecee163d7052666071a00"
@@ -771,13 +781,13 @@
     },
     {
       "path": "mesh/partitions/resident-partition.d.ts",
-      "bytes": 4775,
-      "sha256": "9575ee30aa516c01235f1fafb30e649d001696e23600a5464a15c1fc93877b9e"
+      "bytes": 5374,
+      "sha256": "c6044c65b1c844fe9d96a58c91a919bca9d7b046018dbaabe066d27b84254734"
     },
     {
       "path": "mesh/partitions/resident-partition.js",
-      "bytes": 11607,
-      "sha256": "bf7dabb3ac165ce5cac4cbdceeb80ab964c58cf91f5d7b4df82dcfcf14734873"
+      "bytes": 14596,
+      "sha256": "7b9294c3950a6edc664a8027b2900bf9e44acea85c4b6211ec639e20b9e2cbfc"
     },
     {
       "path": "mesh/partitions/signed-resident-factory.d.ts",

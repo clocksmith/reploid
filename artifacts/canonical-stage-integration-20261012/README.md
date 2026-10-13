@@ -1,0 +1,9 @@
+# Contributor stage commitments
+
+Component: Model Partition Coordination. Intent preserved. Existing participant identities sign domain-separated canonical claim digests. B signs after its actual runtime result settles; A verifies that signature against the exact received transition before invoking its logical commit, then signs the installed successor. Both signatures bind attempt, generation, participant/device/resident epochs, sequence, parent, tokens, output delta/digest, and successor through the existing Doppler decision contract. Signatures prove origin/integrity, not honest numerical execution.
+
+`DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler node tests/canonical-stage-commit-source.js` uses real Doppler target/mirror transitions, actual ECDSA/Ed25519 WebCrypto, and injected numerical sessions through the actual contributor. Tampered output never reaches A mutation. Tests reject changed signer, stage, epoch, sequence, cursor, extra fields and signature; snapshot mutation during signing/verifying preserves admitted bytes, and closed authority rejects pending signatures. The missing-module before receipt records the initially absent capability.
+
+The companion canonical contributor control and all65 legacy partition API/runner tests pass. Package declarations pass; actual Verification Worker passes3production modules with10warnings. No GPU, pin/catalog or deployment change. Exact0fad qualification remains independent.
+
+This checkpoint connects contributor commitments only. Existing RPC must next carry versioned canonical requests and retain exact signed results; the existing publication transaction must persist evidence before any text delivery. No ephemeral evidence map is introduced. Browser library mirrors regenerated, but the combined browser manifest is intentionally pending because unrelated UI edits appeared concurrently; root owns final delivery coordination.

@@ -1,3 +1,4 @@
+import type { PartitionStageCommit, PartitionStageCommitAuthority, PartitionCommitStage, PartitionCommitRuntime } from './partition-stage-commit.js';
 import type { PartitionPlan, PartitionLimits, PartitionDeviceA, PartitionDeviceB, PartitionBinding } from './partition-runner.js';
 import type { ResidentPartitionDescriptor as DopplerDescriptor, ResidentPartitionSession,
   ResidentPartitionAllocation, ResidentPartitionTokenizationResult, ResidentRecoveryCapabilities } from '../../contracts/doppler-partitions.js';
@@ -9,16 +10,18 @@ export interface CanonicalResidentGeneration<Policy = unknown> {
   policy: Policy; executionIdentity: string; generationId: string;
 }
 export type CanonicalPartitionRequest<Request> = Omit<Request, 'generation' | 'maxTokens'> & {
-  generationId: string; baseCursorId: string | null;
+  generationId: string; baseCursorId: string | null; canonicalAttempt?: unknown; sequence?: number;
 };
 export interface CanonicalResidentPorts<Policy = unknown, Transition = unknown> {
   getCanonicalGeneration(): CanonicalResidentGeneration<Policy> | null;
+  getCanonicalStage(): PartitionCommitStage | null;
   admitCanonicalPrompt(request: { identity: PartitionBinding; tokenIds: number[]; generationId: string;
     signal?: AbortSignal }): Promise<unknown>;
   executeCanonicalGroup0(request: CanonicalPartitionRequest<ResidentPartitionARequest>): Promise<ResidentPartitionAResult>;
-  executeCanonicalGroup1(request: CanonicalPartitionRequest<ResidentPartitionBRequest>): Promise<ResidentPartitionBResult & { transition: Transition }>;
+  executeCanonicalGroup1(request: CanonicalPartitionRequest<ResidentPartitionBRequest>): Promise<ResidentPartitionBResult & { transition: Transition; commit?: PartitionStageCommit }>;
   commitCanonicalTransition(request: { identity: PartitionBinding; baseCursorId: string | null; transition: Transition;
-    signal?: AbortSignal }): Promise<Transition>;
+    canonicalAttempt?: unknown; sequence?: number; targetCommit?: PartitionStageCommit;
+    signal?: AbortSignal }): Promise<Transition | { transition: Transition; commit: PartitionStageCommit }>;
 }
 /** A ready descriptor is admitted only after runtime identity and generation checks. */
 export type ResidentPartitionDescriptor = DopplerDescriptor & { ready: true };
@@ -27,6 +30,7 @@ export type DopplerResidentPartitionSession = ResidentPartitionSession;
 export interface DopplerPartitionSessionFactory {
   openResidentPartition(options: Omit<ResidentPartitionAllocation, 'generation' | 'model'> & {
     model: ResidentPartitionAllocation['model'] & { generation: ResidentPartitionAllocation['generation']; [key: string]: unknown };
+    canonicalGeneration?: { policy: unknown; executionIdentity: string };
     signal: AbortSignal;
   }): Promise<ResidentPartitionSession>;
 }
@@ -64,7 +68,9 @@ export interface ResidentPartition<Policy = unknown, Transition = unknown> exten
 export function createResidentPartition<Policy = unknown, Transition = unknown>(options: {
   runtime: DopplerPartitionSessionFactory; model: Parameters<DopplerPartitionSessionFactory['openResidentPartition']>[0]['model'];
   plan: PartitionPlan; planId: string; index: 0 | 1; participantId: string; limits: PartitionLimits;
+  canonicalCommitAuthority?: PartitionStageCommitAuthority;
   canonicalGeneration?: { policy: Policy; executionIdentity: string };
-  canonicalRuntime?: { canonicalGenerationIdentity(policy: Policy, executionIdentity: string, vocabSize: number): CanonicalResidentGeneration<Policy> };
+  canonicalRuntime?: Partial<PartitionCommitRuntime> & {
+    canonicalGenerationIdentity(policy: Policy, executionIdentity: string, vocabSize: number): CanonicalResidentGeneration<Policy> };
   onChange?(state: ResidentPartitionState): void;
 }): ResidentPartition<Policy, Transition>;

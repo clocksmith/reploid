@@ -1,0 +1,165 @@
+{
+  "scope": "Actual Verification Worker parses production modules; no execution of candidate code",
+  "sources": {
+    "packages/reploid/src/mesh/partitions/resident-partition.js": "7b9294c3950a6edc664a8027b2900bf9e44acea85c4b6211ec639e20b9e2cbfc",
+    "packages/reploid/src/mesh/partitions/partition-stage-commit.js": "8c8607f4d69474f623e5648f3950c3114716c1a857d6062cf3a9990f0d1c4d29",
+    "packages/reploid/src/mesh/index.js": "ec613d30de27c413eb9976d2e568966c3cef5a34fa63f59c565bb6ddf9af98c6"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/mesh/partitions/resident-partition.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /packages/reploid/src/mesh/partitions/resident-partition.js:24: Dynamic property write detected: [method] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/resident-partition.js:154: Dynamic property write detected: [method] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/resident-partition.js:158: Dynamic property write detected: [method] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/resident-partition.js:165: Dynamic property write detected: [key] - verify input sanitization",
+      "File has 28 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-stage-commit.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-stage-commit.js:39: Dynamic property write detected: [method] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/index.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855370578,
+        "path": "/packages/reploid/src/mesh/partitions/resident-partition.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855370579,
+        "path": "/packages/reploid/src/mesh/partitions/resident-partition.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [method] - verify input sanitization",
+        "line": 24,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855370579,
+        "path": "/packages/reploid/src/mesh/partitions/resident-partition.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [method] - verify input sanitization",
+        "line": 154,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855370579,
+        "path": "/packages/reploid/src/mesh/partitions/resident-partition.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [method] - verify input sanitization",
+        "line": 158,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855370579,
+        "path": "/packages/reploid/src/mesh/partitions/resident-partition.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 165,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791855370580,
+        "metric": "functions",
+        "value": 28,
+        "threshold": 20,
+        "message": "File has 28 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/resident-partition.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791855370580,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/resident-partition.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855370583,
+        "path": "/packages/reploid/src/mesh/partitions/partition-stage-commit.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855370583,
+        "path": "/packages/reploid/src/mesh/partitions/partition-stage-commit.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [method] - verify input sanitization",
+        "line": 39,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855370585,
+        "path": "/packages/reploid/src/mesh/index.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/packages/reploid/src/mesh/partitions/resident-partition.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/packages/reploid/src/mesh/partitions/partition-stage-commit.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/packages/reploid/src/mesh/index.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 28,
+          "threshold": 20,
+          "message": "File has 28 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/resident-partition.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/resident-partition.js"
+        }
+      ],
+      "filesAnalyzed": 3
+    }
+  }
+}

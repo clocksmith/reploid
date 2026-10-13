@@ -2,10 +2,11 @@ import residentErrorCodes from './resident-error-codes.json' with { type: 'json'
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 import { createPartitionReservations } from './partition-reservations.js';
 import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
+import { verifyPartitionStageCommit } from './partition-stage-commit.js';
 
 /** Owns an explicitly contributed runtime session; never implements model computation. */
 export function createResidentPartition({ runtime, model, plan, planId, index, participantId, limits,
-  canonicalGeneration, canonicalRuntime, onChange = () => {} }) {
+  canonicalGeneration, canonicalRuntime, canonicalCommitAuthority, onChange = () => {} }) {
   assert(typeof runtime?.openResidentPartition === 'function', 'Doppler resident partition API is unavailable');
   assert([0, 1].includes(index) && plan?.partitions?.[index] && model?.id === plan.modelId
     && /^sha256:[a-f0-9]{64}$/.test(model.identity) && typeof planId === 'string' && planId
@@ -16,6 +17,14 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     canonicalGeneration.policy, canonicalGeneration.executionIdentity, plan.vocabSize);
   const allocation = structuredClone({ model, plan, planId, index, participantId, limits,
     ...(canonicalGeneration === undefined ? {} : { canonicalGeneration }) });
+  const canonicalStage = canonicalCommitAuthority?.getStage();
+  if (canonicalCommitAuthority !== undefined) {
+    assert(canonical && typeof canonicalCommitAuthority?.sign === 'function'
+      && ['metadataDigest', 'validateResidentAttemptIdentity', 'residentAttemptDigest', 'residentPublicationDecisionDigest']
+        .every(method => typeof canonicalRuntime?.[method] === 'function')
+      && canonicalStage?.participantId === participantId && canonicalStage.partitionIndex === index
+      && canonicalStage.executionId === canonical.executionIdentity, 'Canonical signing stage differs from allocation');
+  }
   const lifetime = new AbortController(), operations = new Set(), listeners = new Set([onChange]);
   const attempts = new Set();
   const reservations = createPartitionReservations({ limits, participantId, index });
@@ -52,7 +61,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     const record = reservations.reserve(identity);
     attempts.add(identity.attemptId); notify(); return record;
   };
-  const invoke = (method, request) => {
+  const invoke = (method, request, finish = result => result) => {
     reserve(request.identity);
     const { signal, ...input } = request;
     const snapshot = structuredClone(input);
@@ -61,7 +70,9 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       combined.throwIfAborted(); check();
       const result = await session[method]({ ...snapshot, signal: combined });
       combined.throwIfAborted(); check();
-      return structuredClone(result);
+      const finished = await finish(result, snapshot);
+      combined.throwIfAborted(); check();
+      return structuredClone(finished);
     }).catch(async cause => {
       reservations.fail(request.identity, cause);
       if (!combined.aborted) {
@@ -95,9 +106,31 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     assert(canonical, 'Canonical resident execution was not allocated');
     return invoke(method, request);
   };
+  const committed = (method, request) => {
+    assert(canonical, 'Canonical resident execution was not allocated');
+    if (!canonicalCommitAuthority) return canonicalInvoke(method, request);
+    const { signal, ...data } = request;
+    const input = { ...structuredClone(data), signal };
+    const attempt = canonicalRuntime.validateResidentAttemptIdentity(input.canonicalAttempt);
+    assert(attempt.attemptId === input.identity.attemptId && attempt.generationId === canonical.generationId
+      && attempt.routeKind === 'two-stage-layer' && attempt.stages[0].participantId === input.identity.participantA
+      && attempt.stages[1].participantId === input.identity.participantB
+      && canonicalPartitionJson(attempt.stages[index]) === canonicalPartitionJson(canonicalStage),
+    'Canonical attempt differs from contributor binding');
+    assert(Number.isSafeInteger(input.sequence) && input.sequence >= 0
+      && (index === 1 ? input.sequence === input.step : input.sequence === input.transition.successor.revision),
+    'Canonical sequence differs from actual ordinary step');
+    return invoke(method, input, async result => {
+      const transition = index === 1 ? result.transition : result;
+      const commit = await canonicalCommitAuthority.sign({ attempt, sequence: input.sequence,
+        baseCursorId: input.baseCursorId, transition });
+      return index === 1 ? { ...result, commit } : { transition: result, commit };
+    });
+  };
   return Object.freeze({
     id: participantId, index, getState: state, reserve,
     getCanonicalGeneration: () => structuredClone(canonical),
+    getCanonicalStage: () => structuredClone(canonicalStage ?? null),
     canAccept(identity) { return !lifetime.signal.aborted && ((phase === 'ready' || phase === 'draining')
       && attempts.has(identity?.attemptId) || phase === 'ready' && reservations.getState().availableSlots > 0); },
     subscribe(listener) { listeners.add(listener); listener(state()); return () => listeners.delete(listener); },
@@ -145,8 +178,20 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     executeGroup1(request) { assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 1, 'This contributor is partition A'); return invoke('executeGroup1', request); },
     admitCanonicalPrompt(request) { return canonicalInvoke('admitCanonicalPrompt', request); },
     executeCanonicalGroup0(request) { assert(index === 0, 'This contributor is partition B'); return canonicalInvoke('executeCanonicalGroup0', request); },
-    executeCanonicalGroup1(request) { assert(index === 1, 'This contributor is partition A'); return canonicalInvoke('executeCanonicalGroup1', request); },
-    commitCanonicalTransition(request) { assert(index === 0, 'Only partition A commits the remote transition'); return canonicalInvoke('commitCanonicalTransition', request); },
+    executeCanonicalGroup1(request) { assert(index === 1, 'This contributor is partition A'); return committed('executeCanonicalGroup1', request); },
+    async commitCanonicalTransition(request) {
+      assert(index === 0, 'Only partition A commits the remote transition');
+      const { signal, ...data } = request;
+      request = { ...structuredClone(data), signal };
+      if (canonicalCommitAuthority) {
+        const attempt = canonicalRuntime.validateResidentAttemptIdentity(request.canonicalAttempt);
+        assert(await verifyPartitionStageCommit({ runtime: canonicalRuntime, attempt, stage: attempt.stages[1],
+          acknowledgment: request.targetCommit?.acknowledgment, evidence: request.targetCommit?.evidence,
+          transition: request.transition, sequence: request.sequence, baseCursorId: request.baseCursorId }),
+        'Target commitment is not authenticated');
+      }
+      return committed('commitCanonicalTransition', request);
+    },
     async closeAttempt({ identity }) {
       // Never free admission capacity before the runtime confirms cleanup.
       reservations.settling(identity);
