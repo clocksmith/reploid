@@ -1,0 +1,16 @@
+{
+  "revision": "a1e0ecb5",
+  "sourceRevision": "2ff3bd56",
+  "url": "https://replo.id",
+  "bundleHash": "sha256:65cb42444151c777496e3e5253d575c7321ac3fc8996b30a3cafa7a991eb0142",
+  "verifiedFiles": 1921,
+  "runtimeVersion": "0.6.27",
+  "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "scope": "Hosting coordination/UI fix; no replacement runtime or backend deployment",
+  "validation": {
+    "focusedTests": 86,
+    "browserFixtureChecks": 7,
+    "physicalCompletion": "pending rolling contributor update"
+  },
+  "recordedAt": "2026-10-13T01:58:05.843158+00:00"
+}

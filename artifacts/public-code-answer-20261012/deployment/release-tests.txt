@@ -1,0 +1,17 @@
+
+ RUN  v4.1.10 /private/var/tmp/reploid-public-route-fix-20261012
+
+ ✓ tests/unit/execution-ribbon.test.js (11 tests) 13ms
+ ✓ tests/unit/network-controls.test.js (6 tests) 19ms
+ ✓ tests/unit/automatic-partition-discovery-lifetime.test.js (3 tests) 15ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js (6 tests) 117ms
+ ✓ tests/unit/conversation-workspace.test.js (19 tests) 765ms
+ ✓ tests/unit/partition-api.test.js (41 tests) 3706ms
+     ✓ discovers cooperative executors with replica coverage=false  1676ms
+     ✓ discovers cooperative executors with replica coverage=true  1354ms
+
+ Test Files  6 passed (6)
+      Tests  86 passed (86)
+   Start at  21:55:27
+   Duration  4.21s (transform 488ms, setup 0ms, import 749ms, tests 4.63s, environment 1.26s)
+

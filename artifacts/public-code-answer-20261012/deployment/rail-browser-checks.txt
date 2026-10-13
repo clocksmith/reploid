@@ -1,0 +1,16 @@
+
+Running 7 tests using 1 worker
+
+(node:98671) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:98671) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 1440px (4.8s)
+  ✓  2 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 390px (1.4s)
+  ✓  3 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 320px (860ms)
+  ✓  4 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › dark rails contain controls and fill expanded widths at 1440px (1.1s)
+  ✓  5 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › dark rails contain controls and fill expanded widths at 390px (858ms)
+  ✓  6 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › dark rails contain controls and fill expanded widths at 320px (796ms)
+  ✓  7 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:102:1 › Verification Worker accepts all changed presentation modules (207ms)
+
+  7 passed (10.6s)

@@ -1,0 +1,34 @@
+
+=== Deploying to 'reploid'...
+
+i  deploying hosting
+Running command: npm run prepare:hosting
+
+> reploid@0.1.0 prepare:hosting
+> npm run verify:browser-bundle:local && npm run package:hosting
+
+
+> reploid@0.1.0 verify:browser-bundle:local
+> node scripts/build-browser-bundle-manifest.js --check
+
+[browser-bundle] 1921 served files match sha256:65cb42444151c777496e3e5253d575c7321ac3fc8996b30a3cafa7a991eb0142
+
+> reploid@0.1.0 package:hosting
+> node scripts/package-hosting.js
+
+[hosting] packaged 1922 files as sha256:65cb42444151c777496e3e5253d575c7321ac3fc8996b30a3cafa7a991eb0142
+✔  hosting[reploid]: Finished running predeploy script.
+i  hosting[reploid]: beginning deploy...
+i  hosting[reploid]: found 1922 files in .firebase-hosting/reploid
+i  hosting: uploading new files [21/29] (72%)
+i  hosting: upload complete
+✔  hosting[reploid]: file upload complete
+i  hosting[reploid]: finalizing version...
+✔  hosting[reploid]: version finalized
+i  hosting[reploid]: releasing new version...
+✔  hosting[reploid]: release complete
+
+✔  Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/reploid/overview
+Hosting URL: https://reploid.web.app
