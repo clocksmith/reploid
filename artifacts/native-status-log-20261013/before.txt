@@ -1,0 +1,52 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/native-status-log.test.js (3 tests | 3 failed) 3ms
+   × bounds routine CLI status without visiting Capsule/source bodies or losing settlement state 2ms
+   × has bounded strings and collections and explicitly reports omitted records 0ms
+   × keeps unknown cleanup state unknown and safely summarizes idle status 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-status-log.test.js > bounds routine CLI status without visiting Capsule/source bodies or losing settlement state
+TypeError: summarizeNativePartitionState is not a function
+ ❯ tests/unit/native-status-log.test.js:17:44
+     15|       { identity: { attemptId: 'a', privateInput: 'must not log' }, ph…
+     16|     attempts: [{ attemptId: 'a', status: 'cancelled', text: 'private g…
+     17|   const log = summarizeNativePartitionState(state);
+       |                                            ^
+     18|   expect(log).toMatchObject({ event: 'partition-state', phase: 'failed…
+     19|     placement: ['local', 'remote'], descriptor: { modelIdentity: 'sha2…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/unit/native-status-log.test.js > has bounded strings and collections and explicitly reports omitted records
+TypeError: summarizeNativePartitionState is not a function
+ ❯ tests/unit/native-status-log.test.js:31:44
+     29|   const huge = 'x'.repeat(100_000);
+     30|   const row = { identity: { attemptId: huge }, phase: huge, failure: h…
+     31|   const log = summarizeNativePartitionState({ phase: huge, error: huge…
+       |                                            ^
+     32|     progress: { message: huge }, descriptor: { modelIdentity: huge, pl…
+     33|     reservations: { records: Array(1000).fill(row) }, attempts: Array(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/unit/native-status-log.test.js > keeps unknown cleanup state unknown and safely summarizes idle status
+TypeError: summarizeNativePartitionState is not a function
+ ❯ tests/unit/native-status-log.test.js:41:44
+     39|
+     40| it('keeps unknown cleanup state unknown and safely summarizes idle sta…
+     41|   const log = summarizeNativePartitionState({ phase: 'idle', offering:…
+       |                                            ^
+     42|   expect(log).toMatchObject({ phase: 'idle', offering: false, unsettle…
+     43|   expect(log.attempts).toEqual({ count: 0, omitted: 0, records: [] });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  09:20:32
+   Duration  293ms (transform 165ms, setup 0ms, import 218ms, tests 3ms, environment 0ms)
+

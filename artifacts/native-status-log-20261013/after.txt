@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/native-status-log.test.js (3 tests) 3ms
+ ✓ tests/unit/native-participant.test.js (9 tests) 14ms
+
+ Test Files  2 passed (2)
+      Tests  12 passed (12)
+   Start at  09:22:13
+   Duration  312ms (transform 229ms, setup 0ms, import 453ms, tests 17ms, environment 0ms)
+
