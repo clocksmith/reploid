@@ -58,7 +58,9 @@ it('admits explicitly versioned ordered inventories with host bounds, preserving
     peers: () => [], describe: () => ({}), createNetwork: options => { networkOptions = options; return { async close() {} }; } });
   networkOptions.onPeer('transport', { participantId: 'contributor', description: null, observedAt: 0, revision: 0, endpoint: { request } });
   try {
-    await discovery.refresh(); expect(discovery.getModels()).toHaveLength(2);
+    await discovery.refresh();
+    expect(discovery.getSnapshot()[0].description.models).toHaveLength(2);
+    expect(discovery.getModels()).toEqual([]); // Prepared stages alone cannot answer a chat request.
     delete policy.maxStageOffersPerPeer;
     await discovery.refresh(); expect(discovery.getModels()).toEqual([]);
     policy.maxStageOffersPerPeer = 1;

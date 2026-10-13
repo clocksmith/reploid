@@ -30,7 +30,8 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
   const unsettledOwners = new Set(), settledCloseOwners = new Set();
   const authority = createPartitionGrantAuthority({ identity, meshId,
     maxGrants: config.limits.maxAttempts, maxTtlMs: config.grantMs, maxClockSkewMs: config.grantClockSkewMs, canonicalRuntime: canonical?.runtime });
-  const getModels = () => discovery.getModels().filter(model => !!model.canonical === !!canonical);
+  const getModels = () => discovery.getModels().filter(model => !!model.canonical === !!canonical
+    && model.partition?.schema !== 'reploid.partition-selection/v2');
   const getState = () => ({ phase, error, progress: structuredClone(progress), offering: !!offer, modelId: offer?.id || null,
     placement: structuredClone(placement), placementDecision: structuredClone(placementDecision),
     capabilities: discovery.getSnapshot(), descriptor: program?.resident.getState().descriptor || null,
