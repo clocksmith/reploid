@@ -19,3 +19,18 @@ against the descriptor and archive; it opens no GPU. This installation does not
 advertise a contributor or qualify a model. Physical operator evidence belongs
 to Doppler; full-model numerical, signed application and lifecycle gates remain
 required before deployment.
+
+`load-preflight/summary.json` now records actual Suby output-stage preparation
+for layers 16–23 of the three-stage plan. All required paired pipelines finish
+before readiness; resident close, queue settlement, native host/device teardown
+and exit zero pass. Peak tracked GPU buffers are 256,948,544 bytes; peak cgroup
+host memory is 999,129,088 bytes with no memory-limit events. Resident close
+leaves 49,698,816 reusable pool bytes and zero active/retained/deferred ownership;
+the provider is then destroyed. Caches were retained. This is a load-only check,
+with zero generated tokens, not full-model numerical or signed-chat acceptance.
+
+The first controller invocation used an HTTP inspector endpoint and was
+rejected before GPU opening. Its receipt remains separate. The corrected call
+uses the actual owned loopback WebSocket endpoint. `stop-support.json` records
+termination of only the owned file server and inspector tunnel after completion.
+The Verification Worker also passes the retained controller/preparation tools.

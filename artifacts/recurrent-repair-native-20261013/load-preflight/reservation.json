@@ -1,0 +1,32 @@
+{
+  "schema": "reploid.functional-gpu-reservation/v1",
+  "approved": true,
+  "authority": "Root continuation of user-authorized runtime repair, bounded Suby output-stage preparation only",
+  "id": "repaired-suby-load-20261013",
+  "observedAt": "2026-10-13T19:49:25.559040+00:00",
+  "runtimeArchiveSha256": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4",
+  "nativeArchiveSha256": "aeedac7116714599e8f47545cc644445a035908c38814613552657fbe4a32dd8",
+  "testDeliveryHash": "sha256:d3317a0b35be79bf3dce45fe73e9e75ded32152b4909eca1685c38050b74b019",
+  "operationDeadlineMs": 300000,
+  "cleanupDeadlineMs": 10000,
+  "samplingMs": 2000,
+  "supervisorDeadlineMs": 330000,
+  "systemdDeadlineMs": 340000,
+  "memoryHighBytes": 10737418240,
+  "memoryMaxBytes": 12884901888,
+  "memorySwapMaxBytes": 0,
+  "maxGpuBufferBytes": 1420000000,
+  "stage": 2,
+  "routeCuts": [
+    8,
+    16
+  ],
+  "scope": "Prepare and close one real output resident, no tokens or numerical acceptance",
+  "publicPidsPreserved": [
+    297260,
+    299769
+  ],
+  "sharedMachineNotes": "Public contributors remain; functional test, no timing isolation",
+  "controllerSha256": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a",
+  "observerSha256": "44088fc02d991c83d8cc75eeed68f30cbc6bc5a283137f982d9649df9289bd4b"
+}
