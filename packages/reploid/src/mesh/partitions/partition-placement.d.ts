@@ -2,6 +2,7 @@ import type { OrderedPartitionPlan, OrderedPartitionRuntime, PartitionActivation
 export interface OrderedPartitionOffer {
   id: string; identity: string; availability: 'ready' | 'unavailable'; planId: string;
   index: number; residentId: string; executionId: string; activation: PartitionActivationContract;
+  partition?: { schema: 'reploid.partition-selection/v2'; planId: string; coordinatorId: string; route: PartitionRoute };
 }
 export interface OrderedPartitionCapability {
   participantId: string; transportId: string; observedAt: number; expiresAt: number; available: boolean;
@@ -11,6 +12,8 @@ export interface OrderedPartitionCapability {
 }
 export interface PartitionRouteSelectionLimits { maxStages: number; maxPeers: number; maxOffersPerPeer: number; maxSelectionSteps: number }
 export function validateOrderedPartitionCapability(description: unknown, participantId: string, maxOffersPerPeer: number): void;
+export function isOrderedPartitionEntryModel(model: unknown, peer: { participantId: string; transportId: string;
+  description?: { schema?: string } | null }): boolean;
 /** Availability hints for a new attempt only; grants and reservations remain authoritative. */
 export function selectPartitionRoute(options: { runtime: OrderedPartitionRuntime; plan: OrderedPartitionPlan;
   model: { id: string; identity: string }; capabilities: OrderedPartitionCapability[];

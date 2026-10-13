@@ -1,4 +1,4 @@
-import { assertPartition as assert, canonicalPartitionJson, partitionActivationContract, validatePartitionRoute, PARTITION_ROUTE_SCHEMA } from './partition-contract.js';
+import { assertPartition as assert, canonicalPartitionJson, canonicalPartitionRoute, partitionActivationContract, validatePartitionRoute, PARTITION_ROUTE_SCHEMA } from './partition-contract.js';
 
 /** Pure selection over observed capabilities. No transport or resource ownership. */
 export function selectPartitionPlacement({ participantId, offer, localIndex, previous, capabilities }) {
@@ -32,10 +32,13 @@ export function selectPartitionPlacement({ participantId, offer, localIndex, pre
 
 /** New attempts consume availability hints; signed reservations remain authoritative.
  * Capacity changes never move an already placed conversation. */
-export function selectPartitionExecution({ model, capabilities }) {
+export function selectPartitionExecution({ model, capabilities, ordered = false }) {
   const eligibility = capabilities.map(peer => {
     const prepared = peer.description?.models?.find(candidate => candidate.id === model.id
-      && candidate.identity === model.identity && candidate.availability === 'ready');
+      && candidate.identity === model.identity && candidate.availability === 'ready'
+      && (ordered ? isOrderedPartitionEntryModel(candidate, peer)
+        : peer.description?.schema !== 'reploid.partition-capability/v2'
+          && candidate.partition?.schema !== 'reploid.partition-selection/v2'));
     const capacity = peer.description?.capacity;
     const reason = !peer.available ? peer.reason : !prepared ? 'no-prepared-path'
       : capacity?.closed || capacity?.availableSlots === 0 ? 'input-owner-at-capacity' : 'reservation-required';
@@ -44,6 +47,23 @@ export function selectPartitionExecution({ model, capabilities }) {
   });
   const selected = eligibility.find(peer => peer.eligible);
   return { transportId: selected?.transportId ?? null, eligibility };
+}
+
+/** A ready stage is inventory, not a complete chat path. This checks advertised
+ * binding only; entry refresh, grants and reservations remain authoritative. */
+export function isOrderedPartitionEntryModel(model, peer) {
+  try {
+    const selection = model?.partition;
+    if (peer.description?.schema !== 'reploid.partition-capability/v2' || model.index !== 0
+      || selection?.schema !== 'reploid.partition-selection/v2') return false;
+    const route = canonicalPartitionRoute(selection.route), first = route.stages[0];
+    return model.id === route.modelId && model.identity === route.modelIdentity
+      && model.planId === route.planId && selection.planId === route.planId
+      && selection.coordinatorId === first.participantId && first.participantId === peer.participantId
+      && first.transportId === peer.transportId && first.residentId === model.residentId
+      && first.executionId === model.executionId
+      && canonicalPartitionJson(route.activation) === canonicalPartitionJson(model.activation);
+  } catch { return false; }
 }
 
 /** One observed inventory version, bounded by host policy. These hints never authorize execution. */

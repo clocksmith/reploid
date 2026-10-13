@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity, validatePartitionRoute } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
-import { selectPartitionRoute } from '../../packages/reploid/src/mesh/partitions/partition-placement.js';
+import { selectPartitionRoute, selectPartitionExecution, isOrderedPartitionEntryModel } from '../../packages/reploid/src/mesh/partitions/partition-placement.js';
 import { createPartitionReservations } from '../../packages/reploid/src/mesh/partitions/partition-reservations.js';
 
 const sha = value => 'sha256:' + value.repeat(64);
@@ -25,6 +25,24 @@ const identity = route => ({ schema: 'reploid.partition-attempt/v2', threadId: '
   requesterId: 'requester', placementGeneration: 0, route });
 
 describe('ordered stage placement and immutable route binding', () => {
+  it('selects complete ordered entry advertisements without treating stage inventory as chat capacity', async () => {
+    const peers = [peer('a', [0]), peer('b', [1]), peer('c', [2])];
+    expect(selectPartitionExecution({ model, capabilities: peers, ordered: true }).transportId).toBeNull();
+    expect(selectPartitionExecution({ model, capabilities: peers }).transportId).toBeNull();
+    const { route } = await choose(3, peers);
+    const offered = peers[0].description.models[0];
+    offered.partition = { schema: 'reploid.partition-selection/v2', planId: route.planId,
+      coordinatorId: 'a', route };
+    expect(isOrderedPartitionEntryModel(offered, peers[0])).toBe(true);
+    expect(selectPartitionExecution({ model, capabilities: peers, ordered: true }).transportId).toBe('transport-a');
+    expect(selectPartitionExecution({ model, capabilities: peers }).transportId).toBeNull();
+    for (const mutate of [v => v.partition.route.stages.splice(1, 1),
+      v => v.partition.coordinatorId = 'b', v => v.residentId = 'replacement',
+      v => v.partition.route.stages[0].transportId = 'other', v => v.planId = sha('f'), v => v.index = 1]) {
+      const changed = structuredClone(offered); mutate(changed);
+      expect(isOrderedPartitionEntryModel(changed, peers[0])).toBe(false);
+    }
+  });
   for (const count of [2, 3, 4, 7]) it(`selects all ${count} stages independently of replica inventory order`, async () => {
     const peers = Array.from({ length: count * 4 }, (_, index) => peer('p' + String(index).padStart(3, '0'), [Math.floor(index / 4)]));
     const a = await choose(count, peers), b = await choose(count, peers.reverse());

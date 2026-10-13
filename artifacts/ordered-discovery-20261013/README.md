@@ -1,0 +1,9 @@
+# Ordered inventory and complete chat capacity
+
+Component: existing discovery and placement. Intent: preserve readiness meaning while introducing N-stage inventory. Boundary effects: `selectPartitionExecution` accepts explicit `ordered: true`; default callers remain legacy. The existing pure route snapshot is exported as `canonicalPartitionRoute` without changing its checks or encoding.
+
+A ready middle stage or incomplete input stage is inventory, not an entry that can answer a chat request. Discovery retains every bounded stage offer in its snapshot, but only exposes an ordered model to chat when its complete selection binds the advertising coordinator, transport, resident, execution, plan, model and activation layout. Default automatic composition excludes the ordered path until explicitly wired. Grants, authoritative entry refresh, provider validation and full-route reservation are still required before execution; discovery is not permission.
+
+The original ordered discovery test expected two isolated stage offers to appear as chat models. It now checks two inventory offers and zero chat entries. Focused controls exercise complete entries, incomplete inventory, changed coordinator/transport/resident/plan, malformed route, legacy isolation and existing failed-cleanup/discovery-loss behavior.
+
+Validation: 31 tests pass across `partition-route-placement`, `partition-placement`, `partition-discovery-invalidation`, `automatic-partition-lifecycle` and `automatic-partition-discovery-lifetime` under the existing Vitest config. Actual Verification Worker result and source hashes are in `worker.json`; library types and charters pass. These are injected source controls, not public-network or model execution evidence. No catalog, runtime pin, public contributor or deployment changed.

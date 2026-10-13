@@ -34,6 +34,7 @@ export interface RouteAttemptBinding {
 }
 export const PARTITION_ROUTE_SCHEMA: PartitionRoute['schema'];
 export const ROUTE_ATTEMPT_SCHEMA: RouteAttemptBinding['schema'];
+export function canonicalPartitionRoute(route: unknown): PartitionRoute;
 export function validatePartitionRoute(runtime: OrderedPartitionRuntime, plan: OrderedPartitionPlan, route: unknown): Promise<PartitionRoute>;
 export function canonicalRouteAttemptBinding(identity: unknown): RouteAttemptBinding;
 export function sameRouteAttemptIdentity(actual: unknown, expected: unknown): boolean;

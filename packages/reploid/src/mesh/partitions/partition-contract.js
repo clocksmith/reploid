@@ -69,7 +69,7 @@ const freezeRouteJson = value => {
   return value;
 };
 /** Structural checks also apply when comparing a received identity without a runtime. */
-function routeSnapshot(route) {
+export function canonicalPartitionRoute(route) {
   assertPartition(exactFields(route, ['schema', 'modelId', 'modelIdentity', 'planId', 'stages', 'activation'])
     && route.schema === PARTITION_ROUTE_SCHEMA && identifier(route.modelId) && /^sha256:[a-f0-9]{64}$/.test(route.planId)
     && /^sha256:[a-f0-9]{64}$/.test(route.modelIdentity)
@@ -92,7 +92,7 @@ function routeSnapshot(route) {
 }
 /** Provider hashing validates its plan geometry; host admission separately binds the selected manifest. */
 export async function validatePartitionRoute(runtime, plan, route) {
-  const snapshot = routeSnapshot(route), planSnapshot = structuredClone(plan);
+  const snapshot = canonicalPartitionRoute(route), planSnapshot = structuredClone(plan);
   assertPartition(typeof runtime?.hashLayerPartitionPlan === 'function'
     && typeof runtime.getPartitionActivationContract === 'function', 'Ordered Doppler contracts required');
   assertPartition(planSnapshot?.schema === 'doppler.layer-partition-contract/v3'
@@ -109,7 +109,7 @@ export function canonicalRouteAttemptBinding(identity) {
     && identity.schema === ROUTE_ATTEMPT_SCHEMA && ['threadId', 'attemptId', 'requesterId'].every(key => identifier(identity[key]))
     && Number.isSafeInteger(identity.placementGeneration) && identity.placementGeneration >= 0, 'Invalid route attempt identity');
   return Object.freeze({ schema: identity.schema, threadId: identity.threadId, attemptId: identity.attemptId,
-    requesterId: identity.requesterId, placementGeneration: identity.placementGeneration, route: routeSnapshot(identity.route) });
+    requesterId: identity.requesterId, placementGeneration: identity.placementGeneration, route: canonicalPartitionRoute(identity.route) });
 }
 export function sameRouteAttemptIdentity(actual, expected) {
   try { return canonicalPartitionJson(canonicalRouteAttemptBinding(actual)) === canonicalPartitionJson(canonicalRouteAttemptBinding(expected)); }
