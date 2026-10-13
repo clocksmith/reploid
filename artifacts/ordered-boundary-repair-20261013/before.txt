@@ -1,0 +1,18 @@
+[
+  {
+    "source": "packages/reploid/src/mesh/partitions/partition-discovery.js",
+    "sourceLayer": "packages/reploid/src",
+    "specifier": "./partition-placement.js",
+    "target": "packages/reploid/src/mesh/partitions/partition-placement.js",
+    "targetLayer": "packages/reploid/src",
+    "reason": "discovery, placement and reservation owners must remain independent"
+  },
+  {
+    "source": "packages/reploid/src/mesh/partitions/partition-placement.js",
+    "sourceLayer": "packages/reploid/src",
+    "specifier": "./partition-contract.js",
+    "target": "packages/reploid/src/mesh/partitions/partition-contract.js",
+    "targetLayer": "packages/reploid/src",
+    "reason": "discovery, placement and reservation owners must remain independent"
+  }
+]

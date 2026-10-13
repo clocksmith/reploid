@@ -90,6 +90,7 @@ export interface LayerPartitionRunner {
   executeCanonical(options: CanonicalRunnerRequest): Promise<CanonicalRunnerResult>;
   close(): Promise<void>;
 }
+export function createLayerPartitionRunner(options: import('./partition-route-execution.js').OrderedRouteRunnerOptions): import('./partition-route-execution.js').OrderedRouteRunner;
 export function createLayerPartitionRunner(options: {
   runtime: PartitionRuntime;
   /** Explicit capability opt-in. Legacy accepted runtimes remain on execute(). */

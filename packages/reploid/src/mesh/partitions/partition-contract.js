@@ -115,3 +115,38 @@ export function sameRouteAttemptIdentity(actual, expected) {
   try { return canonicalPartitionJson(canonicalRouteAttemptBinding(actual)) === canonicalPartitionJson(canonicalRouteAttemptBinding(expected)); }
   catch { return false; }
 }
+
+/** A ready stage is inventory, not a complete chat path. This checks advertised
+ * binding only; entry refresh, grants and reservations remain authoritative. */
+export function isOrderedPartitionEntryModel(model, peer) {
+  try {
+    const selection = model?.partition;
+    if (peer.description?.schema !== 'reploid.partition-capability/v2' || model.index !== 0
+      || selection?.schema !== 'reploid.partition-selection/v2') return false;
+    const route = canonicalPartitionRoute(selection.route), first = route.stages[0];
+    return model.id === route.modelId && model.identity === route.modelIdentity
+      && model.planId === route.planId && selection.planId === route.planId
+      && selection.coordinatorId === first.participantId && first.participantId === peer.participantId
+      && first.transportId === peer.transportId && first.residentId === model.residentId
+      && first.executionId === model.executionId
+      && canonicalPartitionJson(route.activation) === canonicalPartitionJson(model.activation);
+  } catch { return false; }
+}
+
+/** One observed inventory version, bounded by host policy. These hints never authorize execution. */
+export function validateOrderedPartitionCapability(description, participantId, maxOffersPerPeer) {
+  assertPartition(Number.isSafeInteger(maxOffersPerPeer) && maxOffersPerPeer > 0, 'Explicit stage offer limit required');
+  assertPartition(description?.schema === 'reploid.partition-capability/v2' && description.participantId === participantId
+    && ['idle', 'waiting', 'loading', 'ready', 'stopping', 'failed'].includes(description.phase)
+    && Array.isArray(description.models) && description.models.length <= maxOffersPerPeer,
+  'Ordered partition capability identity or inventory mismatch');
+  const capacity = description.capacity;
+  assertPartition(capacity && typeof capacity.closed === 'boolean' && Number.isSafeInteger(capacity.active) && capacity.active >= 0
+    && Number.isSafeInteger(capacity.availableSlots) && capacity.availableSlots >= 0, 'Ordered partition capacity required');
+  for (const model of description.models) {
+    assertPartition(model && typeof model.id === 'string' && model.id.length > 0 && model.id.length <= 256
+      && /^sha256:[a-f0-9]{64}$/.test(model.identity) && Number.isSafeInteger(model.index) && model.index >= 0
+      && ['planId', 'residentId', 'executionId'].every(key => typeof model[key] === 'string' && model[key].length > 0 && model[key].length <= 256)
+      && ['ready', 'unavailable'].includes(model.availability), 'Invalid ordered partition offer');
+  }
+}

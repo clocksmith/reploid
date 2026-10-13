@@ -11,9 +11,7 @@ export interface OrderedPartitionCapability {
     capacity: { active: number; availableSlots: number; closed: boolean } };
 }
 export interface PartitionRouteSelectionLimits { maxStages: number; maxPeers: number; maxOffersPerPeer: number; maxSelectionSteps: number }
-export function validateOrderedPartitionCapability(description: unknown, participantId: string, maxOffersPerPeer: number): void;
-export function isOrderedPartitionEntryModel(model: unknown, peer: { participantId: string; transportId: string;
-  description?: { schema?: string } | null }): boolean;
+export { validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
 /** Availability hints for a new attempt only; grants and reservations remain authoritative. */
 export function selectPartitionRoute(options: { runtime: OrderedPartitionRuntime; plan: OrderedPartitionPlan;
   model: { id: string; identity: string }; capabilities: OrderedPartitionCapability[];

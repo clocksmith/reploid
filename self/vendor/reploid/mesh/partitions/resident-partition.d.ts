@@ -74,3 +74,46 @@ export function createResidentPartition<Policy = unknown, Transition = unknown>(
     canonicalGenerationIdentity(policy: Policy, executionIdentity: string, vocabSize: number): CanonicalResidentGeneration<Policy> };
   onChange?(state: ResidentPartitionState): void;
 }): ResidentPartition<Policy, Transition>;
+
+/** Explicit ordinary ordered provider surface; not supported by the accepted legacy package. */
+export interface OrderedResidentAllocation {
+  model: { id: string; identity: string; generation: Record<string, unknown>; [key: string]: unknown };
+  plan: import('./partition-route-execution.js').OrderedExecutionPlan; planId: string; index: number;
+  participantId: string; limits: PartitionLimits; signal?: AbortSignal;
+}
+export interface OrderedProviderIdentity {
+  schema: 'doppler.resident-partition-attempt/v2'; modelId: string; modelIdentity: string; planId: string;
+  threadId: string; attemptId: string; requesterId: string; placementGeneration: number;
+  stages: readonly import('./partition-contract.js').PartitionRouteStage[];
+}
+export interface OrderedDopplerResidentSession {
+  getDescriptor(): Omit<DopplerDescriptor, 'schema' | 'index'> & { schema: 'doppler.resident-partition/v2'; index: number; stageCount: number };
+  getRecoveryCapabilities(): ResidentRecoveryCapabilities;
+  tokenize(request: { identity: OrderedProviderIdentity; messages: Array<{ role: string; content: string }>; signal?: AbortSignal }): Promise<PartitionTokenization>;
+  executeStage(request: Omit<Parameters<import('./partition-route-execution.js').OrderedStageDevice['executeStage']>[0], 'identity'> & {
+    identity: OrderedProviderIdentity }): Promise<Omit<import('./partition-route-execution.js').OrderedStageResult, 'identity'> & { identity: OrderedProviderIdentity }>;
+  closeAttempt(request: { identity: OrderedProviderIdentity }): Promise<void>;
+  close(): Promise<void>;
+}
+export interface OrderedResidentPartition extends Omit<import('./partition-route-execution.js').OrderedStageDevice, 'reserve'> {
+  readonly index: number;
+  reserve(request: import('./partition-route-execution.js').OrderedStageBinding & { signal?: AbortSignal }): Promise<import('./partition-route-execution.js').OrderedReservation>;
+  prepare(options: { approved: true; signal?: AbortSignal }): Promise<OrderedResidentState>;
+  getState(): OrderedResidentState;
+  canAccept(identity: import('./partition-contract.js').RouteAttemptBinding): boolean;
+  subscribe(listener: (state: OrderedResidentState) => void): () => void;
+  tokenize(request: { identity: import('./partition-contract.js').RouteAttemptBinding; messages: Array<{ role: string; content: string }>; signal?: AbortSignal }): Promise<PartitionTokenization>;
+  close(): Promise<void>; drain(): Promise<void>;
+}
+export interface OrderedResidentState extends Omit<ResidentPartitionState, 'index' | 'descriptor' | 'reservations'> {
+  index: number; descriptor: ReturnType<OrderedDopplerResidentSession['getDescriptor']> | null;
+  reservations: Omit<PartitionReservationsState, 'records'> & { records: Array<Omit<PartitionReservation, 'identity' | 'index'> & {
+    identity: import('./partition-contract.js').RouteAttemptBinding; index: number }> };
+}
+export function createResidentPartition(options: Omit<OrderedResidentAllocation, 'signal'> & {
+  runtime: { openResidentPartition(options: OrderedResidentAllocation): Promise<OrderedDopplerResidentSession> };
+  ordered: { runtime: Pick<import('./partition-route-execution.js').OrderedExecutionRuntime,
+    'hashLayerPartitionPlan' | 'hashPartitionGeneration' | 'getPartitionActivationContract'>;
+    stage: import('./partition-contract.js').PartitionRouteStage };
+  onChange?(state: OrderedResidentState): void;
+}): OrderedResidentPartition;

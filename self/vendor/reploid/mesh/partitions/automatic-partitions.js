@@ -1,3 +1,4 @@
+import { createAutomaticOrderedPartitions } from './automatic-ordered-partitions.js';
 import { createPartitionDiscovery } from './partition-discovery.js';
 import { selectPartitionPlacement, selectPartitionExecution } from './partition-placement.js';
 import { createPartitionPeer } from './partition-peer.js';
@@ -9,7 +10,11 @@ import { canonicalPartitionJson, assertPartition as assert } from './partition-c
 /** Automatic placement over authenticated discovery. Only the supplied host
  * loader may open Doppler, and only after local contribution approval. */
 export function createAutomaticPartitions({ identity, meshId, models, policy, peers, createNetwork,
-  loadProgram, canonical = null, onChange = () => {} }) {
+  loadProgram, canonical = null, ordered = null, onChange = () => {} }) {
+  if (ordered !== null) {
+    assert(canonical === null, 'Ordered automatic participation is distinct from canonical publication');
+    return createAutomaticOrderedPartitions({ identity, meshId, models, policy, peers, createNetwork, loadProgram, ordered, onChange });
+  }
   const config = structuredClone(policy), catalog = structuredClone(models);
   assert(identity?.peerId && typeof peers === 'function' && typeof createNetwork === 'function'
     && typeof loadProgram === 'function' && Number.isSafeInteger(config.pollMs) && config.pollMs > 0,
@@ -30,7 +35,8 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
   const unsettledOwners = new Set(), settledCloseOwners = new Set();
   const authority = createPartitionGrantAuthority({ identity, meshId,
     maxGrants: config.limits.maxAttempts, maxTtlMs: config.grantMs, maxClockSkewMs: config.grantClockSkewMs, canonicalRuntime: canonical?.runtime });
-  const getModels = () => discovery.getModels().filter(model => !!model.canonical === !!canonical);
+  const getModels = () => discovery.getModels().filter(model => !!model.canonical === !!canonical
+    && model.partition?.schema !== 'reploid.partition-selection/v2');
   const getState = () => ({ phase, error, progress: structuredClone(progress), offering: !!offer, modelId: offer?.id || null,
     placement: structuredClone(placement), placementDecision: structuredClone(placementDecision),
     capabilities: discovery.getSnapshot(), descriptor: program?.resident.getState().descriptor || null,

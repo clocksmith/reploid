@@ -1,0 +1,22 @@
+[
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-contract.d.ts",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-contract.js",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-discovery.js",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-placement.d.ts",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-placement.js",
+    "reason": "generated delivery differs from canonical source"
+  }
+]

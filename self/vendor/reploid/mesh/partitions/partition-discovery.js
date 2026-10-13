@@ -1,5 +1,5 @@
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
-import { assertPartition as assert } from './partition-contract.js';
+import { assertPartition as assert, validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
 
 /** Owns bounded capability observation, never placement, loading or permission. */
 export function createPartitionDiscovery({ identity, catalog, policy, peers, createNetwork,
@@ -33,7 +33,9 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
   });
   return Object.freeze({
     getSnapshot: snapshot,
-    getModels: () => snapshot().filter(peer => peer.available).flatMap(peer => peer.description.models),
+    getModels: () => snapshot().filter(peer => peer.available).flatMap(peer => peer.description.models
+      .filter(model => peer.description.schema !== 'reploid.partition-capability/v2'
+        || isOrderedPartitionEntryModel(model, peer))),
     invalidateModel(transportId, model) {
       const peer = connections.get(transportId);
       if (!peer || closed) return;
@@ -56,7 +58,9 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
           const revision = peer.revision;
           try {
             const description = await peer.endpoint.request({ operation: 'describe' }, new Uint8Array(), { signal: lifetime.signal });
-            assert(description.participantId === peer.participantId && Array.isArray(description.models)
+            if (description?.schema === 'reploid.partition-capability/v2') {
+              validateOrderedPartitionCapability(description, peer.participantId, policy.maxStageOffersPerPeer);
+            } else assert(description.participantId === peer.participantId && Array.isArray(description.models)
               && description.models.length <= catalog.length && [null, 0, 1].includes(description.index)
               && (!description.capacity || Number.isSafeInteger(description.capacity.availableSlots)
                 && description.capacity.availableSlots >= 0 && Number.isSafeInteger(description.capacity.active)

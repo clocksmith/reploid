@@ -1,0 +1,2 @@
+[catscan] Errors:
+- packages/reploid/src/mesh/partitions/CATSCAN.md: 273 words exceeds the 250-word charter limit
