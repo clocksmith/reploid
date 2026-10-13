@@ -1,0 +1,14 @@
+{
+  "id": "cold-compile-stage-opening-20261013",
+  "approved": true,
+  "observedAt": "2026-10-13T20:26:29.031552+00:00",
+  "owner": "root-runtime-repair",
+  "scope": "Sequential opening and close on Mac/AMD/Suby; no tokens",
+  "operationMs": 300000,
+  "cleanupMs": 10000,
+  "maxGpuBufferBytes": 1420000000,
+  "hostMemoryHighBytes": 10737418240,
+  "hostMemoryMaxBytes": 12884901888,
+  "sharedMachineNotes": "Public participants preserved. Prior Suby attempt normal GPU settlement remains unknown; healthy newly admitted process does not inherit its state. No shared-device capacity or timing qualification claimed.",
+  "runtimeArchiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4"
+}

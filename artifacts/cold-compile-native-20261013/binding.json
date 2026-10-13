@@ -1,0 +1,11 @@
+{
+  "directory": "/private/var/tmp/reploid-cold-compile-native-20261013/source/output/reploid-native-hNlLSg/reploid",
+  "archive": "/private/var/tmp/reploid-cold-compile-native-20261013/source/output/reploid-native-hNlLSg/reploid-native-0.1.0.tgz",
+  "fileCount": 113,
+  "manifestSha256": "38e4fa9e29cb5d9aec713da8ecee270bdb082e6382e4117364e8e0ff140805a6",
+  "archiveSha256": "50d33abfd8ac3a5a69162bf7636fcab2d93ae0471ad5e116882a68744e185807",
+  "sourceCommit": "2cb6ceca0e8d68dd62d060f7153520ec4b09f734",
+  "runtimeSourceCommit": "fca57498",
+  "runtimeArchiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+  "scope": "Isolated numerical candidate; unchanged committed application base, derived runtime configuration; no signed eligibility or deployment"
+}
