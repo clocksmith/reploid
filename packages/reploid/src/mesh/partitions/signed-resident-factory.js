@@ -30,6 +30,7 @@ export function createSignedResidentFactory({ createFactory, openCapsule, model,
         };
         return { ...session, residentPartition: Object.freeze({ ...partition,
           ...(canonical ? Object.fromEntries(canonicalMethods.map(name => [name, request => invoke(name, request)])) : {}),
+          ...(typeof partition.executeStage === 'function' ? { executeStage: request => invoke('executeStage', request) } : {}),
           tokenize: request => invoke('tokenize', request),
           executeGroup0: request => invoke('executeGroup0', request),
           executeGroup1: request => invoke('executeGroup1', request),
