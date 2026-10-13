@@ -3,7 +3,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 const ports = vi.hoisted(() => ({
-  validatePlan: vi.fn(), activationContract: vi.fn(), validateFrame: vi.fn(), signedFactory: vi.fn(), openCapsule: vi.fn(), release: vi.fn(), budget: vi.fn(), plan: vi.fn(), hash: vi.fn(), factory: vi.fn(), resident: vi.fn(), memory: vi.fn(),
+  orderedSchema: null, validateOrderedPlan: vi.fn(), generationHash: vi.fn(), validatePlan: vi.fn(), activationContract: vi.fn(), validateFrame: vi.fn(), signedFactory: vi.fn(), openCapsule: vi.fn(), release: vi.fn(), budget: vi.fn(), plan: vi.fn(), hash: vi.fn(), factory: vi.fn(), resident: vi.fn(), memory: vi.fn(),
 }));
 vi.mock('../../self/config/doppler-local-models.js', () => ({
   DOPPLER_MODULE_URL: '../vendor/doppler/0.6.27/src/index.js',
@@ -11,6 +11,8 @@ vi.mock('../../self/config/doppler-local-models.js', () => ({
   DOPPLER_KERNEL_BASE_URL: '/vendor/doppler/0.6.27/src/gpu/kernels',
 }));
 vi.mock('../../self/vendor/doppler/0.6.27/src/partitions.js', () => ({
+  get ORDERED_LAYER_PARTITION_SCHEMA() { return ports.orderedSchema; },
+  validateOrderedLayerPartitionPlan: ports.validateOrderedPlan, hashPartitionGeneration: ports.generationHash,
   createResidentPartitionFactory: ports.signedFactory, configureDeviceMemoryBudget: ports.budget, createLayerPartitionPlan: ports.plan,
   hashLayerPartitionPlan: ports.hash, createManifestResidentPartitionFactory: ports.factory,
   inspectDeviceMemory: ports.memory, resolveLayerPartition: ports.validatePlan,
@@ -21,6 +23,8 @@ vi.mock('../../self/vendor/doppler/0.6.27/src/index.js', () => ({ openCapsule: p
 vi.mock('../../self/pool/pack-release-policy.js', () => ({ prepareLocalPackRelease: ports.release }));
 vi.mock('../../self/vendor/reploid/mesh/index.js', () => ({ createResidentPartition: ports.resident }));
 vi.mock('doppler-gpu/partitions', () => ({
+  get ORDERED_LAYER_PARTITION_SCHEMA() { return ports.orderedSchema; },
+  validateOrderedLayerPartitionPlan: ports.validateOrderedPlan, hashPartitionGeneration: ports.generationHash,
   createResidentPartitionFactory: ports.signedFactory, configureDeviceMemoryBudget: ports.budget,
   createLayerPartitionPlan: ports.plan, hashLayerPartitionPlan: ports.hash,
   createManifestResidentPartitionFactory: ports.factory, inspectDeviceMemory: ports.memory, resolveLayerPartition: ports.validatePlan,
@@ -60,12 +64,14 @@ describe.each(['browser', 'native'])('%s resident opening', host => {
 const loadWorkPartition = (files, selected, index, controls) => host === 'browser'
   ? loadBrowserPartition(files, selected, index, controls)
   : openNativePartition({ files, model: selected, index, ...controls, modelDirectory: '/unused-model',
-    releaseDirectory: '/unused-checkpoints', nativeGpu: async () => {} });
+    releaseDirectory: '/unused-checkpoints', nativeGpu });
 
-let files, source, resident, controls;
+let files, source, resident, controls, nativeGpu;
 const selected = { id: 'fixture', identity: 'sha256:' + 'a'.repeat(64), partitionSplitLayer: 2 };
 beforeEach(() => {
   vi.resetAllMocks();
+  ports.orderedSchema = 'doppler.layer-partition-contract/v3';
+  nativeGpu = vi.fn().mockResolvedValue();
   source = { manifest: { modelId: 'fixture', architecture: {},
     inference: { session: { compute: { defaults: { activationDtype: 'f32' } } } } },
   storage: { close: vi.fn().mockResolvedValue() }, getReceipt: () => ({ verifiedBytes: 16 }) };
@@ -75,6 +81,55 @@ beforeEach(() => {
   ports.plan.mockReturnValue({ partitions: [] }); ports.hash.mockReturnValue('plan');
   ports.factory.mockReturnValue({}); ports.resident.mockReturnValue(resident);
   ports.memory.mockReturnValue({ allocatedBytes: 16 });
+});
+
+const orderedPlan = () => ({ schema: 'doppler.layer-partition-contract/v3', modelId: 'fixture', stageCount: 3,
+  splitLayers: [1, 3], partitions: [{ index: 0 }, { index: 1 }, { index: 2 }] });
+const orderedStage = () => ({ index: 1, participantId: 'contributor', transportId: 'transport',
+  residentId: 'resident-session', executionId: 'execution-session' });
+
+it('prepares the assigned middle stage and awaits actual readiness', async () => {
+  const plan = orderedPlan(), stage = orderedStage(), ready = Promise.withResolvers();
+  const entered = Promise.withResolvers(); let returned = false;
+  ports.activationContract.mockReturnValue({ dtype: 'f32', precision: 'two-f32', components: 2, elementStrideBytes: 8 });
+  resident.prepare.mockImplementation(async () => { entered.resolve(); await ready.promise; });
+  const opening = loadWorkPartition(files, { ...selected, partitionSplitLayer: undefined, partitionPlan: plan }, 1,
+    { ...controls, ordered: { stage } }).then(value => { returned = true; return value; });
+  await entered.promise;
+  expect(returned).toBe(false);
+  expect(ports.validateOrderedPlan).toHaveBeenCalledWith(plan);
+  expect(ports.validatePlan).toHaveBeenCalledWith(source.manifest, { plan, index: 1 });
+  const allocation = ports.resident.mock.calls[0][0];
+  expect(allocation.index).toBe(1);
+  expect(allocation.ordered.stage).toEqual(stage);
+  expect(allocation.ordered.runtime.hashPartitionGeneration).toBe(ports.generationHash);
+  expect(Object.isFrozen(allocation.ordered.stage)).toBe(true);
+  ready.resolve(); expect((await opening).resident).toBe(resident);
+});
+
+it('snapshots ordered host identities before acquisition can mutate them', async () => {
+  const stage = orderedStage();
+  ports.activationContract.mockReturnValue({ dtype: 'f32', precision: 'two-f32', components: 2, elementStrideBytes: 8 });
+  files.preparePartitionSource.mockImplementation(async () => {
+    stage.residentId = 'replacement'; stage.index = 2; return source;
+  });
+  await loadWorkPartition(files, { ...selected, partitionSplitLayer: undefined, partitionPlan: orderedPlan() }, 1,
+    { ...controls, ordered: { stage } });
+  expect(ports.resident.mock.calls[0][0].ordered.stage).toEqual(orderedStage());
+});
+
+it.each(['missing-stage', 'wrong-stage', 'canonical', 'unsupported-provider'])('rejects %s before ordered acquisition', async failure => {
+  const stage = orderedStage();
+  const options = { ...controls, ordered: { stage } };
+  if (failure === 'missing-stage') options.ordered = null;
+  if (failure === 'wrong-stage') stage.index = 2;
+  if (failure === 'canonical') options.canonical = { identity: { peerId: 'contributor' } };
+  if (failure === 'unsupported-provider') ports.orderedSchema = null;
+  await expect(loadWorkPartition(files, { ...selected, partitionSplitLayer: undefined, partitionPlan: orderedPlan() }, 1,
+    options)).rejects.toThrow(/ordered/i);
+  expect(files.preparePartitionSource).not.toHaveBeenCalled();
+  expect(ports.resident).not.toHaveBeenCalled();
+  expect(nativeGpu).not.toHaveBeenCalled();
 });
 
 it('preserves an explicit provider-produced paired plan instead of rebuilding a scalar plan', async () => {

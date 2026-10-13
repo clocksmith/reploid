@@ -6,16 +6,19 @@ import policy from '../config/partition-policy.json' with { type: 'json' };
 import { prepareLocalPackRelease } from '../pool/pack-release-policy.js';
 import { assertWorkResidentCapsule } from './work-partition-capsule.js';
 import { createSignedResidentFactory } from '../vendor/reploid/mesh/partitions/signed-resident-factory.js';
-import { snapshotWorkPartitionSelection, createWorkPartitionPlan } from './work-partition-plan.js';
+import { snapshotWorkPartitionSelection, createWorkPartitionPlan,
+  snapshotWorkPartitionStage, workOrderedResidentOptions } from './work-partition-plan.js';
 import { createPartitionTokenizerGuard } from './work-partition-tokenizer-guard.js';
 
-export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress, registerCleanup, canonical = null }) {
+export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress, registerCleanup, canonical = null, ordered = null }) {
   canonical = canonical ? Object.freeze({ identity: canonical.identity, participantEpoch: canonical.participantEpoch }) : null;
   selected = snapshotWorkPartitionSelection(selected);
+  const stage = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
   const model = { ...selected, generation: resolvePartitionGeneration(selected) };
   const openedAt = performance.now();
   globalThis.__DOPPLER_KERNEL_BASE_PATH__ = DOPPLER_KERNEL_BASE_URL;
   const runtime = await import(DOPPLER_PARTITIONS_MODULE_URL);
+  const orderedOptions = workOrderedResidentOptions(runtime, stage);
   if (canonical && (typeof runtime.canonicalGenerationIdentity !== 'function'
     || canonical.identity?.peerId !== participantId || !/^[a-f0-9]{32}$/.test(canonical.participantEpoch)
     || !selected.canonicalGeneration)) throw new Error('Canonical contribution requires declared generation and provider capability');
@@ -53,7 +56,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   const tokenizer = createPartitionTokenizerGuard(source.storage);
   try {
     signal?.throwIfAborted();
-    const plan = createWorkPartitionPlan(runtime, manifest, selected);
+    const plan = createWorkPartitionPlan(runtime, manifest, selected, index);
     const planId = runtime.hashLayerPartitionPlan(plan);
     let canonicalOptions = {};
     if (canonical) {
@@ -83,7 +86,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => tokenizer.storage });
     resident = createResidentPartition({ runtime: factory, model, plan, planId, index,
-      participantId, limits: policy.limits, ...canonicalOptions });
+      participantId, limits: policy.limits, ...canonicalOptions, ...orderedOptions });
     await resident.prepare({ approved: true, signal });
     tokenizer.assertAvailable();
     const preparation = { openMs: performance.now() - openedAt,
