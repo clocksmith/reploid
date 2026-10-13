@@ -44,3 +44,15 @@ The `peer.mjs` variant composes the actual existing ordered peer ports and duple
 ```sh
 node artifacts/ordered-route-integration-20261013/peer.mjs /absolute/path/to/doppler /new/peer-report.json
 ```
+
+`entry.mjs` extends that source composition through the actual `createPartitionEntry`, `createPartitionChat`, and explicit ordered `createPartitionRequester` APIs. The requester owns no tokenizer or numerical port: original ordered messages reach the coordinator's real resident facade, with its numerical/tokenizer substitutions unchanged. Entry permission decisions use an explicit local test policy; stage authorization uses the actual v4 signing and verification owner. Channels remain in-process, so this is not physical authentication or deployed discovery acceptance.
+
+`entry-initial-result.json` retains the first direct-entry pass. `entry-final-result.json` adds the public requester helper; `entry-stable-result.json` repeats after the route-contract export change; `entry-snapshot-result.json` repeats after the final requester observer-snapshot repair. The latter passes five controls: changed route rejected before tokenization, incremental three-stage response, exact actual-output follow-up history, public requester selection with attempt-bound streaming callbacks, and cancelled request alongside a surviving conversation. There are 38 injected numerical calls and 14 private states each closed once. Peer retained tensor bytes, reservations, runner debt, and tokenizer-opening debt are all zero after confirmed settlement. All ten cleanup owners fulfill.
+
+Independent review found the public retry helper still emitted A/B requests for ordered selections and read caller messages after asynchronous selection. The production owner repaired route selection, early history snapshots, and origin-bound streaming, then hardened observer callbacks against route mutation. This artifact uses those real repairs; it does not reshape failed requests to bypass the public APIs. Existing owner tests cover retry to a changed route and callback/input mutation. No claim is made for model quality, full physical mesh, GPU computation, canonical publication, installed package, or deployment.
+
+```sh
+node artifacts/ordered-route-integration-20261013/entry.mjs /absolute/path/to/doppler /new/entry-report.json
+```
+
+`entry-committed-result.json` is the final repeat after the committed chat approval-expiry guard. All five controls still pass. `entry-source-binding.json` verifies every named source file against committed Reploid `60da0eb2` (including native `33fa5b90`) and the recorded Doppler revision. Earlier passing runs remain historical snapshots, not claims about unexecuted later source.
