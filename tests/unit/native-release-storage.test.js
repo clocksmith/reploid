@@ -67,7 +67,7 @@ it('serializes competing writers in separate workers without accepting a fork', 
     }));
     workers.forEach(worker => worker.postMessage('advance'));
     const results = await Promise.all(outcomes);
-    expect(results.filter(result => result.ok)).toHaveLength(1);
+    expect(results.filter(result => result.ok), JSON.stringify(results)).toHaveLength(1);
     expect(results.find(result => !result.ok).error).toMatch(/checkpoint changed|locked/);
     expect(await initial.read(namespace)).toEqual(results.find(result => result.ok).checkpoint);
   } finally { await Promise.all(workers.map(worker => worker.terminate())); }

@@ -1,0 +1,47 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:28741) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/unit/native-canonical-cleanup.test.js (2 tests | 2 failed) 26ms
+   × retains epoch owner after failed participant close, coalesces overlap and retries retirement 20ms
+   × a synchronous owner close cannot skip other owners or resident settlement 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-canonical-cleanup.test.js > retains epoch owner after failed participant close, coalesces overlap and retries retirement
+AggregateError: Partition mesh settlement failed
+ ❯ packages/reploid/src/mesh/partitions/automatic-partitions.js:269:36
+    267|         authority.close(); listeners.clear(); admissions.clear();
+    268|         const failures = results.filter(result => result.status === 'r…
+    269|         if (failures.length) throw new AggregateError(failures, 'Parti…
+       |                                    ^
+    270|       })();
+    271|       return closing;
+ ❯ server/native-participant.js:343:21
+ ❯ tests/unit/native-canonical-cleanup.test.js:57:3
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/native-canonical-cleanup.test.js > a synchronous owner close cannot skip other owners or resident settlement
+AssertionError: expected [Function] to throw error including 'did not settle' but got 'sync transport close'
+
+Expected: "did not settle"
+Received: "sync transport close"
+
+ ❯ tests/unit/native-canonical-cleanup.test.js:67:38
+     65| it('a synchronous owner close cannot skip other owners or resident set…
+     66|   const f = await fixture(); ports.networks[0].close.mockImplementatio…
+     67|   await expect(f.participant.close()).rejects.toThrow('did not settle'…
+       |                                      ^
+     68|   expect(ports.resident.close).toHaveBeenCalledOnce(); expect(f.record…
+     69|   expect(ports.files.close).toHaveBeenCalledOnce(); expect(ports.mesh.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  08:52:32
+   Duration  342ms (transform 176ms, setup 0ms, import 237ms, tests 26ms, environment 0ms)
+

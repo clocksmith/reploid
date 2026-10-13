@@ -10,6 +10,13 @@ vi.mock('../../self/vendor/doppler/0.6.27/src/partitions.js', () => ({ canonical
   createManifestResidentPartitionFactory: value => value, inspectDeviceMemory: () => ({}) }));
 vi.mock('../../self/vendor/reploid/mesh/index.js', () => ({ createResidentPartition: ports.resident,
   createPartitionStageCommitAuthority: ports.signer }));
+vi.mock('doppler-gpu/partitions', () => ({ canonicalGenerationIdentity: ports.generation,
+  metadataDigest: ports.digest, configureDeviceMemoryBudget: ports.budget,
+  createLayerPartitionPlan: () => ({ vocabSize: 100 }), hashLayerPartitionPlan: () => 'plan',
+  createManifestResidentPartitionFactory: value => value, inspectDeviceMemory: () => ({}) }));
+vi.mock('../../packages/reploid/src/mesh/index.js', async original => ({ ...await original(),
+  createResidentPartition: ports.resident, createPartitionStageCommitAuthority: ports.signer }));
+import { openNativePartition } from '../../server/native-participant.js';
 import { loadWorkPartition } from '../../self/host/work-partitions.js';
 let files, resident, signer;
 const selected = { id: 'fixture', identity: 'sha256:' + 'a'.repeat(64), partitionSplitLayer: 2,
@@ -46,4 +53,37 @@ it('settles the signer and source owner if preparation rejects', async () => {
     canonical: { identity: { peerId: 'contributor' }, participantEpoch: '0'.repeat(32) } })).rejects.toThrow('opening failed');
   expect(signer.close).toHaveBeenCalledOnce(); expect(resident.close).toHaveBeenCalledOnce();
   expect((await files.preparePartitionSource.mock.results[0].value).storage.close).toHaveBeenCalledOnce();
+});
+
+async function nativeFixture() {
+  let current = true;
+  const epochs = { participantEpoch: '0'.repeat(32), assertCurrent() { if (!current) throw Error('epoch replaced'); },
+    begin: vi.fn(), settle: vi.fn() };
+  const canonical = { identity: { peerId: 'contributor' }, participantEpoch: epochs.participantEpoch, epochs };
+  const result = await openNativePartition({ model: selected, modelDirectory: '/unused', files,
+    nativeGpu: async () => {}, signal: new AbortController().signal, index: 0, participantId: 'contributor', canonical });
+  return { result, epochs, replace() { current = false; } };
+}
+it('native records preparation ownership and fences dispatch after epoch replacement while permitting cleanup', async () => {
+  resident.executeCanonicalGroup0 = vi.fn(async () => ({ activation: true }));
+  resident.closeAttempt = vi.fn(async () => {});
+  const f = await nativeFixture(); expect(f.epochs.begin).toHaveBeenCalledOnce();
+  expect(await f.result.resident.executeCanonicalGroup0({})).toEqual({ activation: true });
+  f.replace(); expect(() => f.result.resident.executeCanonicalGroup0({})).toThrow('epoch replaced');
+  expect(resident.executeCanonicalGroup0).toHaveBeenCalledOnce();
+  await f.result.resident.closeAttempt('attempt'); expect(resident.closeAttempt).toHaveBeenCalledWith('attempt');
+  await f.result.resident.close(); expect(resident.close).toHaveBeenCalledOnce();
+  expect(f.epochs.settle).toHaveBeenCalledWith(f.epochs.begin.mock.calls[0][0]);
+});
+it('native rejects a completed result if its process epoch changed while work was pending', async () => {
+  let finish; resident.executeCanonicalGroup1 = vi.fn(() => new Promise(resolve => { finish = resolve; }));
+  const f = await nativeFixture(), pending = f.result.resident.executeCanonicalGroup1({});
+  f.replace(); finish({ mustNotPublish: true }); await expect(pending).rejects.toThrow('epoch replaced');
+  await f.result.resident.close();
+});
+it('native keeps durable pending ownership if actual resident cleanup fails', async () => {
+  resident.close.mockRejectedValueOnce(Error('GPU ownership unknown'));
+  const f = await nativeFixture(); await expect(f.result.resident.close()).rejects.toThrow('GPU ownership unknown');
+  expect(f.epochs.settle).not.toHaveBeenCalled();
+  await f.result.resident.close(); expect(f.epochs.settle).toHaveBeenCalledOnce();
 });

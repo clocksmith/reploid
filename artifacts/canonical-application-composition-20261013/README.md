@@ -21,3 +21,10 @@ Validation:
 - `worker.json`: actual Verification Worker accepts eight changed production modules; warnings retained with exact hashes.
 
 The installed accepted package has no `canonicalGenerationIdentity` export (recorded in `binding.json`). It cannot activate this path. A separately packaged Doppler candidate with canonical resident methods, exact execution/plan/generation identities, matching explicit catalog configuration and fresh physical acceptance remains required. Existing signed candidate and legacy numerical evidence is not reused as canonical qualification.
+
+Follow-up full regression retained in `full-before.txt`: 3345 passed, 30 skipped,
+one failure in the synthetic Node endpoint fixture, which omitted required
+explicit device observation arrays. The fixture correction preserves the actual
+concurrent acceptance guard; `full-fixture-after.txt` records its focused pass.
+The subsequent complete suite is retained in
+`../native-canonical-composition-20261013/full-suite.txt`.

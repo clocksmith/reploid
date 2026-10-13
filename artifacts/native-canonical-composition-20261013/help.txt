@@ -1,0 +1,13 @@
+Reploid native participant (Node 22.13 or newer)
+Usage: reploid-participant --connect-only|--share-files|--contribute
+  --model <catalog id> --model-directory <read-only weights directory>
+  --identity-file <private state/identity.json>
+  --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
+  [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
+  [--room <namespace>] [--room-token <join marker>] [--origin <allowed origin>]
+  [--canonical] (requires explicit catalog generation and a capable installed runtime)
+
+File sharing and compute are separate explicit choices; both may be enabled.
+Compute requires --gpu-module. Missing assigned pieces use authenticated peers.
+SIGINT/SIGTERM stop admission, settle work and release owned resources.
+Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider.

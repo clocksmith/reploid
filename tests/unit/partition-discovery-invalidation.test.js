@@ -36,3 +36,12 @@ describe('authoritative entry unavailability', () => {
     } finally { await discovery.close(); }
   });
 });
+it('retries only unsettled discovery transport after a failed close', async () => {
+  const close = vi.fn().mockRejectedValueOnce(Error('transport still owned')).mockResolvedValue(undefined);
+  const discovery = createPartitionDiscovery({ identity: { peerId: 'owner' }, catalog: [],
+    policy: { maxPeers: 2, connectTimeoutMs: 100, inputLimits: { descriptorTtlMs: 1000 } },
+    peers: () => [], describe: () => ({}), createNetwork: () => ({ close }) });
+  const pending = discovery.close(); expect(discovery.close()).toBe(pending);
+  await expect(pending).rejects.toThrow('settlement failed');
+  await discovery.close(); await discovery.close(); expect(close).toHaveBeenCalledTimes(2);
+});

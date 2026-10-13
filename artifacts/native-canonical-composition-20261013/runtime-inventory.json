@@ -1,0 +1,74 @@
+{
+  "sourceCommit": "4e43ebbb209e52b30ce008dcfa757f27ac4696c5",
+  "acceptedPin": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "exports": {
+    "canonicalGenerationIdentity": {
+      "installed": "undefined",
+      "source": "function"
+    },
+    "metadataDigest": {
+      "installed": "undefined",
+      "source": "function"
+    },
+    "tokenDigest": {
+      "installed": "undefined",
+      "source": "function"
+    },
+    "validateResidentAttemptIdentity": {
+      "installed": "undefined",
+      "source": "function"
+    },
+    "residentAttemptDigest": {
+      "installed": "undefined",
+      "source": "function"
+    },
+    "residentPublicationDecisionDigest": {
+      "installed": "undefined",
+      "source": "function"
+    },
+    "validateExecutionPublication": {
+      "installed": "undefined",
+      "source": "function"
+    },
+    "validateAdmissionPublication": {
+      "installed": "undefined",
+      "source": "function"
+    }
+  },
+  "sourceFiles": {
+    "src/partitions.js": "1dc015825d9c43a34303f5ebb133403781d9b1e58ae2c0adadc4afe9c1d67134",
+    "src/partitions.d.ts": "c8db5fb4bc5c850e789f74fc25dd9bcbdc9ce2804cb7da0a369f2b5241f84c6c",
+    "src/config/canonical-generation-policy.js": "d6a318d5c57775380874709199bc7744aebdba4582830dc1ee02b2cdc1e40d90",
+    "src/config/canonical-contract-codec.js": "934658bd840d5ee9dc1d70df4c65d394d933f1e3ca5e9b288ca80195f13c9088",
+    "src/client/resident-partitions.js": "e7f8b83c5358ec065f7a4e8ed7116f3de248eb7c7de1d1bc853159a1c8c7263a",
+    "src/client/runtime/composition-root.js": "c85ee69e8c8c7409a07cf8f6d3f3d19d3922ba5d21c3cfa1d5d1abf15be73ed3",
+    "src/inference/pipelines/text/resident-partition.js": "4ccb18634ddb666fd06b4a687ea7d08a170472900f3ab16d4522bf1ce3c1d75a",
+    "src/inference/pipelines/text/resident-partition-contract.js": "48a401db551e85eddac3a0fcef06b520f6ad38093fdf9939eb2e3d48b8b4955b",
+    "src/inference/resident-target-state.js": "d979dfec53db2512406c28efe637bbfd5ca279c9380d02b5e820fd6358f2feba",
+    "src/inference/resident-output-state.js": "2a2cde60cbcc43095a10c0a806756c2d468d0f0f40087f55a27536b196b936f4",
+    "src/inference/resident-state-contract.js": "5a05943bb80a9308f293bf8ad125a7be4d7f9014c864bd2149decc4d624f2d0c",
+    "src/inference/resident-block-contract.js": "89fd7c3f960208e52d6d852efaf5e12e96dd9d7502813390df18859cb6e5bcf7",
+    "src/inference/resident-publication-contract.js": "565f6bf1a0b15f69cb5a968ffffb8544c9aa3ae3bbff1e9b03eb4f6c3ba1a388"
+  },
+  "residentMethods": [
+    "getCanonicalGeneration",
+    "admitCanonicalPrompt",
+    "executeCanonicalGroup0",
+    "executeCanonicalGroup1",
+    "commitCanonicalTransition"
+  ],
+  "requiredBinding": [
+    "model.canonicalGeneration.policy",
+    "model.canonicalGeneration.executionIdentity",
+    "actual plan vocab/geometry/layout",
+    "initial observed execution identity",
+    "signed resident admission allocation when using Capsule"
+  ],
+  "scope": "Read-only inventory. No package was built or promoted; source factory methods and their full dependency closure require a new exact standard archive and physical qualification."
+}

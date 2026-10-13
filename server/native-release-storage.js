@@ -21,6 +21,7 @@ export async function openNativeReleaseCheckpoints({ directory }) {
   const db = new DatabaseSync(filename);
   let closed = false;
   try {
+    db.prepare('PRAGMA busy_timeout=1000').run();
     db.prepare('PRAGMA synchronous=FULL').run();
     db.prepare('CREATE TABLE IF NOT EXISTS checkpoints (namespace TEXT PRIMARY KEY, sequence INTEGER NOT NULL, digest TEXT)').run();
     const read = db.prepare('SELECT sequence, digest FROM checkpoints WHERE namespace = ?');

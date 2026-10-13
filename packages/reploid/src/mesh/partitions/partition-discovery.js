@@ -5,7 +5,7 @@ import { assertPartition as assert } from './partition-contract.js';
 export function createPartitionDiscovery({ identity, catalog, policy, peers, createNetwork,
   describe, onChange = () => {}, now = () => Date.now() }) {
   const connections = new Map(), lifetime = new AbortController();
-  let refreshing = null, closed = false, closing = null;
+  let refreshing = null, closed = false, closing = null, networkSettled = false;
   const snapshot = () => [...connections.entries()].map(([transportId, peer]) => {
     const expiresAt = peer.observedAt + policy.inputLimits.descriptorTtlMs;
     return { transportId, participantId: peer.participantId, observedAt: peer.observedAt,
@@ -76,11 +76,13 @@ export function createPartitionDiscovery({ identity, catalog, policy, peers, cre
       if (closing) return closing;
       closed = true; lifetime.abort(new Error('Partition discovery closed'));
       closing = (async () => {
-        const results = await Promise.allSettled([Promise.resolve().then(() => network.close()), refreshing]);
+        const results = await Promise.allSettled([Promise.resolve().then(async () => {
+          if (!networkSettled) { await network.close(); networkSettled = true; }
+        }), refreshing]);
         connections.clear();
         const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
         if (failures.length) throw new AggregateError(failures, 'Partition discovery settlement failed');
-      })();
+      })().catch(error => { closing = null; throw error; });
       return closing;
     }
   });

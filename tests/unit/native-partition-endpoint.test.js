@@ -80,7 +80,7 @@ function installSyntheticLongResident() {
   globalThis.abortOnSubmit = null; globalThis.observePrefill = false;
   globalThis.encodeBytes = data => Buffer.from(data.buffer).toString('base64');
   globalThis.rejectOversizedAllocation = async () => ({ code: 'RESOURCE_EXHAUSTED', synthetic: true });
-  globalThis.settleMemory = async () => ({ gpuValidationErrors: [], device: { liveBytes: 100 + live.size,
+  globalThis.settleMemory = async () => ({ gpuValidationErrors: [], deviceEvents: [], observationErrors: [], device: { liveBytes: 100 + live.size,
     peakBytes: 102, maxBytes: 1420000000, lost: false, categories: { weights: 100 } }, liveAttempts: [...live] });
   globalThis.resident = {
     tokenize: async () => ({ tokenIds: Array(1588).fill(7) }),

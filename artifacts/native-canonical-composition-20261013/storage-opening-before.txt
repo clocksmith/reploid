@@ -1,0 +1,74 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:32364) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32364) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32364) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32364) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32364) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/unit/native-storage-opening.test.js (4 tests | 3 failed) 73ms
+   × opens 'supply' after a competing startup lock without renewing state 21ms
+   × opens 'release' after a competing startup lock without renewing state 16ms
+   × opens 'epochs' after a competing startup lock without renewing state 17ms
+   ✓ surfaces exhausted opening wait and preserves already-spent allowance 18ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-storage-opening.test.js > opens 'supply' after a competing startup lock without renewing state
+Error: File contribution ledger unavailable; serving is blocked
+ ❯ custodyBudgetError packages/reploid/src/artifacts/custody/supply-budget.js:3:24
+      1| /** Shared record validation; hosts provide the atomic durable transac…
+      2| export function custodyBudgetError(code, message, cause) {
+      3|   return Object.assign(new Error(message, { cause }), { code: 'CUSTODY…
+       |                        ^
+      4| }
+      5| export function reserveCustodyBudget(record, bytes, maxBytes) {
+ ❯ openNativeSupplyBudget server/native-supply-budget.js:11:29
+ ❯ tests/unit/native-storage-opening.test.js:41:20
+
+Caused by: Error: database is locked
+ ❯ openStore server/native-supply-budget.js:43:8
+ ❯ openNativeSupplyBudget server/native-supply-budget.js:8:16
+ ❯ tests/unit/native-storage-opening.test.js:41:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'ERR_SQLITE_ERROR', errcode: 5, errstr: 'database is locked' }
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/unit/native-storage-opening.test.js > opens 'release' after a competing startup lock without renewing state
+Error: database is locked
+ ❯ openNativeReleaseCheckpoints server/native-release-storage.js:24:8
+     22|   let closed = false;
+     23|   try {
+     24|     db.prepare('PRAGMA synchronous=FULL').run();
+       |        ^
+     25|     db.prepare('CREATE TABLE IF NOT EXISTS checkpoints (namespace TEXT…
+     26|     const read = db.prepare('SELECT sequence, digest FROM checkpoints …
+ ❯ tests/unit/native-storage-opening.test.js:41:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/unit/native-storage-opening.test.js > opens 'epochs' after a competing startup lock without renewing state
+Error: database is locked
+ ❯ openNativeCanonicalEpochs server/native-canonical-epochs.js:50:8
+     48|   const save = value => db.prepare('INSERT INTO epochs VALUES(1, ?) ON…
+     49|   try {
+     50|     db.prepare('PRAGMA synchronous=FULL').run(); db.prepare('PRAGMA bu…
+       |        ^
+     51|     claimed = transact(() => {
+     52|       db.prepare('CREATE TABLE IF NOT EXISTS epochs (id INTEGER PRIMAR…
+ ❯ tests/unit/native-storage-opening.test.js:41:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  09:01:52
+   Duration  167ms (transform 18ms, setup 0ms, import 27ms, tests 73ms, environment 0ms)
+

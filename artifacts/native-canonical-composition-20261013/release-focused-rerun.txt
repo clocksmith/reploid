@@ -1,0 +1,16 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:30766) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30766) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30766) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-release-storage.test.js (5 tests) 29ms
+
+ Test Files  1 passed (1)
+      Tests  5 passed (5)
+   Start at  08:58:45
+   Duration  110ms (transform 14ms, setup 0ms, import 20ms, tests 29ms, environment 0ms)
+

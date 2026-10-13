@@ -1,0 +1,16 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:28950) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:28951) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-canonical-cleanup.test.js (2 tests) 20ms
+ ✓ tests/unit/native-canonical-epochs.test.js (9 tests) 1075ms
+   ✓ retains pending ownership after another writer locks persistence  1050ms
+
+ Test Files  2 passed (2)
+      Tests  11 passed (11)
+   Start at  08:54:15
+   Duration  1.17s (transform 170ms, setup 0ms, import 231ms, tests 1.09s, environment 0ms)
+

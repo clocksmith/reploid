@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/native-partition-endpoint.test.js (6 tests) 181ms
+
+ Test Files  1 passed (1)
+      Tests  6 passed (6)
+   Start at  08:41:41
+   Duration  288ms (transform 23ms, setup 0ms, import 43ms, tests 181ms, environment 0ms)
+

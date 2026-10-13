@@ -1,0 +1,405 @@
+{
+  "scope": "Unchanged production SQLite adapter; exact two-worker control repeated only to retain both actual failure messages.",
+  "outcomes": [
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        },
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        },
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        },
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        },
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        },
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        },
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        },
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        },
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+          }
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    },
+    {
+      "results": [
+        {
+          "ok": true,
+          "checkpoint": {
+            "sequence": 1,
+            "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+          }
+        },
+        {
+          "ok": false,
+          "error": "database is locked",
+          "code": "ERR_SQLITE_ERROR"
+        }
+      ],
+      "final": {
+        "sequence": 1,
+        "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+      }
+    }
+  ]
+}

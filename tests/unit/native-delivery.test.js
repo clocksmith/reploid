@@ -26,6 +26,7 @@ it('delivers the same native source and all catalog metadata outside the checkou
   expect(manifest.dependencies['@roamhq/wrtc']).toBe(application.optionalDependencies['@roamhq/wrtc']);
   expect(manifest.optionalDependencies.webgpu).toBe(application.optionalDependencies.webgpu);
   expect(files).not.toContain('server/proxy.js');
+  expect(files).toContain('server/native-canonical-epochs.js');
   expect(files.some(name => /shard_.*\.bin$/.test(name))).toBe(false);
   expect(files.filter(name => name.includes('/model-pieces/')).length).toBeGreaterThan(0);
   const catalog = JSON.parse(contents.get('self/config/chat-models.json'));
@@ -41,6 +42,7 @@ it('delivers the same native source and all catalog metadata outside the checkou
   const { stdout } = await exec(process.execPath, ['server/native-participant.js', '--help'], { cwd: directory });
   expect(stdout).toContain('--share-files');
   expect(stdout).toContain('--gpu-module');
+  expect(stdout).toContain('--canonical');
   await expect(fs.stat(path.join(directory, 'node_modules'))).rejects.toMatchObject({ code: 'ENOENT' });
   await expect(fs.stat(path.join(directory, 'state'))).rejects.toMatchObject({ code: 'ENOENT' });
   const copied = await fs.readFile(path.join(directory, pin.spec.slice(5)));
