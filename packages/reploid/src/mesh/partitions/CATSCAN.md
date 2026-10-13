@@ -8,10 +8,9 @@ Coordinate Doppler-partitioned conversations.
 
 ## Authority
 
-Discovery owns expiring capability snapshots and control channels. Placement
-selects from snapshots. Residents own admission across channels. Runners own
-attempts, grants, sequencing and settlement. Doppler owns dependencies, layer
-positions, computation, generation state and stopping. Hosts own sessions.
+Discovery owns capability snapshots/channels; placement selects. Residents own
+admission; runners own attempts, grants, sequencing and settlement. Doppler owns
+computation, positions, generation and stopping. Hosts own sessions.
 
 ## Scope
 
@@ -20,15 +19,17 @@ Subtree.
 ## Contracts
 
 Inputs: Doppler plans/codecs, authenticated executors, grants and bounded resources.
-Outputs: deltas, tokens, costs and settlement receipts.
-Every token traverses both partitions; B returns one selected token.
+Outputs: tokens, costs and settlement.
+Legacy two-stage plans traverse both partitions; B returns one selected token.
+Ordered routes traverse every declared stage; only the final stage selects tokens.
+Model geometry determines stage count. Existing attempts retain replica bindings.
 Session: [resident integration contract](../../../../../docs/chat-mvp.md#resident-integration-contract).
 
 ## Invariants
 
 - Authorization precedes work; verify recipients, scope, expiration, revocation and budgets.
 - Bind model, plan, thread, attempt, participants and token position.
-- Discovery grants no authority; advertise capacity counts, never conversation identities.
+- Discovery grants no authority; advertise capacity, never conversation identities.
 - Signed reservations are authoritative. Release slots only after confirmed runtime cleanup.
 - Bound receipts by attempt budgets; distinguish cleanup failure from settlement.
   Admission limits are not physical-memory measurements.
@@ -41,12 +42,12 @@ Session: [resident integration contract](../../../../../docs/chat-mvp.md#residen
 ## Acceptance
 
 Evidence: [partition tests](../../../../../tests/unit/partition-api.test.js).
-Physical-device evidence qualifies selective loading, WebRTC, complete
-answers and numerical agreement; injected tests prove neither execution nor residency.
+Physical evidence qualifies loading, WebRTC, answers and numerics; injected tests
+prove neither execution nor residency.
 
 ## Non-goals
 
-Model math, new UI, fabricated inference or whole-model execution disguised as partitioning.
+Model math, UI, fabricated inference or disguised whole-model execution.
 
 ## Freedom
 

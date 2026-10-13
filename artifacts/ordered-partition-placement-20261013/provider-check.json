@@ -1,0 +1,204 @@
+{
+  "scope": "Actual source provider public plan/codecs; synthetic participant/model identity, no computation or admission",
+  "providerSource": "9848ab1f3c024983c9cb4c8133fd0115e1126667f5e4cc4fec0a96e0fc17da59",
+  "contractSource": "d16c9bb548b284692d905f6620e9aeb637e980ba9395ba26dea52e3d2a0e1f2e",
+  "placementSource": "d3a6acf507f524128f3296af87c75e05771721c0104cc86d02f3c1a26b409e92",
+  "result": [
+    {
+      "stages": 2,
+      "planId": "sha256:375e176ecb623e49f6104e69daa5d0f1349a6ed5c9c798387ba9950a3d40a643",
+      "route": {
+        "schema": "reploid.partition-route/v1",
+        "modelId": "actual-provider",
+        "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "planId": "sha256:375e176ecb623e49f6104e69daa5d0f1349a6ed5c9c798387ba9950a3d40a643",
+        "stages": [
+          {
+            "index": 0,
+            "participantId": "p0",
+            "transportId": "t0",
+            "residentId": "r0",
+            "executionId": "e0"
+          },
+          {
+            "index": 1,
+            "participantId": "p1",
+            "transportId": "t1",
+            "residentId": "r1",
+            "executionId": "e1"
+          }
+        ],
+        "activation": {
+          "schema": "doppler.activation-tensor/v2",
+          "dtype": "f32",
+          "hiddenSize": 1024,
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      "selectionSteps": 2
+    },
+    {
+      "stages": 3,
+      "planId": "sha256:58e87a926729bd9fac553c34c302b8e180e0fa309a97131f43f076878df3a1e3",
+      "route": {
+        "schema": "reploid.partition-route/v1",
+        "modelId": "actual-provider",
+        "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "planId": "sha256:58e87a926729bd9fac553c34c302b8e180e0fa309a97131f43f076878df3a1e3",
+        "stages": [
+          {
+            "index": 0,
+            "participantId": "p0",
+            "transportId": "t0",
+            "residentId": "r0",
+            "executionId": "e0"
+          },
+          {
+            "index": 1,
+            "participantId": "p1",
+            "transportId": "t1",
+            "residentId": "r1",
+            "executionId": "e1"
+          },
+          {
+            "index": 2,
+            "participantId": "p2",
+            "transportId": "t2",
+            "residentId": "r2",
+            "executionId": "e2"
+          }
+        ],
+        "activation": {
+          "schema": "doppler.activation-tensor/v2",
+          "dtype": "f32",
+          "hiddenSize": 1024,
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      "selectionSteps": 3
+    },
+    {
+      "stages": 4,
+      "planId": "sha256:2df039bc0af0cfc293f012b220eecaea61d36b8cc352d6c1d63231fca4e08b78",
+      "route": {
+        "schema": "reploid.partition-route/v1",
+        "modelId": "actual-provider",
+        "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "planId": "sha256:2df039bc0af0cfc293f012b220eecaea61d36b8cc352d6c1d63231fca4e08b78",
+        "stages": [
+          {
+            "index": 0,
+            "participantId": "p0",
+            "transportId": "t0",
+            "residentId": "r0",
+            "executionId": "e0"
+          },
+          {
+            "index": 1,
+            "participantId": "p1",
+            "transportId": "t1",
+            "residentId": "r1",
+            "executionId": "e1"
+          },
+          {
+            "index": 2,
+            "participantId": "p2",
+            "transportId": "t2",
+            "residentId": "r2",
+            "executionId": "e2"
+          },
+          {
+            "index": 3,
+            "participantId": "p3",
+            "transportId": "t3",
+            "residentId": "r3",
+            "executionId": "e3"
+          }
+        ],
+        "activation": {
+          "schema": "doppler.activation-tensor/v2",
+          "dtype": "f32",
+          "hiddenSize": 1024,
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      "selectionSteps": 4
+    },
+    {
+      "stages": 7,
+      "planId": "sha256:925cb7698b9e6387e12a4c5df65472678fcf6a414db4d66a50e6d33a973942ca",
+      "route": {
+        "schema": "reploid.partition-route/v1",
+        "modelId": "actual-provider",
+        "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "planId": "sha256:925cb7698b9e6387e12a4c5df65472678fcf6a414db4d66a50e6d33a973942ca",
+        "stages": [
+          {
+            "index": 0,
+            "participantId": "p0",
+            "transportId": "t0",
+            "residentId": "r0",
+            "executionId": "e0"
+          },
+          {
+            "index": 1,
+            "participantId": "p1",
+            "transportId": "t1",
+            "residentId": "r1",
+            "executionId": "e1"
+          },
+          {
+            "index": 2,
+            "participantId": "p2",
+            "transportId": "t2",
+            "residentId": "r2",
+            "executionId": "e2"
+          },
+          {
+            "index": 3,
+            "participantId": "p3",
+            "transportId": "t3",
+            "residentId": "r3",
+            "executionId": "e3"
+          },
+          {
+            "index": 4,
+            "participantId": "p4",
+            "transportId": "t4",
+            "residentId": "r4",
+            "executionId": "e4"
+          },
+          {
+            "index": 5,
+            "participantId": "p5",
+            "transportId": "t5",
+            "residentId": "r5",
+            "executionId": "e5"
+          },
+          {
+            "index": 6,
+            "participantId": "p6",
+            "transportId": "t6",
+            "residentId": "r6",
+            "executionId": "e6"
+          }
+        ],
+        "activation": {
+          "schema": "doppler.activation-tensor/v2",
+          "dtype": "f32",
+          "hiddenSize": 1024,
+          "precision": "two-f32",
+          "components": 2,
+          "elementStrideBytes": 8
+        }
+      },
+      "selectionSteps": 7
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/partition-route-placement.test.js (11 tests | 11 failed) 5ms
+     × selects all 2 stages independently of replica inventory order 3ms
+     × selects all 3 stages independently of replica inventory order 0ms
+     × selects all 4 stages independently of replica inventory order 0ms
+     × selects all 7 stages independently of replica inventory order 0ms
+     × finds a complete route where greedy first-peer selection would miss the only middle owner 0ms
+     × filters ineligible replicas before matching and reports a missing middle stage 0ms
+     × bounds matching on 100 multi-model peers without enumerating Cartesian routes 0ms
+     × does not invent capacity or select duplicate logical owners through different transports 0ms
+     × snapshots input before awaited provider hashing and rejects plan or layout substitutions 0ms
+     × rejects malformed complete attempt identities without a runtime port 0ms
+     × actual reservations keep failed cleanup charged and reject changed route identities 0ms
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 11 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > selects all 2 stages independently of replica inventory order
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > selects all 3 stages independently of replica inventory order
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > selects all 4 stages independently of replica inventory order
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > selects all 7 stages independently of replica inventory order
+TypeError: selectPartitionRoute is not a function
+ ❯ choose tests/unit/partition-route-placement.test.js:22:75
+     20|         executionId: sha('c'), activation: structuredClone(activation)…
+     21| }
+     22| const choose = (count, capabilities, options = {}) => selectPartitionR…
+       |                                                                           ^
+     23|   capabilities, limits, now: 10, ...options });
+     24| const identity = route => ({ schema: 'reploid.partition-attempt/v2', t…
+ ❯ tests/unit/partition-route-placement.test.js:30:21
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/11]⎯
+
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > finds a complete route where greedy first-peer selection would miss the only middle owner
+TypeError: selectPartitionRoute is not a function
+ ❯ choose tests/unit/partition-route-placement.test.js:22:75
+     20|         executionId: sha('c'), activation: structuredClone(activation)…
+     21| }
+     22| const choose = (count, capabilities, options = {}) => selectPartitionR…
+       |                                                                           ^
+     23|   capabilities, limits, now: 10, ...options });
+     24| const identity = route => ({ schema: 'reploid.partition-attempt/v2', t…
+ ❯ tests/unit/partition-route-placement.test.js:38:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/11]⎯
+
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > filters ineligible replicas before matching and reports a missing middle stage
+TypeError: selectPartitionRoute is not a function
+ ❯ choose tests/unit/partition-route-placement.test.js:22:75
+     20|         executionId: sha('c'), activation: structuredClone(activation)…
+     21| }
+     22| const choose = (count, capabilities, options = {}) => selectPartitionR…
+       |                                                                           ^
+     23|   capabilities, limits, now: 10, ...options });
+     24| const identity = route => ({ schema: 'reploid.partition-attempt/v2', t…
+ ❯ tests/unit/partition-route-placement.test.js:46:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/11]⎯
+
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > bounds matching on 100 multi-model peers without enumerating Cartesian routes
+TypeError: selectPartitionRoute is not a function
+ ❯ choose tests/unit/partition-route-placement.test.js:22:75
+     20|         executionId: sha('c'), activation: structuredClone(activation)…
+     21| }
+     22| const choose = (count, capabilities, options = {}) => selectPartitionR…
+       |                                                                           ^
+     23|   capabilities, limits, now: 10, ...options });
+     24| const identity = route => ({ schema: 'reploid.partition-attempt/v2', t…
+ ❯ tests/unit/partition-route-placement.test.js:54:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/11]⎯
+
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > does not invent capacity or select duplicate logical owners through different transports
+TypeError: selectPartitionRoute is not a function
+ ❯ choose tests/unit/partition-route-placement.test.js:22:75
+     20|         executionId: sha('c'), activation: structuredClone(activation)…
+     21| }
+     22| const choose = (count, capabilities, options = {}) => selectPartitionR…
+       |                                                                           ^
+     23|   capabilities, limits, now: 10, ...options });
+     24| const identity = route => ({ schema: 'reploid.partition-attempt/v2', t…
+ ❯ tests/unit/partition-route-placement.test.js:63:18
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/11]⎯
+
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > snapshots input before awaited provider hashing and rejects plan or layout substitutions
+TypeError: selectPartitionRoute is not a function
+ ❯ choose tests/unit/partition-route-placement.test.js:22:75
+     20|         executionId: sha('c'), activation: structuredClone(activation)…
+     21| }
+     22| const choose = (count, capabilities, options = {}) => selectPartitionR…
+       |                                                                           ^
+     23|   capabilities, limits, now: 10, ...options });
+     24| const identity = route => ({ schema: 'reploid.partition-attempt/v2', t…
+ ❯ tests/unit/partition-route-placement.test.js:68:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/11]⎯
+
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > rejects malformed complete attempt identities without a runtime port
+TypeError: selectPartitionRoute is not a function
+ ❯ choose tests/unit/partition-route-placement.test.js:22:75
+     20|         executionId: sha('c'), activation: structuredClone(activation)…
+     21| }
+     22| const choose = (count, capabilities, options = {}) => selectPartitionR…
+       |                                                                           ^
+     23|   capabilities, limits, now: 10, ...options });
+     24| const identity = route => ({ schema: 'reploid.partition-attempt/v2', t…
+ ❯ tests/unit/partition-route-placement.test.js:78:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/11]⎯
+
+ FAIL  tests/unit/partition-route-placement.test.js > ordered stage placement and immutable route binding > actual reservations keep failed cleanup charged and reject changed route identities
+TypeError: selectPartitionRoute is not a function
+ ❯ choose tests/unit/partition-route-placement.test.js:22:75
+     20|         executionId: sha('c'), activation: structuredClone(activation)…
+     21| }
+     22| const choose = (count, capabilities, options = {}) => selectPartitionR…
+       |                                                                           ^
+     23|   capabilities, limits, now: 10, ...options });
+     24| const identity = route => ({ schema: 'reploid.partition-attempt/v2', t…
+ ❯ tests/unit/partition-route-placement.test.js:93:26
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/11]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  11 failed (11)
+   Start at  09:55:54
+   Duration  272ms (transform 19ms, setup 0ms, import 25ms, tests 5ms, environment 169ms)
+
