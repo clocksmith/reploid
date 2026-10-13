@@ -1,0 +1,42 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/ordered-partition-chat-entry.test.js (11 tests | 1 failed) 246ms
+     ✓ streams through 2 stages and preserves the complete route in compact returned evidence 34ms
+     ✓ streams through 3 stages and preserves the complete route in compact returned evidence 32ms
+     ✓ streams through 4 stages and preserves the complete route in compact returned evidence 42ms
+     ✓ streams through 7 stages and preserves the complete route in compact returned evidence 78ms
+     × connects requester entry through real v4 grants, a remote middle activation and final peer response 23ms
+     ✓ approves every token recipient and all coordinator-mediated activation paths before tokenization 16ms
+     ✓ rejects a changed middle replica before tokenizer or numerical admission 2ms
+     ✓ rejects tampered ordered stream identities and does not project their text 15ms
+     ✓ does not silently enable canonical publication or disclose before approval 1ms
+     ✓ retains failed tokenizer cleanup and retries it when the chat owner closes 1ms
+     ✓ close aborts a pending approval, prevents dispatch and preserves borrowed residents 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > connects requester entry through real v4 grants, a remote middle activation and final peer response
+Error: Partition peer declined or failed request
+ ❯ receiveControl packages/reploid/src/transport/partition-data-channel.js:215:35
+    213|     if (frame.type === 'error') {
+    214|       const code = failureCode(frame);
+    215|       finish(entry, Object.assign(new Error(failureMessages[code]), { …
+       |                                   ^
+    216|     }
+    217|     if (frame.type === 'ready') {
+ ❯ EventTarget.onMessage packages/reploid/src/transport/partition-data-channel.js:254:14
+ ❯ EventTarget.#callDispatchEventListeners node_modules/happy-dom/src/event/EventTarget.ts:305:41
+ ❯ EventTarget.dispatchEvent node_modules/happy-dom/src/event/EventTarget.ts:142:35
+ ❯ EventTarget.#goThroughDispatchEventPhases node_modules/happy-dom/src/event/EventTarget.ts:214:32
+ ❯ EventTarget.dispatchEvent node_modules/happy-dom/src/event/EventTarget.ts:135:38
+ ❯ tests/unit/ordered-partition-chat-entry.test.js:12:96
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 passed (11)
+   Start at  10:44:59
+   Duration  578ms (transform 69ms, setup 0ms, import 161ms, tests 246ms, environment 107ms)
+

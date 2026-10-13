@@ -1,3 +1,5 @@
+import type { OrderedPartitionChatOptions, OrderedPartitionChat } from './partition-ordered-chat.js';
+export type { OrderedPartitionChatOptions, OrderedPartitionChat, OrderedChatStage } from './partition-ordered-chat.js';
 import type { EntryPublicationContext } from './partition-entry-publication.js';
 import type { CanonicalPublicationPort } from './partition-canonical-execution.js';
 import type { ChatModel, ChatRequest, ChatControls, ChatResult, ChatEnvelope } from '../../chat/index.js';
@@ -14,6 +16,7 @@ export interface PartitionChat {
   /** Cancels owned conversations, preserving borrowed residents and network endpoints. */
   close(): Promise<void>;
 }
+export function createPartitionChat(options: OrderedPartitionChatOptions): OrderedPartitionChat;
 export function createPartitionChat(options: { runtime: PartitionRuntime; local: ResidentPartition; remote: PartitionPeer;
   authority: PartitionGrantAuthority; model: ChatModel; plan: PartitionPlan; planId: string;
   limits: PartitionLimits; grantTtlMs: number; canonical?: {coordinatorEpoch:string} | null;

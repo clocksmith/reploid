@@ -1,0 +1,15 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/partition-route-runner.test.js (21 tests) 229ms
+ ✓ tests/unit/ordered-partition-peer.test.js (12 tests) 370ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js (19 tests) 510ms
+ ✓ tests/unit/partition-api.test.js (42 tests) 3697ms
+     ✓ discovers cooperative executors with replica coverage=false  1624ms
+     ✓ discovers cooperative executors with replica coverage=true  1388ms
+
+ Test Files  4 passed (4)
+      Tests  94 passed (94)
+   Start at  10:55:38
+   Duration  4.41s (transform 452ms, setup 0ms, import 1.03s, tests 4.81s, environment 741ms)
+

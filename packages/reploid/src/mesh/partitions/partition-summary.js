@@ -1,6 +1,16 @@
 /** Fixed-size timing projection for a completed requester response. Detailed
  * per-step observations belong to the executing runner, not its control frame. */
 export function summarizePartitionExecution(execution) {
+  if (execution.schema === 'reploid.mesh.partition-execution/v3') {
+    const stages = new Map();
+    for (const step of execution.steps || []) for (const stage of step.stages || []) {
+      const row = stages.get(stage.partitionIndex) || { partitionIndex: stage.partitionIndex, steps: 0 };
+      row.steps++; stages.set(stage.partitionIndex, row);
+    }
+    return structuredClone({ schema: 'reploid.mesh.partition-summary/v2', identity: execution.identity,
+      activationBytes: execution.activationBytes, settlement: execution.settlement,
+      stepSummary: { count: execution.steps?.length || 0, stages: [...stages.values()], detail: 'aggregate; no per-step trace transferred' } });
+  }
   if (execution.schema === 'reploid.mesh.canonical-partition-execution/v1') {
     // Signed records are already retained by the requester transaction owner.
     // Do not transfer the full history again in a bounded final control frame.
