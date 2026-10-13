@@ -27,7 +27,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
   let contributionController = null;
   let phase = 'idle', error = null, progress = null, placement = null, closed = false, ticking = null;
   let placementDecision = null, closing = null, stopping = null;
-  const unsettledOwners = new Set();
+  const unsettledOwners = new Set(), settledCloseOwners = new Set();
   const authority = createPartitionGrantAuthority({ identity, meshId,
     maxGrants: config.limits.maxAttempts, maxTtlMs: config.grantMs, maxClockSkewMs: config.grantClockSkewMs, canonicalRuntime: canonical?.runtime });
   const getModels = () => discovery.getModels().filter(model => !!model.canonical === !!canonical);
@@ -262,12 +262,14 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       if (closing) return closing;
       closed = true; clearInterval(timer); lifetime.abort(new Error('Partition mesh closed'));
       closing = (async () => {
-        const results = await Promise.allSettled([Promise.resolve().then(() => entries.close()), discovery.close(), ticking, stopping]);
+        const results = await Promise.allSettled([...[entries, discovery].map(owner => Promise.resolve().then(async () => {
+          if (!settledCloseOwners.has(owner)) { await owner.close(); settledCloseOwners.add(owner); }
+        })), ticking, stopping]);
         results.push(...await Promise.allSettled([retire()]));
         authority.close(); listeners.clear(); admissions.clear();
         const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
         if (failures.length) throw new AggregateError(failures, 'Partition mesh settlement failed');
-      })();
+      })().catch(error => { closing = null; throw error; });
       return closing;
     }
   });

@@ -1,0 +1,27 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/partition-discovery-invalidation.test.js (2 tests | 1 failed) 4ms
+     ✓ withdraws only the rejected model and does not resurrect it from an older in-flight observation 2ms
+   × retries only unsettled discovery transport after a failed close 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/partition-discovery-invalidation.test.js > retries only unsettled discovery transport after a failed close
+Error: transport still owned
+ ❯ tests/unit/partition-discovery-invalidation.test.js:40:47
+     38| });
+     39| it('retries only unsettled discovery transport after a failed close', …
+     40|   const close = vi.fn().mockRejectedValueOnce(Error('transport still o…
+       |                                               ^
+     41|   const discovery = createPartitionDiscovery({ identity: { peerId: 'ow…
+     42|     policy: { maxPeers: 2, connectTimeoutMs: 100, inputLimits: { descr…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  08:55:58
+   Duration  233ms (transform 21ms, setup 0ms, import 28ms, tests 4ms, environment 143ms)
+

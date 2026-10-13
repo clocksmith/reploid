@@ -656,8 +656,8 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 18398,
-      "sha256": "3cb2289669d4bc87889097308acbed8b833ada86cffac0d92539a0a06863b4be"
+      "bytes": 18602,
+      "sha256": "a4730976c6938520c2daa2c9665cb604065594f49fee0fab4abf922f287d7cd9"
     },
     {
       "path": "mesh/partitions/partition-canonical-contract.d.ts",
@@ -711,8 +711,8 @@
     },
     {
       "path": "mesh/partitions/partition-discovery.js",
-      "bytes": 5123,
-      "sha256": "81c8f9c8705a4eb0ead0529f9890e3db15ee9381e3c781dc2ff2d64c27165563"
+      "bytes": 5279,
+      "sha256": "c61bf263be21eac8db90e9cd62d07f1755c08a014a4e41a4d136f4bac339ad2b"
     },
     {
       "path": "mesh/partitions/partition-entry-publication.d.ts",

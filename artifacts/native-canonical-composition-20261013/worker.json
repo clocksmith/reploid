@@ -1,0 +1,250 @@
+{
+  "files": {
+    "server/native-participant.js": "c301f56d4f462f84765658fcfec0e1db37aeb18a4c974da816826cbac6fc9496",
+    "server/native-canonical-epochs.js": "09854bb4c8631d37c2458e0e04c8fdbc0ffec404ac2e737caabfce178ce2929c",
+    "server/native-supply-budget.js": "f6e789133c265da2e1b94acf9087bb23ebf2d1727d0fff14bda1e4cd59bb171a",
+    "server/native-release-storage.js": "0bf52391ad24417a8d593e1df2f9d426af609910993faa6bf38b034f82ec3417",
+    "packages/reploid/src/mesh/partitions/automatic-partitions.js": "a4730976c6938520c2daa2c9665cb604065594f49fee0fab4abf922f287d7cd9",
+    "packages/reploid/src/mesh/partitions/partition-discovery.js": "c61bf263be21eac8db90e9cd62d07f1755c08a014a4e41a4d136f4bac339ad2b"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /server/native-participant.js:42: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /server/native-participant.js:314: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /server/native-participant.js:438: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "Warning in /server/native-participant.js:29: Suspicious variable name: requireValue - may indicate code execution",
+      "File has 55 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /server/native-supply-budget.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /server/native-release-storage.js:6: Suspicious variable name: requireValue - may indicate code execution",
+      "Warning in /packages/reploid/src/mesh/partitions/automatic-partitions.js:21: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 29 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-discovery.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 7 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791896539361,
+        "path": "/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791896539363,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 42,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791896539363,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 314,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791896539363,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+        "line": 438,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791896539363,
+        "path": "/server/native-participant.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: requireValue - may indicate code execution",
+        "line": 29,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791896539365,
+        "metric": "functions",
+        "value": 55,
+        "threshold": 20,
+        "message": "File has 55 functions (max 20) - consider modularizing",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791896539365,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791896539368,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/server/native-canonical-epochs.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791896539370,
+        "path": "/server/native-supply-budget.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791896539372,
+        "path": "/server/native-release-storage.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: requireValue - may indicate code execution",
+        "line": 6,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791896539378,
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 21,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791896539379,
+        "metric": "functions",
+        "value": 29,
+        "threshold": 20,
+        "message": "File has 29 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791896539379,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791896539380,
+        "path": "/packages/reploid/src/mesh/partitions/partition-discovery.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791896539380,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-discovery.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/server/native-participant.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/server/native-supply-budget.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/packages/reploid/src/mesh/partitions/partition-discovery.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 55,
+          "threshold": 20,
+          "message": "File has 55 functions (max 20) - consider modularizing",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/server/native-canonical-epochs.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 29,
+          "threshold": 20,
+          "message": "File has 29 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-discovery.js"
+        }
+      ],
+      "filesAnalyzed": 6
+    }
+  }
+}

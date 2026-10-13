@@ -40,8 +40,8 @@ async function openStore({ directory, maxBytes }) {
     }
   };
   try {
-    db.prepare('PRAGMA synchronous=FULL').run();
     db.prepare('PRAGMA busy_timeout=1000').run();
+    db.prepare('PRAGMA synchronous=FULL').run();
     db.prepare('BEGIN IMMEDIATE').run();
     try {
       db.prepare('CREATE TABLE IF NOT EXISTS allowance (id INTEGER PRIMARY KEY CHECK(id=1), record TEXT NOT NULL)').run();

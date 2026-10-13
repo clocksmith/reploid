@@ -1,0 +1,38 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:32417) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-supply-budget.test.js (6 tests) 57ms
+(node:32420) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32416) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-canonical-epochs.test.js (9 tests) 1088ms
+   ✓ retains pending ownership after another writer locks persistence  1066ms
+(node:32423) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-storage-opening.test.js (4 tests) 1506ms
+   ✓ surfaces exhausted opening wait and preserves already-spent allowance  1079ms
+ ✓ tests/unit/native-canonical-cleanup.test.js (4 tests) 83ms
+(node:32424) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32424) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:32424) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-release-storage.test.js (5 tests) 34ms
+
+ Test Files  5 passed (5)
+      Tests  28 passed (28)
+   Start at  09:02:17
+   Duration  1.72s (transform 191ms, setup 0ms, import 287ms, tests 2.77s, environment 0ms)
+

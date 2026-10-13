@@ -4,13 +4,14 @@
  */
 import fs from 'node:fs/promises';
 import { createNativeModelFiles } from './native-model-files.js';
+import { openNativeCanonicalEpochs } from './native-canonical-epochs.js';
 import { openNativeReleaseCheckpoints } from './native-release-storage.js';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { EventEmitter } from 'node:events';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
-import { createAutomaticPartitions, createLegacyGenerationMesh, createPartitionNetwork, createResidentPartition, createSignedResidentFactory } from '../packages/reploid/src/mesh/index.js';
+import { createAutomaticPartitions, createLegacyGenerationMesh, createPartitionNetwork, createResidentPartition, createSignedResidentFactory, createPartitionStageCommitAuthority } from '../packages/reploid/src/mesh/index.js';
 import { createSwarmTransport, createRoomIntroductionAdmission } from '../packages/reploid/src/transport/index.js';
 import { createSigningIdentity, createPeerIdFromPublicJwk } from '../packages/reploid/src/artifacts/identity.js';
 import { resolveConfig } from '../packages/reploid/src/config/index.js';
@@ -191,16 +192,24 @@ export function createNativeGpuHost(loadProvider) {
 }
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
-  files, releaseDirectory, registerCleanup, onProgress = () => {} }) {
+  files, releaseDirectory, registerCleanup, canonical = null, onProgress = () => {} }) {
   selected = snapshotWorkPartitionSelection(selected);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
     'Signed native resident requires release policy, checkpoint directory and pinned artifact source');
   const configured = { ...selected, generation: resolvePartitionGeneration(selected) };
   const runtime = await import('doppler-gpu/partitions');
+  if (canonical) {
+    requireValue(typeof runtime.canonicalGenerationIdentity === 'function' && selected.canonicalGeneration
+      && canonical.identity?.peerId === participantId && canonical.participantEpoch === canonical.epochs?.participantEpoch,
+    'Canonical native contribution requires declared generation, provider capability and durable epochs');
+    canonical.epochs.assertCurrent();
+  }
   await nativeGpu(); signal.throwIfAborted();
   await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
   const source = await openNativeModelSource({ model: selected, modelDirectory, signal, runtime, files });
-  let resident, release = null, capsuleVerification = null, sourceSettled = false, releaseSettled = false;
+  let resident, release = null, capsuleVerification = null, sourceSettled = false, releaseSettled = false, residentSettled = false, commitAuthority = null;
+  const ownerId = canonical ? crypto.randomUUID().replaceAll('-', '') : null;
+  let ownershipRecorded = false;
   const sessions = new Set();
   const trackSession = session => { sessions.add(session); return () => sessions.delete(session); };
   const closeSources = async failures => {
@@ -214,14 +223,17 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
   let cleaning = null;
   const cleanupOwner = { close() {
     return cleaning ||= (async () => {
-      const failures = [];
-      try { await resident?.close(); } catch (error) { failures.push(error); }
+      const failures = []; commitAuthority?.close();
+      if (!residentSettled) {
+        try { await resident?.close(); residentSettled = true; } catch (error) { failures.push(error); }
+      }
       for (const session of sessions) {
         try { await session.close(); sessions.delete(session); } catch (error) { failures.push(error); }
       }
       await closeSources(failures);
       if (failures.length === 1) throw failures[0];
       if (failures.length) throw new AggregateError(failures, 'Native preparation cleanup failed');
+      if (ownershipRecorded) { canonical.epochs.settle(ownerId); ownershipRecorded = false; }
       releaseCleanup?.();
     })().catch(error => { cleaning = null; throw error; });
   } };
@@ -232,6 +244,21 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
     const manifest = source.manifest;
     const plan = createWorkPartitionPlan(runtime, manifest, selected);
     const planId = runtime.hashLayerPartitionPlan(plan);
+    let canonicalOptions = {};
+    if (canonical) {
+      canonical.epochs.assertCurrent();
+      const generation = runtime.canonicalGenerationIdentity(selected.canonicalGeneration.policy,
+        selected.canonicalGeneration.executionIdentity, plan.vocabSize);
+      const stage = { participantId, participantEpoch: canonical.participantEpoch,
+        deviceEpoch: crypto.randomUUID().replaceAll('-', ''), residentId: crypto.randomUUID(), partitionIndex: index,
+        executionId: generation.executionIdentity };
+      stage.stageId = runtime.metadataDigest('reploid.partition-resident-stage/v1', { modelIdentity: selected.identity, planId, ...stage });
+      commitAuthority = createPartitionStageCommitAuthority({ runtime, identity: canonical.identity, stage });
+      canonicalOptions = { canonicalGeneration: selected.canonicalGeneration, canonicalRuntime: runtime,
+        canonicalCommitAuthority: { getStage: () => { canonical.epochs.assertCurrent(); return commitAuthority.getStage(); },
+          async sign(request) { canonical.epochs.assertCurrent(); const result = await commitAuthority.sign(request); canonical.epochs.assertCurrent(); return result; },
+          close: () => commitAuthority.close() } };
+    }
     let factory;
     if (selected.capsule !== undefined) {
       requireValue(source.artifactStore, 'Signed native resident requires a pinned artifact source');
@@ -240,18 +267,25 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
       const { openCapsule } = await import('doppler-gpu/host');
       factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,
         openCapsule, model: configured, artifactStore: source.artifactStore, release,
-        assertSession: assertWorkResidentCapsule, closeSources, trackSession,
+        assertSession: assertWorkResidentCapsule, closeSources, trackSession, canonical: !!canonical,
         onVerification: value => { capsuleVerification = value; } });
     } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: selected.identity,
       runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: configured.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => tokenizer.storage });
-    resident = createResidentPartition({ runtime: factory, model: configured, plan, planId, index, participantId, limits: policy.limits });
+    resident = createResidentPartition({ runtime: factory, model: configured, plan, planId, index, participantId, limits: policy.limits, ...canonicalOptions });
     onProgress({ stage: 'opening', message: 'Opening native assigned partition' });
+    if (canonical) { canonical.epochs.begin(ownerId); ownershipRecorded = true; }
     await resident.prepare({ approved: true, signal });
     tokenizer.assertAvailable();
-    return { runtime, model: configured, plan, planId, resident,
+    return { runtime, model: configured, plan, planId, resident: canonical ? Object.freeze(Object.fromEntries(
+      Object.entries(resident).map(([name, value]) => [name, typeof value !== 'function' ? value : name === 'close'
+        ? () => cleanupOwner.close() : name === 'closeAttempt' ? (...args) => value(...args) : (...args) => {
+          canonical.epochs.assertCurrent(); const result = value(...args);
+          if (result?.then) return result.then(output => { canonical.epochs.assertCurrent(); return output; });
+          canonical.epochs.assertCurrent(); return result;
+        }]))) : resident,
       getReceipt: () => ({ ...(selected.capsule === undefined ? source.getReceipt() : { sourceAcquisition: source.getReceipt() }),
         host: 'node', openingMode: selected.capsule === undefined ? 'pinned-manifest' : 'signed-capsule',
         capsuleVerification, memory: runtime.inspectDeviceMemory() }) };
@@ -265,11 +299,21 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
 }
 
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
-  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, onFileChange = () => {}, onChange = () => {}, logger = console }) {
+  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, onFileChange = () => {}, onChange = () => {}, logger = console }) {
   requireValue(identity?.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId,
     'Native participant requires its own valid signing identity');
   requireValue(typeof rtc?.RTCPeerConnection === 'function' && typeof WebSocket === 'function', 'Native WebRTC and WebSocket required');
   requireValue(model && modelDirectory && typeof nativeGpu === 'function', 'Explicit native model, directory and GPU provider required');
+  let canonicalRuntime = null, epochs = null;
+  if (canonical !== null) {
+    requireValue(canonical && typeof canonical.epochDirectory === 'string' && model.canonicalGeneration,
+      'Canonical native participation requires explicit durable epochs and declared model generation');
+    canonicalRuntime = await import('doppler-gpu/partitions');
+    for (const name of ['canonicalGenerationIdentity', 'metadataDigest', 'tokenDigest', 'validateResidentAttemptIdentity',
+      'residentAttemptDigest', 'residentPublicationDecisionDigest', 'validateExecutionPublication', 'validateAdmissionPublication']) {
+      requireValue(typeof canonicalRuntime[name] === 'function', 'Installed Doppler lacks canonical capability: ' + name);
+    }
+  }
   const endpoint = new URL(signalingUrl);
   endpoint.searchParams.set('scope', roomId === bootstrap.publicRoomId ? 'public' : 'private');
   endpoint.searchParams.set('roomId', roomId);
@@ -296,18 +340,33 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
           && (!admission || (!request.contact && !request.from) || await admission.verify(request.contact || request.from)) }
     })
   } });
+  const settledOwners = new Set();
+  const closeOwner = async owner => {
+    if (!owner || settledOwners.has(owner)) return;
+    await owner.close(); settledOwners.add(owner);
+  };
   const close = () => closePromise ||= (async () => {
     closed = true;
-    const results = await Promise.allSettled([partitions?.close(), ...[...networks].map(network => network.close())]);
-    try { await files?.close(); } catch (error) { results.push({ status: 'rejected', reason: error }); }
-    try { await mesh.close(); } catch (error) { results.push({ status: 'rejected', reason: error }); }
+    const results = await Promise.allSettled([partitions, ...networks]
+      .map(owner => Promise.resolve().then(() => closeOwner(owner))));
+    // Sources and the mesh outlive resident cancellation/opening settlement.
+    for (const owner of [files, mesh]) {
+      results.push(...await Promise.allSettled([Promise.resolve().then(() => closeOwner(owner))]));
+    }
+    // Resident cleanup still needs its epoch journal on explicit retry. A failed
+    // transport close does not revoke that ownership or clear its durable debt.
+    if (!partitions || settledOwners.has(partitions)) {
+      results.push(...await Promise.allSettled([Promise.resolve().then(() => closeOwner(epochs))]));
+    }
     const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
     if (failures.length) throw new AggregateError(failures, 'Native contribution did not settle cleanly');
-  })();
+  })().catch(error => { closePromise = null; throw error; });
   try {
+    if (canonical) epochs = await openNativeCanonicalEpochs({ directory: canonical.epochDirectory, participantId: identity.peerId, meshId: roomId });
     await mesh.connect();
     if (cacheDirectory) files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange: onFileChange });
     partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], policy,
+      canonical: epochs ? { runtime: canonicalRuntime, participantEpoch: epochs.participantEpoch, coordinatorEpoch: epochs.coordinatorEpoch } : null,
       peers: () => transport.getConnectedPeers().map(peer => ({ ...peer, localTransportId: transport._getPeerId() })),
       createNetwork(options) {
         const network = createPartitionNetwork({ ...options, transport,
@@ -319,7 +378,8 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
       },
       loadProgram: (selected, index, controls) => openNativePartition({ model: selected, index, modelDirectory,
         releaseDirectory: cacheDirectory && path.join(path.dirname(cacheDirectory), 'release-checkpoints'),
-        nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls }), onChange
+        nativeGpu: () => gpuPromise ||= nativeGpu().catch(error => { gpuPromise = null; throw error; }), files, ...controls,
+        ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}) }), onChange
     });
     return Object.freeze({ identity: identity.peerId, getState: () => partitions.getState(),
       contribute: approved => partitions.contribute(model.id, approved), stop: () => partitions.stop(), close,
@@ -343,7 +403,7 @@ export function createNativeShutdown(participant, gpuHost) {
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
     'ws-module', 'gpu-module', 'signaling-url', 'room', 'room-token', 'origin', 'cache-directory'].map(key => [key, { type: 'string' }]).concat([
-      ['help', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
+      ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
 Usage: reploid-participant --connect-only|--share-files|--contribute
@@ -352,6 +412,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
   [--room <namespace>] [--room-token <join marker>] [--origin <allowed origin>]
+  [--canonical] (requires explicit catalog generation and a capable installed runtime)
 
 File sharing and compute are separate explicit choices; both may be enabled.
 Compute requires --gpu-module. Missing assigned pieces use authenticated peers.
@@ -384,6 +445,8 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: values['room-token'] || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
+    canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
+      createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
     nativeGpu: () => gpuHost.open(), onChange: state => console.log(JSON.stringify({ event: 'partition-state', ...state })) });
   const timer = setInterval(() => { participant.announceFiles(); console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }) })); }, policy.pollMs);

@@ -1,0 +1,47 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:28700) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/unit/native-canonical-cleanup.test.js (2 tests | 2 failed) 13ms
+   × retains epoch owner after failed participant close, coalesces overlap and retries retirement 10ms
+   × a synchronous owner close cannot skip other owners or resident settlement 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-canonical-cleanup.test.js > retains epoch owner after failed participant close, coalesces overlap and retries retirement
+Error: Private introduction room capability required
+ ❯ createRoomIntroductionAdmission packages/reploid/src/transport/introduction-admission.js:7:11
+      5| export function createRoomIntroductionAdmission({ roomId, token }) {
+      6|   if (typeof roomId !== 'string' || !roomId || typeof token !== 'strin…
+      7|     throw new Error('Private introduction room capability required');
+       |           ^
+      8|   }
+      9|   const encoder = new TextEncoder();
+ ❯ Module.createNativeParticipant server/native-participant.js:323:95
+ ❯ fixture tests/unit/native-canonical-cleanup.test.js:42:23
+ ❯ tests/unit/native-canonical-cleanup.test.js:54:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/native-canonical-cleanup.test.js > a synchronous owner close cannot skip other owners or resident settlement
+Error: Private introduction room capability required
+ ❯ createRoomIntroductionAdmission packages/reploid/src/transport/introduction-admission.js:7:11
+      5| export function createRoomIntroductionAdmission({ roomId, token }) {
+      6|   if (typeof roomId !== 'string' || !roomId || typeof token !== 'strin…
+      7|     throw new Error('Private introduction room capability required');
+       |           ^
+      8|   }
+      9|   const encoder = new TextEncoder();
+ ❯ Module.createNativeParticipant server/native-participant.js:323:95
+ ❯ fixture tests/unit/native-canonical-cleanup.test.js:42:23
+ ❯ tests/unit/native-canonical-cleanup.test.js:66:13
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed (2)
+   Start at  08:52:22
+   Duration  352ms (transform 196ms, setup 0ms, import 264ms, tests 13ms, environment 0ms)
+

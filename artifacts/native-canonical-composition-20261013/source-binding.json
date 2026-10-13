@@ -1,0 +1,29 @@
+{
+  "files": {
+    "server/native-participant.js": "c301f56d4f462f84765658fcfec0e1db37aeb18a4c974da816826cbac6fc9496",
+    "server/native-canonical-epochs.js": "09854bb4c8631d37c2458e0e04c8fdbc0ffec404ac2e737caabfce178ce2929c",
+    "packages/reploid/src/mesh/partitions/automatic-partitions.js": "a4730976c6938520c2daa2c9665cb604065594f49fee0fab4abf922f287d7cd9",
+    "packages/reploid/src/mesh/partitions/partition-discovery.js": "c61bf263be21eac8db90e9cd62d07f1755c08a014a4e41a4d136f4bac339ad2b",
+    "tests/unit/native-canonical-cleanup.test.js": "58390d40e9dd4a96cac54f74116453009d4ea0a94fa76e7f38bfd764a446f32f",
+    "tests/unit/native-canonical-epochs.test.js": "a54f4bc8b7eac2e6be9ec049e6a0b8ab39d3495e162bafed3c3b3ca39394539d",
+    "tests/unit/native-participant.test.js": "d7a703f1c901e9f4d9b51c2137c1eb854cbb6e074591c545205f36ed616dfc32",
+    "tests/unit/canonical-contributor.test.js": "1d2180203b8689a372c573a9569506b0c31ab1cbb8ea1cac2bcc69eded3661a5",
+    "tests/unit/native-delivery.test.js": "99630011707e55976817f2c56c8f095d6d03bcbb276927effd4f4674090fbc85",
+    "tests/unit/native-partition-endpoint.test.js": "73bc09f8f816ac3c4935292214f124201a72e8ea600fd2bd942698e3f628279b",
+    "tests/unit/partition-discovery-invalidation.test.js": "e75c6939a5886b4db41406814d078bb19e5b049795de475af2b3c7e1331bd86b",
+    "tests/unit/native-release-storage.test.js": "ae9e1fc95799d9d75ed2eb620f4837793fde4f41d34be98bf055f9a04feb152d",
+    "artifacts/native-canonical-composition-20261013/release-cas-diagnostic.mjs": "0fa15c0c1d868314105ddbcbd27a15841d601e199f56c77842f12bcf5416ca11",
+    "server/native-supply-budget.js": "f6e789133c265da2e1b94acf9087bb23ebf2d1727d0fff14bda1e4cd59bb171a",
+    "server/native-release-storage.js": "0bf52391ad24417a8d593e1df2f9d426af609910993faa6bf38b034f82ec3417",
+    "tests/unit/native-storage-opening.test.js": "22758611f440b42ec5ffcaac45e45663dfc60555cb3b05207c70319e7ac0ea17"
+  },
+  "scope": "CPU/source tests; no package or GPU qualification",
+  "environment": {
+    "node": "v22.20.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "osRelease": "25.6.0",
+    "testWorkers": 2,
+    "gpuLaunched": false
+  }
+}
