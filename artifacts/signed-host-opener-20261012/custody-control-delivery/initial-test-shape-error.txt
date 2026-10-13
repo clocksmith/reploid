@@ -1,0 +1,92 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/swarm-signaling-independence.test.js (17 tests | 1 failed) 22ms
+   ✓ keeps direct traffic and heartbeats after signaling close, removes dependent relay routes 5ms
+   ✓ keeps direct traffic and heartbeats after signaling error, removes dependent relay routes 2ms
+   ✓ allows transient ICE recovery within the liveness deadline (incoming=false) 1ms
+   ✓ allows transient ICE recovery within the liveness deadline (incoming=true) 1ms
+   ✓ still retires an unresponsive disconnected peer at the existing deadline (incoming=false) 1ms
+   ✓ still retires an unresponsive disconnected peer at the existing deadline (incoming=true) 1ms
+   ✓ retires a peer immediately on failed during ICE interruption 0ms
+   ✓ retires a peer immediately on closed during ICE interruption 0ms
+   ✓ retires a peer immediately on manual during ICE interruption 1ms
+   ✓ retains direct peers across directory departure and rejoin without replacing their channels 1ms
+   ✓ admits through an injected introduction adapter without a WebSocket or company credential port 0ms
+   ✓ admits only registered bounded job channels and closes them on peer shutdown 1ms
+   ✓ creates dedicated job channels with the existing reliable ordered delivery contract 0ms
+   ✓ rejoins discovery after terminal RTC failure and replaces only the failed channel 1ms
+   ✓ cancels terminal peer recovery on explicit disconnect 0ms
+   ✓ closes a newly allocated connection when primary channel creation fails 1ms
+   × negotiates the application control channel as reliable ordered without a retransmission cap 3ms
+ ❯ tests/unit/custody-exchange.test.js (21 tests | 2 failed) 2472ms
+   ✓ cannot renew the supply allowance by refreshing inventory or stopping and restarting 70ms
+   ✓ acquires signed files in both directions with peer clock offsets 0/250 59ms
+   ✓ acquires signed files in both directions with peer clock offsets 250/0 59ms
+   ✓ clips a supplier grant to the requester allowance while preserving signed verification 56ms
+   ✓ rejects a correctly signed supplier grant that expands the requested expiry 54ms
+   ✓ acquires only an authenticated range of an approved file and rejects invalid ranges 56ms
+   ✓ acquires verified bytes through signed custody only after independent file contribution and releases transfer slots 112ms
+   ✓ retains cumulative supply accounting across acquisitions and fails closed after shutdown 57ms
+   ✓ ignores malformed inventories and rejects invalid descriptors before allocating a transfer 2ms
+   ✓ stop while artifact verification is pending does not publish a late custody grant 104ms
+   ✓ replaces an approved inventory without advertising a false withdrawal 162ms
+   ✓ replacing an inventory revokes a pending grant even when the file remains offered 109ms
+   ✓ resumes an interrupted acquisition from verified checkpoints under a fresh grant 60ms
+   ✓ coalesces auxiliary channel creation for simultaneous transfers in both directions 56ms
+   ✓ recovers from supplier failure through another authorized supplier without an origin 56ms
+   ✓ does not exceed acquisition slots while streams are active or dispatch a fallback after cancellation 105ms
+   ✓ bounds inventory retention independently of connected peer count 54ms
+   ✓ releases staging bytes after verified persistence and never retries a local storage failure on another supplier 65ms
+   ✓ persists the supply reservation before reading bytes or issuing a grant 53ms
+   × settles a supplier whose authorization response send returns false 1065ms
+   × settles a supplier whose authorization response send returns throw 55ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/custody-exchange.test.js > settles a supplier whose authorization response send returns false
+AssertionError: expected [Function] to throw error including 'File offer response could not be queu…' but got 'File offer timed out'
+
+Expected: "File offer response could not be queued"
+Received: "File offer timed out"
+
+ ❯ tests/unit/custody-exchange.test.js:326:76
+    324|     // More rejections than the simultaneous-transfer ceiling must lea…
+    325|     for (let i=0;i<3;i++) {
+    326|       await expect(a.acquire(f.file,{signal:new AbortController().sign…
+       |                                                                            ^
+    327|       expect(suppliers[i].close).toHaveBeenCalledOnce();
+    328|     }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/unit/custody-exchange.test.js > settles a supplier whose authorization response send returns throw
+AssertionError: expected "close" to be called once, but got 0 times
+ ❯ tests/unit/custody-exchange.test.js:327:34
+    325|     for (let i=0;i<3;i++) {
+    326|       await expect(a.acquire(f.file,{signal:new AbortController().sign…
+    327|       expect(suppliers[i].close).toHaveBeenCalledOnce();
+       |                                  ^
+    328|     }
+    329|     expect(b.getState().suppliedBytes).toBe(15); // A failed send cann…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/unit/swarm-signaling-independence.test.js > negotiates the application control channel as reliable ordered without a retransmission cap
+TypeError: Cannot read properties of undefined (reading 'webrtc')
+ ❯ tests/unit/swarm-signaling-independence.test.js:264:26
+    262| it('negotiates the application control channel as reliable ordered wit…
+    263|   const resolved = resolveConfig({profile: applicationProfile.profile}…
+    264|   expect(resolved.config.webrtc.dataChannelOptions).toEqual({ordered:t…
+       |                          ^
+    265|   const f=fixture({profile:applicationProfile.profile});
+    266|   try {
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  3 failed | 35 passed (38)
+   Start at  08:20:49
+   Duration  2.77s (transform 141ms, setup 0ms, import 192ms, tests 2.49s, environment 224ms)
+

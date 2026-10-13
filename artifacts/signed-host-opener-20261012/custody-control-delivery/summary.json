@@ -1,0 +1,28 @@
+{
+  "component": "Artifact custody offer lifetime and application RTC profile",
+  "intent": "preserved",
+  "files": {
+    "packages/reploid/src/artifacts/custody/exchange.js": "057483a5b567e90d891637f28d56a19b1a559e0c29cd2c09ef763f706f2b9bcd",
+    "self/vendor/reploid/artifacts/custody/exchange.js": "057483a5b567e90d891637f28d56a19b1a559e0c29cd2c09ef763f706f2b9bcd",
+    "self/config/reploid-library.json": "7d4ddcd882d6fe6068a5c89ab1b19e4a2e3bf20424998fad6fc314de8255ed84",
+    "tests/unit/custody-exchange.test.js": "7938297355fd2e7d16117f8fb90d634fd79f36485a02538a0747d00d595bfb0a",
+    "tests/unit/swarm-signaling-independence.test.js": "28a7ebbd30ff544306f1051458de5b2a915c81ef454e75b7895076c1969aab17"
+  },
+  "changes": [
+    "A false or thrown authorization-response send closes the newly created supplier, clears its grant timer and releases its simultaneous-transfer slot; durable allowance remains charged.",
+    "Application main control channel now declares ordered true and maxRetransmits null; existing config resolver omits null in native/browser RTC creation. Reliable auxiliary custody/partition channels remain unchanged."
+  ],
+  "controls": {
+    "before": "False send timed out and thrown send left supplier open; application profile selected retransmission cap3. Exact failures retained.",
+    "after": "88 tests/7files pass, including three rejected sends past two-live-transfer ceiling then successful reuse with exact durable charge; actual swarm negotiation options assert ordered only",
+    "types": "Pass",
+    "worker": "Pass0errors25warnings"
+  },
+  "physicalLimit": "No running process or existing channel changed. Observed retry with old maxRetransmits3 has accepted response sends; this does not establish that either corrected bug caused the earlier metadata timeout. New negotiated channel still requires physical verification.",
+  "unchanged": [
+    "Transport and custody deadlines",
+    "Transfer bytes/buffering/concurrency ceilings",
+    "Source model/runtime/reference",
+    "Consent/identity/durable allowance authority"
+  ]
+}

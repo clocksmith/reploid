@@ -1,10 +1,11 @@
 import { afterEach, expect, it, vi } from 'vitest';
 import { createWebRTCSwarm } from '../../packages/reploid/src/transport/swarm.js';
+import applicationProfile from '../../self/config/reploid-library.json' with { type: 'json' };
 import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
 afterEach(() => vi.useRealTimers());
 
-function fixture({ failChannel = false } = {}) {
+function fixture({ failChannel = false, profile } = {}) {
   const sockets = [], connections = [], events = [];
   class Socket {
     static OPEN = 1;
@@ -19,6 +20,7 @@ function fixture({ failChannel = false } = {}) {
     constructor() { connections.push(this); }
     close = vi.fn();
     createDataChannel(label, options) {
+      this.createdChannelOptions = structuredClone(options);
       if (label === 'reploid' && failChannel) throw new Error('native channel adaptation failed');
       if (label === 'reploid') return this.channel;
       return Object.assign(new EventTarget(), { label, ...options, readyState: 'open',
@@ -29,7 +31,7 @@ function fixture({ failChannel = false } = {}) {
     async setLocalDescription() {}
     async setRemoteDescription() {}
   }
-  const config = resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'test' },
+  const config = resolveConfig({ profile, overrides: { mesh: { enabled: true, roomId: 'test' },
     webrtc: { signalingUrl: 'wss://fixture.invalid', heartbeatIntervalMs: 100, peerTimeoutMs: 500,
       reconnectBaseMs: 1000 } } });
   const swarm = createWebRTCSwarm({ config, peerId: 'local', getSessionId: () => 'session',
@@ -254,4 +256,15 @@ it('closes a newly allocated connection when primary channel creation fails', as
   } finally { f.swarm.disconnect(); }
   expect(f.connections[0].close).toHaveBeenCalledOnce();
   expect(vi.getTimerCount()).toBe(0);
+});
+
+
+it('negotiates the application control channel as reliable ordered without a retransmission cap', async () => {
+  const resolved = resolveConfig({profile: applicationProfile.profile});
+  expect(resolved.value.webrtc.dataChannelOptions).toEqual({ordered:true,maxRetransmits:null});
+  const f=fixture({profile:applicationProfile.profile});
+  try {
+    await f.open();
+    expect(f.connections[0].createdChannelOptions).toEqual({ordered:true});
+  } finally {f.swarm.disconnect();}
 });

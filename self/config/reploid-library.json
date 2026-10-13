@@ -34,7 +34,7 @@
         "maxPendingRemoteIceCandidates": 32,
         "dataChannelOptions": {
           "ordered": true,
-          "maxRetransmits": 3
+          "maxRetransmits": null
         }
       }
     }
