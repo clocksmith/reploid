@@ -18,6 +18,10 @@ import { chromium } from 'playwright';
 import referenceContract from './distributed-reference-contract.json' with { type: 'json' };
 import { decodeReferenceLogits } from './independent-numerical-reference.js';
 import { physicalWebGpuBrowserOptions, connectPhysicalBrowser } from './physical-webgpu-browser.js';
+if (process.env.REPLOID_ORDERED_QUALIFICATION_CONFIG) {
+  const { runOrderedPartitionReference } = await import('./ordered-partition-reference.js');
+  await runOrderedPartitionReference(process.env.REPLOID_ORDERED_QUALIFICATION_CONFIG);
+} else {
 const raw = await readFile(process.env.REPLOID_DIAGNOSTIC_REQUESTS);
 assert.equal(createHash('sha256').update(raw).digest('hex'), '794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e');
 const requests = JSON.parse(raw), output = process.env.REPLOID_CAPTURE_OUT;
@@ -617,4 +621,6 @@ try {
   }
   await persistEvidence();
   if (cleanupFailure && !evidence.failure) throw cleanupFailure;
+}
+
 }

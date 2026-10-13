@@ -3,7 +3,7 @@ import { test, expect, vi } from 'vitest';
 import { createHash, webcrypto } from 'node:crypto';
 import { preparePartitionMemory } from '../fixtures/prepare-partition-memory.js';
 
-test.each([false, true])('device loss and explicit profiler=%s remain observable', async profileImmediate => {
+test.each([[false, false], [true, false], [false, true], [true, true]])('device loss profiler=%s ordered=%s remain observable', async (profileImmediate, ordered) => {
   const names = ['__nativePartitionFixture', '__DOPPLER_KERNEL_BASE_PATH__', 'gpuValidationErrors',
     'partitionDeviceEvents', 'partitionGpuSubmissions', 'resident', 'chunks', 'observePrefill', 'abortOnSubmit', 'encodeBytes', 'memorySnapshot', 'settleMemory', 'rejectOversizedAllocation'];
   const prior = new Map(names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
@@ -24,9 +24,10 @@ test.each([false, true])('device loss and explicit profiler=%s remain observable
     createComputePipelineAsync: () => pipelineResult,
     createCommandEncoder: () => ({ beginComputePass: () => ({ setPipeline() {}, setBindGroup() {},
       dispatchWorkgroups: (...args) => dispatched.push(args), dispatchWorkgroupsIndirect() {} }), finish: () => ({}) }) }; 
-  const runtime = { createLayerPartitionPlan: () => ({}), hashLayerPartitionPlan: () => 'test-plan',
+  let acceptedAllocation;
+  const runtime = { validateOrderedLayerPartitionPlan: vi.fn(), createLayerPartitionPlan: () => ({}), hashLayerPartitionPlan: () => 'test-plan',
     configureDeviceMemoryBudget: async () => {}, inspectDeviceMemory: () => ({ liveBytes: 12 }),
-    createManifestResidentPartitionFactory: vi.fn(() => ({ openResidentPartition: async () => ({ getDescriptor: () => ({ ready: true }) }) })) };
+    createManifestResidentPartitionFactory: vi.fn(() => ({ openResidentPartition: async allocation => { acceptedAllocation = allocation; return { getDescriptor: () => ({ ready: true }) }; } })) };
   const modules = { 'partitions.js': runtime,
     'device.js': { getDevice: () => lost ? null : device, getKernelCapabilities: () => ({}) },
     'buffer-pool.js': { getBufferPool: () => { if (lost) throw Error('pool lost');
@@ -38,7 +39,12 @@ test.each([false, true])('device loss and explicit profiler=%s remain observable
   try {
     await preparePartitionMemory({ model: { identity, generation: { maxSeqLen: 32 } }, index: 0,
       modelSource: 'https://fixture/', config: { DOPPLER_PARTITIONS_MODULE_URL: 'https://fixture/src/partitions.js' },
-      policy: { maxGpuBufferBytes: 1420000000 }, profileImmediate });
+      policy: { maxGpuBufferBytes: 1420000000 }, profileImmediate,
+      ...(ordered ? { orderedPlan: { schema: 'doppler.layer-partition-contract/v3', activationPrecision: 'two-f32' }, participantId: 'ordered-middle',
+        pairedBinding: { manifestIdentity: identity, activation: { activationPrecision: 'two-f32' } } } : {}) });
+    expect(acceptedAllocation.participantId).toBe(ordered ? 'ordered-middle' : 'memory-A');
+    expect(runtime.validateOrderedLayerPartitionPlan).toHaveBeenCalledTimes(ordered ? 1 : 0);
+    if (ordered) expect(acceptedAllocation.plan.schema).toBe('doppler.layer-partition-contract/v3');
     expect(runtime.createManifestResidentPartitionFactory.mock.calls[0][0].runtimeConfig.shared.debug.profiler.enabled).toBe(profileImmediate);
     const descriptor = { label: 'test pipeline', compute: { entryPoint: 'main', constants: { WIDTH: 8 } } };
     expect(device.createShaderModule({ label: 'test shader', code: 'source' })).toBe(shaderModule);

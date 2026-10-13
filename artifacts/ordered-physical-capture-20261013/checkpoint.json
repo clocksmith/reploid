@@ -1,0 +1,22 @@
+{
+  "scope": "CPU fixture and serialized public stage contract controls; no physical N-stage result",
+  "tests": {
+    "files": 5,
+    "passed": 45
+  },
+  "worker": "worker.json",
+  "sources": {
+    "tests/fixtures/browser-partition-memory-completion.js": "e50c9c9615ff28ea7282ff5ae074d35009d9cdc7eb3609641702cc390c7711fe",
+    "tests/fixtures/prepare-partition-memory.js": "a413ccd8200e72c75b90a382268f8354a57fa9ab98073f10891dc1a1611b05d7",
+    "tests/fixtures/ordered-partition-reference.js": "699bf8052686dd019d0ce418d4d3a9e004d4daaa4bf4039e4296b19b3d5a2dfd",
+    "tests/unit/ordered-partition-reference.test.js": "6f982a373da6b66b098444dd54372cb7cb5c7d5a97eafc79ca217420551827f9",
+    "tests/unit/partition-memory-observation.test.js": "226028231b982506be922e3bee4dead54af3413ee233d44ba3ee42dfe12f1093"
+  },
+  "gpuLaunched": false,
+  "limits": {
+    "stageMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000,
+    "maxGpuBufferBytes": 1420000000
+  }
+}
