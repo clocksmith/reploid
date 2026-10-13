@@ -43,6 +43,8 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       'Ordered chat requires ordinary execution and an open owner');
     const signal = controls.signal ? AbortSignal.any([lifetime.signal, controls.signal]) : lifetime.signal;
     signal.throwIfAborted();
+    assert(request.disclosureExpiresAt === undefined || Number.isSafeInteger(request.disclosureExpiresAt) && request.disclosureExpiresAt > now(),
+      'Requester disclosure deadline expired or invalid');
     assert(request.meshId === authority.meshId && request.model.id === selection.id
       && request.model.identity === selection.identity && !(request.model.adapters || []).length
       && canonicalPartitionJson(request.model.partition) === canonicalPartitionJson(selection.partition), 'Ordered chat selection mismatch');
@@ -58,7 +60,8 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       assert(request.permissions?.sharingScope && request.permissions.sharingScope !== 'local', 'Partition disclosure is disabled');
       await refresh({ signal }); signal.throwIfAborted();
       assert(models()[0].availability === 'ready', 'No ready contributors for this ordered route');
-      const disclosure = orderedPartitionDisclosure(identity), expiresAt = now() + grantTtlMs;
+      const disclosure = orderedPartitionDisclosure(identity), expiresAt = Math.min(now() + grantTtlMs, request.disclosureExpiresAt ?? Infinity);
+      assert(expiresAt > now(), 'Requester disclosure expired during preparation');
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: identity.threadId,
         attemptId: identity.attemptId, peerId: coordinatorId, recipientIdentity: coordinatorId,
         modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: [],
@@ -75,8 +78,9 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       const generationDigest = await runtime.hashPartitionGeneration(input.generation);
       const remainingMs = Math.floor(expiresAt - now());
       assert(remainingMs > 0, 'Ordered disclosure expired during preparation');
-      grant = await authority.issueOrdered(identity, policy, { approved: true, ttlMs: Math.min(grantTtlMs, remainingMs), disclosure, generationDigest });
+      grant = await authority.issueOrdered(identity, policy, { approved: true, ttlMs: Math.min(grantTtlMs, remainingMs), disclosure, generationDigest, expiresAt });
       signal.throwIfAborted();
+      assert(now() < expiresAt && grant.claim.expiresAt <= expiresAt, 'Ordered disclosure expired during grant signing');
       controls.onState?.({ threadId: identity.threadId, attemptId: identity.attemptId, status: 'executing',
         execution: { placement: 'ordered-layer-partition', identity } });
       let sequence = 0;

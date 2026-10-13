@@ -26,7 +26,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
   function validMode(m) {
     if (orderedInput(m)) {
       try {
-        return ordered && m.canonical === undefined && m.participantA === undefined && m.participantB === undefined
+        return ordered && (m.disclosureExpiresAt === undefined || Number.isSafeInteger(m.disclosureExpiresAt) && m.disclosureExpiresAt > now()) && m.canonical === undefined && m.participantA === undefined && m.participantB === undefined
           && attempt(m).route.stages[0].participantId === m.coordinatorId
           && m.route.modelId === m.modelId && m.route.modelIdentity === m.modelIdentity && m.route.planId === m.planId;
       } catch { return false; }
@@ -56,7 +56,8 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       if (metadata.operation === 'delta') {
         const sending = action === 'send' || action === 'accept';
         const request = sending ? active.get(metadata.attemptId)?.request : deliveries.get(metadata.attemptId)?.request;
-        return !!request && request.schema !== 'reploid.partition-input/v2' && metadata.requesterId === request.requesterId
+        return !!request && request.schema !== 'reploid.partition-input/v2'
+          && (!orderedInput(request) || request.disclosureExpiresAt === undefined || request.disclosureExpiresAt > now()) && metadata.requesterId === request.requesterId
           && (orderedInput(request) ? metadata.coordinatorId === request.coordinatorId
             && sameRouteAttemptIdentity(metadata.identity, attempt(request)) : metadata.participantA === request.participantA) && metadata.threadId === request.threadId
           && metadata.requesterId === (sending ? remoteParticipantId : localParticipantId)
@@ -116,7 +117,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       let delivery = Promise.resolve(), sequence = 0;
       const operation = Promise.resolve().then(() => service.generate({ meshId: m.meshId, participantId: m.requesterId,
         threadId: m.threadId, attemptId: m.attemptId, placementGeneration: m.placementGeneration,
-        model, ...(isCanonical ? { canonical: structuredClone(m.canonical) } : {}), messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
+        model, ...(orderedInput(m) && m.disclosureExpiresAt !== undefined ? {disclosureExpiresAt:m.disclosureExpiresAt} : {}), ...(isCanonical ? { canonical: structuredClone(m.canonical) } : {}), messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
       { signal, publication, requestApproval: async () => authorize(structuredClone(m), { action: 'execute' }),
         onState() {}, onDelta({ text }) {
           if (isCanonical) return; // Requester projects the durable publication RPC, never this raw callback.
@@ -215,7 +216,9 @@ export function createPartitionRequester({ entries, requesterId, meshId, modelId
   assert(typeof ordered === 'boolean' && typeof entries === 'function' && typeof authorize === 'function'
     && Number.isSafeInteger(maxPlacements) && maxPlacements > 0, 'Explicit requester placement policy required');
   return Object.freeze({
-    async generate({ messages, threadId }, { signal, onDelta } = {}) {
+    async generate({ messages, threadId, disclosureExpiresAt }, { signal, onDelta } = {}) {
+      assert(disclosureExpiresAt === undefined || ordered && Number.isSafeInteger(disclosureExpiresAt) && disclosureExpiresAt > Date.now(),
+        'Requester disclosure deadline expired or invalid');
       messages = structuredClone(messages);
       const attempted = new Set(), failures = [], started = now();
       for (let generation = 0; generation < maxPlacements; generation++) {
@@ -231,6 +234,7 @@ export function createPartitionRequester({ entries, requesterId, meshId, modelId
                 : m.partition.route === undefined));
             if (!state.ready || !model) continue;
             const placement = { requesterId, modelId, modelIdentity, planId,
+              ...(disclosureExpiresAt !== undefined ? {disclosureExpiresAt} : {}),
               ...(ordered ? {coordinatorId: entry.id, route: structuredClone(model.partition.route)}
                 : {participantA: entry.id, participantB: model.partition.participantB}) };
             if (ordered) {

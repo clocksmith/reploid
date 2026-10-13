@@ -9,7 +9,7 @@ export interface PartitionInput extends PartitionBinding {
 }
 export interface OrderedPartitionInput {
  meshId:string;requesterId?:string;coordinatorId:string;route:PartitionRoute;modelId:string;modelIdentity:string;planId:string;
- threadId:string;attemptId:string;placementGeneration:number;messages:Array<{role:string;content:string}>;
+ threadId:string;attemptId:string;placementGeneration:number;disclosureExpiresAt?:number;messages:Array<{role:string;content:string}>;
 }
 export interface PartitionEntry {
  readonly id:string;
@@ -30,4 +30,4 @@ export function createPartitionEntry(options:OrderedPartitionEntryOptions):Parti
 export function createPartitionEntry(options:PartitionEntryOptions):PartitionEntry;
 export function createPartitionRequester(options:{entries:()=>PartitionEntry[];requesterId:string;meshId:string;modelId:string;modelIdentity:string;planId:string;
  maxPlacements:number;ordered?:boolean;authorize(placement:object):Promise<boolean>;onAttempt?(attempt:object):void;newId?:()=>string;now?:()=>number}):{
- generate(input:{messages:Array<{role:string;content:string}>;threadId:string},options?:{signal?:AbortSignal;onDelta?:(delta:{text:string;threadId:string;attemptId:string;placementGeneration:number})=>void}):Promise<{content:string;execution:object;recovery:object}>};
+ generate(input:{messages:Array<{role:string;content:string}>;threadId:string;disclosureExpiresAt?:number},options?:{signal?:AbortSignal;onDelta?:(delta:{text:string;threadId:string;attemptId:string;placementGeneration:number})=>void}):Promise<{content:string;execution:object;recovery:object}>};

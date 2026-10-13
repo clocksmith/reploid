@@ -13,7 +13,7 @@ export interface OrderedPartitionChat {
   getState():ReturnType<OrderedRouteRunner['getState']> & {pendingInputs:number;unsettledInputs:number};
   subscribe(listener:(models:ChatModel[])=>void):()=>void;
   refresh(options?:{signal?:AbortSignal}):Promise<ChatModel[]>;
-  generate(request:ChatRequest & ChatEnvelope & {meshId:string;participantId:string;placementGeneration?:number},controls:ChatControls):Promise<ChatResult>;
+  generate(request:ChatRequest & ChatEnvelope & {meshId:string;participantId:string;placementGeneration?:number;disclosureExpiresAt?:number},controls:ChatControls):Promise<ChatResult>;
   close():Promise<void>;
 }
 export interface OrderedPartitionChatOptions {
