@@ -12,15 +12,15 @@ vi.mock('../../packages/reploid/src/mesh/partitions/partition-chat.js', () => ({
 }));
 let owner;
 afterEach(async () => { await owner?.close(); owner = null; vi.useRealTimers(); });
-async function fixture() {
+async function fixture(index = 0) {
   const identity = await createSigningIdentity({ algorithm: 'ECDSA' });
   const model = { id: 'model', identity: 'sha256:' + 'a'.repeat(64) };
   control.active = 1; control.closed = false;
-  control.peers = [{ available: true, participantId: 'peer:zz', transportId: 'remote',
-    description: { phase: 'ready', index: 1, planId: 'plan', offer: model } }];
+  control.peers = [{ available: true, participantId: index === 0 ? 'peer:zz' : 'peer:' + '0'.repeat(24), transportId: 'remote',
+    description: { phase: 'ready', index: 1 - index, planId: 'plan', offer: model } }];
   control.chat = { getModels: () => [], refresh: async () => {}, getState: () => ({ active: control.active, attempts: [] }),
     close: vi.fn(async () => { control.active = 0; }) };
-  const resident = { index: 0, close: vi.fn(async () => {}),
+  const resident = { index, close: vi.fn(async () => {}),
     getState: () => ({ descriptor: { ready: true }, reservations: { active: control.active, availableSlots: 1, closed: false } }) };
   vi.useFakeTimers();
   owner = createAutomaticPartitions({ identity, meshId: 'mesh', models: [model],
@@ -63,4 +63,16 @@ it('still stops an active route when contribution permission is withdrawn', asyn
   expect(control.chat.close).toHaveBeenCalledOnce();
   expect(resident.close).toHaveBeenCalledOnce();
   expect(owner.getState().phase).toBe('idle');
+});
+
+// The output stage has no input-owner chat, but still owns admitted state.
+it('does not reassign a busy output resident when discovery temporarily loses its input owner', async () => {
+  const { resident, placement } = await fixture(1);
+  control.peers = [{ available: true, participantId: 'peer:zz', transportId: 'replica',
+    description: { phase: 'ready', index: 1, planId: 'plan', offer: { id: 'model', identity: 'sha256:' + 'a'.repeat(64) } } }];
+  await vi.advanceTimersByTimeAsync(100);
+  expect(resident.close).not.toHaveBeenCalled();
+  expect(owner.getState().placement).toEqual(placement);
+  await owner.stop();
+  expect(resident.close).toHaveBeenCalledOnce();
 });

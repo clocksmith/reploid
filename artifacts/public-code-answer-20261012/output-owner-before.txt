@@ -1,0 +1,39 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/automatic-partition-discovery-lifetime.test.js (4 tests | 1 failed) 16ms
+   ✓ keeps an active healthy route across discovery expiry and replica changes until settlement 11ms
+   ✓ does not treat a closed execution channel as healthy during discovery loss 1ms
+   ✓ still stops an active route when contribution permission is withdrawn 1ms
+   × does not reassign a busy output resident when discovery temporarily loses its input owner 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/automatic-partition-discovery-lifetime.test.js > does not reassign a busy output resident when discovery temporarily loses its input owner
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array []
+
+
+Number of calls: 1
+
+ ❯ tests/unit/automatic-partition-discovery-lifetime.test.js:74:30
+     72|     description: { phase: 'ready', index: 1, planId: 'plan', offer: { …
+     73|   await vi.advanceTimersByTimeAsync(100);
+     74|   expect(resident.close).not.toHaveBeenCalled();
+       |                              ^
+     75|   expect(owner.getState().placement).toEqual(placement);
+     76|   await owner.stop();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 3 passed (4)
+   Start at  21:59:27
+   Duration  235ms (transform 48ms, setup 0ms, import 63ms, tests 16ms, environment 94ms)
+

@@ -1,0 +1,489 @@
+{
+  "schema": "reploid.native-rolling-upgrade-evidence/v1",
+  "applicationSourceCommit": "2ff3bd56",
+  "artifactSha256": "b9b656d19c707b6fc32c28161cd5d77fdce519178d68d4f581ed55ec96cb963f",
+  "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "runtimeVersion": "0.6.27",
+  "order": [
+    "x",
+    "suby"
+  ],
+  "installedRoot": "/var/tmp/reploid-public-route-native-20261012/reploid",
+  "x": {
+    "checkedAt": 1791856770.7907753,
+    "old": {
+      "pid": 3379363,
+      "args": [
+        "node",
+        "server/native-participant.js",
+        "--contribute",
+        "--share-files",
+        "--model",
+        "qwen-3-5-0-8b-q4k-ehaf16",
+        "--model-directory",
+        "/home/x/.local/share/reploid/public-native/weights",
+        "--cache-directory",
+        "/home/x/.local/share/reploid/public-native/cache-budget-20261012",
+        "--identity-file",
+        "/home/x/.local/share/reploid/public-native/identity.json",
+        "--rtc-module",
+        "@roamhq/wrtc",
+        "--ws-module",
+        "ws",
+        "--gpu-module",
+        "webgpu",
+        "--origin",
+        "https://replo.id",
+        "--signaling-url",
+        "wss://reploid-swarm.reploid.workers.dev/swarm"
+      ],
+      "cwd": "/var/tmp/reploid-budget-persistence-installed/reploid",
+      "exe": "/usr/bin/node",
+      "state": {
+        "phase": "ready",
+        "error": null,
+        "attempts": [],
+        "reservations": {
+          "closed": false,
+          "active": 0,
+          "availableSlots": 2,
+          "records": [
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:688e732256ab83155c54f72e",
+                "participantB": "peer:57adcc49bae5ed5eefe8fbf1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "1d2c3c81-eba0-45e2-b2cb-a23345dd2c44",
+                "attemptId": "8b0f0d4f-f7e5-43b5-8779-001b8b141105",
+                "requesterId": "peer:0fea286c868809e3794ca122",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:688e732256ab83155c54f72e",
+              "index": 0,
+              "phase": "settled",
+              "reservedAt": 1791830416350,
+              "settlingAt": 1791830418464,
+              "settledAt": 1791830418465,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:688e732256ab83155c54f72e",
+                "participantB": "peer:57adcc49bae5ed5eefe8fbf1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "1d2c3c81-eba0-45e2-b2cb-a23345dd2c44",
+                "attemptId": "63dc5489-9663-4811-9661-36ada03a4ec2",
+                "requesterId": "peer:0fea286c868809e3794ca122",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:688e732256ab83155c54f72e",
+              "index": 0,
+              "phase": "settled",
+              "reservedAt": 1791830419707,
+              "settlingAt": 1791830421450,
+              "settledAt": 1791830421451,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:688e732256ab83155c54f72e",
+                "participantB": "peer:57adcc49bae5ed5eefe8fbf1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "83fd69a4-bfd2-47e0-96b4-942b540ec98e",
+                "attemptId": "86b1b224-9fce-4233-959a-cf3fed7ac85b",
+                "requesterId": "peer:95f2833657d42877a5ca7215",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:688e732256ab83155c54f72e",
+              "index": 0,
+              "phase": "settled",
+              "reservedAt": 1791831650598,
+              "settlingAt": 1791831653200,
+              "settledAt": 1791831653201,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:688e732256ab83155c54f72e",
+                "participantB": "peer:57adcc49bae5ed5eefe8fbf1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "83fd69a4-bfd2-47e0-96b4-942b540ec98e",
+                "attemptId": "038b5a5d-5c87-43b8-8e67-4b8743ba2eff",
+                "requesterId": "peer:95f2833657d42877a5ca7215",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:688e732256ab83155c54f72e",
+              "index": 0,
+              "phase": "settled",
+              "reservedAt": 1791831672024,
+              "settlingAt": 1791831681576,
+              "settledAt": 1791831681576,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:688e732256ab83155c54f72e",
+                "participantB": "peer:57adcc49bae5ed5eefe8fbf1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "83fd69a4-bfd2-47e0-96b4-942b540ec98e",
+                "attemptId": "0bb92c9a-ae04-46ae-8df5-fae9679942a3",
+                "requesterId": "peer:95f2833657d42877a5ca7215",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:688e732256ab83155c54f72e",
+              "index": 0,
+              "phase": "settled",
+              "reservedAt": 1791831689520,
+              "settlingAt": 1791831700926,
+              "settledAt": 1791831700927,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            }
+          ]
+        },
+        "unsettledOwners": 0,
+        "placement": [
+          "peer:688e732256ab83155c54f72e",
+          "peer:57adcc49bae5ed5eefe8fbf1"
+        ],
+        "executionPeer": null,
+        "fileSupply": null
+      },
+      "identitySha256": "b1e30444277904583cb0790d8f614d68103898ebabab9f10da4bd5029d436323",
+      "budget": {
+        "schema": "reploid.custody-supply-budget/v1",
+        "maxBytes": 4294967296,
+        "reservedBytes": 637534208
+      },
+      "log": "/home/x/.local/state/reploid/public-native-budget-restart-20261012.log",
+      "logOffset": 1224851961,
+      "checkedAt": 1791856704.1653419,
+      "exitObserved": true,
+      "exitCodeKnown": false
+    },
+    "new": {
+      "pid": 4047510,
+      "startedAt": 1791856704.5992203,
+      "log": "/home/x/.local/state/reploid/public-native-budget-restart-20261012.log",
+      "logOffset": 1224855194
+    },
+    "verification": {
+      "applicationFiles": 97,
+      "runtimeFiles": 1897,
+      "runtimeVersion": "0.6.27",
+      "descriptorSha256": "5d16f85e55d3243340178c8cf552846464a24154a2e51c3a3be631a30c27e7b9",
+      "artifactSha256": "b9b656d19c707b6fc32c28161cd5d77fdce519178d68d4f581ed55ec96cb963f"
+    },
+    "argsUnchanged": true,
+    "identityUnchanged": true,
+    "identitySha256": "b1e30444277904583cb0790d8f614d68103898ebabab9f10da4bd5029d436323",
+    "budgetAfter": {
+      "schema": "reploid.custody-supply-budget/v1",
+      "maxBytes": 4294967296,
+      "reservedBytes": 637534208
+    },
+    "budgetUnchanged": true,
+    "nativeInitialized": {
+      "event": "native-initialized",
+      "participantId": "peer:688e732256ab83155c54f72e",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16"
+    },
+    "current": {
+      "phase": "ready",
+      "error": null,
+      "attempts": [],
+      "reservations": {
+        "closed": false,
+        "active": 0,
+        "availableSlots": 2,
+        "records": []
+      },
+      "unsettledOwners": 0,
+      "placement": [
+        "peer:8293261cfefa530c6a7ade6c",
+        "peer:688e732256ab83155c54f72e"
+      ]
+    },
+    "shutdownLogEvents": [
+      "[26326288.6ms][Pipeline] Unloaded",
+      "[26326376.0ms][GPU] Device lost: device was destroyed, Reason: destroyed"
+    ],
+    "logRange": {
+      "offset": 1224851961,
+      "bytes": 2371482,
+      "sha256": "c130921e448932d41a1dd8e70c69f86764be7b6e369553368d2623b8e7c7c1fe"
+    },
+    "oldExitStatusLimitation": "Existing detached process was not a child; process disappearance plus explicit unload/device destruction observed, exit code unavailable."
+  },
+  "suby": {
+    "checkedAt": 1791856771.4674304,
+    "old": {
+      "pid": 4187994,
+      "args": [
+        "node",
+        "server/native-participant.js",
+        "--contribute",
+        "--model",
+        "qwen-3-5-0-8b-q4k-ehaf16",
+        "--model-directory",
+        "/home/clocksmith/.local/share/reploid/public-native/weights",
+        "--cache-directory",
+        "/home/clocksmith/.local/share/reploid/public-native/cache",
+        "--identity-file",
+        "/home/clocksmith/.local/share/reploid/public-native/identity.json",
+        "--rtc-module",
+        "@roamhq/wrtc",
+        "--ws-module",
+        "ws",
+        "--gpu-module",
+        "webgpu",
+        "--origin",
+        "https://replo.id",
+        "--signaling-url",
+        "wss://reploid-swarm.reploid.workers.dev/swarm"
+      ],
+      "cwd": "/home/clocksmith/.local/share/reploid/native-budget-20261012/reploid",
+      "exe": "/usr/bin/node",
+      "state": {
+        "phase": "ready",
+        "error": null,
+        "attempts": [],
+        "reservations": {
+          "closed": false,
+          "active": 0,
+          "availableSlots": 2,
+          "records": [
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+                "participantB": "peer:8293261cfefa530c6a7ade6c",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+                "attemptId": "a658bc48-113e-4a1a-96be-150fd6e93642",
+                "requesterId": "peer:b069f16956c55011037180f4",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+              "index": 0,
+              "phase": "settled",
+              "reservedAt": 1791854503957,
+              "settlingAt": 1791854508878,
+              "settledAt": 1791854508879,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+                "participantB": "peer:8293261cfefa530c6a7ade6c",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+                "attemptId": "499febb5-edab-445e-a746-b20675bf9043",
+                "requesterId": "peer:b069f16956c55011037180f4",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+              "index": 0,
+              "phase": "settled",
+              "reservedAt": 1791854512152,
+              "settlingAt": 1791854516470,
+              "settledAt": 1791854516471,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+                "participantB": "peer:8293261cfefa530c6a7ade6c",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+                "attemptId": "d8909ed9-b435-4be3-8cc3-6ea2562b6fc3",
+                "requesterId": "peer:b069f16956c55011037180f4",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+              "index": 0,
+              "phase": "settled",
+              "reservedAt": 1791855319855,
+              "settlingAt": 1791855327261,
+              "settledAt": 1791855327262,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+                "participantB": "peer:8293261cfefa530c6a7ade6c",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+                "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+                "requesterId": "peer:b069f16956c55011037180f4",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+              "index": 0,
+              "phase": "failed",
+              "reservedAt": 1791855339776,
+              "settlingAt": 1791855353952,
+              "settledAt": 1791855353953,
+              "failure": "Partition runner closed",
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            }
+          ]
+        },
+        "unsettledOwners": 0,
+        "placement": [
+          "peer:57adcc49bae5ed5eefe8fbf1",
+          "peer:8293261cfefa530c6a7ade6c"
+        ],
+        "executionPeer": null,
+        "fileSupply": null
+      },
+      "identitySha256": "313051cdce950090c08d408fc3a8d82f9713f7923cb8c5007c10e4d972718812",
+      "budget": null,
+      "log": "/home/clocksmith/.local/state/reploid/public-native-budget-20261012.log",
+      "logOffset": 1239160496,
+      "checkedAt": 1791856741.109399,
+      "exitObserved": true,
+      "exitCodeKnown": false
+    },
+    "new": {
+      "pid": 292233,
+      "startedAt": 1791856741.7454262,
+      "log": "/home/clocksmith/.local/state/reploid/public-native-budget-20261012.log",
+      "logOffset": 1239163729
+    },
+    "verification": {
+      "applicationFiles": 97,
+      "runtimeFiles": 1897,
+      "runtimeVersion": "0.6.27",
+      "descriptorSha256": "5d16f85e55d3243340178c8cf552846464a24154a2e51c3a3be631a30c27e7b9",
+      "artifactSha256": "b9b656d19c707b6fc32c28161cd5d77fdce519178d68d4f581ed55ec96cb963f"
+    },
+    "argsUnchanged": true,
+    "identityUnchanged": true,
+    "identitySha256": "313051cdce950090c08d408fc3a8d82f9713f7923cb8c5007c10e4d972718812",
+    "budgetAfter": null,
+    "budgetUnchanged": true,
+    "nativeInitialized": {
+      "event": "native-initialized",
+      "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16"
+    },
+    "current": {
+      "phase": "ready",
+      "error": null,
+      "attempts": [],
+      "reservations": {
+        "closed": false,
+        "active": 0,
+        "availableSlots": 2,
+        "records": []
+      },
+      "unsettledOwners": 0,
+      "placement": [
+        "peer:8293261cfefa530c6a7ade6c",
+        "peer:57adcc49bae5ed5eefe8fbf1"
+      ]
+    },
+    "shutdownLogEvents": [
+      "[27183077.4ms][Pipeline] Unloaded",
+      "[27183261.8ms][GPU] Device lost: device was destroyed, Reason: destroyed"
+    ],
+    "logRange": {
+      "offset": 1239160496,
+      "bytes": 975907,
+      "sha256": "8010df8f2e5d60185d97534f39a1f8f47636d8e553906f6fffd384f6ca77d669"
+    },
+    "oldExitStatusLimitation": "Existing detached process was not a child; process disappearance plus explicit unload/device destruction observed, exit code unavailable."
+  },
+  "setupFailure": {
+    "host": "suby",
+    "action": "read-only pre-stop allowance inspection",
+    "error": "sqlite3.OperationalError: no such table: allowance",
+    "processStopped": false,
+    "correction": "Treat database without allowance table as no persisted allowance; do not create or renew an allowance."
+  },
+  "limits": [
+    "Ready and idle are observed startup states, not inference acceptance.",
+    "Original detached process exit codes are unavailable; PID exit, unload, and explicit device destruction were observed.",
+    "Old installed artifacts and original logs remain in place.",
+    "No public browser restarted; no candidate runtime, profiling, or numerical workload launched."
+  ]
+}
