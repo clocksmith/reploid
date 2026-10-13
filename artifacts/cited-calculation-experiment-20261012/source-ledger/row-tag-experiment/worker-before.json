@@ -1,0 +1,208 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.js": "74ca35ec8003995b4b6a73c894e75a87467fc720d699004b2e47e96c24b97101",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js": "2763399cbba5958a0f438c696f4e4803c8af85941b60a2b35e4282310caf4168",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/prepare.js": "207368bc38f01a517f5a418e916e4b85e9be5ede62a14ead068547d2f8902cfb",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/bridge.js": "9971ed9fb90fc7d302ba333392b35b967567622d1b7fe064f832bbd49e682d4a"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.js:66: Dynamic property write detected: [role] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.js:70: Dynamic property write detected: [role] - verify input sanitization",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js:21: Dynamic property write detected: [index(source, value)] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js:52: Dynamic property write detected: [c => c.factRoles.pop(), c => c.passageRelations.pop(),\n    c => c.factRoles[0] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js:54: Dynamic property write detected: [index('D1:P3', '20%')] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js:60: Dynamic property write detected: [c => c.factRoles[index('D1:P3', '$90')] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js:61: Dynamic property write detected: [index('D1:P1', '$13.25')] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js:62: Dynamic property write detected: [index('D1:P3', 'two')] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js:63: Dynamic property write detected: [index('D1:P1', '$13.25')] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js:64: Dynamic property write detected: [index('U0', '$150')] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js:69: Dynamic property write detected: [index('D1:P3', 'November 9')] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js:85: Dynamic property write detected: [at] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/prepare.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900065,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900066,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [role] - verify input sanitization",
+        "line": 66,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900066,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [role] - verify input sanitization",
+        "line": 70,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791890900067,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900070,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index(source, value)] - verify input sanitization",
+        "line": 21,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900070,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [c => c.factRoles.pop(), c => c.passageRelations.pop(),\n    c => c.factRoles[0] - verify input sanitization",
+        "line": 52,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900070,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index('D1:P3', '20%')] - verify input sanitization",
+        "line": 54,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900070,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [c => c.factRoles[index('D1:P3', '$90')] - verify input sanitization",
+        "line": 60,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900070,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index('D1:P1', '$13.25')] - verify input sanitization",
+        "line": 61,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900070,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index('D1:P3', 'two')] - verify input sanitization",
+        "line": 62,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900070,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index('D1:P1', '$13.25')] - verify input sanitization",
+        "line": 63,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900070,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index('U0', '$150')] - verify input sanitization",
+        "line": 64,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900070,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index('D1:P3', 'November 9')] - verify input sanitization",
+        "line": 69,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900070,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [at] - verify input sanitization",
+        "line": 85,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791890900071,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/prepare.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/prepare.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/adapter.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}
