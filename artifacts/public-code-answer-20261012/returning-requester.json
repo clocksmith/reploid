@@ -1,0 +1,9 @@
+{
+  "scope": "Returning isolated test conversation restored from its genuine public-run snapshot; not physical-phone or real-user observation",
+  "bundle": "sha256:88b4f6bbf3ce9b8deb43a9393178783dbe1528653748f1cfd091c6317ae1725c",
+  "historyUnchanged": true,
+  "attemptCount": 1,
+  "priorAttemptCount": 1,
+  "draft": "",
+  "weightRequests": []
+}
