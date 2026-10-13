@@ -1,0 +1,39 @@
+{
+  "status": "frozen before any candidate generation; evaluate only after original seven pass full review",
+  "cases": [
+    {
+      "id": "locked-museum-quantity-credit",
+      "messages": [
+        {
+          "role": "user",
+          "content": "For six prints, what remains due before any unknown charges? Cite the terms and explain whether the final total is known.\n<reploid-document-sources-v1>\n[{\"id\":\"D1\",\"name\":\"Museum print order\",\"passages\":[{\"id\":\"D1:P1\",\"text\":\"Each print costs $14. Shipping, valued at $5, is included in the per-print price.\"},{\"id\":\"D1:P2\",\"text\":\"We have received a payment of $20. Sales tax has not yet been calculated.\"}]}]\n</reploid-document-sources-v1>"
+        }
+      ],
+      "reviewCriteria": [
+        "Six times14is84; received20leaves64before unknown tax. Do not add the already included shipping5.",
+        "Cite D1:P1 for unit price and included shipping, D1:P2 for received payment and unknown tax; no invented all-in price."
+      ]
+    },
+    {
+      "id": "locked-exhibition-correction",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Can this finish before July 4? Explain the projected date, uncertainty and supporting passages.\n<reploid-document-sources-v1>\n[{\"id\":\"D1\",\"name\":\"Exhibition installation\",\"passages\":[{\"id\":\"D1:P1\",\"text\":\"Installation starts June 26 and takes ten days, provided access is granted on the starting date.\"},{\"id\":\"D1:P2\",\"text\":\"Access approval is still pending. No completion date has been guaranteed.\"}]}]\n</reploid-document-sources-v1>"
+        },
+        {
+          "role": "assistant",
+          "content": "It finishes June 26, so it is guaranteed to be ready before July 4 [D1:P1]."
+        },
+        {
+          "role": "user",
+          "content": "Check and correct that answer using the original source. What must be confirmed?"
+        }
+      ],
+      "reviewCriteria": [
+        "Ten days afterJune26isJuly6, afterJuly4. June26is the start, not completion. Explicitly correct both earlier start/completion and guaranteed-deadline claims.",
+        "Access remains pending; retain condition and absence of guarantee, ask to confirm access/timing; cite D1:P1 and D1:P2 without inventing commitments."
+      ]
+    }
+  ]
+}
