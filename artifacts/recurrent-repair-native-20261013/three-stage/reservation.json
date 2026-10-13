@@ -1,0 +1,28 @@
+{
+  "schema": "reploid.functional-gpu-reservation/v1",
+  "approved": true,
+  "authority": "root assignment for user-authorized ordinary runtime repair",
+  "id": "repaired-three-stage-reference-20261013",
+  "observedAt": "2026-10-13T20:01:12.548055+00:00",
+  "sharedMachineNotes": "Nonexclusive functional run. Preserve public AMD/Suby contributors and local user browsers. No performance claim. All three stage-opening checks passed on exact archive.",
+  "scope": "Three physical hosts, 55 original independent F64 prefixes; stop on first numerical failure",
+  "order": [
+    "Mac-stage0",
+    "AMD-stage1",
+    "Suby-stage2"
+  ],
+  "maxGpuBufferBytes": 1420000000,
+  "deadlines": {
+    "stageMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000
+  },
+  "nativeHostLimits": {
+    "memoryHighBytes": 10737418240,
+    "memoryMaxBytes": 12884901888,
+    "swapBytes": 0,
+    "supervisorDeadlineMs": 1740000,
+    "scopeDeadlineSeconds": 1800
+  },
+  "runtimeArchiveSha256": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4"
+}
