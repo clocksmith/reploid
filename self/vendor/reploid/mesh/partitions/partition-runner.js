@@ -1,3 +1,4 @@
+import { createOrderedPartitionExecution } from './partition-route-execution.js';
 import { executeCanonicalPartition } from './partition-canonical-execution.js';
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 /** Coordinates one Doppler token step through both partitions. No model math lives here. */
@@ -31,7 +32,10 @@ function sameBinding(actual, expected) {
  * This coordinator cannot verify physical execution or manufacture that proof.
  */
 export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, deviceA, deviceB,
-  transport, authorize, limits, canonical = false }) {
+  transport, authorize, limits, canonical = false, route, stages }) {
+  if (route !== undefined || stages !== undefined) {
+    return createOrderedPartitionExecution({ runtime, plan: suppliedPlan, route, stages, transport, authorize, limits, canonical });
+  }
   assert(runtime && typeof runtime.LAYER_PARTITION_SCHEMA === 'string'
     && typeof runtime.ACTIVATION_TENSOR_SCHEMA === 'string'
     && typeof runtime.serializeActivationFrame === 'function'

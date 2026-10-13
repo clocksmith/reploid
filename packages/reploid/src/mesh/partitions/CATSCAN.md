@@ -4,13 +4,14 @@ Parent: [Reploid Browser Library](../../../CATSCAN.md)
 
 ## Target
 
-Coordinate Doppler-partitioned conversations.
+Coordinate partitioned conversations.
 
 ## Authority
 
-Discovery owns capability snapshots/channels; placement selects. Residents own
-admission; runners own attempts, grants, sequencing and settlement. Doppler owns
-computation, positions, generation and stopping. Hosts own sessions.
+Discovery observes capabilities/channels; placement selects; residents admit;
+runners sequence attempts, grants and settlement. Doppler owns computation,
+positions, generation and stopping. Hosts own sessions. Shared validators belong
+in `partition-contract.js`; discovery, placement and reservations remain independent.
 
 ## Scope
 
@@ -18,10 +19,10 @@ Subtree.
 
 ## Contracts
 
-Inputs: Doppler plans/codecs, authenticated executors, grants and bounded resources.
+Inputs: Doppler plans/codecs, authenticated executors, grants and resources.
 Outputs: tokens, costs and settlement.
-Legacy plans traverse A/B. Ordered routes traverse all stages; only the last samples.
-Model geometry determines stage count; attempts retain replicas.
+Legacy traverses A/B. Ordered routes traverse all stages; only the last samples.
+Geometry determines stage count; attempts retain replicas.
 Session: [resident integration contract](../../../../../docs/chat-mvp.md#resident-integration-contract).
 
 ## Invariants
@@ -31,8 +32,8 @@ Session: [resident integration contract](../../../../../docs/chat-mvp.md#residen
 - Discovery grants no authority; advertise capacity, never conversation identities.
 - Signed reservations are authoritative. Release slots only after confirmed runtime cleanup.
 - Bound receipts by attempt budgets; distinguish cleanup failure from settlement.
-  Admission limits are not physical-memory measurements.
-- Busy replicas never move existing conversations. Recovery requires fresh identities
+  Admission limits aren't physical-memory measurements.
+- Busy replicas never move conversations. Recovery requires fresh identities
   unless Doppler supports continuation. Duplicates never advance state twice.
 - Cancellation settles the named attempts, preserving shared weights and independent threads.
 - FIFO execution leases share weights: legacy routes lease a token traversal;
@@ -43,12 +44,12 @@ Session: [resident integration contract](../../../../../docs/chat-mvp.md#residen
 ## Acceptance
 
 Evidence: [partition tests](../../../../../tests/unit/partition-api.test.js).
-Physical evidence qualifies loading, WebRTC, answers and numerics; injected tests
+Physical evidence qualifies loading, WebRTC, answers, numerics; injected tests
 prove neither execution nor residency.
 
 ## Non-goals
 
-Model math, UI, fabricated inference or disguised whole-model execution.
+Math, UI, fabricated inference, disguised whole-model execution.
 
 ## Freedom
 

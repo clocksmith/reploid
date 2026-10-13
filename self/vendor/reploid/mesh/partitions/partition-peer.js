@@ -1,3 +1,4 @@
+import { createOrderedPartitionPeer } from './partition-ordered-peer.js';
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
 import { createCanonicalPartitionContract } from './partition-canonical-contract.js';
@@ -7,7 +8,9 @@ import { assertPartition as assert, samePartitionIdentity, partitionFingerprint,
 
 /** Authenticated A-to-B partition RPC. Hosts establish channel identities before constructing it. */
 export function createPartitionPeer({ channel, localParticipantId, remoteParticipantId, runtime, plan, planId,
-  modelIdentity, authority, contributor = null, limits, receiverLimits, canonical = false }) {
+  modelIdentity, authority, contributor = null, limits, receiverLimits, canonical = false, ordered = null }) {
+  if (ordered) return createOrderedPartitionPeer({ channel, localParticipantId, remoteParticipantId, runtime, plan, planId,
+    modelIdentity, authority, contributor, limits, receiverLimits, canonical, ordered });
   plan = structuredClone(plan); receiverLimits = structuredClone(receiverLimits);
   assert(runtime?.deserializeActivationFrame && authority?.verify, 'Partition codecs and grant verifier required');
   const activationContract = partitionActivationContract(runtime, plan);

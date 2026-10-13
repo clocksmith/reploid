@@ -61,7 +61,7 @@ export function findLayerViolations({ repoRoot, sourcePath, source }) {
     const partitionRoot = 'packages/reploid/src/mesh/partitions/';
     const partitionDependencies = {
       'partition-discovery.js': [partitionRoot + 'partition-contract.js', 'packages/reploid/src/transport/partition-data-channel.js'],
-      'partition-placement.js': [],
+      'partition-placement.js': [partitionRoot + 'partition-contract.js'],
       'partition-reservations.js': [partitionRoot + 'partition-contract.js']
     };
     const partitionOwner = relative.startsWith(partitionRoot) ? relative.slice(partitionRoot.length) : null;

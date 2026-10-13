@@ -38,3 +38,7 @@ export function canonicalPartitionRoute(route: unknown): PartitionRoute;
 export function validatePartitionRoute(runtime: OrderedPartitionRuntime, plan: OrderedPartitionPlan, route: unknown): Promise<PartitionRoute>;
 export function canonicalRouteAttemptBinding(identity: unknown): RouteAttemptBinding;
 export function sameRouteAttemptIdentity(actual: unknown, expected: unknown): boolean;
+
+export function validateOrderedPartitionCapability(description: unknown, participantId: string, maxOffersPerPeer: number): void;
+export function isOrderedPartitionEntryModel(model: unknown, peer: { participantId: string; transportId: string;
+  description?: { schema?: string } | null }): boolean;

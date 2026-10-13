@@ -1,6 +1,5 @@
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
-import { assertPartition as assert } from './partition-contract.js';
-import { validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-placement.js';
+import { assertPartition as assert, validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
 
 /** Owns bounded capability observation, never placement, loading or permission. */
 export function createPartitionDiscovery({ identity, catalog, policy, peers, createNetwork,

@@ -1,3 +1,4 @@
+import { createResidentRouteBinding } from './resident-route.js';
 import residentErrorCodes from './resident-error-codes.json' with { type: 'json' };
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 import { createPartitionReservations } from './partition-reservations.js';
@@ -6,9 +7,9 @@ import { verifyPartitionStageCommit } from './partition-stage-commit.js';
 
 /** Owns an explicitly contributed runtime session; never implements model computation. */
 export function createResidentPartition({ runtime, model, plan, planId, index, participantId, limits,
-  canonicalGeneration, canonicalRuntime, canonicalCommitAuthority, onChange = () => {} }) {
+  canonicalGeneration, canonicalRuntime, canonicalCommitAuthority, ordered = null, onChange = () => {} }) {
   assert(typeof runtime?.openResidentPartition === 'function', 'Doppler resident partition API is unavailable');
-  assert([0, 1].includes(index) && plan?.partitions?.[index] && model?.id === plan.modelId
+  assert((ordered ? Number.isSafeInteger(index) && index >= 0 && index < plan?.stageCount : [0, 1].includes(index)) && plan?.partitions?.[index] && model?.id === plan.modelId
     && /^sha256:[a-f0-9]{64}$/.test(model.identity) && typeof planId === 'string' && planId
     && typeof participantId === 'string' && participantId, 'Explicit resident partition allocation required');
   assert(canonicalGeneration === undefined || typeof canonicalRuntime?.canonicalGenerationIdentity === 'function',
@@ -17,6 +18,8 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     canonicalGeneration.policy, canonicalGeneration.executionIdentity, plan.vocabSize);
   const allocation = structuredClone({ model, plan, planId, index, participantId, limits,
     ...(canonicalGeneration === undefined ? {} : { canonicalGeneration }) });
+  assert(!ordered || canonicalGeneration === undefined && canonicalCommitAuthority === undefined, 'Ordered canonical execution is not supported');
+  const routeBinding = ordered ? createResidentRouteBinding({ ordered, allocation }) : null;
   const canonicalStage = canonicalCommitAuthority?.getStage();
   if (canonicalCommitAuthority !== undefined) {
     assert(canonical && typeof canonicalCommitAuthority?.sign === 'function'
@@ -45,7 +48,8 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
   });
   const check = () => {
     const actual = session?.getDescriptor();
-    assert(actual?.schema === 'doppler.resident-partition/v1' && actual.ready === true
+    assert(actual?.schema === (ordered ? 'doppler.resident-partition/v2' : 'doppler.resident-partition/v1')
+      && (!ordered || actual.stageCount === allocation.plan.stageCount) && actual.ready === true
       && actual.modelId === allocation.model.id && actual.modelIdentity === allocation.model.identity
       && actual.generationDigest === generationDigest
       && (actual.canonicalGenerationId ?? null) === (canonical?.generationId ?? null)
@@ -58,6 +62,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
   const reserve = identity => {
     assert((phase === 'ready' || phase === 'draining' && attempts.has(identity?.attemptId))
       && !lifetime.signal.aborted, 'Partition contributor is not ready');
+    if (routeBinding) identity = routeBinding.identity(identity);
     const record = reservations.reserve(identity);
     attempts.add(identity.attemptId); notify(); return record;
   };
@@ -74,7 +79,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       combined.throwIfAborted(); check();
       return structuredClone(finished);
     }).catch(async cause => {
-      reservations.fail(request.identity, cause);
+      reservations.fail(snapshot.identity, cause);
       if (!combined.aborted) {
         try {
           check();
@@ -128,7 +133,15 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     });
   };
   return Object.freeze({
-    id: participantId, index, getState: state, reserve,
+    id: participantId, index, getState: state,
+    ...(routeBinding ? { transportId: routeBinding.stage.transportId, residentId: routeBinding.stage.residentId,
+      executionId: routeBinding.stage.executionId } : {}),
+    reserve: routeBinding ? async request => {
+      request.signal?.throwIfAborted();
+      assert(request.partitionIndex === index, 'Ordered reservation stage mismatch');
+      const record = reserve(request.identity);
+      return { ...record, partitionIndex: index, status: 'reserved' };
+    } : reserve,
     getCanonicalGeneration: () => structuredClone(canonical),
     getCanonicalStage: () => structuredClone(canonicalStage ?? null),
     canAccept(identity) { return !lifetime.signal.aborted && ((phase === 'ready' || phase === 'draining')
@@ -145,14 +158,20 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       preparing = (async () => {
         try {
           combined.throwIfAborted();
-          const bytes = new TextEncoder().encode(canonicalPartitionJson(allocation.model.generation));
-          generationDigest = 'sha256:' + [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
-            .map(byte => byte.toString(16).padStart(2, '0')).join('');
+          if (routeBinding) {
+            await routeBinding.prepare();
+            generationDigest = await routeBinding.generationDigest(allocation.model.generation);
+          } else {
+            const bytes = new TextEncoder().encode(canonicalPartitionJson(allocation.model.generation));
+            generationDigest = 'sha256:' + [...new Uint8Array(await crypto.subtle.digest('SHA-256', bytes))]
+              .map(byte => byte.toString(16).padStart(2, '0')).join('');
+          }
           combined.throwIfAborted();
           session = await runtime.openResidentPartition({ ...structuredClone(allocation), signal: combined });
-          assert(['getDescriptor', 'getRecoveryCapabilities', 'tokenize', 'executeGroup0', 'executeGroup1',
+          assert(['getDescriptor', 'getRecoveryCapabilities', 'tokenize', ...(ordered ? ['executeStage'] : ['executeGroup0', 'executeGroup1']),
             'closeAttempt', 'close'].every(method => typeof session?.[method] === 'function'),
           'Incomplete Doppler resident partition API');
+          if (routeBinding) session = routeBinding.wrap(session);
           if (canonical) {
             assert(['getCanonicalGeneration', 'admitCanonicalPrompt', 'executeCanonicalGroup0',
               'executeCanonicalGroup1', 'commitCanonicalTransition'].every(method => typeof session?.[method] === 'function'),
@@ -174,8 +193,9 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       return preparing;
     },
     tokenize(request) { assert(index === 0, 'Only partition A tokenizes'); return invoke('tokenize', request); },
-    executeGroup0(request) { assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 0, 'This contributor is partition B'); return invoke('executeGroup0', request); },
-    executeGroup1(request) { assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 1, 'This contributor is partition A'); return invoke('executeGroup1', request); },
+    executeStage(request) { assert(routeBinding, 'Ordered resident execution was not allocated'); return invoke('executeStage', request); },
+    executeGroup0(request) { assert(!ordered, 'Ordered resident requires executeStage'); assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 0, 'This contributor is partition B'); return invoke('executeGroup0', request); },
+    executeGroup1(request) { assert(!ordered, 'Ordered resident requires executeStage'); assert(!canonical, 'Canonical resident requires canonical execution'); assert(index === 1, 'This contributor is partition A'); return invoke('executeGroup1', request); },
     admitCanonicalPrompt(request) { return canonicalInvoke('admitCanonicalPrompt', request); },
     executeCanonicalGroup0(request) { assert(index === 0, 'This contributor is partition B'); return canonicalInvoke('executeCanonicalGroup0', request); },
     executeCanonicalGroup1(request) { assert(index === 1, 'This contributor is partition A'); return committed('executeCanonicalGroup1', request); },
@@ -193,6 +213,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       return committed('commitCanonicalTransition', request);
     },
     async closeAttempt({ identity }) {
+      if (routeBinding) identity = routeBinding.identity(identity);
       // Never free admission capacity before the runtime confirms cleanup.
       reservations.settling(identity);
       try {

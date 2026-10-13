@@ -34,3 +34,20 @@ export function createPartitionStepReceiver(options: {
     execute(request: CanonicalPartitionPhaseRequest, options: { signal: AbortSignal }): Promise<unknown>;
   };
 }): PartitionStepReceiver;
+
+export interface OrderedPartitionStepRequest extends PartitionStep {
+  identity: import('./partition-contract.js').RouteAttemptBinding; partitionIndex: number; payload: unknown;
+  [key: string]: unknown;
+}
+export interface OrderedPartitionStepReceiver {
+  receive(request: OrderedPartitionStepRequest, options?: { signal?: AbortSignal }): Promise<unknown>;
+  closeAttempt(identity: import('./partition-contract.js').RouteAttemptBinding): Promise<void>;
+  close(): Promise<void>;
+}
+export function createPartitionStepReceiver(options: {
+  ordered: { stage: import('./partition-contract.js').PartitionRouteStage }; limits: { maxAttempts: number; maxSteps: number };
+  executeStep(request: OrderedPartitionStepRequest, options: { signal: AbortSignal }): Promise<unknown>;
+  authorize(request: OrderedPartitionStepRequest): Promise<boolean>;
+  fingerprint(request: OrderedPartitionStepRequest): Promise<string>;
+  settleAttempt(identity: import('./partition-contract.js').RouteAttemptBinding): Promise<void>;
+}): OrderedPartitionStepReceiver;
