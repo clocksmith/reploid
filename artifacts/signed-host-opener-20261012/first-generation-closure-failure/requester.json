@@ -1,0 +1,314 @@
+{
+  "harness": "v3 readiness uses attached state because model control is inside collapsed rail; accepts only newly created attempt",
+  "startedAt": "2026-10-13T12:40:29.718Z",
+  "scope": "Fresh weightless requester; ordinary signed native input/Mac output; compact prepared-model advertisement repair",
+  "nativeArtifact": "7a485fe7701980ea331551f62e7ac91025477a13cc624fed39106af2bfaef195",
+  "browserBundle": "7f8e435bc3fc1abca4cb6e5090378607d813ba526d67e63787bdf77e441a25f4",
+  "runtimeArchive": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "weights": [],
+  "errors": [],
+  "turns": [
+    {
+      "id": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+      "model": {
+        "id": "qwen-3-5-0-8b-q4k-ehaf16",
+        "name": "Qwen 3.5 0.8B",
+        "identity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+        "adapters": [],
+        "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+        "partition": {
+          "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+          "participantA": "peer:9af15d884eba51b0c0540e2a",
+          "participantB": "peer:f33d3a68b0f0c0a5af9d0a58"
+        },
+        "provider": "doppler",
+        "contextLength": 4096,
+        "quantization": "q4k",
+        "size": "Q4K",
+        "recommended": true,
+        "availability": "ready",
+        "providerIds": [
+          "peer:9af15d884eba51b0c0540e2a",
+          "peer:f33d3a68b0f0c0a5af9d0a58"
+        ],
+        "placement": "two-device-layer-partition"
+      },
+      "purpose": "",
+      "systemContext": {
+        "content": "",
+        "metadata": {
+          "policyId": "reploid.compact-context/v1",
+          "enabled": false,
+          "maxWords": 16,
+          "wordCount": 0,
+          "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+          "mode": null
+        }
+      },
+      "members": [
+        "local-user"
+      ],
+      "permissions": {
+        "sharingScope": "mesh"
+      },
+      "grants": [],
+      "messages": [
+        {
+          "id": "bd6e9ad6-ab4e-4cc9-bf9e-cc4061293a5e",
+          "role": "user",
+          "content": "Reply with exactly the word READY.",
+          "status": "completed"
+        },
+        {
+          "id": "b22825c3-5635-4763-8374-344dd0c00fc3",
+          "attemptId": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+          "role": "assistant",
+          "content": "",
+          "status": "failed"
+        }
+      ],
+      "attempts": [
+        {
+          "id": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+          "threadId": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+          "userMessageId": "bd6e9ad6-ab4e-4cc9-bf9e-cc4061293a5e",
+          "responseId": "b22825c3-5635-4763-8374-344dd0c00fc3",
+          "retryOf": null,
+          "status": "failed",
+          "createdAt": 1791895232786,
+          "finishedAt": 1791895233096,
+          "error": "Partition peer declined or failed request",
+          "approval": null,
+          "execution": {
+            "placement": "two-device-layer-partition",
+            "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+            "participantA": "peer:9af15d884eba51b0c0540e2a",
+            "participantB": "peer:f33d3a68b0f0c0a5af9d0a58"
+          },
+          "authorization": {
+            "kind": "once",
+            "grantId": null,
+            "peerId": "peer:9af15d884eba51b0c0540e2a",
+            "recipientIdentity": "peer:f33d3a68b0f0c0a5af9d0a58",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+            "adapterIdentities": [],
+            "sharingScope": "mesh",
+            "disclosure": "partition-activations-and-tokens",
+            "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+            "participantA": "peer:9af15d884eba51b0c0540e2a",
+            "source": "send",
+            "expiresAt": 1791896132837
+          },
+          "request": {
+            "model": {
+              "id": "qwen-3-5-0-8b-q4k-ehaf16",
+              "name": "Qwen 3.5 0.8B",
+              "identity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+              "adapters": [],
+              "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+              "partition": {
+                "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+                "participantA": "peer:9af15d884eba51b0c0540e2a",
+                "participantB": "peer:f33d3a68b0f0c0a5af9d0a58"
+              },
+              "provider": "doppler",
+              "contextLength": 4096,
+              "quantization": "q4k",
+              "size": "Q4K",
+              "recommended": true,
+              "availability": "ready",
+              "providerIds": [
+                "peer:9af15d884eba51b0c0540e2a",
+                "peer:f33d3a68b0f0c0a5af9d0a58"
+              ],
+              "placement": "two-device-layer-partition"
+            },
+            "permissions": {
+              "sharingScope": "mesh"
+            },
+            "members": [
+              "local-user"
+            ],
+            "messages": [
+              {
+                "role": "user",
+                "content": "Reply with exactly the word READY."
+              }
+            ]
+          },
+          "systemContext": {
+            "content": "",
+            "metadata": {
+              "policyId": "reploid.compact-context/v1",
+              "enabled": false,
+              "maxWords": 16,
+              "wordCount": 0,
+              "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+              "mode": null
+            }
+          }
+        }
+      ],
+      "closed": false,
+      "createdAt": 1791895232781
+    }
+  ],
+  "readyAt": "2026-10-13T12:40:32.714Z",
+  "ok": false,
+  "failure": "Error: Partition peer declined or failed request\n    at file:///private/var/tmp/reploid-signed-requester-v5.mjs:14:391",
+  "body": "7\n7\n7\n7\nQwen 3.5 0.8B\n2 peers\nReply with exactly the word READY.\nFailed · 2 contributors\n\nThis answer could not finish.\n\nTechnical details\nRetry response\nStarts a new attempt; keeps this response.\nMessage\nAttach files",
+  "finalState": {
+    "schema": "reploid.chat-workspace/v1",
+    "meshId": "reploid-local-mesh",
+    "participantId": "local-user",
+    "threads": [
+      {
+        "id": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+        "model": {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16",
+          "name": "Qwen 3.5 0.8B",
+          "identity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+          "adapters": [],
+          "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+          "partition": {
+            "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+            "participantA": "peer:9af15d884eba51b0c0540e2a",
+            "participantB": "peer:f33d3a68b0f0c0a5af9d0a58"
+          },
+          "provider": "doppler",
+          "contextLength": 4096,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "recommended": true,
+          "availability": "ready",
+          "providerIds": [
+            "peer:9af15d884eba51b0c0540e2a",
+            "peer:f33d3a68b0f0c0a5af9d0a58"
+          ],
+          "placement": "two-device-layer-partition"
+        },
+        "purpose": "",
+        "systemContext": {
+          "content": "",
+          "metadata": {
+            "policyId": "reploid.compact-context/v1",
+            "enabled": false,
+            "maxWords": 16,
+            "wordCount": 0,
+            "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+            "mode": null
+          }
+        },
+        "members": [
+          "local-user"
+        ],
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "grants": [],
+        "messages": [
+          {
+            "id": "bd6e9ad6-ab4e-4cc9-bf9e-cc4061293a5e",
+            "role": "user",
+            "content": "Reply with exactly the word READY.",
+            "status": "completed"
+          },
+          {
+            "id": "b22825c3-5635-4763-8374-344dd0c00fc3",
+            "attemptId": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+            "role": "assistant",
+            "content": "",
+            "status": "failed"
+          }
+        ],
+        "attempts": [
+          {
+            "id": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+            "threadId": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+            "userMessageId": "bd6e9ad6-ab4e-4cc9-bf9e-cc4061293a5e",
+            "responseId": "b22825c3-5635-4763-8374-344dd0c00fc3",
+            "retryOf": null,
+            "status": "failed",
+            "createdAt": 1791895232786,
+            "finishedAt": 1791895233096,
+            "error": "Partition peer declined or failed request",
+            "approval": null,
+            "execution": {
+              "placement": "two-device-layer-partition",
+              "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+              "participantA": "peer:9af15d884eba51b0c0540e2a",
+              "participantB": "peer:f33d3a68b0f0c0a5af9d0a58"
+            },
+            "authorization": {
+              "kind": "once",
+              "grantId": null,
+              "peerId": "peer:9af15d884eba51b0c0540e2a",
+              "recipientIdentity": "peer:f33d3a68b0f0c0a5af9d0a58",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+              "adapterIdentities": [],
+              "sharingScope": "mesh",
+              "disclosure": "partition-activations-and-tokens",
+              "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+              "participantA": "peer:9af15d884eba51b0c0540e2a",
+              "source": "send",
+              "expiresAt": 1791896132837
+            },
+            "request": {
+              "model": {
+                "id": "qwen-3-5-0-8b-q4k-ehaf16",
+                "name": "Qwen 3.5 0.8B",
+                "identity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+                "adapters": [],
+                "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+                "partition": {
+                  "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+                  "participantA": "peer:9af15d884eba51b0c0540e2a",
+                  "participantB": "peer:f33d3a68b0f0c0a5af9d0a58"
+                },
+                "provider": "doppler",
+                "contextLength": 4096,
+                "quantization": "q4k",
+                "size": "Q4K",
+                "recommended": true,
+                "availability": "ready",
+                "providerIds": [
+                  "peer:9af15d884eba51b0c0540e2a",
+                  "peer:f33d3a68b0f0c0a5af9d0a58"
+                ],
+                "placement": "two-device-layer-partition"
+              },
+              "permissions": {
+                "sharingScope": "mesh"
+              },
+              "members": [
+                "local-user"
+              ],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Reply with exactly the word READY."
+                }
+              ]
+            },
+            "systemContext": {
+              "content": "",
+              "metadata": {
+                "policyId": "reploid.compact-context/v1",
+                "enabled": false,
+                "maxWords": 16,
+                "wordCount": 0,
+                "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+                "mode": null
+              }
+            }
+          }
+        ],
+        "closed": false,
+        "createdAt": 1791895232781
+      }
+    ]
+  },
+  "finishedAt": "2026-10-13T12:40:33.315Z"
+}
