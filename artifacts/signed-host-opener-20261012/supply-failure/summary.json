@@ -1,0 +1,138 @@
+{
+  "at": "2026-10-13T11:35:25.580Z",
+  "finishedAt": "2026-10-13T11:35:28.947Z",
+  "pid": 1623541,
+  "profileSha256": "d5ff281bb4d03662e8f94c5271d569507bb3dfe11b17584442136dc90a4a021e",
+  "method": "Root-authorized localhost inspector, non-pausing3sProfiler; no application mutation",
+  "sampleMs": 3330.015,
+  "hotFrames": [
+    {
+      "selfMs": 1108.412,
+      "callFrame": {
+        "functionName": "(program)",
+        "scriptId": "0",
+        "url": "",
+        "lineNumber": -1,
+        "columnNumber": -1
+      }
+    },
+    {
+      "selfMs": 717.096,
+      "callFrame": {
+        "functionName": "processImmediate",
+        "scriptId": "10",
+        "url": "node:internal/timers",
+        "lineNumber": 435,
+        "columnNumber": 27
+      }
+    },
+    {
+      "selfMs": 541.359,
+      "callFrame": {
+        "functionName": "(garbage collector)",
+        "scriptId": "0",
+        "url": "",
+        "lineNumber": -1,
+        "columnNumber": -1
+      }
+    },
+    {
+      "selfMs": 525.487,
+      "callFrame": {
+        "functionName": "",
+        "scriptId": "0",
+        "url": "",
+        "lineNumber": -1,
+        "columnNumber": -1
+      }
+    },
+    {
+      "selfMs": 394.656,
+      "callFrame": {
+        "functionName": "(idle)",
+        "scriptId": "0",
+        "url": "",
+        "lineNumber": -1,
+        "columnNumber": -1
+      }
+    },
+    {
+      "selfMs": 17.946,
+      "callFrame": {
+        "functionName": "setImmediate",
+        "scriptId": "34",
+        "url": "node:timers",
+        "lineNumber": 224,
+        "columnNumber": 21
+      }
+    },
+    {
+      "selfMs": 15.814,
+      "callFrame": {
+        "functionName": "toggleImmediateRef",
+        "scriptId": "0",
+        "url": "",
+        "lineNumber": -1,
+        "columnNumber": -1
+      }
+    },
+    {
+      "selfMs": 2.134,
+      "callFrame": {
+        "functionName": "wrapMessage",
+        "scriptId": "181",
+        "url": "file:///var/tmp/reploid-signed-host-corrected-20261013/reploid/packages/reploid/src/transport/swarm.js",
+        "lineNumber": 183,
+        "columnNumber": 24
+      }
+    },
+    {
+      "selfMs": 1.07,
+      "callFrame": {
+        "functionName": "finish",
+        "scriptId": "185",
+        "url": "file:///var/tmp/reploid-signed-host-corrected-20261013/reploid/packages/reploid/src/transport/partition-data-channel.js",
+        "lineNumber": 81,
+        "columnNumber": 17
+      }
+    },
+    {
+      "selfMs": 1.057,
+      "callFrame": {
+        "functionName": "onChange",
+        "scriptId": "86",
+        "url": "file:///var/tmp/reploid-signed-host-corrected-20261013/reploid/server/native-participant.js",
+        "lineNumber": 328,
+        "columnNumber": 47
+      }
+    },
+    {
+      "selfMs": 1.057,
+      "callFrame": {
+        "functionName": "pushAsyncContext",
+        "scriptId": "11",
+        "url": "node:internal/async_hooks",
+        "lineNumber": 546,
+        "columnNumber": 25
+      }
+    },
+    {
+      "selfMs": 1.054,
+      "callFrame": {
+        "functionName": "onChange",
+        "scriptId": "86",
+        "url": "file:///var/tmp/reploid-signed-host-corrected-20261013/reploid/server/native-participant.js",
+        "lineNumber": 328,
+        "columnNumber": 47
+      }
+    }
+  ],
+  "publicSnapshotRawSha256": "233f45cc131b462ff3f7b559c4df0dd6e4c7775c122d30e4fe366575fa86e4e3",
+  "conclusions": [
+    "Main Node thread used~100%onecore during separate2s/proc observation, with no active inference.",
+    "V8 sample is dominated by program/native anonymous callback, processImmediate andGC; no named application supplier hotspot established.",
+    "Current public supply/channel snapshots are open and idle with457745496reservedbytes; receipts omit historical supplier failure.",
+    "This post-failure sample cannot causally explain11:30:55Macchunktimeout; no compiler or qualityCPU interference attribution.",
+    "Only candidatePID1623541 inspector was enabled; public processes and cache grants unchanged."
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "at": "2026-10-13T11:33:47.825106+00:00",
+  "scope": "Read-only /proc two-second sample; no past-window causality",
+  "threads": [
+    {
+      "tid": "1623541",
+      "cpuTicks": 109984,
+      "name": "node",
+      "wchan": "0",
+      "state": "R",
+      "deltaTicks": 200
+    },
+    {
+      "tid": "1623544",
+      "cpuTicks": 6051,
+      "name": "node",
+      "wchan": "futex_do_wait",
+      "state": "S",
+      "deltaTicks": 10
+    },
+    {
+      "tid": "1623545",
+      "cpuTicks": 6056,
+      "name": "node",
+      "wchan": "futex_do_wait",
+      "state": "S",
+      "deltaTicks": 10
+    },
+    {
+      "tid": "1623546",
+      "cpuTicks": 6058,
+      "name": "node",
+      "wchan": "futex_do_wait",
+      "state": "S",
+      "deltaTicks": 10
+    },
+    {
+      "tid": "1623547",
+      "cpuTicks": 6051,
+      "name": "node",
+      "wchan": "futex_do_wait",
+      "state": "S",
+      "deltaTicks": 10
+    },
+    {
+      "tid": "1623590",
+      "cpuTicks": 751,
+      "name": "PeerConnectionF",
+      "wchan": "ep_poll",
+      "state": "S",
+      "deltaTicks": 1
+    },
+    {
+      "tid": "1623543",
+      "cpuTicks": 0,
+      "name": "DelayedTaskSche",
+      "wchan": "ep_poll",
+      "state": "S",
+      "deltaTicks": 0
+    },
+    {
+      "tid": "1623550",
+      "cpuTicks": 0,
+      "name": "node",
+      "wchan": "futex_do_wait",
+      "state": "S",
+      "deltaTicks": 0
+    },
+    {
+      "tid": "1623567",
+      "cpuTicks": 127,
+      "name": "libuv-worker",
+      "wchan": "futex_do_wait",
+      "state": "S",
+      "deltaTicks": 0
+    },
+    {
+      "tid": "1623568",
+      "cpuTicks": 121,
+      "name": "libuv-worker",
+      "wchan": "futex_do_wait",
+      "state": "S",
+      "deltaTicks": 0
+    },
+    {
+      "tid": "1623569",
+      "cpuTicks": 122,
+      "name": "libuv-worker",
+      "wchan": "futex_do_wait",
+      "state": "S",
+      "deltaTicks": 0
+    },
+    {
+      "tid": "1623570",
+      "cpuTicks": 118,
+      "name": "libuv-worker",
+      "wchan": "futex_do_wait",
+      "state": "S",
+      "deltaTicks": 0
+    }
+  ],
+  "loadavg": "5.54 3.91 3.17 4/1833 1825572\n"
+}

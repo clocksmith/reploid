@@ -1,0 +1,25 @@
+{
+  "at": "2026-10-13T11:38:19.818Z",
+  "scope": "Public getReceipt() on existing custody channel, selected via read-only lexical scope; no pause or data mutation",
+  "channels": [
+    {
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "receipt": {
+        "schema": "reploid.pool.pack-custody-channel/v1",
+        "sentFrameBytes": 457133425,
+        "receivedFrameBytes": 1394972,
+        "sentFrames": 31613,
+        "receivedFrames": 1923,
+        "completedRequests": 0,
+        "cancelledRequests": 0,
+        "interruptedPayloadBytes": 0,
+        "discardedFrames": 0,
+        "pendingRequests": 0,
+        "inboundRequests": 0,
+        "closed": false,
+        "wireBytes": null,
+        "relayBytes": null
+      }
+    }
+  ]
+}
