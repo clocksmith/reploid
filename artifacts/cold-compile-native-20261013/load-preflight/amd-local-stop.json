@@ -1,0 +1,7 @@
+[
+  {
+    "pid": 93288,
+    "signal": "SIGTERM",
+    "purpose": "owned AMD inspector tunnel"
+  }
+]

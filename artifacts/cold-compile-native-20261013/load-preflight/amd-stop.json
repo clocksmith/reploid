@@ -1,0 +1,11 @@
+{
+  "stopped": [
+    {
+      "pid": 3346674,
+      "signal": "SIGTERM",
+      "purpose": "owned load-only model server"
+    }
+  ],
+  "providerAbsent": true,
+  "publicNativePresent": true
+}
