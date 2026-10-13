@@ -1,3 +1,4 @@
+import { computerLabel, withComputerLabels } from './computer-labels.js';
 import { updateModelSelect } from '../components/model-select.js';
 /** Shared network controls consume host snapshots; they never grant permission on render. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
@@ -45,15 +46,15 @@ export function projectNetworkPeers(state) {
 }
 
 function renderPeerRows(list, state) {
-  const rows = projectNetworkPeers(state), key = JSON.stringify(rows);
+  const rows = projectNetworkPeers(state), key = JSON.stringify(rows.map(peer => [peer, computerLabel(state, peer.id)]));
   if (list.dataset.projection === key) return;
   list.dataset.projection = key;
   const expanded = new Set([...list.querySelectorAll('details[open]')].map(node => node.dataset.peerIdentity));
-  list.innerHTML = rows.length ? rows.map((peer, index) => {
+  list.innerHTML = rows.length ? rows.map(peer => {
     const status = ({ loading: 'Preparing', ready: 'Ready', executing: 'Working', failed: 'Unavailable', waiting: 'Waiting', stopping: 'Stopping' })[peer.phase] || peer.status;
-    return `<li class="network-peer-row" data-peer-phase="${escape(peer.phase || 'connected')}"><div><strong>Contributor ${index + 1}</strong><span>${escape(peer.model)}</span>
+    return `<li class="network-peer-row" data-peer-phase="${escape(peer.phase || 'connected')}"><div><strong>${escape(computerLabel(state, peer.id))}</strong><span>${escape(peer.model)}</span>
       <details data-peer-identity="${escape(peer.id)}"${expanded.has(peer.id) ? ' open' : ''}><summary>Details</summary><p>${escape(peer.status)}</p><code>${escape(peer.id)}</code></details></div><span class="network-status">${escape(status)}</span></li>`;
-  }).join('') : '<li class="network-empty">No peers connected yet</li>';
+  }).join('') : '<li class="network-empty">No computers connected yet</li>';
   const summary = list.parentElement.querySelector('[data-peer-readiness]');
   if (summary) summary.textContent = `${rows.filter(peer => peer.phase === 'ready').length} ready · ${rows.filter(peer => peer.phase === 'executing').length} working · ${rows.filter(peer => peer.phase === 'failed').length} unavailable`;
 
@@ -72,7 +73,8 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
       actionError = cause.message; render(session.getState());
     });
   };
-  const render = state => {
+  const render = snapshot => {
+    const state = withComputerLabels(snapshot, session);
     const catalogModels = state.models || [], keyFor = model => model?.selectionId || model?.id;
     const prepared = catalogModels.find(model => !model.partition && model.id === state.defaultModel?.id
       && ['ready', 'busy'].includes(state.defaultModel?.availability));
@@ -82,7 +84,7 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
     find('[data-toggle-introductions]')?.setAttribute('aria-checked', String(!!network.introductionAssistance));
     find('[data-mesh-invite]').hidden = network.discoveryScope !== 'private';
     contributionSelect.disabled = !!network.sharing || !!network.stopping || !!network.files?.sharing || !!network.files?.preparing;
-    find('[data-mesh-peers]').textContent = peers.length + (peers.length === 1 ? ' peer' : ' peers');
+    for (const node of container.querySelectorAll('[data-mesh-peers]')) node.textContent = peers.length + (peers.length === 1 ? ' computer' : ' computers');
     renderPeerRows(find('[data-insp-device-list]'), state);
     const discoveryState = network.consumer?.connectionState;
     const activeDiscovery = network.connecting || ['connected', 'connecting', 'retrying', 'awaiting-introduction'].includes(discoveryState);

@@ -27,10 +27,10 @@
   position: absolute; top: 50%; left: var(--pool-space-xs);
   width: var(--pool-px-32); height: var(--pool-px-32); transform: translateY(-50%);
   border: var(--pool-border-hairline) solid var(--pool-surface-line);
-  border-radius: 50%; background: var(--pool-surface-marble); box-shadow: var(--pool-surface-shadow-raised);
+  border-radius: 50%; background: var(--pool-surface-muted); box-shadow: var(--pool-surface-shadow-raised);
   pointer-events: none; transition: left var(--pool-motion-time-240) ease-in-out;
 }
-.network-switch[aria-checked="true"] > span { left: calc(100% - var(--pool-space-xs) - var(--pool-px-32)); }
+.network-switch[aria-checked="true"] > span { background: var(--pool-surface-ink); left: calc(100% - var(--pool-space-xs) - var(--pool-px-32)); }
 @media (prefers-reduced-motion: reduce) { .network-switch > span { transition: none; } }
 .network-switch:focus-visible { outline: var(--pool-px-2) solid var(--pool-surface-ink); outline-offset: var(--pool-px-4); }
 .network-switch:disabled { opacity: var(--pool-opacity-disabled); cursor: wait; }
@@ -165,3 +165,15 @@
 .network-peer-row[data-peer-phase='failed'] .network-status { opacity: var(--pool-opacity-disabled); }
 .network-readiness { color: var(--pool-surface-muted); font-size: var(--pool-text-sm); }
 @media (max-width: 760px) { .network-inspector { width: min(calc(100vw - var(--pool-param-chat-gutter, var(--pool-space-md)) * 2), calc(var(--pool-px-r28) * 0.75)); } }
+
+/* The inspector expands inside the same full-height rail as its controls. */
+.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) .chat-network-rail .network-inspector {
+  position: static; inset: auto; width: 100%; max-width: 100%; height: auto;
+  max-height: none; min-height: 0; margin: 0; padding: var(--pool-space-xs);
+  flex: 1; overflow-y: auto; border: 0; border-radius: 0; box-shadow: none; background: transparent;
+}
+.pool-home:is([data-pool-route-id='home'], [data-pool-route-id='network']) .chat-network-rail .network-inspector[open] { display: block; animation: none; }
+.chat-network-rail .network-inspector-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail { display: contents; }
+.pool-home:not([data-pool-route-id='home']):not([data-pool-route-id='network']) .chat-network-rail > :is(.chat-rail-heading, .chat-network-toggle) { display: none; }
