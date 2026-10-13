@@ -1,0 +1,19 @@
+{
+  "sources": {
+    "/testing/artifacts/signed-host-opener-20261012/metadata-offer-observation/observer.mjs": "30c3272ec60fae2f7d544411140b9d522cbe6a5c336af7b15703b77d8e0b56c0",
+    "/testing/artifacts/signed-host-opener-20261012/metadata-offer-observation/observer.test.mjs": "8c616e84f702f20095dbea6a64583b72bbbb753530e06add0def966244903363",
+    "/testing/artifacts/signed-host-opener-20261012/metadata-offer-observation/attach-controller.mjs": "145d8b3b4979ea18cc9dbae295c36ad36e03cbd4645c4f27054a3604597d100d",
+    "/testing/artifacts/signed-host-opener-20261012/metadata-offer-observation/snapshot-controller.mjs": "81079cd6683956c97067c2086e937d969b3e58c7bd3e0901d2f687317bc7631b"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "events": [],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 0
+    }
+  }
+}

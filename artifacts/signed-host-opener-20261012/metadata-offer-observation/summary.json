@@ -1,0 +1,47 @@
+{
+  "scope": "Bounded non-pausing native metadata/eventloop diagnosis on installed19dbecf5 artifact, old main-channel maxRetransmits3 policy; no GPU workload or runtime change",
+  "nativePid": 2103894,
+  "observerSha256": "30c3272ec60fae2f7d544411140b9d522cbe6a5c336af7b15703b77d8e0b56c0",
+  "windows": [
+    {
+      "path": "native-first-window.json",
+      "sha256": "2add133fad47c503e803941845b8e199f3ef465384729175c1d663cd1e813995",
+      "startedAt": 1791893588654,
+      "stopped": true,
+      "stoppedAt": 1791893888654,
+      "recordCount": 128,
+      "loopMaxDelayMs": 250,
+      "responseCount": 3,
+      "falseSends": 0,
+      "throwCount": 0,
+      "matchedRequestResponseCount": 3,
+      "matchedPrepMaxMs": 156,
+      "matchedPrepMinMs": 30
+    },
+    {
+      "path": "native-second-window-final.json",
+      "sha256": "6a5a29a7aab8886c87cf4282d78c0eb2ea5e3eced1f96531ff0d640804aa84c9",
+      "startedAt": 1791893935161,
+      "stopped": true,
+      "stoppedAt": 1791894235162,
+      "recordCount": 128,
+      "loopMaxDelayMs": 191,
+      "responseCount": 25,
+      "falseSends": 0,
+      "throwCount": 0,
+      "matchedRequestResponseCount": 24,
+      "matchedPrepMaxMs": 156,
+      "matchedPrepMinMs": 14
+    }
+  ],
+  "observationGapMs": 46507,
+  "cleanup": "Both300s timers fired and stopped flags true; original request handler and send port restored by ownership comparison. Localhost inspector remains enabled pending root lifecycle control.",
+  "findings": "Observed responses were accepted for send and matched preparation was bounded below recorded maximum. This controlled retry did not reproduce false-send or prove partial-reliability packet loss. Actual receiver acquisition is root-owned separate evidence.",
+  "limitations": [
+    "Bounded128record histories; event-loop maxima are native JS sampling only, not packet latency or GPU execution",
+    "No transport deadline widened",
+    "No raw authorization/public-key/signature payload retained",
+    "Earlier12:05 metadata timeout lacks native request/send return trace and remains unattributed"
+  ],
+  "checks": "Observer CPU controls preserve exact return/promise identity and errors, bounded sanitized records and original port restoration; actual Worker passed zero errors/warnings."
+}

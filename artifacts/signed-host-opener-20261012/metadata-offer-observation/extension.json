@@ -1,0 +1,5 @@
+{
+  "attempt": "Refresh first bounded observer deadline",
+  "result": "Rejected: observer expired; automatic stop had restored both wrapped ports",
+  "replacement": "Root-authorized one additional300s observer attached separately; explicit gap below"
+}
