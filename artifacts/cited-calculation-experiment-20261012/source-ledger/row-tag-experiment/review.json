@@ -1,0 +1,91 @@
+{
+  "schema": "reploid.source-row-result-review/v1",
+  "status": "rejected at first protocol boundary",
+  "qualified": false,
+  "frozenRevision": "22e33092",
+  "freezeSha256": "e84785d1030e057d69db16f0b50c48ecc9a779d08db070a7b117a057a4e59141",
+  "completedModelCalls": 1,
+  "calculationExecuted": false,
+  "finalAnswerExecuted": false,
+  "acceptedTasks": 0,
+  "unrunOriginalCases": [
+    "fresh-bathroom-correction",
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "lockedHoldoutsExecuted": false,
+  "promptTokens": 2276,
+  "generatedTokens": 300,
+  "totalChargedTokens": 2576,
+  "rawOutputUtf16": 1033,
+  "withinBudgets": true,
+  "naturalCompletion": true,
+  "failure": "Exactly one tool call and no prose required",
+  "rawOutput": "<tool_call>\n{\"name\": \"AnnotateSource\", \"arguments\": {\"factRoles\": [[\"budget\", \"unitPrice\", \"additional\", \"payment\", \"includedAmount\", \"depositBase\", \"depositPercent\", \"start\", \"duration\", \"completion\", \"condition\", \"conflict\", \"unknown\", \"quantityFor:D1\", \"quantityFor:D2\", \"quantityFor:D3\"], [\"date\", \"duration\", \"completion\", \"start\"], [\"money\", \"percent\", \"quantityFor:D1\", \"quantityFor:D2\", \"quantityFor:D3\"], [\"date\", \"duration\", \"completion\", \"start\"], [\"percent\", \"quantityFor:D1\", \"quantityFor:D2\", \"quantityFor:D3\"], [\"money\", \"percent\", \"quantityFor:D1\", \"quantityFor:D2\", \"quantityFor:D3\"], [\"money\", \"percent\", \"quantityFor:D1\", \"quantityFor:D2\", \"quantityFor:D3\"], [\"money\", \"percent\", \"quantityFor:D1\", \"quantityFor:D2\", \"quantityFor:D3\"], [\"date\", \"duration\", \"completion\", \"start\"], [\"weeks\", \"quantityFor:D1\", \"quantityFor:D2\", \"quantityFor:D3\"], [\"percent\", \"quantityFor:D1\", \"quantityFor:D2\", \"quantityFor:D3\"]], \"passageRelations\": [[\"included\"], [\"excluded\"], [\"condition\"], [\"conflict\"], [\"unknown\"]]}",
+  "criteria": [
+    {
+      "criterion": "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+      "status": "not satisfied",
+      "reason": "No valid source selection or answer was produced. The run stopped at the strict protocol boundary before calculation or final answer."
+    },
+    {
+      "criterion": "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+      "status": "not satisfied",
+      "reason": "No valid source selection or answer was produced. The run stopped at the strict protocol boundary before calculation or final answer."
+    },
+    {
+      "criterion": "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+      "status": "not satisfied",
+      "reason": "No valid source selection or answer was produced. The run stopped at the strict protocol boundary before calculation or final answer."
+    },
+    {
+      "criterion": "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+      "status": "not satisfied",
+      "reason": "No valid source selection or answer was produced. The run stopped at the strict protocol boundary before calculation or final answer."
+    },
+    {
+      "criterion": "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges.",
+      "status": "not satisfied",
+      "reason": "No valid source selection or answer was produced. The run stopped at the strict protocol boundary before calculation or final answer."
+    }
+  ],
+  "diagnosis": {
+    "firstBrokenBoundary": "The emitted text opens <tool_call> but omits its closing wrapper. The retained strict parser rejects it; no output repair was attempted.",
+    "additionalRawObservations": "Visible factRoles contains 11 lists for 17 supplied facts; passageRelations contains 5 lists for 9 passages. Lists include undeclared kind strings money/date/percent/weeks and incompatible broad role enumeration. These observations were not converted into an accepted selection.",
+    "notEstablished": "No input/tokenizer/template transport defect or calculator failure established. Source model semantic extraction remains unqualified; valid deterministic unit tests do not supply model answers."
+  },
+  "elapsedSeconds": 331.649694,
+  "timingScope": "Includes load/prefill and concurrent correctness-only signed preparation. Not a performance benchmark.",
+  "replay": "Exact raw text reproduces the same strict-parser rejection without model generation.",
+  "postrun": "All own/reused/evaluator/template/source-receipt frozen hashes unchanged; wrapper1799761/model1799764 absent.",
+  "resultRepair": false,
+  "retry": false,
+  "productionChanged": false,
+  "files": {
+    "source.json.gz": {
+      "sha256": "d8badf6ff724c1bb7074da76727be41735934c86acd706351310396914223b10",
+      "uncompressedSha256": "91ab0736ea20de028bcbe76f8e769c14f30109d207e8ee37407579be6e2a2f8f",
+      "uncompressedBytes": 48796
+    },
+    "run.log.gz": {
+      "sha256": "1221a58de6dd7886e8dccd05b7da13df14122353d036fcbc0f8aecc736fafdc3",
+      "uncompressedSha256": "3f890a7158f65d2761347ef1e1810615df2682450c4a64495de6e7bc7aad15bf",
+      "uncompressedBytes": 1804
+    },
+    "run-binding.json": {
+      "sha256": "17e8c4022e75cd0cffbb76b12465b396c4f627bb2f252e2bbaf77ee395b45a9d"
+    },
+    "executing-host-identity.json": {
+      "sha256": "1d855290bc14703f560ebc64b0f5ba5b6b16502c735a1c67022b967f6c1eaafc"
+    },
+    "postrun-identity.json": {
+      "sha256": "0e31f8fd5ab6f85dcadbc65ca70edefcea4d6e3aca1b2adac6c1f16b93064fe2"
+    },
+    "launch.py": {
+      "sha256": "4975ac9404ed15a002e8e9b0ba8c7c1c8533a6dde0d992e4daa4f2e758b3da27"
+    }
+  }
+}
