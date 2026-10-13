@@ -1,0 +1,56 @@
+{
+  "schema": "reploid.single-price-tokenizer-control/v1",
+  "sourceModelExecuted": false,
+  "passed": true,
+  "paths": [
+    {
+      "label": "quoted_total",
+      "tokens": 7,
+      "allArtificialWinnersPreserved": true
+    },
+    {
+      "label": "unit_price",
+      "tokens": 7,
+      "allArtificialWinnersPreserved": true
+    },
+    {
+      "label": "additional_charge",
+      "tokens": 7,
+      "allArtificialWinnersPreserved": true
+    },
+    {
+      "label": "included_allowance",
+      "tokens": 8,
+      "allArtificialWinnersPreserved": true
+    },
+    {
+      "label": "prior_payment",
+      "tokens": 7,
+      "allArtificialWinnersPreserved": true
+    },
+    {
+      "label": "deposit_basis",
+      "tokens": 7,
+      "allArtificialWinnersPreserved": true
+    },
+    {
+      "label": "unknown",
+      "tokens": 6,
+      "allArtificialWinnersPreserved": true
+    }
+  ],
+  "identity": {
+    "decoder": {
+      "type": "ByteLevel",
+      "add_prefix_space": false,
+      "trim_offsets": false,
+      "use_regex": false
+    },
+    "vocabularySize": 151669,
+    "asciiTokenCount": 94382,
+    "vocabularyTextSha256": "0e0249f1cd15876025cd574817b68a6c50cfc0d215d788d51dad9149d04d23a6",
+    "trieConstructionSeconds": 0.5801829202100635
+  },
+  "semanticAcceptance": false,
+  "sourceTokenizerSha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+}
