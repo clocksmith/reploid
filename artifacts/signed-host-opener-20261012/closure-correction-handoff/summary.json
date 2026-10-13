@@ -1,0 +1,35 @@
+{
+  "scope": "Release only isolated signed residents for corrected graph qualification; public processes unchanged",
+  "mac": {
+    "participantController": 1738,
+    "browser": 1740,
+    "observedContributionPhase": "idle",
+    "closedAfterObservedSettlement": true
+  },
+  "native": {
+    "pid": 2525851,
+    "activeReservationsBeforeStop": 0,
+    "failedAttemptSettledBeforeStop": true,
+    "exit": {
+      "pid": 2525851,
+      "exitCode": 0,
+      "exitedAt": 1791896441.953192
+    },
+    "unloadedAndDeviceDestroyedLogged": true
+  },
+  "persistentConsentAnd4GiBLedger": "unchanged, not renewed",
+  "rawIdentities": {
+    "mac-settled.json": {
+      "sha256": "ffbd4232bc11da3d7262c50b36ebddec6dad0acb5e64e784fe1717890aa75423",
+      "bytes": 9789
+    },
+    "native-pre-stop.json": {
+      "sha256": "74d8ddb635e7e4d2f13bb717df5fa98024b741cda4886d7269b31bebaf1295ee",
+      "bytes": 498677
+    },
+    "native-exit.json": {
+      "sha256": "51bebf7f486b633c6debd6b86ad39731afa454193ff2f6f80fd5555ad6b79db5",
+      "bytes": 63
+    }
+  }
+}
