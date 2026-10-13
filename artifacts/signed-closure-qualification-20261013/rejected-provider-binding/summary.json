@@ -1,0 +1,83 @@
+{
+  "scope": "Completed numerical observations rejected by unchanged qualification producer because predeclared providers were stale; no report minted",
+  "directions": [
+    {
+      "direction": 0,
+      "captureSha256": "d02e7b31e4ad611342624310fca384e5e4304cc96d06971deaf724e2555e4a1b",
+      "captureBytes": 205857317,
+      "gzipSha256": "ef0b8f82b14068182e6c1910d0a5c81209d26194776529663a9a16d668a6d5d1",
+      "prefixes": 55,
+      "allNumericalMatches": true,
+      "maxDifference": 9.520044947919359e-07,
+      "nativeHostSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true,
+        "pid": 2819227
+      },
+      "cleanup": [
+        {
+          "barriers": 1,
+          "owners": {
+            "active": 0,
+            "deferredCleanup": 0,
+            "retainedModel": 0
+          },
+          "devicePeakBytes": 765059392,
+          "deviceEvents": [],
+          "observationErrors": []
+        },
+        {
+          "barriers": 1,
+          "owners": {
+            "active": 0,
+            "deferredCleanup": 0,
+            "retainedModel": 0
+          },
+          "devicePeakBytes": 398727376,
+          "deviceEvents": [],
+          "observationErrors": []
+        }
+      ]
+    },
+    {
+      "direction": 1,
+      "captureSha256": "be1749ba2b19d985de22ac0a316cdb7de11d18a85cef0d2a961fd421606c8fb9",
+      "captureBytes": 205854082,
+      "gzipSha256": "ffde1c4c02aad7367b7fd60db24b260cfbfe7ace1f4a7c1e0a76448a8e482e83",
+      "prefixes": 55,
+      "allNumericalMatches": true,
+      "maxDifference": 9.520044947919359e-07,
+      "nativeHostSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true,
+        "pid": 2874566
+      },
+      "cleanup": [
+        {
+          "barriers": 1,
+          "owners": {
+            "active": 0,
+            "deferredCleanup": 0,
+            "retainedModel": 0
+          },
+          "devicePeakBytes": 398727376,
+          "deviceEvents": [],
+          "observationErrors": []
+        },
+        {
+          "barriers": 1,
+          "owners": {
+            "active": 0,
+            "deferredCleanup": 0,
+            "retainedModel": 0
+          },
+          "devicePeakBytes": 765059392,
+          "deviceEvents": [],
+          "observationErrors": []
+        }
+      ]
+    }
+  ]
+}
