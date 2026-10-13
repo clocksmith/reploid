@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import crypto from 'node:crypto';
+const paths = ['browser-partition-memory-completion', 'prepare-partition-memory', 'ordered-partition-reference'].map(name => `tests/fixtures/${name}.js`);
+const snapshot = Object.fromEntries(paths.map(path => ['/testing/' + path, fs.readFileSync(path, 'utf8')]));
+const sources = Object.fromEntries(Object.entries(snapshot).map(([path, code]) => [path, crypto.createHash('sha256').update(code).digest('hex')]));
+let result;
+const sandbox = { console, setTimeout, clearTimeout };
+sandbox.self = sandbox;
+sandbox.postMessage = value => { result = value; };
+const context = vm.createContext(sandbox);
+sandbox.importScripts = path => vm.runInContext(fs.readFileSync('self' + path, 'utf8'), context, { filename: path });
+vm.runInContext(fs.readFileSync('self/core/verification-worker.js', 'utf8'), context, { filename: 'verification-worker.js' });
+await sandbox.onmessage({ data: { type: 'VERIFY', snapshot } });
+fs.writeFileSync('artifacts/ordered-physical-capture-20261013/worker.json', JSON.stringify({ scope: 'Actual Worker existing /testing/ capability for physical fixture tooling only', sources, result }, null, 2) + '\n');
+console.log(JSON.stringify({ passed: result.passed, errors: result.errors, warnings: result.warnings.length }));
+if (!result.passed) throw new Error('Worker rejected fixture');

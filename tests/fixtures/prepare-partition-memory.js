@@ -1,5 +1,5 @@
 /** Shared physical fixture preparation; runs in browser or owned Node inspector. */
-export async function preparePartitionMemory({ model, index, modelSource, pairedBinding, config, policy, profileImmediate = false }) {
+export async function preparePartitionMemory({ model, index, modelSource, pairedBinding, config, policy, profileImmediate = false, orderedPlan = null, participantId = null }) {
       if (typeof profileImmediate !== 'boolean') throw Error('Explicit profiler selection required');
       const importModule = globalThis.__nativePartitionFixture
         ? url => globalThis.__nativePartitionFixture.importModule(String(url)) : url => import(url);
@@ -19,9 +19,14 @@ export async function preparePartitionMemory({ model, index, modelSource, paired
       const legacyPlan = runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
         splitLayer: model.partitionSplitLayer,
         activationDtype: manifest.inference.session.compute.defaults.activationDtype });
-      const plan = pairedBinding ? runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
+      if (orderedPlan !== null) {
+        runtime.validateOrderedLayerPartitionPlan(manifest, orderedPlan);
+        if (!pairedBinding || !participantId || typeof participantId !== 'string') throw Error('Ordered preparation requires explicit paired binding and participant');
+        if (orderedPlan.activationPrecision !== pairedBinding.activation.activationPrecision) throw Error('Ordered representation differs from bound policy');
+      }
+      const plan = orderedPlan ?? (pairedBinding ? runtime.createLayerPartitionPlan({ modelId: manifest.modelId, ...manifest.architecture,
         splitLayer: model.partitionSplitLayer, activationDtype: manifest.inference.session.compute.defaults.activationDtype,
-        ...pairedBinding.activation }) : legacyPlan;
+        ...pairedBinding.activation }) : legacyPlan);
       const planId = runtime.hashLayerPartitionPlan(plan);
       const legacyPlanId = runtime.hashLayerPartitionPlan(legacyPlan);
       await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
@@ -162,7 +167,7 @@ export async function preparePartitionMemory({ model, index, modelSource, paired
           prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
         createStorage: () => createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) });
       globalThis.resident = await factory.openResidentPartition({ model, plan, planId, index,
-        participantId: index ? 'memory-B' : 'memory-A', limits: policy.limits, signal: new AbortController().signal });
+        participantId: orderedPlan ? participantId : index ? 'memory-B' : 'memory-A', limits: policy.limits, signal: new AbortController().signal });
       globalThis.chunks = []; globalThis.observePrefill = false; globalThis.abortOnSubmit = null;
       const submit = getDevice().queue.submit.bind(getDevice().queue);
       getDevice().queue.submit = buffers => {
