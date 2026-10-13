@@ -1,0 +1,39 @@
+{
+  "scope": "CPU source and installed SDK protocol composition only",
+  "sourceBaseCommit": "07a4948c9c5504670237b45b31538d2b5dc65a02",
+  "files": {
+    "server/chat-completions.js": "9f59c6d378189670986538772431ebd53efaf31173e8ccb7590cc7b7b0311e79",
+    "server/text-requester.js": "0611cd2f5cee288077b6cfdbf5bea1ea31dc508fc2dba7fdbc292ef1cd7f5bfe",
+    "server/responses.js": "384ebedcbefc91df5e8c5a67ccc626d1fef14c793d3cb796ab57f1896a19011e",
+    "server/native-participant.js": "6c000cea7fba50210f12aed9fbc25ceace32c785880a6d0b5fdbaefc7fccbbe4",
+    "docs/native-participant.md": "daa490465909d8f6a6b1548486c72bac457f5997842553e0e5fdb3ba7a4d390d",
+    "tests/integration/responses.test.js": "ba1ce5af4f9f8b95237cd3844111275267c4f840e528b75ff9900e4fff358ce7",
+    "tests/integration/chat-completions.test.js": "a475a55ecd73f8ed880414150003293343535f2f0bc1be90c65817d4c8f6c242",
+    "tests/unit/ordered-host-composition.test.js": "57e413e420d3e49ac138064bead0f0d64e98f66cd0f9918dfbd9dde7d8c10905"
+  },
+  "evidence": {
+    "artifacts/stateless-responses-20261013/README.md": "a671a86144538bc37e3acb9275e762686493ec415bbe1dfb8715883dcc9e8e76",
+    "artifacts/stateless-responses-20261013/charters.txt": "462ce329868b81c1954a53d9e813ddd23d934d41ec803d3f65f99a2e22838a72",
+    "artifacts/stateless-responses-20261013/chat-regressions.txt": "556ad84cc4eb358720816d99ee2da97876609a4c44b2fd6425323bb0c5333412",
+    "artifacts/stateless-responses-20261013/installed-consumer.mjs": "6851aaf8415760efa9cd2069b6374baf3a33434f1658c120d09ce9e44102e8b3",
+    "artifacts/stateless-responses-20261013/installed-consumer.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "artifacts/stateless-responses-20261013/installed-result.json": "42052f4c0d2ded72b5b6c93eae9f4d24d1e68ebbe1fe5765e998a28d8699451c",
+    "artifacts/stateless-responses-20261013/native-delivery.txt": "6c48ee8d949853eb93e1ef64fe58843bccecea086c765e54c49511d638118aa1",
+    "artifacts/stateless-responses-20261013/native-package.json": "b8c8b145d3c3b6dc9bb568cd4877bdc8f83188251606c3a7068b4be1a650a0f4",
+    "artifacts/stateless-responses-20261013/native-regressions.txt": "d1d53e4c8957a16393196ef7cc7ca1b256455144e684293e2a13a003b2d6241a",
+    "artifacts/stateless-responses-20261013/npm-ci.txt": "cff5ede61360fd98f9a31740cee1da0ecb0af65690be3469b18d982bb716e039",
+    "artifacts/stateless-responses-20261013/package-before-doc-correction.json": "fd819e025a8bd181b9dce7621bb396cd7bf765865136dd8eb867fa0c929182ab",
+    "artifacts/stateless-responses-20261013/protocol-freeze.json": "825872d99a7683312faa7c1058363ba3b998ac16b4b59214feabf93485ca635a",
+    "artifacts/stateless-responses-20261013/source-freeze.json": "f87f1d51c60c12b6ca323259963265fb81883831bb4aca4e36d47e6c3da7269d",
+    "artifacts/stateless-responses-20261013/tests.txt": "fe2cd602762d7a79bc76ce69d97db5c8d499c5ba2bfbfaea0a3732b08bdf65a5",
+    "artifacts/stateless-responses-20261013/types.txt": "c506d0cc9d9cefa4c95d86c4d9e2f96c055daf8a3d88cd154a54c42549d522a1",
+    "artifacts/stateless-responses-20261013/verify-worker.js": "18ca80f14be00f9125f30d312c5968e876e874490cdc50b3a2a7b7f215e1c20a",
+    "artifacts/stateless-responses-20261013/worker.json": "fbf93be9c6d833edac3e4535917a93b02d0b8b5ecd6a7b981602897b70c04549",
+    "artifacts/stateless-responses-20261013/worker.txt": "0d066af2e009eed689248718503b04f819b6a56f15f746c69320d790bc928d3a"
+  },
+  "standaloneUnchangedSha256": "37cbdd90e03dfa99bc918f9661a7aab558d54bd062e8b407a9d56728fb7a4103",
+  "installedNativeAndSourceEqual": true,
+  "physicalGPUQualified": false,
+  "canonicalDurablePublicationQualified": false,
+  "fullDeveloperCompatibilityQualified": false
+}

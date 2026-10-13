@@ -1,0 +1,18 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/native-participant.test.js > settles the provider after failed participant cleanup and shares overlapping stops 1ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > does not substitute manifest opening for an explicitly requested signed Capsule 1ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > retries provider initialization and restores owned globals only after queue settlement 1ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > normalizes native unlimited values without weakening explicitly unreliable channels 0ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > reads the required verified piece and never opens an unrelated corrupt piece 4ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > rejects changed manifest and index before weight acquisition 1ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > rejects a weight symlink escaping the approved model directory 1ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > honors cancellation before local metadata or weight reads 1ms
+ ✓ tests/unit/native-participant.test.js > installed accepted runtime refuses canonical participation before GPU, transport or epoch persistence 2ms
+
+ Test Files  1 passed (1)
+      Tests  9 passed (9)
+   Start at  13:02:10
+   Duration  386ms (transform 187ms, setup 0ms, import 315ms, tests 14ms, environment 0ms)
+

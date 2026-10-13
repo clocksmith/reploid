@@ -1,0 +1,34 @@
+{
+  "passed": true,
+  "scope": "installed native public adapter + official SDK HTTP compatibility; injected numerical output",
+  "nativeArchiveSha256": "2fb9b196aa6427028e62934c96aab33a1d9f33ad17cf59817f10d194a23ac7a2",
+  "nativeDeliverySha256": "8bb97da02a1f0d892b9b80413de89ad6cead02bf57b055554fe7b932d0e2ca23",
+  "nativeFiles": 111,
+  "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "runtimeVersion": "0.6.27",
+  "runtimeFiles": 1897,
+  "sdk": {
+    "name": "openai",
+    "version": "7.32.0",
+    "lockSha256": "c145388f06164fbb462b1e5e7321855c8c7a8955a1be2a0d24b824e74cebbf48"
+  },
+  "controls": [
+    "Chat Completions nonstream and stream regressions",
+    "Responses SDK nonstream output_text",
+    "Responses SDK typed stream sequence",
+    "Responses SDK stream accumulator finalResponse",
+    "max-tokens nonstream and stream incomplete",
+    "context-limit nonstream and stream error",
+    "unsupported state/tools/sampling parameters 400",
+    "explicit store:false required",
+    "SDK cancellation retains pending admission until actual promise settles",
+    "exact authenticated principal and disclosure approvals"
+  ],
+  "generatedRequests": 10,
+  "providerInitialized": false,
+  "modelLoaded": false,
+  "cloudCalls": false,
+  "installedParticipantGPUQualified": false,
+  "node": "v22.20.0",
+  "platform": "darwin"
+}

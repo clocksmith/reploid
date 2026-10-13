@@ -1,0 +1,244 @@
+{
+  "files": {
+    "server/chat-completions.js": "9f59c6d378189670986538772431ebd53efaf31173e8ccb7590cc7b7b0311e79",
+    "server/text-requester.js": "0611cd2f5cee288077b6cfdbf5bea1ea31dc508fc2dba7fdbc292ef1cd7f5bfe",
+    "server/responses.js": "384ebedcbefc91df5e8c5a67ccc626d1fef14c793d3cb796ab57f1896a19011e",
+    "server/native-participant.js": "6c000cea7fba50210f12aed9fbc25ceace32c785880a6d0b5fdbaefc7fccbbe4"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/server/chat-completions.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /testing/server/text-requester.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 22 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /testing/server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/server/native-participant.js:78: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /testing/server/native-participant.js:383: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/server/native-participant.js:520: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "Warning in /testing/server/native-participant.js:33: Suspicious variable name: requireValue - may indicate code execution",
+      "File exceeds 500 lines (556) - consider splitting",
+      "File has 66 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791910855725,
+        "path": "/testing/server/chat-completions.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791910855727,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/testing/server/chat-completions.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791910855732,
+        "path": "/testing/server/text-requester.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791910855734,
+        "metric": "functions",
+        "value": 22,
+        "threshold": 20,
+        "message": "File has 22 functions (max 20) - consider modularizing",
+        "path": "/testing/server/text-requester.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791910855734,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/testing/server/text-requester.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791910855736,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/testing/server/responses.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791910855742,
+        "path": "/testing/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791910855742,
+        "path": "/testing/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 78,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791910855742,
+        "path": "/testing/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 383,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791910855742,
+        "path": "/testing/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+        "line": 520,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791910855742,
+        "path": "/testing/server/native-participant.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: requireValue - may indicate code execution",
+        "line": 33,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791910855745,
+        "metric": "lines",
+        "value": 556,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (556) - consider splitting",
+        "path": "/testing/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791910855745,
+        "metric": "functions",
+        "value": 66,
+        "threshold": 20,
+        "message": "File has 66 functions (max 20) - consider modularizing",
+        "path": "/testing/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791910855745,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/testing/server/native-participant.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/server/chat-completions.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/server/text-requester.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/server/native-participant.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/testing/server/chat-completions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 22,
+          "threshold": 20,
+          "message": "File has 22 functions (max 20) - consider modularizing",
+          "path": "/testing/server/text-requester.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/testing/server/text-requester.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/testing/server/responses.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 556,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (556) - consider splitting",
+          "path": "/testing/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 66,
+          "threshold": 20,
+          "message": "File has 66 functions (max 20) - consider modularizing",
+          "path": "/testing/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/testing/server/native-participant.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}
