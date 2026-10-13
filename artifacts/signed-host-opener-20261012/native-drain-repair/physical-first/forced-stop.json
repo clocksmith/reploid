@@ -1,0 +1,11 @@
+{
+  "pid": 2027092,
+  "at": 1791892558.8782268,
+  "action": "SIGKILL after SIGTERM failed to exit within20seconds",
+  "reason": "Native RTC channel normalization threw before transport tracked peer; no resident/inference started; normal shutdown not established",
+  "exit": {
+    "pid": 2027092,
+    "exitCode": -9,
+    "exitedAt": 1791892558.885109
+  }
+}
