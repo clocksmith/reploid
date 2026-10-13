@@ -1,0 +1,140 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+stderr | tests/unit/ordered-partition-peer.test.js > waits for pending execution before invoking its one resident cleanup owner
+Promise returned by `expect(actual).rejects.toThrow()` was not awaited. Vitest currently auto-awaits hanging assertions at the end of the test, but this will cause the test to fail in the next Vitest major. Please remember to await the assertion.
+    at /Users/xyz/deco/reploid/tests/unit/ordered-partition-peer.test.js:181:93
+
+ ❯ tests/unit/ordered-partition-peer.test.js (11 tests | 1 failed) 395ms
+     ✓ traverses a remote middle activation and final token via bounded duplex binary requests under genuine grants 191ms
+   ✓ replays an identical output without recomputation and rejects different activation bytes 31ms
+   ✓ rejects a changed message version before remote execution 4ms
+   ✓ rejects reverse binary corruption instead of returning a fabricated activation 11ms
+   ✓ cancels after reverse output and before final acknowledgment without rerunning computation 14ms
+   ✓ retains unknown ownership after channel loss and rejects stale cleanup identities 3ms
+   ✓ does not advertise a descriptor without actual stage capability 1ms
+   ✓ retries explicit failed remote cleanup without clearing debt or recomputing 17ms
+   ✓ a cancelled blocked middle stage preserves an unrelated remote conversation 97ms
+   ✓ rejects a reservation whose generation length exceeds its signed admission bound 3ms
+   × waits for pending execution before invoking its one resident cleanup owner 23ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-peer.test.js > waits for pending execution before invoking its one resident cleanup owner
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array [
+      Object {
+        "identity": Object {
+          "attemptId": "attempt",
+          "placementGeneration": 0,
+          "requesterId": "requester",
+          "route": Object {
+            "activation": Object {
+              "components": 1,
+              "dtype": "f32",
+              "elementStrideBytes": 4,
+              "hiddenSize": 8,
+              "precision": "f32",
+              "schema": "doppler.activation-tensor/v1",
+            },
+            "modelId": "model",
+            "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "planId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+            "schema": "reploid.partition-route/v1",
+            "stages": Array [
+              Object {
+                "executionId": "execution-0",
+                "index": 0,
+                "participantId": "peer:67b66851790797287f4f45f1",
+                "residentId": "resident-0",
+                "transportId": "transport-0",
+              },
+              Object {
+                "executionId": "execution-1",
+                "index": 1,
+                "participantId": "peer:8b7d60617b1e8e60de5247fc",
+                "residentId": "resident-1",
+                "transportId": "transport-1",
+              },
+              Object {
+                "executionId": "execution-2",
+                "index": 2,
+                "participantId": "peer:ae94a63d711a75e87737bb1e",
+                "residentId": "resident-2",
+                "transportId": "transport-2",
+              },
+            ],
+          },
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "thread",
+        },
+        "partitionIndex": 1,
+      },
+    ]
+
+
+Number of calls: 1
+
+ ❯ tests/unit/ordered-partition-peer.test.js:185:44
+    183|     const cleanup = f.peers[0].client.closeAttempt({ identity: request…
+    184|     await new Promise(resolve => setTimeout(resolve, 10));
+    185|     expect(f.f.stages[1].closeAttempt).not.toHaveBeenCalled();
+       |                                            ^
+    186|     release.resolve(); await failure; await cleanup;
+    187|     expect(f.f.stages[1].closeAttempt).toHaveBeenCalledTimes(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+Error: A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.
+ ❯ close packages/reploid/src/transport/partition-data-channel.js:104:33
+    102|     if (closed) return;
+    103|     closed = true;
+    104|     const error = Object.assign(new Error(failureMessages.CONNECTION_L…
+       |                                 ^
+    105|       { code: 'CONNECTION_LOST', cause: new Error(`Partition channel: …
+    106|     lifecycle.abort(error);
+ ❯ EventTarget.onClose packages/reploid/src/transport/partition-data-channel.js:257:25
+ ❯ EventTarget.#callDispatchEventListeners node_modules/happy-dom/lib/event/EventTarget.js:241:34
+ ❯ EventTarget.dispatchEvent node_modules/happy-dom/lib/event/EventTarget.js:104:41
+ ❯ EventTarget.#goThroughDispatchEventPhases node_modules/happy-dom/lib/event/EventTarget.js:164:38
+ ❯ EventTarget.dispatchEvent node_modules/happy-dom/lib/event/EventTarget.js:100:47
+ ❯ EventTarget.close tests/unit/ordered-partition-peer.test.js:12:90
+ ❯ tests/unit/ordered-partition-peer.test.js:12:160
+ ❯ node:internal/process/task_queues:151:7
+ ❯ AsyncResource.runInAsyncScope node:async_hooks:214:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'CONNECTION_LOST' }
+This error originated in "tests/unit/ordered-partition-peer.test.js" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+Caused by: Error: Partition channel: peer disconnected
+ ❯ close packages/reploid/src/transport/partition-data-channel.js:105:41
+ ❯ EventTarget.onClose packages/reploid/src/transport/partition-data-channel.js:257:25
+ ❯ EventTarget.#callDispatchEventListeners node_modules/happy-dom/lib/event/EventTarget.js:241:34
+ ❯ EventTarget.dispatchEvent node_modules/happy-dom/lib/event/EventTarget.js:104:41
+ ❯ EventTarget.#goThroughDispatchEventPhases node_modules/happy-dom/lib/event/EventTarget.js:164:38
+ ❯ EventTarget.dispatchEvent node_modules/happy-dom/lib/event/EventTarget.js:100:47
+ ❯ EventTarget.close tests/unit/ordered-partition-peer.test.js:12:90
+ ❯ tests/unit/ordered-partition-peer.test.js:12:160
+ ❯ node:internal/process/task_queues:151:7
+ ❯ AsyncResource.runInAsyncScope node:async_hooks:214:14
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 10 passed (11)
+     Errors  1 error
+   Start at  10:30:46
+   Duration  747ms (transform 67ms, setup 0ms, import 162ms, tests 395ms, environment 113ms)
+

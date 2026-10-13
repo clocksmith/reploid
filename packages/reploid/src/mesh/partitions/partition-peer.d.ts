@@ -36,3 +36,7 @@ export function createPartitionPeer(options: {
   authority: PartitionGrantAuthority; contributor?: ResidentPartition | null;
   limits: PartitionChannelLimits; receiverLimits: { maxAttempts: number; maxSteps: number };
 }): PartitionPeer;
+
+export function createPartitionPeer(options: import('./partition-ordered-peer.js').OrderedPartitionPeerOptions):
+  import('./partition-ordered-peer.js').OrderedPartitionPeer;
+export type { OrderedPartitionPeer, OrderedPartitionPeerOptions, OrderedPartitionPeerState } from './partition-ordered-peer.js';

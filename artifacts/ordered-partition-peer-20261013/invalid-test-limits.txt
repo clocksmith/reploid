@@ -1,0 +1,31 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/ordered-partition-peer.test.js (1 test | 1 failed) 9ms
+     × traverses a remote middle activation and final token via bounded duplex binary requests under genuine grants 8ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-peer.test.js > ordered authenticated peer (in-process channels, injected computation) > traverses a remote middle activation and final token via bounded duplex binary requests under genuine grants
+Error: Partition channel: invalid limits
+ ❯ assert packages/reploid/src/transport/partition-data-channel.js:8:64
+      6| const encoder = new TextEncoder();
+      7| const positive = value => Number.isSafeInteger(value) && value > 0;
+      8| const assert = (condition, message) => { if (!condition) throw new Err…
+       |                                                                ^
+      9| const object = value => value !== null && typeof value === 'object' &&…
+     10|
+ ❯ createPartitionDataChannel packages/reploid/src/transport/partition-data-channel.js:25:3
+ ❯ createOrderedPartitionPeer packages/reploid/src/mesh/partitions/partition-ordered-peer.js:86:46
+ ❯ createPartitionPeer packages/reploid/src/mesh/partitions/partition-peer.js:12:49
+ ❯ fixture tests/unit/ordered-partition-peer.test.js:29:39
+ ❯ tests/unit/ordered-partition-peer.test.js:44:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  10:22:25
+   Duration  286ms (transform 52ms, setup 0ms, import 129ms, tests 9ms, environment 89ms)
+
