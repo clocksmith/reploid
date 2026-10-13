@@ -1,0 +1,133 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/chat-workspace.test.js (13 tests | 6 failed) 69ms
+     ✓ authorizes a verified peer only for this explicit Send and records the exact attempt 55ms
+     ✓ rejects substituted peer model identities before Send authorization 1ms
+     ✓ does not extend one Send to a different recipient during an attempt 0ms
+     × isolates two live conversations, their streams and cancellation while closing does not stop either 5ms
+     ✓ persists a display title without modifying the model input 1ms
+     ✓ retains multi-turn context only inside its conversation 1ms
+     × requires the exact thread, attempt and disclosure identity for approval 2ms
+     × restores interrupted output without resending and retries into a separate generation 0ms
+     × rejects completed response identity drift and does not merge a new generation into a stream 1ms
+     × does not disclose a conversation when its initial history write fails 0ms
+     × never delivers a failed history write and fences later writes until storage reconciliation 1ms
+     ✓ rejects model or adapter substitution even when the displayed model name matches 0ms
+     ✓ fails a stream with missing updates instead of silently joining incomplete text 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 6 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/chat-workspace.test.js > conversation workspace > isolates two live conversations, their streams and cancellation while closing does not stop either
+AssertionError: expected [] to deeply equal [ [ { role: 'user', …(1) } ], …(1) ]
+
+- Expected
++ Received
+
+- [
+-   [
+-     {
+-       "content": "First",
+-       "role": "user",
+-     },
+-   ],
+-   [
+-     {
+-       "content": "Second",
+-       "role": "user",
+-     },
+-   ],
+- ]
++ []
+
+ ❯ tests/unit/chat-workspace.test.js:74:54
+     72|     const a = app.createThread({ model }), b = app.createThread({ mode…
+     73|     const first = app.send(a, 'First'), second = app.send(b, 'Second');
+     74|     expect(calls.map(call => call.request.messages)).toEqual([[{ role:…
+       |                                                      ^
+     75|     calls[0].controls.onDelta({ ...result(calls[0].request, ''), text:…
+     76|     calls[0].controls.onDelta({ ...result(calls[0].request, ''), text:…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/6]⎯
+
+ FAIL  tests/unit/chat-workspace.test.js > conversation workspace > requires the exact thread, attempt and disclosure identity for approval
+Error: Approval no longer matches this attempt
+ ❯ assert packages/reploid/src/chat/workspace.js:6:50
+      4|
+      5| const copy = value => structuredClone(value);
+      6| const assert = (ok, message) => { if (!ok) throw new Error(message); };
+       |                                                  ^
+      7| const activeStatuses = new Set(['queued', 'loading', 'executing', 'app…
+      8|
+ ❯ Object.approve packages/reploid/src/chat/workspace.js:278:7
+ ❯ tests/unit/chat-workspace.test.js:122:9
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/6]⎯
+
+ FAIL  tests/unit/chat-workspace.test.js > conversation workspace > restores interrupted output without resending and retries into a separate generation
+TypeError: Cannot read properties of undefined (reading 'onDelta')
+ ❯ tests/unit/chat-workspace.test.js:134:13
+    132|     });
+    133|     const a = app.createThread({ model }), first = app.send(a, 'Questi…
+    134|     control.onDelta({ ...result(original, ''), text: 'partial', sequen…
+       |             ^
+    135|     const saved = structuredClone(store.load());
+    136|     const resumedExecute = vi.fn(async request => result(request, 'Fre…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/6]⎯
+
+ FAIL  tests/unit/chat-workspace.test.js > conversation workspace > rejects completed response identity drift and does not merge a new generation into a stream
+AssertionError: expected { …(14) } to match object { status: 'failed', …(1) }
+(16 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+-   "error": "Completed response differs from its stream",
++   "error": "Completed response differs from its saved stream",
+    "status": "failed",
+  }
+
+ ❯ tests/unit/chat-workspace.test.js:153:40
+    151|     });
+    152|     const a = app.createThread({ model });
+    153|     expect(await app.send(a, 'Hello')).toMatchObject({ status: 'failed…
+       |                                        ^
+    154|     expect(app.getState().threads[0].messages.at(-1).content).toBe('or…
+    155|     await app.close();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/6]⎯
+
+ FAIL  tests/unit/chat-workspace.test.js > conversation workspace > does not disclose a conversation when its initial history write fails
+Error: History storage failed: Full
+ ❯ Object.close packages/reploid/src/chat/workspace.js:324:79
+    322|       await Promise.allSettled(pending.map(run => run.completion));
+    323|       const saved = await Promise.allSettled([...pendingSaves]); liste…
+    324|       if (saved.some(row => row.status === 'rejected') || storageError…
+       |                                                                               ^
+    325|     }
+    326|   });
+ ❯ tests/unit/chat-workspace.test.js:163:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/6]⎯
+
+ FAIL  tests/unit/chat-workspace.test.js > conversation workspace > never delivers a failed history write and fences later writes until storage reconciliation
+Error: History storage failed: Unknown write outcome
+ ❯ Object.close packages/reploid/src/chat/workspace.js:324:79
+    322|       await Promise.allSettled(pending.map(run => run.completion));
+    323|       const saved = await Promise.allSettled([...pendingSaves]); liste…
+    324|       if (saved.some(row => row.status === 'rejected') || storageError…
+       |                                                                               ^
+    325|     }
+    326|   });
+ ❯ tests/unit/chat-workspace.test.js:190:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/6]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  6 failed | 7 passed (13)
+   Start at  07:40:47
+   Duration  309ms (transform 22ms, setup 0ms, import 30ms, tests 69ms, environment 144ms)
+

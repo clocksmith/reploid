@@ -1,0 +1,126 @@
+{
+  "files": {
+    "packages/reploid/src/chat/workspace-history.js": "17fadc291124ea2db35a983073f89f28ab6a0c4f5ab88b48f8535321177bab93",
+    "packages/reploid/src/chat/workspace.js": "4d40361b45ac2f8dcf957129d7da3516c73e6e20505b35c0d0b84489132412a4",
+    "packages/reploid/src/chat/index.js": "ca174967191a38eb90b65144e30c19019edd7a495fc32a005cd1c7dc637ee722"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/chat/workspace-history.js:34: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /packages/reploid/src/chat/workspace-history.js:34: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 26 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/chat/workspace.js:18: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 47 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892464602,
+        "path": "/packages/reploid/src/chat/workspace-history.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 34,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892464602,
+        "path": "/packages/reploid/src/chat/workspace-history.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 34,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791892464604,
+        "metric": "functions",
+        "value": 26,
+        "threshold": 20,
+        "message": "File has 26 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/chat/workspace-history.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791892464604,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/chat/workspace-history.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892464613,
+        "path": "/packages/reploid/src/chat/workspace.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 18,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791892464614,
+        "metric": "functions",
+        "value": 47,
+        "threshold": 20,
+        "message": "File has 47 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/chat/workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791892464614,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/chat/workspace.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 26,
+          "threshold": 20,
+          "message": "File has 26 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/chat/workspace-history.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/chat/workspace-history.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 47,
+          "threshold": 20,
+          "message": "File has 47 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/chat/workspace.js"
+        }
+      ],
+      "filesAnalyzed": 3
+    }
+  }
+}

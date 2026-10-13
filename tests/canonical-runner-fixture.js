@@ -22,7 +22,7 @@ const plan = runtime.createLayerPartitionPlan({ modelId: 'fixture', numLayers: 4
 const planId = runtime.hashLayerPartitionPlan(plan);
 const limits = { maxTokens: 16, maxPromptTokens: 64, maxActivationBytes: 4096, maxOutputCharacters: 4096,
   maxAttempts: 8, maxConcurrentAttempts: 2 };
-async function fixture({ zero = false, full = false, forged = false, unknown = false, decline = false, authenticationGate = null, attemptId = 'a' } = {}) {
+async function fixture({ zero = false, full = false, forged = false, unknown = false, decline = false, authenticationGate = null, attemptId = 'a', observedPublications = null } = {}) {
   const policy = { ...basePolicy, maxGeneratedTokens: zero ? 0 : 2, ...(full ? { totalAcceptedTokenLimit: 2 } : {}) };
   const generation = runtime.canonicalGenerationIdentity(policy, hash, 100);
   const identity = { modelId: plan.modelId, modelIdentity: hash, planId, threadId: 'thread-' + attemptId, attemptId,
@@ -81,7 +81,7 @@ async function fixture({ zero = false, full = false, forged = false, unknown = f
   };
   devices[1].acknowledgeCanonicalPublication = async request => {
     events.push('ack' + request.sequence);
-    assert(state.records.some(r => r.receipt.receiptDigest === request.receipt.receiptDigest), 'ack requires actually stored receipt');
+    assert((observedPublications ? observedPublications() : state.records).some(r => r.receipt.receiptDigest === request.receipt.receiptDigest), 'ack requires actually stored receipt');
     awaiting = null; return request.receipt;
   };
   const store = { schema: 'reploid.transactional-chat-store/v1', async read() { await queue; return structuredClone(state); },

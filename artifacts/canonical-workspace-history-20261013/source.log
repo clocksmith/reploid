@@ -1,0 +1,5 @@
+workspace history: exact legacy import, shared writer CAS, signed record hydration, single output authority, unknown-commit fencing and stale-writer refusal pass
+workspace: awaited transaction admission and saved-record projection, no raw output authority, stale writer and unknown-write refusal pass
+transactional workspace visibility: delayed writes, overlapping notifications and separate ephemeral execution never expose pending admission/output/terminal metadata
+canonical runner: actual transition/signature/publication ordering, no premature UI, N=0, forged B, unknown commit and refusal pass
+canonical chat: actual prompt-bound v3 grant, target/mirror transitions, durable signatures, N=0 and changed placement refusal pass

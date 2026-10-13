@@ -1,3 +1,7 @@
+export { openCanonicalWorkspaceHistory } from './workspace-history.js';
+import type { CanonicalWorkspaceHistory } from './workspace-history.js';
+import type { CanonicalPublicationPort } from '../mesh/partitions/partition-canonical-execution.js';
+import type { EntryPublicationRecord } from '../mesh/partitions/partition-entry-publication.js';
 export { createConversationPublication } from './workspace-publication.js';
 export type { TransactionalChatStore, PublicationReceipt } from './workspace-publication.js';
 export interface ChatModel {
@@ -50,6 +54,7 @@ export interface ChatResult extends ChatEnvelope {
   content: string; execution?: Record<string, unknown>;
 }
 export interface ChatAttempt {
+  publicationMode?: 'canonical';
   id: string;
   threadId: string;
   userMessageId: string;
@@ -77,9 +82,11 @@ export interface ChatSystemContext { content: string; metadata: Record<string, u
 export interface ChatState {
   schema: 'reploid.chat-workspace/v1'; meshId: string; participantId: string;
   threads: ChatThread[]; selectedId: string | null; runningIds: string[]; storageError: string | null;
+  ephemeralExecutions?: Array<ChatEnvelope & {status:string;approval:ChatApproval|null;execution:Record<string,unknown>|null}>;
   limits: { maxThreads: number; maxMessageCharacters: number };
 }
 export interface ChatControls {
+  publication?:CanonicalPublicationPort;publisherEpoch?:string;onPublished?:(record:EntryPublicationRecord)=>Promise<void>;
   signal: AbortSignal;
   onDelta(envelope: ChatEnvelope & { text: string; sequence: number }): void;
   onState(envelope: ChatEnvelope & { status: string; execution?: Record<string, unknown> }): void;
@@ -90,12 +97,13 @@ export interface ChatSendOptions {
   select?: boolean;
   authorizeDisclosure?: ((input: { request: ChatRequest & ChatEnvelope; preview: ChatApproval }) => boolean) | null;
 }
-export function createChatWorkspace(options: {
+export interface ChatWorkspaceOptions {
   meshId: string; participantId: string;
   store: { load(): unknown; save(state: unknown): void };
   execute(request: ChatRequest & ChatEnvelope & { meshId: string; participantId: string }, controls: ChatControls): Promise<ChatResult>;
   policy?: ChatPolicy; now?: () => number; id?: () => string;
-}): {
+}
+export interface ChatWorkspace {
   getState(): ChatState;
   subscribe(listener: (state: ChatState) => void): () => void;
   createThread(options: { model: ChatModel; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;
@@ -110,7 +118,18 @@ export function createChatWorkspace(options: {
   revokeGrant(threadId: string, grantId: string): void;
   cancel(threadId: string): Promise<unknown>;
   close(): Promise<void>;
+}
+export type TransactionalChatWorkspace = Omit<ChatWorkspace,'createThread'|'setSystemContext'|'renameThread'|'closeThread'|'reopenThread'|'approve'|'revokeGrant'> & {
+ createThread(input:Parameters<ChatWorkspace['createThread']>[0]):Promise<string>;
+ setSystemContext(...input:Parameters<ChatWorkspace['setSystemContext']>):Promise<void>;
+ renameThread(...input:Parameters<ChatWorkspace['renameThread']>):Promise<void>;
+ closeThread(...input:Parameters<ChatWorkspace['closeThread']>):Promise<void>;
+ reopenThread(...input:Parameters<ChatWorkspace['reopenThread']>):Promise<void>;
+ approve(...input:Parameters<ChatWorkspace['approve']>):void|Promise<void>;
+ revokeGrant(...input:Parameters<ChatWorkspace['revokeGrant']>):void|Promise<void>;
 };
+export function createChatWorkspace(options:Omit<ChatWorkspaceOptions,'store'> & {store:CanonicalWorkspaceHistory}):TransactionalChatWorkspace;
+export function createChatWorkspace(options:ChatWorkspaceOptions):ChatWorkspace;
 export interface ScheduledChatRequest extends ChatRequest, ChatEnvelope {
   participantId: string; maxOutputTokens: number;
   model: ChatModel & { identity: string };
