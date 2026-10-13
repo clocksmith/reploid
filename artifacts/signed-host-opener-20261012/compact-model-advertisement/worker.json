@@ -1,0 +1,209 @@
+{
+  "sources": {
+    "/packages/reploid/src/mesh/partitions/partition-chat.js": "d6493f32f9943f2cf62e21e6a137213e74b8c5821621b6facbcbf4bd29ea41cd",
+    "/tests/unit/partition-api.test.js": "5e325988d0c694cdf72f86c81952528fbbd219cc6e20c4c5c14276aebe910821"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/mesh/partitions/partition-chat.js:17: Dynamic property write detected: [key] - verify input sanitization",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/partition-api.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/partition-api.test.js:31: Dynamic property write detected: [a, b] - verify input sanitization",
+      "Warning in /tests/unit/partition-api.test.js:41: Dynamic property write detected: [left, right] - verify input sanitization",
+      "Warning in /tests/unit/partition-api.test.js:72: Dynamic property write detected: [left, right] - verify input sanitization",
+      "Warning in /tests/unit/partition-api.test.js:337: Dynamic property write detected: [left, right] - verify input sanitization",
+      "Warning in /tests/unit/partition-api.test.js:475: Dynamic property write detected: [channel] - verify input sanitization",
+      "Warning in /tests/unit/partition-api.test.js:493: Dynamic property write detected: [channel] - verify input sanitization",
+      "Warning in /tests/unit/partition-api.test.js:518: Dynamic property write detected: [left, right] - verify input sanitization",
+      "Warning in /tests/unit/partition-api.test.js:603: Dynamic property write detected: [left, right] - verify input sanitization",
+      "File exceeds 500 lines (734) - consider splitting",
+      "File has 29 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894669210,
+        "path": "/packages/reploid/src/mesh/partitions/partition-chat.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 17,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894669211,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-chat.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894669222,
+        "path": "/tests/unit/partition-api.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894669223,
+        "path": "/tests/unit/partition-api.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [a, b] - verify input sanitization",
+        "line": 31,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894669223,
+        "path": "/tests/unit/partition-api.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [left, right] - verify input sanitization",
+        "line": 41,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894669223,
+        "path": "/tests/unit/partition-api.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [left, right] - verify input sanitization",
+        "line": 72,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894669223,
+        "path": "/tests/unit/partition-api.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [left, right] - verify input sanitization",
+        "line": 337,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894669223,
+        "path": "/tests/unit/partition-api.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [channel] - verify input sanitization",
+        "line": 475,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894669223,
+        "path": "/tests/unit/partition-api.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [channel] - verify input sanitization",
+        "line": 493,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894669223,
+        "path": "/tests/unit/partition-api.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [left, right] - verify input sanitization",
+        "line": 518,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894669223,
+        "path": "/tests/unit/partition-api.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [left, right] - verify input sanitization",
+        "line": 603,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894669225,
+        "metric": "lines",
+        "value": 734,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (734) - consider splitting",
+        "path": "/tests/unit/partition-api.test.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894669225,
+        "metric": "functions",
+        "value": 29,
+        "threshold": 20,
+        "message": "File has 29 functions (max 20) - consider modularizing",
+        "path": "/tests/unit/partition-api.test.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894669225,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/tests/unit/partition-api.test.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/tests/unit/partition-api.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-chat.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 734,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (734) - consider splitting",
+          "path": "/tests/unit/partition-api.test.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 29,
+          "threshold": 20,
+          "message": "File has 29 functions (max 20) - consider modularizing",
+          "path": "/tests/unit/partition-api.test.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/tests/unit/partition-api.test.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

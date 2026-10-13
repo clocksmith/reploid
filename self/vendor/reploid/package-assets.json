@@ -696,8 +696,8 @@
     },
     {
       "path": "mesh/partitions/partition-chat.js",
-      "bytes": 8363,
-      "sha256": "a50fe14896f2e2d15a897549cc51a91f964670bc87c76822b075176adc5884a6"
+      "bytes": 8816,
+      "sha256": "d6493f32f9943f2cf62e21e6a137213e74b8c5821621b6facbcbf4bd29ea41cd"
     },
     {
       "path": "mesh/partitions/partition-contract.d.ts",
