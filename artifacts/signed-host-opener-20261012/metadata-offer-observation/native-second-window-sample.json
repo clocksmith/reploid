@@ -1,0 +1,825 @@
+{
+  "scope": "Diagnostic request/send-return and event-loop observation; no delivery guarantee",
+  "startedAt": 1791893935161,
+  "observedAt": 1791894100678,
+  "stopped": false,
+  "limitMs": 300000,
+  "maxRecords": 128,
+  "samples": 620,
+  "maxLoopDelayMs": 191,
+  "channels": [
+    {
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "readyState": "open",
+      "bufferedAmount": 0,
+      "ordered": true,
+      "maxRetransmits": 3,
+      "maxPacketLifeTime": null
+    }
+  ],
+  "records": [
+    {
+      "at": 1791893937021,
+      "event": "loop-delay",
+      "delayMs": 110
+    },
+    {
+      "at": 1791893938888,
+      "event": "loop-delay",
+      "delayMs": 117
+    },
+    {
+      "at": 1791893940741,
+      "event": "loop-delay",
+      "delayMs": 104
+    },
+    {
+      "at": 1791893942609,
+      "event": "loop-delay",
+      "delayMs": 119
+    },
+    {
+      "at": 1791893944500,
+      "event": "loop-delay",
+      "delayMs": 141
+    },
+    {
+      "at": 1791893948206,
+      "event": "loop-delay",
+      "delayMs": 123
+    },
+    {
+      "at": 1791893951905,
+      "event": "loop-delay",
+      "delayMs": 105
+    },
+    {
+      "at": 1791893953755,
+      "event": "loop-delay",
+      "delayMs": 101
+    },
+    {
+      "at": 1791893959514,
+      "event": "loop-delay",
+      "delayMs": 141
+    },
+    {
+      "at": 1791893961370,
+      "event": "loop-delay",
+      "delayMs": 104
+    },
+    {
+      "at": 1791893963261,
+      "event": "loop-delay",
+      "delayMs": 142
+    },
+    {
+      "at": 1791893965164,
+      "event": "loop-delay",
+      "delayMs": 153
+    },
+    {
+      "at": 1791893967059,
+      "event": "loop-delay",
+      "delayMs": 145
+    },
+    {
+      "at": 1791893969921,
+      "event": "loop-delay",
+      "delayMs": 112
+    },
+    {
+      "at": 1791893971807,
+      "event": "loop-delay",
+      "delayMs": 134
+    },
+    {
+      "at": 1791893973357,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791893973474,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "a5023162-8cfb-4d66-9435-df2e41742120",
+      "path": "piece-aa7f5ae8cdfa31f061e473d2162199ef361df78d1160554766d419df19c69a4e.bin",
+      "sizeBytes": 1536,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791893973497,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "a5023162-8cfb-4d66-9435-df2e41742120",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791893973726,
+      "event": "loop-delay",
+      "delayMs": 169
+    },
+    {
+      "at": 1791893974097,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791893974097,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "321569af-9803-4e57-9d44-6b406bf38af1",
+      "path": "piece-85d6934299a07d013a3a11c6a2a346f27325929f26a6349ed0239b397b78b58d.bin",
+      "sizeBytes": 4718592,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791893974134,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "321569af-9803-4e57-9d44-6b406bf38af1",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791893975607,
+      "event": "loop-delay",
+      "delayMs": 132
+    },
+    {
+      "at": 1791893977497,
+      "event": "loop-delay",
+      "delayMs": 140
+    },
+    {
+      "at": 1791893979388,
+      "event": "loop-delay",
+      "delayMs": 141
+    },
+    {
+      "at": 1791893981264,
+      "event": "loop-delay",
+      "delayMs": 124
+    },
+    {
+      "at": 1791893984961,
+      "event": "loop-delay",
+      "delayMs": 101
+    },
+    {
+      "at": 1791893985882,
+      "event": "loop-delay",
+      "delayMs": 172
+    },
+    {
+      "at": 1791893986803,
+      "event": "loop-delay",
+      "delayMs": 172
+    },
+    {
+      "at": 1791893988657,
+      "event": "loop-delay",
+      "delayMs": 104
+    },
+    {
+      "at": 1791893992399,
+      "event": "loop-delay",
+      "delayMs": 144
+    },
+    {
+      "at": 1791893994265,
+      "event": "loop-delay",
+      "delayMs": 116
+    },
+    {
+      "at": 1791893996118,
+      "event": "loop-delay",
+      "delayMs": 104
+    },
+    {
+      "at": 1791893998982,
+      "event": "loop-delay",
+      "delayMs": 111
+    },
+    {
+      "at": 1791894000894,
+      "event": "loop-delay",
+      "delayMs": 161
+    },
+    {
+      "at": 1791894004633,
+      "event": "loop-delay",
+      "delayMs": 143
+    },
+    {
+      "at": 1791894012085,
+      "event": "loop-delay",
+      "delayMs": 168
+    },
+    {
+      "at": 1791894013609,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894013689,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "c957c764-5de5-463e-858d-002b8330e944",
+      "path": "piece-d786e4fb776eeae0086202889ab24b3e45f668c0fd98c2e59553061818933827.bin",
+      "sizeBytes": 1536,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894013712,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "c957c764-5de5-463e-858d-002b8330e944",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791894013975,
+      "event": "loop-delay",
+      "delayMs": 140
+    },
+    {
+      "at": 1791894014913,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894014913,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "47a24c13-d2ee-4312-b81b-f7a3f6c02a37",
+      "path": "piece-c88381cf075a4539d180c998134a848969fe7f0542395051f34e9be362735723.bin",
+      "sizeBytes": 1536,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894014937,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "47a24c13-d2ee-4312-b81b-f7a3f6c02a37",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791894015090,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894015090,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "cadb693d-032a-4b00-8676-51326c296939",
+      "path": "piece-8a9fe37f40b889bbf6026a94d289df89060491b691bf5942864bdbadde5a8386.bin",
+      "sizeBytes": 1536,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894015113,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "cadb693d-032a-4b00-8676-51326c296939",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791894015235,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894015252,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "091d51d4-e560-46b2-aefa-0d687b4093ef",
+      "path": "piece-767fde890dbf7883dd0c076e6c6695f78c11eaa4282756a7595f69deb2602234.bin",
+      "sizeBytes": 1536,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894015276,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "091d51d4-e560-46b2-aefa-0d687b4093ef",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791894015812,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894015812,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "62a614b7-637b-4160-a019-d3dd73c32b9d",
+      "path": "piece-937f4c16dbdc04d47e399555e73fadb5d800afd6dbce59374ccd5d32549a86fc.bin",
+      "sizeBytes": 6144,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894015944,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "62a614b7-637b-4160-a019-d3dd73c32b9d",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791894016144,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894016171,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "f180619d-78ff-4875-8dc2-c17aa91150f2",
+      "path": "piece-83a864e1619dd3e2b9d391617c53d321416bf68a32450ebc8d7804078637c295.bin",
+      "sizeBytes": 16777216,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894016234,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "f180619d-78ff-4875-8dc2-c17aa91150f2",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791894016858,
+      "event": "loop-delay",
+      "delayMs": 132
+    },
+    {
+      "at": 1791894022430,
+      "event": "loop-delay",
+      "delayMs": 131
+    },
+    {
+      "at": 1791894026172,
+      "event": "loop-delay",
+      "delayMs": 144
+    },
+    {
+      "at": 1791894028071,
+      "event": "loop-delay",
+      "delayMs": 150
+    },
+    {
+      "at": 1791894029931,
+      "event": "loop-delay",
+      "delayMs": 111
+    },
+    {
+      "at": 1791894031795,
+      "event": "loop-delay",
+      "delayMs": 115
+    },
+    {
+      "at": 1791894033669,
+      "event": "loop-delay",
+      "delayMs": 125
+    },
+    {
+      "at": 1791894035525,
+      "event": "loop-delay",
+      "delayMs": 105
+    },
+    {
+      "at": 1791894037417,
+      "event": "loop-delay",
+      "delayMs": 143
+    },
+    {
+      "at": 1791894039332,
+      "event": "loop-delay",
+      "delayMs": 166
+    },
+    {
+      "at": 1791894041238,
+      "event": "loop-delay",
+      "delayMs": 156
+    },
+    {
+      "at": 1791894044162,
+      "event": "loop-delay",
+      "delayMs": 174
+    },
+    {
+      "at": 1791894048097,
+      "event": "loop-delay",
+      "delayMs": 183
+    },
+    {
+      "at": 1791894049982,
+      "event": "loop-delay",
+      "delayMs": 136
+    },
+    {
+      "at": 1791894051892,
+      "event": "loop-delay",
+      "delayMs": 161
+    },
+    {
+      "at": 1791894053834,
+      "event": "loop-delay",
+      "delayMs": 191
+    },
+    {
+      "at": 1791894057550,
+      "event": "loop-delay",
+      "delayMs": 119
+    },
+    {
+      "at": 1791894059443,
+      "event": "loop-delay",
+      "delayMs": 142
+    },
+    {
+      "at": 1791894061341,
+      "event": "loop-delay",
+      "delayMs": 149
+    },
+    {
+      "at": 1791894064214,
+      "event": "loop-delay",
+      "delayMs": 122
+    },
+    {
+      "at": 1791894066088,
+      "event": "loop-delay",
+      "delayMs": 123
+    },
+    {
+      "at": 1791894067976,
+      "event": "loop-delay",
+      "delayMs": 139
+    },
+    {
+      "at": 1791894071682,
+      "event": "loop-delay",
+      "delayMs": 118
+    },
+    {
+      "at": 1791894073562,
+      "event": "loop-delay",
+      "delayMs": 128
+    },
+    {
+      "at": 1791894077271,
+      "event": "loop-delay",
+      "delayMs": 113
+    },
+    {
+      "at": 1791894079146,
+      "event": "loop-delay",
+      "delayMs": 126
+    },
+    {
+      "at": 1791894081024,
+      "event": "loop-delay",
+      "delayMs": 129
+    },
+    {
+      "at": 1791894082881,
+      "event": "loop-delay",
+      "delayMs": 108
+    },
+    {
+      "at": 1791894084769,
+      "event": "loop-delay",
+      "delayMs": 136
+    },
+    {
+      "at": 1791894086672,
+      "event": "loop-delay",
+      "delayMs": 153
+    },
+    {
+      "at": 1791894088578,
+      "event": "loop-delay",
+      "delayMs": 157
+    },
+    {
+      "at": 1791894092463,
+      "event": "loop-delay",
+      "delayMs": 135
+    },
+    {
+      "at": 1791894094351,
+      "event": "loop-delay",
+      "delayMs": 139
+    },
+    {
+      "at": 1791894096061,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894096241,
+      "event": "loop-delay",
+      "delayMs": 140
+    },
+    {
+      "at": 1791894096949,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "0fc6ca77-59ff-49cd-9950-7ae1ea8d5905",
+      "path": "piece-fe42862151244efc9a8f07d76c04b731470bf10f04ecf4479cc5bc8843ca430e.bin",
+      "sizeBytes": 2097152,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791894096978,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "0fc6ca77-59ff-49cd-9950-7ae1ea8d5905",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791894099101,
+      "event": "loop-delay",
+      "delayMs": 110
+    }
+  ]
+}

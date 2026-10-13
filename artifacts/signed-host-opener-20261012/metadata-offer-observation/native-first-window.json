@@ -1,0 +1,761 @@
+{
+  "scope": "Diagnostic request/send-return and event-loop observation; no delivery guarantee",
+  "startedAt": 1791893588654,
+  "observedAt": 1791893932316,
+  "stopped": true,
+  "limitMs": 300000,
+  "maxRecords": 128,
+  "samples": 1116,
+  "maxLoopDelayMs": 250,
+  "channels": [
+    {
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "readyState": "open",
+      "bufferedAmount": 0,
+      "ordered": true,
+      "maxRetransmits": 3,
+      "maxPacketLifeTime": null
+    }
+  ],
+  "records": [
+    {
+      "at": 1791893601584,
+      "event": "loop-delay",
+      "delayMs": 116
+    },
+    {
+      "at": 1791893617843,
+      "event": "loop-delay",
+      "delayMs": 190
+    },
+    {
+      "at": 1791893619036,
+      "event": "loop-delay",
+      "delayMs": 194
+    },
+    {
+      "at": 1791893625956,
+      "event": "loop-delay",
+      "delayMs": 138
+    },
+    {
+      "at": 1791893627846,
+      "event": "loop-delay",
+      "delayMs": 141
+    },
+    {
+      "at": 1791893629715,
+      "event": "loop-delay",
+      "delayMs": 118
+    },
+    {
+      "at": 1791893631571,
+      "event": "loop-delay",
+      "delayMs": 107
+    },
+    {
+      "at": 1791893635296,
+      "event": "loop-delay",
+      "delayMs": 130
+    },
+    {
+      "at": 1791893641712,
+      "event": "loop-delay",
+      "delayMs": 174
+    },
+    {
+      "at": 1791893644455,
+      "event": "loop-delay",
+      "delayMs": 155
+    },
+    {
+      "at": 1791893651916,
+      "event": "loop-delay",
+      "delayMs": 170
+    },
+    {
+      "at": 1791893653803,
+      "event": "loop-delay",
+      "delayMs": 138
+    },
+    {
+      "at": 1791893655672,
+      "event": "loop-delay",
+      "delayMs": 120
+    },
+    {
+      "at": 1791893657525,
+      "event": "loop-delay",
+      "delayMs": 104
+    },
+    {
+      "at": 1791893658451,
+      "event": "loop-delay",
+      "delayMs": 177
+    },
+    {
+      "at": 1791893664014,
+      "event": "loop-delay",
+      "delayMs": 127
+    },
+    {
+      "at": 1791893665867,
+      "event": "loop-delay",
+      "delayMs": 102
+    },
+    {
+      "at": 1791893670461,
+      "event": "loop-delay",
+      "delayMs": 169
+    },
+    {
+      "at": 1791893672347,
+      "event": "loop-delay",
+      "delayMs": 136
+    },
+    {
+      "at": 1791893674244,
+      "event": "loop-delay",
+      "delayMs": 148
+    },
+    {
+      "at": 1791893677110,
+      "event": "loop-delay",
+      "delayMs": 117
+    },
+    {
+      "at": 1791893680812,
+      "event": "loop-delay",
+      "delayMs": 105
+    },
+    {
+      "at": 1791893682695,
+      "event": "loop-delay",
+      "delayMs": 134
+    },
+    {
+      "at": 1791893684557,
+      "event": "loop-delay",
+      "delayMs": 110
+    },
+    {
+      "at": 1791893686453,
+      "event": "loop-delay",
+      "delayMs": 147
+    },
+    {
+      "at": 1791893688320,
+      "event": "loop-delay",
+      "delayMs": 116
+    },
+    {
+      "at": 1791893690209,
+      "event": "loop-delay",
+      "delayMs": 137
+    },
+    {
+      "at": 1791893692091,
+      "event": "loop-delay",
+      "delayMs": 133
+    },
+    {
+      "at": 1791893694968,
+      "event": "loop-delay",
+      "delayMs": 128
+    },
+    {
+      "at": 1791893696844,
+      "event": "loop-delay",
+      "delayMs": 125
+    },
+    {
+      "at": 1791893697758,
+      "event": "loop-delay",
+      "delayMs": 165
+    },
+    {
+      "at": 1791893699657,
+      "event": "loop-delay",
+      "delayMs": 150
+    },
+    {
+      "at": 1791893701550,
+      "event": "loop-delay",
+      "delayMs": 143
+    },
+    {
+      "at": 1791893703440,
+      "event": "loop-delay",
+      "delayMs": 141
+    },
+    {
+      "at": 1791893705361,
+      "event": "loop-delay",
+      "delayMs": 172
+    },
+    {
+      "at": 1791893708253,
+      "event": "loop-delay",
+      "delayMs": 140
+    },
+    {
+      "at": 1791893710161,
+      "event": "loop-delay",
+      "delayMs": 159
+    },
+    {
+      "at": 1791893712047,
+      "event": "loop-delay",
+      "delayMs": 136
+    },
+    {
+      "at": 1791893713898,
+      "event": "loop-delay",
+      "delayMs": 102
+    },
+    {
+      "at": 1791893714814,
+      "event": "loop-delay",
+      "delayMs": 167
+    },
+    {
+      "at": 1791893715738,
+      "event": "loop-delay",
+      "delayMs": 175
+    },
+    {
+      "at": 1791893717599,
+      "event": "loop-delay",
+      "delayMs": 112
+    },
+    {
+      "at": 1791893719466,
+      "event": "loop-delay",
+      "delayMs": 118
+    },
+    {
+      "at": 1791893722221,
+      "event": "loop-delay",
+      "delayMs": 160
+    },
+    {
+      "at": 1791893724980,
+      "event": "loop-delay",
+      "delayMs": 172
+    },
+    {
+      "at": 1791893729705,
+      "event": "loop-delay",
+      "delayMs": 127
+    },
+    {
+      "at": 1791893731576,
+      "event": "loop-delay",
+      "delayMs": 120
+    },
+    {
+      "at": 1791893733443,
+      "event": "loop-delay",
+      "delayMs": 118
+    },
+    {
+      "at": 1791893735313,
+      "event": "loop-delay",
+      "delayMs": 119
+    },
+    {
+      "at": 1791893737169,
+      "event": "loop-delay",
+      "delayMs": 104
+    },
+    {
+      "at": 1791893740874,
+      "event": "loop-delay",
+      "delayMs": 125
+    },
+    {
+      "at": 1791893742763,
+      "event": "loop-delay",
+      "delayMs": 140
+    },
+    {
+      "at": 1791893744636,
+      "event": "loop-delay",
+      "delayMs": 124
+    },
+    {
+      "at": 1791893747520,
+      "event": "loop-delay",
+      "delayMs": 125
+    },
+    {
+      "at": 1791893749386,
+      "event": "loop-delay",
+      "delayMs": 117
+    },
+    {
+      "at": 1791893751237,
+      "event": "loop-delay",
+      "delayMs": 101
+    },
+    {
+      "at": 1791893753106,
+      "event": "loop-delay",
+      "delayMs": 120
+    },
+    {
+      "at": 1791893754965,
+      "event": "loop-delay",
+      "delayMs": 109
+    },
+    {
+      "at": 1791893757711,
+      "event": "loop-delay",
+      "delayMs": 167
+    },
+    {
+      "at": 1791893758626,
+      "event": "loop-delay",
+      "delayMs": 166
+    },
+    {
+      "at": 1791893759552,
+      "event": "loop-delay",
+      "delayMs": 176
+    },
+    {
+      "at": 1791893760471,
+      "event": "loop-delay",
+      "delayMs": 170
+    },
+    {
+      "at": 1791893763225,
+      "event": "loop-delay",
+      "delayMs": 162
+    },
+    {
+      "at": 1791893764133,
+      "event": "loop-delay",
+      "delayMs": 159
+    },
+    {
+      "at": 1791893765049,
+      "event": "loop-delay",
+      "delayMs": 167
+    },
+    {
+      "at": 1791893768773,
+      "event": "loop-delay",
+      "delayMs": 135
+    },
+    {
+      "at": 1791893770660,
+      "event": "loop-delay",
+      "delayMs": 137
+    },
+    {
+      "at": 1791893772553,
+      "event": "loop-delay",
+      "delayMs": 143
+    },
+    {
+      "at": 1791893776451,
+      "event": "loop-delay",
+      "delayMs": 141
+    },
+    {
+      "at": 1791893778355,
+      "event": "loop-delay",
+      "delayMs": 155
+    },
+    {
+      "at": 1791893780280,
+      "event": "loop-delay",
+      "delayMs": 176
+    },
+    {
+      "at": 1791893782169,
+      "event": "loop-delay",
+      "delayMs": 140
+    },
+    {
+      "at": 1791893784078,
+      "event": "loop-delay",
+      "delayMs": 159
+    },
+    {
+      "at": 1791893785959,
+      "event": "loop-delay",
+      "delayMs": 132
+    },
+    {
+      "at": 1791893787817,
+      "event": "loop-delay",
+      "delayMs": 109
+    },
+    {
+      "at": 1791893795206,
+      "event": "loop-delay",
+      "delayMs": 103
+    },
+    {
+      "at": 1791893798931,
+      "event": "loop-delay",
+      "delayMs": 127
+    },
+    {
+      "at": 1791893800836,
+      "event": "loop-delay",
+      "delayMs": 153
+    },
+    {
+      "at": 1791893802690,
+      "event": "loop-delay",
+      "delayMs": 105
+    },
+    {
+      "at": 1791893804565,
+      "event": "loop-delay",
+      "delayMs": 124
+    },
+    {
+      "at": 1791893806445,
+      "event": "loop-delay",
+      "delayMs": 131
+    },
+    {
+      "at": 1791893808358,
+      "event": "loop-delay",
+      "delayMs": 164
+    },
+    {
+      "at": 1791893809285,
+      "event": "loop-delay",
+      "delayMs": 178
+    },
+    {
+      "at": 1791893812160,
+      "event": "loop-delay",
+      "delayMs": 124
+    },
+    {
+      "at": 1791893814041,
+      "event": "loop-delay",
+      "delayMs": 132
+    },
+    {
+      "at": 1791893815914,
+      "event": "loop-delay",
+      "delayMs": 122
+    },
+    {
+      "at": 1791893817810,
+      "event": "loop-delay",
+      "delayMs": 146
+    },
+    {
+      "at": 1791893819687,
+      "event": "loop-delay",
+      "delayMs": 126
+    },
+    {
+      "at": 1791893821583,
+      "event": "loop-delay",
+      "delayMs": 147
+    },
+    {
+      "at": 1791893823451,
+      "event": "loop-delay",
+      "delayMs": 118
+    },
+    {
+      "at": 1791893827321,
+      "event": "loop-delay",
+      "delayMs": 120
+    },
+    {
+      "at": 1791893829232,
+      "event": "loop-delay",
+      "delayMs": 161
+    },
+    {
+      "at": 1791893831144,
+      "event": "loop-delay",
+      "delayMs": 161
+    },
+    {
+      "at": 1791893833000,
+      "event": "loop-delay",
+      "delayMs": 106
+    },
+    {
+      "at": 1791893834868,
+      "event": "loop-delay",
+      "delayMs": 117
+    },
+    {
+      "at": 1791893836748,
+      "event": "loop-delay",
+      "delayMs": 130
+    },
+    {
+      "at": 1791893838664,
+      "event": "loop-delay",
+      "delayMs": 165
+    },
+    {
+      "at": 1791893840532,
+      "event": "loop-delay",
+      "delayMs": 119
+    },
+    {
+      "at": 1791893842408,
+      "event": "loop-delay",
+      "delayMs": 127
+    },
+    {
+      "at": 1791893844288,
+      "event": "loop-delay",
+      "delayMs": 131
+    },
+    {
+      "at": 1791893846152,
+      "event": "loop-delay",
+      "delayMs": 115
+    },
+    {
+      "at": 1791893848022,
+      "event": "loop-delay",
+      "delayMs": 119
+    },
+    {
+      "at": 1791893849915,
+      "event": "loop-delay",
+      "delayMs": 143
+    },
+    {
+      "at": 1791893851775,
+      "event": "loop-delay",
+      "delayMs": 111
+    },
+    {
+      "at": 1791893853685,
+      "event": "loop-delay",
+      "delayMs": 161
+    },
+    {
+      "at": 1791893854450,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "7b41fb42-030d-42f7-953a-76a9c7334e47",
+      "path": "piece-0d20ba1782000ab9bfb88c158a0ed62a2c155d2d345216fefb162b5bed0b1f82.bin",
+      "sizeBytes": 2000576,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791893854482,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "7b41fb42-030d-42f7-953a-76a9c7334e47",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791893856557,
+      "event": "loop-delay",
+      "delayMs": 122
+    },
+    {
+      "at": 1791893858485,
+      "event": "loop-delay",
+      "delayMs": 177
+    },
+    {
+      "at": 1791893860371,
+      "event": "loop-delay",
+      "delayMs": 137
+    },
+    {
+      "at": 1791893862257,
+      "event": "loop-delay",
+      "delayMs": 137
+    },
+    {
+      "at": 1791893864144,
+      "event": "loop-delay",
+      "delayMs": 138
+    },
+    {
+      "at": 1791893865852,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791893865872,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "161158d3-c061-4945-b8a1-128c20b65b7f",
+      "path": "piece-1e2e233e504fbab9c7e1c8873c588eac96a69664ea5a3f5e0a7a16f7c984ba46.bin",
+      "sizeBytes": 1536,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791893865902,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "161158d3-c061-4945-b8a1-128c20b65b7f",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791893866008,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": null,
+      "path": null,
+      "channelRequest": false,
+      "release": true,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791893866008,
+      "event": "request",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "a8267920-c26b-4dd0-aa2c-5f7d8c1b7d63",
+      "path": "piece-7bd76ec2b752773acaf278bacad02b85c66681bd786b960be933ed9ce85c822e.bin",
+      "sizeBytes": 4718592,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      }
+    },
+    {
+      "at": 1791893866164,
+      "event": "send",
+      "type": "reploid:custody-response",
+      "peer": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "id": "a8267920-c26b-4dd0-aa2c-5f7d8c1b7d63",
+      "path": null,
+      "channelRequest": false,
+      "release": false,
+      "channel": {
+        "readyState": "open",
+        "bufferedAmount": 0,
+        "ordered": true,
+        "maxRetransmits": 3,
+        "maxPacketLifeTime": null
+      },
+      "result": true,
+      "error": null
+    },
+    {
+      "at": 1791893868059,
+      "event": "loop-delay",
+      "delayMs": 154
+    },
+    {
+      "at": 1791893870942,
+      "event": "loop-delay",
+      "delayMs": 134
+    },
+    {
+      "at": 1791893873858,
+      "event": "loop-delay",
+      "delayMs": 167
+    },
+    {
+      "at": 1791893876729,
+      "event": "loop-delay",
+      "delayMs": 122
+    },
+    {
+      "at": 1791893879646,
+      "event": "loop-delay",
+      "delayMs": 167
+    },
+    {
+      "at": 1791893881554,
+      "event": "loop-delay",
+      "delayMs": 157
+    },
+    {
+      "at": 1791893883456,
+      "event": "loop-delay",
+      "delayMs": 153
+    },
+    {
+      "at": 1791893885358,
+      "event": "loop-delay",
+      "delayMs": 153
+    },
+    {
+      "at": 1791893887244,
+      "event": "loop-delay",
+      "delayMs": 137
+    },
+    {
+      "at": 1791893888654,
+      "event": "stopped"
+    }
+  ]
+}
