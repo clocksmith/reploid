@@ -1,0 +1,6 @@
+canonical peer contract: actual codecs, payload/epoch binding, real stage signatures and exact publication/receipt controls pass
+peer reserve
+peer admit
+peer first step
+peer publication
+canonical peer RPC: actual grants/channel frames/stage evidence, duplicate replay and publication barrier pass

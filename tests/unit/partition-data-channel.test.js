@@ -44,7 +44,7 @@ function fixture(overrides = {}) {
 const frames = channel => channel.frames.filter(frame => frame instanceof ArrayBuffer);
 
 describe('partition binary transport (injected host ports)', () => {
-  it.each(['RESOURCE_EXHAUSTED', 'CAPACITY_UNAVAILABLE', 'CLEANUP_FAILED', 'OUTPUT_LIMIT_EXCEEDED', 'GENERATION_OUTPUT_INVALID'])
+  it.each(['RESULT_EXPIRED', 'RESOURCE_EXHAUSTED', 'CAPACITY_UNAVAILABLE', 'CLEANUP_FAILED', 'OUTPUT_LIMIT_EXCEEDED', 'GENERATION_OUTPUT_INVALID'])
     ('transmits bounded %s while retaining local cause and callback settlement', async code => {
     const f = fixture({ server: { serve: async () => {
       throw Object.assign(Error('private device allocation detail'), { code });

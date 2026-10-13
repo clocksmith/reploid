@@ -1,0 +1,104 @@
+{
+  "scope": "Actual Verification Worker production source parse",
+  "sources": {
+    "packages/reploid/src/mesh/partitions/partition-peer.js": "4f3ed02b98c68b2c4588062216ddae3d774609b313262477750efe92cd4a74a8",
+    "packages/reploid/src/mesh/partitions/partition-canonical-contract.js": "9af9855e42d49ad942b68d3cf2f57b65cd088635751311e4a60779875224de79"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/mesh/partitions/partition-peer.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 32 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-canonical-contract.js:17: Dynamic property write detected: [name] - verify input sanitization",
+      "Nesting depth of 7 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791857667292,
+        "path": "/packages/reploid/src/mesh/partitions/partition-peer.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791857667294,
+        "metric": "functions",
+        "value": 32,
+        "threshold": 20,
+        "message": "File has 32 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/partition-peer.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791857667294,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-peer.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791857667300,
+        "path": "/packages/reploid/src/mesh/partitions/partition-canonical-contract.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 17,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791857667301,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-canonical-contract.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/packages/reploid/src/mesh/partitions/partition-peer.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 32,
+          "threshold": 20,
+          "message": "File has 32 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/partition-peer.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-peer.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-canonical-contract.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

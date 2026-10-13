@@ -1,0 +1,27 @@
+{
+  "scope": "CPU source contract, real cryptography and canonical transitions; in-memory channels/injected computation and synthetic transaction receipt",
+  "dopplerSourceCommit": "4e43ebbb209e52b30ce008dcfa757f27ac4696c5",
+  "sources": {
+    "packages/reploid/src/mesh/partitions/partition-peer.js": "4f3ed02b98c68b2c4588062216ddae3d774609b313262477750efe92cd4a74a8",
+    "packages/reploid/src/mesh/partitions/partition-peer.d.ts": "37e6d01e1d2ce9a2975e3e0795b3901f08ba3ed62175136beb2571a738b2d90a",
+    "packages/reploid/src/mesh/partitions/partition-canonical-contract.js": "9af9855e42d49ad942b68d3cf2f57b65cd088635751311e4a60779875224de79",
+    "packages/reploid/src/mesh/partitions/partition-canonical-contract.d.ts": "e1b9a2a5c72d4946b582da6ea9890b9f24b07f5d3bf66d8c7329489b61cf12c1",
+    "packages/reploid/src/transport/partition-errors.json": "e1d717b5871e24c5f7eee339b406c4429397b565bd9e58efcb4117bd65ce1fbd",
+    "tests/canonical-peer-contract-source.js": "65ea80c6203720a61574ba016cb21f865e9b739afd10468f3c10f188782d1589",
+    "tests/unit/partition-data-channel.test.js": "c26f4aa8efd0bb8e76cd431640f963fd3e3fdf8eec34c03b824cf9d1046c0fd6"
+  },
+  "intermediateFailures": [
+    {
+      "boundary": "legacy opt-in detection",
+      "result": "14 of 65 tests failed when two absent schema values compared equal; fixed by requiring non-null canonical capability; unchanged65 tests pass"
+    },
+    {
+      "boundary": "canonical reserve",
+      "result": "optional activationBytes was serialized as undefined; omit absent field rather than relax canonical JSON validation"
+    },
+    {
+      "boundary": "received step",
+      "result": "binary payload was accidentally included in control-only header admission; separate bytes from metadata before validation, preserving exact payload digest"
+    }
+  ]
+}
