@@ -1,0 +1,38 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/automatic-partition-discovery-lifetime.test.js (3 tests | 1 failed) 14ms
+   × keeps an active healthy route across discovery expiry and replica changes until settlement 12ms
+   ✓ does not treat a closed execution channel as healthy during discovery loss 1ms
+   ✓ still stops an active route when contribution permission is withdrawn 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/automatic-partition-discovery-lifetime.test.js > keeps an active healthy route across discovery expiry and replica changes until settlement
+AssertionError: expected "vi.fn()" to not be called at all, but actually been called 1 times
+
+Received:
+
+  1st vi.fn() call:
+
+    Array []
+
+
+Number of calls: 1
+
+ ❯ tests/unit/automatic-partition-discovery-lifetime.test.js:39:34
+     37|   control.peers = [];
+     38|   await vi.advanceTimersByTimeAsync(100);
+     39|   expect(control.chat.close).not.toHaveBeenCalled();
+       |                                  ^
+     40|   expect(owner.getState()).toMatchObject({ phase: 'ready', placement }…
+     41|   control.peers = [{ available: true, participantId: 'peer:replacement…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 2 passed (3)
+   Start at  21:51:04
+   Duration  226ms (transform 45ms, setup 0ms, import 60ms, tests 14ms, environment 92ms)
+

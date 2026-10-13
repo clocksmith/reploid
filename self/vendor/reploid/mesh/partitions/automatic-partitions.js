@@ -79,6 +79,13 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
     if (!offer || preparing || stopping || closed || phase === 'failed' || unsettledOwners.size) return;
     placementDecision = selectPartitionPlacement({ participantId: identity.peerId, offer,
       localIndex: program?.resident.index ?? null, previous: placement, capabilities: discovery.getSnapshot() });
+    // Discovery expires independently of the execution channel. Existing signed
+    // attempts own this route until settlement; a missing advertisement or a new
+    // replica must not cancel them or change their authorized recipients.
+    if (chat?.getState().active > 0 && !executionPeer.getState().receipt.closed) {
+      placementDecision = { ...placementDecision, participants: [...placement], reason: 'retain-active-execution' };
+      return;
+    }
     const selected = placementDecision.participants;
     if (selected.length !== 2) {
       await chat?.close(); chat = null; executionPeer = null;

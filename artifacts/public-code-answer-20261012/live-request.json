@@ -1,0 +1,11 @@
+{
+  "startedAt": "2026-10-13T01:46:04.295Z",
+  "question": "write a javascript function that uses filter and map",
+  "errors": [],
+  "weights": [],
+  "observations": [],
+  "storage": {},
+  "body": "7\n7\n7\n7\n4 peers\nMessage\nAttach files\nRetry connection",
+  "error": "No usable capacity within observation window",
+  "finishedAt": "2026-10-13T01:51:05.839Z"
+}

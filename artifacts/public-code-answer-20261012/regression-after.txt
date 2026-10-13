@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/partition-placement.test.js (4 tests) 9ms
+ ✓ tests/unit/automatic-partition-discovery-lifetime.test.js (3 tests) 14ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js (6 tests) 119ms
+
+ Test Files  3 passed (3)
+      Tests  13 passed (13)
+   Start at  21:51:21
+   Duration  391ms (transform 126ms, setup 0ms, import 179ms, tests 142ms, environment 388ms)
+
