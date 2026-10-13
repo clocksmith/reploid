@@ -1,5 +1,5 @@
 {
-  "schema": "reploid.chat-files/v1",
+  "schema": "reploid.chat-files/v2",
   "maxStoredBytes": 3221225472,
   "maxSupplyBytes": 4294967296,
   "maxArtifactBytes": 67108864,
@@ -20,5 +20,8 @@
     "timeoutMs": 30000
   },
   "maxPieceAcquisitions": 1,
-  "maxQueuedPieceAcquisitions": 128
+  "maxQueuedPieceAcquisitions": 128,
+  "maxAcquisitionBytes": 4294967296,
+  "defaultAcquisitionBytes": 67108864,
+  "maxSubsetBytes": 67108864
 }

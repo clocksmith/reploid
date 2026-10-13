@@ -315,9 +315,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     getIntroductions: () => consumerTransport?.getIntroductions?.() || null,
     getPartitionState: () => partitionMesh?.getState() || null,
     getFileState: () => modelFiles?.getState() || { sharing: false, preparing: false, limits: getFileContributionLimits() },
-    async shareFiles(model, approved) {
+    async shareFiles(model, approved, controls) {
       await connect({ automatic: true });
-      await modelFiles.share(model, approved, { retainedOnly: contribution.partition === true });
+      await modelFiles.share(model, approved, controls);
     },
     stopFiles: () => modelFiles?.stop(),
     autoConnectEnabled: () => !closed && !paused && automaticAllowed,

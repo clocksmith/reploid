@@ -23,11 +23,11 @@ const wholeModelIdentity = LOCAL_DOPPLER_MODELS.find(model => model.id === 'whol
 
 const deferred = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return { promise, resolve }; };
 let values, networkEvents;
-const fixture = (service = {}, partitions = {}) => createWorkSwarm({ service,
+const fixture = (service = {}, partitions = {}, files = {}) => createWorkSwarm({ service,
   createPartitions: () => ({ getModels: () => [], stop: async () => {}, close: async () => {}, ...partitions }), storage: {
   getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value)
 }, createModelFiles: () => ({ attach: async () => {}, close: async () => {}, announce() {}, getState: () => ({}),
-  prepareSource: async model => model.id }), networkOptions: ({ EventBus }) => { networkEvents = EventBus; return { autoConnect: true, discoveryScope: 'public',
+  prepareSource: async model => model.id, ...files }), networkOptions: ({ EventBus }) => { networkEvents = EventBus; return { autoConnect: true, discoveryScope: 'public',
   getInviteUrl: () => 'https://replo.id/?swarm=public',
   config: resolveConfig({ overrides: { mesh: { enabled: true, roomId: 'reploid-swarm-public' } } })
 }; } });
@@ -279,4 +279,23 @@ it('retains a rejected opening cleanup for an explicit Stop retry', async () => 
   f.service.close.mockResolvedValue(); await f.swarm.stop();
   expect(f.swarm.getState()).toMatchObject({unsettledOwners:0,contribution:{phase:'idle'}});
   await f.swarm.close();
+});
+
+
+it('storage modes and stopping remain independent of partition compute participation', async () => {
+  ports.ensure.mockResolvedValue({peerId:'fixture', contribution:{}});
+  ports.createTransport.mockReturnValue({init:async()=>true,disconnect:vi.fn(),onMessage:vi.fn(),broadcast:vi.fn()});
+  const share=vi.fn(), stop=vi.fn(), contribute=vi.fn(), computeStop=vi.fn();
+  const swarm=fixture({}, {contribute,stop:computeStop}, {share,stop});
+  const model=LOCAL_DOPPLER_MODELS[0];
+  try {
+    for (const mode of ['cached-only','bounded-acquisition','full-model']) {
+      const controls={mode,downloadBytes:67108864};
+      await swarm.shareFiles(model,true,controls);
+      expect(share).toHaveBeenLastCalledWith(model,true,controls);
+      await swarm.stopFiles();
+    }
+    expect(contribute).not.toHaveBeenCalled();expect(computeStop).not.toHaveBeenCalled();
+    expect(stop).toHaveBeenCalledTimes(3);expect(swarm.getState().sharing).toBe(false);
+  } finally {await swarm.close();}
 });
