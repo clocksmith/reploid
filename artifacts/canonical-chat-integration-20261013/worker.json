@@ -1,0 +1,82 @@
+{
+  "files": {
+    "/packages/reploid/src/mesh/partitions/partition-chat.js": "a50fe14896f2e2d15a897549cc51a91f964670bc87c76822b075176adc5884a6",
+    "/packages/reploid/src/mesh/partitions/partition-chat-canonical.js": "5370227a15d06624adfc8ae23b484aaa2ced8421e21466b8c80cb29f81ad823b"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-chat-canonical.js:8: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-chat-canonical.js:9: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-chat-canonical.js:10: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-chat-canonical.js:33: Dynamic property write detected: [name] - verify input sanitization"
+    ],
+    "events": [
+      {
+        "type": "complexity",
+        "timestamp": 1791891155485,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-chat.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791891155487,
+        "path": "/packages/reploid/src/mesh/partitions/partition-chat-canonical.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 8,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791891155487,
+        "path": "/packages/reploid/src/mesh/partitions/partition-chat-canonical.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 9,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791891155487,
+        "path": "/packages/reploid/src/mesh/partitions/partition-chat-canonical.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 10,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791891155487,
+        "path": "/packages/reploid/src/mesh/partitions/partition-chat-canonical.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 33,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-chat.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}
