@@ -6,7 +6,8 @@ export interface PersistedWorkspace {
  schema:'reploid.chat-workspace/v1';meshId:string;participantId:string;threads:ChatThread[];
 }
 export interface CanonicalWorkspaceHistory {
- readonly mode:'transactional';readonly writerEpoch:string;readonly legacyDrafts:string|null;
+ readonly mode:'transactional';readonly writerEpoch:string;readonly legacyDrafts:string|null;readonly drafts:string|null;
+ saveDrafts(raw:string):Promise<unknown>;
  load():PersistedWorkspace;save(input:PersistedWorkspace):Promise<unknown>;
  assertCurrentWriter():Promise<void>;publication(threadId:string):Promise<CanonicalPublicationPort>;
  project(threadId:string,attemptId:string,record:EntryPublicationRecord):Promise<{

@@ -176,6 +176,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
               && preview.expiresAt > now(), 'Invalid conversation disclosure');
             assert(!run.approval, 'An approval is already pending');
             const scope = disclosureScope(request, preview), grant = matchingThreadGrant(thread.grants, scope);
+            if (transactional) assert(scope?.disclosure === 'partition-activations-and-tokens', 'Canonical disclosure requires exact verified partition recipients');
             if (authorizeDisclosure) {
               assert(scope, 'Peer disclosure does not match the selected model and verified recipients');
               if (attempt.authorization?.source === 'send') {
@@ -246,6 +247,22 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
   if (loaded) { const initialSave = persist(); initialSave?.catch(() => {}); }
   return Object.freeze({
     getState: snapshot,
+    authorizePublication({ conversationId, writerEpoch, action, attempt: identity }) {
+      if (!transactional || writerEpoch !== store.writerEpoch || !['admit', 'publish', 'cancel'].includes(action)
+        || !identity || identity.publisherEpoch !== writerEpoch || identity.requesterId !== participantId) return false;
+      const thread = threads.find(item => item.id === conversationId), attempt = thread?.attempts.find(item => item.id === identity.attemptId);
+      if (!attempt || attempt.publicationMode !== 'canonical') return false;
+      // Stopping an admitted attempt remains permitted after disclosure expires.
+      if (action === 'cancel') return !storageError;
+      const run = runs.get(conversationId);
+      if (closed || storageError || !run || run.controller.signal.aborted || thread.attempts.at(-1) !== attempt) return false;
+      const saved = durableThreads.find(item => item.id === conversationId)?.attempts.find(item => item.id === attempt.id);
+      const auth = saved?.authorization;
+      if (!auth || auth.disclosure !== 'partition-activations-and-tokens' || auth.modelIdentity !== attempt.request.model.identity
+        || identity.stages?.[0]?.participantId !== auth.participantA || identity.stages?.[1]?.participantId !== auth.recipientIdentity) return false;
+      if (auth.kind === 'thread-grant') return thread.grants.some(grant => grant.id === auth.grantId && grant.revokedAt === null);
+      return auth.kind === 'once' && auth.expiresAt > now();
+    },
     subscribe(listener) { listeners.add(listener); listener(snapshot()); return () => listeners.delete(listener); },
     createThread({ model, purpose = '', members = [], permissions = {}, systemContext = null }) {
       current(); assert(threads.length < limits.maxThreads, 'Conversation limit reached');
@@ -303,7 +320,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
           thread.grants.push(grant);
         }
         attempt.authorization = { kind: remember ? 'thread-grant' : 'once', grantId: grant?.id || null,
-          peerId: attempt.approval.peerId, recipientIdentity: attempt.approval.recipientIdentity || null };
+          peerId: attempt.approval.peerId, recipientIdentity: attempt.approval.recipientIdentity || null,
+          ...(transactional ? { ...copy(scope), expiresAt: attempt.approval.expiresAt } : {}) };
         run.deciding = true;
         const fail = error => { if (grant) thread.grants.pop(); attempt.authorization = null; run.approval?.(false); run.deciding = false; throw error; };
         try {

@@ -43,6 +43,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
     let sequence = 0;
     const state = (status, execution) => controls.onState({ threadId, attemptId, status, execution });
 
+    if (controls.publication) assert(model.partition && model.canonical, 'Canonical history requires a prepared canonical partition route');
+
     if (model.partition) {
       assert(partitions?.generate, 'Partition execution service is unavailable');
       return partitions.generate(request, controls);

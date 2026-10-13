@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/chat-workspace.test.js (13 tests) 11ms
+ ✓ tests/unit/chat-draft-transactions.test.js (3 tests) 2ms
+ ✓ tests/unit/chat-session.test.js (23 tests) 305ms
+
+ Test Files  3 passed (3)
+      Tests  39 passed (39)
+   Start at  08:07:10
+   Duration  726ms (transform 177ms, setup 0ms, import 241ms, tests 318ms, environment 415ms)
+

@@ -1,0 +1,319 @@
+{
+  "files": {
+    "packages/reploid/src/chat/workspace-history.js": "050f571642abd1f604768c4a4f5566977c8cd462b4dbbdea0e005e2e8f6de328",
+    "packages/reploid/src/chat/workspace.js": "ffd7316fab21b4958d60a65ed8492d07b10fb3bf44ee3dc17ceb8885e90755b0",
+    "self/host/chat-history.js": "98920f28b6693378cf054481fbddee876ad6be9ec5e87c8e4499900ed1d6751c",
+    "self/host/chat-session.js": "04d45b0eea88381b51599742e02c6b278af4ab76538bf0aa962d9e5e080ec254",
+    "self/host/chat-execution.js": "15f64792f0e51c95ef41478df38e7a3f3fd86d4db6ca17d7a957957a28655628",
+    "self/host/chat-drafts.js": "55c49b3d0a7a2c4be3f0390decb1851ffe4728f58ad1ee61d2fe58e9061fd98f"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/chat/workspace-history.js:34: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /packages/reploid/src/chat/workspace-history.js:34: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 27 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/chat/workspace.js:18: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 48 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "Warning in /self/host/chat-history.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /self/host/chat-history.js:46: Dynamic property write detected: [name] - verify input sanitization",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /self/host/chat-session.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /self/host/chat-session.js:68: Suspicious variable name: execution - may indicate code execution",
+      "Warning in /self/host/chat-session.js:344: Suspicious variable name: authorizeExecution - may indicate code execution",
+      "File has 45 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /self/host/chat-execution.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /self/host/chat-execution.js:33: Suspicious variable name: execute - may indicate code execution",
+      "Warning in /self/host/chat-execution.js:67: Suspicious variable name: execution - may indicate code execution",
+      "Warning in /self/host/chat-execution.js:108: Suspicious variable name: execution - may indicate code execution",
+      "Nesting depth of 6 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242651,
+        "path": "/packages/reploid/src/chat/workspace-history.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 34,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242651,
+        "path": "/packages/reploid/src/chat/workspace-history.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 34,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791893242652,
+        "metric": "functions",
+        "value": 27,
+        "threshold": 20,
+        "message": "File has 27 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/chat/workspace-history.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791893242652,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/chat/workspace-history.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242661,
+        "path": "/packages/reploid/src/chat/workspace.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 18,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791893242662,
+        "metric": "functions",
+        "value": 48,
+        "threshold": 20,
+        "message": "File has 48 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/chat/workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791893242662,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/chat/workspace.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242663,
+        "path": "/self/host/chat-history.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242663,
+        "path": "/self/host/chat-history.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 46,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791893242663,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/self/host/chat-history.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242667,
+        "path": "/self/host/chat-session.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242668,
+        "path": "/self/host/chat-session.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execution - may indicate code execution",
+        "line": 68,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242668,
+        "path": "/self/host/chat-session.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: authorizeExecution - may indicate code execution",
+        "line": 344,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791893242668,
+        "metric": "functions",
+        "value": 45,
+        "threshold": 20,
+        "message": "File has 45 functions (max 20) - consider modularizing",
+        "path": "/self/host/chat-session.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791893242668,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/self/host/chat-session.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242669,
+        "path": "/self/host/chat-execution.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242669,
+        "path": "/self/host/chat-execution.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execute - may indicate code execution",
+        "line": 33,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242669,
+        "path": "/self/host/chat-execution.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execution - may indicate code execution",
+        "line": 67,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791893242669,
+        "path": "/self/host/chat-execution.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execution - may indicate code execution",
+        "line": 108,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791893242669,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/self/host/chat-execution.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/self/host/chat-history.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/host/chat-session.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/host/chat-execution.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 27,
+          "threshold": 20,
+          "message": "File has 27 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/chat/workspace-history.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/chat/workspace-history.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 48,
+          "threshold": 20,
+          "message": "File has 48 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/self/host/chat-history.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 45,
+          "threshold": 20,
+          "message": "File has 45 functions (max 20) - consider modularizing",
+          "path": "/self/host/chat-session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/self/host/chat-session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/self/host/chat-execution.js"
+        }
+      ],
+      "filesAnalyzed": 6
+    }
+  }
+}
