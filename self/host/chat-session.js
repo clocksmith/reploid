@@ -308,15 +308,15 @@ export function createChatSession({
         } else await swarm.stop();
       } finally { notifyAll(); }
     },
-    async setFileSharing(enabled, selectionId, approved) {
+    async setFileSharing(enabled, selectionId, approved, controls) {
       assertOpen();
       assert(swarm?.shareFiles, 'File contribution is unavailable');
       try {
-        if (!enabled) { swarm.stopFiles(); return; }
+        if (!enabled) { await swarm.stopFiles(); return; }
         assert(approved === true, 'Approve file distribution separately from compute');
         const model = getCatalogModels().find(item => (item.selectionId || item.id) === selectionId);
         assert(model, 'Select a catalog model before distributing files');
-        await swarm.shareFiles(model, true);
+        await swarm.shareFiles(model, true, controls);
       } finally { notifyAll(); }
     },
     close() {

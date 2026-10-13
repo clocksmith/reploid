@@ -22,7 +22,13 @@ export const renderSharingControls = () => `<div class="network-sharing-row">
         </div>
         <div class="network-sharing-row">
           <div><strong>Store and share model files <span data-file-contribution-label>Not sharing</span></strong>
-            <p>Download and send model files to peers. This shares no conversations.</p><p data-file-limits></p>
+            <p>Share verified model files independently of answering requests.</p>
+            <label>File participation <select class="pool-input" data-file-mode aria-label="File participation">
+              <option value="cached-only">Cached only</option><option value="bounded-acquisition">Bounded acquisition</option>
+              <option value="full-model">Full-model seeding</option></select></label>
+            <label data-file-download-label hidden>Total download allowance (MiB)
+              <input class="pool-input" data-file-download type="number" min="1" step="1" aria-label="Total download allowance in MiB"></label>
+            <p data-file-download-policy>No downloads in cached-only mode. Acquiring modes charge metadata and failed attempts; restarting does not renew the allowance.</p><p data-file-limits></p>
             <p data-file-progress role="status" hidden></p></div>
           <button class="network-switch" type="button" role="switch" aria-label="Store and share model files" aria-checked="false" data-toggle-file-contribution><span></span></button>
         </div>`;
@@ -114,11 +120,24 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
     const gib = bytes => (bytes / 1073741824).toLocaleString(undefined, { maximumFractionDigits: 2 }) + ' GiB';
     find('[data-file-limits]').textContent = fileLimits
       ? `Store up to ${gib(fileLimits.storedBytes)} · Send up to ${gib(fileLimits.supplyBytes)}` : 'Limits will be shown when file sharing is prepared.';
-    const sharingFiles = network.files?.sharing || network.files?.preparing;
-    find('[data-file-contribution-label]').textContent = network.files?.error || (network.files?.preparing ? 'Preparing' : sharingFiles ? 'Sharing' : 'Not sharing');
+    const sharingFiles = network.files?.sharing || network.files?.preparing || network.files?.stopping;
+    const modeSelect = find('[data-file-mode]'), downloadInput = find('[data-file-download]');
+    if (modeSelect) {
+      modeSelect.disabled = !!sharingFiles;
+      if (fileLimits?.maxDownloadBytes) downloadInput.max = fileLimits.maxDownloadBytes / 1048576;
+      if (!downloadInput.value && fileLimits?.downloadBytes) downloadInput.value = fileLimits.downloadBytes / 1048576;
+      find('[data-file-download-label]').hidden = modeSelect.value === 'cached-only';
+      downloadInput.disabled = !!sharingFiles || !!network.files?.acquisitionBudget;
+      if (network.files?.acquisitionBudget) {
+        downloadInput.value = network.files.acquisitionBudget.maxBytes / 1048576;
+        find('[data-file-limits]').textContent += ` · Download allowance used ${gib(network.files.acquisitionBudget.reservedBytes)} of ${gib(network.files.acquisitionBudget.maxBytes)}`;
+      }
+    }
+    find('[data-file-contribution-label]').textContent = network.files?.error || (network.files?.stopping ? 'Stopping' : network.files?.preparing ? 'Preparing' : sharingFiles ? 'Sharing' : 'Not sharing');
     find('[data-file-progress]').textContent = network.files?.progress?.message || '';
     find('[data-file-progress]').hidden = !find('[data-file-progress]').textContent;
     find('[data-toggle-file-contribution]').setAttribute('aria-checked', String(!!sharingFiles));
+    find('[data-toggle-file-contribution]').disabled = !!network.files?.stopping;
     const contribution = network.contribution || {};
     const sharedId = contribution.modelId || contribution.descriptor?.modelId;
     const sharedName = catalogModels.find(model => model.id === sharedId)?.name || sharedId;
@@ -149,11 +168,15 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
   }));
   on('[data-retry-contribution-stop]', 'click', () => act(() =>
     session.setSharing(false, contributionSelect.value, false)));
+  on('[data-file-mode]', 'change', () => render(session.getState()));
   on('[data-toggle-file-contribution]', 'click', () => act(async () => {
     const network = session.getState().network, files = network?.files;
     const enable = !(files?.sharing || files?.preparing);
     if (enable && network?.paused) await session.connect();
-    return session.setFileSharing(enable, contributionSelect.value, enable);
+    const mode = find('[data-file-mode]')?.value || 'cached-only';
+    return session.setFileSharing(enable, contributionSelect.value, enable, {
+      mode, ...(mode !== 'cached-only' ? { downloadBytes: Number(find('[data-file-download]')?.value) * 1048576 } : {})
+    });
   }));
   return () => { controller.abort(); unsubscribe(); };
 }

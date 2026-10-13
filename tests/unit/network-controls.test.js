@@ -88,3 +88,25 @@ it('requires a separate click to grant introduction assistance without granting 
     expect(session.setSharing).not.toHaveBeenCalled(); expect(session.setFileSharing).not.toHaveBeenCalled();
   } finally { dispose(); }
 });
+
+it('selects bounded file participation separately from compute and preserves the approved allowance', async () => {
+  const state={models:[{id:'fixture',name:'Fixture'}],network:{files:{limits:{storedBytes:3221225472,supplyBytes:4294967296}}}};
+  let update;
+  const session={getState:()=>state,setSharing:vi.fn(),setFileSharing:vi.fn(),subscribe:listener=>{update=listener;listener(state);return()=>{};}};
+  const root=document.createElement('div');root.innerHTML=renderConnectionControl()+renderSharingControls()
+    +'<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button><span data-mesh-peers></span>';
+  const dispose=bindNetworkControls(root,session);
+  try {
+    const mode=root.querySelector('[data-file-mode]'), input=root.querySelector('[data-file-download]');
+    expect(mode.value).toBe('cached-only');expect(session.setFileSharing).not.toHaveBeenCalled();
+    mode.value='bounded-acquisition';mode.dispatchEvent(new Event('change'));input.value='32';
+    expect(root.querySelector('[data-file-download-label]').hidden).toBe(false);
+    root.querySelector('[data-toggle-file-contribution]').click();await Promise.resolve();
+    expect(session.setFileSharing).toHaveBeenCalledWith(true,'fixture',true,{mode:'bounded-acquisition',downloadBytes:33554432});
+    expect(session.setSharing).not.toHaveBeenCalled();
+    state.network.files.acquisitionBudget={maxBytes:33554432,reservedBytes:1048576};update(state);
+    expect(input.disabled).toBe(true);expect(input.value).toBe('32');expect(root.querySelector('[data-file-limits]').textContent).toContain('Download allowance used');
+    state.network.files.stopping=true;update(state);
+    expect(root.querySelector('[data-toggle-file-contribution]').disabled).toBe(true);
+  } finally {dispose();}
+});
