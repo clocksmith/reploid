@@ -331,5 +331,5 @@
 /* Neutral convex knobs share the surfaces' lighting and depth. */
 .pool-home {
   --pool-gradient-marble-dark: radial-gradient(circle at 30% 24%, #626262, #343434 45%, #242424 85%);
-  --pool-gradient-marble-light: radial-gradient(circle at 30% 24%, #ffffff, #eeeeee 45%, #d4d4d4 85%);
+  --pool-gradient-marble-light: radial-gradient(circle at 30% 24%, #c8c8c8, #a3a3a3 45%, #727272 85%);
 }

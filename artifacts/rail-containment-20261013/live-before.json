@@ -1,0 +1,606 @@
+[
+  {
+    "width": 1440,
+    "geometry": [
+      {
+        "selector": "chat-thread-sidebar pool-surface",
+        "box": {
+          "x": 16,
+          "y": 16,
+          "width": 60,
+          "height": 868,
+          "top": 16,
+          "right": 76,
+          "bottom": 884,
+          "left": 16
+        },
+        "width": "60px",
+        "minWidth": "0px",
+        "padding": "8px",
+        "boxSizing": "border-box",
+        "font": "18px / 28.8px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-primary-brand pool-button",
+        "box": {
+          "x": 25,
+          "y": 25,
+          "width": 44,
+          "height": 44,
+          "top": 25,
+          "right": 69,
+          "bottom": 69,
+          "left": 25
+        },
+        "width": "44px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-seven-main",
+        "box": {
+          "x": 43.796875,
+          "y": 36,
+          "width": 15.171875,
+          "height": 26,
+          "top": 36,
+          "right": 58.96875,
+          "bottom": 62,
+          "left": 43.796875
+        },
+        "width": "15.1719px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "600 26px / 26px \"SF Mono\", Menlo, Consolas, \"DejaVu Sans Mono\", monospace",
+        "transform": "matrix(1, 0, 0, 1, 0, 2)"
+      },
+      {
+        "selector": "pool-seven-small",
+        "box": {
+          "x": 32.265625,
+          "y": 36.953125,
+          "width": 9.21875,
+          "height": 16.125,
+          "top": 36.953125,
+          "right": 41.484375,
+          "bottom": 53.078125,
+          "left": 32.265625
+        },
+        "width": "9.21875px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "600 16.12px / 16.12px \"SF Mono\", Menlo, Consolas, \"DejaVu Sans Mono\", monospace",
+        "transform": "matrix(1, 0, 0, 1, 0, -2)"
+      },
+      {
+        "selector": "pool-button chat-new-thread",
+        "box": {
+          "x": 25,
+          "y": 77,
+          "width": 42,
+          "height": 44,
+          "top": 77,
+          "right": 67,
+          "bottom": 121,
+          "left": 25
+        },
+        "width": "42px",
+        "minWidth": "0px",
+        "padding": "8px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-button chat-rail-icon",
+        "box": {
+          "x": 25,
+          "y": 129,
+          "width": 54,
+          "height": 44,
+          "top": 129,
+          "right": 79,
+          "bottom": 173,
+          "left": 25
+        },
+        "width": "54px",
+        "minWidth": "auto",
+        "padding": "8px 16px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-button",
+        "box": {
+          "x": 25,
+          "y": 181,
+          "width": 54,
+          "height": 44,
+          "top": 181,
+          "right": 79,
+          "bottom": 225,
+          "left": 25
+        },
+        "width": "54px",
+        "minWidth": "0px",
+        "padding": "8px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-button",
+        "box": {
+          "x": 34,
+          "y": 234,
+          "width": 207,
+          "height": 44,
+          "top": 234,
+          "right": 241,
+          "bottom": 278,
+          "left": 34
+        },
+        "width": "207px",
+        "minWidth": "auto",
+        "padding": "8px 16px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "chat-network-rail pool-surface",
+        "box": {
+          "x": 1356,
+          "y": 16,
+          "width": 60,
+          "height": 868,
+          "top": 16,
+          "right": 1416,
+          "bottom": 884,
+          "left": 1356
+        },
+        "width": "60px",
+        "minWidth": "0px",
+        "padding": "8px",
+        "boxSizing": "border-box",
+        "font": "18px / 28.8px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-button",
+        "box": {
+          "x": 1365,
+          "y": 25,
+          "width": 48,
+          "height": 44,
+          "top": 25,
+          "right": 1413,
+          "bottom": 69,
+          "left": 1365
+        },
+        "width": "48px",
+        "minWidth": "48px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-seven-main",
+        "box": {
+          "x": 1366.265625,
+          "y": 36,
+          "width": 15.65625,
+          "height": 26,
+          "top": 36,
+          "right": 1381.921875,
+          "bottom": 62,
+          "left": 1366.265625
+        },
+        "width": "15.6562px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "600 26px / 26px \"SF Mono\", Menlo, Consolas, \"DejaVu Sans Mono\", monospace",
+        "transform": "matrix(1, 0, 0, 1, 0, 2)"
+      },
+      {
+        "selector": "pool-seven-small",
+        "box": {
+          "x": 1384.828125,
+          "y": 36.953125,
+          "width": 9.71875,
+          "height": 16.125,
+          "top": 36.953125,
+          "right": 1394.546875,
+          "bottom": 53.078125,
+          "left": 1384.828125
+        },
+        "width": "9.71875px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "600 16.12px / 16.12px \"SF Mono\", Menlo, Consolas, \"DejaVu Sans Mono\", monospace",
+        "transform": "matrix(1, 0, 0, 1, 0, -2)"
+      },
+      {
+        "selector": "pool-button chat-network-toggle",
+        "box": {
+          "x": 1365,
+          "y": 77,
+          "width": 42,
+          "height": 44,
+          "top": 77,
+          "right": 1407,
+          "bottom": 121,
+          "left": 1365
+        },
+        "width": "42px",
+        "minWidth": "0px",
+        "padding": "8px 16px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      }
+    ]
+  },
+  {
+    "width": 390,
+    "geometry": [
+      {
+        "selector": "chat-thread-sidebar pool-surface",
+        "box": {
+          "x": 16,
+          "y": 16,
+          "width": 170,
+          "height": 62,
+          "top": 16,
+          "right": 186,
+          "bottom": 78,
+          "left": 16
+        },
+        "width": "170px",
+        "minWidth": "0px",
+        "padding": "8px",
+        "boxSizing": "border-box",
+        "font": "18px / 28.8px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-primary-brand pool-button",
+        "box": {
+          "x": 25,
+          "y": 25,
+          "width": 44,
+          "height": 44,
+          "top": 25,
+          "right": 69,
+          "bottom": 69,
+          "left": 25
+        },
+        "width": "44px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-seven-main",
+        "box": {
+          "x": 43.796875,
+          "y": 36,
+          "width": 15.171875,
+          "height": 26,
+          "top": 36,
+          "right": 58.96875,
+          "bottom": 62,
+          "left": 43.796875
+        },
+        "width": "15.1719px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "600 26px / 26px \"SF Mono\", Menlo, Consolas, \"DejaVu Sans Mono\", monospace",
+        "transform": "matrix(1, 0, 0, 1, 0, 2)"
+      },
+      {
+        "selector": "pool-seven-small",
+        "box": {
+          "x": 32.265625,
+          "y": 36.953125,
+          "width": 9.21875,
+          "height": 16.125,
+          "top": 36.953125,
+          "right": 41.484375,
+          "bottom": 53.078125,
+          "left": 32.265625
+        },
+        "width": "9.21875px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "600 16.12px / 16.12px \"SF Mono\", Menlo, Consolas, \"DejaVu Sans Mono\", monospace",
+        "transform": "matrix(1, 0, 0, 1, 0, -2)"
+      },
+      {
+        "selector": "pool-button chat-rail-icon",
+        "box": {
+          "x": 77,
+          "y": 25,
+          "width": 54,
+          "height": 44,
+          "top": 25,
+          "right": 131,
+          "bottom": 69,
+          "left": 77
+        },
+        "width": "54px",
+        "minWidth": "auto",
+        "padding": "8px 16px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-button",
+        "box": {
+          "x": 139,
+          "y": 25,
+          "width": 38,
+          "height": 44,
+          "top": 25,
+          "right": 177,
+          "bottom": 69,
+          "left": 139
+        },
+        "width": "38px",
+        "minWidth": "0px",
+        "padding": "8px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-button",
+        "box": {
+          "x": 148,
+          "y": 78,
+          "width": 207,
+          "height": 44,
+          "top": 78,
+          "right": 355,
+          "bottom": 122,
+          "left": 148
+        },
+        "width": "207px",
+        "minWidth": "auto",
+        "padding": "8px 16px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "chat-network-rail pool-surface",
+        "box": {
+          "x": 294,
+          "y": 16,
+          "width": 72,
+          "height": 62,
+          "top": 16,
+          "right": 366,
+          "bottom": 78,
+          "left": 294
+        },
+        "width": "72px",
+        "minWidth": "0px",
+        "padding": "8px",
+        "boxSizing": "border-box",
+        "font": "18px / 28.8px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-button chat-network-toggle",
+        "box": {
+          "x": 303,
+          "y": 25,
+          "width": 54,
+          "height": 44,
+          "top": 25,
+          "right": 357,
+          "bottom": 69,
+          "left": 303
+        },
+        "width": "54px",
+        "minWidth": "0px",
+        "padding": "8px 16px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      }
+    ]
+  },
+  {
+    "width": 320,
+    "geometry": [
+      {
+        "selector": "chat-thread-sidebar pool-surface",
+        "box": {
+          "x": 16,
+          "y": 16,
+          "width": 170,
+          "height": 62,
+          "top": 16,
+          "right": 186,
+          "bottom": 78,
+          "left": 16
+        },
+        "width": "170px",
+        "minWidth": "0px",
+        "padding": "8px",
+        "boxSizing": "border-box",
+        "font": "18px / 28.8px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-primary-brand pool-button",
+        "box": {
+          "x": 25,
+          "y": 25,
+          "width": 44,
+          "height": 44,
+          "top": 25,
+          "right": 69,
+          "bottom": 69,
+          "left": 25
+        },
+        "width": "44px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-seven-main",
+        "box": {
+          "x": 43.796875,
+          "y": 36,
+          "width": 15.171875,
+          "height": 26,
+          "top": 36,
+          "right": 58.96875,
+          "bottom": 62,
+          "left": 43.796875
+        },
+        "width": "15.1719px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "600 26px / 26px \"SF Mono\", Menlo, Consolas, \"DejaVu Sans Mono\", monospace",
+        "transform": "matrix(1, 0, 0, 1, 0, 2)"
+      },
+      {
+        "selector": "pool-seven-small",
+        "box": {
+          "x": 32.265625,
+          "y": 36.953125,
+          "width": 9.21875,
+          "height": 16.125,
+          "top": 36.953125,
+          "right": 41.484375,
+          "bottom": 53.078125,
+          "left": 32.265625
+        },
+        "width": "9.21875px",
+        "minWidth": "0px",
+        "padding": "0px",
+        "boxSizing": "border-box",
+        "font": "600 16.12px / 16.12px \"SF Mono\", Menlo, Consolas, \"DejaVu Sans Mono\", monospace",
+        "transform": "matrix(1, 0, 0, 1, 0, -2)"
+      },
+      {
+        "selector": "pool-button chat-rail-icon",
+        "box": {
+          "x": 77,
+          "y": 25,
+          "width": 54,
+          "height": 44,
+          "top": 25,
+          "right": 131,
+          "bottom": 69,
+          "left": 77
+        },
+        "width": "54px",
+        "minWidth": "auto",
+        "padding": "8px 16px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-button",
+        "box": {
+          "x": 139,
+          "y": 25,
+          "width": 38,
+          "height": 44,
+          "top": 25,
+          "right": 177,
+          "bottom": 69,
+          "left": 139
+        },
+        "width": "38px",
+        "minWidth": "0px",
+        "padding": "8px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-button",
+        "box": {
+          "x": 148,
+          "y": 78,
+          "width": 207,
+          "height": 44,
+          "top": 78,
+          "right": 355,
+          "bottom": 122,
+          "left": 148
+        },
+        "width": "207px",
+        "minWidth": "auto",
+        "padding": "8px 16px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "chat-network-rail pool-surface",
+        "box": {
+          "x": 224,
+          "y": 16,
+          "width": 72,
+          "height": 62,
+          "top": 16,
+          "right": 296,
+          "bottom": 78,
+          "left": 224
+        },
+        "width": "72px",
+        "minWidth": "0px",
+        "padding": "8px",
+        "boxSizing": "border-box",
+        "font": "18px / 28.8px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      },
+      {
+        "selector": "pool-button chat-network-toggle",
+        "box": {
+          "x": 233,
+          "y": 25,
+          "width": 54,
+          "height": 44,
+          "top": 25,
+          "right": 287,
+          "bottom": 69,
+          "left": 233
+        },
+        "width": "54px",
+        "minWidth": "0px",
+        "padding": "8px 16px",
+        "boxSizing": "border-box",
+        "font": "14px / 22.4px Inter, \"Avenir Next\", \"Segoe UI\", system-ui, -apple-system, \"system-ui\", sans-serif",
+        "transform": "none"
+      }
+    ]
+  }
+]

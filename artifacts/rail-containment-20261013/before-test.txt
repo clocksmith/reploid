@@ -1,0 +1,36 @@
+
+Running 1 test using 1 worker
+
+(node:71755) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71755) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 1440px (2.8s)
+
+
+  1) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 1440px 
+
+    Error: Toggle threads
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: <= [32m68[39m
+    Received:    [31m69[39m
+
+      65 |       expect(box.height, name).toBe(44);
+      66 |       expect(box.x, name).toBeGreaterThanOrEqual(rail.x + 8);
+    > 67 |       expect(box.x + box.width, name).toBeLessThanOrEqual(rail.x + rail.width - 8);
+         |                                       ^
+      68 |     }
+      69 |     await page.locator('[data-composer-input]').fill('Keep this draft.');
+      70 |     await page.screenshot({ path: info.outputPath('collapsed.png'), fullPage: true });
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:67:39
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/rail-containment-20261013/before/chat-rail-layout-light-rai-eaf19-l-expanded-widths-at-1440px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/rail-containment-20261013/before/chat-rail-layout-light-rai-eaf19-l-expanded-widths-at-1440px-chromium-swiftshader/error-context.md
+
+  1 failed
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 1440px 

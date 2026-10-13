@@ -53,6 +53,20 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(left.locator('[data-toggle-thread-rail]')).toBeVisible();
     await expect(right.locator('[data-toggle-inspector]')).toBeVisible();
     await expect(page.locator('[data-thread-list]')).toBeHidden();
+    if (width <= 760) await expect(left.locator('[data-new-thread]')).toBeHidden();
+    const controls = await page.evaluate(() => {
+      const selectors = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-open-model]', '[data-conversation-actions] > summary', '[data-pool-settings] > summary', '[data-toggle-inspector]'];
+      return selectors.map(selector => document.querySelector(selector)).filter(node => node.checkVisibility()).map(node => ({
+        name: node.getAttribute('aria-label'), box: node.getBoundingClientRect().toJSON(),
+        rail: node.closest('[data-thread-sidebar], [data-network-rail]').getBoundingClientRect().toJSON(),
+      }));
+    });
+    for (const { name, box, rail } of controls) {
+      expect(box.width, name).toBe(44);
+      expect(box.height, name).toBe(44);
+      expect(box.x, name).toBeGreaterThanOrEqual(rail.x + 8);
+      expect(box.x + box.width, name).toBeLessThanOrEqual(rail.x + rail.width - 8);
+    }
     await page.locator('[data-composer-input]').fill('Keep this draft.');
     await page.screenshot({ path: info.outputPath('collapsed.png'), fullPage: true });
     await page.locator('[data-toggle-thread-rail]').click();
@@ -78,6 +92,7 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     const toggle = page.locator('[data-mesh-connect]');
     const contrast = await toggle.evaluate(node => ({ track: getComputedStyle(node).backgroundColor, thumb: getComputedStyle(node.firstElementChild).backgroundColor }));
     expect(contrast.thumb).not.toBe(contrast.track);
+    expect(await toggle.locator('span').evaluate(node => getComputedStyle(node).backgroundImage)).toContain('radial-gradient');
     await toggle.click(); await expect(toggle).toHaveAttribute('aria-checked', 'false');
     await toggle.click(); await expect(toggle).toHaveAttribute('aria-checked', 'true');
     await page.screenshot({ path: info.outputPath('network.png'), fullPage: true });
@@ -96,6 +111,82 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     await expect(left).toBeVisible();
     await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft.');
     await page.screenshot({ path: info.outputPath('activity.png'), fullPage: true });
+  });
+}
+
+for (const width of [1440, 900, 390, 320]) for (const theme of ['light', 'dark']) {
+  test(`${theme} transcript and composer share the available column at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.evaluate(theme => {
+      document.querySelector('.pool-home').dataset.poolTheme = theme;
+      const stream = document.querySelector('[data-message-stream]');
+      for (let index = 0; index < 12; index += 1) stream.append(stream.firstElementChild.cloneNode(true));
+    }, theme);
+    await page.locator('[data-composer-input]').fill('A draft that wraps when the available chat column becomes narrow.');
+    const check = async state => {
+      const result = await page.evaluate(() => {
+        const box = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
+        return { stream: box('[data-message-stream]'), composer: box('[data-composer-area]'),
+          area: box('[data-conversation-area]'), left: box('[data-thread-sidebar]'), right: box('[data-network-rail]') };
+      });
+      expect(Math.abs(result.stream.x - result.composer.x)).toBeLessThanOrEqual(1);
+      expect(Math.abs(result.stream.width - result.composer.width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(result.composer.x + result.composer.width / 2 - result.area.x - result.area.width / 2)).toBeLessThanOrEqual(1);
+      if (width > 760) {
+        expect(result.composer.x).toBeGreaterThanOrEqual(result.left.x + result.left.width + 8);
+        expect(result.composer.x + result.composer.width).toBeLessThanOrEqual(result.right.x - 8);
+      }
+      const input = page.locator('[data-composer-input]');
+      await expect(input).toHaveValue('A draft that wraps when the available chat column becomes narrow.');
+      await expect.poll(() => input.evaluate(node => Math.min(node.scrollHeight, innerHeight * 0.22) - node.clientHeight)).toBeLessThanOrEqual(1);
+      const controls = await page.evaluate(() => ['[data-composer-send]', '.chat-file-label'].map(selector => {
+        const box = document.querySelector(selector).getBoundingClientRect();
+        const field = document.querySelector('[data-composer-field]').getBoundingClientRect();
+        return box.width === 44 && box.x >= field.x && box.right <= field.right;
+      }));
+      expect(controls).toEqual([true, true]);
+      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+      await page.screenshot({ path: info.outputPath(`${state}.png`) });
+    };
+    await check('collapsed');
+    await page.locator('[data-toggle-thread-rail]').click(); await check('left');
+    if (width > 760) { await page.locator('[data-toggle-inspector]').click(); await check('both'); }
+    await page.locator('[data-toggle-thread-rail]').click();
+    if (width <= 760) await page.locator('[data-toggle-inspector]').click();
+    await check('right');
+    await page.locator('[data-close-inspector]').click(); await check('closed');
+  });
+}
+
+for (const theme of ['light', 'dark']) for (const width of [1440, 320]) {
+  test(`${theme} stationary glyphs and marble switches retain focus and reduced motion at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 844 });
+    await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
+    const brand = page.locator('[data-toggle-thread-rail]');
+    const glyphs = () => brand.locator('.pool-power-tower').evaluate(node => [...node.children].map(glyph => {
+      const box = glyph.getBoundingClientRect(); return { x: box.x, y: box.y, width: box.width, height: box.height };
+    }));
+    const before = await glyphs(); expect(before[1].y).toBeLessThan(before[0].y - 4);
+    await brand.hover(); await expect.poll(glyphs).toEqual(before);
+    await brand.focus(); await expect(brand).toBeFocused();
+    expect(await brand.evaluate(node => getComputedStyle(node).outlineStyle)).toBe('solid');
+    await page.locator('[data-toggle-inspector]').click();
+    const toggle = page.locator('[data-mesh-connect]'), knob = toggle.locator('span');
+    const on = await knob.boundingBox();
+    const image = await knob.evaluate(node => getComputedStyle(node).backgroundImage);
+    expect(image).toContain('radial-gradient'); expect(image).not.toContain('255, 255, 255');
+    expect(on.width).toBe(on.height);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.keyboard.press('Tab'); await toggle.focus(); expect(await toggle.evaluate(node => getComputedStyle(node).outlineStyle)).toBe('solid');
+    await page.keyboard.press('Space'); await expect(toggle).toHaveAttribute('aria-checked', 'false');
+    expect((await knob.boundingBox()).x).toBeLessThan(on.x);
+    expect(await knob.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(image);
+    expect(await knob.evaluate(node => getComputedStyle(node).transitionProperty)).toBe('none');
+    await page.screenshot({ path: info.outputPath('marble-off-focus.png') });
+    await page.keyboard.press('Space'); await expect(toggle).toHaveAttribute('aria-checked', 'true');
+    await toggle.evaluate(node => { node.disabled = true; }); await expect(toggle).toBeDisabled();
+    await expect.poll(() => toggle.evaluate(node => Number(getComputedStyle(node).opacity))).toBeLessThan(1);
+    await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
   });
 }
 

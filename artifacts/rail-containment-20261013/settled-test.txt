@@ -1,0 +1,28 @@
+
+Running 19 tests using 1 worker
+
+(node:73437) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73437) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 1440px (5.7s)
+  ✓   2 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 390px (1.8s)
+  ✓   3 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 320px (1.4s)
+  ✓   4 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › dark rails contain controls and fill expanded widths at 1440px (1.6s)
+  ✓   5 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › dark rails contain controls and fill expanded widths at 390px (1.5s)
+  ✓   6 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › dark rails contain controls and fill expanded widths at 320px (1.3s)
+  ✓   7 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:118:3 › light transcript and composer share the available column at 1440px (2.2s)
+  ✓   8 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:118:3 › dark transcript and composer share the available column at 1440px (1.8s)
+  ✓   9 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:118:3 › light transcript and composer share the available column at 900px (1.7s)
+  ✓  10 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:118:3 › dark transcript and composer share the available column at 900px (1.5s)
+  ✓  11 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:118:3 › light transcript and composer share the available column at 390px (744ms)
+  ✓  12 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:118:3 › dark transcript and composer share the available column at 390px (668ms)
+  ✓  13 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:118:3 › light transcript and composer share the available column at 320px (705ms)
+  ✓  14 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:118:3 › dark transcript and composer share the available column at 320px (646ms)
+  ✓  15 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › light stationary glyphs and marble switches retain focus and reduced motion at 1440px (820ms)
+  ✓  16 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › light stationary glyphs and marble switches retain focus and reduced motion at 320px (574ms)
+  ✓  17 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › dark stationary glyphs and marble switches retain focus and reduced motion at 1440px (646ms)
+  ✓  18 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › dark stationary glyphs and marble switches retain focus and reduced motion at 320px (512ms)
+  ✓  19 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:193:1 › Verification Worker accepts all changed presentation modules (195ms)
+
+  19 passed (26.8s)

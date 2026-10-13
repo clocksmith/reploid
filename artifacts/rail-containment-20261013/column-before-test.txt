@@ -1,0 +1,35 @@
+
+Running 1 test using 1 worker
+
+(node:71831) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:71831) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:117:3 › light transcript and composer share the available column at 900px (3.7s)
+
+
+  1) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:117:3 › light transcript and composer share the available column at 900px 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeGreaterThanOrEqual[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: >= [32m294[39m
+    Received:    [31m92[39m
+
+      132 |       expect(Math.abs(result.composer.x + result.composer.width / 2 - result.area.x - result.area.width / 2)).toBeLessThanOrEqual(1);
+      133 |       if (width > 760) {
+    > 134 |         expect(result.composer.x).toBeGreaterThanOrEqual(result.left.x + result.left.width + 8);
+          |                                   ^
+      135 |         expect(result.composer.x + result.composer.width).toBeLessThanOrEqual(result.right.x - 8);
+      136 |       }
+      137 |       expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
+        at check (/Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:134:35)
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:141:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/rail-containment-20261013/column-before/chat-rail-layout-light-tra-f8795-e-available-column-at-900px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/rail-containment-20261013/column-before/chat-rail-layout-light-tra-f8795-e-available-column-at-900px-chromium-swiftshader/error-context.md
+
+  1 failed
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:117:3 › light transcript and composer share the available column at 900px 

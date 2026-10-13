@@ -1,0 +1,83 @@
+
+Running 19 tests using 1 worker
+
+(node:73197) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73197) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 1440px (5.5s)
+  ✘   2 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 390px (30.2s)
+(node:73283) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73283) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘   3 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 320px (30.3s)
+
+
+  1) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 390px 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-thread-sidebar]').locator('[data-new-thread]')
+    Expected: hidden
+    Received: visible
+    Timeout:  30000ms
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 30000ms[22m
+    [2m  - waiting for locator('[data-thread-sidebar]').locator('[data-new-thread]')[22m
+    [2m    34 × locator resolved to <button type="button" data-new-thread="" title="New thread" aria-label="New thread" class="pool-button chat-new-thread">…</button>[22m
+    [2m       - unexpected value "visible"[22m
+
+
+      54 |     await expect(right.locator('[data-toggle-inspector]')).toBeVisible();
+      55 |     await expect(page.locator('[data-thread-list]')).toBeHidden();
+    > 56 |     if (width <= 760) await expect(left.locator('[data-new-thread]')).toBeHidden();
+         |                                                                       ^
+      57 |     const controls = await page.evaluate(() => {
+      58 |       const selectors = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-open-model]', '[data-conversation-actions] > summary', '[data-pool-settings] > summary', '[data-toggle-inspector]'];
+      59 |       return selectors.map(selector => document.querySelector(selector)).filter(node => node.checkVisibility()).map(node => ({
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:56:71
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/rail-containment-20261013/accepted/chat-rail-layout-light-rai-a8eb9-ll-expanded-widths-at-390px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/rail-containment-20261013/accepted/chat-rail-layout-light-rai-a8eb9-ll-expanded-widths-at-390px-chromium-swiftshader/error-context.md
+
+  2) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 320px 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-thread-sidebar]').locator('[data-new-thread]')
+    Expected: hidden
+    Received: visible
+    Timeout:  30000ms
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 30000ms[22m
+    [2m  - waiting for locator('[data-thread-sidebar]').locator('[data-new-thread]')[22m
+    [2m    34 × locator resolved to <button type="button" data-new-thread="" title="New thread" aria-label="New thread" class="pool-button chat-new-thread">…</button>[22m
+    [2m       - unexpected value "visible"[22m
+
+
+      54 |     await expect(right.locator('[data-toggle-inspector]')).toBeVisible();
+      55 |     await expect(page.locator('[data-thread-list]')).toBeHidden();
+    > 56 |     if (width <= 760) await expect(left.locator('[data-new-thread]')).toBeHidden();
+         |                                                                       ^
+      57 |     const controls = await page.evaluate(() => {
+      58 |       const selectors = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-open-model]', '[data-conversation-actions] > summary', '[data-pool-settings] > summary', '[data-toggle-inspector]'];
+      59 |       return selectors.map(selector => document.querySelector(selector)).filter(node => node.checkVisibility()).map(node => ({
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:56:71
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/rail-containment-20261013/accepted/chat-rail-layout-light-rai-97a9d-ll-expanded-widths-at-320px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/rail-containment-20261013/accepted/chat-rail-layout-light-rai-97a9d-ll-expanded-widths-at-320px-chromium-swiftshader/error-context.md
+
+  2 failed
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 390px 
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 320px 
+  16 did not run
+  1 passed (1.1m)
