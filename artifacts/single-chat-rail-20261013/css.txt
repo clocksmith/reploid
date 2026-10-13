@@ -1,0 +1,5 @@
+
+> reploid@0.1.0 verify:pool:css
+> node scripts/verify-poolday-css-layers.js
+
+[poolday-css-layers] OK: layering contract holds across tokens/primitives/components

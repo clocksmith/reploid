@@ -1,0 +1,138 @@
+
+Running 21 tests using 1 worker
+
+(node:75555) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:75555) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓   1 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › light one rail centers all four controls and opens each panel at 1440px (4.6s)
+  ✓   2 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › light one rail centers all four controls and opens each panel at 390px (1.2s)
+  ✓   3 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › light one rail centers all four controls and opens each panel at 320px (980ms)
+  ✓   4 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › dark one rail centers all four controls and opens each panel at 1440px (1.2s)
+  ✓   5 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › dark one rail centers all four controls and opens each panel at 390px (761ms)
+  ✓   6 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:70:3 › dark one rail centers all four controls and opens each panel at 320px (716ms)
+  ✓   7 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:131:3 › light shared chat column follows the single panel at 1440px (1.1s)
+  ✓   8 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:131:3 › dark shared chat column follows the single panel at 1440px (1.0s)
+  ✓   9 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:131:3 › light shared chat column follows the single panel at 900px (1.0s)
+  ✓  10 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:131:3 › dark shared chat column follows the single panel at 900px (981ms)
+  ✓  11 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:131:3 › light shared chat column follows the single panel at 390px (850ms)
+  ✓  12 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:131:3 › dark shared chat column follows the single panel at 390px (654ms)
+  ✓  13 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:131:3 › light shared chat column follows the single panel at 320px (685ms)
+  ✓  14 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:131:3 › dark shared chat column follows the single panel at 320px (596ms)
+  ✘  15 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › light keyboard focus and marble switches at 1440px (15.1s)
+(node:75602) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:75602) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  16 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › light keyboard focus and marble switches at 320px (15.2s)
+(node:75659) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:75659) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  17 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › dark keyboard focus and marble switches at 1440px (15.2s)
+[31mTesting stopped early after 3 maximum allowed failures.[39m
+
+
+  1) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › light keyboard focus and marble switches at 1440px 
+
+    [31mTest timeout of 15000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-contextual-inspector]')
+    Expected: hidden
+    Received: visible
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 30000ms[22m
+    [2m  - waiting for locator('[data-contextual-inspector]')[22m
+    [2m    19 × locator resolved to <dialog open="" data-network-workspace="" data-contextual-inspector="" class="network-inspector pool-surface" aria-labelledby="network-inspector-title">…</dialog>[22m
+    [2m       - unexpected value "visible"[22m
+
+
+      171 |     const network=page.locator('[data-toggle-inspector]');await network.focus();await page.keyboard.press('Enter');
+      172 |     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
+    > 173 |     await page.keyboard.press('Escape');await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+          |                                                                                                   ^
+      174 |     await expect(network).toBeFocused();await page.keyboard.press('Enter');
+      175 |     const toggle=page.locator('[data-mesh-connect]'),knob=toggle.locator('span');
+      176 |     const on=await knob.boundingBox(),image=await knob.evaluate(node=>getComputedStyle(node).backgroundImage);
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:173:99
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/single-chat-rail-20261013/verified/chat-rail-layout-light-key-4cefa-d-marble-switches-at-1440px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/single-chat-rail-20261013/verified/chat-rail-layout-light-key-4cefa-d-marble-switches-at-1440px-chromium-swiftshader/error-context.md
+
+  2) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › light keyboard focus and marble switches at 320px 
+
+    [31mTest timeout of 15000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-contextual-inspector]')
+    Expected: hidden
+    Received: visible
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 30000ms[22m
+    [2m  - waiting for locator('[data-contextual-inspector]')[22m
+    [2m    19 × locator resolved to <dialog open="" data-network-workspace="" data-contextual-inspector="" class="network-inspector pool-surface" aria-labelledby="network-inspector-title">…</dialog>[22m
+    [2m       - unexpected value "visible"[22m
+
+
+      171 |     const network=page.locator('[data-toggle-inspector]');await network.focus();await page.keyboard.press('Enter');
+      172 |     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
+    > 173 |     await page.keyboard.press('Escape');await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+          |                                                                                                   ^
+      174 |     await expect(network).toBeFocused();await page.keyboard.press('Enter');
+      175 |     const toggle=page.locator('[data-mesh-connect]'),knob=toggle.locator('span');
+      176 |     const on=await knob.boundingBox(),image=await knob.evaluate(node=>getComputedStyle(node).backgroundImage);
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:173:99
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/single-chat-rail-20261013/verified/chat-rail-layout-light-key-250c6-nd-marble-switches-at-320px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/single-chat-rail-20261013/verified/chat-rail-layout-light-key-250c6-nd-marble-switches-at-320px-chromium-swiftshader/error-context.md
+
+  3) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › dark keyboard focus and marble switches at 1440px 
+
+    [31mTest timeout of 15000ms exceeded.[39m
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-contextual-inspector]')
+    Expected: hidden
+    Received: visible
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 30000ms[22m
+    [2m  - waiting for locator('[data-contextual-inspector]')[22m
+    [2m    19 × locator resolved to <dialog open="" data-network-workspace="" data-contextual-inspector="" class="network-inspector pool-surface" aria-labelledby="network-inspector-title">…</dialog>[22m
+    [2m       - unexpected value "visible"[22m
+
+
+      171 |     const network=page.locator('[data-toggle-inspector]');await network.focus();await page.keyboard.press('Enter');
+      172 |     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
+    > 173 |     await page.keyboard.press('Escape');await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+          |                                                                                                   ^
+      174 |     await expect(network).toBeFocused();await page.keyboard.press('Enter');
+      175 |     const toggle=page.locator('[data-mesh-connect]'),knob=toggle.locator('span');
+      176 |     const on=await knob.boundingBox(),image=await knob.evaluate(node=>getComputedStyle(node).backgroundImage);
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:173:99
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/single-chat-rail-20261013/verified/chat-rail-layout-dark-keyb-70efe-d-marble-switches-at-1440px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/single-chat-rail-20261013/verified/chat-rail-layout-dark-keyb-70efe-d-marble-switches-at-1440px-chromium-swiftshader/error-context.md
+
+  3 failed
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › light keyboard focus and marble switches at 1440px 
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › light keyboard focus and marble switches at 320px 
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:162:3 › dark keyboard focus and marble switches at 1440px 
+  4 did not run
+  14 passed (1.1m)
+  1 error was not a part of any test, see above for details

@@ -41,166 +41,215 @@ test.beforeEach(async ({ page }) => {
       select(id) { state.selectedId = id; state.activeThread = state.threads.find(item => item.id === id) || null; emit(); },
       disconnect() { state.network.consumer.connectionState = 'disconnected'; emit(); }, connect() { state.network.consumer.connectionState = 'connected'; emit(); }
     };
+    window.railSession = session;
     window.disposeRails = bindConversationWorkspace(root, session);
   });
 });
 
+const railButtons = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-open-model]', '[data-toggle-inspector]'];
+const contrastRatio = (first, second) => {
+  const luminance = css => css.match(/[\d.]+/g).slice(0,3).map(Number).map(value => {
+    const channel=value/255;return channel<=0.04045?channel/12.92:((channel+0.055)/1.055)**2.4;
+  }).reduce((sum,value,index)=>sum+value*[0.2126,0.7152,0.0722][index],0);
+  const a=luminance(first),b=luminance(second);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
+};
+
+
+async function measureControls(page) {
+  return page.evaluate(selectors => selectors.map(selector => {
+    const node = document.querySelector(selector), box = node.getBoundingClientRect();
+    const glyph = node.querySelector('svg, .pool-power-tower'), icon = glyph.getBoundingClientRect();
+    return { selector, box: box.toJSON(), icon: icon.toJSON(), visible: node.checkVisibility(),
+      background: getComputedStyle(node).backgroundColor, color: getComputedStyle(node).color, radius: getComputedStyle(node).borderRadius,
+      centerX: icon.x + icon.width / 2 - box.x - box.width / 2,
+      centerY: icon.y + icon.height / 2 - box.y - box.height / 2 };
+  }), railButtons);
+}
+
 for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
-  test(`${theme} rails contain controls and fill expanded widths at ${width}px`, async ({ page }, info) => {
-    await page.setViewportSize({ width, height: width > 760 ? 1000 : 844 });
+  test(`${theme} one rail centers all four controls and opens each panel at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({ width, height: 844 });
     await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
-    const left = page.locator('[data-thread-sidebar]'), right = page.locator('[data-network-rail]');
-    await expect(left.locator('[data-toggle-thread-rail]')).toBeVisible();
-    await expect(right.locator('[data-toggle-inspector]')).toBeVisible();
+    const rail = page.locator('[data-thread-sidebar]');
     await expect(page.locator('[data-thread-list]')).toBeHidden();
-    if (width <= 760) await expect(left.locator('[data-new-thread]')).toBeHidden();
-    const controls = await page.evaluate(() => {
-      const selectors = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-open-model]', '[data-conversation-actions] > summary', '[data-pool-settings] > summary', '[data-toggle-inspector]'];
-      return selectors.map(selector => document.querySelector(selector)).filter(node => node.checkVisibility()).map(node => ({
-        name: node.getAttribute('aria-label'), box: node.getBoundingClientRect().toJSON(),
-        rail: node.closest('[data-thread-sidebar], [data-network-rail]').getBoundingClientRect().toJSON(),
-      }));
-    });
-    for (const { name, box, rail } of controls) {
-      expect(box.width, name).toBe(44);
-      expect(box.height, name).toBe(44);
-      expect(box.x, name).toBeGreaterThanOrEqual(rail.x + 8);
-      expect(box.x + box.width, name).toBeLessThanOrEqual(rail.x + rail.width - 8);
+    await expect(page.locator('[data-conversation-actions]')).toBeHidden();
+    await expect(page.locator('.pool-power-tower:visible')).toHaveCount(1);
+    await expect(page.locator('[data-pool-settings] > summary')).toBeHidden();
+    const controls = await measureControls(page);
+    expect(controls.every(item => item.visible)).toBe(true);
+    expect(new Set(controls.map(item => item.radius)).size).toBe(1);
+    for (const item of controls) {
+      expect(contrastRatio(item.background,item.color), item.selector).toBeGreaterThanOrEqual(3);
+      expect(item.box.width, item.selector).toBe(44); expect(item.box.height, item.selector).toBe(44);
+      expect(Math.abs(item.centerX), item.selector).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(item.centerY), item.selector).toBeLessThanOrEqual(0.5);
+      expect(item.box.x).toBe(controls[0].box.x);
     }
+    // Check the graphic itself, not only the wrapper around the logo.
+    const brand = await page.locator('[data-toggle-thread-rail]').evaluate(node => {
+      const box=node.getBoundingClientRect(), parts=[...node.querySelectorAll('.pool-power-tower > *')].map(glyph=>glyph.getBoundingClientRect());
+      return { dx:(Math.min(...parts.map(b=>b.x))+Math.max(...parts.map(b=>b.right)))/2-box.x-box.width/2,
+        dy:(Math.min(...parts.map(b=>b.y))+Math.max(...parts.map(b=>b.bottom)))/2-box.y-box.height/2 };
+    });
+    expect(Math.abs(brand.dx)).toBeLessThanOrEqual(2); expect(Math.abs(brand.dy)).toBeLessThanOrEqual(2);
     await page.locator('[data-composer-input]').fill('Keep this draft.');
-    await page.screenshot({ path: info.outputPath('collapsed.png'), fullPage: true });
+    await page.screenshot({path:info.outputPath('collapsed.png')});
     await page.locator('[data-toggle-thread-rail]').click();
-    await expect(left.locator('[data-current-model]')).toBeVisible();
-    const widths = await left.evaluate(node => ({
-      list: node.querySelector('[data-thread-list]').clientWidth,
-      row: node.querySelector('.chat-thread-row').clientWidth,
-      item: node.querySelector('.chat-thread-item').clientWidth,
-      model: node.querySelector('[data-current-model]').clientWidth,
-      rail: node.clientWidth,
-    }));
-    expect(widths.list - widths.row).toBeLessThanOrEqual(10);
-    expect(widths.row - widths.item).toBeLessThanOrEqual(2);
-    expect(widths.rail - widths.model).toBeLessThanOrEqual(20);
-    await page.screenshot({ path: info.outputPath('threads.png'), fullPage: true });
-    if (width <= 1000) await page.locator('[data-toggle-thread-rail]').click();
+    await expect(page.locator('[data-thread-list]')).toBeVisible();
+    await expect(page.locator('[data-conversation-actions]')).toBeVisible();
+    await expect(page.locator('[data-current-model]')).toBeVisible();
+    await page.screenshot({path:info.outputPath('threads.png')});
     await page.locator('[data-toggle-inspector]').click();
-    await expect(right.locator('[data-contextual-inspector]')).toBeVisible();
-    const headingWidths = await right.evaluate(node => ({ rail: node.clientWidth, settings: node.querySelector('[data-pool-settings] > summary').clientWidth, network: node.querySelector('[data-toggle-inspector]').clientWidth }));
-    expect(headingWidths.rail - headingWidths.settings).toBeLessThanOrEqual(20);
-    expect(headingWidths.rail - headingWidths.network).toBeLessThanOrEqual(20);
-    await expect(right.locator('.network-peer-row strong')).toHaveText(['Computer 1', 'Computer 2', 'Computer 3', 'Computer 4']);
-    const toggle = page.locator('[data-mesh-connect]');
-    const contrast = await toggle.evaluate(node => ({ track: getComputedStyle(node).backgroundColor, thumb: getComputedStyle(node.firstElementChild).backgroundColor }));
-    expect(contrast.thumb).not.toBe(contrast.track);
-    expect(await toggle.locator('span').evaluate(node => getComputedStyle(node).backgroundImage)).toContain('radial-gradient');
-    await toggle.click(); await expect(toggle).toHaveAttribute('aria-checked', 'false');
-    await toggle.click(); await expect(toggle).toHaveAttribute('aria-checked', 'true');
-    await page.screenshot({ path: info.outputPath('network.png'), fullPage: true });
-    await page.locator('[data-close-inspector]').click();
-    await page.locator('[data-execution-activity]:not([hidden]) summary').click();
-    await expect(page.locator('[data-activity-detail] li > span:first-child')).toHaveText(['Computer 3', 'Computer 1']);
-    await page.evaluate(() => { window.railState.network.consumer.peers.reverse(); window.emitRailState(); });
-    await expect(page.locator('[data-activity-detail] li > span:first-child')).toHaveText(['Computer 3', 'Computer 1']);
+    await expect(page.locator('[data-thread-list]')).toBeHidden();
+    await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
+    await expect(page.locator('.network-peer-row strong')).toHaveText(['Computer 1','Computer 2','Computer 3','Computer 4']);
+    await page.screenshot({path:info.outputPath('network.png')});
+    await page.locator('[data-inspector-section="settings"]').click();
+    await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible();
+    await page.locator('[data-toggle-thread-rail]').click();
+    await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+    await expect(page.locator('[data-thread-list]')).toBeVisible();
+    await page.locator('[data-conversation-actions] > summary').click();
+    await page.locator('[data-show-archived]').click();
+    await expect(page.locator('[data-chat-workspace]')).toHaveAttribute('data-threads-open','');
+    await page.locator('[data-toggle-thread-rail]').click();
+    await page.locator('[data-open-model]').click();
+    await expect(page.locator('[data-thread-panel]')).toBeVisible();
+    await expect(page.locator('[data-current-model]')).toBeFocused();
     await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft.');
-    expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-    await expect(page.locator('[data-composer-input]')).toBeInViewport();
-    // Archive browsing expands the existing rail, including on phones.
-    await left.locator('[data-conversation-actions] > summary').click();
-    await left.locator('[data-show-archived]').click();
-    await expect(page.locator('[data-chat-workspace]')).toHaveAttribute('data-threads-open', '');
-    await expect(left).toBeVisible();
-    await expect(page.locator('[data-composer-input]')).toHaveValue('Keep this draft.');
-    await page.screenshot({ path: info.outputPath('activity.png'), fullPage: true });
+    for (const item of await measureControls(page)) {
+      expect(Math.abs(item.centerX),item.selector).toBeLessThanOrEqual(0.5);
+      expect(Math.abs(item.centerY),item.selector).toBeLessThanOrEqual(0.5);
+      expect(item.box.x).toBe(controls[0].box.x);
+    }
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+    await expect(rail).toBeVisible();
+    await page.locator('[data-toggle-inspector]').click();
+    await page.locator('[data-new-thread]').click();
+    await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+    await expect(page.locator('[data-composer-input]')).toBeFocused();
+    expect(await page.evaluate(()=>window.railState.selectedId)).toBe(null);
   });
 }
 
 for (const width of [1440, 900, 390, 320]) for (const theme of ['light', 'dark']) {
-  test(`${theme} transcript and composer share the available column at ${width}px`, async ({ page }, info) => {
-    await page.setViewportSize({ width, height: 844 });
-    await page.evaluate(theme => {
-      document.querySelector('.pool-home').dataset.poolTheme = theme;
-      const stream = document.querySelector('[data-message-stream]');
-      for (let index = 0; index < 12; index += 1) stream.append(stream.firstElementChild.cloneNode(true));
-    }, theme);
-    await page.locator('[data-composer-input]').fill('A draft that wraps when the available chat column becomes narrow.');
-    const check = async state => {
-      const result = await page.evaluate(() => {
-        const box = selector => document.querySelector(selector).getBoundingClientRect().toJSON();
-        return { stream: box('[data-message-stream]'), composer: box('[data-composer-area]'),
-          area: box('[data-conversation-area]'), left: box('[data-thread-sidebar]'), right: box('[data-network-rail]') };
+  test(`${theme} shared chat column follows the single panel at ${width}px`, async ({ page }, info) => {
+    await page.setViewportSize({width,height:844});
+    await page.evaluate(theme=>{
+      document.querySelector('.pool-home').dataset.poolTheme=theme;
+      const stream=document.querySelector('[data-message-stream]');
+      for(let i=0;i<12;i++)stream.append(stream.firstElementChild.cloneNode(true));
+    },theme);
+    const input=page.locator('[data-composer-input]');
+    await input.fill('A draft that wraps when the available chat column becomes narrow.');
+    const check=async state=>{
+      const result=await page.evaluate(()=>{
+        const box=s=>document.querySelector(s).getBoundingClientRect().toJSON();
+        return {stream:box('[data-message-stream]'),composer:box('[data-composer-area]'),area:box('[data-conversation-area]'),rail:box('[data-thread-sidebar]')};
       });
-      expect(Math.abs(result.stream.x - result.composer.x)).toBeLessThanOrEqual(1);
-      expect(Math.abs(result.stream.width - result.composer.width)).toBeLessThanOrEqual(1);
-      expect(Math.abs(result.composer.x + result.composer.width / 2 - result.area.x - result.area.width / 2)).toBeLessThanOrEqual(1);
-      if (width > 760) {
-        expect(result.composer.x).toBeGreaterThanOrEqual(result.left.x + result.left.width + 8);
-        expect(result.composer.x + result.composer.width).toBeLessThanOrEqual(result.right.x - 8);
-      }
-      const input = page.locator('[data-composer-input]');
+      expect(Math.abs(result.stream.x-result.composer.x)).toBeLessThanOrEqual(1);
+      expect(Math.abs(result.stream.width-result.composer.width)).toBeLessThanOrEqual(1);
+      expect(Math.abs(result.composer.x+result.composer.width/2-result.area.x-result.area.width/2)).toBeLessThanOrEqual(1);
+      if(width>760)expect(result.composer.x).toBeGreaterThanOrEqual(result.rail.right+8);
+      expect(result.composer.right).toBeLessThanOrEqual(width-8);
       await expect(input).toHaveValue('A draft that wraps when the available chat column becomes narrow.');
-      await expect.poll(() => input.evaluate(node => Math.min(node.scrollHeight, innerHeight * 0.22) - node.clientHeight)).toBeLessThanOrEqual(1);
-      const controls = await page.evaluate(() => ['[data-composer-send]', '.chat-file-label'].map(selector => {
-        const box = document.querySelector(selector).getBoundingClientRect();
-        const field = document.querySelector('[data-composer-field]').getBoundingClientRect();
-        return box.width === 44 && box.x >= field.x && box.right <= field.right;
-      }));
-      expect(controls).toEqual([true, true]);
-      expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
-      await page.screenshot({ path: info.outputPath(`${state}.png`) });
+      await expect.poll(()=>input.evaluate(node=>Math.min(node.scrollHeight,innerHeight*.22)-node.clientHeight)).toBeLessThanOrEqual(1);
+      expect(await page.evaluate(()=>document.documentElement.scrollWidth-innerWidth)).toBeLessThanOrEqual(1);
+      await page.screenshot({path:info.outputPath(state+'.png')});
     };
-    await check('collapsed');
-    await page.locator('[data-toggle-thread-rail]').click(); await check('left');
-    if (width > 760) { await page.locator('[data-toggle-inspector]').click(); await check('both'); }
-    await page.locator('[data-toggle-thread-rail]').click();
-    if (width <= 760) await page.locator('[data-toggle-inspector]').click();
-    await check('right');
-    await page.locator('[data-close-inspector]').click(); await check('closed');
+    await check('collapsed');await page.locator('[data-toggle-thread-rail]').click();await check('threads');
+    await page.locator('[data-toggle-inspector]').click();await check('network');
+    await page.locator('[data-close-inspector]').click();await check('closed');
   });
 }
 
-for (const theme of ['light', 'dark']) for (const width of [1440, 320]) {
-  test(`${theme} stationary glyphs and marble switches retain focus and reduced motion at ${width}px`, async ({ page }, info) => {
-    await page.setViewportSize({ width, height: 844 });
-    await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
-    const brand = page.locator('[data-toggle-thread-rail]');
-    const glyphs = () => brand.locator('.pool-power-tower').evaluate(node => [...node.children].map(glyph => {
-      const box = glyph.getBoundingClientRect(); return { x: box.x, y: box.y, width: box.width, height: box.height };
-    }));
-    const before = await glyphs(); expect(before[1].y).toBeLessThan(before[0].y - 4);
-    await brand.hover(); await expect.poll(glyphs).toEqual(before);
-    await brand.focus(); await expect(brand).toBeFocused();
-    expect(await brand.evaluate(node => getComputedStyle(node).outlineStyle)).toBe('solid');
-    await page.locator('[data-toggle-inspector]').click();
-    const toggle = page.locator('[data-mesh-connect]'), knob = toggle.locator('span');
-    const on = await knob.boundingBox();
-    const image = await knob.evaluate(node => getComputedStyle(node).backgroundImage);
-    expect(image).toContain('radial-gradient'); expect(image).not.toContain('255, 255, 255');
-    expect(on.width).toBe(on.height);
-    await page.emulateMedia({ reducedMotion: 'reduce' });
-    await page.keyboard.press('Tab'); await toggle.focus(); expect(await toggle.evaluate(node => getComputedStyle(node).outlineStyle)).toBe('solid');
-    await page.keyboard.press('Space'); await expect(toggle).toHaveAttribute('aria-checked', 'false');
+for (const theme of ['light','dark']) for (const width of [1440,320]) {
+  test(`${theme} keyboard focus and marble switches at ${width}px`,async({page},info)=>{
+    await page.setViewportSize({width,height:844});
+    await page.evaluate(theme=>{document.querySelector('.pool-home').dataset.poolTheme=theme;},theme);
+    await page.keyboard.press('Tab');
+    const brand=page.locator('[data-toggle-thread-rail]');await brand.focus();
+    expect(await brand.evaluate(node=>getComputedStyle(node).outlineStyle)).toBe('solid');
+    await page.keyboard.press('Enter');await expect(brand).toHaveAttribute('aria-expanded','true');
+    await page.keyboard.press('Escape');await expect(brand).toHaveAttribute('aria-expanded','false');
+    await expect(brand).toBeFocused();
+    const network=page.locator('[data-toggle-inspector]');await network.focus();await page.keyboard.press('Enter');
+    await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
+    await page.keyboard.press('Escape');await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+    await expect(network).toBeFocused();await page.keyboard.press('Enter');
+    const toggle=page.locator('[data-mesh-connect]'),knob=toggle.locator('span');
+    const on=await knob.boundingBox(),image=await knob.evaluate(node=>getComputedStyle(node).backgroundImage);
+    expect(image).toContain('radial-gradient');expect(image).not.toContain('255, 255, 255');
+    await page.emulateMedia({reducedMotion:'reduce'});await toggle.focus();
+    expect(await toggle.evaluate(node=>getComputedStyle(node).outlineStyle)).toBe('solid');
+    await page.keyboard.press('Space');await expect(toggle).toHaveAttribute('aria-checked','false');
     expect((await knob.boundingBox()).x).toBeLessThan(on.x);
-    expect(await knob.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(image);
-    expect(await knob.evaluate(node => getComputedStyle(node).transitionProperty)).toBe('none');
-    await page.screenshot({ path: info.outputPath('marble-off-focus.png') });
-    await page.keyboard.press('Space'); await expect(toggle).toHaveAttribute('aria-checked', 'true');
-    await toggle.evaluate(node => { node.disabled = true; }); await expect(toggle).toBeDisabled();
-    await expect.poll(() => toggle.evaluate(node => Number(getComputedStyle(node).opacity))).toBeLessThan(1);
-    await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
+    expect(await knob.evaluate(node=>getComputedStyle(node).backgroundImage)).toBe(image);
+    expect(await knob.evaluate(node=>getComputedStyle(node).transitionProperty)).toBe('none');
+    await page.screenshot({path:info.outputPath('marble-off.png')});
+    await page.keyboard.press('Escape');await expect(page.locator('[data-contextual-inspector]')).toBeHidden();
+    await expect(network).toBeFocused();
   });
 }
 
-test('Verification Worker accepts all changed presentation modules', async ({ page }) => {
-  const result = await page.evaluate(async () => {
-    const files = ['components/interface-icons.js', ...['computer-labels', 'conversation-workspace', 'execution-activity', 'execution-ribbon', 'index', 'network-controls', 'network-inspector'].map(name => 'pool-home/' + name + '.js')];
-    const snapshot = Object.fromEntries(await Promise.all(files.map(async file => ['/self/ui/' + file, await (await fetch('/ui/' + file)).text()])));
-    return new Promise((resolve, reject) => {
-      const worker = new Worker('/core/verification-worker.js');
-      const timeout = setTimeout(() => { worker.terminate(); reject(Error('Worker timeout')); }, 10000);
-      worker.onmessage = event => { clearTimeout(timeout); worker.terminate(); resolve(event.data); };
-      worker.onerror = event => { clearTimeout(timeout); worker.terminate(); reject(Error(event.message)); };
-      worker.postMessage({ type: 'VERIFY', snapshot });
+test('Verification Worker accepts changed presentation modules',async({page})=>{
+  const result=await page.evaluate(async()=>{
+    const files=['conversation-workspace','network-inspector','shell-view','index'];
+    const snapshot=Object.fromEntries(await Promise.all(files.map(async file=>['/self/ui/pool-home/'+file+'.js',await(await fetch('/ui/pool-home/'+file+'.js')).text()])));
+    return new Promise((resolve,reject)=>{
+      const worker=new Worker('/core/verification-worker.js');const timeout=setTimeout(()=>{worker.terminate();reject(Error('Worker timeout'));},10000);
+      worker.onmessage=event=>{clearTimeout(timeout);worker.terminate();resolve(event.data);};
+      worker.onerror=event=>{clearTimeout(timeout);worker.terminate();reject(Error(event.message));};worker.postMessage({type:'VERIFY',snapshot});
     });
   });
-  expect(result.passed, JSON.stringify(result)).toBe(true);
+  expect(result.passed,JSON.stringify(result)).toBe(true);
+});
+
+for (const width of [1440,320]) test(`shared shell inspector survives mounting and route return at ${width}px`,async({page},info)=>{
+  await page.setViewportSize({width,height:844});
+  await page.evaluate(async()=>{
+    const {renderNav}=await import('/ui/pool-home/shell-view.js');
+    const {renderConversationWorkspace,bindConversationWorkspace}=await import('/ui/pool-home/conversation-workspace.js');
+    const {renderNetworkInspector,bindNetworkInspector}=await import('/ui/pool-home/network-inspector.js');
+    const {bindThemeSelector}=await import('/ui/pool-home/theme.js');
+    const root=document.querySelector('.pool-home'),session=window.railSession;
+    let disposeView=window.disposeRails,inspector,theme;
+    window.mountSharedRoute=route=>{
+      disposeView?.();inspector?.dispose();theme?.dispose?.();
+      root.dataset.poolRouteId=route;
+      root.innerHTML=renderNav(route)+'<div class="pool-route-content"></div><div data-shell-inspector>'+renderNetworkInspector()+'</div>';
+      const shell=root.querySelector('[data-shell-inspector]');inspector=bindNetworkInspector(shell,session);
+      const content=root.querySelector('.pool-route-content');
+      if(route==='home'){
+        const settings=root.querySelector('[data-pool-settings]');settings.dataset.railSettings='';
+        const section=settings.querySelector('section');shell.querySelector('[data-inspector-pane="settings"]').append(...section.childNodes);section.hidden=true;
+        settings.querySelector('summary').onclick=event=>{event.preventDefault();inspector.toggle('settings',event.currentTarget);};
+        content.innerHTML=renderConversationWorkspace({inspector:false});disposeView=bindConversationWorkspace(content,session,{inspector});
+      }else{disposeView=null;content.textContent='Changes';}
+      theme=bindThemeSelector(document.body);window.sharedInspector=inspector;
+    };
+    window.mountSharedRoute('home');
+  });
+  await page.locator('[data-composer-input]').fill('Preserve my draft across navigation.');
+  await page.locator('[data-toggle-inspector]').click();
+  await expect(page.locator('.network-peer-row strong')).toHaveCount(4);
+  await page.locator('[data-inspector-section="settings"]').click();
+  await expect(page.locator('[data-pool-theme-choice="dark"]')).toBeVisible();
+  await page.locator('[data-pool-theme-choice="dark"]').click();
+  await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-theme','dark');
+  await page.evaluate(()=>{window.railState.network.consumer.peers.pop();window.emitRailState();});
+  await page.locator('[data-inspector-section="participants"]').click();
+  await expect(page.locator('[data-peer-readiness]')).toBeVisible();
+  await page.evaluate(()=>window.mountSharedRoute('improve'));
+  await expect(page.locator('[data-pool-settings] > summary')).toBeVisible();
+  await page.locator('[data-pool-settings] > summary').click();
+  await expect(page.locator('[data-pool-theme-choice="light"]')).toBeVisible();
+  await page.evaluate(()=>window.mountSharedRoute('home'));
+  await expect(page.locator('[data-composer-input]')).toHaveValue('Preserve my draft across navigation.');
+  await expect(page.locator('.pool-power-tower:visible')).toHaveCount(1);
+  await page.locator('[data-toggle-inspector]').click();
+  await page.locator('[data-inspector-section="settings"]').click();
+  await expect(page.locator('[data-pool-theme-choice="light"]')).toBeVisible();
+  await expect(page.locator('[data-pool-theme-choice="light"]')).toHaveCount(1);
+  await page.screenshot({path:info.outputPath('shared-settings-return.png')});
 });
