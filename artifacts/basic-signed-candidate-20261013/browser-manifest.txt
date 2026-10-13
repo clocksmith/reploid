@@ -1,0 +1,1 @@
+[browser-bundle] Wrote /private/var/tmp/reploid-basic-signed-candidate-20261013/app/self/config/browser-bundle-manifest.json with 1984 served files as sha256:167a3411bef5983ea5fcbc37fb6992c8b2f3c00ed33202264016bccfe1f02325
