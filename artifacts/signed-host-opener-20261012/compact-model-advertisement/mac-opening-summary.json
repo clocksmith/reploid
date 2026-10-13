@@ -1,0 +1,42 @@
+{
+  "scope": "Signed Mac output opening after controlled acquisition retry, not complete conversation",
+  "nativeArtifact": "19dbecf5161853389a96156be45767bb5ad5801e82e9309799d96763330a31ba",
+  "runtimeArchive": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "browserBundle": "7f8e435bc3fc1abca4cb6e5090378607d813ba526d67e63787bdf77e441a25f4",
+  "rawSha256": "13720cecccf2e0f05d25db9355f8ff039842e2e8385fcb461b74278ba3b63501",
+  "descriptor": {
+    "schema": "doppler.resident-partition/v1",
+    "ready": true,
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+    "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+    "index": 1,
+    "layerRange": [
+      12,
+      23
+    ],
+    "residentWeightBytes": 285497344,
+    "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+  },
+  "custody": {
+    "queueMs": 0.19999980926513672,
+    "peerTransferMs": 358558.3999991417,
+    "cacheReadMs": 34346.49999809265,
+    "peerBytes": 164155584,
+    "cacheBytes": 2316266208,
+    "transfers": 50,
+    "failures": 0
+  },
+  "memory": {
+    "maxBytes": 1420000000,
+    "liveBytes": 287648064,
+    "peakBytes": 312813888,
+    "allocations": 546,
+    "rejected": 0
+  },
+  "limitations": [
+    "Custody counters describe this retry; acquisition totals exclude previously persisted pieces",
+    "Original receipt detailed pieces/ranges are empty; retained custody receipts separately establish verified transfers",
+    "No requester inference, reverse placement or final cleanup established"
+  ]
+}

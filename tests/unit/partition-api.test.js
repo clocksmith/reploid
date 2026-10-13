@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
 import * as runtime from 'doppler-gpu/partitions';
+import { createPartitionDataChannel } from '../../packages/reploid/src/transport/partition-data-channel.js';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createPartitionGrantAuthority, createResidentPartition, createPartitionPeer, createLayerPartitionRunner,
   createPartitionChat, createPartitionNetwork, partitionFingerprint } from '../../packages/reploid/src/mesh/index.js';
@@ -31,7 +32,7 @@ async function fixture(options = {}) {
   const makeAuthority = identity => createPartitionGrantAuthority({ identity, meshId: 'mesh', maxGrants: 32, maxTtlMs: 10000 });
   const authority = makeAuthority(a), otherAuthority = makeAuthority(b);
   const model = { id: 'fixture', name: 'Injected partition model', provider: 'doppler', identity: 'sha256:' + 'a'.repeat(64),
-    generation, adapters: [] };
+    generation, adapters: [], ...options.modelMetadata };
   const plan = runtime.createLayerPartitionPlan({ modelId: model.id, numLayers: 4, hiddenSize: 8, vocabSize: 128, splitLayer: 2 });
   const planId = runtime.hashLayerPartitionPlan(plan);
   const factory = createPartitionRuntimeFixture(options);
@@ -61,6 +62,31 @@ function approve(session, threadId, remember = true) {
 }
 
 describe('Reploid partition APIs with injected Doppler sessions', () => {
+  it('advertises a signed model over bounded control without copying its local opening closure', async () => {
+    const privateClosure = 'qualification-evidence-'.repeat(10000);
+    const f = await fixture({ modelMetadata: { capsule: { evidence: privateClosure },
+      packOpenOptions: { localCachePath: '/private/contributor-cache' }, source: { files: [privateClosure] },
+      contextLength: 8192, quantization: 'q4k', size: 'fixture', recommended: true } });
+    await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
+    await f.chat.refresh();
+    const [left, right] = channels();
+    const endpoint = createPartitionDataChannel({ channel: left, localParticipantId: f.a.peerId,
+      remoteParticipantId: f.b.peerId, limits: channelPolicy, authorize: async () => true, serve: async () => ({}) });
+    const server = createPartitionDataChannel({ channel: right, localParticipantId: f.b.peerId,
+      remoteParticipantId: f.a.peerId, limits: channelPolicy, authorize: async () => true,
+      serve: async () => ({ models: f.chat.getModels() }) });
+    cleanup.push(() => Promise.all([endpoint.close(), server.close()]));
+    const description = await endpoint.request({ operation: 'describe' }, new Uint8Array());
+    expect(description.models).toHaveLength(1);
+    expect(description.models[0]).toMatchObject({ id: f.model.id, identity: f.model.identity,
+      name: f.model.name, contextLength: 8192, availability: 'ready', adapters: [],
+      partition: { planId: f.planId, participantA: f.a.peerId, participantB: f.b.peerId } });
+    expect(JSON.stringify(description)).not.toContain('qualification-evidence-');
+    expect(JSON.stringify(description)).not.toContain('/private/contributor-cache');
+    expect(f.model.capsule.evidence).toBe(privateClosure);
+    expect(f.model.generation).toEqual(generation);
+  });
+
   it.each([
     ['DOPPLER_RESIDENT_OUTPUT_LIMIT', 'exceeded the answer length allowance'],
     ['LEGACY_027_OUTPUT_LIMIT', 'exceeded the answer length allowance'],
