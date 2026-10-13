@@ -1,0 +1,14 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/ordered-partition-grants.test.js (6 tests) 40ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js (22 tests) 549ms
+ ✓ tests/unit/partition-api.test.js (42 tests) 3762ms
+     ✓ discovers cooperative executors with replica coverage=false  1701ms
+     ✓ discovers cooperative executors with replica coverage=true  1373ms
+
+ Test Files  3 passed (3)
+      Tests  70 passed (70)
+   Start at  11:13:23
+   Duration  4.36s (transform 340ms, setup 0ms, import 716ms, tests 4.35s, environment 439ms)
+

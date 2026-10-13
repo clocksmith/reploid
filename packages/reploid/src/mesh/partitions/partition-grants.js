@@ -193,13 +193,14 @@ export function createPartitionGrantAuthority({ identity, meshId, maxGrants, max
   return Object.freeze({
     participantId: signer.peerId, meshId, verify,
     canonicalScope,
-    async issueOrdered(identity, limits, { approved, ttlMs, disclosure, generationDigest }) {
+    async issueOrdered(identity, limits, { approved, ttlMs, disclosure, generationDigest, expiresAt }) {
       assert(!closed && approved === true, 'Explicit ordered partition disclosure approval required');
       assert(Number.isSafeInteger(ttlMs) && ttlMs > 0 && ttlMs <= maxTtlMs, 'Invalid ordered grant lifetime');
       const binding = canonicalRouteAttemptBinding(identity), issuedAt = now();
+      assert(expiresAt === undefined || Number.isSafeInteger(expiresAt) && expiresAt > issuedAt, 'Ordered disclosure deadline expired or invalid');
       const claim = structuredClone({ schema: ORDERED_SCHEMA, id: crypto.randomUUID(), meshId, identity: binding,
         coordinatorId: binding.route.stages[0].participantId, disclosure, generationDigest, issuedAt,
-        expiresAt: issuedAt + ttlMs, limits: Object.fromEntries(bounds.map(key => [key, limits[key]])) });
+        expiresAt: Math.min(issuedAt + ttlMs, expiresAt ?? Infinity), limits: Object.fromEntries(bounds.map(key => [key, limits[key]])) });
       orderedClaim(claim);
       assert(claim.coordinatorId === signer.peerId && await createPeerIdFromPublicJwk(signer.publicJwk) === signer.peerId,
         'Only the authenticated stage-zero coordinator grants ordered execution');

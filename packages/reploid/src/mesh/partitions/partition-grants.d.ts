@@ -22,7 +22,7 @@ export interface PartitionGrantAuthority {
   issue(identity: PartitionBinding, limits: PartitionLimits, controls: { approved: true; ttlMs: number;
     disclosure: PartitionGrant['claim']['disclosure']; generationDigest: string }): Promise<PartitionGrant>;
   issueOrdered(identity: RouteAttemptBinding, limits: OrderedPartitionGrant['claim']['limits'], controls: {
-    approved: true; ttlMs: number; disclosure: OrderedPartitionDisclosure; generationDigest: string;
+    approved: true; ttlMs: number; disclosure: OrderedPartitionDisclosure; generationDigest: string; expiresAt?:number;
   }): Promise<OrderedPartitionGrant>;
   verify(grant: unknown, request: OrderedPartitionGrantRequest, controls?: { settlement?: boolean }): Promise<boolean>;
   canonicalScope(input: { identity: PartitionBinding; limits: CanonicalPartitionGrant['claim']['limits'];

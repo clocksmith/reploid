@@ -76,7 +76,8 @@ describe('ordinary ordered chat and requester entry with genuine grants and inje
       expect(result.content).toBe('012'); expect(deltas).toEqual(['0','1','2']);
       expect(result.execution.schema).toBe('reploid.mesh.partition-summary/v2');
       expect(result.execution.identity.route).toEqual(f.f.route);
-      expect(result.execution.stepSummary.stages).toEqual(Array.from({ length: count }, (_, partitionIndex) => ({ partitionIndex, steps: 3 })));
+      expect(result.execution.stepSummary.stages).toEqual(Array.from({ length: count }, (_, partitionIndex) => ({ partitionIndex, steps: 3, stepMs: {count:3,total:expect.any(Number)} })));
+      expect(result.execution.stepSummary.stages.every(stage=>Number.isFinite(stage.stepMs.total) && stage.stepMs.total>=0)).toBe(true);
       expect(f.chat.getModels()[0]).not.toHaveProperty('signedCapsule');
       expect(f.f.stages.every(stage => stage.closeAttempt.mock.calls.length === 1)).toBe(true);
       expect(f.chat.getState().unsettled).toBe(0);
@@ -235,6 +236,36 @@ describe('ordinary ordered chat and requester entry with genuine grants and inje
       await expect(f.chat.generate(f.direct, f.controls)).rejects.toThrow('expired');
       expect(f.f.stages[0].tokenize).not.toHaveBeenCalled();
     } finally { clock?.mockRestore(); await f.close(); }
+  });
+  it('carries the requester deadline through entry and caps every signed stage grant to it', async () => {
+    const f = await fixture(3,true), disclosureExpiresAt = Date.now()+3000;
+    try {
+      const requester = createPartitionRequester({entries:()=>[f.client],requesterId:'requester',meshId:'mesh',modelId:'model',
+        modelIdentity:f.f.route.modelIdentity,planId:f.f.route.planId,maxPlacements:1,ordered:true,authorize:async()=>true,newId:()=> 'deadline'});
+      const result = await requester.generate({messages:f.request.messages,threadId:'thread',disclosureExpiresAt});
+      expect(result.content).toBe('012');
+      expect(f.approvals.filter(row=>row.action==='execute').every(row=>row.input.disclosureExpiresAt===disclosureExpiresAt)).toBe(true);
+      for(const stage of f.f.stages) for(const [request] of stage.executeStage.mock.calls) {
+        expect(request.executionGrant.claim.expiresAt).toBeLessThanOrEqual(disclosureExpiresAt);
+        expect(request.executionGrant.claim.expiresAt).toBeGreaterThan(request.executionGrant.claim.issuedAt);
+      }
+    } finally {await f.close();}
+  });
+  it('rejects an expired requester deadline before entry admission and tokenization',async()=>{
+    const f=await fixture();
+    try{await expect(f.client.generate({...f.request,disclosureExpiresAt:Date.now()-1})).rejects.toThrow('Invalid');
+      expect(f.f.stages[0].tokenize).not.toHaveBeenCalled();
+      await expect(f.chat.generate({...f.direct,disclosureExpiresAt:Date.now()-1},f.controls)).rejects.toThrow('expired');
+      expect(f.controls.requestApproval).not.toHaveBeenCalled();
+    }finally{await f.close();}
+  });
+  it('does not replace an expired remote approval with the coordinators longer local lifetime',async()=>{
+    const f=await fixture();let clock;
+    try{
+      const start=Date.now();f.controls.requestApproval.mockImplementation(async()=>{clock=vi.spyOn(Date,'now').mockReturnValue(start+1001);return true;});
+      await expect(f.chat.generate({...f.direct,disclosureExpiresAt:start+1000},f.controls)).rejects.toThrow('expired');
+      expect(f.f.stages[0].tokenize).not.toHaveBeenCalled();
+    }finally{clock?.mockRestore();await f.close();}
   });
   it('does not silently enable canonical publication or disclose before approval', async () => {
     const f = await fixture();
