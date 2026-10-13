@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/canonical-product-session.test.js (5 tests) 10ms
+ ✓ tests/unit/canonical-shell-opening.test.js (3 tests) 80ms
+
+ Test Files  2 passed (2)
+      Tests  8 passed (8)
+   Start at  08:35:16
+   Duration  815ms (transform 549ms, setup 0ms, import 784ms, tests 90ms, environment 351ms)
+

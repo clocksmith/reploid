@@ -14,7 +14,7 @@ export function createSignedResidentFactory<T>(options: {
   createFactory(binding: { capsuleOptions: Record<string, unknown>;
     openCapsule(capsule: unknown, options: unknown): Promise<SignedResidentSession> }): T;
   openCapsule(capsule: unknown, options: unknown): Promise<SignedResidentSession>;
-  model: unknown; artifactStore: unknown;
+  model: unknown; artifactStore: unknown; canonical?:boolean;
   release: { options: Record<string, unknown>; assertCurrent(session: SignedResidentSession): Promise<void> };
   assertSession(model: unknown, session: SignedResidentSession): Promise<void>;
   closeSources(failures: unknown[]): Promise<void>;

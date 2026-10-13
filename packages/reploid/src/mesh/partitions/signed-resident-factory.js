@@ -1,6 +1,7 @@
 /** Shared signed resident lifecycle. Hosts supply admission, release policy and Doppler. */
 export function createSignedResidentFactory({ createFactory, openCapsule, model, artifactStore,
-  release, assertSession, closeSources, trackSession, onVerification = () => {} }) {
+  release, assertSession, closeSources, trackSession, canonical = false, onVerification = () => {} }) {
+  if (typeof canonical !== 'boolean') throw new Error('Explicit canonical signed factory mode required');
   if (typeof trackSession !== 'function') throw new Error('Signed resident requires an explicit session cleanup owner');
   return createFactory({ capsuleOptions: { ...release.options, artifactStore },
     async openCapsule(capsule, options) {
@@ -12,6 +13,11 @@ export function createSignedResidentFactory({ createFactory, openCapsule, model,
         onVerification(session.verification);
         const partition = session.residentPartition;
         if (!partition) throw new Error('Capsule opener did not return a qualified resident');
+        const canonicalMethods = ['admitCanonicalPrompt', 'executeCanonicalGroup0', 'executeCanonicalGroup1', 'commitCanonicalTransition'];
+        if (canonical && (typeof partition.getCanonicalGeneration !== 'function'
+          || canonicalMethods.some(name => typeof partition[name] !== 'function'))) {
+          throw new Error('Signed resident lacks declared canonical execution methods');
+        }
         let closing = null, sessionSettled = false;
         const invoke = async (method, request) => {
           await release.assertCurrent(session);
@@ -23,6 +29,7 @@ export function createSignedResidentFactory({ createFactory, openCapsule, model,
           return result;
         };
         return { ...session, residentPartition: Object.freeze({ ...partition,
+          ...(canonical ? Object.fromEntries(canonicalMethods.map(name => [name, request => invoke(name, request)])) : {}),
           tokenize: request => invoke('tokenize', request),
           executeGroup0: request => invoke('executeGroup0', request),
           executeGroup1: request => invoke('executeGroup1', request),

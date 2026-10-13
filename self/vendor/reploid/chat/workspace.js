@@ -242,6 +242,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       }
       return copy(attempt);
     })();
+    if (transactional) Object.defineProperty(run.completion, 'admitted', { value: admitted, enumerable: false });
     return run.completion;
   };
   if (loaded) { const initialSave = persist(); initialSave?.catch(() => {}); }

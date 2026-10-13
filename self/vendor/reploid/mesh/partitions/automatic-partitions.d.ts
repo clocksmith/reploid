@@ -1,3 +1,4 @@
+import type { CanonicalRunnerRuntime } from './partition-canonical-execution.js';
 import type { SigningIdentity } from '../../artifacts/identity.js';
 import type { ChatModel, ChatRequest, ChatControls, ChatResult } from '../../chat/index.js';
 import type { PartitionPlan, PartitionRuntime, PartitionLimits, PartitionAttemptReceipt } from './partition-runner.js';
@@ -35,6 +36,7 @@ export interface AutomaticPartitions {
   generate(request: ChatRequest & { threadId: string; attemptId: string }, controls: ChatControls): Promise<ChatResult>;
 }
 export function createAutomaticPartitions(options: {
+  canonical?:{runtime:PartitionRuntime & CanonicalRunnerRuntime;coordinatorEpoch:string;participantEpoch:string}|null;
   identity: SigningIdentity; meshId: string; models: ChatModel[]; policy: AutomaticPartitionPolicy;
   peers(): Array<{ id: string; localTransportId: string }>;
   createNetwork<T extends { close(): void | Promise<void> }>(options: {
@@ -43,6 +45,7 @@ export function createAutomaticPartitions(options: {
     onPeer?(transportId: string, endpoint: T): void;
   }): PartitionNetwork<T>;
   loadProgram(model: ChatModel, index: 0 | 1, controls: { signal: AbortSignal; participantId: string;
+    canonical?:{identity:SigningIdentity;participantEpoch:string};
     /** Retained if loading rejects; a successful returned resident assumes this ownership. */
     /** Release the registration only after this owner's cleanup succeeds. */
     registerCleanup(owner: { close(): void | Promise<void> }): () => void;

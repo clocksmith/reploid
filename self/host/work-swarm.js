@@ -18,7 +18,9 @@ import { createWorkPartitionNetworks } from './work-partition-networks.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
-  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions }) {
+  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null }) {
+  canonical = canonical ? Object.freeze({ runtime: canonical.runtime, meshId: canonical.meshId,
+    participantId: canonical.participantId, participantEpoch: canonical.participantEpoch, coordinatorEpoch: canonical.coordinatorEpoch }) : null;
   const utils = Utils.factory({}), eventBus = EventBus.factory({ Utils: utils });
   const options = networkOptions({ Utils: utils, EventBus: eventBus }, { enabled: true });
   let consumer = null, supplier = null, closed = false, sharing = false, stopping = false, connecting = false, error = '';
@@ -153,7 +155,11 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         await modelFiles.attach();
         partitionNetworks = createWorkPartitionNetworks({ transport: consumerTransport,
           verifyPeer: (peerId, signal) => active.verifyPeerIdentity(peerId, signal) });
-        partitionMesh = createPartitions({ identity: consumerIdentity, meshId: options.config.value.mesh.roomId,
+        if (canonical && (canonical.participantId !== consumerIdentity.peerId || canonical.meshId !== options.config.value.mesh.roomId)) {
+          throw new Error('Canonical history identity differs from authenticated participant or mesh');
+        }
+        partitionMesh = createPartitions({ canonical: canonical ? { runtime: canonical.runtime,
+          coordinatorEpoch: canonical.coordinatorEpoch, participantEpoch: canonical.participantEpoch } : null, identity: consumerIdentity, meshId: options.config.value.mesh.roomId,
           models: LOCAL_DOPPLER_MODELS.filter(model => model.source?.files.some(file => file.role === 'model-piece-index')),
           policy: partitionPolicy,
           peers: () => (consumerTransport?.getConnectedPeers() || []).map(peer => ({ ...peer, localTransportId: consumerTransport._getPeerId() })),

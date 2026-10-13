@@ -103,6 +103,7 @@ export interface ChatWorkspaceOptions {
   execute(request: ChatRequest & ChatEnvelope & { meshId: string; participantId: string }, controls: ChatControls): Promise<ChatResult>;
   policy?: ChatPolicy; now?: () => number; id?: () => string;
 }
+export interface ChatAttemptCompletion extends Promise<ChatAttempt> { readonly admitted?:Promise<void>; }
 export interface ChatWorkspace {
  authorizePublication(scope:{conversationId:string;writerEpoch:string;action:string;attempt: {attemptId:string;requesterId:string;stages?:readonly {participantId:string}[]} | null}):boolean;
   getState(): ChatState;
@@ -113,8 +114,8 @@ export interface ChatWorkspace {
   renameThread(threadId: string, title: string): void;
   closeThread(threadId: string): void;
   reopenThread(threadId: string): void;
-  send(threadId: string, content: string, options?: ChatSendOptions): Promise<ChatAttempt>;
-  retry(threadId: string, attemptId: string, options?: Pick<ChatSendOptions, 'authorizeDisclosure'>): Promise<ChatAttempt>;
+  send(threadId: string, content: string, options?: ChatSendOptions): ChatAttemptCompletion;
+  retry(threadId: string, attemptId: string, options?: Pick<ChatSendOptions, 'authorizeDisclosure'>): ChatAttemptCompletion;
   approve(threadId: string, attemptId: string, previewId: string, accepted: boolean, options?: { remember?: boolean }): void;
   revokeGrant(threadId: string, grantId: string): void;
   cancel(threadId: string): Promise<unknown>;

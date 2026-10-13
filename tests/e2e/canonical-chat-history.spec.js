@@ -9,6 +9,9 @@ test.beforeEach(async ({ page }) => {
       return route.fulfill({ contentType: name.endsWith('.json') ? 'application/json' : 'text/javascript',
         body: await readFile(process.env.DOPPLER_SOURCE_ROOT + '/src/' + name.slice('/doppler/'.length)) });
     }
+    if (!name.includes('..') && ['/tests/', '/packages/reploid/src/', '/self/'].some(prefix => name.startsWith(prefix))) {
+      return route.fulfill({ contentType: name.endsWith('.json') ? 'application/json' : 'text/javascript', body: await readFile('.' + name) });
+    }
     if (name.includes('..') || !['/host/', '/core/', '/vendor/', '/config/', '/infrastructure/', '/providers/', '/pool/'].some(prefix => name.startsWith(prefix))) return route.abort();
     return route.fulfill({ contentType: name.endsWith('.json') ? 'application/json' : 'text/javascript', body: await readFile('self' + name) });
   });
@@ -265,4 +268,15 @@ test('opt-in host opens async history and drafts while legacy storage stays byte
   });
   expect(result).toEqual({ imported: 'unsent legacy draft', restored: 'durable new draft', status: 'failed', dispatches: 0,
     failure: 'Canonical history requires a prepared canonical partition route', oldWorkspaceUntouched: true, oldDraftsUntouched: true });
+});
+
+
+test('actual composer publishes through automatic peers and renders only signed IndexedDB records', async ({ page }) => {
+  test.skip(!process.env.DOPPLER_SOURCE_ROOT, 'Explicit source checkout required; no installed runtime qualification');
+  const policy = JSON.parse(await readFile(process.env.DOPPLER_SOURCE_ROOT + '/tests/fixtures/canonical-generation-policy.json', 'utf8'));
+  const result = await page.evaluate(async policy => {
+    globalThis.CANONICAL_TEST_SOURCE = { runtimeBase: '/doppler/', policy };
+    return (await import('/tests/canonical-automatic-source.js')).browserResult;
+  }, policy);
+  expect(result).toEqual({ status: 'completed', output: '34', visible: true, records: 2, metadataText: '', draftCleared: true, a: 2, b: 2 });
 });

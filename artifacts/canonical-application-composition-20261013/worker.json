@@ -1,0 +1,402 @@
+{
+  "files": {
+    "packages/reploid/src/chat/workspace.js": "c6904c474e99c7a9d919ff189fc879e36d7cf927d7a668b7e4d8dc6587a0c857",
+    "packages/reploid/src/mesh/partitions/automatic-partitions.js": "3cb2289669d4bc87889097308acbed8b833ada86cffac0d92539a0a06863b4be",
+    "packages/reploid/src/mesh/partitions/signed-resident-factory.js": "eff43eb5275b551630100bab8f3e4a784627c8e03a0e8518a97ca38eeaaf2197",
+    "self/host/product-session.js": "99756cf4e2cede0cbea4a5f92d8baa3b4a4973c400c9f71a845c408b1ac2c773",
+    "self/host/work-partitions.js": "98c62d4bf3e5ee8efce09ffddea25208e3c789f24c7226a486cc7837e79f69b6",
+    "self/host/work-swarm.js": "02822436094caad393a40a357339bbb409759cdf9baaafc66005b49ad7f720cd",
+    "self/ui/pool-home/conversation-workspace.js": "6c9cf2c0b33caa7edddc2293dd2c360ef7d75b3fd60734364b3038a1b7df1207",
+    "self/ui/pool-home/index.js": "64479c49766aea989ba207a384c45677d8205753654bd9c174f50200271d7369"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/chat/workspace.js:18: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 48 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/mesh/partitions/automatic-partitions.js:21: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 29 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Nesting depth of 10 exceeds 5 - refactor nested code",
+      "Warning in /self/host/product-session.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /self/host/work-partitions.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Warning in /self/host/work-swarm.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 35 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /self/ui/pool-home/conversation-workspace.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 32 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "13 lines exceed 200 characters",
+      "Warning in /self/ui/pool-home/index.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /self/ui/pool-home/index.js: innerHTML assignment is risky - consider textContent",
+      "Warning in /self/ui/pool-home/index.js: insertAdjacentHTML is risky - potential XSS",
+      "Nesting depth of 7 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894937632,
+        "path": "/packages/reploid/src/chat/workspace.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 18,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937634,
+        "metric": "functions",
+        "value": 48,
+        "threshold": 20,
+        "message": "File has 48 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/chat/workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937634,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/chat/workspace.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894937640,
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 21,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937642,
+        "metric": "functions",
+        "value": 29,
+        "threshold": 20,
+        "message": "File has 29 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937642,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937643,
+        "metric": "nesting",
+        "value": 10,
+        "threshold": 5,
+        "message": "Nesting depth of 10 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/signed-resident-factory.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894937645,
+        "path": "/self/host/product-session.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937645,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/self/host/product-session.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894937646,
+        "path": "/self/host/work-partitions.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937647,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/self/host/work-partitions.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894937652,
+        "path": "/self/host/work-swarm.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937653,
+        "metric": "functions",
+        "value": 35,
+        "threshold": 20,
+        "message": "File has 35 functions (max 20) - consider modularizing",
+        "path": "/self/host/work-swarm.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937653,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/self/host/work-swarm.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894937658,
+        "path": "/self/ui/pool-home/conversation-workspace.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937661,
+        "metric": "functions",
+        "value": 32,
+        "threshold": 20,
+        "message": "File has 32 functions (max 20) - consider modularizing",
+        "path": "/self/ui/pool-home/conversation-workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937661,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/self/ui/pool-home/conversation-workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937661,
+        "metric": "line_length",
+        "value": 13,
+        "threshold": 5,
+        "message": "13 lines exceed 200 characters",
+        "path": "/self/ui/pool-home/conversation-workspace.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894937662,
+        "path": "/self/ui/pool-home/index.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894937662,
+        "path": "/self/ui/pool-home/index.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791894937662,
+        "path": "/self/ui/pool-home/index.js",
+        "patternId": "insertadjacenthtml",
+        "category": "dom",
+        "message": "insertAdjacentHTML is risky - potential XSS",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791894937663,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/self/ui/pool-home/index.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/self/host/product-session.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/host/work-partitions.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/host/work-swarm.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/ui/pool-home/conversation-workspace.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/ui/pool-home/index.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/ui/pool-home/index.js",
+          "patternId": "innerhtml_assign",
+          "category": "dom",
+          "message": "innerHTML assignment is risky - consider textContent",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/ui/pool-home/index.js",
+          "patternId": "insertadjacenthtml",
+          "category": "dom",
+          "message": "insertAdjacentHTML is risky - potential XSS",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 48,
+          "threshold": 20,
+          "message": "File has 48 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 29,
+          "threshold": 20,
+          "message": "File has 29 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 10,
+          "threshold": 5,
+          "message": "Nesting depth of 10 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/signed-resident-factory.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/self/host/product-session.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/self/host/work-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 35,
+          "threshold": 20,
+          "message": "File has 35 functions (max 20) - consider modularizing",
+          "path": "/self/host/work-swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/self/host/work-swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 32,
+          "threshold": 20,
+          "message": "File has 32 functions (max 20) - consider modularizing",
+          "path": "/self/ui/pool-home/conversation-workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/self/ui/pool-home/conversation-workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 13,
+          "threshold": 5,
+          "message": "13 lines exceed 200 characters",
+          "path": "/self/ui/pool-home/conversation-workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/self/ui/pool-home/index.js"
+        }
+      ],
+      "filesAnalyzed": 8
+    }
+  }
+}

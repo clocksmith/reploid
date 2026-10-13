@@ -1,0 +1,15 @@
+
+Running 6 tests using 1 worker
+
+(node:25778) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:25778) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/canonical-chat-history.spec.js:21:1 › canonical publication races and unknown receipts reconcile through actual IndexedDB (382ms)
+  ✓  2 tests/e2e/canonical-chat-history.spec.js:87:1 › two connections serialize atomic history updates, retain aborted heads and enforce admission (79ms)
+  ✓  3 tests/e2e/canonical-chat-history.spec.js:124:1 › Verification Worker accepts the transactional adapter (62ms)
+  ✓  4 tests/e2e/canonical-chat-history.spec.js:139:1 › signed canonical evidence survives actual IndexedDB closure and rejects retained corruption (226ms)
+  ✓  5 tests/e2e/canonical-chat-history.spec.js:242:1 › opt-in host opens async history and drafts while legacy storage stays byte exact (214ms)
+  ✓  6 tests/e2e/canonical-chat-history.spec.js:274:1 › actual composer publishes through automatic peers and renders only signed IndexedDB records (423ms)
+
+  6 passed (2.2s)

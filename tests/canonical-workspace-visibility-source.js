@@ -24,10 +24,14 @@ assert.equal(app.getState().threads[0].title, undefined, 'Earlier save must not 
 app.select(a); assert.equal(viewers.at(-1).threads[0].title, undefined);
 saves[2].resolve(); await rename;
 const result = app.send(a, 'question');
+assert.ok(result.admitted instanceof Promise);
+let admissionComplete = false; result.admitted.then(() => { admissionComplete = true; });
+await nextTurn(); assert.equal(admissionComplete, false);
 app.select(b);
 assert.equal(app.getState().threads[0].messages.length, 0, 'Admission remains invisible until storage commits');
 assert.equal(calls, 0);
-saves[3].resolve(); await nextTurn(); assert.equal(calls, 1);
+saves[3].resolve(); await result.admitted; await nextTurn(); assert.equal(calls, 1);
+assert.equal(admissionComplete, true);
 controls.onState({ threadId: a, attemptId: request.attemptId, status: 'executing' });
 assert.equal(app.getState().ephemeralExecutions[0].status, 'executing');
 assert.equal(app.getState().threads[0].attempts[0].status, 'queued');
@@ -44,3 +48,18 @@ assert.equal(app.getState().threads[0].attempts[0].status, 'executing', 'Termina
 saves[5].resolve(); assert.equal((await result).status, 'completed');
 await app.close();
 console.log('transactional workspace visibility: delayed writes, overlapping notifications and separate ephemeral execution never expose pending admission/output/terminal metadata');
+
+let failWrite = false, executions = 0;
+const failure = Error('transaction outcome unknown');
+const failed = createChatWorkspace({ meshId: 'mesh', participantId: 'requester',
+  store: { ...store, save: async () => { if (failWrite) throw failure; } },
+  execute: async () => { executions++; } });
+const failedThread = await failed.createThread({ model }); failWrite = true;
+const pending = failed.send(failedThread, 'retained draft');
+await Promise.all([assert.rejects(pending.admitted, error => error === failure),
+  assert.rejects(pending, /History storage failed/)]);
+assert.equal(executions, 0);
+assert.equal(failed.getState().threads[0].messages.length, 0);
+assert.match(failed.getState().storageError, /transaction outcome unknown/);
+await assert.rejects(failed.close(), /History storage failed/);
+console.log('actual failed metadata admission rejects admitted promise and dispatches nothing');

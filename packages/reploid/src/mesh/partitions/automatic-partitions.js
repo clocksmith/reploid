@@ -9,11 +9,18 @@ import { canonicalPartitionJson, assertPartition as assert } from './partition-c
 /** Automatic placement over authenticated discovery. Only the supplied host
  * loader may open Doppler, and only after local contribution approval. */
 export function createAutomaticPartitions({ identity, meshId, models, policy, peers, createNetwork,
-  loadProgram, onChange = () => {} }) {
+  loadProgram, canonical = null, onChange = () => {} }) {
   const config = structuredClone(policy), catalog = structuredClone(models);
   assert(identity?.peerId && typeof peers === 'function' && typeof createNetwork === 'function'
     && typeof loadProgram === 'function' && Number.isSafeInteger(config.pollMs) && config.pollMs > 0,
   'Automatic partitions require identity, discovery, loader and explicit policy');
+  if (canonical !== null) {
+    assert(canonical && /^[a-f0-9]{32}$/.test(canonical.coordinatorEpoch)
+      && /^[a-f0-9]{32}$/.test(canonical.participantEpoch)
+      && ['metadataDigest', 'canonicalGenerationIdentity', 'validateResidentAttemptIdentity', 'tokenDigest']
+        .every(name => typeof canonical.runtime?.[name] === 'function'), 'Explicit canonical runtime and epochs required');
+    canonical = { runtime: canonical.runtime, coordinatorEpoch: canonical.coordinatorEpoch, participantEpoch: canonical.participantEpoch };
+  }
   const listeners = new Set(), admissions = new Map();
   const lifetime = new AbortController();
   let offer = null, program = null, execution = null, chat = null, executionPeer = null, preparing = null;
@@ -22,8 +29,8 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
   let placementDecision = null, closing = null, stopping = null;
   const unsettledOwners = new Set();
   const authority = createPartitionGrantAuthority({ identity, meshId,
-    maxGrants: config.limits.maxAttempts, maxTtlMs: config.grantMs, maxClockSkewMs: config.grantClockSkewMs });
-  const getModels = () => discovery.getModels();
+    maxGrants: config.limits.maxAttempts, maxTtlMs: config.grantMs, maxClockSkewMs: config.grantClockSkewMs, canonicalRuntime: canonical?.runtime });
+  const getModels = () => discovery.getModels().filter(model => !!model.canonical === !!canonical);
   const getState = () => ({ phase, error, progress: structuredClone(progress), offering: !!offer, modelId: offer?.id || null,
     placement: structuredClone(placement), placementDecision: structuredClone(placementDecision),
     capabilities: discovery.getSnapshot(), descriptor: program?.resident.getState().descriptor || null,
@@ -42,10 +49,10 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
   const entries = createNetwork({ label: 'reploid-partitions-input',
     maxPeers: config.maxPeers, timeoutMs: config.connectTimeoutMs,
     createEndpoint: ({ channel, remoteParticipantId }) => createPartitionEntry({ channel,
-      localParticipantId: identity.peerId, remoteParticipantId, service,
+      localParticipantId: identity.peerId, remoteParticipantId, service, canonical: !!canonical,
       limits: config.inputChannel, inputLimits: config.inputLimits,
       async authorize(input, { action }) {
-        if (['send', 'accept'].includes(action)) {
+        if (input.requesterId === identity.peerId) {
           const admitted = admissions.get(input.attemptId);
           return !!admitted && canonicalPartitionJson(admitted) === canonicalPartitionJson(input);
         }
@@ -107,6 +114,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       const preparationOwners = new Set();
       preparing = Promise.resolve().then(() => loadProgram(selectedOffer, selected.indexOf(identity.peerId), {
         signal: AbortSignal.any([lifetime.signal, contributionController.signal]), participantId: identity.peerId,
+        ...(canonical ? { canonical: { identity, participantEpoch: canonical.participantEpoch } } : {}),
         registerCleanup(owner) {
           assert(typeof owner?.close === 'function', 'Preparation cleanup owner must expose close');
           preparationOwners.add(owner);
@@ -128,7 +136,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
           createEndpoint: ({ channel, remoteParticipantId }) => createPartitionPeer({ channel,
             localParticipantId: identity.peerId, remoteParticipantId, runtime: program.runtime,
             modelIdentity: program.model.identity, plan: program.plan, planId: program.planId, authority,
-            contributor: program.resident.index === 1 ? program.resident : null, limits: config.executionChannel,
+            canonical: !!canonical, contributor: program.resident.index === 1 ? program.resident : null, limits: config.executionChannel,
             receiverLimits: config.receiver, descriptorTtlMs: config.inputLimits.descriptorTtlMs }) });
         phase = 'ready'; progress = null; notify();
       } catch (cause) {
@@ -153,6 +161,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       chat = createPartitionChat({ runtime: program.runtime, local: program.resident, remote,
         authority, model: program.model, plan: program.plan, planId: program.planId,
         limits: config.limits, grantTtlMs: config.grantMs,
+        ...(canonical ? { canonical: { coordinatorEpoch: canonical.coordinatorEpoch } } : {}),
         authorizeRequester: async () => !!offer && !closed });
       await chat.refresh({ signal: lifetime.signal }); notify();
     }
@@ -203,6 +212,8 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       return operation;
     },
     async generate(request, controls) {
+      assert(!!controls.publication === !!canonical && (!canonical || typeof controls.onPublished === 'function'
+        && /^[a-f0-9]{32}$/.test(controls.publisherEpoch)), 'Canonical requester requires durable publication and explicit mesh capability');
       const decision = selectPartitionExecution({ model: request.model, capabilities: discovery.getSnapshot() });
       assert(decision.transportId, 'No prepared cooperative partition path is available');
       const entry = await entries.connect(decision.transportId);
@@ -210,6 +221,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       const model = refreshed.descriptor.models.find(model => model.id === request.model.id
         && model.identity === request.model.identity && model.availability === 'ready');
       assert(refreshed.ready && model, 'No prepared cooperative partition path is available');
+      assert(!!model.canonical === !!canonical, 'Prepared route has a different publication capability');
       const messages = structuredClone(request.messages), expiresAt = Date.now() + config.grantMs;
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId,
         attemptId: request.attemptId, operation: 'generate-partition',
@@ -224,19 +236,22 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       const current = await refreshEntry(entry, decision.transportId, model, controls.signal);
       const same = current.descriptor.models.find(candidate => candidate.id === model.id
         && candidate.identity === model.identity && candidate.availability === 'ready'
-        && canonicalPartitionJson(candidate.partition) === canonicalPartitionJson(model.partition));
+        && canonicalPartitionJson(candidate.partition) === canonicalPartitionJson(model.partition)
+        && canonicalPartitionJson(candidate.canonical ?? null) === canonicalPartitionJson(model.canonical ?? null));
       assert(current.ready && same, 'Approved partition placement changed; review a new attempt');
       assert(Date.now() < expiresAt, 'Partition input disclosure expired'); controls.signal.throwIfAborted();
-      const input = { schema: 'reploid.partition-input/v1', operation: 'generate', meshId,
+      const input = { schema: canonical ? 'reploid.partition-input/v2' : 'reploid.partition-input/v1', operation: 'generate', meshId,
         requesterId: identity.peerId, ...model.partition, modelId: model.id, modelIdentity: model.identity,
         threadId: request.threadId, attemptId: request.attemptId, placementGeneration: 0,
-        messages };
+        messages, ...(canonical ? { canonical: { schema: 'reploid.partition-publication-context/v1',
+          ...structuredClone(model.canonical), publisherEpoch: controls.publisherEpoch, deadlineAt: expiresAt } } : {}) };
       admissions.set(request.attemptId, input);
       let sequence = 0;
       controls.onState({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing',
         execution: { placement: 'two-device-layer-partition', ...model.partition } });
       try {
         const result = await entry.generate(input, { signal: controls.signal,
+          ...(canonical ? { publication: controls.publication, onPublished: controls.onPublished } : {}),
           onDelta: text => controls.onDelta({ threadId: request.threadId, attemptId: request.attemptId, sequence: sequence++, text }) });
         return { ...result, threadId: request.threadId, attemptId: request.attemptId,
           modelId: model.id, modelIdentity: model.identity, adapterIdentities: [],

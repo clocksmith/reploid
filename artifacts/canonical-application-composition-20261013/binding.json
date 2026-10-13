@@ -1,0 +1,32 @@
+{
+  "component": "Canonical application composition",
+  "intent": "preserved",
+  "sourceBase": "b413f3c4cc27aadb439f43468f0922777eca56da",
+  "dopplerSource": "4e43ebbb209e52b30ce008dcfa757f27ac4696c5",
+  "acceptedPinSha256": "8f2f73df2b77ad3047f87640f43844a98b21fd1b8861d09109a5e088feda036f",
+  "installedCanonicalCapability": "undefined",
+  "productionFiles": {
+    "packages/reploid/src/chat/workspace.js": "c6904c474e99c7a9d919ff189fc879e36d7cf927d7a668b7e4d8dc6587a0c857",
+    "packages/reploid/src/mesh/partitions/automatic-partitions.js": "3cb2289669d4bc87889097308acbed8b833ada86cffac0d92539a0a06863b4be",
+    "packages/reploid/src/mesh/partitions/signed-resident-factory.js": "eff43eb5275b551630100bab8f3e4a784627c8e03a0e8518a97ca38eeaaf2197",
+    "self/host/product-session.js": "99756cf4e2cede0cbea4a5f92d8baa3b4a4973c400c9f71a845c408b1ac2c773",
+    "self/host/work-partitions.js": "98c62d4bf3e5ee8efce09ffddea25208e3c789f24c7226a486cc7837e79f69b6",
+    "self/host/work-swarm.js": "02822436094caad393a40a357339bbb409759cdf9baaafc66005b49ad7f720cd",
+    "self/ui/pool-home/conversation-workspace.js": "6c9cf2c0b33caa7edddc2293dd2c360ef7d75b3fd60734364b3038a1b7df1207",
+    "self/ui/pool-home/index.js": "64479c49766aea989ba207a384c45677d8205753654bd9c174f50200271d7369"
+  },
+  "proof": {
+    "numericalOperators": "injected",
+    "signing": "real WebCrypto",
+    "publication": "actual IndexedDB and runtime cursor contracts",
+    "gpu": "disabled in browser; no model or GPU qualification",
+    "defaultActivation": false
+  },
+  "commands": [
+    "npm run sync:library",
+    "npm run verify:library-types",
+    "node artifacts/canonical-application-composition-20261013/verify-worker.mjs",
+    "DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler node tests/canonical-automatic-source.js",
+    "DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler npx playwright test --config artifacts/canonical-publication-evidence-20261012/playwright.config.mjs"
+  ]
+}
