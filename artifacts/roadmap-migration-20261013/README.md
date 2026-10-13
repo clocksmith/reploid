@@ -8,7 +8,7 @@ Component: documentation navigation and acceptance tracking. Intent: planning na
 - [Canonical requirements](../../docs/roadmap/requirements.md) retain the task entries and checkboxes.
 - [RD-CANON/1](../../docs/roadmap/rd-canon-1.md) retains the normative architecture and inherited fixtures.
 - [History](../../docs/roadmap/history.md) preserves chronology.
-- [TODO](../../TODO.md) preserves old links through compatibility anchors.
+- At migration, [TODO](https://github.com/clocksmith/reploid/blob/8853b90a4d7e59a021016b6cb056e7fe274e814a/TODO.md) preserved old links through compatibility anchors; that compatibility file has since been removed.
 
 [Validation](validation.json) records input/output hashes and the actual checks: 47 stable IDs, all 87 checkbox states (31 checked), all 74 legacy anchors, and 301 unique local paths/fragments or locally available Git-pinned objects. RD-CANON is byte-identical after the four navigation-only substitutions. Other external links were not requalified.
 

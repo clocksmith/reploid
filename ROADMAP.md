@@ -118,6 +118,6 @@ Comparison acceptance stays in DR-6. The following canonical IDs remain explicit
 
 Speculation, transferable inference state, finer expert placement, learned scheduling and power-price routing require separately demonstrated complete benefit. Ordinary multistage service does not wait for them. Existing fork/replay and target-sampling requirements remain in [RD-CANON/1](docs/roadmap/rd-canon-1.md); this migration does not weaken its performance, correctness or authorization gates.
 
-Keep one canonical task entry per stable ID in the register, with its owner, applicable source/installed/physical status, next action, dependencies and acceptance. Update only supported evidence. Keep chronology in [history](docs/roadmap/history.md), immutable receipts with their owners, and design contracts separate from status. [TODO.md](TODO.md) is only a compatibility pointer with legacy anchors.
+Keep one canonical task entry per stable ID in the register, with its owner, applicable source/installed/physical status, next action, dependencies and acceptance. Update only supported evidence. Keep chronology in [history](docs/roadmap/history.md), immutable receipts with their owners, and design contracts separate from status.
 
 *Last updated: October 2026*

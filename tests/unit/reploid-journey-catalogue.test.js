@@ -27,7 +27,7 @@ describe('Reploid journey catalogue integrity (not runtime qualification)', () =
   it('requires linked evidence and rejects missing files, anchors and escaped paths', async () => {
     expect(await validate(catalogue.replace(/^- \*\*Acceptance evidence:\*\*.*$/m, '- **Acceptance evidence:** no proof linked')))
       .toContain('CHAT-01: acceptance evidence requires a link');
-    for (const link of ['../missing-proof.md', '../TODO.md#missing-anchor', '../../outside.md', '#missing-anchor']) {
+    for (const link of ['../missing-proof.md', '../ROADMAP.md#missing-anchor', '../../outside.md', '#missing-anchor']) {
       expect((await validate(catalogue + `\n[bad evidence](${link})\n`)).some(error => error.startsWith(`Broken catalogue link: ${link}`))).toBe(true);
     }
   });

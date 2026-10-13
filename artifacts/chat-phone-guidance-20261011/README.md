@@ -58,6 +58,6 @@ and browser closed after the run. No existing remote session was used.
 These are simulated conversation states and local browser/repository checks,
 not physical distributed inference, a real phone keyboard, or unfamiliar-user
 observation. Those product checks and release gates stay open in
-[REP-7](../../TODO.md#rep-7). No deployment occurred. The numerical-reference and
+[REP-7](../../docs/roadmap/requirements.md#rep-7). No deployment occurred. The numerical-reference and
 ordered-message model-quality handoffs are recorded under DOP-6 and DR-5;
 the stopped Doppler/Doe owners were not restarted.
