@@ -32,3 +32,8 @@ fixture={'schema':'reploid.single-price-relation-input/v1','selectionRule':'Firs
 (root/'input.json').write_text(json.dumps(fixture,indent=2)+'\n')
 (root/'composition-inputs.json').write_text(json.dumps({'schema':'reploid.price-relation-composition-inputs/v1','scope':'Tokenizer-only cost controls, not a scheduled model batch or semantic selections. Final answer/control remains original ordered history. Nonmonetary interpretation and conditions remain unimplemented/unqualified.','cases':controls},indent=2)+'\n')
 print(hashlib.sha256((root/'input.json').read_bytes()).hexdigest())
+
+source_suite={'modelId':suite['modelId'],'sourceRevision':suite['sourceRevision'],'scope':'Single original-source local price relation diagnostic; full document qualification remains open.',
+ 'generation':fixture['generation'],'enableThinking':fixture['enableThinking'],'eosTokenIds':fixture['eosTokenIds'],'maxOutputCharacters':16000,
+ 'instruction':fixture['messages'][0]['content'],'cases':[{'id':'first-price-occurrence-diagnostic','messages':fixture['messages'][1:],'reviewCriteria':['Manual local relation review only. Full original document criteria remain unqualified.']}]}
+(root/'suite.json').write_text(json.dumps(source_suite,indent=2)+'\n')

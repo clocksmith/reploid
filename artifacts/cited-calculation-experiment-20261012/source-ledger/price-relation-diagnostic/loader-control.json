@@ -1,0 +1,24 @@
+{
+  "schema": "reploid.actual-source-loader-preparation-control/v1",
+  "passed": true,
+  "sourceModelExecuted": false,
+  "modelConstructorSubstituted": true,
+  "weightsHashedByActualLoader": true,
+  "missingIdentityRejectedBeforeConstruction": true,
+  "realLoaderReportBoundaryReached": true,
+  "construction": [
+    {
+      "localFilesOnly": true,
+      "attention": "eager",
+      "dtype": "torch.float32"
+    }
+  ],
+  "evaluations": [
+    {
+      "scope": "Single original-source local price relation diagnostic; full document qualification remains open.",
+      "modelId": "Qwen/Qwen3-1.7B",
+      "sourceRevision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e"
+    }
+  ],
+  "toolSha256": "3e1dd96f7e338a48a0c778e7d9b2b20f0c9c2982ff9a59194d03774ed42da483"
+}

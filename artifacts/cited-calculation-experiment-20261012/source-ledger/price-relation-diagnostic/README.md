@@ -3,7 +3,8 @@
 The grammar-constrained whole-ledger attempt (`4ce6f175`) produced valid syntax
 but assigned mutually incompatible roles to the same source facts. This
 preparation isolates one local decision: one monetary occurrence, one primary
-relation. No model has run this diagnostic.
+relation. No model has run this diagnostic. Preparation27ccc719 stopped at the actual loader's source-identity admission because suite identity fields were omitted;
+`preimport-failure/` retains the exact failure, before any weight loading or token generation. The corrected suite names the same model/revision and scope.
 
 `input.json` selects the **first document monetary occurrence in the first
 original case**, using retained source row order: `$8,400` in `D1:P1`. The model
@@ -65,6 +66,8 @@ two locked holdouts. No diagnostic label exempts those gates.
   synthetic suite encoding error: this evaluator expects the system instruction
   in `suite.instruction`, with only user/assistant turns in each case. Exact
   rendered input still matches the preflight. Neither failure used model weights.
+
+The added `loader_test.py` runs the actual frozen loader, including actual source-file hashing, with only model construction substituted. It reproduces the missing-identity failure before construction and proves the corrected suite reaches the real report/evaluation boundary without running a model.
 
 No JavaScript or canonical evaluator changed. `constraint_adapter.py` reuses the
 previous hash-bound constraint/evaluator hook and supplies only a finite output
