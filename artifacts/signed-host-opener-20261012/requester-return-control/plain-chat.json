@@ -1,0 +1,26 @@
+{
+  "schema": "reploid.basic-chat-journey/v1",
+  "scope": "One useful plain coding conversation through the existing signed distributed UI; attachments and document tasks excluded.",
+  "questions": [
+    "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].",
+    "Using that same function, what is returned for [-2, 3, 6]? Answer only with the array."
+  ],
+  "draft": "Unsent follow-up: explain the two array operations.",
+  "reviewCriteria": [
+    "The first answer supplies a complete JavaScript function that filters even values then doubles them, using filter and map, without changing the input array.",
+    "The first example evaluates to [4, 8]; any explanation must agree with the code and must not falsely claim filter/map mutate the input.",
+    "The actual first answer is retained verbatim in the second request's ordered history. No ideal assistant answer is inserted.",
+    "The follow-up answer is the array [-4, 12], consistent with the requested function. Assess factual correctness separately from natural completion.",
+    "Both attempts finish with observed natural EOS and confirmed settlement on two distinct contributors. No hidden local or whole-request fallback qualifies.",
+    "At least one nonempty incomplete first-answer prefix is visibly rendered before the complete answer, with stable message identity and preserved prefix.",
+    "Copy response places the exact stored first answer on the actual clipboard.",
+    "After reload and selecting the existing thread, the draft, message IDs/content, attempt IDs/status and publication digests remain unchanged; no new running attempt appears during rediscovery and the declared observation period."
+  ],
+  "modelPolicy": "Use the exact separately frozen signed candidate, existing generation settings and allocation limits; do not alter model, sampling or precision for this journey.",
+  "maximumUserSends": 2,
+  "automaticRetries": 0,
+  "postRediscoveryObservationMs": 3000,
+  "semanticAcceptance": "Independent manual review of both complete answers; lifecycle and clipboard success never auto-pass coding correctness.",
+  "reference": "Existing public-code-answer-20261012 completed filter/map response is a retained factual rejection, not successful acceptance of this candidate.",
+  "kind": "useful-plain-chat"
+}

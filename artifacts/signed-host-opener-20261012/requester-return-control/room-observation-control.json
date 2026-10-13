@@ -1,0 +1,91 @@
+{
+  "scope": "GPU-disabled host observation and unsent draft only; zero Send/contribution/model invocations requested",
+  "startedAt": "2026-10-13T13:34:58.026Z",
+  "before": {
+    "schema": "reploid.chat-owner-observation/v1",
+    "source": "existing host getState/getDraft",
+    "storageMode": "legacy",
+    "threads": [],
+    "selectedId": null,
+    "runningIds": [],
+    "storageError": null,
+    "drafts": {
+      "new": {
+        "text": "",
+        "files": []
+      }
+    }
+  },
+  "custodyBefore": {
+    "state": {
+      "sharing": false,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "peers": [],
+      "model": null,
+      "supplyBudgetError": null,
+      "preparing": false,
+      "error": "",
+      "progress": null,
+      "receivedBytes": 0,
+      "verifiedFiles": [],
+      "limits": {
+        "storedBytes": 3221225472,
+        "supplyBytes": 4294967296
+      }
+    },
+    "receipts": []
+  },
+  "saved": {
+    "schema": "reploid.chat-owner-observation/v1",
+    "source": "existing host getState/getDraft",
+    "storageMode": "legacy",
+    "threads": [],
+    "selectedId": null,
+    "runningIds": [],
+    "storageError": null,
+    "drafts": {
+      "new": {
+        "text": "Unsent basic-chat observer control",
+        "files": []
+      }
+    }
+  },
+  "restored": {
+    "schema": "reploid.chat-owner-observation/v1",
+    "source": "existing host getState/getDraft",
+    "storageMode": "legacy",
+    "threads": [],
+    "selectedId": null,
+    "runningIds": [],
+    "storageError": null,
+    "drafts": {
+      "new": {
+        "text": "Unsent basic-chat observer control",
+        "files": []
+      }
+    }
+  },
+  "custodyAfter": {
+    "state": {
+      "sharing": false,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "peers": [],
+      "model": null,
+      "supplyBudgetError": null,
+      "preparing": false,
+      "error": "",
+      "progress": null,
+      "receivedBytes": 0,
+      "verifiedFiles": [],
+      "limits": {
+        "storedBytes": 3221225472,
+        "supplyBytes": 4294967296
+      }
+    },
+    "receipts": []
+  },
+  "passed": true,
+  "finishedAt": "2026-10-13T13:34:58.432Z"
+}

@@ -1,0 +1,14 @@
+{
+  "schema": "reploid.ready-route-control/v1",
+  "kind": "readiness-control",
+  "scope": "Optional READY route/history control only; never useful-chat qualification",
+  "questions": [
+    "Reply with exactly the word READY.",
+    "What word did you just reply with? Answer in one word."
+  ],
+  "draft": "Unsent READY control draft",
+  "reviewCriteria": [
+    "Both actual responses must be READY; this does not test useful explanations or code."
+  ],
+  "postRediscoveryObservationMs": 3000
+}
