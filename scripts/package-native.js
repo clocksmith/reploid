@@ -46,8 +46,11 @@ export async function collectNativeFiles(sourceRoot) {
   const catalog = JSON.parse(catalogBytes);
   for (const model of catalog) {
     for (const file of model.source?.files || []) {
-      const bundled = /^\/config\/model-(manifests|pieces)\/[a-zA-Z0-9_.-]+\.json$/.test(file.url || '');
+      const bundled = /^\/config\/model-(manifests|pieces|artifacts)\/[a-zA-Z0-9_.-]+$/.test(file.url || '');
       if (file.role === 'model-piece-index' && !bundled) throw new Error('Native piece index must be a bundled catalog file');
+      const signedMetadata = model.capsule?.artifacts?.some(artifact => artifact.role !== 'weight-shard'
+        && artifact.hash === 'sha256:' + file.hash && artifact.sizeBytes === file.sizeBytes);
+      if (signedMetadata && !bundled) throw new Error('Native signed metadata must be a bundled catalog file');
       if (!bundled) continue;
       const name = `self${file.url}`;
       const bytes = await fs.readFile(path.join(sourceRoot, name));
