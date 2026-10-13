@@ -1,0 +1,95 @@
+{
+  "schema": "reploid.source-ledger-executing-identity/v1",
+  "frozenRevision": "3d681060",
+  "freezeSha256": "eca8f64f52403385066c792effa1deeb05c5def4cc70e62310534e4b21a47fde",
+  "sourceTarSha256": "6ed8c3a49c3c1a390a58980637f731ac04ab63d55e6b8bc7c75111af63ff746a",
+  "verifiedBeforeImport": {
+    "files": {
+      "bridge.js": "0124792810b8840941d05defd75d1cabf4012e6c394fefa1844e107e450cf107",
+      "inputs.json": "7cc9ad3143522d79152897fb433d3ba844367676a1a24734b815817764c59791",
+      "preflight.py": "3ed1622fa614d7bbb3e079bbc2c17571ea1b48bbfc21074a795fc938416f3a84",
+      "prepare.js": "720f6920a33b3be107b6e4e1f7d450e6256a8ce4af4195d9c97088fe0b4a7e33",
+      "protocol.py": "c97b92c6e5bd558775d7592b303e18e7b7779b26cb4636ab7ed6f0d7f3283648",
+      "protocol_test.py": "4472ae8c181a91f8a7f39d8224869e33f80ebce38705ef9f734582c9623512b3",
+      "run.py": "8a26b8ceada8320229e2b9e536b759a662683248c730933c1061e2f863d64646",
+      "suite.json": "59eabb91944111add15c7b69319e13486ebfb00a24e7f63b67c572db1f4fe0a4",
+      "template-binding.json": "9b6c2ff0af91e28169d50f705ba3a9f96e5a20225aeafaff30084a5f8d2af92e",
+      "token-preflight.json": "07776eff2fc77b4eacf5e381249d15ce49ab0803f49bdeb9759f04eecfc596fb",
+      "worker-before.json": "b7e3db5a699fd0d6a1f37bbb985d6fbc3d7763362df97d8c71cc7df7c14b978b",
+      "source-weight-binding.json": "dd01d12e3aa39173ece81f4054ded6797eb147cf14f901125d9a93de60b73216"
+    },
+    "reusedSources": {
+      "artifacts/cited-calculation-experiment-20261012/calculate.js": "4d361260e0c2c76e225e0f7a3917d68186389f3b042bdfd3883e27f8ff75527d",
+      "artifacts/cited-calculation-experiment-20261012/lexical-catalog/catalog.js": "bd2fcf11e685b9368b65fa7dcdba213d82172a824040a1d82e8349b25a83421b",
+      "artifacts/cited-calculation-experiment-20261012/available-typed/protocol.py": "135dd356bc50b7114656d398a04aa63a07e4369dab6b02870531fec94261984c",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/adapter.js": "a0b165ab304e2bb6160d20590dca647ac998191acc279b69bd9262ff19d299d2",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/render.js": "71f179d4aad098f30cc39dcb15bcaa90ab359ce250935fa6707f2b2502f6b9ee",
+      "packages/reploid/src/agent/tool-runner.js": "f0bb92bc1932b0807173d1e8d1ede9b6b6bedb9f3b727b7414f9e614fa871c2a",
+      "self/host/document-comparison.js": "7d80ae3314b2be989b74a3eecc54d0ebfe4d1f190d7f3bad263f4a80c58c3e42",
+      "package.json": "588020ec0eae8b74a69b86fe599dd45a099049b86f78577b00b288043d6f0841"
+    },
+    "dopplerSources": {
+      "tools/source-model-task-quality.py": "3e1dd96f7e338a48a0c778e7d9b2b20f0c9c2982ff9a59194d03774ed42da483",
+      "tools/lib/source_task_quality.py": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f"
+    },
+    "sourceIdentity": {
+      "tokenizer_config.json": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
+      "download-receipt.json": "eaf732de3eb6a2d4c754b3959269c2ef6aab0014e3becda960e08dd78b148c8a"
+    }
+  },
+  "sourceReceipt": {
+    "source": "Qwen/Qwen3-1.7B",
+    "revision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+    "files": [
+      {
+        "path": "config.json",
+        "url": "https://huggingface.co/Qwen/Qwen3-1.7B/resolve/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/config.json",
+        "bytes": 726,
+        "sha256": "1ddb5b89ebc90dcb417a45c213d818577e65976454d29385c8f6140771d95197"
+      },
+      {
+        "path": "tokenizer_config.json",
+        "url": "https://huggingface.co/Qwen/Qwen3-1.7B/resolve/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/tokenizer_config.json",
+        "bytes": 9732,
+        "sha256": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101"
+      },
+      {
+        "path": "generation_config.json",
+        "url": "https://huggingface.co/Qwen/Qwen3-1.7B/resolve/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/generation_config.json",
+        "bytes": 239,
+        "sha256": "2325da0f15bb848e018c5ae071b7943332e9f871d6b60e2ed22ca97d4cb993d2"
+      },
+      {
+        "path": "tokenizer.json",
+        "url": "https://huggingface.co/Qwen/Qwen3-1.7B/resolve/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/tokenizer.json",
+        "bytes": 11422654,
+        "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+        "expectedLfsSha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+      },
+      {
+        "path": "model.safetensors.index.json",
+        "url": "https://huggingface.co/Qwen/Qwen3-1.7B/resolve/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/model.safetensors.index.json",
+        "bytes": 25605,
+        "sha256": "0d660e94b165eb912669a5249dff44b83188c4777a07ddb9611fb78d91b0578d",
+        "expectedLfsSha256": null
+      },
+      {
+        "path": "model-00001-of-00002.safetensors",
+        "url": "https://huggingface.co/Qwen/Qwen3-1.7B/resolve/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/model-00001-of-00002.safetensors",
+        "bytes": 3441185608,
+        "sha256": "169ad53ec313c3a34b06c0809216e4fc072cce444a5d4ff2b59690d064130ed5",
+        "expectedLfsSha256": "169ad53ec313c3a34b06c0809216e4fc072cce444a5d4ff2b59690d064130ed5"
+      },
+      {
+        "path": "model-00002-of-00002.safetensors",
+        "url": "https://huggingface.co/Qwen/Qwen3-1.7B/resolve/70d244cc86ccca08cf5af4e1e306ecf908b1ad5e/model-00002-of-00002.safetensors",
+        "bytes": 622329984,
+        "sha256": "912becff8d60672aa8628ef08c05898d9adf17c2ad4ae3caf99b065622fdeff9",
+        "expectedLfsSha256": "912becff8d60672aa8628ef08c05898d9adf17c2ad4ae3caf99b065622fdeff9"
+      }
+    ]
+  },
+  "weightValidation": "The bound source loader verifies all actual source-file sizes/SHA256 and expected LFS identities before loading. This pre-import check verifies the immutable receipt, not unobserved weight bytes.",
+  "sourcePath": "/var/tmp/doppler-qwen3-17b-source-20261011",
+  "dopplerPath": "/var/tmp/doppler-archive9-unit-4umv8z92/workspace/doppler"
+}

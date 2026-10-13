@@ -1,0 +1,61 @@
+{
+  "schema": "reploid.source-ledger-result-review/v1",
+  "qualified": false,
+  "status": "rejected at first structural boundary",
+  "completedModelCalls": 1,
+  "completedTaskAnswers": 0,
+  "acceptedTasks": 0,
+  "unrunCases": [
+    "fresh-bathroom-correction",
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "freezeSha256": "eca8f64f52403385066c792effa1deeb05c5def4cc70e62310534e4b21a47fde",
+  "rawCall": "<tool_call>\n{\"name\": \"SourceLedger\", \"arguments\": {\"budget\": \"f000\", \"deadline\": \"f001\", \"documents\": [\"D1\", \"D2\", \"D3\"]}}\n</tool_call>",
+  "selection": {
+    "budget": "f000",
+    "deadline": "f001",
+    "documents": [
+      "D1",
+      "D2",
+      "D3"
+    ]
+  },
+  "observedFailure": "Unexpected document ledger fields",
+  "promptTokens": 3218,
+  "generatedTokens": 49,
+  "chargedTokens": 3267,
+  "rawOutputUtf16": 145,
+  "withinBudgets": true,
+  "naturalCompletion": true,
+  "fullFactualAcceptance": false,
+  "evidence": "The official tool schema in the exact executed input requires document ledger objects with named source roles. The model returned bare document identifiers. The strict adapter rejected them before any arithmetic or rendering. No factual answer exists to satisfy the unchanged full rubric.",
+  "interpretation": "This configuration fails the application task at structured selection. No serialization defect, arithmetic defect, model-general incapacity or distributed inference defect is established.",
+  "resultRepair": false,
+  "retry": false,
+  "renderedOutput": false,
+  "files": {
+    "source.json.gz": {
+      "sha256": "4cf194869db45078d0a5abf7ca8f5ff6f7e859a24fa4cd463559b62045f8d99d",
+      "uncompressedSha256": "3e7034b6e414cd5c6297df2a3a1ae7edb56a747ced8cc9d0cf54bfcbe3f98532",
+      "uncompressedBytes": 57241
+    },
+    "run.log.gz": {
+      "sha256": "9311f4f6b79da217d44c45a5ebf0da437297b020cf31b59a71d66dfd112a7deb",
+      "uncompressedSha256": "b8083ea2cd2b24c6ae9fa301e8016c32fb9747bc6a381c0c4c22372c4e9473a0",
+      "uncompressedBytes": 713
+    },
+    "run-binding.json": {
+      "sha256": "1378bfb816ed89b5f1bd9292aaf44f552e6eecc8b7a3bf3b93f6ff196ac33313"
+    },
+    "executing-host-identity.json": {
+      "sha256": "93bf09773e90f9652289a11abc227628ff21fc78ab2c28a62c6fef2e6f190de2"
+    },
+    "prelaunch-recheck.json": {
+      "sha256": "eed61b33498edb2be66f5c6bfe9c98d2d1268aaab0e5597750c3b0b14ff1e486"
+    }
+  }
+}
