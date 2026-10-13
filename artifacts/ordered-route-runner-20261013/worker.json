@@ -1,7 +1,7 @@
 {
   "files": {
     "packages/reploid/src/mesh/partitions/partition-runner.js": "9fcd2fd43bba564e22627577ad90d850e021a9cf9da05ee46ea5693be8c702de",
-    "packages/reploid/src/mesh/partitions/partition-route-execution.js": "9a0cad7810abb9c90f1890db32ded9d8fab823b1e53a28d902384877f5cea6b9"
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js": "e027f10e7834ff364f016ca27dbdda81e9d9e6e682ac7aed6ec15c258ac0f27a"
   },
   "result": {
     "passed": true,
@@ -16,15 +16,16 @@
       "Nesting depth of 7 exceeds 5 - refactor nested code",
       "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:35: Dynamic property write detected: [key] - verify input sanitization",
       "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:36: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:52: Dynamic property write detected: [stage] - verify input sanitization",
       "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:65: Dynamic property write detected: [index] - verify input sanitization",
       "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:67: Dynamic property write detected: [index] - verify input sanitization",
-      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:173: Dynamic property write detected: [stage] - verify input sanitization",
-      "Nesting depth of 8 exceeds 5 - refactor nested code"
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:176: Dynamic property write detected: [stage] - verify input sanitization",
+      "Nesting depth of 9 exceeds 5 - refactor nested code"
     ],
     "events": [
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791902451431,
+        "timestamp": 1791902606390,
         "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
         "patternId": "path_traversal",
         "category": "filesystem",
@@ -33,7 +34,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791902451432,
+        "timestamp": 1791902606392,
         "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -43,7 +44,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791902451432,
+        "timestamp": 1791902606392,
         "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -53,7 +54,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791902451432,
+        "timestamp": 1791902606392,
         "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -63,7 +64,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791902451432,
+        "timestamp": 1791902606392,
         "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -73,7 +74,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791902451433,
+        "timestamp": 1791902606394,
         "metric": "functions",
         "value": 25,
         "threshold": 20,
@@ -82,7 +83,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791902451433,
+        "timestamp": 1791902606394,
         "metric": "nesting",
         "value": 7,
         "threshold": 5,
@@ -91,7 +92,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791902451439,
+        "timestamp": 1791902606400,
         "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -101,7 +102,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791902451439,
+        "timestamp": 1791902606400,
         "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -111,7 +112,17 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791902451439,
+        "timestamp": 1791902606400,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [stage] - verify input sanitization",
+        "line": 52,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791902606400,
         "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -121,7 +132,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791902451439,
+        "timestamp": 1791902606400,
         "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -131,21 +142,21 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791902451439,
+        "timestamp": 1791902606400,
         "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
         "message": "Dynamic property write detected: [stage] - verify input sanitization",
-        "line": 173,
+        "line": 176,
         "severity": "warning"
       },
       {
         "type": "complexity",
-        "timestamp": 1791902451439,
+        "timestamp": 1791902606400,
         "metric": "nesting",
-        "value": 8,
+        "value": 9,
         "threshold": 5,
-        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
         "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js"
       }
     ],
@@ -179,9 +190,9 @@
         {
           "type": "complexity",
           "metric": "nesting",
-          "value": 8,
+          "value": 9,
           "threshold": 5,
-          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
           "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js"
         }
       ],

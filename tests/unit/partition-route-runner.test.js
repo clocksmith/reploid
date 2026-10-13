@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { fixture, another } from '../fixtures/ordered-partition-ports.js';
 
 describe('ordered ordinary route (injected numerical execution)', () => {
@@ -80,12 +80,75 @@ describe('ordered ordinary route (injected numerical execution)', () => {
     expect((await survivor).content).toBe('012');
     expect(f.runner.getState()).toMatchObject({ active: 0, unsettled: 0 });
   });
-  it('does not let slow output delivery hold the route token lease', async () => {
+  it('does not let slow output delivery hold stage execution leases', async () => {
     const f = fixture(), entered = Promise.withResolvers(), release = Promise.withResolvers();
     const first = f.runner.execute({ ...f.request, onDelta: async () => { entered.resolve(); await release.promise; } });
     await entered.promise;
     expect((await f.runner.execute(another(f, 'survivor'))).content).toBe('012');
     release.resolve(); await first;
+  });
+
+  it('pipelines independent conversations through different stages without overlapping one stage', async () => {
+    const f = fixture(4, 3), entered = Promise.withResolvers(), release = Promise.withResolvers();
+    const active = Array(4).fill(0), peaks = Array(4).fill(0);
+    let overlap = false;
+    for (const [index, stage] of f.stages.entries()) {
+      const run = stage.executeStage.getMockImplementation();
+      stage.executeStage.mockImplementation(async args => {
+        active[index]++;
+        peaks[index] = Math.max(peaks[index], active[index]);
+        overlap ||= active.filter(Boolean).length > 1;
+        try {
+          if (index === 1 && args.identity.attemptId === 'attempt' && args.step === 0) {
+            entered.resolve(); await release.promise;
+          }
+          return await run(args);
+        } finally { active[index]--; }
+      });
+    }
+    const work = [f.runner.execute(f.request)];
+    await entered.promise;
+    work.push(f.runner.execute(another(f, 'second')));
+    work.push(f.runner.execute(another(f, 'third')));
+    try {
+      await vi.waitFor(() => expect(f.calls.filter(row => row[0] === 'execute' && row[1] === 0)
+        .map(row => row[2])).toEqual(['attempt', 'second', 'third']));
+      expect(f.stages[1].executeStage).toHaveBeenCalledTimes(1);
+      expect(overlap).toBe(true);
+    } finally { release.resolve(); await Promise.all(work); }
+    expect(peaks).toEqual([1, 1, 1, 1]);
+    expect(f.calls.filter(row => row[0] === 'execute' && row[1] === 1 && row[3] === 0)
+      .map(row => row[2])).toEqual(['attempt', 'second', 'third']);
+    expect((await Promise.all(work)).every(result => result.content === '012')).toBe(true);
+    expect(f.runner.getState()).toMatchObject({ active: 0, unsettled: 0 });
+  });
+
+  it.each(['cancel', 'revoke'])('rechecks %s after waiting for a busy stage and preserves its owner', async mode => {
+    const f = fixture(), entered = Promise.withResolvers(), release = Promise.withResolvers();
+    const abort = new AbortController(); let revoked = false;
+    const run = f.stages[1].executeStage.getMockImplementation();
+    f.stages[1].executeStage.mockImplementation(async args => {
+      if (args.identity.attemptId === 'attempt' && args.step === 0) {
+        entered.resolve(); await release.promise;
+      }
+      return run(args);
+    });
+    f.authorize.mockImplementation(async args => !(revoked && args.identity.attemptId === 'queued'));
+    const first = f.runner.execute(f.request);
+    await entered.promise;
+    const queued = f.runner.execute({ ...another(f, 'queued'), signal: abort.signal });
+    const rejected = expect(queued).rejects.toThrow(mode === 'cancel' ? 'queued cancelled' : 'authorization declined');
+    try {
+      await vi.waitFor(() => expect(f.transport.transferActivation.mock.calls.some(([, args]) =>
+        args.identity.attemptId === 'queued')).toBe(true));
+      if (mode === 'cancel') abort.abort(new Error('queued cancelled'));
+      else revoked = true;
+    } finally { release.resolve(); await Promise.allSettled([first, queued]); }
+    await rejected;
+    expect((await first).content).toBe('012');
+    expect(f.stages[1].executeStage.mock.calls.some(([args]) => args.identity.attemptId === 'queued')).toBe(false);
+    expect(f.stages.every(stage => stage.closeAttempt.mock.calls.length === 2)).toBe(true);
+    expect(f.runner.getState()).toMatchObject({ active: 0, unsettled: 0 });
   });
   it('interleaves twenty admitted requesters and rejects a twenty-first without disclosing its input', async () => {
     const f = fixture(3, 20), entered = Promise.withResolvers(), release = Promise.withResolvers();

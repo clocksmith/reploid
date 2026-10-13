@@ -43,13 +43,13 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
   const tensorContract = partitionActivationContract(runtime, plan);
   const attempts = new Map();
   let closed = false;
-  let tail = Promise.resolve();
-  // Preserve the existing runner's bounded FIFO token lease. This is not a
-  // cross-host scheduler or a claim of fairness across separate route runners.
-  async function lease(task) {
-    const prior = tail;
+  const tails = devices.map(() => Promise.resolve());
+  // Serialize calls to each stage while allowing independent conversations to
+  // occupy different stages. This does not schedule across separate runners.
+  async function lease(stage, task) {
+    const prior = tails[stage];
     let release;
-    tail = new Promise(resolve => { release = resolve; });
+    tails[stage] = new Promise(resolve => { release = resolve; });
     await prior;
     try { return await task(); } finally { release(); }
   }
@@ -150,23 +150,26 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
       }
       receipt.phase = 'executing';
       for (let index = 0; index < maxTokens; index++) {
-        const delivery = await lease(async () => {
+        const delivery = await (async () => {
           combined.throwIfAborted();
           const step = { step: index, tokenPosition: position, inputTokenCount: input.length, maxTokens, generationDigest };
           await permitRoute(step);
           let activation, final;
           const stageMetrics = [];
           for (let stage = 0; stage < devices.length; stage++) {
-            await permit('mesh.execute_partition_stage', authority.execution[stage], { ...step, partitionIndex: stage });
-            await permit('mesh.transfer_token_context', authority.tokenContext[stage], { ...step, partitionIndex: stage,
-              recipients: recipients(coordinatorId, devices[stage].id) });
-            const result = clone(await devices[stage].executeStage({ identity: binding, partitionIndex: stage, ...step,
-              inputTokenIds: [...input], generation: settings, continuation: continuations[stage], activation,
-              executionGrant: authority.execution[stage], tokenContextGrant: authority.tokenContext[stage],
-              ...(stage > 0 ? { incomingActivationGrant: authority.activation[stage - 1] } : {}),
-              ...(stage < devices.length - 1 ? { outgoingActivationGrant: authority.activation[stage] } : {}),
-              ...(stage === devices.length - 1 ? { outputGrant: authority.output } : {}),
-              signal: combined }));
+            const result = await lease(stage, async () => {
+              // Recheck authority after queueing, immediately before disclosure.
+              await permit('mesh.execute_partition_stage', authority.execution[stage], { ...step, partitionIndex: stage });
+              await permit('mesh.transfer_token_context', authority.tokenContext[stage], { ...step, partitionIndex: stage,
+                recipients: recipients(coordinatorId, devices[stage].id) });
+              return clone(await devices[stage].executeStage({ identity: binding, partitionIndex: stage, ...step,
+                inputTokenIds: [...input], generation: settings, continuation: continuations[stage], activation,
+                executionGrant: authority.execution[stage], tokenContextGrant: authority.tokenContext[stage],
+                ...(stage > 0 ? { incomingActivationGrant: authority.activation[stage - 1] } : {}),
+                ...(stage < devices.length - 1 ? { outgoingActivationGrant: authority.activation[stage] } : {}),
+                ...(stage === devices.length - 1 ? { outputGrant: authority.output } : {}),
+                signal: combined }));
+            });
             combined.throwIfAborted();
             assert(sameRouteAttemptIdentity(result?.identity, binding) && result.partitionIndex === stage
               && result.step === index && result.tokenPosition === position, 'Ordered stage result binding mismatch');
@@ -217,7 +220,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
           input = [final.tokenId];
           if (final.done) stopReason = final.stopReason;
           return { delta: final.delta, done: final.done };
-        });
+        })();
         combined.throwIfAborted();
         if (delivery.delta) await onDelta(delivery.delta);
         combined.throwIfAborted();
