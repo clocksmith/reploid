@@ -1,0 +1,14 @@
+{
+  "root": "/var/tmp/reploid-closure-qualification-v2-20261013",
+  "output": "/var/tmp/reploid-closure-qualification-v2-output-20261013",
+  "deliverySha256": "e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+  "files": 2013,
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "manifestSha256": "709894a75b4200c111fb7dbb6c9435c8fd69710949ea8ba486cf93f38582fdd3",
+  "graphSha256": "43a7ce21f1305c8901581bcae5eb15e0ebfcd2d1c4de760624459b65ab4700e6",
+  "controls": {
+    "config.json": "920998705d690a4532db154e0382a8a427f1e1f9d27e44b1c20227bbace84db1",
+    "run-native-reference.sh": "e245df867084e8d8067322e063b6775535bb582bdc2ca9baf13bd558ba7e271e",
+    "supervise-native.sh": "9f553dcb2218ff9c20d3e53f38c7ca6c593ea627320c25131e33d97c05cc31ec"
+  }
+}
