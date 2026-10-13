@@ -9,6 +9,11 @@
       "pid": 91780,
       "signal": "SIGTERM",
       "purpose": "owned three-stage inspector tunnel"
+    },
+    {
+      "pid": 91650,
+      "signal": "SIGTERM",
+      "purpose": "owned frozen numerical delivery/model server"
     }
   ],
   "providersAbsent": [
@@ -19,5 +24,19 @@
     4103868,
     297260
   ],
-  "macBrowserClosed": true
+  "macBrowserClosed": true,
+  "remote": [
+    {
+      "host": "AMD",
+      "pid": 3051156,
+      "signal": "SIGTERM",
+      "purpose": "owned read-only model server"
+    },
+    {
+      "host": "Suby",
+      "pid": 972930,
+      "signal": "SIGTERM",
+      "purpose": "owned read-only model server"
+    }
+  ]
 }
