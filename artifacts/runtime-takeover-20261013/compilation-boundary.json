@@ -1,0 +1,79 @@
+{
+  "classification": "Read-only source and retained-evidence comparison; no new compiler or GPU run",
+  "recurrentShaderSha256": "d057940ff5f1f181c5deaa7e0eb329c599e1889ba3a7aa35b73405002189a186",
+  "sameRecurrentShaderOnPriorAMDControl": true,
+  "sameNativeDawnBinary": true,
+  "nativeDawnSha256": "fbfe599055b469963e4c9bfc900a702843db962dcaba0799b3c81ae33fa43db1",
+  "subyNumericalCases": 0,
+  "subyCompilationPhases": [
+    {
+      "name": "convolution",
+      "index": 0,
+      "start": "2026-10-13T18:02:19.924Z",
+      "end": "2026-10-13T18:02:19.939Z",
+      "completed": true,
+      "elapsedMs": 15
+    },
+    {
+      "name": "beta",
+      "index": 1,
+      "start": "2026-10-13T18:02:19.944Z",
+      "end": "2026-10-13T18:02:54.817Z",
+      "completed": true,
+      "elapsedMs": 34873
+    },
+    {
+      "name": "decay-scale",
+      "index": 2,
+      "start": "2026-10-13T18:02:54.824Z",
+      "end": "2026-10-13T18:03:03.163Z",
+      "completed": true,
+      "elapsedMs": 8339
+    },
+    {
+      "name": "log-decay",
+      "index": 3,
+      "start": "2026-10-13T18:03:03.167Z",
+      "end": "2026-10-13T18:04:31.025Z",
+      "completed": true,
+      "elapsedMs": 87858
+    },
+    {
+      "name": "decay",
+      "index": 4,
+      "start": "2026-10-13T18:04:31.032Z",
+      "end": "2026-10-13T18:04:39.338Z",
+      "completed": true,
+      "elapsedMs": 8306
+    },
+    {
+      "name": "recurrent",
+      "index": 5,
+      "start": "2026-10-13T18:04:39.347Z",
+      "end": null,
+      "completed": false,
+      "elapsedMs": null
+    }
+  ],
+  "priorAMDRecurrentCompilationMs": 204784,
+  "subyHostAnonymousRssKiB": 26728260,
+  "sourceReceipts": [
+    {
+      "path": "../doppler/artifacts/ordered-partitions-20261013/paired-gate-preparation/amd-result.json",
+      "sha256": "3b800698aa899e842a4f9f664d03f6ff3a4817b9ec314c97ca68c66eb5ec1335"
+    },
+    {
+      "path": "../doppler/artifacts/ordered-partitions-20261013/paired-gate-phases/suby/result.json",
+      "sha256": "d8f81842ea67d7bff6c98a72dfea310e005fc15f834464db305628bd902b6923"
+    },
+    {
+      "path": "../doppler/artifacts/ordered-partitions-20261013/paired-gate-phases/suby/disposition.json",
+      "sha256": "4e360f7461ce6eed0aa9cd213cd0c3e725c72f029cffba223e8eb5fbea294a0b"
+    }
+  ],
+  "limitations": [
+    "Different host/driver, preceding pipelines and remaining total deadline; not a matched compiler experiment",
+    "No per-phase RSS retained; memory retained from prior pipelines cannot be separated from recurrent compiler growth",
+    "Loaded driver libraries do not establish which internal compiler phase allocated memory"
+  ]
+}
