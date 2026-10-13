@@ -24,3 +24,13 @@ Following Doppler's `tests/inference/ordered-resident-execution.test.js`, only n
 The separate `tests/unit/partition-route-mutation.test.js` controls caller mutation during async plan hashing, replacement of mutable stage-port identities/methods, and nested authority immutability. It now checks Doppler's supplied generation digest rather than reproducing the rejected Reploid hash.
 
 Component: verification evidence. Intent preserved. Boundary effects: source test adapter only; no production integration, package pin, deployment, model, or reference changes.
+
+The subsequent `facade.mjs` control removes the test-owned identity adapter and reservation shim. It composes the actual Reploid `createResidentPartition` / `resident-route` facade with those same actual Doppler residents, and issues/verifies v4 grants with WebCrypto. `facade-result.json` retains the first three successful lifecycle controls; `facade-grants-result.json` additionally rejects a modified signature before any numerical work. All three facades reject reservation before Ready. The current run has four controls, 29 injected numerical calls and 11 private states closed once. Public keys, claims and signatures are retained; temporary signing private keys are neither written nor included in receipts.
+
+These are **real grant signatures**, not signed execution-publication acceptance. Transport remains an in-process clone, and the tokenization/numerical/cache ports remain synthetic as above. A 64-byte synthetic weight descriptor satisfies the facade's nonempty-resident check; it is not allocated GPU memory or proof of model residency. The facade owns identity mapping and cleanup consistently, including an independent survivor after cancellation. The reviewer also found an inherited failure-path caller-mutation bug; native's source owner repaired it by using the captured identity for failed-reservation accounting and added its own regression.
+
+Run the facade variant with the same explicit checkout/report arguments:
+
+```sh
+node artifacts/ordered-route-integration-20261013/facade.mjs /absolute/path/to/doppler /new/facade-report.json
+```
