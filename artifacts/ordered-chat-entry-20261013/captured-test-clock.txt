@@ -1,0 +1,393 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/partition-route-runner.test.js (21 tests) 242ms
+ ✓ tests/unit/ordered-partition-peer.test.js (12 tests) 368ms
+ ❯ tests/unit/ordered-partition-chat-entry.test.js (19 tests | 1 failed) 526ms
+     ✓ streams through 2 stages and preserves the complete route in compact returned evidence 43ms
+     ✓ streams through 3 stages and preserves the complete route in compact returned evidence 38ms
+     ✓ streams through 4 stages and preserves the complete route in compact returned evidence 51ms
+     ✓ streams through 7 stages and preserves the complete route in compact returned evidence 103ms
+     ✓ connects requester entry through real v4 grants, a remote middle activation and final peer response 91ms
+     ✓ approves every token recipient and all coordinator-mediated activation paths before tokenization 15ms
+     ✓ rejects a changed middle replica before tokenizer or numerical admission 2ms
+     ✓ rejects tampered ordered stream identities and does not project their text 15ms
+     ✓ rejects a final acknowledgment with another route even when its text matches 16ms
+     ✓ rejects text invented in the final acknowledgment after a valid stream 16ms
+     ✓ does not repeat runner-owned failed cleanup in the chat finally block 15ms
+     ✓ refuses an unsupported provider plan hash before advertising or tokenizing 1ms
+     ✓ the public ordered requester helper uses the actual entry path without A/B projection 81ms
+     ✓ ordered requester retry preserves reviewed routes and uses a new full attempt after failure 1ms
+     ✓ snapshots requester messages before asynchronous placement approval 16ms
+     × does not silently renew disclosure after a delayed approval 21ms
+     ✓ does not silently enable canonical publication or disclose before approval 1ms
+     ✓ retains failed tokenizer cleanup and retries it when the chat owner closes 1ms
+     ✓ close aborts a pending approval, prevents dispatch and preserves borrowed residents 1ms
+ ✓ tests/unit/partition-api.test.js (42 tests) 3679ms
+     ✓ discovers cooperative executors with replica coverage=false  1704ms
+     ✓ discovers cooperative executors with replica coverage=true  1287ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > does not silently renew disclosure after a delayed approval
+AssertionError: promise resolved "{ threadId: 'thread', …(6) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "adapterIdentities": [],
++   "attemptId": "attempt",
++   "content": "012",
++   "execution": {
++     "activationBytes": 256,
++     "identity": {
++       "attemptId": "attempt",
++       "placementGeneration": 0,
++       "requesterId": "requester",
++       "route": {
++         "activation": {
++           "components": 1,
++           "dtype": "f32",
++           "elementStrideBytes": 4,
++           "hiddenSize": 8,
++           "precision": "f32",
++           "schema": "doppler.activation-tensor/v1",
++         },
++         "modelId": "model",
++         "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++         "planId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
++         "schema": "reploid.partition-route/v1",
++         "stages": [
++           {
++             "executionId": "execution-0",
++             "index": 0,
++             "participantId": "peer:8f5bfea63ab07c8825fc2f67",
++             "residentId": "resident-0",
++             "transportId": "transport-0",
++           },
++           {
++             "executionId": "execution-1",
++             "index": 1,
++             "participantId": "node-1",
++             "residentId": "resident-1",
++             "transportId": "transport-1",
++           },
++           {
++             "executionId": "execution-2",
++             "index": 2,
++             "participantId": "node-2",
++             "residentId": "resident-2",
++             "transportId": "transport-2",
++           },
++         ],
++       },
++       "schema": "reploid.partition-attempt/v2",
++       "threadId": "thread",
++     },
++     "provider": "peer",
++     "schema": "reploid.mesh.partition-execution/v3",
++     "settlement": {
++       "cleanup": [
++         {
++           "error": null,
++           "partitionIndex": 0,
++           "status": "settled",
++         },
++         {
++           "error": null,
++           "partitionIndex": 1,
++           "status": "settled",
++         },
++         {
++           "error": null,
++           "partitionIndex": 2,
++           "status": "settled",
++         },
++       ],
++       "cleanupSettledAt": 1791903313133,
++       "failure": null,
++       "identity": {
++         "attemptId": "attempt",
++         "placementGeneration": 0,
++         "requesterId": "requester",
++         "route": {
++           "activation": {
++             "components": 1,
++             "dtype": "f32",
++             "elementStrideBytes": 4,
++             "hiddenSize": 8,
++             "precision": "f32",
++             "schema": "doppler.activation-tensor/v1",
++           },
++           "modelId": "model",
++           "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++           "planId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
++           "schema": "reploid.partition-route/v1",
++           "stages": [
++             {
++               "executionId": "execution-0",
++               "index": 0,
++               "participantId": "peer:8f5bfea63ab07c8825fc2f67",
++               "residentId": "resident-0",
++               "transportId": "transport-0",
++             },
++             {
++               "executionId": "execution-1",
++               "index": 1,
++               "participantId": "node-1",
++               "residentId": "resident-1",
++               "transportId": "transport-1",
++             },
++             {
++               "executionId": "execution-2",
++               "index": 2,
++               "participantId": "node-2",
++               "residentId": "resident-2",
++               "transportId": "transport-2",
++             },
++           ],
++         },
++         "schema": "reploid.partition-attempt/v2",
++         "threadId": "thread",
++       },
++       "phase": "completed",
++       "reservations": [
++         {
++           "identity": {
++             "attemptId": "attempt",
++             "placementGeneration": 0,
++             "requesterId": "requester",
++             "route": {
++               "activation": {
++                 "components": 1,
++                 "dtype": "f32",
++                 "elementStrideBytes": 4,
++                 "hiddenSize": 8,
++                 "precision": "f32",
++                 "schema": "doppler.activation-tensor/v1",
++               },
++               "modelId": "model",
++               "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "planId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
++               "schema": "reploid.partition-route/v1",
++               "stages": [
++                 {
++                   "executionId": "execution-0",
++                   "index": 0,
++                   "participantId": "peer:8f5bfea63ab07c8825fc2f67",
++                   "residentId": "resident-0",
++                   "transportId": "transport-0",
++                 },
++                 {
++                   "executionId": "execution-1",
++                   "index": 1,
++                   "participantId": "node-1",
++                   "residentId": "resident-1",
++                   "transportId": "transport-1",
++                 },
++                 {
++                   "executionId": "execution-2",
++                   "index": 2,
++                   "participantId": "node-2",
++                   "residentId": "resident-2",
++                   "transportId": "transport-2",
++                 },
++               ],
++             },
++             "schema": "reploid.partition-attempt/v2",
++             "threadId": "thread",
++           },
++           "partitionIndex": 0,
++           "status": "reserved",
++         },
++         {
++           "identity": {
++             "attemptId": "attempt",
++             "placementGeneration": 0,
++             "requesterId": "requester",
++             "route": {
++               "activation": {
++                 "components": 1,
++                 "dtype": "f32",
++                 "elementStrideBytes": 4,
++                 "hiddenSize": 8,
++                 "precision": "f32",
++                 "schema": "doppler.activation-tensor/v1",
++               },
++               "modelId": "model",
++               "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "planId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
++               "schema": "reploid.partition-route/v1",
++               "stages": [
++                 {
++                   "executionId": "execution-0",
++                   "index": 0,
++                   "participantId": "peer:8f5bfea63ab07c8825fc2f67",
++                   "residentId": "resident-0",
++                   "transportId": "transport-0",
++                 },
++                 {
++                   "executionId": "execution-1",
++                   "index": 1,
++                   "participantId": "node-1",
++                   "residentId": "resident-1",
++                   "transportId": "transport-1",
++                 },
++                 {
++                   "executionId": "execution-2",
++                   "index": 2,
++                   "participantId": "node-2",
++                   "residentId": "resident-2",
++                   "transportId": "transport-2",
++                 },
++               ],
++             },
++             "schema": "reploid.partition-attempt/v2",
++             "threadId": "thread",
++           },
++           "partitionIndex": 1,
++           "status": "reserved",
++         },
++         {
++           "identity": {
++             "attemptId": "attempt",
++             "placementGeneration": 0,
++             "requesterId": "requester",
++             "route": {
++               "activation": {
++                 "components": 1,
++                 "dtype": "f32",
++                 "elementStrideBytes": 4,
++                 "hiddenSize": 8,
++                 "precision": "f32",
++                 "schema": "doppler.activation-tensor/v1",
++               },
++               "modelId": "model",
++               "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++               "planId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
++               "schema": "reploid.partition-route/v1",
++               "stages": [
++                 {
++                   "executionId": "execution-0",
++                   "index": 0,
++                   "participantId": "peer:8f5bfea63ab07c8825fc2f67",
++                   "residentId": "resident-0",
++                   "transportId": "transport-0",
++                 },
++                 {
++                   "executionId": "execution-1",
++                   "index": 1,
++                   "participantId": "node-1",
++                   "residentId": "resident-1",
++                   "transportId": "transport-1",
++                 },
++                 {
++                   "executionId": "execution-2",
++                   "index": 2,
++                   "participantId": "node-2",
++                   "residentId": "resident-2",
++                   "transportId": "transport-2",
++                 },
++               ],
++             },
++             "schema": "reploid.partition-attempt/v2",
++             "threadId": "thread",
++           },
++           "partitionIndex": 2,
++           "status": "reserved",
++         },
++       ],
++     },
++     "steps": [
++       {
++         "generationDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
++         "inputTokenCount": 2,
++         "maxTokens": 3,
++         "stages": [
++           {
++             "metrics": null,
++             "partitionIndex": 0,
++           },
++           {
++             "metrics": null,
++             "partitionIndex": 1,
++           },
++           {
++             "metrics": null,
++             "partitionIndex": 2,
++           },
++         ],
++         "step": 0,
++         "tokenId": 10,
++         "tokenPosition": 0,
++       },
++       {
++         "generationDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
++         "inputTokenCount": 1,
++         "maxTokens": 3,
++         "stages": [
++           {
++             "metrics": null,
++             "partitionIndex": 0,
++           },
++           {
++             "metrics": null,
++             "partitionIndex": 1,
++           },
++           {
++             "metrics": null,
++             "partitionIndex": 2,
++           },
++         ],
++         "step": 1,
++         "tokenId": 11,
++         "tokenPosition": 2,
++       },
++       {
++         "generationDigest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
++         "inputTokenCount": 1,
++         "maxTokens": 3,
++         "stages": [
++           {
++             "metrics": null,
++             "partitionIndex": 0,
++           },
++           {
++             "metrics": null,
++             "partitionIndex": 1,
++           },
++           {
++             "metrics": null,
++             "partitionIndex": 2,
++           },
++         ],
++         "step": 2,
++         "tokenId": 12,
++         "tokenPosition": 3,
++       },
++     ],
++   },
++   "modelId": "model",
++   "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++   "threadId": "thread",
+  }
+
+ ❯ tests/unit/ordered-partition-chat-entry.test.js:235:58
+    233|         const later = Date.now() + 10001; clock = vi.spyOn(Date, 'now'…
+    234|       });
+    235|       await expect(f.chat.generate(f.direct, f.controls)).rejects.toTh…
+       |                                                          ^
+    236|       expect(f.f.stages[0].tokenize).not.toHaveBeenCalled();
+    237|     } finally { clock?.mockRestore(); await f.close(); }
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 3 passed (4)
+      Tests  1 failed | 93 passed (94)
+   Start at  10:55:02
+   Duration  4.36s (transform 424ms, setup 0ms, import 979ms, tests 4.81s, environment 682ms)
+

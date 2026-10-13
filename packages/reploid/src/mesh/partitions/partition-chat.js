@@ -1,9 +1,14 @@
+import { createOrderedPartitionChat } from './partition-ordered-chat.js';
 import { createCanonicalChatBinding } from './partition-chat-canonical.js';
 import { createLayerPartitionRunner } from './partition-runner.js';
 import { assertPartition as assert, canonicalPartitionJson, canonicalPartitionBinding, partitionFingerprint } from './partition-contract.js';
 
 /** Conversation adapter for a fixed, explicitly prepared local A and authenticated remote B. */
-export function createPartitionChat({ runtime, local, remote, authority, model, plan, planId, limits, grantTtlMs, canonical = null, authorizeRequester = null, now = Date.now }) {
+export function createPartitionChat({ runtime, local, remote, authority, model, plan, planId, limits, grantTtlMs, canonical = null, ordered = null, authorizeRequester = null, now = Date.now }) {
+  if (ordered !== null) {
+    assert(canonical === null, 'Ordered chat does not enable canonical publication');
+    return createOrderedPartitionChat({ runtime, authority, model, plan, planId, limits, grantTtlMs, ordered, authorizeRequester, now });
+  }
   assert(local.index === 0 && local.id === authority.participantId && remote.id !== local.id,
     'Partition chat requires the input owner at A and a distinct authenticated B');
   assert(Number.isSafeInteger(grantTtlMs) && grantTtlMs > 0, 'Explicit partition grant lifetime required');

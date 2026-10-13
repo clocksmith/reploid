@@ -1,5 +1,5 @@
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
-import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
+import { assertPartition as assert, canonicalPartitionJson, canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from './partition-contract.js';
 import { summarizePartitionExecution } from './partition-summary.js';
 import { createEntryPublicationScope, entryPublicationEnvelope, matchingEntryPublication,
   validateEntryPublicationContext } from './partition-entry-publication.js';
@@ -9,17 +9,34 @@ import { createEntryPublicationScope, entryPublicationEnvelope, matchingEntryPub
  * A's chat port owns the A-to-B execution channel; activation bytes never enter here.
  */
 export function createPartitionEntry({ channel, localParticipantId, remoteParticipantId,
-  service = null, canonical = false, authorize, limits, inputLimits, now = Date.now }) {
+  service = null, canonical = false, ordered = false, authorize, limits, inputLimits, now = Date.now }) {
   assert(typeof authorize === 'function' && ['maxInputCharacters', 'maxOutputCharacters', 'maxAttempts',
     'maxConcurrentAttempts', 'descriptorTtlMs'].every(key => Number.isSafeInteger(inputLimits?.[key]) && inputLimits[key] > 0),
   'Entry authorization and input budgets required');
+  assert(typeof ordered === 'boolean' && !(ordered && canonical), 'Explicit distinct ordinary ordered entry capability required');
   assert(typeof canonical === 'boolean', 'Explicit canonical entry capability required');
   const policy = structuredClone(inputLimits), active = new Map(), retired = new Set();
   const deliveries = new Map(), unsettledPublications = new Set();
   let draining = false, closed = false, descriptor = null, observedAt = 0;
-  const valid = m => m?.operation === 'generate' && (m?.schema === 'reploid.partition-input/v1' && m.canonical === undefined
-      || canonical && m?.schema === 'reploid.partition-input/v2' && !!validateEntryPublicationContext(m.canonical, m)) && m.requesterId !== m.participantA
-    && m.participantA !== m.participantB && typeof m.attemptId === 'string' && m.attemptId.length <= 128
+  const orderedInput = m => m?.schema === 'reploid.partition-input/v3';
+  const coordinator = m => orderedInput(m) ? m.coordinatorId : m.participantA;
+  const attempt = m => canonicalRouteAttemptBinding({ schema: 'reploid.partition-attempt/v2',
+    route: m.route, threadId: m.threadId, attemptId: m.attemptId,
+    requesterId: m.requesterId, placementGeneration: m.placementGeneration });
+  function validMode(m) {
+    if (orderedInput(m)) {
+      try {
+        return ordered && m.canonical === undefined && m.participantA === undefined && m.participantB === undefined
+          && attempt(m).route.stages[0].participantId === m.coordinatorId
+          && m.route.modelId === m.modelId && m.route.modelIdentity === m.modelIdentity && m.route.planId === m.planId;
+      } catch { return false; }
+    }
+    return (m?.schema === 'reploid.partition-input/v1' && m.canonical === undefined && m.route === undefined
+      || canonical && m?.schema === 'reploid.partition-input/v2' && !!validateEntryPublicationContext(m.canonical, m))
+      && m.participantA !== m.participantB;
+  }
+  const valid = m => m?.operation === 'generate' && validMode(m) && m.requesterId !== coordinator(m)
+    && typeof m.attemptId === 'string' && m.attemptId.length <= 128
     && typeof m.threadId === 'string' && m.threadId.length <= 128
     && Number.isSafeInteger(m.placementGeneration) && m.placementGeneration >= 0
     && Array.isArray(m.messages) && m.messages.length > 0
@@ -39,15 +56,16 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       if (metadata.operation === 'delta') {
         const sending = action === 'send' || action === 'accept';
         const request = sending ? active.get(metadata.attemptId)?.request : deliveries.get(metadata.attemptId)?.request;
-        return !!request && request.schema === 'reploid.partition-input/v1' && metadata.requesterId === request.requesterId
-          && metadata.participantA === request.participantA && metadata.threadId === request.threadId
+        return !!request && request.schema !== 'reploid.partition-input/v2' && metadata.requesterId === request.requesterId
+          && (orderedInput(request) ? metadata.coordinatorId === request.coordinatorId
+            && sameRouteAttemptIdentity(metadata.identity, attempt(request)) : metadata.participantA === request.participantA) && metadata.threadId === request.threadId
           && metadata.requesterId === (sending ? remoteParticipantId : localParticipantId)
           && Number.isSafeInteger(metadata.sequence) && metadata.sequence >= 0
           && typeof metadata.text === 'string' && metadata.text.length <= policy.maxOutputCharacters;
       }
       const outgoing = action === 'send' || action === 'accept';
       if (!valid(metadata) || metadata.requesterId !== (outgoing ? localParticipantId : remoteParticipantId)
-        || metadata.participantA !== (outgoing ? remoteParticipantId : localParticipantId)) return false;
+        || coordinator(metadata) !== (outgoing ? remoteParticipantId : localParticipantId)) return false;
       // Recheck input permission before transfer and output disclosure, not readiness
       // after completion: draining must still let admitted work finish.
       return await authorize(structuredClone(metadata), { action }) === true;
@@ -63,7 +81,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         assert(delivery && m.sequence === delivery.sequence, 'Stream delta is stale or out of order');
         delivery.characters += m.text.length;
         assert(delivery.characters <= policy.maxOutputCharacters, 'Stream output budget exhausted');
-        delivery.sequence++; delivery.onDelta?.(m.text); return { received: true };
+        delivery.sequence++; if (orderedInput(delivery.request)) delivery.content += m.text; delivery.onDelta?.(m.text); return { received: true };
       }
       if (m.operation === 'describe') {
         if (service && !draining && !closed) await service.refresh({ signal });
@@ -74,8 +92,11 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       assert(service && !draining && !closed && active.size < policy.maxConcurrentAttempts, 'Entry is unavailable or draining');
       assert(!retired.has(m.attemptId) && retired.size < policy.maxAttempts, 'Entry attempt already used or budget exhausted');
       const model = service.getModels().find(model => model.id === m.modelId && model.identity === m.modelIdentity
-        && model.partition?.planId === m.planId && model.partition.participantA === m.participantA
-        && model.partition.participantB === m.participantB && model.availability === 'ready');
+        && model.partition?.planId === m.planId && (orderedInput(m)
+          ? model.partition.schema === 'reploid.partition-selection/v2' && model.partition.coordinatorId === m.coordinatorId
+            && canonicalPartitionJson(model.partition.route) === canonicalPartitionJson(m.route)
+          : model.partition.participantA === m.participantA && model.partition.participantB === m.participantB)
+        && model.availability === 'ready');
       assert(model, 'Requested placement is not ready');
       const isCanonical = m.schema === 'reploid.partition-input/v2';
       if (isCanonical) {
@@ -99,7 +120,8 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       { signal, publication, requestApproval: async () => authorize(structuredClone(m), { action: 'execute' }),
         onState() {}, onDelta({ text }) {
           if (isCanonical) return; // Requester projects the durable publication RPC, never this raw callback.
-          const delta = { operation: 'delta', requesterId: m.requesterId, participantA: m.participantA,
+          const delta = { operation: 'delta', requesterId: m.requesterId,
+            ...(orderedInput(m) ? { coordinatorId: m.coordinatorId, identity: attempt(m) } : { participantA: m.participantA }),
             threadId: m.threadId, attemptId: m.attemptId, sequence: sequence++, text };
           delivery = delivery.then(() => endpoint.request(delta, new Uint8Array(), { signal }));
           delivery.catch(() => {});
@@ -109,9 +131,9 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         const result = await operation;
         await delivery;
         assert(typeof result.content === 'string' && result.content.length <= policy.maxOutputCharacters
-          && result.execution?.requesterId === m.requesterId
-          && result.execution.attemptId === m.attemptId
-          && result.execution.placementGeneration === m.placementGeneration, 'Execution returned an unbound result');
+          && (orderedInput(m) ? sameRouteAttemptIdentity(result.execution?.identity, attempt(m))
+            : result.execution?.requesterId === m.requesterId && result.execution.attemptId === m.attemptId
+              && result.execution.placementGeneration === m.placementGeneration), 'Execution returned an unbound result');
         return { content: result.content, execution: summarizePartitionExecution(result.execution) };
       } finally { active.delete(m.attemptId); }
     },
@@ -129,26 +151,29 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
     },
     async generate(request, { signal, onDelta, publication, onPublished } = {}) {
       assert(!closed && this.getState().ready, 'Refresh an available entry before requesting execution');
-      const isCanonical = request.canonical !== undefined;
+      const isCanonical = request.canonical !== undefined, isOrdered = request.route !== undefined;
+      assert(!isOrdered || ordered && !isCanonical, 'Ordered entry capability unavailable');
       assert(!isCanonical || canonical, 'Canonical entry capability unavailable');
       assert(isCanonical || publication === undefined, 'Publication owner requires explicit canonical context');
       const metadata = { ...structuredClone(request), operation: 'generate',
-        schema: isCanonical ? 'reploid.partition-input/v2' : 'reploid.partition-input/v1',
-        requesterId: localParticipantId, participantA: remoteParticipantId };
+        schema: isOrdered ? 'reploid.partition-input/v3' : isCanonical ? 'reploid.partition-input/v2' : 'reploid.partition-input/v1',
+        requesterId: localParticipantId, ...(isOrdered ? { coordinatorId: remoteParticipantId } : { participantA: remoteParticipantId }) };
       assert(!deliveries.has(metadata.attemptId), 'Entry attempt already streaming');
       assert(valid(metadata), 'Invalid partition entry input');
       const scope = isCanonical ? createEntryPublicationScope({ request: metadata, owner: publication, onPublished,
         authorize: () => authorize(structuredClone(metadata), { action: 'publish' }),
         maxControlBytes: limits.maxControlBytes, maxOutputCharacters: policy.maxOutputCharacters }) : null;
-      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, onDelta, publication: scope });
+      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, content: '', onDelta, publication: scope });
       let result;
       let failure = null;
       try {
         result = await endpoint.request(metadata, new Uint8Array(), { signal });
       assert(typeof result.content === 'string' && result.content.length <= policy.maxOutputCharacters
-        && ['requesterId', 'participantA', 'participantB', 'modelId', 'modelIdentity', 'planId', 'threadId',
-          'attemptId', 'placementGeneration'].every(key => result.execution?.[key] === metadata[key]),
+        && (isOrdered ? sameRouteAttemptIdentity(result.execution?.identity, attempt(metadata))
+          : ['requesterId', 'participantA', 'participantB', 'modelId', 'modelIdentity', 'planId', 'threadId',
+            'attemptId', 'placementGeneration'].every(key => result.execution?.[key] === metadata[key])),
       'Entry response identity mismatch');
+      if (isOrdered) assert(result.content === deliveries.get(metadata.attemptId).content, 'Ordered result differs from delivered text');
       if (scope) {
         const projection = scope.getProjection();
         assert(projection.count > 0 && projection.terminal && result.content === projection.content, 'Entry result differs from durable publication');
@@ -186,11 +211,12 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
  * No partial generation state is fabricated or merged across owners.
  */
 export function createPartitionRequester({ entries, requesterId, meshId, modelId, modelIdentity, planId,
-  maxPlacements, authorize, onAttempt = () => {}, newId = () => crypto.randomUUID(), now = () => performance.now() }) {
-  assert(typeof entries === 'function' && typeof authorize === 'function'
+  maxPlacements, ordered = false, authorize, onAttempt = () => {}, newId = () => crypto.randomUUID(), now = () => performance.now() }) {
+  assert(typeof ordered === 'boolean' && typeof entries === 'function' && typeof authorize === 'function'
     && Number.isSafeInteger(maxPlacements) && maxPlacements > 0, 'Explicit requester placement policy required');
   return Object.freeze({
-    async generate({ messages, threadId }, { signal } = {}) {
+    async generate({ messages, threadId }, { signal, onDelta } = {}) {
+      messages = structuredClone(messages);
       const attempted = new Set(), failures = [], started = now();
       for (let generation = 0; generation < maxPlacements; generation++) {
         signal?.throwIfAborted();
@@ -200,24 +226,34 @@ export function createPartitionRequester({ entries, requesterId, meshId, modelId
           try {
             const state = await entry.refresh({ signal });
             const model = state.descriptor?.models.find(m => m.id === modelId && m.identity === modelIdentity
-              && m.partition?.planId === planId && m.availability === 'ready');
+              && m.partition?.planId === planId && m.availability === 'ready'
+              && (ordered ? m.partition.schema === 'reploid.partition-selection/v2' && m.partition.coordinatorId === entry.id
+                : m.partition.route === undefined));
             if (!state.ready || !model) continue;
-            const placement = { requesterId, participantA: entry.id, participantB: model.partition.participantB,
-              modelId, modelIdentity, planId };
-            if (await authorize(placement) === true) { selected = { entry, placement }; break; }
-          } catch (error) { signal?.throwIfAborted(); failures.push({ participantA: entry.id, error: String(error.message) }); }
+            const placement = { requesterId, modelId, modelIdentity, planId,
+              ...(ordered ? {coordinatorId: entry.id, route: structuredClone(model.partition.route)}
+                : {participantA: entry.id, participantB: model.partition.participantB}) };
+            if (ordered) {
+              const binding = canonicalRouteAttemptBinding({schema:'reploid.partition-attempt/v2', threadId,
+                attemptId:'placement-validation', requesterId, placementGeneration:generation, route:placement.route});
+              assert(binding.route.stages[0].participantId === entry.id && binding.route.modelId === modelId
+                && binding.route.modelIdentity === modelIdentity && binding.route.planId === planId, 'Requester route model or coordinator mismatch');
+            }
+            if (await authorize(structuredClone(placement)) === true) { selected = { entry, placement }; break; }
+          } catch (error) { signal?.throwIfAborted(); failures.push({ ...(ordered ? {coordinatorId:entry.id} : {participantA:entry.id}), error: String(error.message) }); }
         }
         assert(selected, 'No authorized prepared partition path is available');
         attempted.add(selected.entry.id);
         const request = { ...selected.placement, meshId, threadId, messages: structuredClone(messages),
           attemptId: newId(), placementGeneration: generation };
-        onAttempt({ ...request, messages: undefined, phase: generation ? 'restarting' : 'executing' });
+        onAttempt({ ...structuredClone(request), messages: undefined, phase: generation ? 'restarting' : 'executing' });
         try {
-          const result = await selected.entry.generate(request, { signal });
+          const result = await selected.entry.generate(request, { signal,
+            onDelta: text => onDelta?.({text,threadId,attemptId:request.attemptId,placementGeneration:generation}) });
           return { ...result, recovery: { attempts: generation + 1, failures, elapsedMs: now() - started,
             stateTransfer: 'new-attempt-from-authorized-input' } };
         } catch (error) {
-          signal?.throwIfAborted(); failures.push({ participantA: selected.entry.id, attemptId: request.attemptId, error: String(error.message) });
+          signal?.throwIfAborted(); failures.push({ ...(ordered ? {coordinatorId:selected.entry.id} : {participantA:selected.entry.id}), attemptId: request.attemptId, error: String(error.message) });
           onAttempt({ attemptId: request.attemptId, placementGeneration: generation, phase: 'failed', error: String(error.message) });
         }
       }
