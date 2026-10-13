@@ -1,0 +1,74 @@
+{
+  "observedAt": "2026-10-13T11:20:46.927257+00:00",
+  "pid": 1623541,
+  "alive": true,
+  "rawLogSha256": "9d9cfc64edcbc878e42fb7ca577531a451fc8805ef2788d5088ff0ee22277d87",
+  "rawLogBytes": 99811791,
+  "networkTransitions": [
+    {
+      "line": 16,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "sharing": false,
+      "supplyBudgetError": null
+    },
+    {
+      "line": 29,
+      "suppliedBytes": 219369,
+      "pending": 0,
+      "sharing": true,
+      "supplyBudgetError": null
+    }
+  ],
+  "runtimeRows": [
+    "[3807.5ms][doppler] Resolving model",
+    "[3894.5ms][doppler] Fetching manifest",
+    "[4264.4ms][doppler] Loading weights",
+    "[4271.7ms][Pipeline] Execution v1 enabled (steps=43, kernelPathInline=yes, pipelineInline=no)",
+    "[4271.8ms][Config] Using manifest-first config (source of truth)",
+    "[4274.7ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false",
+    "[4274.7ms][Pipeline] Vision capable: imageTokenId=248056",
+    "[4275.5ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (19 decode steps, 8 kernels, source=execution-v1)",
+    "[4275.7ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+    "[4276.1ms][Tokenizer] Loading bundled tokenizer from tokenizer.json",
+    "[4374.2ms][Tokenizer] HuggingFace model.type=\"BPE\", using type=\"bpe\"",
+    "[4493.7ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges",
+    "[4494.1ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size",
+    "[4496.3ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096",
+    "[4498.4ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline",
+    "[4902.7ms][ShardCache] Custom shard loader configured",
+    "[4903.0ms][Loader] Initializing...",
+    "[4933.4ms][HeapManager] Allocated segment 0: 1024MB",
+    "[4933.5ms][HeapManager] Segmented heap: 1GB per segment",
+    "[4933.5ms][HeapManager] Initialized with strategy: SEGMENTED",
+    "[4933.6ms][Loader] Initialized (f16, subgroups)",
+    "[4934.1ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16",
+    "[4935.1ms][Loader] [0.0s] Memory (start): | RSS=435.73 MB (heap=68.46 MB/103.65 MB, external=2.02 GB, arrayBuffers=1.02 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0",
+    "[4936.0ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.",
+    "[15298.8ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true",
+    "[15299.2ms][Loader] Layers: 0-11",
+    "[17410.5ms][Loader] Layers: 12 complete (2.11s)",
+    "[17410.8ms][Loader] Complete: 619.38 MB in 12.47s (49.66 MB/s)",
+    "[17411.7ms][Loader] [12.5s] Memory (complete): | RSS=496.60 MB (heap=81.67 MB/121.90 MB, external=1.08 GB, arrayBuffers=1.08 GB) | GPU=620.83 MB (172 active, 0 pooled, peak=620.83 MB) | ShardCache=0 B (0 shards) | Layers=12, GPUBuffers=172",
+    "[17425.6ms][Pipeline] Model loaded successfully (13158ms)",
+    "[17428.2ms][doppler] Model ready"
+  ],
+  "nonJsonErrors": [
+    "[WebRTCSwarm] Cannot send to 12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9: not connected",
+    "[WebRTCSwarm] Cannot send to 12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9: not connected"
+  ],
+  "supplyBudget": {
+    "schema": "reploid.custody-supply-budget/v1",
+    "maxBytes": 4294967296,
+    "reservedBytes": 219369
+  },
+  "scope": "Ordinary CLI omits incoming custody packet timestamps and shader/pipeline preparation boundaries; no causal blocking inference.",
+  "rawLogPreservation": {
+    "localCompressedPath": "/var/tmp/reploid-signed-host-corrected-native-log-20261013.log.gz",
+    "remoteCompressedPath": "/var/tmp/reploid-signed-host-corrected-20261013/native-log-preserved.log.gz",
+    "compressedSha256": "7f257736af01896825f3dc0d72827380b0ac6b00c71fda51ec34b156e2161ce5",
+    "compressedBytes": 21512786
+  },
+  "macFailureAt": "2026-10-13T11:15:56.061Z",
+  "timingLimit": "Doppler elapsed milliseconds are process-local. Launch supervisor UTC + elapsed is approximate, not a packet timestamp."
+}
