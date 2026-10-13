@@ -1,0 +1,56 @@
+{
+  "files": {
+    "packages/reploid/src/mesh/partitions/signed-resident-factory.js": "4920412a78a4e7558a221114a266e289885f3e49d49b672060c424b431c33baf",
+    "tests/unit/signed-ordered-resident.test.js": "60d9e345e9f993076e08918e9534e4a7494d2a3fa6cd0a0d16b21beccf588c06"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Nesting depth of 10 exceeds 5 - refactor nested code",
+      "Warning in /testing/tests/unit/signed-ordered-resident.test.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "complexity",
+        "timestamp": 1791913476655,
+        "metric": "nesting",
+        "value": 10,
+        "threshold": 5,
+        "message": "Nesting depth of 10 exceeds 5 - refactor nested code",
+        "path": "/testing/packages/reploid/src/mesh/partitions/signed-resident-factory.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791913476657,
+        "path": "/testing/tests/unit/signed-ordered-resident.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/tests/unit/signed-ordered-resident.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 10,
+          "threshold": 5,
+          "message": "Nesting depth of 10 exceeds 5 - refactor nested code",
+          "path": "/testing/packages/reploid/src/mesh/partitions/signed-resident-factory.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

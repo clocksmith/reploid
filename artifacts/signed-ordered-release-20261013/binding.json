@@ -1,0 +1,15 @@
+{
+  "schema": "reploid.signed-ordered-release-source/v1",
+  "baseRevision": "b6126b448788fa6ac2e7cad445b9f7ff25a732d4",
+  "files": {
+    "packages/reploid/src/mesh/partitions/signed-resident-factory.js": "4920412a78a4e7558a221114a266e289885f3e49d49b672060c424b431c33baf",
+    "tests/unit/signed-ordered-resident.test.js": "60d9e345e9f993076e08918e9534e4a7494d2a3fa6cd0a0d16b21beccf588c06"
+  },
+  "checks": {
+    "focusedTests": 85,
+    "verificationWorker": "passed; warnings retained",
+    "libraryTypes": "passed",
+    "catscan": "39 charters passed"
+  },
+  "scope": "Injected release/runtime ports; no GPU, signing, archive or pin change"
+}

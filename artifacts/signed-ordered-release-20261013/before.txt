@@ -1,0 +1,67 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/signed-ordered-resident.test.js (4 tests | 3 failed) 7ms
+   × checks the signed release before ordered dispatch and after execution, withholding revoked output 3ms
+   × retains both ordered execution and release failures, including caller cancellation 1ms
+   × retains an unsettled signed session for explicit cleanup retry after ordered revocation 2ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/signed-ordered-resident.test.js > checks the signed release before ordered dispatch and after execution, withholding revoked output
+AssertionError: expected "vi.fn()" to be called 3 times, but got 1 times
+ ❯ tests/unit/signed-ordered-resident.test.js:25:26
+     23|     signal: new AbortController().signal };
+     24|   expect(await opened.residentPartition.executeStage(request)).toBe(re…
+     25|   expect(f.releaseCheck).toHaveBeenCalledTimes(3); // admission, befor…
+       |                          ^
+     26|   f.raw.executeStage.mockImplementationOnce(async value => {
+     27|     expect(value.signal).toBe(request.signal);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/unit/signed-ordered-resident.test.js > retains both ordered execution and release failures, including caller cancellation
+Error: expect(received).toSatisfy()
+
+Expected value to satisfy:
+[Function anonymous]
+
+Received:
+[Error: attempt cancelled]
+ ❯ tests/unit/signed-ordered-resident.test.js:50:85
+     48|     request.signal.throwIfAborted();
+     49|   });
+     50|   await expect(opened.residentPartition.executeStage({ signal: control…
+       |                                                                                     ^
+     51|     error instanceof AggregateError && error.errors[0] === cancelled &…
+     52|   await opened.residentPartition.close();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/unit/signed-ordered-resident.test.js > retains an unsettled signed session for explicit cleanup retry after ordered revocation
+AssertionError: promise resolved "{}" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
+- }
++ {}
+
+ ❯ tests/unit/signed-ordered-resident.test.js:71:58
+     69|   await expect(opened.residentPartition.close()).rejects.toThrow('Sign…
+     70|   expect(f.settled).not.toHaveBeenCalled();
+     71|   await expect(opened.residentPartition.executeStage({})).rejects.toTh…
+       |                                                          ^
+     72|   expect(f.raw.executeStage).not.toHaveBeenCalled();
+     73|   await opened.residentPartition.close();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed | 1 passed (4)
+   Start at  13:43:57
+   Duration  84ms (transform 11ms, setup 0ms, import 16ms, tests 7ms, environment 0ms)
+
