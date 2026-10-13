@@ -1,0 +1,25 @@
+{
+  "schema": "reploid.bounded-prefill-profile-freeze/v1",
+  "status": "CPU frozen; physical launch held pending root reservation",
+  "snapshot": "/var/tmp/reploid-concurrent-profile-20261013",
+  "testDeliverySha256": "afade931e89f785484817b7e5dcbe39fe7f7fac439da2a29d1fd7eb9a6702c12",
+  "runtimeArchiveSha256": "10f57b573b4146828f9d63e78de7cba3f65100f3de5e1550e8fd3f285e946501",
+  "parentRuntimeArchiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "fixtureCommit": "f0f5db27",
+  "runnerSha256": "88af0e8c97b0323857ab32bd647bd0eb13e7c83bd565c45ff19092432f480fd1",
+  "fixedDeadlines": {
+    "operationMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000,
+    "sampleMs": 1000
+  },
+  "inputTokens": 1588,
+  "group": 0,
+  "step": 0,
+  "direction": "Mac input -> AMD output; output resident prepared but no group1 execution in this diagnostic",
+  "originalRequestsSha256": "794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e",
+  "maxGpuBufferBytesPerExecutor": 1420000000,
+  "sourceNoGPU": true,
+  "applicationQualification": false,
+  "publicConsumers": "Untouched. GPU availability must be rechecked before future launch; no performance isolation claim."
+}

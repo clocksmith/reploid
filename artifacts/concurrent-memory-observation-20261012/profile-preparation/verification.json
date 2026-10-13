@@ -1,0 +1,9 @@
+{
+  "schema": "reploid.numerical-test-delivery/v1",
+  "testDeliveryHash": "sha256:afade931e89f785484817b7e5dcbe39fe7f7fac439da2a29d1fd7eb9a6702c12",
+  "archiveSha256": "10f57b573b4146828f9d63e78de7cba3f65100f3de5e1550e8fd3f285e946501",
+  "snapshotFiles": 2012,
+  "installedFiles": 1976,
+  "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+  "applicationQualification": false
+}
