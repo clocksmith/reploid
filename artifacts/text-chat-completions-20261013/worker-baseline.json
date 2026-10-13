@@ -1,0 +1,57 @@
+{
+  "files": {
+    "server/reploid-signaling.js": "37cbdd90e03dfa99bc918f9661a7aab558d54bd062e8b407a9d56728fb7a4103"
+  },
+  "result": {
+    "passed": false,
+    "errors": [
+      "Security Violation in /testing/server/reploid-signaling.js: Direct localStorage access forbidden - use StateManager"
+    ],
+    "warnings": [
+      "File has 23 functions (max 20) - consider modularizing"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791910100199,
+        "path": "/testing/server/reploid-signaling.js",
+        "patternId": "localstorage",
+        "category": "storage",
+        "message": "Direct localStorage access forbidden - use StateManager",
+        "severity": "error"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791910100201,
+        "metric": "functions",
+        "value": 23,
+        "threshold": 20,
+        "message": "File has 23 functions (max 20) - consider modularizing",
+        "path": "/testing/server/reploid-signaling.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/server/reploid-signaling.js",
+          "patternId": "localstorage",
+          "category": "storage",
+          "message": "Direct localStorage access forbidden - use StateManager",
+          "severity": "error"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 23,
+          "threshold": 20,
+          "message": "File has 23 functions (max 20) - consider modularizing",
+          "path": "/testing/server/reploid-signaling.js"
+        }
+      ],
+      "filesAnalyzed": 1
+    },
+    "reason": "Verification Failed"
+  }
+}

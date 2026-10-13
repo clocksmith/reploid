@@ -1,0 +1,69 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/integration/chat-completions.test.js > requires explicit authentication and disclosure ports 1ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported tools explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported tool_choice explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported response_format explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported temperature explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported seed explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported top_p explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported max_tokens explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported n explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported stream_options explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"tool","content":"x"} 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"developer","content":"x"} 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"user","content":[{"type":"text","text":"x"}]} 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"assistant","content":"x","tool_calls":[]} 0ms
+ ✓ tests/integration/chat-completions.test.js > mounted route authenticates exact immutable request and disclosure then returns bound completion without usage guesses 16ms
+ ✓ tests/integration/chat-completions.test.js > streams ordered deltas and one terminal reason with a stable completion identity 4ms
+ ✓ tests/integration/chat-completions.test.js > maps actual stop-token termination to stop 2ms
+ ✓ tests/integration/chat-completions.test.js > maps actual stop-sequence termination to stop 1ms
+ ✓ tests/integration/chat-completions.test.js > maps actual max-tokens termination to length 2ms
+ ✓ tests/integration/chat-completions.test.js > maps actual context-limit termination to length 1ms
+ ✓ tests/integration/chat-completions.test.js > rejects unknown termination and a changed result identity instead of claiming successful completion 2ms
+ ✓ tests/integration/chat-completions.test.js > unauthenticated and denied calls never execute or fall back 4ms
+ ✓ tests/unit/ordered-host-composition.test.js > browser forwards explicit ordered null and immutable actual host binding 5ms
+ ✓ tests/unit/ordered-host-composition.test.js > browser forwards explicit ordered contributor and immutable actual host binding 1ms
+ ✓ tests/unit/ordered-host-composition.test.js > native forwards actual authenticated stage and preserves separate file and compute consent 2ms
+ ✓ tests/unit/ordered-host-composition.test.js > native rejects unbound catalog geometry and conflicting identity without loading a GPU 1ms
+ ✓ tests/unit/ordered-host-composition.test.js > retains failed startup host network ownership and refuses replacement until explicit retry 1ms
+ ✓ tests/unit/ordered-host-composition.test.js > retains failed disconnect host network ownership and refuses replacement until explicit retry 1ms
+ ✓ tests/unit/ordered-host-composition.test.js > native ordinary requester forwards approved controls to its existing automatic owner without loading a GPU 1ms
+ ✓ tests/integration/chat-completions.test.js > disconnect propagates abort and retains HTTP admission while execution remains unresolved 4008ms
+ ✓ tests/integration/chat-completions.test.js > disconnect while host authentication awaits never proceeds to execution 4012ms
+ ✓ tests/integration/chat-completions.test.js > disconnect during an incomplete JSON body releases admission without calling requester 107ms
+ ✓ tests/integration/chat-completions.test.js > actual mounted handler reaches weightless automatic requester, signed grants and all ordered stages 191ms
+ ✓ tests/integration/chat-completions.test.js > streamed partial output with unknown stopping reason ends in an error without a successful DONE 1ms
+ ✓ tests/integration/chat-completions.test.js > disconnect while execution authorization awaits cannot dispatch a late approved request 4002ms
+ × tests/integration/chat-completions.test.js > does not mount the compatibility endpoint by default 12ms
+   → expected undefined to be null
+ ✓ tests/integration/chat-completions.test.js > execution approval cannot substitute for denied actual recipient disclosure 71ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/chat-completions.test.js > does not mount the compatibility endpoint by default
+AssertionError: expected undefined to be null
+
+- Expected:
+null
+
++ Received:
+undefined
+
+ ❯ tests/integration/chat-completions.test.js:122:65
+    120|   await new Promise(resolve=>app.server.listen(0,'127.0.0.1',resolve))…
+    121|   const response=await fetch(`http://127.0.0.1:${app.server.address().…
+    122|   expect(response.status).toBe(404);expect(app.chatCompletions).toBeNu…
+       |                                                                 ^
+    123| });
+    124|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 36 passed (37)
+   Start at  12:41:04
+   Duration  12.75s (transform 367ms, setup 0ms, import 625ms, tests 12.45s, environment 0ms)
+

@@ -1,0 +1,29 @@
+{
+  "passed": true,
+  "scope": "installed native public adapter + official SDK HTTP compatibility; injected numerical output",
+  "nativeArchiveSha256": "a93ad57a51c02570d71b16b1d3c7eb58ceb58214f0290e4b8e1e01aa07a03773",
+  "nativeDeliverySha256": "4ce3e8ae6472488c34f7e2a0685dfdd647f69859101903327665505b22e0107b",
+  "nativeFiles": 109,
+  "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "runtimeVersion": "0.6.27",
+  "runtimeFiles": 1897,
+  "sdk": {
+    "name": "openai",
+    "version": "7.32.0",
+    "lockSha256": "c145388f06164fbb462b1e5e7321855c8c7a8955a1be2a0d24b824e74cebbf48"
+  },
+  "controls": [
+    "official SDK nonstream completion",
+    "official SDK stream stable identity/text/termination",
+    "unsupported temperature rejected 400",
+    "Responses rejected 404",
+    "exact authenticated principal and disclosure approvals"
+  ],
+  "generatedRequests": 2,
+  "providerInitialized": false,
+  "modelLoaded": false,
+  "cloudCalls": false,
+  "installedParticipantGPUQualified": false,
+  "node": "v22.20.0",
+  "platform": "darwin"
+}

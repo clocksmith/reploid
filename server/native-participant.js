@@ -2,6 +2,8 @@
 /** Native Node host for the same authenticated partition protocol as the browser.
  * No browser, model arithmetic, placement policy, or whole-request fallback lives here.
  */
+export { createChatCompletions } from './chat-completions.js';
+
 import fs from 'node:fs/promises';
 import { createNativeModelFiles } from './native-model-files.js';
 import { openNativeCanonicalEpochs } from './native-canonical-epochs.js';
@@ -448,6 +450,11 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
         ...(epochs ? { canonical: { ...controls.canonical, epochs } } : {}) }), onChange
     });
     return Object.freeze({ identity: identity.peerId, getState: () => partitions.getState(),
+      generate(request, controls) {
+        requireValue(!closed && !canonical, 'Native ordinary requester is unavailable');
+        requireValue(typeof controls?.requestApproval === 'function', 'Explicit requester disclosure authorization required');
+        return partitions.generate(request, controls);
+      },
       contribute: approved => partitions.contribute(model.id, approved), stop: () => partitions.stop(), close,
       getNetworkState: () => mesh.getSwarmSnapshot(), getFileState: options => files?.getState(options) || null,
       shareFiles: approved => { requireValue(files, 'Native cache directory required'); return files.share(model, approved); },

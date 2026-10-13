@@ -1,0 +1,227 @@
+{
+  "files": {
+    "server/chat-completions.js": "5d3f28a7966ca422b9beff3f7844e684475780612a08616a6640e7ee5b9b9798",
+    "server/native-participant.js": "ebe08f8264d0d59e27a78e6dfb1fa21a63316d7ffdcb962b57acaf0633c8a536",
+    "server/reploid-signaling.js": "e5f6d389590004744a1b36f1c1f4e0fb923d80c7643de29dd46a6de236151fb5"
+  },
+  "result": {
+    "passed": false,
+    "errors": [
+      "Security Violation in /testing/server/reploid-signaling.js: Direct localStorage access forbidden - use StateManager"
+    ],
+    "warnings": [
+      "Warning in /testing/server/chat-completions.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 22 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /testing/server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/server/native-participant.js:77: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /testing/server/native-participant.js:382: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/server/native-participant.js:519: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "Warning in /testing/server/native-participant.js:32: Suspicious variable name: requireValue - may indicate code execution",
+      "File exceeds 500 lines (555) - consider splitting",
+      "File has 66 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "File has 25 functions (max 20) - consider modularizing"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909492722,
+        "path": "/testing/server/chat-completions.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791909492725,
+        "metric": "functions",
+        "value": 22,
+        "threshold": 20,
+        "message": "File has 22 functions (max 20) - consider modularizing",
+        "path": "/testing/server/chat-completions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791909492725,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/testing/server/chat-completions.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909492731,
+        "path": "/testing/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909492733,
+        "path": "/testing/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 77,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909492733,
+        "path": "/testing/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 382,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909492733,
+        "path": "/testing/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+        "line": 519,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909492733,
+        "path": "/testing/server/native-participant.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: requireValue - may indicate code execution",
+        "line": 32,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791909492735,
+        "metric": "lines",
+        "value": 555,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (555) - consider splitting",
+        "path": "/testing/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791909492735,
+        "metric": "functions",
+        "value": 66,
+        "threshold": 20,
+        "message": "File has 66 functions (max 20) - consider modularizing",
+        "path": "/testing/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791909492735,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/testing/server/native-participant.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909492738,
+        "path": "/testing/server/reploid-signaling.js",
+        "patternId": "localstorage",
+        "category": "storage",
+        "message": "Direct localStorage access forbidden - use StateManager",
+        "severity": "error"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791909492739,
+        "metric": "functions",
+        "value": 25,
+        "threshold": 20,
+        "message": "File has 25 functions (max 20) - consider modularizing",
+        "path": "/testing/server/reploid-signaling.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/server/chat-completions.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/server/native-participant.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/server/reploid-signaling.js",
+          "patternId": "localstorage",
+          "category": "storage",
+          "message": "Direct localStorage access forbidden - use StateManager",
+          "severity": "error"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 22,
+          "threshold": 20,
+          "message": "File has 22 functions (max 20) - consider modularizing",
+          "path": "/testing/server/chat-completions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/testing/server/chat-completions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 555,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (555) - consider splitting",
+          "path": "/testing/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 66,
+          "threshold": 20,
+          "message": "File has 66 functions (max 20) - consider modularizing",
+          "path": "/testing/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/testing/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 25,
+          "threshold": 20,
+          "message": "File has 25 functions (max 20) - consider modularizing",
+          "path": "/testing/server/reploid-signaling.js"
+        }
+      ],
+      "filesAnalyzed": 3
+    },
+    "reason": "Verification Failed"
+  }
+}

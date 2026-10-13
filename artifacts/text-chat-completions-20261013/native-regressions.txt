@@ -1,0 +1,21 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/native-delivery.test.js > rejects undeclared native dependencies instead of emitting an incomplete installer 1ms
+ ✓ tests/unit/native-delivery.test.js > delivers the same native source and all catalog metadata outside the checkout without loading providers 191ms
+ ✓ tests/unit/native-participant.test.js > settles the provider after failed participant cleanup and shares overlapping stops 1ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > does not substitute manifest opening for an explicitly requested signed Capsule 1ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > retries provider initialization and restores owned globals only after queue settlement 1ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > normalizes native unlimited values without weakening explicitly unreliable channels 0ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > reads the required verified piece and never opens an unrelated corrupt piece 5ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > rejects changed manifest and index before weight acquisition 2ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > rejects a weight symlink escaping the approved model directory 2ms
+ ✓ tests/unit/native-participant.test.js > native host boundary > honors cancellation before local metadata or weight reads 1ms
+ ✓ tests/unit/native-participant.test.js > installed accepted runtime refuses canonical participation before GPU, transport or epoch persistence 3ms
+ ✓ tests/unit/native-delivery.test.js > packages pinned signed metadata and rejects remote or changed closure bytes 207ms
+
+ Test Files  2 passed (2)
+      Tests  12 passed (12)
+   Start at  12:47:07
+   Duration  501ms (transform 229ms, setup 0ms, import 384ms, tests 415ms, environment 0ms)
+

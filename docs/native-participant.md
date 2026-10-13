@@ -55,3 +55,54 @@ The retained development runs used absolute temporary module paths; ordinary
 installation uses the named packages above. Installing or connecting alone
 does not establish useful distributed answers, numerical accuracy or release
 qualification. No package publication or deployment occurs during packaging.
+
+## Opt-in text Chat Completions
+
+The installed native entry exports `createChatCompletions`. It borrows an ordinary
+participant's existing requester; it neither loads a fallback model nor grants
+permission. No HTTP endpoint is mounted by the CLI or standalone signaling server
+by default. A host application can mount the adapter explicitly:
+
+```js
+import http from 'node:http';
+import { createNativeParticipant, createChatCompletions } from './server/native-participant.js';
+import { nativeOptions, authenticate, authorize } from './api-host.js';
+
+const participant = await createNativeParticipant(nativeOptions);
+const api = createChatCompletions({ participant, authenticate, authorize });
+const server = http.createServer(api.handle);
+server.listen(8788, '127.0.0.1');
+// On host shutdown: await api.close(), close the HTTP server,
+// then await participant.close(). Failed settlement must remain retryable.
+```
+
+`api-host.js` is the application's credential and consent owner. It must provide
+`authenticate(request, {signal})`, returning a verified `{subject}` or rejecting,
+and `authorize({action, principal, request, preview?, signal})`, returning `true`
+only for approved actions. `chat.execute` covers the immutable request;
+`chat.disclose` separately presents the actual route, recipients and input chosen
+by the existing requester. Approval of execution does not approve disclosure.
+Use a separately qualified prepared route; connection alone is not readiness.
+
+| Surface | Implemented contract |
+| --- | --- |
+| `POST /v1/chat/completions` | `model`, `messages`, optional boolean `stream`; one text choice |
+| Messages | `system`, `user`, `assistant` with string `content` only |
+| Streaming | SSE deltas, stable completion identity, actual terminal reason and `[DONE]` only on success |
+| Termination | Stop token/sequence/EOS maps to `stop`; token/context limit maps to `length`; unknown reason fails |
+| Cancellation | HTTP disconnect aborts the existing requester; unresolved HTTP calls remain charged until their promises settle |
+| Unsupported parameters | Explicit 400 for sampling overrides including `temperature`, `top_p`, `seed`, `max_tokens`, `n`, tools, structured outputs and other unrecognized fields |
+| Other protocols | Responses and Anthropic Messages are not implemented; other paths return 404 |
+| Usage | Omitted; the adapter does not invent token counts |
+
+The adapter uses existing input/output/admission limits from
+`self/config/partition-policy.json`. `getState().active` counts HTTP requests,
+not GPU ownership; remote cleanup debt remains with participant/resident owners.
+This ordinary streamed execution path does not claim canonical durable publication.
+
+The [installed consumer evidence](https://github.com/clocksmith/reploid/tree/main/artifacts/text-chat-completions-20261013)
+uses the official OpenAI JavaScript SDK against loopback, with injected numerical
+text and no cloud or GPU calls. Separate source controls reach the real automatic
+requester, signed grants and ordered peer owners through a mounted HTTP handler.
+Neither establishes physical model correctness or coding quality. Wire fields
+follow the official [Chat Completions reference](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
