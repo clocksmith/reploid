@@ -1,0 +1,220 @@
+{
+  "schema": "reploid.single-price-preflight/v1",
+  "sourceModelExecuted": false,
+  "templateSha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+  "inputSha256": "0a926975fd2e9e0973f036a23695b731713287d88d9b23b586632d6e35c18bc5",
+  "diagnostic": {
+    "tokens": 407,
+    "inputIdsSha256": "9d1c731109c2d2f2f443f2c3af68e70594362a6c6dc0c25d762ab7a6fbd9ba06",
+    "maximumGenerated": 64,
+    "maximumPromptPlusGenerated": 471
+  },
+  "canonicalOutputTokenCounts": {
+    "quoted_total": 7,
+    "unit_price": 7,
+    "additional_charge": 7,
+    "included_allowance": 8,
+    "prior_payment": 7,
+    "deposit_basis": 7,
+    "unknown": 6
+  },
+  "composition": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "moneyCalls": 7,
+      "selectionPrompts": 2881,
+      "selectionGenerationMaximum": 448,
+      "exactOccurrencePrompts": [
+        {
+          "tokens": 407,
+          "inputIdsSha256": "9d1c731109c2d2f2f443f2c3af68e70594362a6c6dc0c25d762ab7a6fbd9ba06"
+        },
+        {
+          "tokens": 413,
+          "inputIdsSha256": "7802f096cd12d384803ee7691e2f6dd42c914e4b7baf713fb76c527f35187b3f"
+        },
+        {
+          "tokens": 407,
+          "inputIdsSha256": "399baaa25831d7208b03b4b5b4eef207403fc804cd9cee612b07ce3c194c8429"
+        },
+        {
+          "tokens": 407,
+          "inputIdsSha256": "95cd986f8c07fe4668f245ee6112a1d6745446231605c3b068f51968d835be67"
+        },
+        {
+          "tokens": 421,
+          "inputIdsSha256": "8da6b671386930e8f3224c15181ead5e5b6ef865b1fa982c6bf149c4aca25a64"
+        },
+        {
+          "tokens": 414,
+          "inputIdsSha256": "90cb0cc3960aea909bb03a41062d2639ff5f4124da587671929b003345fb6589"
+        },
+        {
+          "tokens": 412,
+          "inputIdsSha256": "0d225a3eb5798f2787e4d147e8fa1273710a5521bb9c30276761f71bc2a07433"
+        }
+      ],
+      "oldEmptyFinalPromptControl": 878,
+      "residualForNonmoneyInterpretationActualToolGrowthAndFinalGeneration": 3985,
+      "scope": "Only money-stage admission cost. Existing empty final control is not the actual future tool response. Residual does not qualify or implement conditions/dates/relations/followups."
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "moneyCalls": 7,
+      "selectionPrompts": 3056,
+      "selectionGenerationMaximum": 448,
+      "exactOccurrencePrompts": [
+        {
+          "tokens": 432,
+          "inputIdsSha256": "847611064ddf0f9eb53c03b6a6bda9eedff566d56d227cfdae26f4c1f6ee359b"
+        },
+        {
+          "tokens": 438,
+          "inputIdsSha256": "5850278b6fcaab05b4c3f9214e905dc8ec597091d909e293f33e0529249beaf2"
+        },
+        {
+          "tokens": 432,
+          "inputIdsSha256": "3fc0ca9b557e2555e7dd462faee667a22f67d164189305bf58c4bcc7d8e29bc2"
+        },
+        {
+          "tokens": 432,
+          "inputIdsSha256": "e7eefd11ab7ed73ab292b532096e209b4d0dd6d4e25f6b00dc9f334cd947c27f"
+        },
+        {
+          "tokens": 446,
+          "inputIdsSha256": "a87b9e078859378de5886641b842437bd15636fe1c5fd35c1767abec8b7c0217"
+        },
+        {
+          "tokens": 439,
+          "inputIdsSha256": "0688c42af79b4acc54f0c0492af705b7b0ed84ef77dd316b679cefc9fcb155d8"
+        },
+        {
+          "tokens": 437,
+          "inputIdsSha256": "05c229267d21364fe9f60642ddb51e875ed23d4f4cc889c275705fb002172370"
+        }
+      ],
+      "oldEmptyFinalPromptControl": 993,
+      "residualForNonmoneyInterpretationActualToolGrowthAndFinalGeneration": 3695,
+      "scope": "Only money-stage admission cost. Existing empty final control is not the actual future tool response. Residual does not qualify or implement conditions/dates/relations/followups."
+    },
+    {
+      "id": "contractor-comparison",
+      "moneyCalls": 5,
+      "selectionPrompts": 2375,
+      "selectionGenerationMaximum": 320,
+      "exactOccurrencePrompts": [
+        {
+          "tokens": 478,
+          "inputIdsSha256": "8bcc7c85ea3eb0fb5fd3245c45f6c212a0f4ace417143f8c21b40e386ebab4bd"
+        },
+        {
+          "tokens": 472,
+          "inputIdsSha256": "45145e7b607328482ca9f9104c41472a398b6aff455c2473cefd79955b0fb4f5"
+        },
+        {
+          "tokens": 469,
+          "inputIdsSha256": "400427ea09bf7f9c3409f570e8981b44295fc6c1f1fb9ac44ef9c60f8a49c3d7"
+        },
+        {
+          "tokens": 479,
+          "inputIdsSha256": "20fccc67d23034354b556ed8fe17e18c7f82a0fe0429f3fd69dbb0f7a4a7020e"
+        },
+        {
+          "tokens": 477,
+          "inputIdsSha256": "2cd147839a70285b09755ee8c60eb59d589c24fedfd7c862e99b5dd0a2123496"
+        }
+      ],
+      "oldEmptyFinalPromptControl": 883,
+      "residualForNonmoneyInterpretationActualToolGrowthAndFinalGeneration": 4614,
+      "scope": "Only money-stage admission cost. Existing empty final control is not the actual future tool response. Residual does not qualify or implement conditions/dates/relations/followups."
+    },
+    {
+      "id": "contractor-retained-correction",
+      "moneyCalls": 5,
+      "selectionPrompts": 2675,
+      "selectionGenerationMaximum": 320,
+      "exactOccurrencePrompts": [
+        {
+          "tokens": 538,
+          "inputIdsSha256": "6e96abc38e6dde6693f1032f3fc8868c27bb554bee8b5575d993e03eb0ddb7e0"
+        },
+        {
+          "tokens": 532,
+          "inputIdsSha256": "8307fe69b9d87ba14446d9d16c1f7ed6b0d5907cba81ce56d7a85a9d19adac38"
+        },
+        {
+          "tokens": 529,
+          "inputIdsSha256": "579d1d809a9bccccf68e40927aef3a483ae7e1c0770c49e039a9e38614e573f7"
+        },
+        {
+          "tokens": 539,
+          "inputIdsSha256": "0a0b66b6219f05e16b75a39ead8612c923c665cd433fb60335ce7220b4ee4c48"
+        },
+        {
+          "tokens": 537,
+          "inputIdsSha256": "b530a0616c90b1b829679dccdbc205a32e463a33c6221c2868331be7d741bde6"
+        }
+      ],
+      "oldEmptyFinalPromptControl": 1957,
+      "residualForNonmoneyInterpretationActualToolGrowthAndFinalGeneration": 3240,
+      "scope": "Only money-stage admission cost. Existing empty final control is not the actual future tool response. Residual does not qualify or implement conditions/dates/relations/followups."
+    },
+    {
+      "id": "fresh-printing-balance",
+      "moneyCalls": 3,
+      "selectionPrompts": 1133,
+      "selectionGenerationMaximum": 192,
+      "exactOccurrencePrompts": [
+        {
+          "tokens": 382,
+          "inputIdsSha256": "57e7efb4fd53bd29741f2595db809f56931dfa70d68494138279650ff54e26ab"
+        },
+        {
+          "tokens": 381,
+          "inputIdsSha256": "a5cce1da6bd508bf6a15ce96f2dda9a8412fac8452391b2a7f3365de7cb56a39"
+        },
+        {
+          "tokens": 370,
+          "inputIdsSha256": "6b24c158b220cdf0c3717516c3c77a5e883d0671bccb5943e5dade38fe25cdad"
+        }
+      ],
+      "oldEmptyFinalPromptControl": 407,
+      "residualForNonmoneyInterpretationActualToolGrowthAndFinalGeneration": 6460,
+      "scope": "Only money-stage admission cost. Existing empty final control is not the actual future tool response. Residual does not qualify or implement conditions/dates/relations/followups."
+    },
+    {
+      "id": "fresh-schedule-condition",
+      "moneyCalls": 0,
+      "selectionPrompts": 0,
+      "selectionGenerationMaximum": 0,
+      "exactOccurrencePrompts": [],
+      "oldEmptyFinalPromptControl": 392,
+      "residualForNonmoneyInterpretationActualToolGrowthAndFinalGeneration": 7800,
+      "scope": "Only money-stage admission cost. Existing empty final control is not the actual future tool response. Residual does not qualify or implement conditions/dates/relations/followups."
+    },
+    {
+      "id": "fresh-included-credit-conflict",
+      "moneyCalls": 3,
+      "selectionPrompts": 1175,
+      "selectionGenerationMaximum": 192,
+      "exactOccurrencePrompts": [
+        {
+          "tokens": 393,
+          "inputIdsSha256": "9591d2f64412848606a269e4b77af676a16fd78346a068c4bffb40aa4dd0b44b"
+        },
+        {
+          "tokens": 391,
+          "inputIdsSha256": "ceb2956cc9a991243aca8d24ff803c8f94764823e6a65a823939059fef6f146e"
+        },
+        {
+          "tokens": 391,
+          "inputIdsSha256": "93b8bf5b14aa800a64c50852330e50c0a3c5787cd4dd51b787969f22f81290fc"
+        }
+      ],
+      "oldEmptyFinalPromptControl": 430,
+      "residualForNonmoneyInterpretationActualToolGrowthAndFinalGeneration": 6395,
+      "scope": "Only money-stage admission cost. Existing empty final control is not the actual future tool response. Residual does not qualify or implement conditions/dates/relations/followups."
+    }
+  ],
+  "wholeTaskFeasibilityQualified": false
+}

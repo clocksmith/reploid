@@ -1,0 +1,43 @@
+{
+  "schema": "reploid.single-price-runner-control/v1",
+  "passed": true,
+  "sourceModelExecuted": false,
+  "controls": [
+    {
+      "artificialLabel": "unknown",
+      "injectedFailure": false,
+      "tokens": {
+        "promptTokens": 407,
+        "generatedTokens": 6,
+        "totalChargedTokens": 413,
+        "rawUtf16": 32
+      },
+      "modelExecuted": false,
+      "semanticAcceptance": false
+    },
+    {
+      "artificialLabel": "quoted_total",
+      "injectedFailure": false,
+      "tokens": {
+        "promptTokens": 407,
+        "generatedTokens": 7,
+        "totalChargedTokens": 414,
+        "rawUtf16": 37
+      },
+      "modelExecuted": false,
+      "semanticAcceptance": false
+    },
+    {
+      "artificialLabel": "unit_price",
+      "injectedFailure": true,
+      "tokens": {
+        "promptTokens": 407,
+        "generatedTokens": 2,
+        "totalChargedTokens": 409,
+        "rawUtf16": 10
+      },
+      "modelExecuted": false,
+      "semanticAcceptance": false
+    }
+  ]
+}
