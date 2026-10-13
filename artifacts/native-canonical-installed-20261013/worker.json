@@ -1,0 +1,55 @@
+{
+  "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
+  "files": {
+    "prepare-consumer.js": "ff19c2f5fda37e794bcdcc4d4cafb3594f2d9ab23e8a866acbe8d155dd91c6d2",
+    "factory-installed.js": "afe559ddc2ad2ec764b2981b1013ea9a4ea4c031058fc3af64a37ce3e083a159",
+    "verify-installed.js": "0e6626d674c010b1d4dc306cc0c858b5bdca8bf97987cf1b9870b71ab6fb6d39",
+    "measure-log.js": "e069c0a606a6f03a79a22404db2b2acc2afe47fdad3c34fdd2ca6b5df5cc6292"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/prepare-consumer.js:6: Dynamic property write detected: [application, source, consumer] - verify input sanitization",
+      "Warning in /testing/verify-installed.js:7: Dynamic property write detected: [base, evidence] - verify input sanitization",
+      "Warning in /testing/verify-installed.js:41: Dynamic property write detected: [file] - verify input sanitization"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791897480873,
+        "path": "/testing/prepare-consumer.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [application, source, consumer] - verify input sanitization",
+        "line": 6,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791897480878,
+        "path": "/testing/verify-installed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [base, evidence] - verify input sanitization",
+        "line": 7,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791897480878,
+        "path": "/testing/verify-installed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [file] - verify input sanitization",
+        "line": 41,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 4
+    }
+  }
+}
