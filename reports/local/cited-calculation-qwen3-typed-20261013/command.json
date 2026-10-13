@@ -1,0 +1,21 @@
+[
+  "taskset",
+  "-c",
+  "4-7",
+  "nice",
+  "-n",
+  "10",
+  "python3",
+  "-u",
+  "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/qwen3-17b-typed/run.py",
+  "--doppler",
+  "/home/x/deco/doppler",
+  "--source",
+  "/var/tmp/doppler-qwen3-17b-source-20261011",
+  "--suite",
+  "/home/x/deco/reploid/artifacts/cited-calculation-experiment-20261012/qwen3-17b-typed/suite.json",
+  "--out",
+  "/home/x/deco/reploid/reports/local/cited-calculation-qwen3-typed-20261013/result.json",
+  "--threads",
+  "4"
+]
