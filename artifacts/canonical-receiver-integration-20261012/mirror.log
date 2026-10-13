@@ -1,0 +1,5 @@
+
+> reploid@0.1.0 sync:library
+> node scripts/sync-reploid-library.js
+
+Generated application library assets: 184 files

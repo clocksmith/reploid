@@ -1,0 +1,9 @@
+# Canonical output-stage receiver
+
+Component: model partition coordination. Intent preserved: authorization before work and disclosure, bounded duplicate replay, one unresolved sequence and confirmed cleanup.
+
+The existing receiver has an explicit canonical B-stage port. It binds the fixed stage and full attempt/epochs separately from the sequence/phase request digest. Identical pending calls join; replay returns the original signed result. Unpublished results remain pinned and block the next step until an authenticated publication acknowledgment is validated through the host port. After acknowledgment, JSON policy retains two completed sequence sets for at most 60 seconds. Old results return `RESULT_EXPIRED`; bounded tombstones never permit recomputation. Failed cleanup keeps its owner and supports explicit retry.
+
+`before.log` retains the missing method failure. `after.log` runs `DOPPLER_SOURCE_ROOT=/Users/xyz/deco/doppler node tests/canonical-receiver-source.js` with actual target transitions and WebCrypto stage evidence. Numerical execution and the publication-validation port are injected; these tests do not prove durable history or real inference. Controls cover changed epochs/payloads, exact replay, unpublished retention, expiry, admission-only results, control bounds, close during hashing/execution, revoked disclosure, tombstone exhaustion and failed cleanup retry. `legacy.log` retains 93 passing legacy/charter tests; `types.log` passes public declarations. Actual Worker passes with three warnings, recorded in `worker.json`.
+
+Peer RPC, actual publication validation and runner/history composition remain the next integration boundary. No application activation, runtime pin change or physical canonical acceptance is claimed. Source identities are in `binding.json`; owned library mirrors are included, combined browser manifest is deferred to its final owner.
