@@ -1,0 +1,23 @@
+{
+  "scope": "Installed public import/three-stage contract plus unopened host close only",
+  "node": "v22.21.0",
+  "delivery": {
+    "schema": "reploid.numerical-test-delivery/v1",
+    "testDeliveryHash": "sha256:9d7b6eeedd1cc8641a759212c653605344c436bdaead2a054f828b4372687bd2",
+    "archiveSha256": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+    "snapshotFiles": 2575,
+    "installedFiles": 1976,
+    "scope": "Immutable numerical fixture delivery; not deployed application or signed admission",
+    "applicationQualification": false
+  },
+  "exports": [
+    "createOrderedLayerPartitionPlan",
+    "validateOrderedLayerPartitionPlan",
+    "hashLayerPartitionPlan",
+    "createManifestResidentPartitionFactory"
+  ],
+  "syntheticPlanId": "sha256:634c5c28fe066775a275df580e6cec26ea3faf388cee34f58d957345c9d039a8",
+  "providerLoads": 0,
+  "GPUOpened": false,
+  "physicalQualified": false
+}
