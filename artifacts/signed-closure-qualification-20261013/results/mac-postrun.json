@@ -1,0 +1,9 @@
+{
+  "at": "2026-10-13T13:29:16.914588+00:00",
+  "scope": "Post-run exact input verification",
+  "host": "mac",
+  "deliverySha256": "e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+  "files": 2013,
+  "modelFiles": 21,
+  "verified": true
+}

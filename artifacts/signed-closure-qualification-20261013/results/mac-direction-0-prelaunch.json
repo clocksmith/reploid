@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-13T13:18:23.613986+00:00",
+  "role": "mac",
+  "direction": 0,
+  "version": "Google Chrome 155.0.8059.40",
+  "executable": {
+    "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "sha256": "428dccc1a45819d23c5db4fb37388883f8d9ba64611cbd6c42395eac4a18b6a4"
+  },
+  "deliverySha256": "e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+  "modelFiles": 21,
+  "deliveryFiles": 2013,
+  "verified": true
+}
