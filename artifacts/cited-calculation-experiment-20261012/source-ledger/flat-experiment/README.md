@@ -11,3 +11,5 @@ Eight JavaScript controls, five Python controls and the actual Verification Work
 Known limits: no quantity multiplication role was added, so the printing-balance requirement may remain unsatisfied. Relation labels and recommendations are not verified by source-span equality. Omitted conditions stay unknown. The unchanged renderer may omit necessary conclusions; no criteria are exempted. This experiment cannot qualify the deployed 0.8B weights or runtime package.
 
 Run only CPU4–7, four threads, nice10 on x128. No GPU, downloads, retries, seed selection or production promotion.
+
+Completed result: **rejected**, two natural-completion calls, zero accepted tasks, five unrun. See [RESULTS.md](RESULTS.md) and [review.json](review.json).
