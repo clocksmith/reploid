@@ -58,3 +58,60 @@ export async function partitionFingerprint(metadata, bytes = new Uint8Array()) {
   const hash = await crypto.subtle.digest('SHA-256', input);
   return 'sha256:' + [...new Uint8Array(hash)].map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
+
+export const PARTITION_ROUTE_SCHEMA = 'reploid.partition-route/v1';
+export const ROUTE_ATTEMPT_SCHEMA = 'reploid.partition-attempt/v2';
+const identifier = value => typeof value === 'string' && value.length > 0 && value.length <= 256;
+const exactFields = (value, keys) => value && typeof value === 'object' && !Array.isArray(value)
+  && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
+const freezeRouteJson = value => {
+  if (value && typeof value === 'object') { Object.values(value).forEach(freezeRouteJson); Object.freeze(value); }
+  return value;
+};
+/** Structural checks also apply when comparing a received identity without a runtime. */
+function routeSnapshot(route) {
+  assertPartition(exactFields(route, ['schema', 'modelId', 'modelIdentity', 'planId', 'stages', 'activation'])
+    && route.schema === PARTITION_ROUTE_SCHEMA && identifier(route.modelId) && /^sha256:[a-f0-9]{64}$/.test(route.planId)
+    && /^sha256:[a-f0-9]{64}$/.test(route.modelIdentity)
+    && Array.isArray(route.stages) && route.stages.length >= 2, 'Invalid partition route');
+  const participants = new Set(), transports = new Set();
+  route.stages.forEach((stage, index) => {
+    assertPartition(exactFields(stage, ['index', 'participantId', 'transportId', 'residentId', 'executionId'])
+      && stage.index === index && ['participantId', 'transportId', 'residentId', 'executionId'].every(key => identifier(stage[key]))
+      && !participants.has(stage.participantId) && !transports.has(stage.transportId), 'Invalid or duplicate route stage');
+    participants.add(stage.participantId); transports.add(stage.transportId);
+  });
+  const layout = route.activation;
+  assertPartition(exactFields(layout, ['schema', 'dtype', 'hiddenSize', 'precision', 'components', 'elementStrideBytes'])
+    && layout.schema === (layout.precision === 'two-f32' ? 'doppler.activation-tensor/v2' : 'doppler.activation-tensor/v1')
+    && Number.isSafeInteger(layout.hiddenSize) && layout.hiddenSize > 0
+    && (layout.precision === 'two-f32' ? layout.dtype === 'f32' && layout.components === 2 && layout.elementStrideBytes === 8
+      : ['f32', 'f16'].includes(layout.dtype) && layout.precision === layout.dtype && layout.components === 1
+        && layout.elementStrideBytes === (layout.dtype === 'f16' ? 2 : 4)), 'Invalid route activation layout');
+  return freezeRouteJson(structuredClone(route));
+}
+/** Provider hashing validates its plan geometry; host admission separately binds the selected manifest. */
+export async function validatePartitionRoute(runtime, plan, route) {
+  const snapshot = routeSnapshot(route), planSnapshot = structuredClone(plan);
+  assertPartition(typeof runtime?.hashLayerPartitionPlan === 'function'
+    && typeof runtime.getPartitionActivationContract === 'function', 'Ordered Doppler contracts required');
+  assertPartition(planSnapshot?.schema === 'doppler.layer-partition-contract/v3'
+    && planSnapshot.modelId === snapshot.modelId && planSnapshot.stageCount === snapshot.stages.length
+    && Array.isArray(planSnapshot.partitions) && planSnapshot.partitions.length === snapshot.stages.length
+    && planSnapshot.partitions.every((part, index) => part.index === index), 'Route plan stage mismatch');
+  const layout = partitionActivationContract(runtime, planSnapshot);
+  assertPartition(canonicalPartitionJson(layout) === canonicalPartitionJson(snapshot.activation), 'Route activation mismatch');
+  assertPartition(await runtime.hashLayerPartitionPlan(planSnapshot) === snapshot.planId, 'Route plan identity mismatch');
+  return snapshot;
+}
+export function canonicalRouteAttemptBinding(identity) {
+  assertPartition(exactFields(identity, ['schema', 'threadId', 'attemptId', 'requesterId', 'placementGeneration', 'route'])
+    && identity.schema === ROUTE_ATTEMPT_SCHEMA && ['threadId', 'attemptId', 'requesterId'].every(key => identifier(identity[key]))
+    && Number.isSafeInteger(identity.placementGeneration) && identity.placementGeneration >= 0, 'Invalid route attempt identity');
+  return Object.freeze({ schema: identity.schema, threadId: identity.threadId, attemptId: identity.attemptId,
+    requesterId: identity.requesterId, placementGeneration: identity.placementGeneration, route: routeSnapshot(identity.route) });
+}
+export function sameRouteAttemptIdentity(actual, expected) {
+  try { return canonicalPartitionJson(canonicalRouteAttemptBinding(actual)) === canonicalPartitionJson(canonicalRouteAttemptBinding(expected)); }
+  catch { return false; }
+}

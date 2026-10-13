@@ -1,0 +1,163 @@
+{
+  "files": {
+    "packages/reploid/src/mesh/partitions/partition-contract.js": "d16c9bb548b284692d905f6620e9aeb637e980ba9395ba26dea52e3d2a0e1f2e",
+    "packages/reploid/src/mesh/partitions/partition-placement.js": "d3a6acf507f524128f3296af87c75e05771721c0104cc86d02f3c1a26b409e92",
+    "packages/reploid/src/mesh/partitions/partition-discovery.js": "f91902a88984a894a693e3967d5ec7a13e16441ef81f50c87cce83cbbae025b7"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/mesh/partitions/partition-contract.js:6: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-contract.js:23: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-contract.js:26: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-contract.js:26: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-contract.js:29: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-placement.js:62: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-placement.js:82: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-placement.js:132: Dynamic property write detected: [found.index] - verify input sanitization",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-discovery.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 7 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900035185,
+        "path": "/packages/reploid/src/mesh/partitions/partition-contract.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 6,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900035185,
+        "path": "/packages/reploid/src/mesh/partitions/partition-contract.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 23,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900035185,
+        "path": "/packages/reploid/src/mesh/partitions/partition-contract.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 26,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900035185,
+        "path": "/packages/reploid/src/mesh/partitions/partition-contract.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 26,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900035185,
+        "path": "/packages/reploid/src/mesh/partitions/partition-contract.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 29,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900035191,
+        "path": "/packages/reploid/src/mesh/partitions/partition-placement.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 62,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900035191,
+        "path": "/packages/reploid/src/mesh/partitions/partition-placement.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 82,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900035191,
+        "path": "/packages/reploid/src/mesh/partitions/partition-placement.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [found.index] - verify input sanitization",
+        "line": 132,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791900035191,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-placement.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900035193,
+        "path": "/packages/reploid/src/mesh/partitions/partition-discovery.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791900035193,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-discovery.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/packages/reploid/src/mesh/partitions/partition-discovery.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-placement.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-discovery.js"
+        }
+      ],
+      "filesAnalyzed": 3
+    }
+  }
+}

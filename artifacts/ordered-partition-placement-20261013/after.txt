@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/partition-placement.test.js (5 tests) 11ms
+ ✓ tests/unit/partition-discovery-invalidation.test.js (3 tests) 4ms
+ ✓ tests/unit/partition-route-placement.test.js (12 tests) 25ms
+
+ Test Files  3 passed (3)
+      Tests  20 passed (20)
+   Start at  10:00:35
+   Duration  265ms (transform 75ms, setup 0ms, import 114ms, tests 40ms, environment 398ms)
+

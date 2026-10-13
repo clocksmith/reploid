@@ -45,3 +45,28 @@ it('retries only unsettled discovery transport after a failed close', async () =
   await expect(pending).rejects.toThrow('settlement failed');
   await discovery.close(); await discovery.close(); expect(close).toHaveBeenCalledTimes(2);
 });
+
+it('admits explicitly versioned ordered inventories with host bounds, preserving the legacy index guard', async () => {
+  let networkOptions;
+  const ordered = { schema: 'reploid.partition-capability/v2', participantId: 'contributor', phase: 'ready',
+    capacity: { availableSlots: 5, active: 0, closed: false }, models: [0, 6].map(index => ({ id: 'model',
+      identity: 'sha256:' + 'a'.repeat(64), availability: 'ready', planId: 'plan', index,
+      residentId: 'resident-' + index, executionId: 'execution', activation: {} })) };
+  const request = vi.fn(async () => structuredClone(ordered));
+  const policy = { maxPeers: 2, maxStageOffersPerPeer: 2, connectTimeoutMs: 100, inputLimits: { descriptorTtlMs: 1000 } };
+  const discovery = createPartitionDiscovery({ identity: { peerId: 'requester' }, catalog: [], policy,
+    peers: () => [], describe: () => ({}), createNetwork: options => { networkOptions = options; return { async close() {} }; } });
+  networkOptions.onPeer('transport', { participantId: 'contributor', description: null, observedAt: 0, revision: 0, endpoint: { request } });
+  try {
+    await discovery.refresh(); expect(discovery.getModels()).toHaveLength(2);
+    delete policy.maxStageOffersPerPeer;
+    await discovery.refresh(); expect(discovery.getModels()).toEqual([]);
+    policy.maxStageOffersPerPeer = 1;
+    await discovery.refresh(); expect(discovery.getModels()).toEqual([]);
+    policy.maxStageOffersPerPeer = 2;
+    request.mockResolvedValue({ ...ordered, participantId: 'impostor' });
+    await discovery.refresh(); expect(discovery.getModels()).toEqual([]);
+    request.mockResolvedValue({ participantId: 'contributor', phase: 'ready', index: 6, models: [] });
+    await discovery.refresh(); expect(discovery.getModels()).toEqual([]);
+  } finally { await discovery.close(); }
+});

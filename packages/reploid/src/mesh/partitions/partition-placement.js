@@ -1,3 +1,5 @@
+import { assertPartition as assert, canonicalPartitionJson, partitionActivationContract, validatePartitionRoute, PARTITION_ROUTE_SCHEMA } from './partition-contract.js';
+
 /** Pure selection over observed capabilities. No transport or resource ownership. */
 export function selectPartitionPlacement({ participantId, offer, localIndex, previous, capabilities }) {
   const eligibility = capabilities.map(peer => ({ participantId: peer.participantId, transportId: peer.transportId,
@@ -42,4 +44,96 @@ export function selectPartitionExecution({ model, capabilities }) {
   });
   const selected = eligibility.find(peer => peer.eligible);
   return { transportId: selected?.transportId ?? null, eligibility };
+}
+
+/** One observed inventory version, bounded by host policy. These hints never authorize execution. */
+export function validateOrderedPartitionCapability(description, participantId, maxOffersPerPeer) {
+  assert(Number.isSafeInteger(maxOffersPerPeer) && maxOffersPerPeer > 0, 'Explicit stage offer limit required');
+  assert(description?.schema === 'reploid.partition-capability/v2' && description.participantId === participantId
+    && ['idle', 'waiting', 'loading', 'ready', 'stopping', 'failed'].includes(description.phase)
+    && Array.isArray(description.models) && description.models.length <= maxOffersPerPeer,
+  'Ordered partition capability identity or inventory mismatch');
+  const capacity = description.capacity;
+  assert(capacity && typeof capacity.closed === 'boolean' && Number.isSafeInteger(capacity.active) && capacity.active >= 0
+    && Number.isSafeInteger(capacity.availableSlots) && capacity.availableSlots >= 0, 'Ordered partition capacity required');
+  for (const model of description.models) {
+    assert(model && typeof model.id === 'string' && model.id.length > 0 && model.id.length <= 256
+      && /^sha256:[a-f0-9]{64}$/.test(model.identity) && Number.isSafeInteger(model.index) && model.index >= 0
+      && ['planId', 'residentId', 'executionId'].every(key => typeof model[key] === 'string' && model[key].length > 0 && model[key].length <= 256)
+      && ['ready', 'unavailable'].includes(model.availability), 'Invalid ordered partition offer');
+  }
+}
+
+/** Deterministic bipartite matching for new attempts only. No cost optimum or physical-device independence is inferred. */
+export async function selectPartitionRoute({ runtime, plan, model, capabilities, limits, now }) {
+  assert(limits && ['maxStages', 'maxPeers', 'maxOffersPerPeer', 'maxSelectionSteps']
+    .every(key => Number.isSafeInteger(limits[key]) && limits[key] > 0), 'Explicit route selection limits required');
+  assert(Number.isSafeInteger(now) && now >= 0 && Array.isArray(capabilities)
+    && capabilities.length <= limits.maxPeers && Number.isSafeInteger(plan?.stageCount)
+    && plan.stageCount >= 2 && plan.stageCount <= limits.maxStages, 'Route selection input exceeds limit');
+  const planSnapshot = structuredClone(plan), modelSnapshot = structuredClone(model), peers = structuredClone(capabilities);
+  const policy = { ...limits };
+  const activation = partitionActivationContract(runtime, planSnapshot);
+  const planId = await runtime.hashLayerPartitionPlan(planSnapshot);
+  assert(modelSnapshot?.id === planSnapshot.modelId && /^sha256:[a-f0-9]{64}$/.test(modelSnapshot.identity), 'Route model mismatch');
+  const candidates = Array.from({ length: planSnapshot.stageCount }, () => []), eligibility = [];
+  const participants = new Set(), transports = new Set();
+  for (const peer of peers) {
+    assert(['participantId', 'transportId'].every(key => typeof peer[key] === 'string' && peer[key].length > 0 && peer[key].length <= 256)
+      && !participants.has(peer.participantId) && !transports.has(peer.transportId), 'Duplicate or invalid route peer');
+    participants.add(peer.participantId); transports.add(peer.transportId);
+    let reason = null;
+    if (peer.available !== true || !Number.isSafeInteger(peer.observedAt) || peer.observedAt > now || peer.observedAt < 0
+      || !Number.isSafeInteger(peer.expiresAt) || peer.expiresAt <= now) reason = 'unavailable-or-expired';
+    else {
+      try { validateOrderedPartitionCapability(peer.description, peer.participantId, policy.maxOffersPerPeer); }
+      catch { reason = 'invalid-capability'; }
+    }
+    if (!reason && (peer.description.phase !== 'ready' || peer.description.capacity.closed
+      || peer.description.capacity.availableSlots === 0)) reason = 'contributor-unavailable';
+    if (reason) { eligibility.push({ participantId: peer.participantId, index: null, eligible: false, reason }); continue; }
+    for (const offer of peer.description.models) {
+      const eligible = offer.id === modelSnapshot.id && offer.identity === modelSnapshot.identity
+        && offer.planId === planId && offer.index < candidates.length && offer.availability === 'ready'
+        && offer.activation && canonicalPartitionJson(offer.activation) === canonicalPartitionJson(activation);
+      eligibility.push({ participantId: peer.participantId, index: offer.index, eligible: !!eligible,
+        reason: eligible ? 'reservation-required' : 'model-plan-stage-mismatch' });
+      if (eligible) candidates[offer.index].push({ index: offer.index, participantId: peer.participantId,
+        transportId: peer.transportId, residentId: offer.residentId, executionId: offer.executionId });
+    }
+  }
+  const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+  candidates.forEach(rows => rows.sort((a, b) => compare(a.participantId, b.participantId)
+    || compare(a.residentId, b.residentId) || compare(a.executionId, b.executionId)));
+  let selectionSteps = 0;
+  const finish = (route, reason) => Object.freeze({ route, reason, selectionSteps,
+    eligibility: Object.freeze(eligibility.map(Object.freeze)) });
+  if (candidates.some(rows => rows.length === 0)) return finish(null, 'missing-eligible-stage');
+  const assigned = new Map(), stages = Array(candidates.length).fill(null);
+  // Iterative augmenting paths avoid stack depth depending on model size.
+  for (let start = 0; start < stages.length; start++) {
+    const queue = [start], visited = new Set(), predecessor = new Map();
+    let found = null;
+    for (let cursor = 0; cursor < queue.length && !found; cursor++) {
+      const index = queue[cursor];
+      for (const candidate of candidates[index]) {
+        if (++selectionSteps > policy.maxSelectionSteps) return finish(null, 'selection-work-limit');
+        if (visited.has(candidate.participantId)) continue;
+        visited.add(candidate.participantId);
+        const previous = assigned.get(candidate.participantId);
+        if (previous === undefined) { found = { index, candidate }; break; }
+        if (!predecessor.has(previous) && previous !== start) {
+          predecessor.set(previous, { index, candidate }); queue.push(previous);
+        }
+      }
+    }
+    if (!found) return finish(null, 'insufficient-distinct-participants');
+    while (found) {
+      stages[found.index] = found.candidate; assigned.set(found.candidate.participantId, found.index);
+      found = predecessor.get(found.index);
+    }
+  }
+  const route = await validatePartitionRoute(runtime, planSnapshot, { schema: PARTITION_ROUTE_SCHEMA,
+    modelId: modelSnapshot.id, modelIdentity: modelSnapshot.identity, planId, stages, activation });
+  return finish(route, 'reservation-required');
 }

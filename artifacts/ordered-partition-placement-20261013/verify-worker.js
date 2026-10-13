@@ -1,0 +1,16 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import { createHash } from 'node:crypto';
+const files = ['packages/reploid/src/mesh/partitions/partition-contract.js', 'packages/reploid/src/mesh/partitions/partition-placement.js', 'packages/reploid/src/mesh/partitions/partition-discovery.js'];
+const snapshot = Object.fromEntries(files.map(file => ['/' + file, fs.readFileSync(file, 'utf8')]));
+let result;
+const sandbox = { console, setTimeout, clearTimeout };
+sandbox.self = sandbox; sandbox.postMessage = value => { result = value; };
+const context = vm.createContext(sandbox);
+sandbox.importScripts = file => vm.runInContext(fs.readFileSync('self' + file, 'utf8'), context, { filename: file });
+vm.runInContext(fs.readFileSync('self/core/verification-worker.js', 'utf8'), context);
+await sandbox.onmessage({ data: { type: 'VERIFY', snapshot } });
+const evidence = { files: Object.fromEntries(files.map(file => [file, createHash('sha256').update(fs.readFileSync(file)).digest('hex')])), result };
+fs.writeFileSync(new URL('./worker.json', import.meta.url), JSON.stringify(evidence, null, 2) + '\n');
+if (!result.passed) throw Error(JSON.stringify(result));
+console.log('Actual Verification Worker passed; warnings retained in worker.json');
