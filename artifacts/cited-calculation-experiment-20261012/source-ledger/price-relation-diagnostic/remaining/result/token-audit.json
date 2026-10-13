@@ -1,0 +1,2582 @@
+{
+  "schema": "reploid.price-relation-token-audit/v1",
+  "sourceModelExecuted": false,
+  "newGenerationCalls": 0,
+  "allAllowedIdHashesReproduced": true,
+  "results": [
+    {
+      "id": "document-money-row-5",
+      "sourceOccurrence": {
+        "source": "D1:P3",
+        "passage": "Estimated completion September 18, subject to permit approval. Deposit: 25% of $8,400.",
+        "value": "$8,400",
+        "occurrenceIndex": 0,
+        "start": 79,
+        "end": 85
+      },
+      "selectedRelation": "quoted_total",
+      "firstLabelDistinguishingStep": {
+        "step": 4,
+        "allowedCount": 30,
+        "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+        "rawWinner": 63725,
+        "selectedToken": 63725,
+        "rawWinnerAllowed": true,
+        "rawWinnerLogit": 50.094017028808594,
+        "selectedRawLogit": 50.094017028808594,
+        "terminalGrammar": false,
+        "eosForcedAgainstRawWinner": false,
+        "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+        "maskSeconds": 0.010836136527359486,
+        "prefix": "{\"relation\":\"",
+        "rawWinnerText": "quoted",
+        "selectedText": "quoted",
+        "remainingLabelsBefore": [
+          "quoted_total",
+          "unit_price",
+          "additional_charge",
+          "included_allowance",
+          "prior_payment",
+          "deposit_basis",
+          "unknown"
+        ],
+        "remainingLabelsAfter": [
+          "quoted_total"
+        ],
+        "allowedTexts": {
+          "67": "d",
+          "450": "de",
+          "14891": "dep",
+          "60514": "deposit",
+          "79": "p",
+          "649": "pr",
+          "68608": "pri",
+          "64233": "prior",
+          "72": "i",
+          "258": "in",
+          "2840": "inc",
+          "91157": "incl",
+          "997": "include",
+          "82622": "included",
+          "64": "a",
+          "329": "ad",
+          "718": "add",
+          "35499": "additional",
+          "84": "u",
+          "359": "un",
+          "3122": "unk",
+          "16088": "unknown",
+          "15705": "uni",
+          "3843": "unit",
+          "80": "q",
+          "446": "qu",
+          "26512": "quo",
+          "13492": "quot",
+          "2949": "quote",
+          "63725": "quoted"
+        }
+      },
+      "maskedSteps": [
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.39829635620117,
+          "selectedRawLogit": 24.900861740112305,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.009422756731510162,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        }
+      ],
+      "allSteps": [
+        {
+          "step": 0,
+          "allowedCount": 2,
+          "allowedIdsSha256": "a0b4e4b854a7fe2dddbf427228cc9133392ad1afbc519a7a85d3d4655bc6212c",
+          "rawWinner": 4913,
+          "selectedToken": 4913,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 38.64252471923828,
+          "selectedRawLogit": 38.64252471923828,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "07a8c76bdd9a11603b5535d4af9ef1b69a7258e238b8b61416a94cbf1a7f14a8",
+          "maskSeconds": 0.009630526416003704,
+          "prefix": "",
+          "rawWinnerText": "{\"",
+          "selectedText": "{\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "90": "{",
+            "4913": "{\""
+          }
+        },
+        {
+          "step": 1,
+          "allowedCount": 4,
+          "allowedIdsSha256": "43910e77e26698f7d6513e7ee427f06bd19bd1bd69760286b019e31891c08d69",
+          "rawWinner": 22221,
+          "selectedToken": 22221,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 52.08533477783203,
+          "selectedRawLogit": 52.08533477783203,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "1d360ffef7bd9bc15242608496716969631e5c38572b0fe5a37cce8ceacf62f4",
+          "maskSeconds": 0.009301627986133099,
+          "prefix": "{\"",
+          "rawWinnerText": "relation",
+          "selectedText": "relation",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "81": "r",
+            "265": "re",
+            "3748": "rel",
+            "22221": "relation"
+          }
+        },
+        {
+          "step": 2,
+          "allowedCount": 3,
+          "allowedIdsSha256": "0d1c048d727ccf6be6e412dba8e6858928c3d71d22e265df093db2f355db265d",
+          "rawWinner": 788,
+          "selectedToken": 788,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 49.073020935058594,
+          "selectedRawLogit": 49.073020935058594,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a2835b9c9c5d5c041379c1b91db3180ad217128bbf281f167c14dd0ebaafdb34",
+          "maskSeconds": 0.011084814555943012,
+          "prefix": "{\"relation",
+          "rawWinnerText": "\":",
+          "selectedText": "\":",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "788": "\":",
+            "3252": "\":\""
+          }
+        },
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.39829635620117,
+          "selectedRawLogit": 24.900861740112305,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.009422756731510162,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        },
+        {
+          "step": 4,
+          "allowedCount": 30,
+          "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+          "rawWinner": 63725,
+          "selectedToken": 63725,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 50.094017028808594,
+          "selectedRawLogit": 50.094017028808594,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+          "maskSeconds": 0.010836136527359486,
+          "prefix": "{\"relation\":\"",
+          "rawWinnerText": "quoted",
+          "selectedText": "quoted",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "67": "d",
+            "450": "de",
+            "14891": "dep",
+            "60514": "deposit",
+            "79": "p",
+            "649": "pr",
+            "68608": "pri",
+            "64233": "prior",
+            "72": "i",
+            "258": "in",
+            "2840": "inc",
+            "91157": "incl",
+            "997": "include",
+            "82622": "included",
+            "64": "a",
+            "329": "ad",
+            "718": "add",
+            "35499": "additional",
+            "84": "u",
+            "359": "un",
+            "3122": "unk",
+            "16088": "unknown",
+            "15705": "uni",
+            "3843": "unit",
+            "80": "q",
+            "446": "qu",
+            "26512": "quo",
+            "13492": "quot",
+            "2949": "quote",
+            "63725": "quoted"
+          }
+        },
+        {
+          "step": 5,
+          "allowedCount": 5,
+          "allowedIdsSha256": "196bee7cd78f514804160471fccfceb7a06fe5a3c6ff91f3f4b836d04a41902f",
+          "rawWinner": 10784,
+          "selectedToken": 10784,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 51.52491760253906,
+          "selectedRawLogit": 51.52491760253906,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a672326cacfe5c7a2159c2c3068d11e987f9fb509a89fcb3cd953d4e58cfbefc",
+          "maskSeconds": 0.010606163181364536,
+          "prefix": "{\"relation\":\"quoted",
+          "rawWinnerText": "_total",
+          "selectedText": "_total",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "62": "_",
+            "528": "_t",
+            "2346": "_to",
+            "36138": "_tot",
+            "10784": "_total"
+          }
+        },
+        {
+          "step": 6,
+          "allowedCount": 2,
+          "allowedIdsSha256": "24aa4b0cc715851530f1a4aebb5b3176d105170a6a66718974c51e69a81cfbbc",
+          "rawWinner": 9207,
+          "selectedToken": 9207,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 47.86444854736328,
+          "selectedRawLogit": 47.86444854736328,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "840d4a9e17f1352c3eb6d1a2c9a4b1577a3fe716ae609f2f737a24319932f6be",
+          "maskSeconds": 0.011148924939334393,
+          "prefix": "{\"relation\":\"quoted_total",
+          "rawWinnerText": "\"}",
+          "selectedText": "\"}",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "9207": "\"}"
+          }
+        },
+        {
+          "step": 7,
+          "allowedCount": 2,
+          "allowedIdsSha256": "c2a614a91fba8df9760aa5659e933ebb25859c9e89793fb8cf89b9dddee32935",
+          "rawWinner": 151645,
+          "selectedToken": 151645,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 29.820955276489258,
+          "selectedRawLogit": 29.820955276489258,
+          "terminalGrammar": true,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a4f9b1db3843f2a8ca98f9106440b3013f1305a44928dcd930f476f7f83a2329",
+          "maskSeconds": 0.014724984765052795,
+          "prefix": "{\"relation\":\"quoted_total\"}",
+          "rawWinnerText": "<|im_end|>",
+          "selectedText": "<|im_end|>",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "151645": "<|im_end|>",
+            "151643": "<|endoftext|>"
+          }
+        }
+      ]
+    },
+    {
+      "id": "document-money-row-6",
+      "sourceOccurrence": {
+        "source": "D2:P1",
+        "passage": "Bathroom work: $9,100 including installation, disposal, sales tax and plumbing.",
+        "value": "$9,100",
+        "occurrenceIndex": 0,
+        "start": 15,
+        "end": 21
+      },
+      "selectedRelation": "quoted_total",
+      "firstLabelDistinguishingStep": {
+        "step": 4,
+        "allowedCount": 30,
+        "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+        "rawWinner": 63725,
+        "selectedToken": 63725,
+        "rawWinnerAllowed": true,
+        "rawWinnerLogit": 51.38705062866211,
+        "selectedRawLogit": 51.38705062866211,
+        "terminalGrammar": false,
+        "eosForcedAgainstRawWinner": false,
+        "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+        "maskSeconds": 0.000668669119477272,
+        "prefix": "{\"relation\":\"",
+        "rawWinnerText": "quoted",
+        "selectedText": "quoted",
+        "remainingLabelsBefore": [
+          "quoted_total",
+          "unit_price",
+          "additional_charge",
+          "included_allowance",
+          "prior_payment",
+          "deposit_basis",
+          "unknown"
+        ],
+        "remainingLabelsAfter": [
+          "quoted_total"
+        ],
+        "allowedTexts": {
+          "67": "d",
+          "450": "de",
+          "14891": "dep",
+          "60514": "deposit",
+          "79": "p",
+          "649": "pr",
+          "68608": "pri",
+          "64233": "prior",
+          "72": "i",
+          "258": "in",
+          "2840": "inc",
+          "91157": "incl",
+          "997": "include",
+          "82622": "included",
+          "64": "a",
+          "329": "ad",
+          "718": "add",
+          "35499": "additional",
+          "84": "u",
+          "359": "un",
+          "3122": "unk",
+          "16088": "unknown",
+          "15705": "uni",
+          "3843": "unit",
+          "80": "q",
+          "446": "qu",
+          "26512": "quo",
+          "13492": "quot",
+          "2949": "quote",
+          "63725": "quoted"
+        }
+      },
+      "maskedSteps": [
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.13068771362305,
+          "selectedRawLogit": 25.929473876953125,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.00047068577259778976,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        }
+      ],
+      "allSteps": [
+        {
+          "step": 0,
+          "allowedCount": 2,
+          "allowedIdsSha256": "a0b4e4b854a7fe2dddbf427228cc9133392ad1afbc519a7a85d3d4655bc6212c",
+          "rawWinner": 4913,
+          "selectedToken": 4913,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 38.78955841064453,
+          "selectedRawLogit": 38.78955841064453,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "07a8c76bdd9a11603b5535d4af9ef1b69a7258e238b8b61416a94cbf1a7f14a8",
+          "maskSeconds": 0.0004095500335097313,
+          "prefix": "",
+          "rawWinnerText": "{\"",
+          "selectedText": "{\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "90": "{",
+            "4913": "{\""
+          }
+        },
+        {
+          "step": 1,
+          "allowedCount": 4,
+          "allowedIdsSha256": "43910e77e26698f7d6513e7ee427f06bd19bd1bd69760286b019e31891c08d69",
+          "rawWinner": 22221,
+          "selectedToken": 22221,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 51.849884033203125,
+          "selectedRawLogit": 51.849884033203125,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "1d360ffef7bd9bc15242608496716969631e5c38572b0fe5a37cce8ceacf62f4",
+          "maskSeconds": 0.010639235377311707,
+          "prefix": "{\"",
+          "rawWinnerText": "relation",
+          "selectedText": "relation",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "81": "r",
+            "265": "re",
+            "3748": "rel",
+            "22221": "relation"
+          }
+        },
+        {
+          "step": 2,
+          "allowedCount": 3,
+          "allowedIdsSha256": "0d1c048d727ccf6be6e412dba8e6858928c3d71d22e265df093db2f355db265d",
+          "rawWinner": 788,
+          "selectedToken": 788,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 48.708152770996094,
+          "selectedRawLogit": 48.708152770996094,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a2835b9c9c5d5c041379c1b91db3180ad217128bbf281f167c14dd0ebaafdb34",
+          "maskSeconds": 0.0013617025688290596,
+          "prefix": "{\"relation",
+          "rawWinnerText": "\":",
+          "selectedText": "\":",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "788": "\":",
+            "3252": "\":\""
+          }
+        },
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.13068771362305,
+          "selectedRawLogit": 25.929473876953125,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.00047068577259778976,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        },
+        {
+          "step": 4,
+          "allowedCount": 30,
+          "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+          "rawWinner": 63725,
+          "selectedToken": 63725,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 51.38705062866211,
+          "selectedRawLogit": 51.38705062866211,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+          "maskSeconds": 0.000668669119477272,
+          "prefix": "{\"relation\":\"",
+          "rawWinnerText": "quoted",
+          "selectedText": "quoted",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "67": "d",
+            "450": "de",
+            "14891": "dep",
+            "60514": "deposit",
+            "79": "p",
+            "649": "pr",
+            "68608": "pri",
+            "64233": "prior",
+            "72": "i",
+            "258": "in",
+            "2840": "inc",
+            "91157": "incl",
+            "997": "include",
+            "82622": "included",
+            "64": "a",
+            "329": "ad",
+            "718": "add",
+            "35499": "additional",
+            "84": "u",
+            "359": "un",
+            "3122": "unk",
+            "16088": "unknown",
+            "15705": "uni",
+            "3843": "unit",
+            "80": "q",
+            "446": "qu",
+            "26512": "quo",
+            "13492": "quot",
+            "2949": "quote",
+            "63725": "quoted"
+          }
+        },
+        {
+          "step": 5,
+          "allowedCount": 5,
+          "allowedIdsSha256": "196bee7cd78f514804160471fccfceb7a06fe5a3c6ff91f3f4b836d04a41902f",
+          "rawWinner": 10784,
+          "selectedToken": 10784,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 52.28195571899414,
+          "selectedRawLogit": 52.28195571899414,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a672326cacfe5c7a2159c2c3068d11e987f9fb509a89fcb3cd953d4e58cfbefc",
+          "maskSeconds": 0.0004759151488542557,
+          "prefix": "{\"relation\":\"quoted",
+          "rawWinnerText": "_total",
+          "selectedText": "_total",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "62": "_",
+            "528": "_t",
+            "2346": "_to",
+            "36138": "_tot",
+            "10784": "_total"
+          }
+        },
+        {
+          "step": 6,
+          "allowedCount": 2,
+          "allowedIdsSha256": "24aa4b0cc715851530f1a4aebb5b3176d105170a6a66718974c51e69a81cfbbc",
+          "rawWinner": 9207,
+          "selectedToken": 9207,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 47.53611755371094,
+          "selectedRawLogit": 47.53611755371094,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "840d4a9e17f1352c3eb6d1a2c9a4b1577a3fe716ae609f2f737a24319932f6be",
+          "maskSeconds": 0.010551800951361656,
+          "prefix": "{\"relation\":\"quoted_total",
+          "rawWinnerText": "\"}",
+          "selectedText": "\"}",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "9207": "\"}"
+          }
+        },
+        {
+          "step": 7,
+          "allowedCount": 2,
+          "allowedIdsSha256": "c2a614a91fba8df9760aa5659e933ebb25859c9e89793fb8cf89b9dddee32935",
+          "rawWinner": 151645,
+          "selectedToken": 151645,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 29.759807586669922,
+          "selectedRawLogit": 29.759807586669922,
+          "terminalGrammar": true,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a4f9b1db3843f2a8ca98f9106440b3013f1305a44928dcd930f476f7f83a2329",
+          "maskSeconds": 0.0007238220423460007,
+          "prefix": "{\"relation\":\"quoted_total\"}",
+          "rawWinnerText": "<|im_end|>",
+          "selectedText": "<|im_end|>",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "151645": "<|im_end|>",
+            "151643": "<|endoftext|>"
+          }
+        }
+      ]
+    },
+    {
+      "id": "document-money-row-7",
+      "sourceOccurrence": {
+        "source": "D2:P2",
+        "passage": "Includes up to $500 of electrical work. Additional electrical work requires written approval and an extra charge.",
+        "value": "$500",
+        "occurrenceIndex": 0,
+        "start": 15,
+        "end": 19
+      },
+      "selectedRelation": "quoted_total",
+      "firstLabelDistinguishingStep": {
+        "step": 4,
+        "allowedCount": 30,
+        "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+        "rawWinner": 63725,
+        "selectedToken": 63725,
+        "rawWinnerAllowed": true,
+        "rawWinnerLogit": 46.727500915527344,
+        "selectedRawLogit": 46.727500915527344,
+        "terminalGrammar": false,
+        "eosForcedAgainstRawWinner": false,
+        "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+        "maskSeconds": 0.0006810016930103302,
+        "prefix": "{\"relation\":\"",
+        "rawWinnerText": "quoted",
+        "selectedText": "quoted",
+        "remainingLabelsBefore": [
+          "quoted_total",
+          "unit_price",
+          "additional_charge",
+          "included_allowance",
+          "prior_payment",
+          "deposit_basis",
+          "unknown"
+        ],
+        "remainingLabelsAfter": [
+          "quoted_total"
+        ],
+        "allowedTexts": {
+          "67": "d",
+          "450": "de",
+          "14891": "dep",
+          "60514": "deposit",
+          "79": "p",
+          "649": "pr",
+          "68608": "pri",
+          "64233": "prior",
+          "72": "i",
+          "258": "in",
+          "2840": "inc",
+          "91157": "incl",
+          "997": "include",
+          "82622": "included",
+          "64": "a",
+          "329": "ad",
+          "718": "add",
+          "35499": "additional",
+          "84": "u",
+          "359": "un",
+          "3122": "unk",
+          "16088": "unknown",
+          "15705": "uni",
+          "3843": "unit",
+          "80": "q",
+          "446": "qu",
+          "26512": "quo",
+          "13492": "quot",
+          "2949": "quote",
+          "63725": "quoted"
+        }
+      },
+      "maskedSteps": [
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.151756286621094,
+          "selectedRawLogit": 25.349729537963867,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.010671816766262054,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        }
+      ],
+      "allSteps": [
+        {
+          "step": 0,
+          "allowedCount": 2,
+          "allowedIdsSha256": "a0b4e4b854a7fe2dddbf427228cc9133392ad1afbc519a7a85d3d4655bc6212c",
+          "rawWinner": 4913,
+          "selectedToken": 4913,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 38.7138557434082,
+          "selectedRawLogit": 38.7138557434082,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "07a8c76bdd9a11603b5535d4af9ef1b69a7258e238b8b61416a94cbf1a7f14a8",
+          "maskSeconds": 0.0004964545369148254,
+          "prefix": "",
+          "rawWinnerText": "{\"",
+          "selectedText": "{\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "90": "{",
+            "4913": "{\""
+          }
+        },
+        {
+          "step": 1,
+          "allowedCount": 4,
+          "allowedIdsSha256": "43910e77e26698f7d6513e7ee427f06bd19bd1bd69760286b019e31891c08d69",
+          "rawWinner": 22221,
+          "selectedToken": 22221,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 51.97863006591797,
+          "selectedRawLogit": 51.97863006591797,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "1d360ffef7bd9bc15242608496716969631e5c38572b0fe5a37cce8ceacf62f4",
+          "maskSeconds": 0.0004594950005412102,
+          "prefix": "{\"",
+          "rawWinnerText": "relation",
+          "selectedText": "relation",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "81": "r",
+            "265": "re",
+            "3748": "rel",
+            "22221": "relation"
+          }
+        },
+        {
+          "step": 2,
+          "allowedCount": 3,
+          "allowedIdsSha256": "0d1c048d727ccf6be6e412dba8e6858928c3d71d22e265df093db2f355db265d",
+          "rawWinner": 788,
+          "selectedToken": 788,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 49.053794860839844,
+          "selectedRawLogit": 49.053794860839844,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a2835b9c9c5d5c041379c1b91db3180ad217128bbf281f167c14dd0ebaafdb34",
+          "maskSeconds": 0.00045223161578178406,
+          "prefix": "{\"relation",
+          "rawWinnerText": "\":",
+          "selectedText": "\":",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "788": "\":",
+            "3252": "\":\""
+          }
+        },
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.151756286621094,
+          "selectedRawLogit": 25.349729537963867,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.010671816766262054,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        },
+        {
+          "step": 4,
+          "allowedCount": 30,
+          "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+          "rawWinner": 63725,
+          "selectedToken": 63725,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 46.727500915527344,
+          "selectedRawLogit": 46.727500915527344,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+          "maskSeconds": 0.0006810016930103302,
+          "prefix": "{\"relation\":\"",
+          "rawWinnerText": "quoted",
+          "selectedText": "quoted",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "67": "d",
+            "450": "de",
+            "14891": "dep",
+            "60514": "deposit",
+            "79": "p",
+            "649": "pr",
+            "68608": "pri",
+            "64233": "prior",
+            "72": "i",
+            "258": "in",
+            "2840": "inc",
+            "91157": "incl",
+            "997": "include",
+            "82622": "included",
+            "64": "a",
+            "329": "ad",
+            "718": "add",
+            "35499": "additional",
+            "84": "u",
+            "359": "un",
+            "3122": "unk",
+            "16088": "unknown",
+            "15705": "uni",
+            "3843": "unit",
+            "80": "q",
+            "446": "qu",
+            "26512": "quo",
+            "13492": "quot",
+            "2949": "quote",
+            "63725": "quoted"
+          }
+        },
+        {
+          "step": 5,
+          "allowedCount": 5,
+          "allowedIdsSha256": "196bee7cd78f514804160471fccfceb7a06fe5a3c6ff91f3f4b836d04a41902f",
+          "rawWinner": 10784,
+          "selectedToken": 10784,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 49.90937423706055,
+          "selectedRawLogit": 49.90937423706055,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a672326cacfe5c7a2159c2c3068d11e987f9fb509a89fcb3cd953d4e58cfbefc",
+          "maskSeconds": 0.0004887105897068977,
+          "prefix": "{\"relation\":\"quoted",
+          "rawWinnerText": "_total",
+          "selectedText": "_total",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "62": "_",
+            "528": "_t",
+            "2346": "_to",
+            "36138": "_tot",
+            "10784": "_total"
+          }
+        },
+        {
+          "step": 6,
+          "allowedCount": 2,
+          "allowedIdsSha256": "24aa4b0cc715851530f1a4aebb5b3176d105170a6a66718974c51e69a81cfbbc",
+          "rawWinner": 9207,
+          "selectedToken": 9207,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 48.86750030517578,
+          "selectedRawLogit": 48.86750030517578,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "840d4a9e17f1352c3eb6d1a2c9a4b1577a3fe716ae609f2f737a24319932f6be",
+          "maskSeconds": 0.0004745433107018471,
+          "prefix": "{\"relation\":\"quoted_total",
+          "rawWinnerText": "\"}",
+          "selectedText": "\"}",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "9207": "\"}"
+          }
+        },
+        {
+          "step": 7,
+          "allowedCount": 2,
+          "allowedIdsSha256": "c2a614a91fba8df9760aa5659e933ebb25859c9e89793fb8cf89b9dddee32935",
+          "rawWinner": 151645,
+          "selectedToken": 151645,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 30.059335708618164,
+          "selectedRawLogit": 30.059335708618164,
+          "terminalGrammar": true,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a4f9b1db3843f2a8ca98f9106440b3013f1305a44928dcd930f476f7f83a2329",
+          "maskSeconds": 0.0004131374880671501,
+          "prefix": "{\"relation\":\"quoted_total\"}",
+          "rawWinnerText": "<|im_end|>",
+          "selectedText": "<|im_end|>",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "151645": "<|im_end|>",
+            "151643": "<|endoftext|>"
+          }
+        }
+      ]
+    },
+    {
+      "id": "document-money-row-11",
+      "sourceOccurrence": {
+        "source": "D2:P3",
+        "passage": "Completion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.",
+        "value": "$9,100",
+        "occurrenceIndex": 0,
+        "start": 97,
+        "end": 103
+      },
+      "selectedRelation": "quoted_total",
+      "firstLabelDistinguishingStep": {
+        "step": 4,
+        "allowedCount": 30,
+        "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+        "rawWinner": 63725,
+        "selectedToken": 63725,
+        "rawWinnerAllowed": true,
+        "rawWinnerLogit": 50.507423400878906,
+        "selectedRawLogit": 50.507423400878906,
+        "terminalGrammar": false,
+        "eosForcedAgainstRawWinner": false,
+        "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+        "maskSeconds": 0.0008390890434384346,
+        "prefix": "{\"relation\":\"",
+        "rawWinnerText": "quoted",
+        "selectedText": "quoted",
+        "remainingLabelsBefore": [
+          "quoted_total",
+          "unit_price",
+          "additional_charge",
+          "included_allowance",
+          "prior_payment",
+          "deposit_basis",
+          "unknown"
+        ],
+        "remainingLabelsAfter": [
+          "quoted_total"
+        ],
+        "allowedTexts": {
+          "67": "d",
+          "450": "de",
+          "14891": "dep",
+          "60514": "deposit",
+          "79": "p",
+          "649": "pr",
+          "68608": "pri",
+          "64233": "prior",
+          "72": "i",
+          "258": "in",
+          "2840": "inc",
+          "91157": "incl",
+          "997": "include",
+          "82622": "included",
+          "64": "a",
+          "329": "ad",
+          "718": "add",
+          "35499": "additional",
+          "84": "u",
+          "359": "un",
+          "3122": "unk",
+          "16088": "unknown",
+          "15705": "uni",
+          "3843": "unit",
+          "80": "q",
+          "446": "qu",
+          "26512": "quo",
+          "13492": "quot",
+          "2949": "quote",
+          "63725": "quoted"
+        }
+      },
+      "maskedSteps": [
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.15326690673828,
+          "selectedRawLogit": 25.461101531982422,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.0004579313099384308,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        }
+      ],
+      "allSteps": [
+        {
+          "step": 0,
+          "allowedCount": 2,
+          "allowedIdsSha256": "a0b4e4b854a7fe2dddbf427228cc9133392ad1afbc519a7a85d3d4655bc6212c",
+          "rawWinner": 4913,
+          "selectedToken": 4913,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 38.79374694824219,
+          "selectedRawLogit": 38.79374694824219,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "07a8c76bdd9a11603b5535d4af9ef1b69a7258e238b8b61416a94cbf1a7f14a8",
+          "maskSeconds": 0.00043685268610715866,
+          "prefix": "",
+          "rawWinnerText": "{\"",
+          "selectedText": "{\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "90": "{",
+            "4913": "{\""
+          }
+        },
+        {
+          "step": 1,
+          "allowedCount": 4,
+          "allowedIdsSha256": "43910e77e26698f7d6513e7ee427f06bd19bd1bd69760286b019e31891c08d69",
+          "rawWinner": 22221,
+          "selectedToken": 22221,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 52.33177185058594,
+          "selectedRawLogit": 52.33177185058594,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "1d360ffef7bd9bc15242608496716969631e5c38572b0fe5a37cce8ceacf62f4",
+          "maskSeconds": 0.000455969013273716,
+          "prefix": "{\"",
+          "rawWinnerText": "relation",
+          "selectedText": "relation",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "81": "r",
+            "265": "re",
+            "3748": "rel",
+            "22221": "relation"
+          }
+        },
+        {
+          "step": 2,
+          "allowedCount": 3,
+          "allowedIdsSha256": "0d1c048d727ccf6be6e412dba8e6858928c3d71d22e265df093db2f355db265d",
+          "rawWinner": 788,
+          "selectedToken": 788,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 48.81231689453125,
+          "selectedRawLogit": 48.81231689453125,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a2835b9c9c5d5c041379c1b91db3180ad217128bbf281f167c14dd0ebaafdb34",
+          "maskSeconds": 0.0004624808207154274,
+          "prefix": "{\"relation",
+          "rawWinnerText": "\":",
+          "selectedText": "\":",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "788": "\":",
+            "3252": "\":\""
+          }
+        },
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.15326690673828,
+          "selectedRawLogit": 25.461101531982422,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.0004579313099384308,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        },
+        {
+          "step": 4,
+          "allowedCount": 30,
+          "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+          "rawWinner": 63725,
+          "selectedToken": 63725,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 50.507423400878906,
+          "selectedRawLogit": 50.507423400878906,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+          "maskSeconds": 0.0008390890434384346,
+          "prefix": "{\"relation\":\"",
+          "rawWinnerText": "quoted",
+          "selectedText": "quoted",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "67": "d",
+            "450": "de",
+            "14891": "dep",
+            "60514": "deposit",
+            "79": "p",
+            "649": "pr",
+            "68608": "pri",
+            "64233": "prior",
+            "72": "i",
+            "258": "in",
+            "2840": "inc",
+            "91157": "incl",
+            "997": "include",
+            "82622": "included",
+            "64": "a",
+            "329": "ad",
+            "718": "add",
+            "35499": "additional",
+            "84": "u",
+            "359": "un",
+            "3122": "unk",
+            "16088": "unknown",
+            "15705": "uni",
+            "3843": "unit",
+            "80": "q",
+            "446": "qu",
+            "26512": "quo",
+            "13492": "quot",
+            "2949": "quote",
+            "63725": "quoted"
+          }
+        },
+        {
+          "step": 5,
+          "allowedCount": 5,
+          "allowedIdsSha256": "196bee7cd78f514804160471fccfceb7a06fe5a3c6ff91f3f4b836d04a41902f",
+          "rawWinner": 10784,
+          "selectedToken": 10784,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 52.033843994140625,
+          "selectedRawLogit": 52.033843994140625,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a672326cacfe5c7a2159c2c3068d11e987f9fb509a89fcb3cd953d4e58cfbefc",
+          "maskSeconds": 0.0004706652835011482,
+          "prefix": "{\"relation\":\"quoted",
+          "rawWinnerText": "_total",
+          "selectedText": "_total",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "62": "_",
+            "528": "_t",
+            "2346": "_to",
+            "36138": "_tot",
+            "10784": "_total"
+          }
+        },
+        {
+          "step": 6,
+          "allowedCount": 2,
+          "allowedIdsSha256": "24aa4b0cc715851530f1a4aebb5b3176d105170a6a66718974c51e69a81cfbbc",
+          "rawWinner": 9207,
+          "selectedToken": 9207,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 47.366764068603516,
+          "selectedRawLogit": 47.366764068603516,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "840d4a9e17f1352c3eb6d1a2c9a4b1577a3fe716ae609f2f737a24319932f6be",
+          "maskSeconds": 0.0004430953413248062,
+          "prefix": "{\"relation\":\"quoted_total",
+          "rawWinnerText": "\"}",
+          "selectedText": "\"}",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "9207": "\"}"
+          }
+        },
+        {
+          "step": 7,
+          "allowedCount": 2,
+          "allowedIdsSha256": "c2a614a91fba8df9760aa5659e933ebb25859c9e89793fb8cf89b9dddee32935",
+          "rawWinner": 151645,
+          "selectedToken": 151645,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 30.06320571899414,
+          "selectedRawLogit": 30.06320571899414,
+          "terminalGrammar": true,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a4f9b1db3843f2a8ca98f9106440b3013f1305a44928dcd930f476f7f83a2329",
+          "maskSeconds": 0.00937136821448803,
+          "prefix": "{\"relation\":\"quoted_total\"}",
+          "rawWinnerText": "<|im_end|>",
+          "selectedText": "<|im_end|>",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "151645": "<|im_end|>",
+            "151643": "<|endoftext|>"
+          }
+        }
+      ]
+    },
+    {
+      "id": "document-money-row-12",
+      "sourceOccurrence": {
+        "source": "D3:P1",
+        "passage": "Bathroom work: installation price $7,900. Disposal costs another $450. Sales tax is excluded.",
+        "value": "$7,900",
+        "occurrenceIndex": 0,
+        "start": 34,
+        "end": 40
+      },
+      "selectedRelation": "quoted_total",
+      "firstLabelDistinguishingStep": {
+        "step": 4,
+        "allowedCount": 30,
+        "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+        "rawWinner": 63725,
+        "selectedToken": 63725,
+        "rawWinnerAllowed": true,
+        "rawWinnerLogit": 51.518760681152344,
+        "selectedRawLogit": 51.518760681152344,
+        "terminalGrammar": false,
+        "eosForcedAgainstRawWinner": false,
+        "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+        "maskSeconds": 0.0006850296631455421,
+        "prefix": "{\"relation\":\"",
+        "rawWinnerText": "quoted",
+        "selectedText": "quoted",
+        "remainingLabelsBefore": [
+          "quoted_total",
+          "unit_price",
+          "additional_charge",
+          "included_allowance",
+          "prior_payment",
+          "deposit_basis",
+          "unknown"
+        ],
+        "remainingLabelsAfter": [
+          "quoted_total"
+        ],
+        "allowedTexts": {
+          "67": "d",
+          "450": "de",
+          "14891": "dep",
+          "60514": "deposit",
+          "79": "p",
+          "649": "pr",
+          "68608": "pri",
+          "64233": "prior",
+          "72": "i",
+          "258": "in",
+          "2840": "inc",
+          "91157": "incl",
+          "997": "include",
+          "82622": "included",
+          "64": "a",
+          "329": "ad",
+          "718": "add",
+          "35499": "additional",
+          "84": "u",
+          "359": "un",
+          "3122": "unk",
+          "16088": "unknown",
+          "15705": "uni",
+          "3843": "unit",
+          "80": "q",
+          "446": "qu",
+          "26512": "quo",
+          "13492": "quot",
+          "2949": "quote",
+          "63725": "quoted"
+        }
+      },
+      "maskedSteps": [
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.5641975402832,
+          "selectedRawLogit": 25.207477569580078,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.0004676906391978264,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        }
+      ],
+      "allSteps": [
+        {
+          "step": 0,
+          "allowedCount": 2,
+          "allowedIdsSha256": "a0b4e4b854a7fe2dddbf427228cc9133392ad1afbc519a7a85d3d4655bc6212c",
+          "rawWinner": 4913,
+          "selectedToken": 4913,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 38.884178161621094,
+          "selectedRawLogit": 38.884178161621094,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "07a8c76bdd9a11603b5535d4af9ef1b69a7258e238b8b61416a94cbf1a7f14a8",
+          "maskSeconds": 0.0004025278612971306,
+          "prefix": "",
+          "rawWinnerText": "{\"",
+          "selectedText": "{\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "90": "{",
+            "4913": "{\""
+          }
+        },
+        {
+          "step": 1,
+          "allowedCount": 4,
+          "allowedIdsSha256": "43910e77e26698f7d6513e7ee427f06bd19bd1bd69760286b019e31891c08d69",
+          "rawWinner": 22221,
+          "selectedToken": 22221,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 52.23741912841797,
+          "selectedRawLogit": 52.23741912841797,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "1d360ffef7bd9bc15242608496716969631e5c38572b0fe5a37cce8ceacf62f4",
+          "maskSeconds": 0.0004715677350759506,
+          "prefix": "{\"",
+          "rawWinnerText": "relation",
+          "selectedText": "relation",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "81": "r",
+            "265": "re",
+            "3748": "rel",
+            "22221": "relation"
+          }
+        },
+        {
+          "step": 2,
+          "allowedCount": 3,
+          "allowedIdsSha256": "0d1c048d727ccf6be6e412dba8e6858928c3d71d22e265df093db2f355db265d",
+          "rawWinner": 788,
+          "selectedToken": 788,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 48.82823944091797,
+          "selectedRawLogit": 48.82823944091797,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a2835b9c9c5d5c041379c1b91db3180ad217128bbf281f167c14dd0ebaafdb34",
+          "maskSeconds": 0.0004462599754333496,
+          "prefix": "{\"relation",
+          "rawWinnerText": "\":",
+          "selectedText": "\":",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "788": "\":",
+            "3252": "\":\""
+          }
+        },
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.5641975402832,
+          "selectedRawLogit": 25.207477569580078,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.0004676906391978264,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        },
+        {
+          "step": 4,
+          "allowedCount": 30,
+          "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+          "rawWinner": 63725,
+          "selectedToken": 63725,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 51.518760681152344,
+          "selectedRawLogit": 51.518760681152344,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+          "maskSeconds": 0.0006850296631455421,
+          "prefix": "{\"relation\":\"",
+          "rawWinnerText": "quoted",
+          "selectedText": "quoted",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "67": "d",
+            "450": "de",
+            "14891": "dep",
+            "60514": "deposit",
+            "79": "p",
+            "649": "pr",
+            "68608": "pri",
+            "64233": "prior",
+            "72": "i",
+            "258": "in",
+            "2840": "inc",
+            "91157": "incl",
+            "997": "include",
+            "82622": "included",
+            "64": "a",
+            "329": "ad",
+            "718": "add",
+            "35499": "additional",
+            "84": "u",
+            "359": "un",
+            "3122": "unk",
+            "16088": "unknown",
+            "15705": "uni",
+            "3843": "unit",
+            "80": "q",
+            "446": "qu",
+            "26512": "quo",
+            "13492": "quot",
+            "2949": "quote",
+            "63725": "quoted"
+          }
+        },
+        {
+          "step": 5,
+          "allowedCount": 5,
+          "allowedIdsSha256": "196bee7cd78f514804160471fccfceb7a06fe5a3c6ff91f3f4b836d04a41902f",
+          "rawWinner": 10784,
+          "selectedToken": 10784,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 51.997032165527344,
+          "selectedRawLogit": 51.997032165527344,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a672326cacfe5c7a2159c2c3068d11e987f9fb509a89fcb3cd953d4e58cfbefc",
+          "maskSeconds": 0.010340442880988121,
+          "prefix": "{\"relation\":\"quoted",
+          "rawWinnerText": "_total",
+          "selectedText": "_total",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "62": "_",
+            "528": "_t",
+            "2346": "_to",
+            "36138": "_tot",
+            "10784": "_total"
+          }
+        },
+        {
+          "step": 6,
+          "allowedCount": 2,
+          "allowedIdsSha256": "24aa4b0cc715851530f1a4aebb5b3176d105170a6a66718974c51e69a81cfbbc",
+          "rawWinner": 9207,
+          "selectedToken": 9207,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 47.70659637451172,
+          "selectedRawLogit": 47.70659637451172,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "840d4a9e17f1352c3eb6d1a2c9a4b1577a3fe716ae609f2f737a24319932f6be",
+          "maskSeconds": 0.0004519103094935417,
+          "prefix": "{\"relation\":\"quoted_total",
+          "rawWinnerText": "\"}",
+          "selectedText": "\"}",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "9207": "\"}"
+          }
+        },
+        {
+          "step": 7,
+          "allowedCount": 2,
+          "allowedIdsSha256": "c2a614a91fba8df9760aa5659e933ebb25859c9e89793fb8cf89b9dddee32935",
+          "rawWinner": 151645,
+          "selectedToken": 151645,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 29.811384201049805,
+          "selectedRawLogit": 29.811384201049805,
+          "terminalGrammar": true,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a4f9b1db3843f2a8ca98f9106440b3013f1305a44928dcd930f476f7f83a2329",
+          "maskSeconds": 0.0004184674471616745,
+          "prefix": "{\"relation\":\"quoted_total\"}",
+          "rawWinnerText": "<|im_end|>",
+          "selectedText": "<|im_end|>",
+          "remainingLabelsBefore": [
+            "quoted_total"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total"
+          ],
+          "allowedTexts": {
+            "151645": "<|im_end|>",
+            "151643": "<|endoftext|>"
+          }
+        }
+      ]
+    },
+    {
+      "id": "document-money-row-13",
+      "sourceOccurrence": {
+        "source": "D3:P1",
+        "passage": "Bathroom work: installation price $7,900. Disposal costs another $450. Sales tax is excluded.",
+        "value": "$450",
+        "occurrenceIndex": 0,
+        "start": 65,
+        "end": 69
+      },
+      "selectedRelation": "included_allowance",
+      "firstLabelDistinguishingStep": {
+        "step": 4,
+        "allowedCount": 30,
+        "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+        "rawWinner": 82622,
+        "selectedToken": 82622,
+        "rawWinnerAllowed": true,
+        "rawWinnerLogit": 45.33392333984375,
+        "selectedRawLogit": 45.33392333984375,
+        "terminalGrammar": false,
+        "eosForcedAgainstRawWinner": false,
+        "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+        "maskSeconds": 0.0006901286542415619,
+        "prefix": "{\"relation\":\"",
+        "rawWinnerText": "included",
+        "selectedText": "included",
+        "remainingLabelsBefore": [
+          "quoted_total",
+          "unit_price",
+          "additional_charge",
+          "included_allowance",
+          "prior_payment",
+          "deposit_basis",
+          "unknown"
+        ],
+        "remainingLabelsAfter": [
+          "included_allowance"
+        ],
+        "allowedTexts": {
+          "67": "d",
+          "450": "de",
+          "14891": "dep",
+          "60514": "deposit",
+          "79": "p",
+          "649": "pr",
+          "68608": "pri",
+          "64233": "prior",
+          "72": "i",
+          "258": "in",
+          "2840": "inc",
+          "91157": "incl",
+          "997": "include",
+          "82622": "included",
+          "64": "a",
+          "329": "ad",
+          "718": "add",
+          "35499": "additional",
+          "84": "u",
+          "359": "un",
+          "3122": "unk",
+          "16088": "unknown",
+          "15705": "uni",
+          "3843": "unit",
+          "80": "q",
+          "446": "qu",
+          "26512": "quo",
+          "13492": "quot",
+          "2949": "quote",
+          "63725": "quoted"
+        }
+      },
+      "maskedSteps": [
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.19398498535156,
+          "selectedRawLogit": 24.913471221923828,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.0004496658220887184,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        }
+      ],
+      "allSteps": [
+        {
+          "step": 0,
+          "allowedCount": 2,
+          "allowedIdsSha256": "a0b4e4b854a7fe2dddbf427228cc9133392ad1afbc519a7a85d3d4655bc6212c",
+          "rawWinner": 4913,
+          "selectedToken": 4913,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 38.8902473449707,
+          "selectedRawLogit": 38.8902473449707,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "07a8c76bdd9a11603b5535d4af9ef1b69a7258e238b8b61416a94cbf1a7f14a8",
+          "maskSeconds": 0.0004002535715699196,
+          "prefix": "",
+          "rawWinnerText": "{\"",
+          "selectedText": "{\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "90": "{",
+            "4913": "{\""
+          }
+        },
+        {
+          "step": 1,
+          "allowedCount": 4,
+          "allowedIdsSha256": "43910e77e26698f7d6513e7ee427f06bd19bd1bd69760286b019e31891c08d69",
+          "rawWinner": 22221,
+          "selectedToken": 22221,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 52.15633773803711,
+          "selectedRawLogit": 52.15633773803711,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "1d360ffef7bd9bc15242608496716969631e5c38572b0fe5a37cce8ceacf62f4",
+          "maskSeconds": 0.00045869406312704086,
+          "prefix": "{\"",
+          "rawWinnerText": "relation",
+          "selectedText": "relation",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "81": "r",
+            "265": "re",
+            "3748": "rel",
+            "22221": "relation"
+          }
+        },
+        {
+          "step": 2,
+          "allowedCount": 3,
+          "allowedIdsSha256": "0d1c048d727ccf6be6e412dba8e6858928c3d71d22e265df093db2f355db265d",
+          "rawWinner": 788,
+          "selectedToken": 788,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 48.878379821777344,
+          "selectedRawLogit": 48.878379821777344,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "a2835b9c9c5d5c041379c1b91db3180ad217128bbf281f167c14dd0ebaafdb34",
+          "maskSeconds": 0.00043882615864276886,
+          "prefix": "{\"relation",
+          "rawWinnerText": "\":",
+          "selectedText": "\":",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "788": "\":",
+            "3252": "\":\""
+          }
+        },
+        {
+          "step": 3,
+          "allowedCount": 4,
+          "allowedIdsSha256": "d87cf2f45f679dcebe688eb6e31ed08745aa6c2dad553879b8137c14637c21ec",
+          "rawWinner": 330,
+          "selectedToken": 1,
+          "rawWinnerAllowed": false,
+          "rawWinnerLogit": 51.19398498535156,
+          "selectedRawLogit": 24.913471221923828,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2041840375cf59d3e7b962099738d55651fe61cd40c26cd4d770e8603915a663",
+          "maskSeconds": 0.0004496658220887184,
+          "prefix": "{\"relation\":",
+          "rawWinnerText": " \"",
+          "selectedText": "\"",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "44917": "\"d",
+            "54401": "\"in",
+            "56693": "\"a"
+          }
+        },
+        {
+          "step": 4,
+          "allowedCount": 30,
+          "allowedIdsSha256": "6e21412120532cebf315fb974404789b7ef0c3251e62014d8179ea130fc64fe8",
+          "rawWinner": 82622,
+          "selectedToken": 82622,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 45.33392333984375,
+          "selectedRawLogit": 45.33392333984375,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "bcfc9943d2c2000c8e12f43d1e179491a68e57577fd95c4c2d1dade8ed9a3f48",
+          "maskSeconds": 0.0006901286542415619,
+          "prefix": "{\"relation\":\"",
+          "rawWinnerText": "included",
+          "selectedText": "included",
+          "remainingLabelsBefore": [
+            "quoted_total",
+            "unit_price",
+            "additional_charge",
+            "included_allowance",
+            "prior_payment",
+            "deposit_basis",
+            "unknown"
+          ],
+          "remainingLabelsAfter": [
+            "included_allowance"
+          ],
+          "allowedTexts": {
+            "67": "d",
+            "450": "de",
+            "14891": "dep",
+            "60514": "deposit",
+            "79": "p",
+            "649": "pr",
+            "68608": "pri",
+            "64233": "prior",
+            "72": "i",
+            "258": "in",
+            "2840": "inc",
+            "91157": "incl",
+            "997": "include",
+            "82622": "included",
+            "64": "a",
+            "329": "ad",
+            "718": "add",
+            "35499": "additional",
+            "84": "u",
+            "359": "un",
+            "3122": "unk",
+            "16088": "unknown",
+            "15705": "uni",
+            "3843": "unit",
+            "80": "q",
+            "446": "qu",
+            "26512": "quo",
+            "13492": "quot",
+            "2949": "quote",
+            "63725": "quoted"
+          }
+        },
+        {
+          "step": 5,
+          "allowedCount": 5,
+          "allowedIdsSha256": "d24cd074733631036ad0fd020aa9ee96809428cfcdae6cf00036735df15b6142",
+          "rawWinner": 55731,
+          "selectedToken": 55731,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 48.31574249267578,
+          "selectedRawLogit": 48.31574249267578,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "4ba678be95a83e1eec538ce5170814d1813db572cd530f329d580ca088146707",
+          "maskSeconds": 0.0004845922812819481,
+          "prefix": "{\"relation\":\"included",
+          "rawWinnerText": "_allow",
+          "selectedText": "_allow",
+          "remainingLabelsBefore": [
+            "included_allowance"
+          ],
+          "remainingLabelsAfter": [
+            "included_allowance"
+          ],
+          "allowedTexts": {
+            "62": "_",
+            "4306": "_a",
+            "8418": "_al",
+            "5705": "_all",
+            "55731": "_allow"
+          }
+        },
+        {
+          "step": 6,
+          "allowedCount": 4,
+          "allowedIdsSha256": "dafa0824de7fb16ae85c7282e94508e97cee0ab26fcb0aeca0b817b60bdfeeed",
+          "rawWinner": 681,
+          "selectedToken": 681,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 49.97856140136719,
+          "selectedRawLogit": 49.97856140136719,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "e415af8a4aa4cc45ad7bdf573610ca46cae16ce54a86172a22a9054f985dd6c2",
+          "maskSeconds": 0.0004668384790420532,
+          "prefix": "{\"relation\":\"included_allow",
+          "rawWinnerText": "ance",
+          "selectedText": "ance",
+          "remainingLabelsBefore": [
+            "included_allowance"
+          ],
+          "remainingLabelsAfter": [
+            "included_allowance"
+          ],
+          "allowedTexts": {
+            "64": "a",
+            "276": "an",
+            "1129": "anc",
+            "681": "ance"
+          }
+        },
+        {
+          "step": 7,
+          "allowedCount": 2,
+          "allowedIdsSha256": "24aa4b0cc715851530f1a4aebb5b3176d105170a6a66718974c51e69a81cfbbc",
+          "rawWinner": 9207,
+          "selectedToken": 9207,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 50.558021545410156,
+          "selectedRawLogit": 50.558021545410156,
+          "terminalGrammar": false,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "ee0b0406b4021ec13f2c9003fee65f00576c368f6832c7478fa14e477653f0ca",
+          "maskSeconds": 0.00045120902359485626,
+          "prefix": "{\"relation\":\"included_allowance",
+          "rawWinnerText": "\"}",
+          "selectedText": "\"}",
+          "remainingLabelsBefore": [
+            "included_allowance"
+          ],
+          "remainingLabelsAfter": [
+            "included_allowance"
+          ],
+          "allowedTexts": {
+            "1": "\"",
+            "9207": "\"}"
+          }
+        },
+        {
+          "step": 8,
+          "allowedCount": 2,
+          "allowedIdsSha256": "c2a614a91fba8df9760aa5659e933ebb25859c9e89793fb8cf89b9dddee32935",
+          "rawWinner": 151645,
+          "selectedToken": 151645,
+          "rawWinnerAllowed": true,
+          "rawWinnerLogit": 29.995851516723633,
+          "selectedRawLogit": 29.995851516723633,
+          "terminalGrammar": true,
+          "eosForcedAgainstRawWinner": false,
+          "stateSha256": "2694941aec2fc69bc9d86e5b231c605fb1eee51357801e44de88e8cefb82492f",
+          "maskSeconds": 0.0004463912919163704,
+          "prefix": "{\"relation\":\"included_allowance\"}",
+          "rawWinnerText": "<|im_end|>",
+          "selectedText": "<|im_end|>",
+          "remainingLabelsBefore": [
+            "included_allowance"
+          ],
+          "remainingLabelsAfter": [
+            "included_allowance"
+          ],
+          "allowedTexts": {
+            "151645": "<|im_end|>",
+            "151643": "<|endoftext|>"
+          }
+        }
+      ]
+    }
+  ],
+  "limitation": "Raw winner logits are retained. Scores for unselected alternative labels are not retained. Semantic decisions are conditioned on earlier syntax masking; this audit is not an unconstrained counterfactual."
+}
