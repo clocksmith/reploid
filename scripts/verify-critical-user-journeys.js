@@ -4,7 +4,10 @@ import { verifyPoolCriticalUserJourneys } from './verify-pool-critical-user-jour
 import { verifyZeroCriticalUserJourneys } from './verify-zero-critical-user-journeys.js';
 import { verifyXCriticalUserJourneys } from './verify-x-critical-user-journeys.js';
 
+import { verifyReploidCriticalUserJourneys } from './verify-reploid-critical-user-journeys.js';
+
 const checks = [
+  ['Reploid catalogue integrity', verifyReploidCriticalUserJourneys],
   ['Poolday', verifyPoolCriticalUserJourneys],
   ['Zero', verifyZeroCriticalUserJourneys],
   ['X', verifyXCriticalUserJourneys]
@@ -22,4 +25,4 @@ for (const [name, verify] of checks) {
   for (const error of errors) console.error(`- ${error}`);
 }
 
-if (failed) process.exit(1);
+if (failed) throw new Error('Critical user journey verification failed.');
