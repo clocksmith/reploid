@@ -1,0 +1,117 @@
+{
+  "schema": "reploid.price-context-ablation-review/v1",
+  "sourceModelReadsThisFile": false,
+  "rows": [
+    {
+      "sourceOccurrence": {
+        "source": "F1:P1",
+        "passage": "The quoted workshop refit price is $6,430, including installation.",
+        "value": "$6,430",
+        "occurrenceIndex": 0,
+        "start": 35,
+        "end": 41
+      },
+      "requiredRelation": "quoted_total",
+      "reason": "The occurrence states the offered refit price, with installation included."
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F2:P1",
+        "passage": "Workstations cost $137 each; delivery is excluded.",
+        "value": "$137",
+        "occurrenceIndex": 0,
+        "start": 18,
+        "end": 22
+      },
+      "requiredRelation": "unit_price",
+      "reason": "The explicit each qualifier defines one workstation, not total requested quantity."
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F3:P1",
+        "passage": "Add a mandatory $286 delivery charge to the quoted work price.",
+        "value": "$286",
+        "occurrenceIndex": 0,
+        "start": 16,
+        "end": 20
+      },
+      "requiredRelation": "additional_charge",
+      "reason": "The separate charge is explicit and mandatory in this passage."
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F4:P1",
+        "passage": "If the inspection identifies water damage, an additional $713 repair fee applies.",
+        "value": "$713",
+        "occurrenceIndex": 0,
+        "start": 57,
+        "end": 61
+      },
+      "requiredRelation": "additional_charge",
+      "reason": "The extra charge is conditional. Classification must not establish that damage was found or add it unconditionally."
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F5:P1",
+        "passage": "The quoted price already includes a $368 allowance for wiring.",
+        "value": "$368",
+        "occurrenceIndex": 0,
+        "start": 36,
+        "end": 40
+      },
+      "requiredRelation": "included_allowance",
+      "reason": "Already includes states that this amount is covered, not added."
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F6:P1",
+        "passage": "We received your $924 payment; this credit reduces the remaining balance.",
+        "value": "$924",
+        "occurrenceIndex": 0,
+        "start": 17,
+        "end": 21
+      },
+      "requiredRelation": "prior_payment",
+      "reason": "Received and credit explicitly describe an existing payment, not a future deposit."
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F7:P1",
+        "passage": "The advance deposit is 18% of $5,270.",
+        "value": "$5,270",
+        "occurrenceIndex": 0,
+        "start": 30,
+        "end": 36
+      },
+      "requiredRelation": "deposit_basis",
+      "reason": "The occurrence is only the percentage basis, not the deposit payable or a separately introduced quote."
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F8:P1",
+        "passage": "Deposit due on acceptance: 32% of $7,360.",
+        "value": "$7,360",
+        "occurrenceIndex": 0,
+        "start": 34,
+        "end": 40
+      },
+      "requiredRelation": "deposit_basis",
+      "reason": "This is the explicit deposit calculation basis despite the different wording."
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F9:P1",
+        "passage": "The form lists $482 beside an unlabeled reference field; its purpose is not specified.",
+        "value": "$482",
+        "occurrenceIndex": 0,
+        "start": 15,
+        "end": 19
+      },
+      "requiredRelation": "unknown",
+      "reason": "The passage does not state a supported role; no default may be inferred."
+    }
+  ],
+  "allRowsRequired": true,
+  "noPosthocSubset": true,
+  "interpretation": "Compare all nine matched labels. A treatment local pass requires9/9 including unknown and conditional cost limits. Even9/9 establishes only this local role task; original full factual/citation/correction tests and two locked holdouts remain required. No calculation or final answer runs in this diagnostic."
+}
