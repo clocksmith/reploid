@@ -3,7 +3,7 @@
 The unchanged source row-tag attempt at `f64214a1` emitted 300 tokens, omitted
 its closing tool envelope, supplied the wrong number of rows, and invented tags.
 This candidate changes token admission rather than adding another instruction.
-It is prepared, not executed or qualified.
+It was executed once and rejected; see [RESULTS.md](RESULTS.md). No useful task is qualified.
 
 The already installed Transformers 5.6.2 `PrefixConstrainedLogitsProcessor` masks
 invalid next tokens in the existing manual greedy CPU evaluator. The insertion
