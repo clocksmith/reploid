@@ -726,8 +726,8 @@
     },
     {
       "path": "mesh/partitions/partition-placement.js",
-      "bytes": 3264,
-      "sha256": "12e3357916f96a9ca620aebd1e471c38776fe1d08d1d09ac5fb654354d9fe58e"
+      "bytes": 3307,
+      "sha256": "c6fc9037f634043c9faa24afc7669d8447f4e78da4996883e5bc7d965ef55992"
     },
     {
       "path": "mesh/partitions/partition-receiver-policy.json",

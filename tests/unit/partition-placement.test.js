@@ -26,6 +26,12 @@ describe('placement over partial discovery', () => {
       .toEqual(['a', 'b']);
   });
 
+  it('replaces a former output owner that now advertises an incompatible input partition', () => {
+    const result = selectPartitionPlacement({ participantId: 'a', offer, localIndex: 0,
+      previous: ['a', 'b'], capabilities: [capability('b', 0), capability('c', 1)] });
+    expect(result.participants).toEqual(['a', 'c']);
+  });
+
   it('records expired and saturated input owners without reserving or selecting them', () => {
     const model = { ...offer, availability: 'ready' };
     const expired = { ...capability('a', 0, { models: [model] }), available: false, reason: 'expired' };

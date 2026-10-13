@@ -1,0 +1,40 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/partition-placement.test.js (5 tests | 1 failed) 11ms
+     ✓ waits for the advertised A instead of loading a new A when B is discovered first 7ms
+     ✓ permits a fresh A after B explicitly selects it following input-owner loss 0ms
+     ✓ retains the existing pair when a replica has more free slots 0ms
+     × replaces a former output owner that now advertises an incompatible input partition 3ms
+     ✓ records expired and saturated input owners without reserving or selecting them 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/partition-placement.test.js > placement over partial discovery > replaces a former output owner that now advertises an incompatible input partition
+AssertionError: expected [ 'a', 'b' ] to deeply equal [ 'a', 'c' ]
+
+- Expected
++ Received
+
+  [
+    "a",
+-   "c",
++   "b",
+  ]
+
+ ❯ tests/unit/partition-placement.test.js:32:33
+     30|     const result = selectPartitionPlacement({ participantId: 'a', offe…
+     31|       previous: ['a', 'b'], capabilities: [capability('b', 0), capabil…
+     32|     expect(result.participants).toEqual(['a', 'c']);
+       |                                 ^
+     33|   });
+     34|
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  22:03:58
+   Duration  176ms (transform 12ms, setup 0ms, import 17ms, tests 11ms, environment 89ms)
+

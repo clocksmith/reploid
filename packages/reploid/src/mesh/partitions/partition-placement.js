@@ -22,7 +22,7 @@ export function selectPartitionPlacement({ participantId, offer, localIndex, pre
   const a = retainedA || candidates.find(peer => peer.index === 0)?.id
     || candidates.find(peer => peer.index === null)?.id || ids[0];
   const b = participantId !== a ? participantId
-    : previous?.[0] === a && ids.includes(previous[1]) ? previous[1]
+    : previous?.[0] === a && candidates.some(peer => peer.id === previous[1] && peer.index === 1) ? previous[1]
       : candidates.find(peer => peer.id !== a && peer.index === 1)?.id || ids.find(id => id !== a);
   return { participants: b ? [a, b] : [], eligibility,
     reason: !b ? 'missing-complementary-contributor' : retainedA ? 'retain-input-owner' : 'select-input-owner' };
