@@ -48,3 +48,10 @@ it('reports failed canonical cleanup, attempts all owners and permits an explici
   expect(chat.close).toHaveBeenCalledOnce(); await host.close();
   expect(swarm.close).toHaveBeenCalledTimes(2);
 });
+it('forwards explicit ordered host configuration while retaining ordinary chat history', async () => {
+  const ordered = {stage:null,maxStages:7,maxStageOffersPerPeer:4,maxRouteBytes:8192,maxSelectionSteps:2000,maxRoutes:4};
+  const host = createProductSession({storage:null,ordered});
+  expect(ports.swarm.mock.calls[0][0]).toMatchObject({ordered,canonical:null});
+  expect(ports.open).not.toHaveBeenCalled(); expect(ports.legacy).toHaveBeenCalledOnce();
+  await host.close();
+});

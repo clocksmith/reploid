@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/native-ordered-config.test.js (1 test) 188ms
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  11:30:31
+   Duration  271ms (transform 8ms, setup 0ms, import 14ms, tests 188ms, environment 0ms)
+

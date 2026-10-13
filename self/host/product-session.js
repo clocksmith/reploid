@@ -17,12 +17,12 @@ import { createDocumentAssistant } from '../pool/document-delegation.js';
 import poolConfiguration from '../pool/pool-config.json' with { type: 'json' };
 
 export function createProductSession({ storage, networkOptions, swarmNetworkOptions, operationNetwork = null,
-  canonical = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {} }) {
+  canonical = null, ordered = null, eventTarget = window, onChanges = () => {}, onDocuments = () => {}, onSharing = () => {} }) {
   let runtime, work, chat, documents, operationSharing, closed = false, closing, ownsNetwork = false;
   const service = createReploidDopplerRuntimeService();
   const evolution = createWorkEvolution({ storage, isBusy: () => work?.getState().anyBusy === true, onChange: onChanges });
   // Bootstrap and ICE belong to the swarm host, independently of signed job routing.
-  const swarm = createWorkSwarm({ storage, evolution, service, networkOptions: swarmNetworkOptions, canonical,
+  const swarm = createWorkSwarm({ storage, evolution, service, networkOptions: swarmNetworkOptions, canonical, ordered,
     onChange: () => chat?.refreshNetwork() });
   const getNetwork = () => {
     if (!operationNetwork) {

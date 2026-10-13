@@ -1,0 +1,40 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:53226) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/work-partition-plan.test.js (8 tests) 5ms
+ ✓ tests/unit/work-partition-network-cleanup.test.js (2 tests) 4ms
+ ✓ tests/unit/native-participant.test.js (9 tests) 25ms
+ ✓ tests/unit/native-canonical-cleanup.test.js (4 tests) 92ms
+ ❯ tests/unit/ordered-host-composition.test.js (6 tests | 1 failed) 17ms
+   ✓ browser forwards explicit ordered null and immutable actual host binding 6ms
+   ✓ browser forwards explicit ordered contributor and immutable actual host binding 1ms
+   ✓ native forwards actual authenticated stage and preserves separate file and compute consent 2ms
+   ✓ native rejects unbound catalog geometry and conflicting identity without loading a GPU 1ms
+   ✓ retains failed startup host network ownership and refuses replacement until explicit retry 1ms
+   × retains failed disconnect host network ownership and refuses replacement until explicit retry 4ms
+ ✓ tests/unit/canonical-product-session.test.js (6 tests) 6ms
+ ✓ tests/unit/work-swarm-lifecycle.test.js (14 tests) 382ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-host-composition.test.js > retains failed disconnect host network ownership and refuses replacement until explicit retry
+TypeError: consumerTransport?.disconnect is not a function
+ ❯ Object.disconnect self/host/work-swarm.js:276:41
+    274|     const fileStop = closeOwner(modelFiles); modelFiles = null;
+    275|     const previousConsumer = consumer;
+    276|     consumer = null; consumerTransport?.disconnect(); consumerTranspor…
+       |                                         ^
+    277|     peerOffers?.close();
+    278|     const networkStop = closeOwner(partitionNetworks); partitionNetwor…
+ ❯ tests/unit/ordered-host-composition.test.js:86:52
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 6 passed (7)
+      Tests  1 failed | 48 passed (49)
+   Start at  11:29:01
+   Duration  1.31s (transform 1.94s, setup 0ms, import 3.39s, tests 531ms, environment 958ms)
+

@@ -256,3 +256,27 @@ it('preserves contribution cleanup failure when a peer reconnects', async () => 
   failStop = false;
   await swarm.close();
 });
+
+it('Stop retries the original failed contribution owner without closing unrelated requester networks', async () => {
+  const f = await supplierFixture(); f.load.resolve(f.session); await f.share;
+  f.service.close.mockRejectedValueOnce(Error('cleanup unknown')).mockRejectedValueOnce(Error('still unknown')).mockResolvedValue();
+  await expect(f.swarm.stop()).rejects.toThrow('Contribution cleanup remains unsettled');
+  expect(f.swarm.getState()).toMatchObject({unsettledOwners:1,contribution:{phase:'failed'}});
+  await expect(f.swarm.stop()).rejects.toThrow('Contribution cleanup remains unsettled');
+  expect(f.swarm.getState().contribution.phase).toBe('failed');
+  await f.swarm.stop();
+  expect(f.service.close).toHaveBeenCalledTimes(3);
+  expect(f.swarm.getState()).toMatchObject({unsettledOwners:0,contribution:{phase:'idle'}});
+  await f.swarm.close();
+});
+
+it('retains a rejected opening cleanup for an explicit Stop retry', async () => {
+  const f = await supplierFixture(); f.service.close.mockRejectedValue(Error('cleanup unknown'));
+  const failure = expect(f.share).rejects.toThrow('Contribution opening and cleanup failed');
+  f.load.resolve({...f.session, loaded:false});
+  await failure;
+  expect(f.swarm.getState().unsettledOwners).toBeGreaterThan(0);
+  f.service.close.mockResolvedValue(); await f.swarm.stop();
+  expect(f.swarm.getState()).toMatchObject({unsettledOwners:0,contribution:{phase:'idle'}});
+  await f.swarm.close();
+});
