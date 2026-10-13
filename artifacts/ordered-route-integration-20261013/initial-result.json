@@ -1,0 +1,272 @@
+{
+  "scope": "CPU source integration: real ordered Reploid runner and Doppler resident state/sampling/decoder; injected numerical kernels and private cache allocation; no signed publication, GPU, physical capacity or answer-quality claim",
+  "startedAt": "2026-10-13T14:03:08.842Z",
+  "doppler": "/Users/xyz/deco/doppler",
+  "cases": [],
+  "sources": {
+    "src/inference/pipelines/text/resident-partition.js": "dcba8f0d54dd14212ae26f26be002bcad9e41197fe37141925b176375af076fa",
+    "src/inference/pipelines/text/resident-partition-contract.js": "f4f78dc1a6547ffb110cac9b7de7f7f25035230cc57b75087cb3dfd24f2d3195",
+    "src/inference/pipelines/text/layer-partition-contract.js": "9848ab1f3c024983c9cb4c8133fd0115e1126667f5e4cc4fec0a96e0fc17da59",
+    "src/inference/generation-step.js": "8c32a8f9c290a8973db65c03792b2e16f91afb3f6c3cf8accec2404b34cae1f4",
+    "src/inference/token-sampling.js": "91b365fa423b0fc0f158fac64267d9696d89bcd5a3432bcf778e2cbfa5bfb291",
+    "src/config/generation-contract.js": "1c21c5ac2b854c30eede19ec1caa3ef29607d91e90f1076fbc56633e3e082a59",
+    "src/inference/tokenizers/bundled/incremental-decoder.js": "119dc3bfe7478ddf5a6dd180b48800863cb8b53302c41d84d1b69a318c6788b4"
+  },
+  "tokenizations": [
+    [
+      {
+        "role": "user",
+        "content": "Synthetic prompt"
+      }
+    ]
+  ],
+  "states": [],
+  "generation": {
+    "maxTokens": 3,
+    "maxSeqLen": 64,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": false,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "expectedGenerationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+  "passed": false,
+  "failure": "Error: Ordered stage generation digest mismatch.\n    at Object.executeStage (file:///Users/xyz/deco/doppler/src/inference/pipelines/text/resident-partition.js:361:15)\n    at Object.executeStage (file:///Users/xyz/deco/reploid/artifacts/ordered-route-integration-20261013/run.mjs:102:38)\n    at file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:155:55\n    at async lease (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:53:18)\n    at async Object.execute (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-route-execution.js:146:26)\n    at async run (file:///Users/xyz/deco/reploid/artifacts/ordered-route-integration-20261013/run.mjs:122:20)\n    at async file:///Users/xyz/deco/reploid/artifacts/ordered-route-integration-20261013/run.mjs:128:17",
+  "cleanup": [
+    {
+      "status": "fulfilled",
+      "error": null
+    },
+    {
+      "status": "fulfilled",
+      "error": null
+    },
+    {
+      "status": "fulfilled",
+      "error": null
+    },
+    {
+      "status": "fulfilled",
+      "error": null
+    }
+  ],
+  "dispatched": 0,
+  "privateStatesCreated": 0,
+  "privateStatesClosed": 0,
+  "reservations": [
+    {
+      "closed": false,
+      "active": 0,
+      "availableSlots": 2,
+      "records": [
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "first",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "node-0",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "node-1",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "node-2",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "node-0",
+          "index": 0,
+          "phase": "settled",
+          "reservedAt": 1791900188943,
+          "settlingAt": 1791900188943,
+          "settledAt": 1791900188944,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        }
+      ]
+    },
+    {
+      "closed": false,
+      "active": 0,
+      "availableSlots": 2,
+      "records": [
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "first",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "node-0",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "node-1",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "node-2",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "node-1",
+          "index": 1,
+          "phase": "settled",
+          "reservedAt": 1791900188943,
+          "settlingAt": 1791900188943,
+          "settledAt": 1791900188944,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        }
+      ]
+    },
+    {
+      "closed": false,
+      "active": 0,
+      "availableSlots": 2,
+      "records": [
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "first",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "node-0",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "node-1",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "node-2",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "node-2",
+          "index": 2,
+          "phase": "settled",
+          "reservedAt": 1791900188943,
+          "settlingAt": 1791900188944,
+          "settledAt": 1791900188944,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        }
+      ]
+    }
+  ],
+  "finishedAt": "2026-10-13T14:03:08.944Z",
+  "reploidSourcesObservedAfterFailure": {
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js": "d082f252f821435a1b012e114e6ce856ab3aa9fa9367c88ee25b025ecbdeca86",
+    "packages/reploid/src/mesh/partitions/partition-runner.js": "9fcd2fd43bba564e22627577ad90d850e021a9cf9da05ee46ea5693be8c702de",
+    "packages/reploid/src/mesh/partitions/partition-contract.js": "d16c9bb548b284692d905f6620e9aeb637e980ba9395ba26dea52e3d2a0e1f2e",
+    "artifacts/ordered-route-integration-20261013/run.mjs": "c518af63f96914a754d0fdb1105c29f44db55654f1b40fcf3fa626517d9f3a5f"
+  },
+  "reploidSourcesObservationScope": "Post-failure source observation; concurrent parent generation-digest repair may already be present. Not an initial execution source freeze."
+}

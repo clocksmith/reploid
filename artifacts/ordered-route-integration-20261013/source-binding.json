@@ -1,0 +1,6 @@
+{
+  "dopplerCommit": "81a5a3458e9f4d758e839f04fa8072c4d60e3d8d",
+  "scope": "Every named Doppler source hash in final-relay-result matches this pushed commit. Reploid runtime changes are separately owned and source-hash bound in the result. No package or physical acceptance.",
+  "finalRelayResultSha256": "801c6c8383019bfb687212ec11abaa700752e2e944e295a0a4c840e30f2c1e10",
+  "matchedDopplerFiles": 8
+}
