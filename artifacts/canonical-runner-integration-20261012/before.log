@@ -1,0 +1,8 @@
+file:///Users/xyz/deco/reploid/tests/canonical-runner-source.js:100
+  const f = await fixture(); const result = await f.runner.executeCanonical(f.input);
+                                                           ^
+
+TypeError: f.runner.executeCanonical is not a function
+    at file:///Users/xyz/deco/reploid/tests/canonical-runner-source.js:100:60
+
+Node.js v22.20.0
