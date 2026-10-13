@@ -1,0 +1,6 @@
+[browser-bundle] Wrote /private/var/tmp/reploid-ui-column-l24k9g5a/self/config/browser-bundle-manifest.json with 1921 served files as sha256:975aa791c2a48c592fed62f1467549841a1e473990ffe8318e3bf1fd779fceda
+
+> reploid@0.1.0 verify:browser-bundle:local
+> node scripts/build-browser-bundle-manifest.js --check
+
+[browser-bundle] 1921 served files match sha256:975aa791c2a48c592fed62f1467549841a1e473990ffe8318e3bf1fd779fceda

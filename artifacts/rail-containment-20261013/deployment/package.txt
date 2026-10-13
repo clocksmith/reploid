@@ -1,0 +1,5 @@
+
+> reploid@0.1.0 package:hosting
+> node scripts/package-hosting.js
+
+[hosting] packaged 1922 files as sha256:975aa791c2a48c592fed62f1467549841a1e473990ffe8318e3bf1fd779fceda
