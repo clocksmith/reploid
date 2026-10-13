@@ -771,13 +771,13 @@
     },
     {
       "path": "mesh/partitions/resident-partition.d.ts",
-      "bytes": 3021,
-      "sha256": "bdddef094daca9294b0c1b6d5570b4e64fc7212c3981426f876bc25e95235c6a"
+      "bytes": 4775,
+      "sha256": "9575ee30aa516c01235f1fafb30e649d001696e23600a5464a15c1fc93877b9e"
     },
     {
       "path": "mesh/partitions/resident-partition.js",
-      "bytes": 9564,
-      "sha256": "a634e3c0e8d6681b335b23396462d9cc4c5421e21dc91243b344120d3c170def"
+      "bytes": 11607,
+      "sha256": "bf7dabb3ac165ce5cac4cbdceeb80ab964c58cf91f5d7b4df82dcfcf14734873"
     },
     {
       "path": "mesh/partitions/signed-resident-factory.d.ts",

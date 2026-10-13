@@ -1,0 +1,11 @@
+file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-contract.js:5
+export const assertPartition = (value, message) => { if (!value) throw new Error(message); };
+                                                                       ^
+
+Error: Doppler resident partition identity or readiness mismatch
+    at assertPartition (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-contract.js:5:72)
+    at check (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/resident-partition.js:33:5)
+    at file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/resident-partition.js:116:51
+    at async file:///Users/xyz/deco/reploid/tests/canonical-resident-source.js:47:24
+
+Node.js v22.20.0

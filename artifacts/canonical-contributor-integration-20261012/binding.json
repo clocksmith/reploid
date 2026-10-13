@@ -1,0 +1,11 @@
+{
+  "scope": "source-only optional canonical contributor; no physical qualification",
+  "dopplerSource": "533affca",
+  "legacyPinUnchanged": true,
+  "sha256": {
+    "packages/reploid/src/mesh/partitions/resident-partition.js": "bf7dabb3ac165ce5cac4cbdceeb80ab964c58cf91f5d7b4df82dcfcf14734873",
+    "packages/reploid/src/mesh/partitions/resident-partition.d.ts": "9575ee30aa516c01235f1fafb30e649d001696e23600a5464a15c1fc93877b9e",
+    "tests/canonical-resident-source.js": "7fb470c273977ac02358b6ada6fa3edc6d473009aa6a6203087553360fa809dc",
+    "self/config/browser-bundle-manifest.json": "d1ff9e4abe2007a9e716355e683fe5f3e9ceb01c53f4740a42944d8d5b97d734"
+  }
+}
