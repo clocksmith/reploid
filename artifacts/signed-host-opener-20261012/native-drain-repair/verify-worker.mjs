@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import crypto from 'node:crypto';
+const directory = 'artifacts/signed-host-opener-20261012/native-drain-repair';
+const paths = ['server/native-participant.js', 'tests/unit/native-data-channel-backpressure.test.js'];
+const snapshot = Object.fromEntries(paths.map(path => ['/' + path, fs.readFileSync(path, 'utf8')]));
+const sources = Object.fromEntries(Object.entries(snapshot).map(([path, code]) => [path, crypto.createHash('sha256').update(code).digest('hex')]));
+let result;
+const sandbox = { console, setTimeout, clearTimeout };
+sandbox.self = sandbox;
+sandbox.postMessage = value => { result = value; };
+const context = vm.createContext(sandbox);
+sandbox.importScripts = path => vm.runInContext(fs.readFileSync('self' + path, 'utf8'), context, { filename: path });
+vm.runInContext(fs.readFileSync('self/core/verification-worker.js', 'utf8'), context);
+await sandbox.onmessage({ data: { type: 'VERIFY', snapshot } });
+fs.writeFileSync(directory + '/worker.json', JSON.stringify({ sources, result }, null, 2) + '\n');
+console.log(JSON.stringify({ passed: result.passed, errors: result.errors, warnings: result.warnings.length }));
+if (!result.passed) throw new Error('Worker rejected native adapter');

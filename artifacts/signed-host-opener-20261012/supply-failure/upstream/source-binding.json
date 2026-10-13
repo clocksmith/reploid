@@ -1,0 +1,40 @@
+{
+  "scope": "Published node-webgpu v0.4.0 gitlink source; binary reproducibility not established",
+  "nodeWebgpuTag": "v0.4.0",
+  "dawnCommit": "c5d549e250b9225744929ae860b369cb4304a767",
+  "files": [
+    {
+      "path": "AsyncRunner.cpp",
+      "sourceUrl": "https://dawn.googlesource.com/dawn/+/c5d549e250b9225744929ae860b369cb4304a767/src/dawn/node/binding/AsyncRunner.cpp?format=TEXT",
+      "sha256": "4f1df73018173bd5db28c4d75faeacf06c626b51792ad9468cb37024999c9e7f"
+    },
+    {
+      "path": "AsyncRunner.h",
+      "sourceUrl": "https://dawn.googlesource.com/dawn/+/c5d549e250b9225744929ae860b369cb4304a767/src/dawn/node/binding/AsyncRunner.h?format=TEXT",
+      "sha256": "73c0873f8267077f3048c77c1625c2b5294cdfe29d2f5a5ce1fc4bf9ef73edb3"
+    },
+    {
+      "path": "GPUAdapter.cpp",
+      "sourceUrl": "https://dawn.googlesource.com/dawn/+/c5d549e250b9225744929ae860b369cb4304a767/src/dawn/node/binding/GPUAdapter.cpp?format=TEXT",
+      "sha256": "f90adba5286743d910d88758124e6ba3313a427cdc9ab59672b8b13a27d94bd9"
+    }
+  ],
+  "laterFix": "https://dawn.googlesource.com/dawn/+/afc8794fdd5f66a70e412149d292f8f2490e6f59",
+  "wrtc": {
+    "package": "@roamhq/wrtc",
+    "version": "0.10.0",
+    "scope": "Tagged source documents the missing native event; installed binary source reproducibility is not claimed",
+    "files": [
+      {
+        "path": "rtc_data_channel.cc",
+        "sourceUrl": "https://raw.githubusercontent.com/WonderInventions/node-webrtc/v0.10.0/src/interfaces/rtc_data_channel.cc",
+        "sha256": "9728113a4abcab263c8025d83917e752be6470e74fa42d8704daa6e0893315b6"
+      },
+      {
+        "path": "rtc_data_channel.hh",
+        "sourceUrl": "https://raw.githubusercontent.com/WonderInventions/node-webrtc/v0.10.0/src/interfaces/rtc_data_channel.hh",
+        "sha256": "c7c37a2863e1794d6a29432eda69ef74721fc9e01594fe923ee5d5376e42841e"
+      }
+    ]
+  }
+}

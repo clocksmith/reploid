@@ -1,0 +1,157 @@
+{
+  "sources": {
+    "/server/native-participant.js": "a30a4e32f43a284556fb4d445292e02b7a89a7868dd2e7dca5ad90a30aeb423a",
+    "/tests/unit/native-data-channel-backpressure.test.js": "542c6682cfed5485cc8b728faae9a9d7d99d51420b594c3d93bdcfd928fc074b"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /server/native-participant.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /server/native-participant.js:41: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /server/native-participant.js:377: Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+      "Warning in /server/native-participant.js:28: Suspicious variable name: requireValue - may indicate code execution",
+      "File has 46 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/native-data-channel-backpressure.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/native-data-channel-backpressure.test.js:43: Dynamic property write detected: [requester, supplier] - verify input sanitization",
+      "Warning in /tests/unit/native-data-channel-backpressure.test.js:63: Dynamic property write detected: [requester, supplier] - verify input sanitization",
+      "Warning in /tests/unit/native-data-channel-backpressure.test.js:82: Dynamic property write detected: [channel, peer] - verify input sanitization"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892163788,
+        "path": "/server/native-participant.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892163790,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 41,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892163790,
+        "path": "/server/native-participant.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [rtcModule, wsModule] - verify input sanitization",
+        "line": 377,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892163790,
+        "path": "/server/native-participant.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: requireValue - may indicate code execution",
+        "line": 28,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791892163791,
+        "metric": "functions",
+        "value": 46,
+        "threshold": 20,
+        "message": "File has 46 functions (max 20) - consider modularizing",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791892163791,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/server/native-participant.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892163795,
+        "path": "/tests/unit/native-data-channel-backpressure.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892163795,
+        "path": "/tests/unit/native-data-channel-backpressure.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [requester, supplier] - verify input sanitization",
+        "line": 43,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892163795,
+        "path": "/tests/unit/native-data-channel-backpressure.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [requester, supplier] - verify input sanitization",
+        "line": 63,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892163795,
+        "path": "/tests/unit/native-data-channel-backpressure.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [channel, peer] - verify input sanitization",
+        "line": 82,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/server/native-participant.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/native-data-channel-backpressure.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 46,
+          "threshold": 20,
+          "message": "File has 46 functions (max 20) - consider modularizing",
+          "path": "/server/native-participant.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/server/native-participant.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

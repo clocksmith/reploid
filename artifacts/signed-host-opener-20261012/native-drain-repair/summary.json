@@ -1,0 +1,21 @@
+{
+  "component": "Native RTC provider adapter",
+  "intent": "preserved",
+  "source": "server/native-participant.js",
+  "sourceSha256": "a30a4e32f43a284556fb4d445292e02b7a89a7868dd2e7dca5ad90a30aeb423a",
+  "test": "tests/unit/native-data-channel-backpressure.test.js",
+  "testSha256": "542c6682cfed5485cc8b728faae9a9d7d99d51420b594c3d93bdcfd928fc074b",
+  "defect": "Installed wrtc exposes bufferedAmount but no low threshold/event; shared bounded sender waits for absent event after backpressure even when buffer drains.",
+  "repair": "Only providers missing threshold receive listener-scoped drain polling. Standard event path unchanged. Once, removal, AbortSignal and close release polling. Existing protocol deadlines, grants, budgets and runtime bytes unchanged.",
+  "controls": {
+    "before": "Actual framing transfer times out after simulated native buffer drains without event",
+    "after": "50 tests across five files pass; includes wrtc asynchronous event dispatch; timeout/abort/close stop timers and no frames exceed buffer limit",
+    "worker": "Actual verification Worker passes, zero errors, ten warnings"
+  },
+  "physicalScope": "No participant restarted and no GPU opened for this repair. Actual failed browser transfer entered supplier timeout after two chunks; exact historical bufferedAmount was not retained, so event defect is demonstrated independently rather than proven as sole cause.",
+  "otherFinding": "Tagged node-webgpu0.4.0 Dawn AsyncRunner keeps event pump active for device lifetime; later upstream fix recorded. Matches current sampled busy idle process, but causal relation to chunk failure is not established.",
+  "boundaryEffects": [
+    "native host RTC event normalization only"
+  ],
+  "pending": "Root-owned isolated artifact rollout and physical signed-acquisition requalification."
+}
