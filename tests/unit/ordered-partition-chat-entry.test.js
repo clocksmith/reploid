@@ -313,3 +313,73 @@ describe('ordinary ordered chat and requester entry with genuine grants and inje
     } finally { release.resolve(true); await f.close(); }
   });
 });
+
+const callerGeneration = maxOutputTokens => ({schema:'reploid.partition-generation-request/v1',maxOutputTokens,usage:'raw-model-tokens/v1'});
+it('binds caller output ceiling before genuine stage grants and returns actual raw token counts before text', async()=>{
+  const f=await fixture(3,true),last=f.f.stages.at(-1),execute=last.executeStage.getMockImplementation(),events=[];
+  last.executeStage.mockImplementation(async request=>{const output=await execute(request);return {...output,done:request.step+1===request.maxTokens,stopReason:'max-tokens'};});
+  try{
+    const result=await f.client.generate({...f.request,generationRequest:callerGeneration(2)}, {onUsage:usage=>events.push({usage}),onDelta:text=>events.push({text})});
+    expect(events).toEqual([{usage:{schema:'raw-model-tokens/v1',inputTokens:2,outputTokens:0}},{text:'0'},{text:'1'}]);
+    expect(result.usage).toEqual({schema:'raw-model-tokens/v1',inputTokens:2,outputTokens:2});
+    expect(result.execution.stopReason).toBe('max-tokens');
+    for(const stage of f.f.stages){expect(stage.executeStage).toHaveBeenCalledTimes(2);for(const [call]of stage.executeStage.mock.calls){expect(call.generation.maxTokens).toBe(2);expect(call.maxTokens).toBe(2);expect(call.executionGrant.claim.generationDigest).toBe(await f.f.runtime.hashPartitionGeneration(call.generation));}}
+  }finally{await f.close();}
+});
+it('counts a sampled stop token even when its decoded visible output is empty',async()=>{
+  const f=await fixture(3,true),last=f.f.stages.at(-1),execute=last.executeStage.getMockImplementation();
+  last.executeStage.mockImplementation(async request=>({...await execute(request),delta:'',done:true,stopReason:'stop-token'}));
+  try{const result=await f.client.generate({...f.request,generationRequest:callerGeneration(1)});expect(result.content).toBe('');expect(result.usage).toEqual({schema:'raw-model-tokens/v1',inputTokens:2,outputTokens:1});}finally{await f.close();}
+});
+it.each([0,-1,1.5,Number.MAX_SAFE_INTEGER+1,11])('rejects malformed/over-budget caller ceiling %s before tokenization or stages',async cap=>{
+  const f=await fixture();try{await expect(f.client.generate({...f.request,generationRequest:callerGeneration(cap)})).rejects.toThrow();expect(f.f.stages[0].tokenize).not.toHaveBeenCalled();expect(f.f.stages.every(stage=>stage.executeStage.mock.calls.length===0)).toBe(true);}finally{await f.close();}
+});
+it('caller mutation during approval cannot raise the cap, and allocation overflow rejects before numerical dispatch',async()=>{
+  const f=await fixture(),entered=Promise.withResolvers(),release=Promise.withResolvers();const request={...f.direct,generationRequest:callerGeneration(2)};
+  const last=f.f.stages.at(-1),execute=last.executeStage.getMockImplementation();last.executeStage.mockImplementation(async r=>({...await execute(r),done:r.step+1===r.maxTokens,stopReason:'max-tokens'}));
+  try{const operation=f.chat.generate(request,{...f.controls,requestApproval:async preview=>{expect(preview.input.generationRequest.maxOutputTokens).toBe(2);entered.resolve();await release.promise;return true;}});await entered.promise;request.generationRequest.maxOutputTokens=9;release.resolve();expect((await operation).usage.outputTokens).toBe(2);
+    await expect(f.chat.generate({...f.direct,attemptId:'overflow',generationRequest:callerGeneration(4)},f.controls)).rejects.toThrow('prepared generation allocation');expect(last.executeStage).toHaveBeenCalledTimes(2);
+  }finally{release.resolve();await f.close();}
+});
+it.each(['cap','counts','attempt'])('rejects untrusted usage %s before numerical dispatch',async mutation=>{
+  const f=await fixture(),send=f.pair[1].send;try{
+    f.pair[1].send=function(data){if(typeof data==='string'){const value=JSON.parse(data);if(value.metadata?.operation==='usage'){
+      if(mutation==='cap')value.metadata.generationRequest.maxOutputTokens++;
+      if(mutation==='counts')value.metadata.usage.outputTokens=1;
+      if(mutation==='attempt')value.metadata.attemptId='other';
+      return send.call(this,JSON.stringify(value));
+    }}return send.call(this,data);};
+    await expect(f.client.generate({...f.request,generationRequest:callerGeneration(3)})).rejects.toThrow();expect(f.f.stages.every(stage=>stage.executeStage.mock.calls.length===0)).toBe(true);
+  }finally{await f.close();}
+});
+it('cancellation while input usage is observed settles tokenizer state without sampling',async()=>{
+  const f=await fixture(),controller=new AbortController();try{
+    await expect(f.chat.generate({...f.direct,generationRequest:callerGeneration(2)},{...f.controls,signal:controller.signal,onUsage(){controller.abort(Error('caller stopped'));}})).rejects.toThrow();
+    expect(f.f.stages.every(stage=>stage.executeStage.mock.calls.length===0)).toBe(true);expect(f.f.stages[0].closeAttempt).toHaveBeenCalled();expect(f.chat.getState().unsettledInputs).toBe(0);
+  }finally{await f.close();}
+});
+it.each(['onUsage','onDelta'])('does not splice a fresh retry after %s is published',async callback=>{
+  const f=await fixture();let replacementCalls=0;const rows=[];
+  const first={id:f.client.id,refresh:()=>f.client.refresh(),generate:async(_request,controls)=>{await controls[callback](callback==='onUsage'?{schema:'raw-model-tokens/v1',inputTokens:2,outputTokens:0}:'partial');throw Error('first failed');}};
+  const second={...first,id:'replacement',generate:async()=>{replacementCalls++;return {content:'incorrect retry'};}};
+  try{const requester=createPartitionRequester({entries:()=>[first,second],requesterId:'requester',meshId:'mesh',modelId:'model',modelIdentity:f.request.modelIdentity,planId:f.request.planId,maxPlacements:2,ordered:true,authorize:async()=>true});
+    await expect(requester.generate({threadId:'retry',messages:f.request.messages,generationRequest:callerGeneration(2)},{onUsage:value=>rows.push(value),onDelta:value=>rows.push(value)})).rejects.toThrow('first failed');expect(rows).toHaveLength(1);expect(replacementCalls).toBe(0);
+  }finally{await f.close();}
+});
+it('rejects a second semantic usage event before sampling',async()=>{
+  const f=await fixture(),generate=f.chat.generate;
+  const service={...f.chat,generate:async(request,controls)=>generate(request,{...controls,onUsage:async usage=>{await controls.onUsage(usage);await controls.onUsage(usage);}})};
+  // Replace the already-borrowed method through a new entry owner, never forge settlement.
+  await f.client.close();await f.server.close();const pair=channels();
+  const limits={maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:4096,maxPendingBytes:16384,maxPendingRequests:8,maxRequestsPerChannel:256,maxBufferedBytes:262144,maxTransferBytes:4194304,timeoutMs:1000};
+  const inputLimits={maxInputCharacters:4096,maxOutputCharacters:100,maxAttempts:20,maxConcurrentAttempts:2,descriptorTtlMs:10000};
+  const server=createPartitionEntry({channel:pair[1],localParticipantId:f.client.id,remoteParticipantId:'requester',service,ordered:true,authorize:async()=>true,limits,inputLimits});
+  const client=createPartitionEntry({channel:pair[0],localParticipantId:'requester',remoteParticipantId:f.client.id,ordered:true,authorize:async()=>true,limits,inputLimits});
+  try{await client.refresh();await expect(client.generate({...f.request,generationRequest:callerGeneration(2)})).rejects.toThrow();expect(f.f.stages.every(stage=>stage.executeStage.mock.calls.length===0)).toBe(true);}finally{await client.close();await server.close();await f.close();}
+});
+it.each(['output','input','schema'])('rejects final %s usage changed in a bound response',async field=>{
+  const f=await fixture(),send=f.pair[1].send;
+  try{f.pair[1].send=function(data){if(typeof data==='string'){const value=JSON.parse(data);if(value.result?.usage){if(field==='output')value.result.usage.outputTokens=0;if(field==='input')value.result.usage.inputTokens++;if(field==='schema')value.result.usage.schema='visible-text/v1';return send.call(this,JSON.stringify(value));}}return send.call(this,data);};
+    await expect(f.client.generate({...f.request,generationRequest:callerGeneration(3)})).rejects.toThrow('usage');
+  }finally{await f.close();}
+});

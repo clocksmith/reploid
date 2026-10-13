@@ -3,13 +3,14 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { createResponses, parseTextResponse } from '../../server/responses.js';
 import { createChatCompletions } from '../../server/chat-completions.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
+const preview = (request, recipients=['stage']) => ({threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
 const model={id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true}};
 const input={model:model.id,input:'hello',store:false}, owners=[];
 afterEach(async()=>{for(const close of owners.splice(0).reverse())await close();});
 const result=(request,content='hello',reason='eos-token')=>({threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,
   modelIdentity:request.model.identity,content,execution:{stopReason:reason}});
 async function boot(overrides={}){
-  const generate=vi.fn(async(request,controls)=>{await controls.requestApproval({recipients:['actual-stage'],input:request.messages});
+  const generate=vi.fn(async(request,controls)=>{await controls.requestApproval(preview(request,['actual-stage']));
     for(const [sequence,text] of ['hel','lo'].entries())controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence,text});
     return result(request);
   });
@@ -48,18 +49,18 @@ it('streams contiguous typed events with one stable item and a genuine completed
   expect(rows.at(-1).response.output[0].id).toBe(id);expect(rows.at(-1).response.usage).toBeUndefined();
 });
 it.each([false,true])('max-tokens emits incomplete not completed (stream=%s)',async stream=>{
-  const f=await boot({participant:{generate:async request=>result(request,'partial','max-tokens')}}),response=await f.post({...input,stream});
+  const f=await boot({participant:{generate:async(request,controls)=>{await controls.requestApproval(preview(request));return result(request,'partial','max-tokens');}}}),response=await f.post({...input,stream});
   const value=stream?events(await response.text()).at(-1):await response.json(),body=stream?value.response:value;
   if(stream)expect(value.type).toBe('response.incomplete');expect(body.status).toBe('incomplete');expect(body.completed_at).toBeNull();expect(body.incomplete_details).toEqual({reason:'max_output_tokens'});expect(body.output[0].status).toBe('incomplete');
 });
 it.each(['context-limit','unknown'])('does not fabricate terminal success or output budget for %s',async reason=>{
-  const f=await boot({participant:{generate:async(request,controls)=>{controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:0,text:'partial'});return result(request,'partial',reason);}}});
+  const f=await boot({participant:{generate:async(request,controls)=>{await controls.requestApproval(preview(request));controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:0,text:'partial'});return result(request,'partial',reason);}}});
   const rows=events(await(await f.post({...input,stream:true})).text());expect(rows.at(-1)).toMatchObject({type:'error',code:'server_error',param:null});
   expect(rows.some(r=>['response.completed','response.incomplete'].includes(r.type))).toBe(false);
   expect((await f.post()).status).toBe(502);
 });
 it.each(['','no-delta'])('handles complete output without callbacks including empty text %j',async content=>{
-  const f=await boot({participant:{generate:async request=>result(request,content)}}),rows=events(await(await f.post({...input,stream:true})).text());
+  const f=await boot({participant:{generate:async(request,controls)=>{await controls.requestApproval(preview(request));return result(request,content);}}}),rows=events(await(await f.post({...input,stream:true})).text());
   expect(rows.at(-1).type).toBe('response.completed');expect(rows.at(-1).response.output[0].content[0].text).toBe(content);
 });
 it('HTTP Responses reaches actual automatic requester and disclosure denial dispatches zero numerical stages',async()=>{

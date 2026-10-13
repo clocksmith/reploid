@@ -1,0 +1,123 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/integration/chat-completions.test.js > requires explicit authentication and disclosure ports 1ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported tools explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported tool_choice explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported response_format explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported temperature explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported seed explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported top_p explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported max_tokens explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported n explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported stream_options explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"tool","content":"x"} 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"developer","content":"x"} 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"user","content":[{"type":"text","text":"x"}]} 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"assistant","content":"x","tool_calls":[]} 0ms
+ ✓ tests/integration/chat-completions.test.js > mounted route authenticates exact immutable request and disclosure then returns bound completion without usage guesses 16ms
+ ✓ tests/integration/chat-completions.test.js > streams ordered deltas and one terminal reason with a stable completion identity 4ms
+ ✓ tests/integration/chat-completions.test.js > maps actual stop-token termination to stop 2ms
+ ✓ tests/integration/chat-completions.test.js > maps actual stop-sequence termination to stop 1ms
+ ✓ tests/integration/chat-completions.test.js > maps actual max-tokens termination to length 2ms
+ ✓ tests/integration/chat-completions.test.js > maps actual context-limit termination to length 1ms
+ ✓ tests/integration/chat-completions.test.js > rejects unknown termination and a changed result identity instead of claiming successful completion 4ms
+ ✓ tests/integration/chat-completions.test.js > unauthenticated and denied calls never execute or fall back 6ms
+ ✓ tests/integration/responses.test.js > rejects unsupported previous_response_id without executing 1ms
+ ✓ tests/integration/responses.test.js > rejects unsupported conversation without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported background without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported tools without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported tool_choice without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported text without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported response_format without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported temperature without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported top_p without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported seed without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported max_output_tokens without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported metadata without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported stream_options without executing 0ms
+ ✓ tests/integration/responses.test.js > requires explicit store:false, rejects undefined 0ms
+ ✓ tests/integration/responses.test.js > requires explicit store:false, rejects true 0ms
+ ✓ tests/integration/responses.test.js > requires explicit store:false, rejects null 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape undefined 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"role":"user","content":"x"} 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"role":"developer","content":"x"} 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"role":"tool","content":"x"} 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"role":"user","content":[{"type":"input_text","text":"x"}]} 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"type":"function_call_output","role":"user","content":"x"} 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"role":"user","content":"x","id":"prior"} 0ms
+ ✓ tests/integration/responses.test.js > mounted route binds instructions and messages to actual authorization, preserving response identity without usage guesses 16ms
+ ✓ tests/integration/responses.test.js > streams contiguous typed events with one stable item and a genuine completed terminal 6ms
+ ✓ tests/integration/responses.test.js > max-tokens emits incomplete not completed (stream=false) 3ms
+ ✓ tests/integration/responses.test.js > max-tokens emits incomplete not completed (stream=true) 2ms
+ ✓ tests/integration/responses.test.js > does not fabricate terminal success or output budget for context-limit 5ms
+ ✓ tests/integration/responses.test.js > does not fabricate terminal success or output budget for unknown 5ms
+ ✓ tests/integration/responses.test.js > handles complete output without callbacks including empty text "" 4ms
+ ✓ tests/integration/responses.test.js > handles complete output without callbacks including empty text "no-delta" 2ms
+ ✓ tests/integration/messages.test.js > rejects unsupported tools 1ms
+ ✓ tests/integration/messages.test.js > rejects unsupported tool_choice 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported thinking 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output_config 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported temperature 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported top_p 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported top_k 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported seed 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported stop_sequences 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported metadata 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported service_tier 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported container 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling undefined before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 0 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling -1 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 1.5 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 9007199254740991 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 9007199254740992 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"assistant","content":"prefill"} 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"system","content":"hidden"} 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"user","content":"a"} 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"user","content":[{"type":"text","text":"a"}]} 0ms
+ ✓ tests/integration/messages.test.js > authenticates immutable caller ceiling, actual disclosure and input/output token observations 16ms
+ ✓ tests/integration/messages.test.js > streams observed input usage before text and final cumulative raw output count 4ms
+ ✓ tests/integration/messages.test.js > actual HTTP/automatic/grant/peer chain enforces a smaller cap and reports tokenizer and sampler counts 154ms
+ ✓ tests/integration/messages.test.js > recipient denial after execution approval dispatches no stages 61ms
+ ✓ tests/integration/messages.test.js > refuses missing usage rather than inventing protocol counts 3ms
+ ✓ tests/integration/messages.test.js > refuses late usage rather than inventing protocol counts 2ms
+ ✓ tests/integration/messages.test.js > refuses different-attempt usage rather than inventing protocol counts 2ms
+ ✓ tests/integration/messages.test.js > refuses duplicate usage rather than inventing protocol counts 1ms
+ ✓ tests/integration/messages.test.js > refuses changed-final usage rather than inventing protocol counts 3ms
+ ✓ tests/integration/messages.test.js > refuses over-cap usage rather than inventing protocol counts 1ms
+ ✓ tests/integration/responses.test.js > HTTP Responses reaches actual automatic requester and disclosure denial dispatches zero numerical stages 178ms
+ ✓ tests/integration/chat-completions.test.js > disconnect propagates abort and retains HTTP admission while execution remains unresolved 4008ms
+ ✓ tests/integration/messages.test.js > cancellation keeps unresolved HTTP admission charged and cannot publish a late terminal 4005ms
+ ✓ tests/integration/messages.test.js > does not invent counts for an old route, accepts no unauthorized request and rejects unknown protocol headers 10ms
+ ✓ tests/integration/messages.test.js > refuses output while disclosure is missing even if borrowed provider violates callback contract 3ms
+ ✓ tests/integration/messages.test.js > refuses output while disclosure is pending even if borrowed provider violates callback contract 2ms
+ ✓ tests/integration/messages.test.js > refuses output while disclosure is denied even if borrowed provider violates callback contract 1ms
+ ✓ tests/integration/messages.test.js > validates final-only input usage before emitting fallback text 1ms
+ ✓ tests/integration/messages.test.js > validates final-only output usage before emitting fallback text 1ms
+ ✓ tests/integration/messages.test.js > validates final-only schema usage before emitting fallback text 1ms
+ ✓ tests/integration/messages.test.js > unrelated disclosure thread cannot unlock output 1ms
+ ✓ tests/integration/messages.test.js > unrelated disclosure attempt cannot unlock output 1ms
+ ✓ tests/integration/messages.test.js > unrelated disclosure model cannot unlock output 1ms
+ ✓ tests/integration/messages.test.js > unrelated disclosure messages cannot unlock output 1ms
+ ✓ tests/integration/messages.test.js > unrelated disclosure cap cannot unlock output 1ms
+ ✓ tests/integration/messages.test.js > callbacks retained by a completed provider cannot publish late output or approval 1ms
+ ✓ tests/integration/responses.test.js > shares admission between protocols; disconnect and adapter close keep unsettled work charged without closing borrowed requester 4008ms
+ ✓ tests/integration/chat-completions.test.js > disconnect while host authentication awaits never proceeds to execution 4012ms
+ ✓ tests/integration/chat-completions.test.js > disconnect during an incomplete JSON body releases admission without calling requester 106ms
+ ✓ tests/integration/responses.test.js > abort while authenticate awaits cannot execute late approval 4016ms
+ ✓ tests/integration/chat-completions.test.js > actual mounted handler reaches weightless automatic requester, signed grants and all ordered stages 198ms
+ ✓ tests/integration/chat-completions.test.js > streamed partial output with unknown stopping reason ends in an error without a successful DONE 2ms
+ ✓ tests/integration/responses.test.js > abort while authorize awaits cannot execute late approval 4007ms
+ ✓ tests/integration/responses.test.js > authentication failure, unsupported input and wrong output identity never become a successful response 13ms
+ ✓ tests/integration/chat-completions.test.js > disconnect while execution authorization awaits cannot dispatch a late approved request 4005ms
+ ✓ tests/integration/chat-completions.test.js > does not mount the compatibility endpoint by default 4ms
+ ✓ tests/integration/chat-completions.test.js > execution approval cannot substitute for denied actual recipient disclosure 68ms
+ ✓ tests/integration/chat-completions.test.js > bounds HTTP admission and leaves borrowed owner closure to its caller 3ms
+ ✓ tests/integration/chat-completions.test.js > normalizes a host failure without an Error object into an explicit HTTP failure 1ms
+
+ Test Files  3 passed (3)
+      Tests  114 passed (114)
+   Start at  13:22:55
+   Duration  12.74s (transform 301ms, setup 0ms, import 686ms, tests 29.00s, environment 0ms)
+

@@ -1,3 +1,5 @@
+import { canonicalPartitionJson } from '../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { requireGenerationCapability, tokenUsage } from '../packages/reploid/src/mesh/partitions/partition-generation-request.js';
 /** Text-only HTTP projection of the existing partition requester. No provider fallback. */
 import { randomUUID } from 'node:crypto';
 import policy from '../self/config/partition-policy.json' with { type: 'json' };
@@ -34,19 +36,20 @@ async function readBody(req, signal, parse) {
 export function createTextRequester({ participant, authenticate, authorize }, protocol) {
   if (!participant || typeof participant.generate !== 'function' || typeof participant.getState !== 'function'
     || typeof authenticate !== 'function' || typeof authorize !== 'function') throw Error('Text requester requires an actual requester and explicit authentication/authorization ports');
+  const formatError = protocol.errorBody || errorBody;
   const active = new Set(); let closed = false;
   if (!requesterAdmission.has(participant)) requesterAdmission.set(participant, new Set());
   const admitted = requesterAdmission.get(participant);
   const handle = async (req, res) => {
     let pathname;
     try { pathname = new URL(req.url || '/', 'http://localhost').pathname; }
-    catch { json(res, 400, errorBody(fail(400, 'Invalid API route'))); return; }
+    catch { json(res, 400, formatError(fail(400, 'Invalid API route'))); return; }
     if (pathname !== protocol.path) {
-      json(res, 404, errorBody(fail(404, 'Unsupported API route'))); return;
+      json(res, 404, formatError(fail(404, 'Unsupported API route'))); return;
     }
     if (req.method !== 'POST') { res.writeHead(405, { allow: 'POST' }); res.end(); return; }
     if (closed || admitted.size >= policy.inputLimits.maxConcurrentAttempts) {
-      json(res, closed ? 503 : 429, errorBody(fail(closed ? 503 : 429, 'Requester admission unavailable'))); return;
+      json(res, closed ? 503 : 429, formatError(fail(closed ? 503 : 429, 'Requester admission unavailable'))); return;
     }
     const controller = new AbortController(), signal = controller.signal;
     let settle;
@@ -54,7 +57,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
     const cancel = () => controller.abort(Error('HTTP requester disconnected'));
     req.once('aborted', cancel); res.once('close', cancel);
     const timer = setTimeout(() => controller.abort(fail(408, 'Request admission deadline exceeded')), policy.controlChannel.timeoutMs);
-    let streaming = false, emitted = '', sequence = 0;
+    let streaming = false, emitted = '', sequence = 0, observedUsage = null, disclosureApproved = false, acceptingCallbacks = true;
     const id = protocol.idPrefix + randomUUID().replaceAll('-', ''), created = Math.floor(Date.now() / 1000);
     const threadId = randomUUID().replaceAll('-', ''), attemptId = randomUUID().replaceAll('-', '');
     let model, output;
@@ -68,6 +71,7 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       }
     };
     try {
+      protocol.validateRequest?.(req);
       if (!/^application\/json(?:;|$)/i.test(req.headers['content-type'] || '')) throw fail(415, 'application/json required');
       const authenticated = await authenticate(req, { signal }); signal.throwIfAborted();
       if (!object(authenticated) || typeof authenticated.subject !== 'string' || !authenticated.subject || authenticated.subject.length > 512) throw fail(401, 'Authentication required');
@@ -79,34 +83,64 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       if (new Set(eligible.map(value => value.identity)).size !== 1) throw fail(409, 'Model id has ambiguous execution identity', 'model');
       model = freeze(structuredClone(eligible[0]));
       assert(typeof model.identity === 'string' && model.identity.length > 0, 'Requester model identity missing');
-      const request = freeze({ threadId, attemptId, model, messages: input.messages });
+      const requested = requireGenerationCapability(model, input.generationRequest);
+      const request = freeze({ threadId, attemptId, model, messages: input.messages, ...(requested ? {generationRequest:requested} : {}) });
       if (await authorize({ action: 'chat.execute', principal, request, signal }) !== true) throw fail(403, 'Request execution denied');
       signal.throwIfAborted(); clearTimeout(timer);
       res.setHeader('x-request-id', id); res.setHeader('x-reploid-attempt-id', attemptId);
       res.setHeader('x-reploid-model-identity', model.identity);
+      if (requested) res.setHeader('x-reploid-token-usage', requested.usage);
       output = protocol.output({ id, created, model: model.id, input, write, end: value => res.end(value), json: value => json(res, 200, value) });
       const result = await participant.generate(request, {
         signal, onState() {},
+        onUsage(event) {
+          try {
+            signal.throwIfAborted();
+            assert(acceptingCallbacks, 'Requester callback after completion');
+            assert(disclosureApproved, 'Recipient disclosure must precede output');
+            assert(requested && !observedUsage && sequence === 0 && event?.threadId === threadId && event.attemptId === attemptId
+              && event.schema === requested.usage && event.outputTokens === 0, 'Unbound or out-of-order provider token usage');
+            observedUsage = tokenUsage(event.inputTokens, event.outputTokens, requested);
+            if (input.stream) output.usage?.(observedUsage);
+          } catch (error) { controller.abort(error); throw error; }
+        },
         async requestApproval(preview) {
-          signal.throwIfAborted();
-          const approved = await authorize({ action: 'chat.disclose', principal, request,
-            preview: freeze(structuredClone(preview)), signal });
-          signal.throwIfAborted();
-          if (approved !== true) throw fail(403, 'Recipient disclosure denied');
-          return true;
+          assert(acceptingCallbacks, 'Requester callback after completion');
+          disclosureApproved = false;
+          try {
+            signal.throwIfAborted();
+            preview = freeze(structuredClone(preview));
+            assert(preview?.threadId === threadId && preview.attemptId === attemptId
+              && preview.modelId === model.id && preview.modelIdentity === model.identity
+              && canonicalPartitionJson(preview.input?.messages ?? null) === canonicalPartitionJson(request.messages)
+              && canonicalPartitionJson(preview.input?.generationRequest ?? null) === canonicalPartitionJson(requested ?? null),
+            'Disclosure preview differs from the admitted request');
+            const approved = await authorize({ action: 'chat.disclose', principal, request,
+              preview, signal });
+            signal.throwIfAborted();
+            if (approved !== true) throw fail(403, 'Recipient disclosure denied');
+            assert(acceptingCallbacks, 'Requester callback after completion');
+            disclosureApproved = true;
+            return true;
+          } catch (error) { controller.abort(error); throw error; }
         },
         onDelta(event) {
           try {
             signal.throwIfAborted();
+            assert(acceptingCallbacks, 'Requester callback after completion');
+            assert(disclosureApproved, 'Recipient disclosure must precede output');
             assert(event?.threadId === threadId && event.attemptId === attemptId && event.sequence === sequence++
               && typeof event.text === 'string', 'Requester delta identity or sequence mismatch');
+            assert(!requested || observedUsage, 'Provider token usage must precede text');
             emitted += event.text;
             assert(emitted.length <= policy.inputLimits.maxOutputCharacters, 'Output text limit exceeded');
             if (input.stream) output.delta(event.text);
           } catch (error) { controller.abort(error); throw error; }
         }
       });
+      acceptingCallbacks = false;
       signal.throwIfAborted();
+      assert(disclosureApproved, 'Recipient disclosure must precede completion');
       assert(result?.threadId === threadId && result.attemptId === attemptId && result.modelId === model.id
         && result.modelIdentity === model.identity, 'Requester result identity mismatch');
       assert(typeof result.content === 'string' && result.content.length <= policy.inputLimits.maxOutputCharacters, 'Invalid requester text result');
@@ -114,17 +148,27 @@ export function createTextRequester({ participant, authenticate, authorize }, pr
       const reason = result.execution?.stopReason;
       assert(['length', 'max-tokens', 'stop', 'eos', 'eos-token', 'stop-token', 'stop-sequence', 'context-limit'].includes(reason), 'Requester termination reason unavailable');
       const finishReason = ['length', 'max-tokens', 'context-limit'].includes(reason) ? 'length' : 'stop';
-      if (input.stream && !sequence) output.delta(result.content);
-      output.complete(result.content, finishReason, reason);
+      let usage;
+      if (requested) {
+        usage = tokenUsage(result.usage?.inputTokens, result.usage?.outputTokens, requested);
+        assert(observedUsage && usage.inputTokens === observedUsage.inputTokens && result.usage.schema === usage.schema
+          && usage.outputTokens === (result.execution?.stepSummary?.count ?? result.execution?.steps?.length), 'Provider final token usage differs from input observation');
+      }
+      if (input.stream && !sequence) {
+        assert(!requested || observedUsage, 'Provider token usage must precede text');
+        output.delta(result.content);
+      }
+      output.complete(result.content, finishReason, reason, usage);
     } catch (cause) {
       const error = cause instanceof Error ? cause : fail(502, 'Requester failed');
       controller.abort(error);
       if (!res.destroyed && !res.writableEnded) {
-        const body = errorBody(error);
+        const body = formatError(error);
         if (streaming) output.error(body.error);
         else json(res, error.status || 502, body);
       }
     } finally {
+      acceptingCallbacks = false;
       clearTimeout(timer); req.removeListener('aborted', cancel); res.removeListener('close', cancel);
       active.delete(item); admitted.delete(item); settle();
     }

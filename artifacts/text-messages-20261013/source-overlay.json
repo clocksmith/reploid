@@ -1,0 +1,72 @@
+{
+  "sourceBase": "ffd4430aa4a68ca359423804cc8c26a1a655e7f0",
+  "sourceRoot": "/var/tmp/reploid-text-messages-20261013/source",
+  "scope": "exact owned source overlay before commit; accepted runtime pin unchanged",
+  "overlays": [
+    {
+      "path": "packages/reploid/src/chat/index.d.ts",
+      "bytes": 8483,
+      "sha256": "6dd5876e4a564ba757ce490b16809d0c10a96b554a8d287fdfbc6d2f290b44be"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-generation-request.js",
+      "bytes": 2086,
+      "sha256": "f6bc06d1491095119b768d3ef822991e10af98409bf5e795b2f32eea7d7a717e"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-generation-request.d.ts",
+      "bytes": 915,
+      "sha256": "e850d49addf99900b5d407f25d1215794620d619110648a58ff850b81b5fb6b9"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-chat.js",
+      "bytes": 10043,
+      "sha256": "96d5893fa6e85dd75a4da77c135542c1a079fa0ccfa947fa0f6f143765c8ffb1"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-ordered-chat.js",
+      "bytes": 10484,
+      "sha256": "cef481c04b4238be438b1be79d3b07192a066631122827bfcf69bca7e28bd60c"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-entry.js",
+      "bytes": 22593,
+      "sha256": "918b7b3b5e4095c3096cf0291178f1684f7a063786d848cbf3b8dc23c2b6de6c"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/partition-entry.d.ts",
+      "bytes": 3788,
+      "sha256": "9c05ba88dc27ec1d06e48af9ed197368345d4c7cb70473c5014de2b32d215bdf"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/automatic-partitions.js",
+      "bytes": 19674,
+      "sha256": "497a8b38592b98f2873fabb4f4c3c7534e96faa7d276259741c72e7e6381925a"
+    },
+    {
+      "path": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
+      "bytes": 22824,
+      "sha256": "4c5cfe5957d1837b960cc88a02503628e5e45c16bcbd428809baa83f03132f49"
+    },
+    {
+      "path": "server/text-requester.js",
+      "bytes": 12517,
+      "sha256": "e3ff138842d477d1abe30beb8a84d24899fe1ddfc725c1eba5e6d0f1345e13b6"
+    },
+    {
+      "path": "server/messages.js",
+      "bytes": 4228,
+      "sha256": "521eef4b56211fdeb69649b10369a187e65fe109bbd697dcff0ef6a312a655c0"
+    },
+    {
+      "path": "server/native-participant.js",
+      "bytes": 36323,
+      "sha256": "433c832d6e92a9cc9d9519ac1901a45ec12e0bb9e51b95911d7937f5caca1099"
+    },
+    {
+      "path": "docs/native-participant.md",
+      "bytes": 10905,
+      "sha256": "bf8c1b26d4c9fd2fa184199ecf0ab63aab8c6fe3f0e7c3a1520918069b31a25f"
+    }
+  ]
+}

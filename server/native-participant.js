@@ -4,6 +4,7 @@
  */
 export { createChatCompletions } from './chat-completions.js';
 export { createResponses } from './responses.js';
+export { createMessages } from './messages.js';
 
 import fs from 'node:fs/promises';
 import { createNativeModelFiles } from './native-model-files.js';

@@ -58,25 +58,26 @@ qualification. No package publication or deployment occurs during packaging.
 
 ## Opt-in text HTTP APIs
 
-The installed native entry exports `createChatCompletions` and `createResponses`. Each borrows an ordinary
+The installed native entry exports `createChatCompletions`, `createResponses` and `createMessages`. Each borrows an ordinary
 participant's existing requester; it neither loads a fallback model nor grants
 permission. No HTTP endpoint is mounted by the CLI or standalone signaling server
 by default. A host application can mount the adapter explicitly:
 
 ```js
 import http from 'node:http';
-import { createNativeParticipant, createChatCompletions, createResponses } from './server/native-participant.js';
+import { createNativeParticipant, createChatCompletions, createResponses, createMessages } from './server/native-participant.js';
 import { nativeOptions, authenticate, authorize } from './api-host.js';
 
 const participant = await createNativeParticipant(nativeOptions);
 const api = createChatCompletions({ participant, authenticate, authorize });
 const responses = createResponses({ participant, authenticate, authorize });
+const messages = createMessages({ participant, authenticate, authorize });
 const server = http.createServer((req, res) => {
   const path = new URL(req.url, 'http://localhost').pathname;
-  return (path === '/v1/responses' ? responses : api).handle(req, res);
+  return (path === '/v1/messages' ? messages : path === '/v1/responses' ? responses : api).handle(req, res);
 });
 server.listen(8788, '127.0.0.1');
-// On host shutdown: await Promise.all([api.close(), responses.close()]), close the HTTP server,
+// On host shutdown: await Promise.all([api.close(), responses.close(), messages.close()]), close the HTTP server,
 // then await participant.close(). Failed settlement must remain retryable.
 ```
 
@@ -100,8 +101,12 @@ Use a separately qualified prepared route; connection alone is not readiness.
 | Responses streaming | Typed SSE events with contiguous sequence numbers, stable response/item identities, and one completed or incomplete response |
 | Responses termination | Stop/EOS completes; output-token limit is `incomplete/max_output_tokens` with `completed_at:null`; context-limit and unknown termination fail explicitly |
 | Responses unsupported state | Rejects omitted/true `store`, previous response IDs, conversations, background, tools, structured output, sampling and `max_output_tokens`; no lookup or response persistence |
-| Other protocols | Anthropic Messages is not implemented; other paths return 404 |
-| Usage | Omitted; the adapter does not invent token counts |
+| `POST /v1/messages` | Text Messages wire adapter: `model`, alternating user/assistant string `messages` ending in user, optional string `system`, positive `max_tokens`, optional `stream` |
+| Messages limits | Requires a route advertising caller-limit and raw-token usage support; the requested ceiling must fit its prepared allocation. Zero/cache-only, prefill, content blocks, tools, thinking, structured output, sampling and custom stop sequences are rejected |
+| Messages streaming | Actual tokenization observation produces `message_start` before numerical dispatch; typed content deltas and final cumulative sampled count end with `message_stop` |
+| Messages termination | EOS/stop token → `end_turn`; output ceiling → `max_tokens`; context-limit or unmatched stop-sequence metadata fails explicitly |
+| Other paths | Unimplemented routes return 404 |
+| Usage | Chat Completions/Responses omit counts. Messages uses explicit `raw-model-tokens/v1` local accounting described below |
 
 The adapter uses existing input/output/admission limits from
 `self/config/partition-policy.json`. Adapters borrowing the same participant share
@@ -122,8 +127,8 @@ Instructions are included in the exact messages presented for authorization and
 disclosure. There is no prior-response lookup or hidden continuation state, and
 no token counts are invented. Generation
 uses the prepared route's declared policy; this adapter cannot override its token
-limit. Anthropic Messages' required usage and caller token-limit semantics remain
-unimplemented.
+limit. Only the explicit Messages request ceiling is supported; general sampling
+overrides remain unsupported.
 
 The [Responses installed consumer evidence](https://github.com/clocksmith/reploid/tree/main/artifacts/stateless-responses-20261013)
 uses OpenAI SDK 7.32.0 for nonstreaming, streaming, terminal errors and cancellation
@@ -132,3 +137,23 @@ add the actual automatic requester, grants and ordered peers. This proves protoc
 composition, not physical inference. Event shapes follow the official
 [Responses streaming guide](https://developers.openai.com/api/docs/guides/streaming-responses)
 and [conversation state guide](https://developers.openai.com/api/docs/guides/conversation-state).
+
+The text Messages adapter reports `x-reploid-token-usage: raw-model-tokens/v1`.
+`usage.input_tokens` is the selected model's actual templated prompt token count;
+`usage.output_tokens` counts actual sampled tokens, including a terminal token
+that decodes to no visible text. These are local execution counts, not Claude
+tokenizer equivalence, Anthropic billing, cache usage or visible-text estimates.
+No cache/billing fields are fabricated. A caller limit enters the existing signed
+generation digest, and cannot change mid-attempt. Input-usage or text publication
+prevents automatic retry from splicing a fresh attempt into the same response.
+The host must authenticate `x-api-key` or other credentials through its existing
+authentication port; the adapter itself grants no identity or disclosure rights.
+
+The [Messages compatibility evidence](https://github.com/clocksmith/reploid/tree/main/artifacts/text-messages-20261013)
+uses the official Anthropic SDK against an installed, explicit loopback mount with
+injected numerical output. Source tests exercise real request/grant/entry/peer
+owners, smaller caller caps, cancellation and actual token arrays. Neither proves
+physical model quality. The supported wire subset follows the official
+[Messages reference](https://platform.claude.com/docs/en/api/messages/create) and
+[streaming events](https://platform.claude.com/docs/en/build-with-claude/streaming);
+unsupported features fail explicitly.

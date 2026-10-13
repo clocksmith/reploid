@@ -731,3 +731,14 @@ describe('automatic cooperative placement', () => {
     expect(loaded).toHaveLength(4);
   });
 });
+
+it('carries caller cap and actual usage through legacy entry and resident generation without changing defaults',async()=>{
+  const f=await fixture({authorizeRequester:async()=>true});await Promise.all([f.local.prepare({approved:true}),f.supplier.prepare({approved:true})]);await f.chat.refresh();
+  const pair=channels(),inputLimits={maxInputCharacters:4096,maxOutputCharacters:1024,maxAttempts:32,maxConcurrentAttempts:4,descriptorTtlMs:10000};
+  const server=createPartitionEntry({channel:pair[1],localParticipantId:f.a.peerId,remoteParticipantId:'requester',service:f.chat,authorize:async()=>true,limits:channelPolicy,inputLimits});
+  const client=createPartitionEntry({channel:pair[0],localParticipantId:'requester',remoteParticipantId:f.a.peerId,authorize:async()=>true,limits:channelPolicy,inputLimits});cleanup.push(()=>Promise.all([client.close(),server.close()]));await client.refresh();
+  const generationRequest={schema:'reploid.partition-generation-request/v1',maxOutputTokens:2,usage:'raw-model-tokens/v1'},usages=[];
+  const result=await client.generate({...f.binding,meshId:'mesh',requesterId:'requester',placementGeneration:0,messages:[{role:'user',content:'1'}],generationRequest},{onUsage:value=>usages.push(value)});
+  expect(result.content).toBe('2 3 ');expect(result.execution.stopReason).toBe('max-tokens');expect(usages).toEqual([{schema:'raw-model-tokens/v1',inputTokens:1,outputTokens:0}]);expect(result.usage).toEqual({schema:'raw-model-tokens/v1',inputTokens:1,outputTokens:2});expect(f.model.generation.maxTokens).toBe(4);
+  expect(f.factory.log.steps.map(row=>row.maxTokens)).toEqual([2,2,2,2]);
+});

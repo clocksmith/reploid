@@ -1,3 +1,4 @@
+import { TEXT_GENERATION_CAPABILITY, requireGenerationCapability, boundedGeneration, tokenUsage } from './partition-generation-request.js';
 import { createLayerPartitionRunner } from './partition-runner.js';
 import { orderedPartitionDisclosure } from './partition-grants.js';
 import { assertPartition as assert, canonicalPartitionJson, canonicalRouteAttemptBinding, validatePartitionRoute } from './partition-contract.js';
@@ -28,7 +29,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
     // peer owns its actual outgoing binary transfer in executeStage.
     transport: { transferActivation: async frame => structuredClone(frame) },
     authorize: request => authority.verify(request.grant, request) });
-  const models = () => [{ ...structuredClone(selection),
+  const models = () => [{ ...structuredClone(selection), textGeneration: TEXT_GENERATION_CAPABILITY,
     availability: !closed && validated && stages.every(stage => stage.getState().ready) ? 'ready' : 'unavailable',
     providerIds: stages.map(stage => stage.id), placement: 'ordered-layer-partition' }];
   const notify = () => { for (const listener of listeners) { try { listener(models()); } catch {} } };
@@ -39,6 +40,8 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
   }
   async function generate(request, controls) {
     request = structuredClone(request);
+    const requested = requireGenerationCapability(models()[0], request.generationRequest, request.canonical !== undefined);
+      assert(!requested || requested.maxOutputTokens <= policy.maxTokens, 'Caller token limit exceeds route budget');
     assert(!closed && request.canonical === undefined && controls.publication === undefined,
       'Ordered chat requires ordinary execution and an open owner');
     const signal = controls.signal ? AbortSignal.any([lifetime.signal, controls.signal]) : lifetime.signal;
@@ -66,7 +69,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
         attemptId: identity.attemptId, peerId: coordinatorId, recipientIdentity: coordinatorId,
         modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: [],
         operation: 'generate-partition', ...structuredClone(selection.partition), disclosure,
-        expiresAt, input: { messages: structuredClone(request.messages),
+        expiresAt, input: { messages: structuredClone(request.messages), ...(requested ? {generationRequest: requested} : {}),
           recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] } });
       signal.throwIfAborted(); assert(approved === true && !closed, 'Ordered disclosure declined or chat closed');
       assert(now() < expiresAt, 'Ordered disclosure expired');
@@ -75,7 +78,12 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       signal.throwIfAborted();
       assert(input.modelIdentity === selection.identity && Number.isSafeInteger(input.generation?.maxTokens)
         && input.generation.maxTokens > 0 && input.generation.maxTokens <= policy.maxTokens, 'Doppler tokenization contract mismatch');
-      const generationDigest = await runtime.hashPartitionGeneration(input.generation);
+      const generation = boundedGeneration(input.generation, requested);
+      if (requested) {
+        await controls.onUsage?.({threadId: identity.threadId, attemptId: identity.attemptId, ...tokenUsage(input.tokenIds.length, 0, requested)});
+        signal.throwIfAborted();
+      }
+      const generationDigest = await runtime.hashPartitionGeneration(generation);
       const remainingMs = Math.floor(expiresAt - now());
       assert(remainingMs > 0, 'Ordered disclosure expired during preparation');
       grant = await authority.issueOrdered(identity, policy, { approved: true, ttlMs: Math.min(grantTtlMs, remainingMs), disclosure, generationDigest, expiresAt });
@@ -84,8 +92,8 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
       controls.onState?.({ threadId: identity.threadId, attemptId: identity.attemptId, status: 'executing',
         execution: { placement: 'ordered-layer-partition', identity } });
       let sequence = 0;
-      const operation = runner.execute({ identity, tokenIds: input.tokenIds, generation: input.generation,
-        maxTokens: input.generation.maxTokens, signal,
+      const operation = runner.execute({ identity, tokenIds: input.tokenIds, generation,
+        maxTokens: generation.maxTokens, signal,
         grants: { execution: stages.map(() => grant), tokenContext: stages.map(() => grant),
           activation: stages.slice(1).map(() => grant), output: grant },
         onDelta: text => controls.onDelta?.({ threadId: identity.threadId, attemptId: identity.attemptId, sequence: sequence++, text }) });
@@ -93,6 +101,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
         const result = await operation;
         return { threadId: identity.threadId, attemptId: identity.attemptId, modelId: selection.id,
           modelIdentity: selection.identity, adapterIdentities: [], content: result.content,
+          ...(requested ? {usage: tokenUsage(input.tokenIds.length, result.tokenIds.length, requested)} : {}),
           execution: { ...result.execution, provider: 'peer' } };
       } finally {
         // An accepted runner attempt owns cleanup, including failed cleanup and
