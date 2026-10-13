@@ -1,0 +1,28 @@
+{
+  "schema": "reploid.functional-gpu-reservation/v1",
+  "approved": true,
+  "authority": "root assignment for user-authorized ordinary runtime repair",
+  "id": "attention-normalization-three-stage-reference-20261013",
+  "observedAt": "2026-10-13T20:32:19.555311+00:00",
+  "sharedMachineNotes": "Public co-tenants remain. Functional numerical route, retained driver caches; not cold-start or throughput acceptance. Prior Suby attempt normal GPU settlement stays unknown and is not inherited or erased.",
+  "scope": "Three physical hosts, 55 original independent F64 prefixes; stop on first numerical failure",
+  "order": [
+    "Mac-stage0",
+    "AMD-stage1",
+    "Suby-stage2"
+  ],
+  "maxGpuBufferBytes": 1420000000,
+  "deadlines": {
+    "stageMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000
+  },
+  "nativeHostLimits": {
+    "memoryHighBytes": 10737418240,
+    "memoryMaxBytes": 12884901888,
+    "swapBytes": 0,
+    "supervisorDeadlineMs": 1740000,
+    "scopeDeadlineSeconds": 1800
+  },
+  "runtimeArchiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4"
+}

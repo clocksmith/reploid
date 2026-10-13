@@ -1,0 +1,12 @@
+{
+  "executorId": "suby-stage-2",
+  "platform": "clocksmith@suby.tail995236.ts.net:node-dawn",
+  "endpoint": "ws://127.0.0.1:29995/8d7214d2-04a2-4a8a-af6c-7f05b4385ddd",
+  "pid": 996844,
+  "executableIdentity": {
+    "path": "/usr/bin/node",
+    "sha256": "29e9c28204d89d85cc426b518b4a7c6e32aafecd5e447d65301ffb2c1c15335a",
+    "sizeBytes": 123351032
+  },
+  "observedAt": "2026-10-13T20:33:35.504Z"
+}

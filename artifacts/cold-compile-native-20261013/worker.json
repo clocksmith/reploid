@@ -1,6 +1,9 @@
 {
   "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
   "files": {
+    "three-stage/freeze.js": "a188b042224bfea339bde6267fb212a9289e5d8b9ab04e44aaac84a3d87615a6",
+    "three-stage/mac-owner.js": "dd683ba3777d93b7160a6755b293cc20db3b00dfbde1691970ed2226cecf8870",
+    "three-stage/observe-native.js": "b46b38a53afb1e06de5e542e12b78044bff8e022307b06654ea959f88bf96add",
     "load-preflight/prepare-mac.js": "afd4cc1b19ccc575ca42a50a405b9fb0bc949f5e1a681f419e7cc47523ce0859",
     "verify-native.js": "1a887dc06d6363975bf411f5c0539175ac495a3975cf87e9a43d7942c49d23ce",
     "load-preflight/load-preflight.js": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a",
@@ -14,6 +17,15 @@
     "passed": true,
     "errors": [],
     "warnings": [
+      "Warning in /testing/three-stage/freeze.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/three-stage/freeze.js:25: Dynamic property write detected: [key+'Hash'] - verify input sanitization",
+      "Warning in /testing/three-stage/freeze.js:33: Dynamic property write detected: [id] - verify input sanitization",
+      "Warning in /testing/three-stage/freeze.js:33: Dynamic property write detected: [id] - verify input sanitization",
+      "Warning in /testing/three-stage/freeze.js:34: Dynamic property write detected: [id] - verify input sanitization",
+      "Warning in /testing/three-stage/freeze.js:39: Dynamic property write detected: [id] - verify input sanitization",
+      "Warning in /testing/three-stage/freeze.js:47: Dynamic property write detected: [id] - verify input sanitization",
+      "Warning in /testing/three-stage/freeze.js:30: Suspicious variable name: executor - may indicate code execution",
+      "Warning in /testing/three-stage/observe-native.js:4: Dynamic property write detected: [probe, config, receipt] - verify input sanitization",
       "Warning in /testing/verify-native.js:9: Dynamic property write detected: [directory, archive, output] - verify input sanitization",
       "Warning in /testing/verify-native.js:42: Dynamic property write detected: [name] - verify input sanitization",
       "Warning in /testing/verify-native.js:12: Suspicious variable name: exec - may indicate code execution",
@@ -28,7 +40,96 @@
     "events": [
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923303286,
+        "timestamp": 1791923439204,
+        "path": "/testing/three-stage/freeze.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791923439205,
+        "path": "/testing/three-stage/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key+'Hash'] - verify input sanitization",
+        "line": 25,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791923439205,
+        "path": "/testing/three-stage/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [id] - verify input sanitization",
+        "line": 33,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791923439205,
+        "path": "/testing/three-stage/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [id] - verify input sanitization",
+        "line": 33,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791923439205,
+        "path": "/testing/three-stage/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [id] - verify input sanitization",
+        "line": 34,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791923439205,
+        "path": "/testing/three-stage/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [id] - verify input sanitization",
+        "line": 39,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791923439205,
+        "path": "/testing/three-stage/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [id] - verify input sanitization",
+        "line": 47,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791923439205,
+        "path": "/testing/three-stage/freeze.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executor - may indicate code execution",
+        "line": 30,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791923439207,
+        "path": "/testing/three-stage/observe-native.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [probe, config, receipt] - verify input sanitization",
+        "line": 4,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791923439211,
         "path": "/testing/verify-native.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -38,7 +139,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923303286,
+        "timestamp": 1791923439211,
         "path": "/testing/verify-native.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -48,7 +149,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923303286,
+        "timestamp": 1791923439211,
         "path": "/testing/verify-native.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -58,7 +159,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923303290,
+        "timestamp": 1791923439213,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -68,7 +169,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923303290,
+        "timestamp": 1791923439213,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -78,7 +179,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923303290,
+        "timestamp": 1791923439213,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -88,7 +189,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923303290,
+        "timestamp": 1791923439213,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -98,7 +199,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791923303291,
+        "timestamp": 1791923439213,
         "metric": "line_length",
         "value": 8,
         "threshold": 5,
@@ -107,7 +208,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923303296,
+        "timestamp": 1791923439216,
         "path": "/testing/load-preflight/numerical-test-delivery.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -117,7 +218,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923303297,
+        "timestamp": 1791923439217,
         "path": "/testing/load-preflight/observe-native.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -127,7 +228,15 @@
       }
     ],
     "details": {
-      "patternViolations": [],
+      "patternViolations": [
+        {
+          "path": "/testing/three-stage/freeze.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
       "complexityWarnings": [
         {
           "type": "complexity",
@@ -138,7 +247,7 @@
           "path": "/testing/load-preflight/load-preflight.js"
         }
       ],
-      "filesAnalyzed": 8
+      "filesAnalyzed": 11
     }
   }
 }

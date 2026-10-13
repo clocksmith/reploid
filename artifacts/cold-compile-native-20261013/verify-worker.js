@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import vm from 'node:vm';
 import { createHash } from 'node:crypto';
 const root = 'artifacts/cold-compile-native-20261013/';
-const files = ['load-preflight/prepare-mac.js','verify-native.js', ...['load-preflight', 'native-partition-process', 'native-provider-observation', 'numerical-test-delivery', 'observe-native', 'prepare-files'].map(name => 'load-preflight/' + name + '.js')];
+const files = ['three-stage/freeze.js', 'three-stage/mac-owner.js', 'three-stage/observe-native.js','load-preflight/prepare-mac.js','verify-native.js', ...['load-preflight', 'native-partition-process', 'native-provider-observation', 'numerical-test-delivery', 'observe-native', 'prepare-files'].map(name => 'load-preflight/' + name + '.js')];
 const snapshot = Object.fromEntries(files.map(file => ['/testing/' + file, fs.readFileSync(root + file, 'utf8')]));
 let result;
 const sandbox = { console, setTimeout, clearTimeout };

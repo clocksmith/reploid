@@ -1,0 +1,140 @@
+{
+  "runtimeArchive": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+  "tokensExecuted": 0,
+  "rows": [
+    {
+      "stage": 0,
+      "prepared": true,
+      "gpuPeakBytes": 622440768,
+      "poolAfterClose": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 558257664,
+          "count": 64
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "providerSettlement": null,
+      "operations": [
+        [
+          "load-only-stage-0",
+          "completed"
+        ],
+        [
+          "close-load-only-stage-0",
+          "completed"
+        ],
+        [
+          "close-context",
+          "completed"
+        ],
+        [
+          "close-provider",
+          "completed"
+        ]
+      ]
+    },
+    {
+      "stage": 1,
+      "prepared": true,
+      "gpuPeakBytes": 113881408,
+      "poolAfterClose": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 49698816,
+          "count": 64
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "providerSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true
+      },
+      "operations": [
+        [
+          "load-only-stage-1",
+          "completed"
+        ],
+        [
+          "close-load-only-stage-1",
+          "completed"
+        ],
+        [
+          "close-context",
+          "completed"
+        ],
+        [
+          "close-provider",
+          "completed"
+        ]
+      ]
+    },
+    {
+      "stage": 2,
+      "prepared": true,
+      "gpuPeakBytes": 256948544,
+      "poolAfterClose": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 49698816,
+          "count": 64
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "providerSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true
+      },
+      "operations": [
+        [
+          "load-only-stage-2",
+          "completed"
+        ],
+        [
+          "close-load-only-stage-2",
+          "completed"
+        ],
+        [
+          "close-context",
+          "completed"
+        ],
+        [
+          "close-provider",
+          "completed"
+        ]
+      ]
+    }
+  ]
+}
