@@ -3,6 +3,7 @@
  * No browser, model arithmetic, placement policy, or whole-request fallback lives here.
  */
 export { createChatCompletions } from './chat-completions.js';
+export { createResponses } from './responses.js';
 
 import fs from 'node:fs/promises';
 import { createNativeModelFiles } from './native-model-files.js';

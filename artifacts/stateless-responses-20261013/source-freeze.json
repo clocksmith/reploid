@@ -1,0 +1,11 @@
+{
+  "sourceBaseCommit": "07a4948c9c5504670237b45b31538d2b5dc65a02",
+  "sourceRoot": "/var/tmp/reploid-stateless-responses-20261013/source",
+  "overlays": {
+    "server/chat-completions.js": "9f59c6d378189670986538772431ebd53efaf31173e8ccb7590cc7b7b0311e79",
+    "server/text-requester.js": "0611cd2f5cee288077b6cfdbf5bea1ea31dc508fc2dba7fdbc292ef1cd7f5bfe",
+    "server/responses.js": "384ebedcbefc91df5e8c5a67ccc626d1fef14c793d3cb796ab57f1896a19011e",
+    "server/native-participant.js": "6c000cea7fba50210f12aed9fbc25ceace32c785880a6d0b5fdbaefc7fccbbe4",
+    "docs/native-participant.md": "daa490465909d8f6a6b1548486c72bac457f5997842553e0e5fdb3ba7a4d390d"
+  }
+}

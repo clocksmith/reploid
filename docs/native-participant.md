@@ -56,23 +56,27 @@ installation uses the named packages above. Installing or connecting alone
 does not establish useful distributed answers, numerical accuracy or release
 qualification. No package publication or deployment occurs during packaging.
 
-## Opt-in text Chat Completions
+## Opt-in text HTTP APIs
 
-The installed native entry exports `createChatCompletions`. It borrows an ordinary
+The installed native entry exports `createChatCompletions` and `createResponses`. Each borrows an ordinary
 participant's existing requester; it neither loads a fallback model nor grants
 permission. No HTTP endpoint is mounted by the CLI or standalone signaling server
 by default. A host application can mount the adapter explicitly:
 
 ```js
 import http from 'node:http';
-import { createNativeParticipant, createChatCompletions } from './server/native-participant.js';
+import { createNativeParticipant, createChatCompletions, createResponses } from './server/native-participant.js';
 import { nativeOptions, authenticate, authorize } from './api-host.js';
 
 const participant = await createNativeParticipant(nativeOptions);
 const api = createChatCompletions({ participant, authenticate, authorize });
-const server = http.createServer(api.handle);
+const responses = createResponses({ participant, authenticate, authorize });
+const server = http.createServer((req, res) => {
+  const path = new URL(req.url, 'http://localhost').pathname;
+  return (path === '/v1/responses' ? responses : api).handle(req, res);
+});
 server.listen(8788, '127.0.0.1');
-// On host shutdown: await api.close(), close the HTTP server,
+// On host shutdown: await Promise.all([api.close(), responses.close()]), close the HTTP server,
 // then await participant.close(). Failed settlement must remain retryable.
 ```
 
@@ -92,11 +96,17 @@ Use a separately qualified prepared route; connection alone is not readiness.
 | Termination | Stop token/sequence/EOS maps to `stop`; token/context limit maps to `length`; unknown reason fails |
 | Cancellation | HTTP disconnect aborts the existing requester; unresolved HTTP calls remain charged until their promises settle |
 | Unsupported parameters | Explicit 400 for sampling overrides including `temperature`, `top_p`, `seed`, `max_tokens`, `n`, tools, structured outputs and other unrecognized fields |
-| Other protocols | Responses and Anthropic Messages are not implemented; other paths return 404 |
+| `POST /v1/responses` | Explicit `store:false`, `model`, string `input` or an array of the text messages above; optional string `instructions` and boolean `stream` |
+| Responses streaming | Typed SSE events with contiguous sequence numbers, stable response/item identities, and one completed or incomplete response |
+| Responses termination | Stop/EOS completes; output-token limit is `incomplete/max_output_tokens` with `completed_at:null`; context-limit and unknown termination fail explicitly |
+| Responses unsupported state | Rejects omitted/true `store`, previous response IDs, conversations, background, tools, structured output, sampling and `max_output_tokens`; no lookup or response persistence |
+| Other protocols | Anthropic Messages is not implemented; other paths return 404 |
 | Usage | Omitted; the adapter does not invent token counts |
 
 The adapter uses existing input/output/admission limits from
-`self/config/partition-policy.json`. `getState().active` counts HTTP requests,
+`self/config/partition-policy.json`. Adapters borrowing the same participant share
+the HTTP admission limit; closing one adapter aborts only its own requests.
+`getState().active` counts that adapter's HTTP requests,
 not GPU ownership; remote cleanup debt remains with participant/resident owners.
 This ordinary streamed execution path does not claim canonical durable publication.
 
@@ -106,3 +116,19 @@ text and no cloud or GPU calls. Separate source controls reach the real automati
 requester, signed grants and ordered peer owners through a mounted HTTP handler.
 Neither establishes physical model correctness or coding quality. Wire fields
 follow the official [Chat Completions reference](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
+
+Stateless Responses requires the caller to resend its intended text history.
+Instructions are included in the exact messages presented for authorization and
+disclosure. There is no prior-response lookup or hidden continuation state, and
+no token counts are invented. Generation
+uses the prepared route's declared policy; this adapter cannot override its token
+limit. Anthropic Messages' required usage and caller token-limit semantics remain
+unimplemented.
+
+The [Responses installed consumer evidence](https://github.com/clocksmith/reploid/tree/main/artifacts/stateless-responses-20261013)
+uses OpenAI SDK 7.32.0 for nonstreaming, streaming, terminal errors and cancellation
+against an installed native adapter with injected computation. Source HTTP tests
+add the actual automatic requester, grants and ordered peers. This proves protocol
+composition, not physical inference. Event shapes follow the official
+[Responses streaming guide](https://developers.openai.com/api/docs/guides/streaming-responses)
+and [conversation state guide](https://developers.openai.com/api/docs/guides/conversation-state).

@@ -1,0 +1,60 @@
+{
+  "scope": "Pre-implementation stateless text Responses projection; no persistence, tools, sampling override or generated usage",
+  "sdk": {
+    "name": "openai",
+    "version": "7.32.0",
+    "declarationSha256": "c3460a3fdd34b14ddb804260bb0072a3b31a5b377d83ec27dd213bf38690735d"
+  },
+  "sources": [
+    "https://developers.openai.com/api/docs/guides/streaming-responses",
+    "https://developers.openai.com/api/docs/guides/conversation-state"
+  ],
+  "acceptedParameters": [
+    "model",
+    "input",
+    "instructions",
+    "store:false",
+    "stream"
+  ],
+  "unsupported": [
+    "previous_response_id",
+    "conversation",
+    "background",
+    "tools",
+    "tool_choice",
+    "text",
+    "temperature",
+    "top_p",
+    "seed",
+    "max_output_tokens",
+    "store:true-or-omitted"
+  ],
+  "events": [
+    "response.created",
+    "response.in_progress",
+    "response.output_item.added",
+    "response.content_part.added",
+    "response.output_text.delta",
+    "response.output_text.done",
+    "response.content_part.done",
+    "response.output_item.done",
+    "response.completed OR response.incomplete"
+  ],
+  "identity": [
+    "stable response id",
+    "stable output item id",
+    "output_index:0",
+    "content_index:0",
+    "contiguous sequence_number across events"
+  ],
+  "terminal": {
+    "max-tokens": "incomplete/max_output_tokens",
+    "stop-token": "completed",
+    "eos-token": "completed",
+    "stop-sequence": "completed",
+    "context-limit": "explicit server_error; no matching ResponseError enum for context limit",
+    "unknown": "explicit error; never completed"
+  },
+  "errors": "before stream: HTTP error object; after stream: type:error with code/message/param/sequence_number, no fabricated terminal response",
+  "usage": "omitted, not inferred"
+}

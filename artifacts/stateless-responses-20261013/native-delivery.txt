@@ -1,0 +1,12 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/native-delivery.test.js > rejects undeclared native dependencies instead of emitting an incomplete installer 1ms
+ ✓ tests/unit/native-delivery.test.js > delivers the same native source and all catalog metadata outside the checkout without loading providers 170ms
+ ✓ tests/unit/native-delivery.test.js > packages pinned signed metadata and rejects remote or changed closure bytes 192ms
+
+ Test Files  1 passed (1)
+      Tests  3 passed (3)
+   Start at  13:03:21
+   Duration  446ms (transform 16ms, setup 0ms, import 27ms, tests 364ms, environment 0ms)
+
