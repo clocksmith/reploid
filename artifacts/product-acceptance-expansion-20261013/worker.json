@@ -1,0 +1,30 @@
+{
+  "files": {
+    "scripts/verify-critical-user-journeys.js": "b4d1f90a3405757bfd6728ef7d16d296d6b16306d20c911619913722950421e6",
+    "scripts/verify-reploid-critical-user-journeys.js": "06370755ca131c8cc24761f9be4bdfa8b7e0b6cce290c905084cf02215124a94"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /scripts/verify-reploid-critical-user-journeys.js:85: Dynamic property write detected: [file, fragment] - verify input sanitization"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791908243461,
+        "path": "/scripts/verify-reploid-critical-user-journeys.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [file, fragment] - verify input sanitization",
+        "line": 85,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 2
+    }
+  }
+}

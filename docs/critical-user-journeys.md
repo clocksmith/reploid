@@ -42,7 +42,7 @@ become prerequisites for otherwise qualified ordinary chat.
 | [Keep and recover work](#keep-and-recover-work) | Reopen, reconnect, stop, retry, manage history |
 | [Contribute resources](#contribute-resources) | Offer compute/files, ask while contributing, limit, withdraw |
 | [Share network capacity](#share-network-capacity) | Concurrent service, larger models, busy networks, missing coverage, queues |
-| [Delegate work](#delegate-work) | Independent jobs, subtasks, tools, results, cancellation |
+| [Delegate work](#delegate-work) | Independent jobs, subtasks, tools, results, cancellation, bounded coding |
 | [Control trust and change](#control-trust-and-change) | Disclosure, revocation, resource inspection, evaluation, adoption/restore |
 | [Compose an application](#compose-an-application) | Embed public interfaces with application-owned ports and lifecycle |
 
@@ -55,7 +55,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Main flow:** 1. Open chat and choose an available model → 2. Submit a question and authorize its actual recipients → 3. Read the streamed, durably accepted answer.
 - **Successful outcome:** A useful, complete answer addresses the question accurately, or explicitly identifies insufficient knowledge instead of inventing facts. It remains in history; the requester acquires no weights. Basic-chat acceptance does not depend on attachment qualification.
 - **Interruption and recovery:** Unavailable capacity is explicit. Interrupted published output remains; retry is a new authorized attempt.
-- **Variants:** Phone/desktop requester; browser/native contributors; 1/2/N stages; cold or resident capacity.
+- **Variants:** Phone/desktop requester; browser/native contributors; 1/2/N stages; cold or resident capacity; unfamiliar first use without coaching.
 - **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md). These cover different scopes/packages; signed N-stage release and [transactional publication milestones](../TODO.md#dr-5) remain open.
 
 ### CHAT-02 — Continue my conversation
@@ -306,6 +306,16 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Variants:** Worker loss; overlapping stops; partial job; storage failure.
 - **Acceptance evidence:** [durable job tests](../tests/unit/pool-peer-pack-job.test.js) and [independent-unit acceptance fixture](../tests/e2e/independent-units.spec.js); [durable jobs and contribution acceptance](../TODO.md#rep-3). Job cancellation is separate from generation-state recovery.
 
+### JOB-06 — Build and check a change with coding tools
+
+- **Actor and trigger:** A requester wants an agent to make a bounded code change and demonstrate its behavior.
+- **Starting conditions:** A supported model and authorized workspace are selected; reading files, running tools and modifying real folders have separate scopes.
+- **Main flow:** 1. Describe the change and authorize required reads → 2. Review a proposed edit and run permitted checks in an isolated preview → 3. Inspect console/test feedback and a concrete diff → 4. Approve the exact real-folder changes and verify the result.
+- **Successful outcome:** The requested behavior passes declared checks, the applied files match the approved diff, and unrelated files remain intact. An unsuccessful proposal is reported as unsuccessful.
+- **Interruption and recovery:** Denied writes, changed file versions and unavailable tools stop the affected action. Reconcile unknown external effects under JOB-03 before retry; preserve existing files and accepted results when cancellation occurs.
+- **Variants:** Browser preview; host file ports; native workspace adapters; read-only review; failed checks; concurrent file edits.
+- **Acceptance evidence:** [tool authority journey](zero/critical-user-journeys.md); [application implementation and acceptance queue](../TODO.md#rep-7). Existing tool components do not qualify this complete coding workflow; its integration follows basic chat.
+
 ## Control trust and change
 
 ### TRUST-01 — Control disclosure to contributors
@@ -370,6 +380,16 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Variants:** Browser/native composition; injected ports; independent consumers sharing prepared capacity; installed package outside the repository; cancellation and shutdown failures.
 - **Acceptance evidence:** [public library consumer harness](../tests/library-package-acceptance.js); [typed public contracts](../tests/types/library-contracts.ts); [browser cancellation controls](../tests/unit/browser-library-cancellation.test.js). These identify component and consumer checks, not full signed N-stage acceptance; [exact-package release gates](../TODO.md#all-6) remain applicable.
 
+### DEV-02 — Connect an existing model client
+
+- **Actor and trigger:** An application developer wants a supported model client to use authorized Reploid capacity.
+- **Starting conditions:** An explicitly versioned compatibility adapter and its supported parameters, host credentials and model capabilities are available.
+- **Main flow:** 1. Configure the client through the documented public adapter → 2. Submit supported messages and generation settings → 3. Consume accepted streaming events and completion metadata → 4. Cancel or close the client and observe settlement.
+- **Successful outcome:** Supported parameters preserve declared semantics, unsupported parameters fail explicitly before execution, and accepted output reaches the application without exposing unpublished candidates.
+- **Interruption and recovery:** Protocol errors, capacity loss, revoked grants and unknown persistence outcomes remain distinguishable. Tool outcomes require JOB-03 reconciliation; reconnecting does not silently replay external effects.
+- **Variants:** OpenAI Chat Completions/Responses; Anthropic Messages; tool calls/results; structured outputs; seed/top_p; browser/native consumers; streaming and nonstreaming calls.
+- **Acceptance evidence:** [existing library consumer harness](../tests/library-package-acceptance.js); [compatibility implementation queue](../TODO.md#rep-7). This is a compatibility target, not a claim that all listed protocols or settings are currently supported.
+
 ## Coverage matrix
 
 Select combinations for a declared claim; do not multiply journeys or claim
@@ -392,6 +412,9 @@ IDs, frozen identities, matrix values, injections and observed outcome.
 
 | Scenario | Journeys exercised | Deployment variant | Acceptance boundary |
 | --- | --- | --- | --- |
+| Independent users under churn | CHAT-01, CHAT-02, KEEP-03, KEEP-04, MESH-01, CONTRIB-05 | Distinct users and tasks over shared physical contributors; join, withdrawal, cancellation and assigned-owner loss | Useful survivor answers, isolated histories/grants, fresh retry and observed settlement; source simulation remains separate. |
+| Existing client integration | DEV-02, JOB-03, KEEP-03 | Versioned compatibility adapters, streaming, tools and structured outputs | Declared protocol and parameter semantics must pass installed-consumer checks; unsupported settings reject explicitly. |
+| Bounded coding task | JOB-06, JOB-03, TRUST-01 | Authorized files, isolated preview, console feedback and reviewed real-folder writes | Complete task behavior and effect reconciliation require evidence; optional after basic chat. |
 | Application composition | DEV-01, KEEP-03, TRUST-02 | Browser/native consumers with host-owned ports and independently installed packages | Public import, accepted delivery, persistence failures and settled shutdown require exact-package evidence. |
 | Ordinary conversation | CHAT-01, CHAT-02, CHAT-05, KEEP-01, KEEP-03, KEEP-04 | Current two-stage browser/native baseline | Existing scoped numerical/physical receipts must not be combined into an unrun signed release claim. |
 | Ordered network | CHAT-01, CHAT-02, CONTRIB-03, MESH-01, KEEP-02 | Two through seven stages; two overlapping requesters; signaling loss | [Actual source integration](../artifacts/automatic-ordered-participation-20261013/README.md) uses injected numerical stages. Independent physical hosts and signed delivery remain separate. |

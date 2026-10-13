@@ -48,8 +48,8 @@ describe('Reploid journey catalogue integrity (not runtime qualification)', () =
   });
 
   it('allows additional journeys, uneven families and variable-length flows', async () => {
-    const developer = catalogue.match(/### DEV-01[^]*?(?=\n## Coverage matrix)/)[0];
-    const extended = catalogue.replace('## Coverage matrix', developer.replaceAll('DEV-01', 'DEV-02') + '\n## Coverage matrix')
+    const developer = catalogue.match(/### DEV-01[^]*?(?=\n### |\n## )/)[0];
+    const extended = catalogue.replace('## Coverage matrix', developer.replaceAll('DEV-01', 'DEV-03') + '\n## Coverage matrix')
       .replace(/^- \*\*Main flow:\*\*.*$/m, '- **Main flow:** Ask and receive an accepted answer.');
     expect(await validate(extended)).toEqual([]);
   });
