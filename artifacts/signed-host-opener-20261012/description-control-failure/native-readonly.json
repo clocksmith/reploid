@@ -1,0 +1,144 @@
+{
+  "at": "2026-10-13T12:30:35.100Z",
+  "pid": 2103894,
+  "connections": [
+    {
+      "id": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+      "participantId": "peer:f33d3a68b0f0c0a5af9d0a58",
+      "receipt": {
+        "schema": "reploid.partition-channel/v1",
+        "sentFrameBytes": 295164,
+        "receivedFrameBytes": 434511,
+        "sentFrames": 1785,
+        "receivedFrames": 2050,
+        "completedRequests": 767,
+        "cancelledRequests": 5,
+        "discardedFrames": 9,
+        "pendingRequests": 0,
+        "inboundRequests": 0,
+        "reservedBytes": 0,
+        "closed": false,
+        "wireBytes": null,
+        "relayBytes": null,
+        "lastFailure": {
+          "requestId": 504,
+          "phase": "execution",
+          "code": "EXECUTION_FAILED",
+          "message": "Partition channel: control frame too large",
+          "failedAt": 1791894633232,
+          "settledAt": 1791894633232
+        }
+      }
+    },
+    {
+      "id": "834f7d72-e0bd-46d1-bc7a-fb75a01e221f",
+      "participantId": "peer:eca219b4f0556e662a194c76",
+      "receipt": {
+        "schema": "reploid.partition-channel/v1",
+        "sentFrameBytes": 31076,
+        "receivedFrameBytes": 46532,
+        "sentFrames": 352,
+        "receivedFrames": 350,
+        "completedRequests": 116,
+        "cancelledRequests": 0,
+        "discardedFrames": 0,
+        "pendingRequests": 0,
+        "inboundRequests": 0,
+        "reservedBytes": 0,
+        "closed": false,
+        "wireBytes": null,
+        "relayBytes": null,
+        "lastFailure": {
+          "requestId": 118,
+          "phase": "execution",
+          "code": "EXECUTION_FAILED",
+          "message": "Partition channel: control frame too large",
+          "failedAt": 1791894634065,
+          "settledAt": 1791894634065
+        }
+      }
+    }
+  ],
+  "describeFound": true,
+  "policy": {
+    "maxFrameBytes": 16384,
+    "maxControlBytes": 131072,
+    "maxPayloadBytes": 8388608,
+    "maxPendingBytes": 16777216,
+    "maxPendingRequests": 8,
+    "maxRequestsPerChannel": 65536,
+    "maxBufferedBytes": 1048576,
+    "maxTransferBytes": 1073741824,
+    "timeoutMs": 10000
+  },
+  "description": {
+    "bytes": 181160,
+    "phase": "ready",
+    "index": 0,
+    "modelCount": 1,
+    "models": [
+      {
+        "keys": [
+          "id",
+          "name",
+          "identity",
+          "provider",
+          "contextLength",
+          "quantization",
+          "size",
+          "recommended",
+          "adapters",
+          "generation",
+          "partitionPlan",
+          "partitionSplitLayer",
+          "application",
+          "capsule",
+          "executablePack",
+          "packOpenOptions",
+          "source",
+          "selectionId",
+          "partition",
+          "availability",
+          "providerIds",
+          "placement"
+        ],
+        "bytes": 180727,
+        "id": "qwen-3-5-0-8b-q4k-ehaf16",
+        "fields": {
+          "id": 26,
+          "name": 15,
+          "identity": 73,
+          "provider": 9,
+          "contextLength": 4,
+          "quantization": 5,
+          "size": 5,
+          "recommended": 4,
+          "adapters": 2,
+          "generation": 203,
+          "partitionPlan": 1086,
+          "partitionSplitLayer": 2,
+          "application": 518,
+          "capsule": 148117,
+          "executablePack": 14255,
+          "packOpenOptions": 4600,
+          "source": 11111,
+          "selectionId": 108,
+          "partition": 178,
+          "availability": 7,
+          "providerIds": 65,
+          "placement": 28
+        }
+      }
+    ],
+    "keys": [
+      "participantId",
+      "offer",
+      "phase",
+      "placement",
+      "index",
+      "planId",
+      "models",
+      "capacity"
+    ]
+  }
+}

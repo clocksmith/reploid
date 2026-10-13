@@ -1,0 +1,41 @@
+{
+  "schema": "reploid.native-description-failure/v1",
+  "observedAt": "2026-10-13T12:30:35.100Z",
+  "processId": 2103894,
+  "scope": "Read-only non-pausing inspector of existing native discovery endpoints and pure describe result. No request injection, callback replacement, restart, or GPU launch.",
+  "artifactSha256": "19dbecf5161853389a96156be45767bb5ad5801e82e9309799d96763330a31ba",
+  "runtimeSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "rawSha256": "181c219fd6d5203b0ac339d18a0688bc1c8e5933085dd74102a3f033ff3a5df6",
+  "observerSha256": "2ba302582c0fa99aa59d06c580ac51f57081cae57d0f0ef78641dd454b736498",
+  "controlLimitBytes": 131072,
+  "descriptionJsonBytes": 181160,
+  "descriptionPhase": "ready",
+  "descriptionIndex": 0,
+  "largestField": {
+    "name": "capsule",
+    "jsonBytes": 148117
+  },
+  "endpointFailures": [
+    {
+      "requestId": 504,
+      "phase": "execution",
+      "code": "EXECUTION_FAILED",
+      "message": "Partition channel: control frame too large",
+      "failedAt": 1791894633232,
+      "settledAt": 1791894633232
+    },
+    {
+      "requestId": 118,
+      "phase": "execution",
+      "code": "EXECUTION_FAILED",
+      "message": "Partition channel: control frame too large",
+      "failedAt": 1791894634065,
+      "settledAt": 1791894634065
+    }
+  ],
+  "conclusion": "Actual ready native describe result exceeds its unchanged control limit before wire framing. Both existing endpoints retain settled execution failures: Partition channel: control frame too large. The requester generic error is a description serialization boundary, not a model preparation failure.",
+  "limits": [
+    "This receipt does not claim the earlier file-offer timeout has the same cause.",
+    "Source projection repair and replacement artifact qualification belong to separate evidence."
+  ]
+}
