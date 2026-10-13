@@ -179,7 +179,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
       requireValue(source.artifactStore, 'Signed native resident requires a pinned artifact source');
       release = await prepareLocalPackRelease({ model: configured,
         openCheckpoints: () => openNativeReleaseCheckpoints({ directory: releaseDirectory }) });
-      const { openCapsule } = await import('doppler-gpu');
+      const { openCapsule } = await import('doppler-gpu/host');
       factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,
         openCapsule, model: configured, artifactStore: source.artifactStore, release,
         assertSession: assertWorkResidentCapsule, closeSources, trackSession,
