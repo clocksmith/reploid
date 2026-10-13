@@ -660,6 +660,16 @@
       "sha256": "9af9855e42d49ad942b68d3cf2f57b65cd088635751311e4a60779875224de79"
     },
     {
+      "path": "mesh/partitions/partition-canonical-execution.d.ts",
+      "bytes": 4006,
+      "sha256": "4719dd70c90e0450db6c5c6ca0d82fbb3766899119c73edd1f07ca97f413af29"
+    },
+    {
+      "path": "mesh/partitions/partition-canonical-execution.js",
+      "bytes": 12859,
+      "sha256": "b81075e71d15160e44e9ed90505a8e29b3d9e1d863bade85c7b8a90486d3371b"
+    },
+    {
       "path": "mesh/partitions/partition-chat.d.ts",
       "bytes": 1354,
       "sha256": "0b456ec810808bdfb673337f97488e8f7ba048c779def15629ef7d33b784a7ce"
@@ -751,13 +761,13 @@
     },
     {
       "path": "mesh/partitions/partition-runner.d.ts",
-      "bytes": 6484,
-      "sha256": "b109062f815042aebaad800433ae8543af9d87ddbd497ffebf264786a31b213a"
+      "bytes": 6895,
+      "sha256": "3a82bdadb9bc41aeff3f2a1e79b00e314fa30933594e5b61227fd2df5360e394"
     },
     {
       "path": "mesh/partitions/partition-runner.js",
-      "bytes": 18947,
-      "sha256": "335a2100e8d79133e3ec0e89ed25ab2333f616c48c42286653e9ade401d6070a"
+      "bytes": 21039,
+      "sha256": "969f2cbdc82086c110a353fbec0702543ffd2f35502054cf107abbab7cb33274"
     },
     {
       "path": "mesh/partitions/partition-stage-commit.d.ts",

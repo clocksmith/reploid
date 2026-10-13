@@ -1,3 +1,4 @@
+import { executeCanonicalPartition } from './partition-canonical-execution.js';
 import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 /** Coordinates one Doppler token step through both partitions. No model math lives here. */
 import { partitionFingerprint, partitionActivationContract, matchingPartitionActivation } from './partition-contract.js';
@@ -30,11 +31,24 @@ function sameBinding(actual, expected) {
  * This coordinator cannot verify physical execution or manufacture that proof.
  */
 export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, deviceA, deviceB,
-  transport, authorize, limits }) {
+  transport, authorize, limits, canonical = false }) {
   assert(runtime && typeof runtime.LAYER_PARTITION_SCHEMA === 'string'
     && typeof runtime.ACTIVATION_TENSOR_SCHEMA === 'string'
     && typeof runtime.serializeActivationFrame === 'function'
     && typeof runtime.deserializeActivationFrame === 'function', 'Doppler partition runtime required');
+  assert(typeof canonical === 'boolean', 'Invalid canonical runner capability');
+  if (canonical) {
+    for (const name of ['canonicalGenerationIdentity', 'admitResidentPrompt', 'validateResidentAttemptIdentity',
+      'metadataDigest', 'tokenDigest', 'validateExecutionPublication', 'hashLayerPartitionPlan']) {
+      assert(typeof runtime[name] === 'function', 'Canonical Doppler runtime capability required');
+    }
+    for (const [device, methods] of [[deviceA, ['reserve', 'admitCanonicalPrompt', 'executeCanonicalGroup0', 'commitCanonicalTransition']],
+      [deviceB, ['reserveCanonical', 'admitCanonicalPrompt', 'executeCanonicalFrame', 'acknowledgeCanonicalPublication']]]) {
+      for (const method of [...methods, 'getCanonicalStage', 'getCanonicalGeneration']) {
+        assert(typeof device?.[method] === 'function', 'Canonical participant capability required');
+      }
+    }
+  }
   assert(suppliedPlan && typeof suppliedPlan === 'object', 'Valid Doppler layer partition plan required');
   const plan = freezeRecord(snapshot(suppliedPlan));
   const activationContract = partitionActivationContract(runtime, plan);
@@ -66,14 +80,15 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
     try { return await task(); } finally { release(); }
   };
 
-  async function execute({ tokenIds, generation, identity, grants, maxTokens, signal, onDelta = () => {} }) {
+  async function execute({ tokenIds, generation, identity, grants, maxTokens, signal, onDelta = () => {}, canonical: canonicalRequest }) {
     assert(!closed, 'Partition runner is closed');
     signal?.throwIfAborted();
+    assert(!canonical || canonicalRequest, 'Canonical runner requires its explicit execution contract');
     checkTokens(tokenIds, plan.vocabSize);
     assert(tokenIds.length <= policy.maxPromptTokens, 'Prompt exceeds partition allocation');
-    assert(positive(maxTokens) && maxTokens <= policy.maxTokens, 'Invalid partition output allocation');
+    assert((canonicalRequest ? canonical && Number.isSafeInteger(maxTokens) && maxTokens >= 0 : positive(maxTokens)) && maxTokens <= policy.maxTokens, 'Invalid partition output allocation');
     assert(generation && typeof generation === 'object' && !Array.isArray(generation)
-      && generation.maxTokens === maxTokens, 'Resolved Doppler generation settings must match the effective output limit');
+      && (canonicalRequest ? canonicalRequest.generation.policy.maxGeneratedTokens === maxTokens : generation.maxTokens === maxTokens), 'Resolved Doppler generation settings must match the effective output limit');
     assert(identity && ['modelIdentity', 'planId', 'threadId', 'attemptId'].every(key => identifier(identity[key])),
       'Exact model, plan, thread and attempt identities required');
     assert(/^sha256:[a-f0-9]{64}$/.test(identity.modelIdentity), 'Pinned model digest required');
@@ -99,10 +114,11 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
     const receipt = { identity: binding, phase: 'executing', startedAt: Date.now(), failure: null,
       reservations: [], cleanupStartedAt: null, cleanupSettledAt: null, cleanup: [] };
     receipts.set(binding.attemptId, receipt);
-    const generationDigestPromise = partitionFingerprint(settings);
+    const generationDigestPromise = canonicalRequest ? null : partitionFingerprint(settings);
     let input = inputTokens, continuationA = null, continuationB = null;
     let content = '', activationBytes = 0, position = 0, logits = null;
     let stopReason = 'length', failure = null;
+    const canonicalOwners = new Set();
     const outputTokens = [];
     const steps = [];
     const permit = async (action, grant, step) => {
@@ -112,6 +128,9 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
       combined.throwIfAborted();
     };
     try {
+      if (canonicalRequest) return await executeCanonicalPartition({ runtime, plan, deviceA, deviceB, policy, binding, authority,
+        canonical: canonicalRequest, tokenIds: inputTokens, signal: combined, lease, permit, onDelta, receipt,
+        ownDevice: id => canonicalOwners.add(id) });
       if (deviceA.reserve) receipt.reservations.push(snapshot(await deviceA.reserve(binding)));
       if (deviceB.reserve) {
         const generationDigest = await generationDigestPromise;
@@ -241,7 +260,8 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
       // Settle both owned attempts even when cancellation arrives during a port call.
       // Shared resident weights remain owned by the host, not this conversation.
       receipt.phase = 'settling'; receipt.cleanupStartedAt = Date.now();
-      const results = await Promise.allSettled([deviceA, deviceB].map(async device => {
+      const cleanupDevices = canonicalRequest ? [deviceA, deviceB].filter(device => canonicalOwners.has(device.id)) : [deviceA, deviceB];
+      const results = await Promise.allSettled(cleanupDevices.map(async device => {
         try {
           await device.closeAttempt({ identity: binding });
           receipt.cleanup.push({ participantId: device.id, status: 'settled', settledAt: Date.now(), error: null });
@@ -263,6 +283,11 @@ export function createLayerPartitionRunner({ runtime, plan: suppliedPlan, device
   }
 
   return Object.freeze({ plan, execute,
+    executeCanonical(request) {
+      assert(canonical && request?.canonical, 'Canonical runner was not explicitly enabled');
+      return execute({ ...request, generation: request.canonical.generation.policy,
+        maxTokens: request.canonical.generation.policy.maxGeneratedTokens });
+    },
     getState: () => ({ closed, active: active.size, attempts: snapshot([...receipts.values()]) }),
     async close() {
       closed = true;

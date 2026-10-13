@@ -1,0 +1,11 @@
+{
+  "scope": "CPU source integration; actual cryptography/cursors/publication with injected numerical calls/store; no GPU/application activation",
+  "dopplerSourceCommit": "4e43ebbb209e52b30ce008dcfa757f27ac4696c5",
+  "sources": {
+    "packages/reploid/src/mesh/partitions/partition-runner.js": "969f2cbdc82086c110a353fbec0702543ffd2f35502054cf107abbab7cb33274",
+    "packages/reploid/src/mesh/partitions/partition-runner.d.ts": "3a82bdadb9bc41aeff3f2a1e79b00e314fa30933594e5b61227fd2df5360e394",
+    "packages/reploid/src/mesh/partitions/partition-canonical-execution.js": "b81075e71d15160e44e9ed90505a8e29b3d9e1d863bade85c7b8a90486d3371b",
+    "packages/reploid/src/mesh/partitions/partition-canonical-execution.d.ts": "4719dd70c90e0450db6c5c6ca0d82fbb3766899119c73edd1f07ca97f413af29",
+    "tests/canonical-runner-source.js": "ef6ab48a29fab90dd004f6cc4926cc186ae6f8fe1c47096db3c7602e712109d0"
+  }
+}

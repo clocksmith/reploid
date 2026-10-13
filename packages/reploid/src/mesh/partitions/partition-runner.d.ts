@@ -1,3 +1,4 @@
+import type { CanonicalRunnerRequest, CanonicalRunnerResult } from './partition-canonical-execution.js';
 import type { PartitionRequestTiming } from '../../transport/partition-data-channel.js';
 
 import type { LayerPartitionPlan, ResidentPartitionIdentity, ResidentPartitionStep,
@@ -85,10 +86,14 @@ export interface LayerPartitionRunner {
   readonly plan: Readonly<PartitionPlan>;
   getState(): PartitionRunnerState;
   execute(options: PartitionRequest): Promise<PartitionResult>;
+  /** Requires constructor opt-in and authenticated durable publication; shares ordinary leases and settlement. */
+  executeCanonical(options: CanonicalRunnerRequest): Promise<CanonicalRunnerResult>;
   close(): Promise<void>;
 }
 export function createLayerPartitionRunner(options: {
   runtime: PartitionRuntime;
+  /** Explicit capability opt-in. Legacy accepted runtimes remain on execute(). */
+  canonical?: boolean;
   plan: PartitionPlan;
   deviceA: PartitionDeviceA;
   deviceB: PartitionDeviceB | import('./partition-peer.js').RemotePartitionDevice;
