@@ -212,3 +212,7 @@ No direct Reploid–Doe dependency or new scheduling protocol. **This section is
 ## 7. All three: canonical tracking, shared machines, releases, and evidence
 
 
+
+## Completion candidate update (2026-10-13)
+
+Doppler `a5f3ca4c` produces archive `2df37d88…`, superseding `9264d265…` for current numerical investigation without inheriting historical acceptance. The installed original failing prefix passes at unchanged `0.001`; [exact evidence](https://github.com/clocksmith/doppler/tree/f540465c/artifacts/kernel-completion-repair-20261013). The [fresh three-host campaign](../../artifacts/completion-candidate-20261013/README.md) freezes all 55 prefixes, provider identities, deadlines and allocation limits before execution. Its capture, final report validation and cleanup determine acceptance. The projection diagnostic remains separately failed at `2e-12`; CPU reduction reproduces its outlier. Public 0.6.27 remains unchanged. Earlier “current” descriptions and `/root` ownership labels above identify their historical checkpoints; current delivery ownership and next action are on ROADMAP.md.

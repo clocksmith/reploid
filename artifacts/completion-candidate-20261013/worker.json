@@ -1,0 +1,191 @@
+{
+  "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
+  "files": {
+    "freeze.js": "f1e5f6c98d5fdbccb21b5f232d8ac61dc729ff887d775535d07978207ad68a09",
+    "mac-owner.js": "856c8e890a7cc26f2abc4568f7ff482faf73426996e411d7ddf6af5c56e5a16f",
+    "observe-native.js": "b46b38a53afb1e06de5e542e12b78044bff8e022307b06654ea959f88bf96add",
+    "load-preflight/load-preflight.js": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/freeze.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/freeze.js:25: Dynamic property write detected: [key+'Hash'] - verify input sanitization",
+      "Warning in /testing/freeze.js:33: Dynamic property write detected: [id] - verify input sanitization",
+      "Warning in /testing/freeze.js:33: Dynamic property write detected: [id] - verify input sanitization",
+      "Warning in /testing/freeze.js:34: Dynamic property write detected: [id] - verify input sanitization",
+      "Warning in /testing/freeze.js:39: Dynamic property write detected: [id] - verify input sanitization",
+      "Warning in /testing/freeze.js:47: Dynamic property write detected: [id] - verify input sanitization",
+      "Warning in /testing/freeze.js:30: Suspicious variable name: executor - may indicate code execution",
+      "Warning in /testing/observe-native.js:4: Dynamic property write detected: [probe, config, receipt] - verify input sanitization",
+      "Warning in /testing/load-preflight/load-preflight.js:6: Dynamic property write detected: [root, output, stageText, endpoint] - verify input sanitization",
+      "Warning in /testing/load-preflight/load-preflight.js:21: Dynamic property write detected: [manifestBytes, graphBytes, archiveBytes, referenceBytes, pairedBytes, policyBytes] - verify input sanitization",
+      "Warning in /testing/load-preflight/load-preflight.js:30: Suspicious variable name: evaluate - may indicate code execution",
+      "Warning in /testing/load-preflight/load-preflight.js:36: Suspicious variable name: executable - may indicate code execution",
+      "8 lines exceed 200 characters"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493447,
+        "path": "/testing/freeze.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493447,
+        "path": "/testing/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key+'Hash'] - verify input sanitization",
+        "line": 25,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493447,
+        "path": "/testing/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [id] - verify input sanitization",
+        "line": 33,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493447,
+        "path": "/testing/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [id] - verify input sanitization",
+        "line": 33,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493447,
+        "path": "/testing/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [id] - verify input sanitization",
+        "line": 34,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493447,
+        "path": "/testing/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [id] - verify input sanitization",
+        "line": 39,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493447,
+        "path": "/testing/freeze.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [id] - verify input sanitization",
+        "line": 47,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493447,
+        "path": "/testing/freeze.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executor - may indicate code execution",
+        "line": 30,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493450,
+        "path": "/testing/observe-native.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [probe, config, receipt] - verify input sanitization",
+        "line": 4,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493453,
+        "path": "/testing/load-preflight/load-preflight.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [root, output, stageText, endpoint] - verify input sanitization",
+        "line": 6,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493453,
+        "path": "/testing/load-preflight/load-preflight.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [manifestBytes, graphBytes, archiveBytes, referenceBytes, pairedBytes, policyBytes] - verify input sanitization",
+        "line": 21,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493453,
+        "path": "/testing/load-preflight/load-preflight.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: evaluate - may indicate code execution",
+        "line": 30,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791935493453,
+        "path": "/testing/load-preflight/load-preflight.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executable - may indicate code execution",
+        "line": 36,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791935493454,
+        "metric": "line_length",
+        "value": 8,
+        "threshold": 5,
+        "message": "8 lines exceed 200 characters",
+        "path": "/testing/load-preflight/load-preflight.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/freeze.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 8,
+          "threshold": 5,
+          "message": "8 lines exceed 200 characters",
+          "path": "/testing/load-preflight/load-preflight.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}

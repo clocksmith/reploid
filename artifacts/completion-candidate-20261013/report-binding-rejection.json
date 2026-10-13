@@ -1,0 +1,14 @@
+{
+  "schema": "reploid.ordered-freeze-hash-domain-failure/v1",
+  "originalFreezeSha256": "f1e5f6c98d5fdbccb21b5f232d8ac61dc729ff887d775535d07978207ad68a09",
+  "correctedFreezeSha256": "1fb323a052a528a87cc330e03c4fdd932816579e9061381be8179f2b91e93ba4",
+  "originalExpectationsSha256": "286755b16c9111ff4461b17068255a6c30aed880c0abb6ef1137a323f894d679",
+  "frozenGraphFileHash": "sha256:8e33eb44bdf90e96eb6c3072796107cb0f28e28f6c59ab76a0d2055dc009fcbb",
+  "incorrectContractExecutionGraphHash": "sha256:8e33eb44bdf90e96eb6c3072796107cb0f28e28f6c59ab76a0d2055dc009fcbb",
+  "observedExecutionIdentityGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf",
+  "numericalCapturePreserved": true,
+  "expectationsRewritten": false,
+  "producerChanged": false,
+  "reportQualified": false,
+  "reason": "Qualification contract requires execution-identity graph digest, not serialized graph-file digest. First report production rejected at producer line285."
+}

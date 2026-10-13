@@ -8,16 +8,16 @@ Qwen3.8-Flash-Next is the flagship engineering target, not Reploid's identity. R
 
 | Field | Current recorded evidence and action |
 | --- | --- |
-| Milestone | One exact installed configuration delivering useful distributed answers, independent conversations, retained capacity and understandable failures. |
-| Blocker | Changed three-host runtime archive `9264d265…` fails the long-prefill prefix after four passing prefixes. Preparation and cleanup pass independently; the full 55-prefix result does not pass. |
-| Accountable owner | Existing delivery coordinator, recorded as `/root` in the source checklist. Doppler owns numerical repair; Reploid owns application integration. This document does not reserve machines or appoint a second coordinator. |
-| Next action | Isolate and repair the first divergent operation, then rerun applicable installed numerical qualification. Continue source/reference/operator preparation for Flash-Next in parallel. |
+| Milestone | Launch 1: Qwen 3.5 0.8B Q4K (`qwen-3-5-0-8b-q4k-ehaf16`) through configured prepared capacity, selected automatically for the requester; complete conversations and bounded independent requests. |
+| Blocker | Current candidate `2df37d88…` contains Doppler completion repair `a5f3ca4c`; its original failing prefix passes. The [full three-host campaign](artifacts/completion-candidate-20261013/README.md) is running; numerical completion, final cleanup and installed signed chat remain separate gates. Historical archive `9264d265…` remains failed. |
+| Accountable owner | Reploid release integration owns Launch 1 delivery; Doppler owns runtime repair and numerical qualification. GPU ownership comes from fresh recorded process checks and the scoped campaign reservation. |
+| Next action | Finish the frozen `2df37d88…` 55-prefix run and independent report validation; then bind its genuine reports into signed application delivery and exercise complete installed conversations. Flash-Next reference/operator preparation continues independently. |
 | Completion condition | Unchanged approved independent reference, all 55 required prefixes and `0.001` tolerance; then installed signed conversation and lifecycle acceptance below. Preserve approved precision, weights, F16 caches and the `1,420,000,000` allocated-byte per-executor ceiling. |
-| Source snapshot | Reploid [`229a6e601adbd970de38c3315d069de4ba707cce`](https://github.com/clocksmith/reploid/tree/229a6e601adbd970de38c3315d069de4ba707cce), migration base as read 2026-10-13; newer [storage evidence](artifacts/storage-contribution-20261013/README.md) through `92642382` is preserved. This migration adds no hardware evidence. |
-| Accepted package | Doppler `0.6.27`; [unchanged pin](https://github.com/clocksmith/reploid/blob/229a6e601adbd970de38c3315d069de4ba707cce/self/config/doppler-package.json). No promotion or deployment is part of this migration. |
+| Historical migration snapshot | Reploid [`229a6e601adbd970de38c3315d069de4ba707cce`](https://github.com/clocksmith/reploid/tree/229a6e601adbd970de38c3315d069de4ba707cce), migration base as read 2026-10-13; newer [storage evidence](artifacts/storage-contribution-20261013/README.md) through `92642382` is preserved. This migration adds no hardware evidence. |
+| Accepted package | Doppler `0.6.27`; [unchanged pin](https://github.com/clocksmith/reploid/blob/229a6e601adbd970de38c3315d069de4ba707cce/self/config/doppler-package.json). The accepted public runtime remains available while the replacement qualifies. |
 | Historical qualified boundary | Archives `102fd0c4…` and `0fadac51…` retain their declared two-stage numerical acceptance. Frozen signed delivery `48b8d291` uses `0fadac51…`; its recorded actual signed chat remains unrun. Changed bytes do not inherit acceptance. |
 
-Status comes from the snapshot and linked receipts. Historical reviews are not evidence of a later run. Package archive prefixes above are not Git commits. See [DR-6](docs/roadmap/requirements.md#dr-6) for the failing candidate and source integration, [DR-4](docs/roadmap/requirements.md#dr-4) for historical numerical qualification, and [DR-1](docs/roadmap/requirements.md#dr-1) for package boundaries.
+Status comes from the snapshot and linked receipts. Historical reviews are not evidence of a later run. Package archive prefixes above are not Git commits. See [DR-6](docs/roadmap/requirements.md#dr-6) for current candidate qualification and source integration, [DR-4](docs/roadmap/requirements.md#dr-4) for historical numerical qualification, and [DR-1](docs/roadmap/requirements.md#dr-1) for package boundaries.
 
 ## Cumulative launches
 
@@ -25,11 +25,15 @@ Each launch delivers a complete usable capability. Keep the accepted site live w
 
 | Launch | Usable capability and acceptance |
 | --- | --- |
-| **1. Dependable distributed chat** | Qualified configuration; installed answers, follow-ups, history/reload, cancellation, permissions and settlement. Publish proven device, context and concurrency limits. Flash-Next is not a dependency. |
+| **1. Dependable distributed chat** | Qwen 3.5 0.8B Q4K on configured prepared capacity; automatic eligible-route selection without requester stage assignment. Signed selective acquisition, answers/follow-ups, durable history/reload, permissions, bounded independent conversations, isolated cancellation, contributor-loss reporting, explicit retry and settlement. Publish proven device/context/concurrency limits. Flash-Next is not a dependency. |
 | **2. Useful optional contribution** | Cached-only, bounded acquisition and explicit seeding through the public app; persistent allowances across tabs/reloads, resumed transfers and conversations preserved when contribution stops. May precede Flash-Next on a compatible accepted release. |
-| **3. Concurrent prepared service** | Automatic preparation/placement, useful replicas and independent conversations within measured limits; isolated cancellation/departures, visible queues and explicit retries when capacity or valid state is unavailable. |
+| **3. Concurrent prepared service** | Add autonomous cold stage assignment, demand-driven preparation, useful replicas, cross-route fairness and greater measured concurrency. Preserve Launch 1 cancellation, departure and retry behavior; expose bounded queues and unavailable capacity. |
 | **4. Flash-Next access** | Exact conversion/runtime, reference accuracy, useful answers, distributed execution and the same conversation/lifecycle gates. Keep the existing model available; expand proven hardware/context limits separately. |
 | **5. Larger and more efficient service** | Qualify each additional model, device combination and capacity increase. Speculation, transferable state and finer expert placement require preserved correctness and measured benefit; none gates earlier launches. |
+
+**Launch boundary:** operators may configure supported prepared stage capacity for Launch 1; requesters choose a model and approve actual recipients, never assign stages. The fixed numerical harness does not prove this application behavior. Launch 2 owns optional storage contribution; testing it alongside chat establishes compatibility without making that feature a Launch 1 dependency. Autonomous cold preparation remains a Launch 3 gate.
+
+**Separate diagnostic:** the [projection outlier](https://github.com/clocksmith/doppler/blob/175ec7a4/artifacts/kernel-completion-repair-20261013/projection-outlier-simulation.json) remains above its original synthetic `2e-12` threshold (`2.27e-12` against exact operands). CPU reduction reproduces the GPU pair; no threshold is weakened. This diagnostic and the full-model `0.001` gate retain distinct outcomes.
 
 **Every launch:** freeze website, browser/native runtime, model artifact and supported configuration together. Qualify preview → limited opt-in → public promotion. Retain a known-good rollback package and compatible history migrations. Unsupported combinations remain unavailable with a clear explanation. UI-only improvements may deploy independently after testing against the accepted runtime.
 

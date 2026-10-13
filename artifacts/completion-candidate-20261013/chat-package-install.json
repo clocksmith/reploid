@@ -1,0 +1,12 @@
+{
+  "schema": "reploid.completion-chat-package-install/v1",
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "filesPerCopy": 1984,
+  "npmInstalledAndBrowserVendorEqual": true,
+  "generationContractSynchronized": true,
+  "partitionDeclarationsSynchronized": true,
+  "signedCatalogPending": true,
+  "browserBundlePending": true,
+  "nativeApplicationPackagePending": true,
+  "applicationQualified": false
+}

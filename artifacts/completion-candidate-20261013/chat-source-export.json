@@ -1,0 +1,15 @@
+{
+  "schema": "reploid.completion-chat-source-export/v1",
+  "sourceCommit": "5e0cb286739c50a2351064a15fa9b5ab038b5312",
+  "sourceTarSha256": "1863dcdea81ccb76467c3501efd52e3a4216f6d1ca982e13b79e9422a2080c4f",
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "excludedHistoricalDirectories": [
+    "artifacts",
+    "reports",
+    "doppler"
+  ],
+  "applicationDirectory": "/var/tmp/reploid-completion-chat-candidate-20261013/app",
+  "applicationQualified": false,
+  "signedCatalogPending": true,
+  "publicPinChanged": false
+}
