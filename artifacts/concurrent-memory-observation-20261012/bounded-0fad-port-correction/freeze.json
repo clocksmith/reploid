@@ -1,0 +1,24 @@
+{
+  "status": "frozen-before-launch",
+  "snapshot": "/var/tmp/reploid-concurrent-bounded-0fad-20261012-v2",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "testDeliverySha256": "f966d582293bb7149810aad33fe8895696851c298c446fccf83894856294d4fa",
+  "runnerSha256": "355e33590f71cd51ffbd9416daec1cef5fa4c2636dcd4e7aeca238b3d23475e7",
+  "parentTestDeliverySha256": "5296c627db4dbbed5a776d8c0e0332153d8b1f63dd7d42cae7afd5915155c61b",
+  "deltas": [
+    {
+      "path": "remote-browser.js",
+      "before": "7ead0d0608c932043bc4df97232d6984b8393f344445dac0653015627ef53fba",
+      "after": "e5f8ee0254c7603d47ccfce06b6e2856dd86277760fa4f5d3df60f78087cd5b4"
+    }
+  ],
+  "deadlines": {
+    "operationMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000,
+    "sampleMs": 1000
+  },
+  "promptTokens": 1588,
+  "maxGpuBufferBytesPerExecutor": 1420000000,
+  "rootReservation": "Root approved one bounded direction0 run after final live check; public contexts untouched; no isolated timing claim"
+}

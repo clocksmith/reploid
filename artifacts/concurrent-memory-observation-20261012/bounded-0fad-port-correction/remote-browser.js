@@ -1,0 +1,10 @@
+import {chromium} from 'playwright';
+import {mkdtemp,rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';import {join} from 'node:path';
+import {physicalWebGpuBrowserOptions} from './tests/fixtures/physical-webgpu-browser.js';
+const profile=await mkdtemp(join(tmpdir(),'reploid-paired-split-browser-'));
+const options=physicalWebGpuBrowserOptions(process.platform);
+const context=await chromium.launchPersistentContext(profile,{...options,args:[...options.args,'--remote-debugging-port=29562']});
+console.log(JSON.stringify({endpoint:'http://127.0.0.1:29562',pid:process.pid,profile,browser:context.browser().version()}));
+let closing=false;const close=async()=>{if(closing)return;closing=true;await context.close();await rm(profile,{recursive:true,force:true});process.exit(0);};
+process.on('SIGTERM',close);process.on('SIGINT',close);process.stdin.resume();process.stdin.on('end',close);
