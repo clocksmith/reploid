@@ -1,0 +1,11 @@
+{
+  "schema": "reploid.isolated-chat-candidate-scope/v1",
+  "selectedChatModel": "qwen-3-5-0-8b-q4k-ehaf16",
+  "publicChanged": false,
+  "unrelatedPoolModelsDisabled": [
+    "esm2-t12-35m-ur50d-f32-af32"
+  ],
+  "reason": "Separate legacy Pool model surface is outside this signed chat candidate; do not assign replacement runtime qualification to it",
+  "initialGeneratorRejection": "Enabled model esm2-t12-35m-ur50d-f32-af32 pins Doppler 0.6.27; the browser loads 0.6.28",
+  "signedChatCatalogPending": true
+}

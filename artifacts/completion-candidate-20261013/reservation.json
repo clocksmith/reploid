@@ -1,0 +1,29 @@
+{
+  "schema": "reploid.functional-gpu-reservation/v1",
+  "approved": true,
+  "authority": "root assignment for user-authorized ordinary runtime repair",
+  "id": "completion-candidate-three-stage-reference-20261013",
+  "observedAt": "2026-10-13T23:37:39.860333+00:00",
+  "sharedMachineNotes": "Public co-tenants remain. Functional numerical route, retained driver caches; not cold-start or throughput acceptance. Prior Suby attempt normal GPU settlement stays unknown and is not inherited or erased.",
+  "scope": "Three physical hosts, 55 unchanged independent F64 prefixes; stop on first numerical failure. Public contributors unchanged.",
+  "order": [
+    "Mac-stage0",
+    "AMD-stage1",
+    "Suby-stage2"
+  ],
+  "maxGpuBufferBytes": 1420000000,
+  "deadlines": {
+    "stageMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000
+  },
+  "nativeHostLimits": {
+    "memoryHighBytes": 10737418240,
+    "memoryMaxBytes": 12884901888,
+    "swapBytes": 0,
+    "supervisorDeadlineMs": 1740000,
+    "scopeDeadlineSeconds": 1800
+  },
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "preparation": "Candidate load-only observations precede numerical expectation freeze. Intel observation reuses this exact installed candidate original-prefix receipt."
+}
