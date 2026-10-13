@@ -650,6 +650,16 @@
       "sha256": "e5facadd3d811628ac2ed284c116abfe52735c12148381d0bd234c94d87a4b7e"
     },
     {
+      "path": "mesh/partitions/partition-canonical-contract.d.ts",
+      "bytes": 2218,
+      "sha256": "e1b9a2a5c72d4946b582da6ea9890b9f24b07f5d3bf66d8c7329489b61cf12c1"
+    },
+    {
+      "path": "mesh/partitions/partition-canonical-contract.js",
+      "bytes": 12704,
+      "sha256": "9af9855e42d49ad942b68d3cf2f57b65cd088635751311e4a60779875224de79"
+    },
+    {
       "path": "mesh/partitions/partition-chat.d.ts",
       "bytes": 1354,
       "sha256": "0b456ec810808bdfb673337f97488e8f7ba048c779def15629ef7d33b784a7ce"
@@ -716,13 +726,13 @@
     },
     {
       "path": "mesh/partitions/partition-peer.d.ts",
-      "bytes": 1878,
-      "sha256": "3cb4b44c0e161f39a178b32b3805db656c3ebd215cf7aacafe004d22ae92d1c9"
+      "bytes": 2881,
+      "sha256": "37e6d01e1d2ce9a2975e3e0795b3901f08ba3ed62175136beb2571a738b2d90a"
     },
     {
       "path": "mesh/partitions/partition-peer.js",
-      "bytes": 13381,
-      "sha256": "89828648ffe0847c56768328afadb5efb7cecc8bc594232ee5c8cb2a3ca7fa12"
+      "bytes": 22649,
+      "sha256": "4f3ed02b98c68b2c4588062216ddae3d774609b313262477750efe92cd4a74a8"
     },
     {
       "path": "mesh/partitions/partition-placement.js",
@@ -926,8 +936,8 @@
     },
     {
       "path": "transport/partition-errors.json",
-      "bytes": 1048,
-      "sha256": "00343205a631f2ef1bad9531ffbf4e0f307f1ce3117f4acef0ce97367dca0e62"
+      "bytes": 1142,
+      "sha256": "e1d717b5871e24c5f7eee339b406c4429397b565bd9e58efcb4117bd65ce1fbd"
     },
     {
       "path": "transport/retry-policy.d.ts",
