@@ -1,0 +1,114 @@
+{
+  "scope": "Actual Verification Worker evaluated in isolated Node VM; native host and regression only. Trusted packager rejection retained separately.",
+  "sources": {
+    "/server/native-model-files.js": "a3104a00656f1f1c8af0222d548658b4cdfd1ad0203365a20ac2b0e3944a5e0b",
+    "/tests/unit/native-model-files.test.js": "587031249367f23c0e818b2b0c4695180734d653fbe51b123173a9244291fa25"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /server/native-model-files.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 38 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/native-model-files.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/native-model-files.test.js:35: Dynamic property write detected: [i] - verify input sanitization",
+      "Warning in /tests/unit/native-model-files.test.js:38: Dynamic property write detected: [left,right] - verify input sanitization"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855081187,
+        "path": "/server/native-model-files.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791855081190,
+        "metric": "functions",
+        "value": 38,
+        "threshold": 20,
+        "message": "File has 38 functions (max 20) - consider modularizing",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791855081190,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855081195,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855081196,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [i] - verify input sanitization",
+        "line": 35,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855081196,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [left,right] - verify input sanitization",
+        "line": 38,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/server/native-model-files.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/native-model-files.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 38,
+          "threshold": 20,
+          "message": "File has 38 functions (max 20) - consider modularizing",
+          "path": "/server/native-model-files.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/server/native-model-files.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "at": "2026-10-13T01:30:53.934Z",
+  "sources": {
+    "/server/native-model-files.js": "a3104a00656f1f1c8af0222d548658b4cdfd1ad0203365a20ac2b0e3944a5e0b",
+    "/scripts/package-native.js": "73ea8d906c927676ca62278437ca7610fa123f75bd29f4725564e458fd270067",
+    "/tests/unit/native-model-files.test.js": "587031249367f23c0e818b2b0c4695180734d653fbe51b123173a9244291fa25",
+    "/tests/unit/native-delivery.test.js": "715fb0bb4f7bc264efe2695fb752a1cf633fca7d39c9ee0a0b59a4017adfda9a"
+  },
+  "result": {
+    "passed": false,
+    "errors": [
+      "Security Violation in /scripts/package-native.js: child_process operations are forbidden",
+      "Security Violation in /tests/unit/native-delivery.test.js: child_process operations are forbidden"
+    ],
+    "warnings": [
+      "Warning in /server/native-model-files.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 38 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "Warning in /scripts/package-native.js:12: Suspicious variable name: exec - may indicate code execution",
+      "Warning in /tests/unit/native-model-files.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/native-model-files.test.js:35: Dynamic property write detected: [i] - verify input sanitization",
+      "Warning in /tests/unit/native-model-files.test.js:38: Dynamic property write detected: [left,right] - verify input sanitization",
+      "Warning in /tests/unit/native-delivery.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/native-delivery.test.js:11: Suspicious variable name: exec - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855053920,
+        "path": "/server/native-model-files.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791855053922,
+        "metric": "functions",
+        "value": 38,
+        "threshold": 20,
+        "message": "File has 38 functions (max 20) - consider modularizing",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791855053922,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/server/native-model-files.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855053924,
+        "path": "/scripts/package-native.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855053924,
+        "path": "/scripts/package-native.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 12,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855053927,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855053928,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [i] - verify input sanitization",
+        "line": 35,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855053928,
+        "path": "/tests/unit/native-model-files.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [left,right] - verify input sanitization",
+        "line": 38,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855053929,
+        "path": "/tests/unit/native-delivery.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855053929,
+        "path": "/tests/unit/native-delivery.test.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855053929,
+        "path": "/tests/unit/native-delivery.test.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 11,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/server/native-model-files.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/scripts/package-native.js",
+          "patternId": "child_process",
+          "category": "process",
+          "message": "child_process operations are forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/tests/unit/native-model-files.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/native-delivery.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/native-delivery.test.js",
+          "patternId": "child_process",
+          "category": "process",
+          "message": "child_process operations are forbidden",
+          "severity": "error"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 38,
+          "threshold": 20,
+          "message": "File has 38 functions (max 20) - consider modularizing",
+          "path": "/server/native-model-files.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/server/native-model-files.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    },
+    "reason": "Verification Failed"
+  }
+}

@@ -107,8 +107,9 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
   } });
   const readMetadata = async (file, signal) => {
     signal.throwIfAborted(); let bytes = await cache.get(file);
-    if (!bytes) bytes = await readLocal(file.path, { signal });
-    if (!bytes && /^\/config\/model-(manifests|pieces)\/[\w.-]+$/.test(file.url || '')) {
+    // Capsule metadata paths are logical names, not paths inside the weight directory.
+    if (!bytes && /^[a-zA-Z0-9_.-]+$/.test(file.path)) bytes = await readLocal(file.path, { signal });
+    if (!bytes && /^\/config\/model-(manifests|pieces|artifacts)\/[a-zA-Z0-9_.-]+$/.test(file.url || '')) {
       bytes = new Uint8Array(await fs.readFile(new URL('../self' + file.url, import.meta.url)));
     }
     if (!bytes) {

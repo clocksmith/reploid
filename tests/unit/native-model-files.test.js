@@ -184,3 +184,24 @@ it('maps signed Rig paths to exact manifest-relative native piece sources', asyn
     await expect(source.artifactStore.readArtifactRange(artifact, 1, 2)).rejects.toThrow('complete pinned piece');
   } finally { await source.storage.close(); }
 });
+
+it('loads nested signed metadata from its pinned native bundle without treating it as a model filename', async () => {
+  const f = await fixture(1), bytes = Buffer.from('signed shader metadata');
+  const metadata = { path: 'artifacts/program/host/entry.js', role: 'host-program',
+    hashAlgorithm: 'sha256', hash: hash(bytes), sizeBytes: bytes.length,
+    url: '/config/model-artifacts/' + hash(bytes) + '.js' };
+  const artifact = { artifactId: 'host-entry', role: metadata.role, path: metadata.path,
+    hash: 'sha256:' + metadata.hash, sizeBytes: metadata.sizeBytes };
+  const manifest = f.model.source.files[0];
+  f.model.source.files.push(metadata);
+  f.model.capsule = { program: { manifestArtifactId: 'manifest' }, artifacts: [
+    { artifactId: 'manifest', role: 'manifest', path: 'artifacts/model/manifest.json', hash: f.model.identity, sizeBytes: manifest.sizeBytes }, artifact] };
+  const original = fs.readFile.bind(fs);
+  const read = vi.spyOn(fs, 'readFile').mockImplementation((file, ...args) =>
+    file instanceof URL && file.pathname.endsWith('/self' + metadata.url) ? Promise.resolve(bytes) : original(file, ...args));
+  const source = await f.owners[0].preparePartitionSource(f.model);
+  try {
+    expect(await source.artifactStore.readArtifact(artifact)).toEqual(new Uint8Array(bytes));
+    expect(f.writes.some(row => row.type === 'reploid:custody-request')).toBe(false);
+  } finally { await source.storage.close(); read.mockRestore(); }
+});

@@ -46,3 +46,27 @@ it('delivers the same native source and all catalog metadata outside the checkou
   const copied = await fs.readFile(path.join(directory, pin.spec.slice(5)));
   expect('sha512-' + createHash('sha512').update(copied).digest('base64')).toBe(pin.integrity);
 });
+
+it('packages pinned signed metadata and rejects remote or changed closure bytes', async () => {
+  const original = await collectNativeFiles(path.resolve(import.meta.dirname, '../..'));
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), 'native-signed-delivery-')); roots.push(root);
+  for (const [name, bytes] of original.contents) {
+    const target = path.join(root, name); await fs.mkdir(path.dirname(target), { recursive: true }); await fs.writeFile(target, bytes);
+  }
+  await fs.mkdir(path.join(root, 'packages/reploid/src'), { recursive: true });
+  const bytes = Buffer.from('signed WGSL bytes'), hash = createHash('sha256').update(bytes).digest('hex');
+  const name = 'self/config/model-artifacts/' + hash + '.wgsl';
+  await fs.mkdir(path.dirname(path.join(root, name)), { recursive: true }); await fs.writeFile(path.join(root, name), bytes);
+  const catalog = JSON.parse(original.contents.get('self/config/chat-models.json'));
+  const file = { path: 'artifacts/program/kernel.wgsl', role: 'wgsl', hashAlgorithm: 'sha256', hash,
+    sizeBytes: bytes.length, url: name.slice(4) };
+  catalog[0].source.files.push(file);
+  catalog[0].capsule = { artifacts: [{ artifactId: 'kernel', role: 'wgsl', hash: 'sha256:' + hash, sizeBytes: bytes.length }] };
+  const save = () => fs.writeFile(path.join(root, 'self/config/chat-models.json'), JSON.stringify(catalog));
+  await save();
+  expect((await collectNativeFiles(root)).contents.get(name)).toEqual(bytes);
+  file.url = 'https://example.invalid/kernel.wgsl'; await save();
+  await expect(collectNativeFiles(root)).rejects.toThrow('signed metadata must be a bundled');
+  file.url = name.slice(4); await save(); await fs.writeFile(path.join(root, name), 'changed');
+  await expect(collectNativeFiles(root)).rejects.toThrow('Native catalog metadata differs');
+});
