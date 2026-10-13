@@ -3,6 +3,7 @@
 Guide to all documentation in the REPLOID project.
 
 Active implementation: [canonical Doppler–Reploid checklist](../TODO.md).
+Topology requirements and inherited fixtures: [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 
 Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md).
 
