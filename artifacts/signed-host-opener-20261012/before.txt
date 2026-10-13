@@ -1,0 +1,28 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/work-partitions-lifecycle.test.js (63 tests | 1 failed | 61 skipped) 7ms
+     × uses signed opening only when explicitly configured and passes pinned custody without changing trust 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/work-partitions-lifecycle.test.js > native resident opening > uses signed opening only when explicitly configured and passes pinned custody without changing trust
+Error: Capsule runtime openCapsule() requires explicit ports: device, programFactory.
+ ❯ openCapsule tests/unit/work-partitions-lifecycle.test.js:30:9
+     28| }));
+     29| vi.mock('doppler-gpu', () => ({ openCapsule() {
+     30|   throw new Error('Capsule runtime openCapsule() requires explicit por…
+       |         ^
+     31| } }));
+     32| vi.mock('doppler-gpu/host', () => ({ openCapsule: ports.openCapsule })…
+ ❯ Object.openCapsule packages/reploid/src/mesh/partitions/signed-resident-factory.js:7:29
+ ❯ tests/unit/work-partitions-lifecycle.test.js:216:32
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed | 61 skipped (63)
+   Start at  22:21:25
+   Duration  273ms (transform 153ms, setup 0ms, import 206ms, tests 7ms, environment 0ms)
+

@@ -1,0 +1,12 @@
+{
+  "passed": true,
+  "runtimeArchiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "sources": {
+    "src/capsule-runtime.js": "3571998d4ee3941101310c8b64bc2c88383aede7b0918778828b581e63d42946",
+    "src/client/capsule-host.js": "481bbeeab0064f0491ba826d6d3a9585d59a81aecc3e2c5e07e853d7a3b65cb2",
+    "src/client/model-host/index.js": "120fff741b67b65a56d5a916b287c68854a9b09e8436bb562fa72da8880176f2"
+  },
+  "gpuBefore": false,
+  "gpuAfter": false,
+  "scope": "Public entrypoint/authoritative-policy control only; no model or GPU execution."
+}

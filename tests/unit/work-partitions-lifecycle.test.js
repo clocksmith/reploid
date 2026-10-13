@@ -26,7 +26,10 @@ vi.mock('doppler-gpu/partitions', () => ({
   createManifestResidentPartitionFactory: ports.factory, inspectDeviceMemory: ports.memory, resolveLayerPartition: ports.validatePlan,
   getPartitionActivationContract: ports.activationContract, validateActivationFrameForPlan: ports.validateFrame,
 }));
-vi.mock('doppler-gpu', () => ({ openCapsule: ports.openCapsule }));
+vi.mock('doppler-gpu', () => ({ openCapsule() {
+  throw new Error('Capsule runtime openCapsule() requires explicit ports: device, programFactory.');
+} }));
+vi.mock('doppler-gpu/host', () => ({ openCapsule: ports.openCapsule }));
 vi.mock('../../packages/reploid/src/mesh/index.js', async importOriginal => ({
   ...await importOriginal(), createResidentPartition: ports.resident,
 }));
@@ -38,6 +41,19 @@ it('requires a session cleanup owner before constructing a signed factory', () =
   const createFactory = vi.fn();
   expect(() => createSignedResidentFactory({ createFactory })).toThrow('explicit session cleanup owner');
   expect(createFactory).not.toHaveBeenCalled();
+});
+
+it('uses composed public openers while the low-level entry requires explicit runtime ports', async () => {
+  const raw = await vi.importActual('doppler-gpu');
+  const native = await vi.importActual('doppler-gpu/host');
+  const browser = await vi.importActual('../../self/vendor/doppler/0.6.27/src/index.js');
+  expect(() => raw.openCapsule({})).toThrow(/requires explicit ports:.*device.*programFactory/);
+  expect(native.openCapsule).not.toBe(raw.openCapsule);
+  // Both composed entrypoints enforce signed load policy before any GPU work.
+  for (const host of [native, browser]) {
+    await expect(host.openCapsule({}, { modelLoadOptions: {} })).rejects.toThrow(
+      'prohibits modelLoadOptions because signed TargetPlan policy is authoritative');
+  }
 });
 
 describe.each(['browser', 'native'])('%s resident opening', host => {
@@ -211,6 +227,7 @@ it('uses signed opening only when explicitly configured and passes pinned custod
   const binding = ports.signedFactory.mock.calls[0][0];
   expect(binding.capsuleOptions).toEqual({ ...release.options, artifactStore: source.artifactStore });
   const opened = await binding.openCapsule(signed().capsule, binding.capsuleOptions);
+  expect(ports.openCapsule).toHaveBeenCalledWith(signed().capsule, binding.capsuleOptions);
   expect(release.assertCurrent).toHaveBeenCalledWith(session);
   expect(await opened.residentPartition.tokenize({})).toEqual([1]);
   expect(result.getReceipt()).toMatchObject({ openingMode: 'signed-capsule', capsuleVerification: session.verification });

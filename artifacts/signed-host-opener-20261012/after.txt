@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:2445) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+ Test Files  3 passed (3)
+      Tests  84 passed (84)
+   Start at  22:21:42
+   Duration  1.81s (transform 1.13s, setup 0ms, import 471ms, tests 2.10s, environment 0ms)
+

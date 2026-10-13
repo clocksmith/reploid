@@ -1,0 +1,17 @@
+{
+  "component": "Native signed resident host composition",
+  "intent": "preserved",
+  "failure": "The native host imported the low-level doppler-gpu Capsule runtime, whose openCapsule requires explicit device and programFactory ports.",
+  "correction": "Import openCapsule from the existing public doppler-gpu/host composition. Doppler retains device selection, signed target policy, program loading, resident allocation and cleanup ownership.",
+  "browserFinding": "The browser's existing src/index.js already routes the composed model host. The hypothesis that it shared the native missing-port failure was disproved. Browser and shared signed-resident lifecycle source remain unchanged.",
+  "regression": "Distinct low-level and composed mocks reproduce the exact native missing-port error before the patch; browser control passes before and after.",
+  "verificationCommands": [
+    "npx vitest run tests/unit/work-partitions-lifecycle.test.js --maxWorkers=2 -t 'uses signed opening only' (before patch: native fails, browser passes)",
+    "npx vitest run tests/unit/work-partitions-lifecycle.test.js tests/unit/native-participant.test.js tests/unit/native-model-files.test.js --maxWorkers=2 (84 pass)",
+    "npm run verify:library-types (pass)",
+    "Actual self/core/verification-worker.js on the two changed source/test files (pass, zero errors, eight warnings)",
+    "CPU public entrypoint and signed-policy control against exact installed candidate runtime 0fadac51 (pass, no GPU initialized)"
+  ],
+  "boundaryEffects": "Only native host import selection changes; no device borrowed or destroyed by new Reploid code, no Capsule safety or artifact authority bypass, no runtime/package pin/model change.",
+  "physicalAcceptance": "Pending a newly packaged native artifact and signed opening retry. Prior physical failures remain retained separately."
+}
