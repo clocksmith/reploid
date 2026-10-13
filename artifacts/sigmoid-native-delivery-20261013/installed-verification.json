@@ -1,0 +1,24 @@
+{
+  "schema": "reploid.native-base-verification/v1",
+  "directory": "/var/tmp/reploid-sigmoid-native-20261013/reploid",
+  "nativeArchiveSha256": "10121d79ae77d4d1bb95cec54893df238c94435e5234e3000cf5cbd01b1e77a9",
+  "descriptorSha256": "45362da009305e5c4513a171bc0952c47905a6520840e59419fca92737ea6d33",
+  "nativeFiles": 108,
+  "runtimeFiles": 1976,
+  "runtimeArchiveSha256": "c643cd25b0d7a868c0e14e4d758983c78380456d923ed2b4a7b4f8b30065c705",
+  "catalogSha256": "1d5e76f1a2259ef8641b325f6422c9ab48a83dd28528dae45abdddb708aa97d5",
+  "catalogStage": "committed unsigned base; no ordered signed eligibility",
+  "dependencyVersions": {
+    "doppler-gpu": "0.6.28",
+    "@roamhq/wrtc": "0.10.0",
+    "ws": "8.21.0",
+    "webgpu": "0.4.0"
+  },
+  "node": "v22.20.0",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "GPUOpened": false,
+  "publicContributorChanged": false,
+  "ledgerOpened": false,
+  "physicalQualified": false
+}
