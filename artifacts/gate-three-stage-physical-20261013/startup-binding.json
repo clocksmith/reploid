@@ -1,0 +1,22 @@
+{
+  "sourceCommit": "ffd4430a",
+  "files": [
+    {
+      "path": "native-partition-process.js",
+      "bytes": 4060,
+      "sha256": "d59c3c2f841dc20f01dd3598357d8457d551e2ce2a22f7adbcae19a2cb4abd02"
+    },
+    {
+      "path": "native-provider-observation.js",
+      "bytes": 1005,
+      "sha256": "ece1784bedc5cfe3de79a8f4ee8462c8844777dbf393eba927c9bd9a5e41601b"
+    },
+    {
+      "path": "numerical-test-delivery.js",
+      "bytes": 2784,
+      "sha256": "eb6531431666fc7a022a8ebaf48f87e4ef7d3578b22b5e872a441f976ef683db"
+    }
+  ],
+  "configSha256": "5a744e5c71ecf73dc4131d547fba2660e67bead5e99bba2c061f5b67e2f5dcb3",
+  "nativeArchiveSha256": "2a1f836bf29622d66c01cebd1fc71311b60f5c44f50530d6b67772ee39a0a590"
+}

@@ -1,0 +1,24 @@
+{
+  "schema": "reploid.native-base-verification/v1",
+  "directory": "/var/tmp/reploid-gate-native-20261013/installed/reploid",
+  "nativeArchiveSha256": "2a1f836bf29622d66c01cebd1fc71311b60f5c44f50530d6b67772ee39a0a590",
+  "descriptorSha256": "301766bbbad9d7d12f64a6bf8bd18d41d7949b5e7fe8f9ccb09debefc5b58806",
+  "nativeFiles": 111,
+  "runtimeFiles": 1977,
+  "runtimeArchiveSha256": "1cb2a5b8b7ebcefd6269b6a065fea0347c6471fe0c044479c78ef5b9f0c096eb",
+  "catalogSha256": "1d5e76f1a2259ef8641b325f6422c9ab48a83dd28528dae45abdddb708aa97d5",
+  "catalogStage": "committed unsigned base; no ordered signed eligibility",
+  "dependencyVersions": {
+    "doppler-gpu": "0.6.28",
+    "@roamhq/wrtc": "0.10.0",
+    "ws": "8.21.0",
+    "webgpu": "0.4.0"
+  },
+  "node": "v22.21.0",
+  "platform": "linux",
+  "architecture": "x64",
+  "GPUOpened": false,
+  "publicContributorChanged": false,
+  "ledgerOpened": false,
+  "physicalQualified": false
+}

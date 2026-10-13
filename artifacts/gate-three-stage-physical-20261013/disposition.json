@@ -1,0 +1,663 @@
+{
+  "schema": "reploid.ordered-load-only-disposition/v1",
+  "numericalSteps": 0,
+  "qualified": false,
+  "publicProcessesChanged": false,
+  "rows": [
+    {
+      "host": "mac",
+      "rawSha256": "2e71c7eba38d3497ac8a962600fcde43d1f4c9ee438a884e1c392c84dad5170a",
+      "rawBytes": 200337,
+      "pid": 68798,
+      "preparedSuccessfully": true,
+      "failure": null,
+      "cleanupFailure": null,
+      "providerError": null,
+      "peakGpuBytes": 622440768,
+      "pipelinePreparationEvents": [
+        {
+          "id": 0,
+          "operation": "createShaderModule",
+          "label": "rope_precompute_paired",
+          "codeLength": 13456,
+          "at": "2026-10-13T17:37:05.525Z",
+          "status": "started"
+        },
+        {
+          "id": 0,
+          "operation": "createShaderModule",
+          "label": "rope_precompute_paired",
+          "codeLength": 13456,
+          "at": "2026-10-13T17:37:05.527Z",
+          "status": "completed"
+        },
+        {
+          "id": 1,
+          "operation": "getCompilationInfo",
+          "label": "rope_precompute_paired",
+          "at": "2026-10-13T17:37:05.527Z",
+          "status": "started"
+        },
+        {
+          "id": 1,
+          "operation": "getCompilationInfo",
+          "label": "rope_precompute_paired",
+          "at": "2026-10-13T17:37:05.529Z",
+          "status": "completed"
+        },
+        {
+          "id": 2,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_precompute_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-13T17:37:05.529Z",
+          "status": "started"
+        },
+        {
+          "id": 2,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_precompute_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-13T17:37:05.531Z",
+          "status": "completed"
+        },
+        {
+          "id": 3,
+          "operation": "createShaderModule",
+          "label": "gated_delta_conv_paired",
+          "codeLength": 13634,
+          "at": "2026-10-13T17:37:05.538Z",
+          "status": "started"
+        },
+        {
+          "id": 3,
+          "operation": "createShaderModule",
+          "label": "gated_delta_conv_paired",
+          "codeLength": 13634,
+          "at": "2026-10-13T17:37:05.538Z",
+          "status": "completed"
+        },
+        {
+          "id": 4,
+          "operation": "getCompilationInfo",
+          "label": "gated_delta_conv_paired",
+          "at": "2026-10-13T17:37:05.538Z",
+          "status": "started"
+        },
+        {
+          "id": 4,
+          "operation": "getCompilationInfo",
+          "label": "gated_delta_conv_paired",
+          "at": "2026-10-13T17:37:05.540Z",
+          "status": "completed"
+        },
+        {
+          "id": 5,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:37:05.540Z",
+          "status": "started"
+        },
+        {
+          "id": 5,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:37:05.542Z",
+          "status": "completed"
+        },
+        {
+          "id": 6,
+          "operation": "createShaderModule",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "codeLength": 13558,
+          "at": "2026-10-13T17:37:05.543Z",
+          "status": "started"
+        },
+        {
+          "id": 6,
+          "operation": "createShaderModule",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "codeLength": 13558,
+          "at": "2026-10-13T17:37:05.543Z",
+          "status": "completed"
+        },
+        {
+          "id": 7,
+          "operation": "getCompilationInfo",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "at": "2026-10-13T17:37:05.543Z",
+          "status": "started"
+        },
+        {
+          "id": 7,
+          "operation": "getCompilationInfo",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "at": "2026-10-13T17:37:05.545Z",
+          "status": "completed"
+        },
+        {
+          "id": 8,
+          "operation": "createComputePipelineAsync",
+          "label": "qwen_linear_attention_prepare_paired_gates_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:37:05.545Z",
+          "status": "started"
+        },
+        {
+          "id": 8,
+          "operation": "createComputePipelineAsync",
+          "label": "qwen_linear_attention_prepare_paired_gates_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:37:05.852Z",
+          "status": "completed"
+        },
+        {
+          "id": 9,
+          "operation": "createShaderModule",
+          "label": "gated_delta_recurrent_paired",
+          "codeLength": 16527,
+          "at": "2026-10-13T17:37:05.853Z",
+          "status": "started"
+        },
+        {
+          "id": 9,
+          "operation": "createShaderModule",
+          "label": "gated_delta_recurrent_paired",
+          "codeLength": 16527,
+          "at": "2026-10-13T17:37:05.853Z",
+          "status": "completed"
+        },
+        {
+          "id": 10,
+          "operation": "getCompilationInfo",
+          "label": "gated_delta_recurrent_paired",
+          "at": "2026-10-13T17:37:05.853Z",
+          "status": "started"
+        },
+        {
+          "id": 10,
+          "operation": "getCompilationInfo",
+          "label": "gated_delta_recurrent_paired",
+          "at": "2026-10-13T17:37:05.855Z",
+          "status": "completed"
+        },
+        {
+          "id": 11,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 128
+          },
+          "at": "2026-10-13T17:37:05.855Z",
+          "status": "started"
+        },
+        {
+          "id": 11,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 128
+          },
+          "at": "2026-10-13T17:37:06.500Z",
+          "status": "completed"
+        }
+      ],
+      "settlementResources": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 558257664,
+          "count": 64
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "providerSettlement": null
+    },
+    {
+      "host": "amd",
+      "rawSha256": "66f7fa16715849ba41c2b3d0e995c8dbda64d68d4de6a9045d0e8035b95da847",
+      "rawBytes": 177545,
+      "pid": 1507268,
+      "preparedSuccessfully": true,
+      "failure": null,
+      "cleanupFailure": null,
+      "providerError": null,
+      "peakGpuBytes": 113881408,
+      "pipelinePreparationEvents": [
+        {
+          "id": 0,
+          "operation": "createShaderModule",
+          "label": "rope_precompute_paired",
+          "codeLength": 13456,
+          "at": "2026-10-13T17:37:42.093Z",
+          "status": "started"
+        },
+        {
+          "id": 0,
+          "operation": "createShaderModule",
+          "label": "rope_precompute_paired",
+          "codeLength": 13456,
+          "at": "2026-10-13T17:37:42.096Z",
+          "status": "completed"
+        },
+        {
+          "id": 1,
+          "operation": "getCompilationInfo",
+          "label": "rope_precompute_paired",
+          "at": "2026-10-13T17:37:42.096Z",
+          "status": "started"
+        },
+        {
+          "id": 1,
+          "operation": "getCompilationInfo",
+          "label": "rope_precompute_paired",
+          "at": "2026-10-13T17:37:42.096Z",
+          "status": "completed"
+        },
+        {
+          "id": 2,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_precompute_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-13T17:37:42.096Z",
+          "status": "started"
+        },
+        {
+          "id": 2,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_precompute_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-13T17:37:42.103Z",
+          "status": "completed"
+        },
+        {
+          "id": 3,
+          "operation": "createShaderModule",
+          "label": "gated_delta_conv_paired",
+          "codeLength": 13634,
+          "at": "2026-10-13T17:37:42.178Z",
+          "status": "started"
+        },
+        {
+          "id": 3,
+          "operation": "createShaderModule",
+          "label": "gated_delta_conv_paired",
+          "codeLength": 13634,
+          "at": "2026-10-13T17:37:42.181Z",
+          "status": "completed"
+        },
+        {
+          "id": 4,
+          "operation": "getCompilationInfo",
+          "label": "gated_delta_conv_paired",
+          "at": "2026-10-13T17:37:42.181Z",
+          "status": "started"
+        },
+        {
+          "id": 4,
+          "operation": "getCompilationInfo",
+          "label": "gated_delta_conv_paired",
+          "at": "2026-10-13T17:37:42.181Z",
+          "status": "completed"
+        },
+        {
+          "id": 5,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:37:42.181Z",
+          "status": "started"
+        },
+        {
+          "id": 5,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:37:42.185Z",
+          "status": "completed"
+        },
+        {
+          "id": 6,
+          "operation": "createShaderModule",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "codeLength": 13558,
+          "at": "2026-10-13T17:37:42.186Z",
+          "status": "started"
+        },
+        {
+          "id": 6,
+          "operation": "createShaderModule",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "codeLength": 13558,
+          "at": "2026-10-13T17:37:42.188Z",
+          "status": "completed"
+        },
+        {
+          "id": 7,
+          "operation": "getCompilationInfo",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "at": "2026-10-13T17:37:42.188Z",
+          "status": "started"
+        },
+        {
+          "id": 7,
+          "operation": "getCompilationInfo",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "at": "2026-10-13T17:37:42.188Z",
+          "status": "completed"
+        },
+        {
+          "id": 8,
+          "operation": "createComputePipelineAsync",
+          "label": "qwen_linear_attention_prepare_paired_gates_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:37:42.188Z",
+          "status": "started"
+        },
+        {
+          "id": 8,
+          "operation": "createComputePipelineAsync",
+          "label": "qwen_linear_attention_prepare_paired_gates_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:37:42.194Z",
+          "status": "completed"
+        },
+        {
+          "id": 9,
+          "operation": "createShaderModule",
+          "label": "gated_delta_recurrent_paired",
+          "codeLength": 16527,
+          "at": "2026-10-13T17:37:42.195Z",
+          "status": "started"
+        },
+        {
+          "id": 9,
+          "operation": "createShaderModule",
+          "label": "gated_delta_recurrent_paired",
+          "codeLength": 16527,
+          "at": "2026-10-13T17:37:42.198Z",
+          "status": "completed"
+        },
+        {
+          "id": 10,
+          "operation": "getCompilationInfo",
+          "label": "gated_delta_recurrent_paired",
+          "at": "2026-10-13T17:37:42.198Z",
+          "status": "started"
+        },
+        {
+          "id": 10,
+          "operation": "getCompilationInfo",
+          "label": "gated_delta_recurrent_paired",
+          "at": "2026-10-13T17:37:42.198Z",
+          "status": "completed"
+        },
+        {
+          "id": 11,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 128
+          },
+          "at": "2026-10-13T17:37:42.198Z",
+          "status": "started"
+        },
+        {
+          "id": 11,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 128
+          },
+          "at": "2026-10-13T17:37:42.205Z",
+          "status": "completed"
+        }
+      ],
+      "settlementResources": {
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        },
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "reusable": {
+          "bytes": 49698816,
+          "count": 64
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "providerSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true
+      }
+    },
+    {
+      "host": "suby",
+      "rawSha256": "014e600eee16d95447ba82b667ebadcef40aa26e86115b3d6b4c27c455fdcf7b",
+      "rawBytes": 962136,
+      "pid": 862617,
+      "preparedSuccessfully": false,
+      "failure": {
+        "name": "DiagnosticDeadlineError",
+        "message": "load-only-stage-2 exceeded 300000ms; completion and ownership unknown",
+        "stack": "DiagnosticDeadlineError: load-only-stage-2 exceeded 300000ms; completion and ownership unknown\n    at Timeout.<anonymous> (file:///private/var/tmp/reploid-gate-three-stage-20261013/tests/fixtures/concurrent-partition-memory.js:20:23)\n    at listOnTimeout (node:internal/timers:588:17)\n    at process.processTimers (node:internal/timers:523:7)"
+      },
+      "cleanupFailure": "Closed resident still owns weights\n\n116 !== 0\n",
+      "providerError": "close-provider exceeded 10000ms; completion and ownership unknown",
+      "peakGpuBytes": 256948544,
+      "pipelinePreparationEvents": [
+        {
+          "id": 0,
+          "operation": "createShaderModule",
+          "label": "rope_precompute_paired",
+          "codeLength": 13456,
+          "at": "2026-10-13T17:38:13.993Z",
+          "status": "started"
+        },
+        {
+          "id": 0,
+          "operation": "createShaderModule",
+          "label": "rope_precompute_paired",
+          "codeLength": 13456,
+          "at": "2026-10-13T17:38:13.999Z",
+          "status": "completed"
+        },
+        {
+          "id": 1,
+          "operation": "getCompilationInfo",
+          "label": "rope_precompute_paired",
+          "at": "2026-10-13T17:38:13.999Z",
+          "status": "started"
+        },
+        {
+          "id": 1,
+          "operation": "getCompilationInfo",
+          "label": "rope_precompute_paired",
+          "at": "2026-10-13T17:38:13.999Z",
+          "status": "completed"
+        },
+        {
+          "id": 2,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_precompute_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-13T17:38:13.999Z",
+          "status": "started"
+        },
+        {
+          "id": 2,
+          "operation": "createComputePipelineAsync",
+          "label": "rope_precompute_paired_pipeline",
+          "entryPoint": "main",
+          "constants": {},
+          "at": "2026-10-13T17:38:14.017Z",
+          "status": "completed"
+        },
+        {
+          "id": 3,
+          "operation": "createShaderModule",
+          "label": "gated_delta_conv_paired",
+          "codeLength": 13634,
+          "at": "2026-10-13T17:38:14.190Z",
+          "status": "started"
+        },
+        {
+          "id": 3,
+          "operation": "createShaderModule",
+          "label": "gated_delta_conv_paired",
+          "codeLength": 13634,
+          "at": "2026-10-13T17:38:14.196Z",
+          "status": "completed"
+        },
+        {
+          "id": 4,
+          "operation": "getCompilationInfo",
+          "label": "gated_delta_conv_paired",
+          "at": "2026-10-13T17:38:14.196Z",
+          "status": "started"
+        },
+        {
+          "id": 4,
+          "operation": "getCompilationInfo",
+          "label": "gated_delta_conv_paired",
+          "at": "2026-10-13T17:38:14.196Z",
+          "status": "completed"
+        },
+        {
+          "id": 5,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:38:14.196Z",
+          "status": "started"
+        },
+        {
+          "id": 5,
+          "operation": "createComputePipelineAsync",
+          "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:38:59.049Z",
+          "status": "completed"
+        },
+        {
+          "id": 6,
+          "operation": "createShaderModule",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "codeLength": 13558,
+          "at": "2026-10-13T17:38:59.051Z",
+          "status": "started"
+        },
+        {
+          "id": 6,
+          "operation": "createShaderModule",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "codeLength": 13558,
+          "at": "2026-10-13T17:38:59.054Z",
+          "status": "completed"
+        },
+        {
+          "id": 7,
+          "operation": "getCompilationInfo",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "at": "2026-10-13T17:38:59.054Z",
+          "status": "started"
+        },
+        {
+          "id": 7,
+          "operation": "getCompilationInfo",
+          "label": "qwen_linear_attention_prepare_paired_gates",
+          "at": "2026-10-13T17:38:59.054Z",
+          "status": "completed"
+        },
+        {
+          "id": 8,
+          "operation": "createComputePipelineAsync",
+          "label": "qwen_linear_attention_prepare_paired_gates_pipeline_WORKGROUP_SIZE=64",
+          "entryPoint": "main",
+          "constants": {
+            "WORKGROUP_SIZE": 64
+          },
+          "at": "2026-10-13T17:38:59.054Z",
+          "status": "started"
+        }
+      ],
+      "settlementResources": {
+        "retainedModel": {
+          "bytes": 238020608,
+          "count": 116
+        },
+        "active": {
+          "bytes": 2097152,
+          "count": 2
+        },
+        "reusable": {
+          "bytes": 256,
+          "count": 1
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "providerSettlement": null
+    }
+  ],
+  "subyStop": "Exact owned process SIGTERM; absent afterward; no device/queue settlement claim",
+  "next": "CPU gate preparation callgraph attribution; no unchanged retry"
+}

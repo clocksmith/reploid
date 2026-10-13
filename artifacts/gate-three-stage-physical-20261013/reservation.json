@@ -1,0 +1,21 @@
+{
+  "schema": "reploid.functional-gpu-reservation/v1",
+  "approved": true,
+  "authority": "root explicit assignment 2026-10-13",
+  "id": "gate-three-stage-load-only-20261013",
+  "observedAt": "2026-10-13T17:36:46.298438+00:00",
+  "runtimeArchiveSha256": "1cb2a5b8b7ebcefd6269b6a065fea0347c6471fe0c044479c78ef5b9f0c096eb",
+  "nativeArchiveSha256": "2a1f836bf29622d66c01cebd1fc71311b60f5c44f50530d6b67772ee39a0a590",
+  "testDeliveryHash": "sha256:6f69ef692a5916f1736ca356625df0bd81267a8b2e5ea6edf725e96e53220d2d",
+  "operationDeadlineMs": 300000,
+  "cleanupDeadlineMs": 10000,
+  "samplingMs": 2000,
+  "order": [
+    "Mac-stage0",
+    "AMD-stage1",
+    "Suby-stage2"
+  ],
+  "scope": "load-only; no token execution; stop progression on first failure",
+  "sharedMachineNotes": "Public AMD/Suby contributors and Mac user Chrome remain; no timing isolation or benchmark claim",
+  "controllerSha256": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a"
+}

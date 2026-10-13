@@ -1,0 +1,10 @@
+{
+  "observedAt": "2026-10-13T17:43:37.753568+00:00",
+  "signal": "SIGTERM",
+  "targetPid": 862617,
+  "reason": "Failed bounded preparation and provider cleanup; root-authorized termination of exact owned process",
+  "reportedRssKiBBeforeSignal": 12079976,
+  "gpuOwnership": "unknown; process termination does not prove device or queue settlement",
+  "sshSessionExit": 255,
+  "postSignalProcess": "    PID    PPID STAT     ELAPSED   RSS COMMAND\n"
+}
