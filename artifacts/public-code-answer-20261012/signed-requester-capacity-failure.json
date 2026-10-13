@@ -1,0 +1,13 @@
+{
+  "startedAt": "2026-10-13T11:28:45.966Z",
+  "scope": "Fresh weightless requester through ordinary signed candidate UI; native input and Mac browser output; no source/runtime changes",
+  "browserBundle": "sha256:7f8e435bc3fc1abca4cb6e5090378607d813ba526d67e63787bdf77e441a25f4",
+  "runtimeArchive": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "weights": [],
+  "errors": [],
+  "turns": [],
+  "ok": false,
+  "failure": "locator.waitFor: Timeout 300000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-model-control][data-activity=\"ready\"]') to be visible\u001b[22m\n\n    at /Users/xyz/deco/reploid/[eval1]:3:260",
+  "body": "7\n7\n7\n7\n2 peers\nMessage\nAttach files\nRetry connection",
+  "finishedAt": "2026-10-13T11:33:46.005Z"
+}
