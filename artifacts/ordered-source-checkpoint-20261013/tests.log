@@ -1,0 +1,99 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/automatic-ordered-network.test.js (6 tests) 2041ms
+   ✓ discovers a complete 5-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners  368ms
+   ✓ discovers a complete 6-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners  468ms
+   ✓ discovers a complete 7-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners  580ms
+(node:54079) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:54079) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:54079) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:54079) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:54079) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-storage-opening.test.js (4 tests) 1536ms
+   ✓ surfaces exhausted opening wait and preserves already-spent allowance  1094ms
+(node:54080) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/partition-api.test.js (42 tests) 3642ms
+     ✓ discovers cooperative executors with replica coverage=false  1604ms
+     ✓ discovers cooperative executors with replica coverage=true  1357ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js (22 tests) 519ms
+(node:54082) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-canonical-epochs.test.js (9 tests) 1102ms
+   ✓ retains pending ownership after another writer locks persistence  1076ms
+ ✓ tests/unit/native-model-files.test.js (12 tests) 573ms
+ ✓ tests/unit/work-swarm-lifecycle.test.js (16 tests) 482ms
+ ✓ tests/unit/chat-model-manifests.test.js (1 test) 447ms
+     ✓ ships every pinned manifest in the ordinary browser bundle with unchanged bytes  446ms
+ ✓ tests/unit/native-delivery.test.js (3 tests) 421ms
+ ✓ tests/unit/ordered-partition-peer.test.js (12 tests) 328ms
+ ✓ tests/unit/chat-session.test.js (23 tests) 302ms
+ ✓ tests/unit/partition-data-channel.test.js (21 tests) 263ms
+ ✓ tests/unit/native-ordered-config.test.js (1 test) 209ms
+ ✓ tests/unit/native-partition-endpoint.test.js (6 tests) 202ms
+ ✓ tests/unit/partition-route-runner.test.js (21 tests) 223ms
+ ✓ tests/unit/chat-scheduler.test.js (7 tests) 161ms
+ ✓ tests/unit/automatic-ordered-partitions.test.js (18 tests) 183ms
+ ✓ tests/unit/ordered-partition-network.test.js (11 tests) 107ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js (6 tests) 119ms
+(node:54110) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-canonical-cleanup.test.js (4 tests) 81ms
+ ✓ tests/unit/native-gpu-lifetime.test.js (5 tests) 109ms
+(node:54111) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-supply-budget.test.js (6 tests) 51ms
+ ✓ tests/unit/automatic-partition-discovery-lifetime.test.js (4 tests) 17ms
+ ✓ tests/unit/partition-paired-boundary.test.js (8 tests) 63ms
+(node:54117) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:54117) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:54117) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/native-release-storage.test.js (5 tests) 37ms
+ ✓ tests/unit/ordered-partition-grants.test.js (6 tests) 38ms
+ ✓ tests/unit/ordered-partition-reference.test.js (8 tests) 37ms
+ ✓ tests/unit/chat-context.test.js (4 tests) 29ms
+ ✓ tests/unit/native-data-channel-backpressure.test.js (7 tests) 19ms
+ ✓ tests/unit/partition-route-placement.test.js (13 tests) 25ms
+ ✓ tests/unit/partition-summary.test.js (2 tests) 22ms
+ ✓ tests/unit/partition-runner.test.js (24 tests) 21ms
+ ✓ tests/unit/native-participant.test.js (9 tests) 15ms
+ ✓ tests/unit/partition-route-mutation.test.js (3 tests) 14ms
+ ✓ tests/unit/chat-thread-grants.test.js (8 tests) 11ms
+ ✓ tests/unit/work-partition-capsule-admission.test.js (17 tests) 15ms
+ ✓ tests/unit/chat-workspace.test.js (13 tests) 11ms
+ ✓ tests/unit/execution-ribbon.test.js (11 tests) 12ms
+ ✓ tests/unit/ordered-host-composition.test.js (6 tests) 14ms
+ ✓ tests/unit/partition-step-receiver.test.js (23 tests) 10ms
+ ✓ tests/unit/partition-memory-observation.test.js (4 tests) 10ms
+ ✓ tests/unit/work-partition-plan.test.js (8 tests) 4ms
+ ✓ tests/unit/partition-placement.test.js (5 tests) 9ms
+ ✓ tests/unit/execution-activity.test.js (4 tests) 7ms
+ ✓ tests/unit/ordered-partition-receiver.test.js (3 tests) 8ms
+ ✓ tests/unit/work-partition-capsule-source.test.js (5 tests | 1 skipped) 7ms
+ ✓ tests/unit/partition-diagnostic-selection.test.js (4 tests) 5ms
+ ✓ tests/unit/partition-memory-settlement.test.js (8 tests) 6ms
+ ✓ tests/unit/canonical-product-session.test.js (6 tests) 8ms
+ ✓ tests/unit/partition-generation-policy.test.js (13 tests) 5ms
+ ✓ tests/unit/partition-discovery-invalidation.test.js (3 tests) 4ms
+ ✓ tests/unit/native-provider-observation.test.js (2 tests) 4ms
+ ✓ tests/unit/chat-draft-transactions.test.js (3 tests) 3ms
+ ✓ tests/unit/work-partition-blake3-source.test.js (8 tests) 3ms
+ ✓ tests/unit/work-partition-network-cleanup.test.js (2 tests) 2ms
+ ✓ tests/unit/native-status-log.test.js (3 tests) 3ms
+ ✓ tests/unit/computer-labels.test.js (2 tests) 3ms
+ ✓ tests/unit/partition-attempt-cleanup.test.js (2 tests) 2ms
+
+ Test Files  58 passed (58)
+      Tests  511 passed | 1 skipped (512)
+   Start at  11:37:49
+   Duration  12.98s (transform 1.27s, setup 0ms, import 3.87s, tests 13.60s, environment 4.50s)
+
