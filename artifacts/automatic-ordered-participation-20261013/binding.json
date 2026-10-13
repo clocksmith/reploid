@@ -1,0 +1,25 @@
+{
+  "scope": "Named source subset; own source files are staged in the checkpoint that contains this receipt. No installed package or physical execution binding.",
+  "baseRevision": "3bba09c981cfeb32d6d85ebf15bb248d37f6008f",
+  "testsPassed": 74,
+  "testFiles": 7,
+  "workerPassed": true,
+  "typesPassed": true,
+  "chartersPassed": 39,
+  "sourceHashes": {
+    "packages/reploid/src/mesh/partitions/automatic-partitions.js": "509b37223d583c5c98ba482862ab739272f67e3c760d5d48b68bced4f91e589d",
+    "packages/reploid/src/mesh/partitions/automatic-partitions.d.ts": "80ecadf2976796e318bbb9319294f9411dc9fa1cf4e8cf7dfb69b95406250b7f",
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js": "0c228ad36bfdd382ea3a0ced2c283b6b4b0a002229dd1aa60fbddda8ad4fb110",
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.d.ts": "af0c6347cd853592a1fbf7b78946dbd09d7aab8c54a5d438c55cb4319f8439be",
+    "packages/reploid/src/mesh/partitions/partition-discovery.js": "221eb52d6d2ea6f4a3ffe24edd8359f6ebe53676fb7ad67707858eb7634c5ca2",
+    "packages/reploid/src/mesh/partitions/partition-placement.js": "bed32a084c2be1ff66e00d866e8ed7a9c47c6cdf938df3878a010237c9a01887",
+    "packages/reploid/src/mesh/partitions/partition-network.js": "2ebf730527ffe2f2907b008a0f69eef20cf4d2ecee30cf933d6dcc4280dbc708",
+    "packages/reploid/src/mesh/partitions/partition-route-network.js": "20fb8045b8f85e9d5e6ce29f6454d43c1d0d9c39a245e96797e83adc26a0a7ea",
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.js": "406b15d7214c83183a4434a2cc03b2c81134bdc7b41e9f3f27a1a86ae95c4d17",
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.js": "0b075bc0bc4a0de2fb1bb9d228bfc1082153762b09cf3c6de8a0b518a64b92b7",
+    "packages/reploid/src/mesh/partitions/partition-entry.js": "8bbc5694e0d1bff0705661df0272b8d4045a848d7225e82e9cf17c26cf5678ef",
+    "packages/reploid/src/mesh/partitions/partition-grants.js": "8210d8a1ea58463f27b236bbb22d1e1cd08a58ceb0e3eb8c361fa243b8325877",
+    "tests/unit/automatic-ordered-partitions.test.js": "5028d6335d5c011232cc703cfba5242bddb245d969c54e9a2d617353dccd850a",
+    "tests/unit/automatic-ordered-network.test.js": "8f2ce7f7332e370e638ae1958c4c874075cc86b27e35e6b782c0447d88630dee"
+  }
+}

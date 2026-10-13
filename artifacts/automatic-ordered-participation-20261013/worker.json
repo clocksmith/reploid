@@ -1,0 +1,216 @@
+{
+  "scope": "Actual Verification Worker AST analysis of ordered automatic source and controls; no model execution",
+  "at": "2026-10-13T15:17:16.025Z",
+  "sources": [
+    {
+      "name": "packages/reploid/src/mesh/partitions/automatic-partitions.js",
+      "sha256": "509b37223d583c5c98ba482862ab739272f67e3c760d5d48b68bced4f91e589d"
+    },
+    {
+      "name": "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
+      "sha256": "0c228ad36bfdd382ea3a0ced2c283b6b4b0a002229dd1aa60fbddda8ad4fb110"
+    },
+    {
+      "name": "tests/unit/automatic-ordered-partitions.test.js",
+      "sha256": "5028d6335d5c011232cc703cfba5242bddb245d969c54e9a2d617353dccd850a"
+    },
+    {
+      "name": "tests/unit/automatic-ordered-network.test.js",
+      "sha256": "8f2ce7f7332e370e638ae1958c4c874075cc86b27e35e6b782c0447d88630dee"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/mesh/partitions/automatic-partitions.js:26: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 30 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:22: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:104: Dynamic property write detected: [key] - verify input sanitization",
+      "File has 33 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/automatic-ordered-partitions.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/automatic-ordered-partitions.test.js:170: Suspicious variable name: execute - may indicate code execution",
+      "Warning in /tests/unit/automatic-ordered-network.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /tests/unit/automatic-ordered-network.test.js:50: Dynamic property write detected: [remote,local] - verify input sanitization",
+      "Nesting depth of 6 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904636012,
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 26,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791904636013,
+        "metric": "functions",
+        "value": 30,
+        "threshold": 20,
+        "message": "File has 30 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791904636013,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904636016,
+        "path": "/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 22,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904636016,
+        "path": "/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 104,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791904636016,
+        "metric": "functions",
+        "value": 33,
+        "threshold": 20,
+        "message": "File has 33 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791904636016,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904636018,
+        "path": "/tests/unit/automatic-ordered-partitions.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904636018,
+        "path": "/tests/unit/automatic-ordered-partitions.test.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execute - may indicate code execution",
+        "line": 170,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904636021,
+        "path": "/tests/unit/automatic-ordered-network.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904636021,
+        "path": "/tests/unit/automatic-ordered-network.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [remote,local] - verify input sanitization",
+        "line": 50,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791904636021,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/tests/unit/automatic-ordered-network.test.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/tests/unit/automatic-ordered-partitions.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/automatic-ordered-network.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 30,
+          "threshold": 20,
+          "message": "File has 30 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 33,
+          "threshold": 20,
+          "message": "File has 33 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/tests/unit/automatic-ordered-network.test.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}

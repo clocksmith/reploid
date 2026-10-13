@@ -35,7 +35,8 @@ export interface AutomaticPartitions {
   stop(): Promise<void>; close(): Promise<void>;
   generate(request: ChatRequest & { threadId: string; attemptId: string }, controls: ChatControls): Promise<ChatResult>;
 }
-export function createAutomaticPartitions(options: {
+export interface AutomaticPartitionOptions {
+  ordered?: never;
   canonical?:{runtime:PartitionRuntime & CanonicalRunnerRuntime;coordinatorEpoch:string;participantEpoch:string}|null;
   identity: SigningIdentity; meshId: string; models: ChatModel[]; policy: AutomaticPartitionPolicy;
   peers(): Array<{ id: string; localTransportId: string }>;
@@ -52,4 +53,41 @@ export function createAutomaticPartitions(options: {
     onProgress(value: unknown): void }): Promise<{ runtime: PartitionRuntime; model: ChatModel;
       plan: PartitionPlan; planId: string; resident: ResidentPartition; getReceipt?(): unknown }>;
   onChange?(state: AutomaticPartitionState & { progress?: unknown }): void;
-}): AutomaticPartitions;
+}
+export function createAutomaticPartitions(options: AutomaticPartitionOptions): AutomaticPartitions;
+
+export interface OrderedAutomaticPartitionOptions extends Omit<AutomaticPartitionOptions,
+  'ordered' | 'canonical' | 'policy' | 'loadProgram' | 'createNetwork' | 'onChange'> {
+  canonical?: null;
+  /** Null stage is a weightless requester. Hosts declare actual allocation identity and geometry. */
+  ordered: { stage: import('./partition-contract.js').PartitionRouteStage | null;
+    maxRouteBytes: number; maxSelectionSteps: number; maxRoutes: number };
+  policy: Omit<AutomaticPartitionPolicy, 'limits'> & {
+    maxStageOffersPerPeer: number; limits: import('./partition-route-execution.js').OrderedRouteLimits };
+  createNetwork: {
+    <T extends { close(): void | Promise<void> }>(options: Omit<import('./partition-route-network.js').RoutePartitionNetworkOptions<T>,
+      'transport' | 'verifyPeer'>): import('./partition-route-network.js').RoutePartitionNetwork<T>;
+    <T extends { close(): void | Promise<void> }>(options: { label: string; maxPeers: number; timeoutMs: number;
+      createEndpoint(options: { channel: RTCDataChannel; remoteParticipantId: string }): T;
+      onPeer?(transportId: string, endpoint: T): void }): PartitionNetwork<T>;
+  };
+  loadProgram(model: ChatModel, index: number, controls: { signal: AbortSignal; participantId: string;
+    ordered: { stage: import('./partition-contract.js').PartitionRouteStage };
+    registerCleanup(owner: { close(): void | Promise<void> }): () => void;
+    onProgress(value: unknown): void }): Promise<{ runtime: import('./partition-route-execution.js').OrderedExecutionRuntime;
+      model: ChatModel; plan: import('./partition-route-execution.js').OrderedExecutionPlan; planId: string;
+      resident: import('./resident-partition.js').OrderedResidentPartition; getReceipt?(): unknown }>;
+  onChange?(state: OrderedAutomaticPartitionState & { progress?: unknown }): void;
+}
+export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionState,
+  'placementDecision' | 'reservations' | 'attempts' | 'descriptor'> {
+  placementDecision: { route: import('./partition-contract.js').PartitionRoute | null; reason: string;
+    selectionSteps?: number; eligibility?: readonly unknown[] } | null;
+  reservations: import('./resident-partition.js').OrderedResidentState['reservations'] | null;
+  descriptor: import('./resident-partition.js').OrderedResidentState['descriptor'];
+  attempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
+}
+export interface OrderedAutomaticPartitions extends Omit<AutomaticPartitions, 'getState'> {
+  getState(): OrderedAutomaticPartitionState;
+}
+export function createAutomaticPartitions(options: OrderedAutomaticPartitionOptions): OrderedAutomaticPartitions;
