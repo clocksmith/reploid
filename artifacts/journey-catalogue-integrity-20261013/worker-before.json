@@ -1,0 +1,67 @@
+{
+  "files": {
+    "scripts/verify-critical-user-journeys.js": "ab1b2302854dae5fc3198fbd8e1b4ee2682a1a9bea5b21350d7b966e00bcd5a3",
+    "scripts/verify-reploid-critical-user-journeys.js": "2cc35ebccc31a82dcb396a7ee41d7cc6f42a43282ef5c46f2bc146b00f53a564"
+  },
+  "result": {
+    "passed": false,
+    "errors": [
+      "Security Violation in /scripts/verify-critical-user-journeys.js: process.exit is forbidden",
+      "Security Violation in /scripts/verify-reploid-critical-user-journeys.js: child_process operations are forbidden"
+    ],
+    "warnings": [
+      "Warning in /scripts/verify-reploid-critical-user-journeys.js:77: Dynamic property write detected: [file, fragment] - verify input sanitization"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791907045576,
+        "path": "/scripts/verify-critical-user-journeys.js",
+        "patternId": "process_exit",
+        "category": "process",
+        "message": "process.exit is forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791907045583,
+        "path": "/scripts/verify-reploid-critical-user-journeys.js",
+        "patternId": "child_process",
+        "category": "process",
+        "message": "child_process operations are forbidden",
+        "severity": "error"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791907045583,
+        "path": "/scripts/verify-reploid-critical-user-journeys.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [file, fragment] - verify input sanitization",
+        "line": 77,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/scripts/verify-critical-user-journeys.js",
+          "patternId": "process_exit",
+          "category": "process",
+          "message": "process.exit is forbidden",
+          "severity": "error"
+        },
+        {
+          "path": "/scripts/verify-reploid-critical-user-journeys.js",
+          "patternId": "child_process",
+          "category": "process",
+          "message": "child_process operations are forbidden",
+          "severity": "error"
+        }
+      ],
+      "complexityWarnings": [],
+      "filesAnalyzed": 2
+    },
+    "reason": "Verification Failed"
+  }
+}

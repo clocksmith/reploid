@@ -6,10 +6,11 @@ ordering and completion checkboxes remain in [TODO.md](../TODO.md). The
 [chat contract](chat-mvp.md) and [mesh architecture](open-mesh-architecture.md)
 explain the product and its mechanisms; neither advances acceptance by itself.
 
-Each journey has one stable ID, actor/trigger, starting conditions, a three-step
+Each journey has one stable ID, actor/trigger, starting conditions, a
 main flow, observable success, interruption/recovery, deployment variants and
 acceptance evidence. Variants reuse a journey rather than creating another goal
-for every topology. Adding a route stage does not add a new user goal.
+for every topology. Adding a route stage does not add a new user goal. Flow length
+and journeys per family follow the outcomes; neither has a fixed count.
 
 ## Evidence and acceptance
 
@@ -43,6 +44,7 @@ become prerequisites for otherwise qualified ordinary chat.
 | [Share network capacity](#share-network-capacity) | Concurrent service, larger models, busy networks, missing coverage, queues |
 | [Delegate work](#delegate-work) | Independent jobs, subtasks, tools, results, cancellation |
 | [Control trust and change](#control-trust-and-change) | Disclosure, revocation, resource inspection, evaluation, adoption/restore |
+| [Compose an application](#compose-an-application) | Embed public interfaces with application-owned ports and lifecycle |
 
 ## Ask and continue
 
@@ -51,7 +53,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Actor and trigger:** A requester opens Reploid to ask a question.
 - **Starting conditions:** A supported model has eligible prepared capacity; disclosure is authorized.
 - **Main flow:** 1. Open chat and choose an available model → 2. Submit a question and authorize its actual recipients → 3. Read the streamed, durably accepted answer.
-- **Successful outcome:** A complete answer appears and remains in history; the requester acquires no weights.
+- **Successful outcome:** A useful, complete answer addresses the question accurately, or explicitly identifies insufficient knowledge instead of inventing facts. It remains in history; the requester acquires no weights. Basic-chat acceptance does not depend on attachment qualification.
 - **Interruption and recovery:** Unavailable capacity is explicit. Interrupted published output remains; retry is a new authorized attempt.
 - **Variants:** Phone/desktop requester; browser/native contributors; 1/2/N stages; cold or resident capacity.
 - **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md). These cover different scopes/packages; signed N-stage release and [transactional publication milestones](../TODO.md#dr-5) remain open.
@@ -71,7 +73,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Actor and trigger:** A requester supplies a document with a question.
 - **Starting conditions:** The format and input size are supported; permission includes its text.
 - **Main flow:** 1. Attach and inspect the selected material → 2. Submit a question with scoped consent → 3. Open source references in the answer.
-- **Successful outcome:** Authorized passages arrive in order and usable citations point back to the supplied source.
+- **Successful outcome:** The answer addresses the question accurately, with factual claims supported by the cited passages, or explicitly identifies insufficient evidence. Authorized passages arrive in order, and usable citations navigate to the supporting source. Citation presence alone is insufficient.
 - **Interruption and recovery:** Keep the attachment and draft after failure; never silently drop input to fit a route.
 - **Variants:** One/multiple attachments; follow-up reuse; changed recipients; long context.
 - **Acceptance evidence:** [attachment passages/history/export controls](../tests/unit/document-comparison.test.js); [application acceptance](../TODO.md#rep-7). Factual/citation qualification remains separate and incomplete; it does not gate basic chat.
@@ -280,8 +282,8 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Starting conditions:** The proposed action, arguments, recipients and effects are available for review.
 - **Main flow:** 1. Inspect the proposal → 2. Approve or decline its exact scope → 3. See the observed outcome.
 - **Successful outcome:** Only the approved action executes; a model score never substitutes for permission.
-- **Interruption and recovery:** A retry with changed arguments or recipients requires the applicable fresh authorization.
-- **Variants:** Local/remote tools; disclosure versus mutation; delayed/expired approval.
+- **Interruption and recovery:** If the tool may have executed before its response was lost, report outcome unknown and reconcile using its operation identity and authoritative outcome record. Retry only under the tool’s declared idempotency contract or after establishing that no effect occurred; otherwise require explicit resolution without blind replay. Fresh approval alone cannot prevent duplicate external effects. Changed arguments or recipients additionally require the applicable fresh authorization.
+- **Variants:** Local/remote tools; disclosure versus mutation; delayed/expired approval; response lost after execution; idempotent versus non-idempotent effects.
 - **Acceptance evidence:** [Zero authority boundaries](zero/critical-user-journeys.md); [X approval journeys](x/critical-user-journeys.md). Tool permission is separate from compute and file supply.
 
 ### JOB-04 — Inspect a delegated result
@@ -356,6 +358,18 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Variants:** Browser/native/runtime releases; reversible policy; fresh/existing installations.
 - **Acceptance evidence:** [evaluated improvement tests](../tests/unit/improvement-episode.test.js); [release gates](../TODO.md#all-6). Approval alone does not qualify numerical, lifecycle or application behavior.
 
+## Compose an application
+
+### DEV-01 — Use Reploid inside my application
+
+- **Actor and trigger:** An application developer wants distributed execution without adopting Reploid’s UI or credential system.
+- **Starting conditions:** The developer selects a supported package and supplies host, storage and authorization ports under their application’s policies.
+- **Main flow:** 1. Compose the library through its public interfaces → 2. Submit authorized work → 3. Receive accepted results through application-owned delivery and persistence → 4. Cancel outstanding work and shut down cleanly.
+- **Successful outcome:** The application receives only accepted results and preserves its own interface, credentials and storage authority. Shutdown settles owned resources without disrupting other consumers.
+- **Interruption and recovery:** Failed or unknown storage outcomes cannot publish candidate results. Revocation stops further admission; uncertain remote ownership remains charged until observed settlement. Restart uses explicit authorized recovery rather than assuming retained GPU state.
+- **Variants:** Browser/native composition; injected ports; independent consumers sharing prepared capacity; installed package outside the repository; cancellation and shutdown failures.
+- **Acceptance evidence:** [public library consumer harness](../tests/library-package-acceptance.js); [typed public contracts](../tests/types/library-contracts.ts); [browser cancellation controls](../tests/unit/browser-library-cancellation.test.js). These identify component and consumer checks, not full signed N-stage acceptance; [exact-package release gates](../TODO.md#all-6) remain applicable.
+
 ## Coverage matrix
 
 Select combinations for a declared claim; do not multiply journeys or claim
@@ -370,16 +384,20 @@ IDs, frozen identities, matrix values, injections and observed outcome.
 | Demand | One requester; overlapping conversations; requester also contributes; saturated admission/queue; slow or starved stage |
 | Permission | Fresh/reused/expired/revoked grants; changed model, input or recipients; compute and file supply separately authorized |
 | Durability | Successful commit; failed write; unknown write outcome; duplicate delivery; refresh/upgrade; no publication before commit |
+| Cancellation ordering | Publication wins before cancellation versus cancellation wins before publication; delayed acknowledgments; no later candidate output leaks (KEEP-03, CHAT-01) |
+| Generation endings | Zero-output requests; context exhaustion; natural completion; output limits; stop strings spanning chunks; tool-call boundaries before and after accepted publication (CHAT-01, JOB-03) |
+| Tool outcomes | Known success/failure versus outcome unknown after external execution; reconciliation; idempotency-key reuse; non-idempotent replay blocked (JOB-03) |
 | Failure position | Before admission; acquisition; each stage; in-flight activation/output; storage commit; cleanup; reconnect/retry |
 | Execution mode | Ordinary execution first; optional qualified draft/fork/replay separately; added recipients require applicable consent |
 
 | Scenario | Journeys exercised | Deployment variant | Acceptance boundary |
 | --- | --- | --- | --- |
-| Ordinary conversation | CHAT-01/02/05, KEEP-01/03/04 | Current two-stage browser/native baseline | Existing scoped numerical/physical receipts must not be combined into an unrun signed release claim. |
-| Ordered network | CHAT-01/02, CONTRIB-03, MESH-01, KEEP-02 | Two through seven stages; two overlapping requesters; signaling loss | [Actual source integration](../artifacts/automatic-ordered-participation-20261013/README.md) uses injected numerical stages. Independent physical hosts and signed delivery remain separate. |
-| Replicated larger model | MESH-01/02/03/05 | Twelve computers, three stages, four prepared replicas per stage | Intended capacity scenario; full-route admission, useful answers and independent failure domains need evidence. |
-| Sustained concurrent demand | MESH-01/05, CONTRIB-04/05, KEEP-03/04 | Twenty conversations, sixty stage states, five states per computer on twelve computers | Intended scenario, not a supported setting. Prove memory, fair progress and settlement before increasing admission limits. Active states do not mean simultaneous GPU operations. |
-| Mixed large mesh | CHAT-04, CONTRIB-01/02, MESH-03/04 | One hundred computers, several models, mixed file supply and compute | Intended scenario. Prove bounded discovery, compatible routing, preparation and replication within grants; do not broadcast every request to everyone. |
+| Application composition | DEV-01, KEEP-03, TRUST-02 | Browser/native consumers with host-owned ports and independently installed packages | Public import, accepted delivery, persistence failures and settled shutdown require exact-package evidence. |
+| Ordinary conversation | CHAT-01, CHAT-02, CHAT-05, KEEP-01, KEEP-03, KEEP-04 | Current two-stage browser/native baseline | Existing scoped numerical/physical receipts must not be combined into an unrun signed release claim. |
+| Ordered network | CHAT-01, CHAT-02, CONTRIB-03, MESH-01, KEEP-02 | Two through seven stages; two overlapping requesters; signaling loss | [Actual source integration](../artifacts/automatic-ordered-participation-20261013/README.md) uses injected numerical stages. Independent physical hosts and signed delivery remain separate. |
+| Replicated larger model | MESH-01, MESH-02, MESH-03, MESH-05 | Twelve computers, three stages, four prepared replicas per stage | Intended capacity scenario; full-route admission, useful answers and independent failure domains need evidence. |
+| Sustained concurrent demand | MESH-01, MESH-05, CONTRIB-04, CONTRIB-05, KEEP-03, KEEP-04 | Twenty conversations, sixty stage states, five states per computer on twelve computers | Intended scenario, not a supported setting. Prove memory, fair progress and settlement before increasing admission limits. Active states do not mean simultaneous GPU operations. |
+| Mixed large mesh | CHAT-04, CONTRIB-01, CONTRIB-02, MESH-03, MESH-04 | One hundred computers, several models, mixed file supply and compute | Intended scenario. Prove bounded discovery, compatible routing, preparation and replication within grants; do not broadcast every request to everyone. |
 
 Numerical agreement qualifies identified computation, not scheduling, durability,
 recovery or additional capacity. Speculative decoding is an execution variant
@@ -394,7 +412,7 @@ If it changes recipients, TRUST-01 applies before any additional disclosure.
 | Follow-up plus concurrency | CHAT-02 and MESH-01 | Overlapping routes and demand |
 | Larger model across replicas | MESH-02 | Twelve-computer/three-stage/four-replica arrangement |
 | Ask while contributing | CONTRIB-03; withdrawal is CONTRIB-05 | Shared device and independent permissions |
-| Contributor loss | KEEP-02/04 | Failed stage and replacement placement; only durable output retained |
+| Contributor loss | KEEP-02, KEEP-04 | Failed stage and replacement placement; only durable output retained |
 | Add capacity | CONTRIB-01 and MESH-04 | Joining versus complementary preparation and placement |
 | Speculative decoding | Execution variant; TRUST-01 if disclosure changes | Qualified draft/fork/replay implementation and performance |
 
@@ -412,8 +430,10 @@ for the shared mesh remains in TODO.md.
 Architecture documents and blueprints may explain mechanisms, but they do not
 advance completion status.
 
-Run `npm run verify:journeys` to validate all three registries. The validator
-fails on missing evidence paths, unlinked work, invalid status, uncovered
+Run `npm run verify:journeys` to check this catalogue’s stable IDs, required
+fields, local links and anchors, and scenario references, alongside all three
+supporting registries. Catalogue integrity is not runtime qualification. Registry
+checks reject missing evidence paths, unlinked work, invalid status, uncovered
 routes, or a missing release gate. Poolday additionally verifies that every
 journey model is enabled and permitted by every policy named by that journey.
 
