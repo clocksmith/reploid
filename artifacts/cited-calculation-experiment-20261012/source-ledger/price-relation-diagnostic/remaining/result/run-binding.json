@@ -1,0 +1,46 @@
+{
+  "schema": "reploid.source-ledger-run/v1",
+  "frozenRevision": "c5aaf1b6",
+  "freezeSha256": "021e68753399ecd97779bc8f9e24fd15f8f23c60b43e5fe5b47d8bdeaf319810",
+  "command": [
+    "taskset",
+    "-c",
+    "4-7",
+    "nice",
+    "-n",
+    "10",
+    "python3",
+    "-u",
+    "/var/tmp/reploid-price-remaining-c5aaf1b6/repo/artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/remaining/run.py",
+    "--doppler",
+    "/var/tmp/doppler-archive9-unit-4umv8z92/workspace/doppler",
+    "--source",
+    "/var/tmp/doppler-qwen3-17b-source-20261011",
+    "--out",
+    "/var/tmp/reploid-price-remaining-c5aaf1b6/results/source.json"
+  ],
+  "startedAtUtc": "2026-10-13T12:56:02.217138+00:00",
+  "status": "completed",
+  "wrapperPid": 2718124,
+  "concurrency": "Root approved frozen six remaining occurrence decisions; first observation retained concurrent with functional native-ready/Mac acquisition and public contributor processes; no timing or performance claims. No separate CPU4-7 owner observed before launch.",
+  "gpu": false,
+  "cpuAffinity": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "nice": 10,
+  "threads": 4,
+  "outputDirectory": "/var/tmp/reploid-price-remaining-c5aaf1b6/results",
+  "environment": {
+    "PYTHONPATH": "/tmp/doppler-reference-deps",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4"
+  },
+  "sourcePid": 2718455,
+  "exitCode": 0,
+  "finishedAtUtc": "2026-10-13T12:56:59.511242+00:00"
+}

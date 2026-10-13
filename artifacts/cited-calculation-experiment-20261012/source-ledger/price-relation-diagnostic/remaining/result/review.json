@@ -1,0 +1,124 @@
+{
+  "schema": "reploid.remaining-price-semantic-review/v1",
+  "frozenRevision": "c5aaf1b6",
+  "freezeSha256": "021e68753399ecd97779bc8f9e24fd15f8f23c60b43e5fe5b47d8bdeaf319810",
+  "sourceOutputSha256": "991952c0fe22c3009c31c9715a9437705fcf8d7a1bd3f71be150a728106f1dd3",
+  "firstResultRetainedNotRepeated": true,
+  "firstSupported": true,
+  "reviewer": "document_quality source-passage review; root independent review requested",
+  "rows": [
+    {
+      "id": "document-money-row-5",
+      "sourceOccurrence": {
+        "source": "D1:P3",
+        "passage": "Estimated completion September 18, subject to permit approval. Deposit: 25% of $8,400.",
+        "value": "$8,400",
+        "occurrenceIndex": 0,
+        "start": 79,
+        "end": 85
+      },
+      "rawOutput": "{\"relation\":\"quoted_total\"}",
+      "selectedRelation": "quoted_total",
+      "supportedRelation": "deposit_basis",
+      "localRelationSupported": false,
+      "reason": "This occurrence appears only in the explicit 25% deposit calculation. It does not introduce the quoted work price."
+    },
+    {
+      "id": "document-money-row-6",
+      "sourceOccurrence": {
+        "source": "D2:P1",
+        "passage": "Bathroom work: $9,100 including installation, disposal, sales tax and plumbing.",
+        "value": "$9,100",
+        "occurrenceIndex": 0,
+        "start": 15,
+        "end": 21
+      },
+      "rawOutput": "{\"relation\":\"quoted_total\"}",
+      "selectedRelation": "quoted_total",
+      "supportedRelation": "quoted_total",
+      "localRelationSupported": true,
+      "reason": "The occurrence introduces the offered package price, including listed work and tax. Conditional electrical excess remains separate."
+    },
+    {
+      "id": "document-money-row-7",
+      "sourceOccurrence": {
+        "source": "D2:P2",
+        "passage": "Includes up to $500 of electrical work. Additional electrical work requires written approval and an extra charge.",
+        "value": "$500",
+        "occurrenceIndex": 0,
+        "start": 15,
+        "end": 19
+      },
+      "rawOutput": "{\"relation\":\"quoted_total\"}",
+      "selectedRelation": "quoted_total",
+      "supportedRelation": "included_allowance",
+      "localRelationSupported": false,
+      "reason": "The $500 is explicitly covered electrical allowance, with only excess separately billable. It is not a standalone quoted package price."
+    },
+    {
+      "id": "document-money-row-11",
+      "sourceOccurrence": {
+        "source": "D2:P3",
+        "passage": "Completion by September 20 is promised only if the deposit arrives by August 15. Deposit: 30% of $9,100.",
+        "value": "$9,100",
+        "occurrenceIndex": 0,
+        "start": 97,
+        "end": 103
+      },
+      "rawOutput": "{\"relation\":\"quoted_total\"}",
+      "selectedRelation": "quoted_total",
+      "supportedRelation": "deposit_basis",
+      "localRelationSupported": false,
+      "reason": "This occurrence is the amount used in the explicit 30% deposit calculation, not the occurrence introducing the package price."
+    },
+    {
+      "id": "document-money-row-12",
+      "sourceOccurrence": {
+        "source": "D3:P1",
+        "passage": "Bathroom work: installation price $7,900. Disposal costs another $450. Sales tax is excluded.",
+        "value": "$7,900",
+        "occurrenceIndex": 0,
+        "start": 34,
+        "end": 40
+      },
+      "rawOutput": "{\"relation\":\"quoted_total\"}",
+      "selectedRelation": "quoted_total",
+      "supportedRelation": "quoted_total",
+      "localRelationSupported": true,
+      "reason": "The occurrence introduces the work price. The separate disposal add-on and exclusions prevent treating it as all-in."
+    },
+    {
+      "id": "document-money-row-13",
+      "sourceOccurrence": {
+        "source": "D3:P1",
+        "passage": "Bathroom work: installation price $7,900. Disposal costs another $450. Sales tax is excluded.",
+        "value": "$450",
+        "occurrenceIndex": 0,
+        "start": 65,
+        "end": 69
+      },
+      "rawOutput": "{\"relation\":\"included_allowance\"}",
+      "selectedRelation": "included_allowance",
+      "supportedRelation": "additional_charge",
+      "localRelationSupported": false,
+      "reason": "The passage explicitly states that disposal costs another $450. No other charge condition is inferred; its label alone would not authorize unconditional addition in general."
+    }
+  ],
+  "additionalSupported": 2,
+  "allSevenSupported": 3,
+  "totalReviewed": 7,
+  "fullTaskQualified": false,
+  "disposition": "Rejected semantic role selection. No arithmetic, calculator or final answer. No retries or additional case selection.",
+  "accountingIncludingObservedFirst": {
+    "promptTokens": 2881,
+    "generatedTokens": 57,
+    "totalChargedTokens": 2938,
+    "rawUtf16": 265
+  },
+  "unrunInThisExtension": [],
+  "originalFullTasksAndTwoHoldouts": "Not executed by this metadata diagnostic; factual/citation/condition/correction gates unchanged and open.",
+  "elapsedIncludingLoadingSeconds": 57.294104,
+  "performanceQualified": false,
+  "tokenAudit": "Every allowed-ID hash reconstructed. At first label-distinguishing token all seven labels remained possible and raw greedy winner was unmodified. Earlier whitespace-plus-quote was constrained to quote; no unconstrained counterfactual exists.",
+  "independentReview": "Parent/root reviewed exact quoted passages and frozen definitions and agreed semantic role failures; no calculation authorized."
+}
