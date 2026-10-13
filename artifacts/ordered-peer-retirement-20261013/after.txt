@@ -1,0 +1,32 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/ordered-partition-peer.test.js > ordered authenticated peer (in-process channels, injected computation) > traverses a remote middle activation and final token via bounded duplex binary requests under genuine grants 100ms
+ ✓ tests/unit/ordered-partition-peer.test.js > replays an identical output without recomputation and rejects different activation bytes 36ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects a changed message version before remote execution 8ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects reverse binary corruption instead of returning a fabricated activation 14ms
+ ✓ tests/unit/ordered-partition-peer.test.js > cancels after reverse output and before final acknowledgment without rerunning computation 16ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retains unknown ownership after channel loss and rejects stale cleanup identities 3ms
+ ✓ tests/unit/ordered-partition-peer.test.js > does not advertise a descriptor without actual stage capability 1ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retries explicit failed remote cleanup without clearing debt or recomputing 17ms
+ ✓ tests/unit/ordered-partition-peer.test.js > a cancelled blocked middle stage preserves an unrelated remote conversation 95ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects a reservation whose generation length exceeds its signed admission bound 5ms
+ ✓ tests/unit/ordered-partition-peer.test.js > waits for pending execution before invoking its one resident cleanup owner 22ms
+ ✓ tests/unit/ordered-partition-peer.test.js > duplicate settlement shares one cleanup and a late reservation cannot reopen the retired attempt 10ms
+ ✓ tests/unit/ordered-partition-peer.test.js > graceful serving retirement confirms exact remote settlement before channel closure 4ms
+ ✓ tests/unit/ordered-partition-peer.test.js > failed serving retirement keeps its channel and cleanup debt for explicit retry 4ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects changed attempt retirement evidence and retains ownership 6ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects changed generation retirement evidence and retains ownership 6ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects changed signature retirement evidence and retains ownership 6ms
+ ✓ tests/unit/automatic-ordered-isolation.test.js > isolates distinct tasks through cancellation, replica join, middle withdrawal and freshly approved replacement 477ms
+ ✓ tests/unit/ordered-partition-peer.test.js > lost retirement acknowledgment remains charged and exact duplicate receipt settles on retry 1013ms
+ ✓ tests/unit/ordered-partition-peer.test.js > coordinator close waits for the retiring owner to receive its pending acknowledgment 9ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retirement covers a locally completed cleanup whose ordinary reply has not reached its coordinator 8ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retains unacknowledged ordinary settlement after lost receipt and retries without closing twice 1014ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retains unacknowledged ordinary settlement after signature receipt and retries without closing twice 14ms
+
+ Test Files  2 passed (2)
+      Tests  23 passed (23)
+   Start at  12:32:42
+   Duration  2.63s (transform 140ms, setup 0ms, import 318ms, tests 2.89s, environment 0ms)
+

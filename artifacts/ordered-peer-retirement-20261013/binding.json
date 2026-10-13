@@ -1,0 +1,27 @@
+{
+  "scope": "CPU source contracts; in-process authenticated channels with genuine grants and injected numerical stages. No physical GPU or deployed acceptance.",
+  "baseCommit": "720d351425331d106c41962735fd9e8dfcb64b34",
+  "files": {
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.js": "14c13520053b7b77cb20cbdcc6fc2943666fa5d94c2397605bc727c7a31c84e4",
+    "tests/unit/ordered-partition-peer.test.js": "f82c97de3a94d4630eb44631dce6fc41afe9315dc7924549bfb9ffcd42a361f0"
+  },
+  "evidence": {
+    "artifacts/ordered-peer-retirement-20261013/after-initial.txt": "5bb52cb21a4d05502fc51cd25c6111b6e364143449de99945bfa9806dd9174e9",
+    "artifacts/ordered-peer-retirement-20261013/after.txt": "a7866d881b71d36fe914e7e8d5bf7323142747cbcc866c825c7a57b41397ecf3",
+    "artifacts/ordered-peer-retirement-20261013/before.txt": "3f3215da7cc25e27b8ecc13e76993e9d362630bbe79051c5fa06fc2acec97c43",
+    "artifacts/ordered-peer-retirement-20261013/charters.txt": "f27eb0e4c0c49f6e069c4f54b29f66a00b7dc57e40a8fec90173abacd614eec5",
+    "artifacts/ordered-peer-retirement-20261013/delayed-settle-before.txt": "f565b92b3d7910ae24b621f04297c220638371ca0a34744bf2cd23c6d3774451",
+    "artifacts/ordered-peer-retirement-20261013/network.txt": "5974d0391d0a83797fa4ac2e97badb1ff0f3949ed24a00b6e07883636b8d54a4",
+    "artifacts/ordered-peer-retirement-20261013/types.txt": "c506d0cc9d9cefa4c95d86c4d9e2f96c055daf8a3d88cd154a54c42549d522a1",
+    "artifacts/ordered-peer-retirement-20261013/verify-worker.js": "47889fd53ee86c0ef75b82d432b89c5a69cf6f77ce152586f860dcd99615d59e",
+    "artifacts/ordered-peer-retirement-20261013/worker.json": "702e502c29ea5774873a506fe8f59e582fd3b448409a0f2877011095210f7681"
+  },
+  "checks": {
+    "peerAndAutomaticIsolation": 23,
+    "networkAndTransport": 32,
+    "verificationWorker": "passed; warnings retained",
+    "libraryTypes": "passed",
+    "charters": "passed"
+  },
+  "review": "document_quality independently reviewed exact settlement receipt, acknowledgment-loss and delayed ordinary-reply boundaries; no blocker found within source scope"
+}

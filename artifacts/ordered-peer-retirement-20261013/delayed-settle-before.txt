@@ -1,0 +1,56 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/ordered-partition-peer.test.js > ordered authenticated peer (in-process channels, injected computation) > traverses a remote middle activation and final token via bounded duplex binary requests under genuine grants 94ms
+ ✓ tests/unit/ordered-partition-peer.test.js > replays an identical output without recomputation and rejects different activation bytes 31ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects a changed message version before remote execution 7ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects reverse binary corruption instead of returning a fabricated activation 13ms
+ ✓ tests/unit/ordered-partition-peer.test.js > cancels after reverse output and before final acknowledgment without rerunning computation 13ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retains unknown ownership after channel loss and rejects stale cleanup identities 3ms
+ ✓ tests/unit/ordered-partition-peer.test.js > does not advertise a descriptor without actual stage capability 1ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retries explicit failed remote cleanup without clearing debt or recomputing 17ms
+ ✓ tests/unit/ordered-partition-peer.test.js > a cancelled blocked middle stage preserves an unrelated remote conversation 89ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects a reservation whose generation length exceeds its signed admission bound 3ms
+ ✓ tests/unit/ordered-partition-peer.test.js > waits for pending execution before invoking its one resident cleanup owner 20ms
+ ✓ tests/unit/ordered-partition-peer.test.js > duplicate settlement shares one cleanup and a late reservation cannot reopen the retired attempt 7ms
+ ✓ tests/unit/ordered-partition-peer.test.js > graceful serving retirement confirms exact remote settlement before channel closure 3ms
+ ✓ tests/unit/ordered-partition-peer.test.js > failed serving retirement keeps its channel and cleanup debt for explicit retry 4ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects changed attempt retirement evidence and retains ownership 4ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects changed generation retirement evidence and retains ownership 4ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects changed signature retirement evidence and retains ownership 4ms
+ ✓ tests/unit/ordered-partition-peer.test.js > lost retirement acknowledgment remains charged and exact duplicate receipt settles on retry 1012ms
+ ✓ tests/unit/ordered-partition-peer.test.js > coordinator close waits for the retiring owner to receive its pending acknowledgment 11ms
+ × tests/unit/ordered-partition-peer.test.js > retirement covers a locally completed cleanup whose ordinary reply has not reached its coordinator 13ms
+   → A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-peer.test.js > retirement covers a locally completed cleanup whose ordinary reply has not reached its coordinator
+Error: A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.
+ ❯ close packages/reploid/src/transport/partition-data-channel.js:104:33
+    102|     if (closed) return;
+    103|     closed = true;
+    104|     const error = Object.assign(new Error(failureMessages.CONNECTION_L…
+       |                                 ^
+    105|       { code: 'CONNECTION_LOST', cause: new Error(`Partition channel: …
+    106|     lifecycle.abort(error);
+ ❯ EventTarget.onClose packages/reploid/src/transport/partition-data-channel.js:257:25
+ ❯ EventTarget.close tests/unit/ordered-partition-peer.test.js:12:90
+ ❯ tests/unit/ordered-partition-peer.test.js:12:160
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+Serialized Error: { code: 'CONNECTION_LOST' }
+Caused by: Error: Partition channel: peer disconnected
+ ❯ close packages/reploid/src/transport/partition-data-channel.js:105:41
+ ❯ EventTarget.onClose packages/reploid/src/transport/partition-data-channel.js:257:25
+ ❯ EventTarget.close tests/unit/ordered-partition-peer.test.js:12:90
+ ❯ tests/unit/ordered-partition-peer.test.js:12:160
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 19 passed (20)
+   Start at  12:31:31
+   Duration  1.57s (transform 58ms, setup 0ms, import 150ms, tests 1.35s, environment 0ms)
+

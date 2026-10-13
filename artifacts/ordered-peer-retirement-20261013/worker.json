@@ -1,0 +1,149 @@
+{
+  "files": {
+    "packages/reploid/src/mesh/partitions/partition-peer.js": "bfbcd688c178bcfcfec4c1c94a1fe1a8b4e232e3885b14773699638ef6eacb0e",
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.js": "14c13520053b7b77cb20cbdcc6fc2943666fa5d94c2397605bc727c7a31c84e4"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/mesh/partitions/partition-peer.js: Path traversal pattern detected (../) - potential security risk",
+      "File has 32 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-ordered-peer.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-ordered-peer.js:19: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-ordered-peer.js:43: Suspicious variable name: execution - may indicate code execution",
+      "File has 43 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909215512,
+        "path": "/packages/reploid/src/mesh/partitions/partition-peer.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791909215515,
+        "metric": "functions",
+        "value": 32,
+        "threshold": 20,
+        "message": "File has 32 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/partition-peer.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791909215515,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-peer.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909215521,
+        "path": "/packages/reploid/src/mesh/partitions/partition-ordered-peer.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909215522,
+        "path": "/packages/reploid/src/mesh/partitions/partition-ordered-peer.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 19,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791909215522,
+        "path": "/packages/reploid/src/mesh/partitions/partition-ordered-peer.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execution - may indicate code execution",
+        "line": 43,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791909215524,
+        "metric": "functions",
+        "value": 43,
+        "threshold": 20,
+        "message": "File has 43 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/partition-ordered-peer.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791909215524,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-ordered-peer.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/packages/reploid/src/mesh/partitions/partition-peer.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/packages/reploid/src/mesh/partitions/partition-ordered-peer.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 32,
+          "threshold": 20,
+          "message": "File has 32 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/partition-peer.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-peer.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 43,
+          "threshold": 20,
+          "message": "File has 43 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/partition-ordered-peer.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-ordered-peer.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

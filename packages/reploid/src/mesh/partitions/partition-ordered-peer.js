@@ -19,8 +19,11 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     && localParticipantId === stage.participantId && ['transportId', 'residentId', 'executionId'].every(key => contributor[key] === stage[key])
     : localParticipantId === coordinatorId && remoteParticipantId === stage.participantId, 'Ordered channel participant mismatch');
   const ready = validatePartitionRoute(runtime, plan, route); ready.catch(() => {});
+  const confirmed = new Map(), retirementReceipts = new Map();
   const active = new Map(), reservations = new Map(), settlements = new Map(), pendingOutputs = new Map(), outputCharacters = new Map(), listeners = new Set();
-  let closed = false, retiring = false, closing = null, descriptor = null, outputBytes = 0;
+  let closed = false, retiring = false, remoteRetiring = false, closing = null, descriptor = null, outputBytes = 0;
+  let channelClosed;
+  const remoteClose = new Promise(resolve => { channelClosed = resolve; });
   const outputKey = request => request.identity.attemptId + ':' + request.step;
   const binding = request => {
     const identity = canonicalRouteAttemptBinding(request.identity);
@@ -29,7 +32,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     return identity;
   };
   const protocol = request => {
-    assert(request?.schema === SCHEMA && ['reserve', 'step', 'stage-output', 'settle'].includes(request.operation), 'Ordered peer message version mismatch');
+    assert(request?.schema === SCHEMA && ['reserve', 'step', 'stage-output', 'settle', 'settle-accepted', 'retired'].includes(request.operation), 'Ordered peer message version mismatch');
     return binding(request);
   };
   const scope = (request, action) => ({ identity: request.identity, coordinatorId, action,
@@ -96,13 +99,14 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
   const settleLocal = identity => {
     const previous = settlements.get(identity.attemptId);
     if (previous) { assert(sameRouteAttemptIdentity(previous.identity, identity), 'Ordered settlement identity collision'); return previous.promise; }
-    const record = { identity: canonicalRouteAttemptBinding(identity), promise: null };
+    const record = { identity: canonicalRouteAttemptBinding(identity), promise: null, completed: false, acknowledged: false, request: null };
     settlements.set(identity.attemptId, record);
     record.promise = (async () => {
       const failures = [];
       try { await receiver.closeAttempt(record.identity); } catch (error) { failures.push(error); }
       try { await contributor.closeAttempt({ identity: record.identity, partitionIndex: index }); } catch (error) { failures.push(error); }
       if (failures.length) throw new AggregateError(failures, 'Ordered remote cleanup failed');
+      record.completed = true;
       reservations.delete(identity.attemptId); outputCharacters.delete(identity.attemptId);
     })().catch(error => { settlements.delete(identity.attemptId); throw error; });
     return record.promise;
@@ -110,13 +114,23 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
   const endpoint = createPartitionDataChannel({ channel, localParticipantId, remoteParticipantId, limits,
     async authorize({ action, metadata, byteLength }) {
       await ready;
-      if (closed || retiring && metadata.operation !== 'settle') return false;
+      if (closed || retiring && !['settle', 'settle-accepted', 'retired'].includes(metadata.operation)) return false;
       if (metadata.operation === 'describe') return byteLength === 0 && metadata.schema === SCHEMA;
       try { protocol(metadata); } catch { return false; }
-      const returningOutput = metadata.operation === 'stage-output';
+      const returningOutput = metadata.operation === 'stage-output' || metadata.operation === 'retired';
       const outbound = action === 'send' || action === 'accept';
       if (returningOutput ? outbound !== serving : outbound === serving) return false;
       if (metadata.operation === 'settle') return byteLength === 0 && execution(metadata, true);
+      if (metadata.operation === 'settle-accepted') {
+        const known = serving ? settlements.get(metadata.identity.attemptId)?.request : confirmed.get(metadata.identity.attemptId);
+        return byteLength === 0 && !!known && sameRouteAttemptIdentity(known.identity, metadata.identity)
+          && known.generationDigest === metadata.generationDigest && await execution(metadata, true);
+      }
+      if (metadata.operation === 'retired') {
+        const known = serving ? retirementReceipts.get(metadata.identity.attemptId) : active.get(metadata.identity.attemptId) || confirmed.get(metadata.identity.attemptId);
+        return byteLength === 0 && !!known && sameRouteAttemptIdentity(known.identity, metadata.identity)
+          && known.generationDigest === metadata.generationDigest && await execution(metadata, true);
+      }
       if (!await execution(metadata) || await runtime.hashPartitionGeneration(metadata.generation) !== metadata.generationDigest) return false;
       if (metadata.operation === 'reserve') return byteLength === 0
         && Number.isSafeInteger(metadata.maxTokens) && metadata.maxTokens > 0
@@ -139,6 +153,16 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
         return { descriptor: state?.ready && typeof contributor.executeStage === 'function' ? state.descriptor : null,
           stage: state?.ready ? stage : null, capability: state?.ready ? 'ordered-stage' : null };
       }
+      if (metadata.operation === 'retired') {
+        assert(!serving, 'Only coordinator accepts remote retirement');
+        // This exact authenticated owner reports completed resident cleanup. A
+        // channel close or unrelated receipt never clears another reservation.
+        confirmed.set(metadata.identity.attemptId, structuredClone(metadata));
+        active.delete(metadata.identity.attemptId); retiring = true; remoteRetiring = true; descriptor = null;
+        // Do not notify a host that could close the channel before this reply.
+        // The retiring supplier closes it after receiving this acknowledgment.
+        return { settled: true, identity: metadata.identity, partitionIndex: index };
+      }
       if (metadata.operation === 'stage-output') {
         const pending = pendingOutputs.get(outputKey(metadata));
         assert(pending && !serving, 'Unexpected ordered output');
@@ -153,7 +177,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
         return { outputDigest: digest };
       }
       if (metadata.operation === 'reserve') {
-        assert(serving && !closed && !settlements.has(metadata.identity.attemptId)
+        assert(serving && !closed && !retiring && !settlements.has(metadata.identity.attemptId)
           && (reservations.has(metadata.identity.attemptId) || reservations.size + settlements.size < receiverLimits.maxAttempts), 'Ordered reservation budget exhausted or retired');
         const previous = reservations.get(metadata.identity.attemptId);
         assert(!previous || sameRouteAttemptIdentity(previous.identity, metadata.identity), 'Ordered reservation identity collision');
@@ -161,10 +185,23 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
         reservations.set(metadata.identity.attemptId, structuredClone(metadata));
         return contributor.reserve({ ...metadata, signal });
       }
+      if (metadata.operation === 'settle-accepted') {
+        const record = settlements.get(metadata.identity.attemptId);
+        assert(serving && record?.completed, 'Ordered cleanup is not complete');
+        record.acknowledged = true;
+        if (!retiring) retirementReceipts.delete(metadata.identity.attemptId);
+        return { accepted: true };
+      }
       if (metadata.operation === 'settle') {
         const previous = reservations.get(metadata.identity.attemptId);
         assert(!previous || sameRouteAttemptIdentity(previous.identity, metadata.identity), 'Ordered settlement identity collision');
-        await settleLocal(metadata.identity); return { settled: true };
+        const pending = settleLocal(metadata.identity), record = settlements.get(metadata.identity.attemptId);
+        record.request ||= structuredClone(metadata);
+        assert(record.request.generationDigest === metadata.generationDigest, 'Ordered settlement generation collision');
+        // Keep the request until its coordinator confirms receipt. Returning
+        // from serve does not establish delivery of the ordinary settle reply.
+        if (!record.acknowledged) retirementReceipts.set(metadata.identity.attemptId, record.request);
+        await pending; return { settled: true };
       }
       const result = await receiver.receive({ ...metadata, payload }, { signal });
       assert(sameRouteAttemptIdentity(result.identity, metadata.identity) && result.partitionIndex === index
@@ -188,37 +225,68 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
   });
   const getState = () => ({ ready: !closed && !retiring && channel.readyState === 'open' && descriptor?.ready === true,
     participantId: remoteParticipantId, descriptor: structuredClone(descriptor), receipt: endpoint.getReceipt(),
-    retainedOutputBytes: outputBytes, unsettled: serving ? reservations.size : active.size });
+    retainedOutputBytes: outputBytes, unsettled: serving ? new Set([...reservations.keys(), ...retirementReceipts.keys()]).size : active.size });
   const notify = () => { for (const listener of listeners) { try { listener(getState()); } catch {} } };
   const closeAttempt = async ({ identity }) => {
     identity = canonicalRouteAttemptBinding(identity);
     await ready;
     const previous = active.get(identity.attemptId); if (!previous) return;
     assert(sameRouteAttemptIdentity(previous.identity, identity), 'Ordered settlement identity collision');
-    const result = await endpoint.request({ ...previous, operation: 'settle' }, new Uint8Array());
-    assert(result.settled === true, 'Ordered settlement not acknowledged'); active.delete(identity.attemptId); notify();
+    try {
+      if (!confirmed.has(identity.attemptId)) {
+        const result = await endpoint.request({ ...previous, operation: 'settle' }, new Uint8Array());
+        assert(result.settled === true, 'Ordered settlement not acknowledged');
+        confirmed.set(identity.attemptId, previous);
+      }
+      const receipt = await endpoint.request({ ...previous, operation: 'settle-accepted' }, new Uint8Array());
+      assert(receipt.accepted === true, 'Ordered settlement receipt not acknowledged');
+      active.delete(identity.attemptId); notify();
+    } catch (error) {
+      // Only an already authenticated cleanup result can survive channel loss.
+      // Concurrent retirement also confirms this exact attempt; a closed
+      // channel by itself never supplies that evidence.
+      if ((!remoteRetiring && !closed) || !sameRouteAttemptIdentity(confirmed.get(identity.attemptId)?.identity, identity)) throw error;
+      active.delete(identity.attemptId);
+    }
   };
   const close = () => {
     if (closing) return closing;
     retiring = true;
+    if (serving) for (const [id, request] of reservations) retirementReceipts.set(id, request);
     closing = (async () => {
     // Attempt known cleanup while the channel remains usable. Channel closure alone is not remote settlement.
     const failures = [];
     if (!serving) for (const request of active.values()) {
       try { await closeAttempt({ identity: request.identity }); } catch (error) { failures.push(error); }
     }
-    closed = true; descriptor = null;
+    descriptor = null;
     try { await receiver.close(); } catch (error) { failures.push(error); }
-    if (serving) for (const request of reservations.values()) {
-      try { await settleLocal(request.identity); }
-      catch (error) { failures.push(error); }
+    if (serving) {
+      for (const [id, request] of retirementReceipts) {
+        try {
+          await settleLocal(request.identity);
+          const result = await endpoint.request({ ...request, operation: 'retired' }, new Uint8Array());
+          assert(result.settled === true && result.partitionIndex === index
+            && sameRouteAttemptIdentity(result.identity, request.identity), 'Ordered retirement acknowledgment mismatch');
+          retirementReceipts.delete(id);
+        } catch (error) { failures.push(error); }
+      }
     }
-    endpoint.close(); pendingOutputs.clear(); outputBytes = 0; notify();
-    if (failures.length) throw new AggregateError(failures, 'Ordered peer cleanup remains unknown');
+    // A coordinator closing concurrently with a retirement response must not
+    // destroy the acknowledgment before the supplier receives it. The supplier
+    // owns channel closure once its exact receipts have all been acknowledged.
+    if (!serving && remoteRetiring && !closed && !failures.length) {
+      let timer;
+      try { await Promise.race([remoteClose, new Promise((_, reject) => {
+        timer = setTimeout(() => reject(Error('Ordered retirement acknowledgment remains unsettled')), limits.timeoutMs);
+      })]); } catch (error) { failures.push(error); } finally { clearTimeout(timer); }
+    }
+    if (failures.length) { notify(); throw new AggregateError(failures, 'Ordered peer cleanup remains unknown'); }
+    closed = true; endpoint.close(); pendingOutputs.clear(); outputBytes = 0; notify();
     })().catch(error => { closing = null; throw error; });
     return closing;
   };
-  channel.addEventListener('close', () => { closed = true; descriptor = null; notify(); close().catch(() => {}); }, { once: true });
+  channel.addEventListener('close', () => { closed = true; channelClosed(); descriptor = null; notify(); close().catch(() => {}); }, { once: true });
   return Object.freeze({ id: remoteParticipantId, transportId: stage.transportId, residentId: stage.residentId, executionId: stage.executionId,
     getState, subscribe(listener) { listeners.add(listener); listener(getState()); return () => listeners.delete(listener); }, close, closeAttempt,
     async refresh({ signal } = {}) {
@@ -233,7 +301,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     },
     async reserve(request) {
       request = snapshotRequest(request);
-      await ready; assert(!serving && !closed && !retiring && active.size < receiverLimits.maxAttempts, 'Ordered remote admission unavailable');
+      await ready; assert(!serving && !closed && !retiring && active.size + confirmed.size < receiverLimits.maxAttempts, 'Ordered remote admission unavailable');
       const metadata = control({ ...request, step: 0 }, 'reserve'); protocol(metadata);
       const previous = active.get(request.identity.attemptId);
       assert(!previous || sameRouteAttemptIdentity(previous.identity, metadata.identity), 'Ordered reservation identity collision');

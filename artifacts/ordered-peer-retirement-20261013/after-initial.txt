@@ -1,0 +1,24 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/ordered-partition-peer.test.js > ordered authenticated peer (in-process channels, injected computation) > traverses a remote middle activation and final token via bounded duplex binary requests under genuine grants 102ms
+ ✓ tests/unit/ordered-partition-peer.test.js > replays an identical output without recomputation and rejects different activation bytes 35ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects a changed message version before remote execution 7ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects reverse binary corruption instead of returning a fabricated activation 14ms
+ ✓ tests/unit/ordered-partition-peer.test.js > cancels after reverse output and before final acknowledgment without rerunning computation 13ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retains unknown ownership after channel loss and rejects stale cleanup identities 3ms
+ ✓ tests/unit/ordered-partition-peer.test.js > does not advertise a descriptor without actual stage capability 1ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retries explicit failed remote cleanup without clearing debt or recomputing 16ms
+ ✓ tests/unit/ordered-partition-peer.test.js > a cancelled blocked middle stage preserves an unrelated remote conversation 91ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects a reservation whose generation length exceeds its signed admission bound 3ms
+ ✓ tests/unit/ordered-partition-peer.test.js > waits for pending execution before invoking its one resident cleanup owner 21ms
+ ✓ tests/unit/ordered-partition-peer.test.js > duplicate settlement shares one cleanup and a late reservation cannot reopen the retired attempt 8ms
+ ✓ tests/unit/ordered-partition-peer.test.js > graceful serving retirement confirms exact remote settlement before channel closure 4ms
+ ✓ tests/unit/ordered-partition-peer.test.js > failed serving retirement keeps its channel and cleanup debt for explicit retry 4ms
+ ✓ tests/unit/automatic-ordered-isolation.test.js > isolates distinct tasks through cancellation, replica join, middle withdrawal and freshly approved replacement 474ms
+
+ Test Files  2 passed (2)
+      Tests  15 passed (15)
+   Start at  12:23:16
+   Duration  707ms (transform 124ms, setup 0ms, import 330ms, tests 798ms, environment 0ms)
+
