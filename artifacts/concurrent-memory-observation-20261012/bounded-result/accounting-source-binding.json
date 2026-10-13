@@ -1,0 +1,23 @@
+{
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "sources": [
+    {
+      "path": "src/memory/device-budget.js",
+      "sha256": "90b51128e9e20d17e278a839b8df21dabfbed33cbe2686b8b18f5f2828e6b00a"
+    },
+    {
+      "path": "src/memory/buffer-pool.js",
+      "sha256": "123087a2363cbbece266b714534642c12e9097715509dbb84a1a8e41622e6a83"
+    },
+    {
+      "path": "src/loader/doppler-loader.js",
+      "sha256": "76d5aeffea6e06aee5a6274a623c588004932b385ae8ea1cf2d4da381ecb3e4c"
+    },
+    {
+      "path": "src/inference/pipelines/text/partition-execution.js",
+      "sha256": "75e226779e31ed96642b8e6e6c13fc7ecbeca57eaf024928750b679f5cb5be5a"
+    }
+  ],
+  "controlSha256": "059070af9d223a4e8df69dd3102fa50db7ddb714dd00a5be62e19289b21686ad",
+  "scope": "Frozen source/control explanation; original failed receipt unchanged"
+}

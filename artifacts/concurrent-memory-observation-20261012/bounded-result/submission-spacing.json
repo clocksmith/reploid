@@ -1,0 +1,1656 @@
+{
+  "scope": "Host submission spacing in retained rolling observations; not GPU kernel timing or a causal profile",
+  "range": [
+    383,
+    459
+  ],
+  "gaps": [
+    {
+      "before": 414,
+      "after": 415,
+      "ms": 16554,
+      "previous": [
+        "resident_partition_layers"
+      ],
+      "next": [
+        "rmsnorm_encoder"
+      ],
+      "previousCommands": []
+    },
+    {
+      "before": 444,
+      "after": 445,
+      "ms": 9505,
+      "previous": [
+        "resident_partition_layers"
+      ],
+      "next": [
+        "rmsnorm_encoder"
+      ],
+      "previousCommands": []
+    },
+    {
+      "before": 406,
+      "after": 407,
+      "ms": 9378,
+      "previous": [
+        "resident_partition_layers"
+      ],
+      "next": [
+        "attention_prefill_layer_3"
+      ],
+      "previousCommands": []
+    },
+    {
+      "before": 429,
+      "after": 430,
+      "ms": 9204,
+      "previous": [
+        "resident_partition_layers"
+      ],
+      "next": [
+        "rmsnorm_encoder"
+      ],
+      "previousCommands": []
+    },
+    {
+      "before": 391,
+      "after": 392,
+      "ms": 8907,
+      "previous": [
+        "resident_partition_layers"
+      ],
+      "next": [
+        "rmsnorm_encoder"
+      ],
+      "previousCommands": []
+    },
+    {
+      "before": 384,
+      "after": 385,
+      "ms": 1,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "rmsnorm_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 387,
+      "after": 388,
+      "ms": 1,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 395,
+      "after": 396,
+      "ms": 1,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "workgroups": [
+            4096,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 397,
+      "after": 398,
+      "ms": 1,
+      "previous": [
+        "gated_delta_conv_encoder"
+      ],
+      "next": [
+        "gated_delta_recurrent_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "workgroups": [
+            96,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 403,
+      "after": 404,
+      "ms": 1,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "workgroups": [
+            3584,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 407,
+      "after": 408,
+      "ms": 1,
+      "previous": [
+        "attention_prefill_layer_3"
+      ],
+      "next": [
+        "rmsnorm_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        },
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            17,
+            1
+          ]
+        },
+        {
+          "pipeline": "split_qg_paired_pipeline",
+          "workgroups": [
+            2048,
+            1,
+            1
+          ]
+        },
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            3,
+            1
+          ]
+        },
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            3,
+            1
+          ]
+        },
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            2048,
+            1,
+            1
+          ]
+        },
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            512,
+            1,
+            1
+          ]
+        },
+        {
+          "pipeline": "rope_qk_paired_pipeline",
+          "workgroups": [
+            320,
+            1,
+            1
+          ]
+        },
+        {
+          "pipeline": "cast_two_f32_to_f16_pipeline",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        },
+        {
+          "pipeline": "cast_two_f32_to_f16_pipeline",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        },
+        {
+          "pipeline": "attention_paired_pipeline",
+          "workgroups": [
+            8,
+            256,
+            1
+          ]
+        },
+        {
+          "pipeline": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "workgroups": [
+            2048,
+            1,
+            1
+          ]
+        },
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 415,
+      "after": 416,
+      "ms": 1,
+      "previous": [
+        "rmsnorm_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 420,
+      "after": 421,
+      "ms": 1,
+      "previous": [
+        "gated_delta_conv_encoder"
+      ],
+      "next": [
+        "gated_delta_recurrent_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "workgroups": [
+            96,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 427,
+      "after": 428,
+      "ms": 1,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 430,
+      "after": 431,
+      "ms": 1,
+      "previous": [
+        "rmsnorm_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 440,
+      "after": 441,
+      "ms": 1,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 446,
+      "after": 447,
+      "ms": 1,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            25,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 450,
+      "after": 451,
+      "ms": 1,
+      "previous": [
+        "gated_delta_conv_encoder"
+      ],
+      "next": [
+        "gated_delta_recurrent_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "workgroups": [
+            96,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 453,
+      "after": 454,
+      "ms": 1,
+      "previous": [
+        "rmsnorm_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 457,
+      "after": 458,
+      "ms": 1,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 383,
+      "after": 384,
+      "ms": 0,
+      "previous": [
+        "gated_delta_recurrent_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "workgroups": [
+            16,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 385,
+      "after": 386,
+      "ms": 0,
+      "previous": [
+        "rmsnorm_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 386,
+      "after": 387,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 388,
+      "after": 389,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "workgroups": [
+            3584,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 389,
+      "after": 390,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 390,
+      "after": 391,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "resident_partition_layers"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_add_pipeline",
+          "workgroups": [
+            1024,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 392,
+      "after": 393,
+      "ms": 0,
+      "previous": [
+        "rmsnorm_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 393,
+      "after": 394,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            25,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 394,
+      "after": 395,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            9,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 396,
+      "after": 397,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "gated_delta_conv_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "workgroups": [
+            4096,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 398,
+      "after": 399,
+      "ms": 0,
+      "previous": [
+        "gated_delta_recurrent_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "workgroups": [
+            16,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 399,
+      "after": 400,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "rmsnorm_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 400,
+      "after": 401,
+      "ms": 0,
+      "previous": [
+        "rmsnorm_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 401,
+      "after": 402,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 402,
+      "after": 403,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 404,
+      "after": 405,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 405,
+      "after": 406,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "resident_partition_layers"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_add_pipeline",
+          "workgroups": [
+            1024,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 408,
+      "after": 409,
+      "ms": 0,
+      "previous": [
+        "rmsnorm_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 409,
+      "after": 410,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 410,
+      "after": 411,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 411,
+      "after": 412,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "workgroups": [
+            3584,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 412,
+      "after": 413,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 413,
+      "after": 414,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "resident_partition_layers"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_add_pipeline",
+          "workgroups": [
+            1024,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 416,
+      "after": 417,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            25,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 417,
+      "after": 418,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            9,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 418,
+      "after": 419,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "workgroups": [
+            4096,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 419,
+      "after": 420,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "gated_delta_conv_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "workgroups": [
+            4096,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 421,
+      "after": 422,
+      "ms": 0,
+      "previous": [
+        "gated_delta_recurrent_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "workgroups": [
+            16,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 422,
+      "after": 423,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "rmsnorm_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 423,
+      "after": 424,
+      "ms": 0,
+      "previous": [
+        "rmsnorm_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 424,
+      "after": 425,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 425,
+      "after": 426,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 426,
+      "after": 427,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "workgroups": [
+            3584,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 428,
+      "after": 429,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "resident_partition_layers"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_add_pipeline",
+          "workgroups": [
+            1024,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 431,
+      "after": 432,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            25,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 432,
+      "after": 433,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            9,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 433,
+      "after": 434,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "workgroups": [
+            4096,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 434,
+      "after": 435,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "gated_delta_conv_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "workgroups": [
+            4096,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 435,
+      "after": 436,
+      "ms": 0,
+      "previous": [
+        "gated_delta_conv_encoder"
+      ],
+      "next": [
+        "gated_delta_recurrent_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+          "workgroups": [
+            96,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 436,
+      "after": 437,
+      "ms": 0,
+      "previous": [
+        "gated_delta_recurrent_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "workgroups": [
+            16,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 437,
+      "after": 438,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "rmsnorm_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 438,
+      "after": 439,
+      "ms": 0,
+      "previous": [
+        "rmsnorm_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 439,
+      "after": 440,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 441,
+      "after": 442,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "workgroups": [
+            3584,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 442,
+      "after": 443,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 443,
+      "after": 444,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "resident_partition_layers"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_add_pipeline",
+          "workgroups": [
+            1024,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 445,
+      "after": 446,
+      "ms": 0,
+      "previous": [
+        "rmsnorm_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            256,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 447,
+      "after": 448,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            9,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 448,
+      "after": 449,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "workgroups": [
+            4096,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 449,
+      "after": 450,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "gated_delta_conv_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+          "workgroups": [
+            4096,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 451,
+      "after": 452,
+      "ms": 0,
+      "previous": [
+        "gated_delta_recurrent_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "gated_delta_recurrent_paired_pipeline_WORKGROUP_SIZE=128",
+          "workgroups": [
+            16,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 452,
+      "after": 453,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "rmsnorm_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            5,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 454,
+      "after": 455,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 455,
+      "after": 456,
+      "ms": 0,
+      "previous": [
+        "matmul_encoder"
+      ],
+      "next": [
+        "paired_pointwise_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+          "workgroups": [
+            65535,
+            15,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 456,
+      "after": 457,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "matmul_encoder"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+          "workgroups": [
+            3584,
+            1,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "before": 458,
+      "after": 459,
+      "ms": 0,
+      "previous": [
+        "paired_pointwise_encoder"
+      ],
+      "next": [
+        "resident_partition_layers"
+      ],
+      "previousCommands": [
+        {
+          "pipeline": "paired_pointwise_add_pipeline",
+          "workgroups": [
+            1024,
+            1,
+            1
+          ]
+        }
+      ]
+    }
+  ]
+}

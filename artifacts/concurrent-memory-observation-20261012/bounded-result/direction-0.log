@@ -1,0 +1,12 @@
+{"prepared":0,"bytes":655237392}
+{"prepared":1,"bytes":289745168}
+file:///private/var/tmp/reploid-concurrent-bounded-0fad-20261012-v2/tests/fixtures/concurrent-partition-memory.js:19
+        const error = new Error(`${label} exceeded ${milliseconds}ms; completion and ownership unknown`);
+                      ^
+
+Error [DiagnosticDeadlineError]: concurrent-baseline:step-0:group-0 exceeded 300000ms; completion and ownership unknown
+    at Timeout.<anonymous> (file:///private/var/tmp/reploid-concurrent-bounded-0fad-20261012-v2/tests/fixtures/concurrent-partition-memory.js:19:23)
+    at listOnTimeout (node:internal/timers:588:17)
+    at process.processTimers (node:internal/timers:523:7)
+
+Node.js v22.20.0

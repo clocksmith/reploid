@@ -1,0 +1,47 @@
+{
+  "scope": "CPU mock device, exact frozen archive modules; category is allocation provenance, not current model ownership",
+  "released": {
+    "device": {
+      "scope": "device-gpu-buffers",
+      "maxBytes": 1024,
+      "liveBytes": 256,
+      "peakBytes": 256,
+      "allocations": 1,
+      "rejected": 0,
+      "categories": {
+        "weights": 256,
+        "attention": 0,
+        "recurrent": 0,
+        "other": 0
+      },
+      "labels": [
+        {
+          "label": "synthetic-weight_256",
+          "category": "weights",
+          "bytes": 256,
+          "count": 1
+        }
+      ]
+    },
+    "resources": {
+      "retainedModel": {
+        "bytes": 0,
+        "count": 0
+      },
+      "active": {
+        "bytes": 0,
+        "count": 0
+      },
+      "reusable": {
+        "bytes": 256,
+        "count": 1
+      },
+      "deferredCleanup": {
+        "bytes": 0,
+        "count": 0
+      }
+    }
+  },
+  "actualReuseIdentity": true,
+  "finalAllocatedBytes": 0
+}
