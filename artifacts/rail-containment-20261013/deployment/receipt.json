@@ -1,0 +1,55 @@
+{
+  "baseRevision": "38c04a5f860ea3c3f8d33d9eaddac03c53bbe954",
+  "checkout": "/var/tmp/reploid-ui-column-l24k9g5a",
+  "scope": "Firebase hosting only: accepted public base38c04a5f plus reviewed UI delta48b4fece; no backend, runtime pin or inference changes",
+  "files": [
+    {
+      "path": "self/styles/poolday/components/conversation.css",
+      "beforeSha256": "012f1e6a49d7565610c71722e10d0332b5a99955a08cbc0aca062dac9af4bd04",
+      "afterSha256": "82d84e78581ac16db6218681d857a907a7c663810883683ef78ccf5ab8ed7b2d"
+    },
+    {
+      "path": "self/styles/poolday/components/interaction.css",
+      "beforeSha256": "733d8132fc2eee857e9b550ce04138687e1002217ebbaf34f252f9dba12ddf3d",
+      "afterSha256": "16e48f183f28db5f0876dccbfcfd1ad59bea0dd75d36f0a4fedadea48f8165a8"
+    },
+    {
+      "path": "self/styles/poolday/tokens.css",
+      "beforeSha256": "2781f8293afdd175c901939bd6e60c0f562bc67e4d3d9195ec23adaaaf8a4413",
+      "afterSha256": "010a1cf8fdad696122c2164eff2ef1095701718a128458a197cdbd02e245e801"
+    },
+    {
+      "path": "self/ui/pool-home/conversation-workspace.js",
+      "beforeSha256": "4e45ce20c934ae2dd9c20b6ed9da723af30f697c2b324fcfed8155e63e62341c",
+      "afterSha256": "5efd4d642c7b76784977177535626231981ab9ee32c350d8f3197060a34398d0"
+    }
+  ],
+  "runtimePin": {
+    "name": "doppler-gpu",
+    "version": "0.6.27",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.27.tgz",
+    "integrity": "sha512-Vy1sOPYVImM+EfSpBIhOdtlrM/a4vwEo5TIFGESRim+En1mrbt3CLOhJI2H4UL5fv/i9+8FAKtHSiHACWRvw6A=="
+  },
+  "uiSourceCommit": "48b4fecef4453b543bd571474af00e79535422b9",
+  "browserBundle": {
+    "schema": "poolday.browser_bundle_manifest/v1",
+    "hashAlgorithm": "sha256",
+    "publicRoot": "self",
+    "descriptor": {
+      "path": "config/browser-bundle-manifest.json",
+      "includedInBundle": false,
+      "reason": "descriptor-cannot-hash-itself"
+    },
+    "files": 1921,
+    "bundleHash": "sha256:975aa791c2a48c592fed62f1467549841a1e473990ffe8318e3bf1fd779fceda"
+  },
+  "patchSha256": "5259a03feab46b2a16cc483671221e35984b8fde21647547d758857ad9c15816",
+  "deployed": true,
+  "url": "https://replo.id",
+  "verifiedFiles": 1921,
+  "packagedFiles": 1922,
+  "servedBundle": "sha256:975aa791c2a48c592fed62f1467549841a1e473990ffe8318e3bf1fd779fceda",
+  "liveChecks": "18 panel/viewport states across1440/900/390/320; identical transcript/composer edges, no desktop overlap or horizontal overflow, preserved input during toggles; no inference",
+  "observedCapacityLimit": "Live anonymous UI showed connected peers without prepared model offers during these checks. This is not a current successful public inference test."
+}
