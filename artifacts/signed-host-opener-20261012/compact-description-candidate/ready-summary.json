@@ -1,0 +1,30 @@
+{
+  "observedAt": "2026-10-13T12:40:53.566056+00:00",
+  "timestampScope": "Observation upper bound; original partition log event has no outer timestamp.",
+  "pid": 2525851,
+  "archiveSha256": "7a485fe7701980ea331551f62e7ac91025477a13cc624fed39106af2bfaef195",
+  "rawSha256": "3d5a513f23cc4c5a9b3bd85670af22837f9b65b9d216246a4b72e775e1a566e0",
+  "rawBytes": 473255,
+  "descriptor": {
+    "schema": "doppler.resident-partition/v1",
+    "ready": true,
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+    "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+    "index": 0,
+    "layerRange": [
+      0,
+      11
+    ],
+    "residentWeightBytes": 650989568,
+    "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+  },
+  "reservations": {
+    "closed": false,
+    "active": 0,
+    "availableSlots": 2,
+    "records": []
+  },
+  "unsettledOwners": 0,
+  "scope": "Signed native assigned partition readiness only. Requester discovery and conversation are separate acceptance."
+}
