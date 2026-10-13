@@ -1,7 +1,8 @@
 # One source-role selection, then an evidence report
 
-Prepared candidate only; no source model has run. The active four-pair direct
-thinking control must settle before launch. No production code or pin changes.
+The frozen candidate ran after the four-pair direct thinking control settled.
+Its first call was rejected; six cases remain unrun. See [RESULTS.md](RESULTS.md).
+No production code or pin changes.
 
 The available-typed candidate let the model choose arithmetic operations and
 misused operand kinds. Direct narrative generation separately adds deposits to
