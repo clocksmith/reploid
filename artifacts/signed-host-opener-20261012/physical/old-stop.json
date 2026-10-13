@@ -1,0 +1,18 @@
+{
+  "pid": 62144,
+  "state": {
+    "phase": "failed",
+    "error": "Capsule runtime openCapsule() requires explicit ports: device, programFactory.",
+    "attempts": [],
+    "reservations": null,
+    "unsettledOwners": 0
+  },
+  "signal": "SIGTERM",
+  "sentAt": 1791890105.6517344,
+  "exit": {
+    "pid": 62144,
+    "exitCode": 0,
+    "exitedAt": 1791890105.9134707
+  },
+  "pidAbsent": true
+}

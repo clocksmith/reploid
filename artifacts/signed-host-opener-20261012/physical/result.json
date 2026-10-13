@@ -1,0 +1,44 @@
+{
+  "schema": "reploid.signed-host-physical-opening/v1",
+  "artifactSha256": "a1659225c581039dffd744c72830a307b3f770b535b7ee7d6b15eeeaba683485",
+  "runtimeArchiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "productionCorrection": "d9e80304",
+  "applicationDelta": "Only server/native-participant.js imports doppler-gpu/host instead of low-level doppler-gpu",
+  "pid": 1623541,
+  "openingMode": "signed-capsule",
+  "phase": "ready",
+  "error": null,
+  "reservations": {
+    "closed": false,
+    "active": 0,
+    "availableSlots": 2,
+    "records": []
+  },
+  "unsettledOwners": 0,
+  "capsuleIdentity": {
+    "schema": "doppler.capsule/v3",
+    "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-73da7f55117f895e9d17a1dd811e411c6e4631596f70941042559c3d0a344142",
+    "semanticRoot": "sha256:73da7f55117f895e9d17a1dd811e411c6e4631596f70941042559c3d0a344142",
+    "envelopeDigest": "sha256:bd250a2162196f5988c806dcda48a79f14724bd8d373744d4ab9582c613ecafd",
+    "artifactClosureDigest": "sha256:5cfd494efb8f08ec60cc8ccd67c3bbe9da02d18247cbddc04a47200a88a35b09"
+  },
+  "authorizationVerifiedAtUtc": "2026-10-13T11:15:24.483Z",
+  "pieceVerification": {
+    "mode": "signed-piece-index",
+    "indexIdentity": "sha256:5417f9423b37fd49f492932ad07d61ed979aaaf3fe9c365fb4b4623da9b47849",
+    "manifestIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+    "requestedBytes": 1454768516,
+    "verifiedBytes": 852161152,
+    "activeReadBytes": 0,
+    "peakReadBytes": 10209888
+  },
+  "firstReadyRawSha256": "e38ed88b73c6bd62ff54a1e21c258bddc99d9414ffd2f13d3b1391cb53d24e16",
+  "firstReadyRawBytes": 473014,
+  "limitations": [
+    "No inference request was sent in this opening check.",
+    "Mac counterpart failed pieces.json offer acquisition, so complete signed application route remains unqualified.",
+    "Physical GPU shared with public consumers; no isolated performance claim.",
+    "Candidate remains alive; this receipt does not claim final resource release.",
+    "Persistent sharing grant/cache/identity reused unchanged; no allowance renewal."
+  ]
+}
