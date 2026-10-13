@@ -1,0 +1,28 @@
+{
+  "sourceRevision": "7a49a7eabf2415163d36c08c0dfc62859a098834",
+  "scope": "Base snapshot only; corrected signed catalog not yet supplied",
+  "root": "/private/var/tmp/reploid-basic-signed-candidate-20261013/app",
+  "browserFiles": 1985,
+  "bundleHash": "sha256:167a3411bef5983ea5fcbc37fb6992c8b2f3c00ed33202264016bccfe1f02325",
+  "browserManifestSha256": "70a7d6ab0b4e4c27ce44d1089f1e43b533001e4ffd1ed57f0e17143d9c2372d7",
+  "runtimeArchiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "pin": {
+    "name": "doppler-gpu",
+    "version": "0.6.28",
+    "spec": "file:deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "resolved": "file:deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "integrity": "sha512-5Yul912TRzN7ul60b7DchbE3E79+8ls0m9trWFUHffCM4wPQZoHlb0Htrz2Rz87YUiInP3BENj2m30CbcLqegA=="
+  },
+  "catalogSha256": "1d5e76f1a2259ef8641b325f6422c9ab48a83dd28528dae45abdddb708aa97d5",
+  "canonicalDefaultOff": true,
+  "sourceFiles": {
+    "server/native-participant.js": "42138de26346c63b0dc9defe1f5a7a0cecdac355e3d04a1329d1d2f0316fcd0a",
+    "server/native-model-files.js": "c4624b4f729a4f1d5b4fc271ebad32068b346ce16e996d32e8087ff49a883cbd",
+    "packages/reploid/src/artifacts/custody/exchange.js": "057483a5b567e90d891637f28d56a19b1a559e0c29cd2c09ef763f706f2b9bcd",
+    "packages/reploid/src/mesh/partitions/partition-chat.js": "d6493f32f9943f2cf62e21e6a137213e74b8c5821621b6facbcbf4bd29ea41cd",
+    "packages/reploid/src/transport/swarm.js": "407d453582b837099f34c07788892d88a1b1af49db2625ea2799ad59e3d2da6e",
+    "self/host/product-session.js": "99756cf4e2cede0cbea4a5f92d8baa3b4a4973c400c9f71a845c408b1ac2c773",
+    "self/ui/pool-home/index.js": "64479c49766aea989ba207a384c45677d8205753654bd9c174f50200271d7369",
+    "self/config/reploid-library.json": "7d4ddcd882d6fe6068a5c89ab1b19e4a2e3bf20424998fad6fc314de8255ed84"
+  }
+}

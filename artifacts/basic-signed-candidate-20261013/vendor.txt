@@ -1,0 +1,1 @@
+{"version":"0.6.28","integrity":"sha512-5Yul912TRzN7ul60b7DchbE3E79+8ls0m9trWFUHffCM4wPQZoHlb0Htrz2Rz87YUiInP3BENj2m30CbcLqegA==","files":1976,"target":"/private/var/tmp/reploid-basic-signed-candidate-20261013/app/self/vendor/doppler/0.6.28"}

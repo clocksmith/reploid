@@ -1,0 +1,24 @@
+{
+  "schema": "reploid.native-base-verification/v1",
+  "directory": "/var/tmp/reploid-basic-signed-candidate-20261013/reploid",
+  "nativeArchiveSha256": "097ae4205d7a10cbe679354884338de26e0a0a1769419f6563f03c532bbdae27",
+  "descriptorSha256": "006dabd00b830f6fc5289feeba222eff84dbba258a4aa162d3d8c40592f99a18",
+  "nativeFiles": 102,
+  "runtimeFiles": 1976,
+  "runtimeArchiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "catalogSha256": "1d5e76f1a2259ef8641b325f6422c9ab48a83dd28528dae45abdddb708aa97d5",
+  "catalogStage": "committed unsigned base; signed handoff pending",
+  "dependencyVersions": {
+    "doppler-gpu": "0.6.28",
+    "@roamhq/wrtc": "0.10.0",
+    "ws": "8.21.0",
+    "webgpu": "0.4.0"
+  },
+  "node": "v22.22.1",
+  "platform": "linux",
+  "architecture": "x64",
+  "GPUOpened": false,
+  "publicContributorChanged": false,
+  "ledgerOpened": false,
+  "physicalQualified": false
+}
