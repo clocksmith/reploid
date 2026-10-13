@@ -1,0 +1,50 @@
+{
+  "at": "2026-10-13T15:58:34.690808+00:00",
+  "MacUserChrome": {
+    "pid": 34460,
+    "gpuPid": 34490,
+    "ownership": "user browser, untouched"
+  },
+  "remote": [
+    {
+      "host": "AMD",
+      "pid": 4103868,
+      "ppid": 1,
+      "state": "Rsl",
+      "elapsed": "13:54:55",
+      "role": "public contributor"
+    },
+    {
+      "host": "AMD",
+      "pid": 4121371,
+      "ppid": 1,
+      "state": "Ssl",
+      "elapsed": "13:53:20",
+      "role": "public contributor"
+    },
+    {
+      "host": "Suby",
+      "pid": 297260,
+      "ppid": 1,
+      "state": "Rsl",
+      "elapsed": "13:54:34",
+      "role": "public contributor"
+    },
+    {
+      "host": "Suby",
+      "pid": 299769,
+      "ppid": 1,
+      "state": "Ssl",
+      "elapsed": "13:51:19",
+      "role": "public contributor"
+    },
+    {
+      "host": "Suby",
+      "pid": 792477,
+      "ppid": 792474,
+      "state": "Rsl",
+      "elapsed": "04:41",
+      "role": "owned load-only preflight"
+    }
+  ]
+}

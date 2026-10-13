@@ -1,0 +1,10 @@
+{
+  "schema": "reploid.ordered-window/v1",
+  "id": "root-mac-amd-suby-three-stage-20261013",
+  "approved": true,
+  "observedAt": "2026-10-13T15:53:36.863909+00:00",
+  "sharedMachineNotes": "Functional window; public natives/browser contributors and user Chrome remain. No exclusivity or speed claim.",
+  "archive": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+  "nativeArchive": "d73081423fb00bfc64ecc56e8faf502048d86279c526189cf88a8382a6039cb6",
+  "snapshot": "9d7b6eeedd1cc8641a759212c653605344c436bdaead2a054f828b4372687bd2"
+}

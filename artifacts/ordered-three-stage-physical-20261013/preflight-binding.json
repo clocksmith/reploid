@@ -1,0 +1,13 @@
+{
+  "schema": "reploid.ordered-load-preflight-binding/v1",
+  "snapshotHash": "9d7b6eeedd1cc8641a759212c653605344c436bdaead2a054f828b4372687bd2",
+  "archiveHash": "5e0d60bc433d332187d422721fd7afcaec780c202e3082adcab389b47fd27fc5",
+  "nativeArchiveHash": "d73081423fb00bfc64ecc56e8faf502048d86279c526189cf88a8382a6039cb6",
+  "scriptSha256": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a",
+  "operation": "Load only through exact frozen fixture preparation and initial identity observer; no token execution",
+  "deadlines": {
+    "stageMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000
+  }
+}

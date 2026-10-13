@@ -1,0 +1,39 @@
+{
+  "at": "2026-10-13T16:04:40.268468+00:00",
+  "controllerResults": {
+    "MacLoadController": {
+      "exitCode": 0
+    },
+    "AMDLoadController": {
+      "exitCode": 0
+    },
+    "SubyLoadController": {
+      "exitCode": 1
+    },
+    "AMDNativeSSH": {
+      "exitCode": 0,
+      "signalSent": false
+    },
+    "SubyNativeSSH": {
+      "exitCode": 0,
+      "signalSent": false
+    }
+  },
+  "processChecks": {
+    "Mac": {
+      "exitCode": 1,
+      "stdout": "  PID  PPID STAT COMMAND\n",
+      "stderr": ""
+    },
+    "AMD": {
+      "exitCode": 0,
+      "stdout": "    PID    PPID STAT COMMAND\n4103868       1 Rsl  node\n4121371       1 Ssl  node\n",
+      "stderr": ""
+    },
+    "Suby": {
+      "exitCode": 0,
+      "stdout": "    PID    PPID STAT COMMAND\n 297260       1 Rsl  node\n 299769       1 Ssl  node\n",
+      "stderr": ""
+    }
+  }
+}
