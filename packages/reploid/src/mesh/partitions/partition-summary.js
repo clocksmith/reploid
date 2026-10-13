@@ -1,6 +1,12 @@
 /** Fixed-size timing projection for a completed requester response. Detailed
  * per-step observations belong to the executing runner, not its control frame. */
 export function summarizePartitionExecution(execution) {
+  if (execution.schema === 'reploid.mesh.canonical-partition-execution/v1') {
+    // Signed records are already retained by the requester transaction owner.
+    // Do not transfer the full history again in a bounded final control frame.
+    const { publications: _publications, ...summary } = execution;
+    execution = summary;
+  }
   if (!Array.isArray(execution.steps)) return structuredClone(execution);
   const { steps, transport, ...binding } = execution;
   const metrics = {};

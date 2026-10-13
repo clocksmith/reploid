@@ -1,17 +1,18 @@
+import type { EntryPublicationContext, EntryPublicationOwner, EntryPublicationRecord } from './partition-entry-publication.js';
 import type { PartitionChat } from './partition-chat.js';
 import type { PartitionBinding } from './partition-runner.js';
 import type { PartitionChannelLimits } from '../../transport/partition-data-channel.js';
 export interface PartitionInput extends PartitionBinding {
- meshId:string;requesterId:string;placementGeneration:number;messages:Array<{role:string;content:string}>;
+ canonical?:EntryPublicationContext;meshId:string;requesterId:string;placementGeneration:number;messages:Array<{role:string;content:string}>;
 }
 export interface PartitionEntry {
  readonly id:string;
  getState():{ready:boolean;descriptor:{models:any[];accepting:boolean;slots:number}|null;observedAt:number;receipt:object};
  refresh(options?:{signal?:AbortSignal}):Promise<ReturnType<PartitionEntry['getState']>>;
- generate(input:PartitionInput,options?:{signal?:AbortSignal;onDelta?:(text:string)=>void}):Promise<{content:string;execution:PartitionBinding & Record<string,unknown>}>;
+ generate(input:PartitionInput,options?:{signal?:AbortSignal;onDelta?:(text:string)=>void;publication?:EntryPublicationOwner;onPublished?:(record:EntryPublicationRecord)=>void|Promise<void>}):Promise<{content:string;execution:PartitionBinding & Record<string,unknown>}>;
  drain():Promise<void>;close():Promise<void>;
 }
-export function createPartitionEntry(options:{channel:RTCDataChannel;localParticipantId:string;remoteParticipantId:string;service?:PartitionChat|null;
+export function createPartitionEntry(options:{channel:RTCDataChannel;localParticipantId:string;remoteParticipantId:string;service?:PartitionChat|null;canonical?:boolean;
  authorize(input:PartitionInput,context:{action:string}):Promise<boolean>;limits:PartitionChannelLimits;
  inputLimits:{maxInputCharacters:number;maxOutputCharacters:number;maxAttempts:number;maxConcurrentAttempts:number;descriptorTtlMs:number};now?:()=>number}):PartitionEntry;
 export function createPartitionRequester(options:{entries:()=>PartitionEntry[];requesterId:string;meshId:string;modelId:string;modelIdentity:string;planId:string;

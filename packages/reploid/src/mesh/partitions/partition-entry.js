@@ -1,20 +1,24 @@
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
-import { assertPartition as assert } from './partition-contract.js';
+import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
 import { summarizePartitionExecution } from './partition-summary.js';
+import { createEntryPublicationScope, entryPublicationEnvelope, matchingEntryPublication,
+  validateEntryPublicationContext } from './partition-entry-publication.js';
 
 /** Requester-to-A channel. This module imports no tokenizer, tensor codec or GPU runtime.
  * The host authenticates the channel and grants input disclosure to both stages.
  * A's chat port owns the A-to-B execution channel; activation bytes never enter here.
  */
 export function createPartitionEntry({ channel, localParticipantId, remoteParticipantId,
-  service = null, authorize, limits, inputLimits, now = Date.now }) {
+  service = null, canonical = false, authorize, limits, inputLimits, now = Date.now }) {
   assert(typeof authorize === 'function' && ['maxInputCharacters', 'maxOutputCharacters', 'maxAttempts',
     'maxConcurrentAttempts', 'descriptorTtlMs'].every(key => Number.isSafeInteger(inputLimits?.[key]) && inputLimits[key] > 0),
   'Entry authorization and input budgets required');
+  assert(typeof canonical === 'boolean', 'Explicit canonical entry capability required');
   const policy = structuredClone(inputLimits), active = new Map(), retired = new Set();
-  const deliveries = new Map();
+  const deliveries = new Map(), unsettledPublications = new Set();
   let draining = false, closed = false, descriptor = null, observedAt = 0;
-  const valid = m => m?.operation === 'generate' && m?.schema === 'reploid.partition-input/v1' && m.requesterId !== m.participantA
+  const valid = m => m?.operation === 'generate' && (m?.schema === 'reploid.partition-input/v1' && m.canonical === undefined
+      || canonical && m?.schema === 'reploid.partition-input/v2' && !!validateEntryPublicationContext(m.canonical, m)) && m.requesterId !== m.participantA
     && m.participantA !== m.participantB && typeof m.attemptId === 'string' && m.attemptId.length <= 128
     && typeof m.threadId === 'string' && m.threadId.length <= 128
     && Number.isSafeInteger(m.placementGeneration) && m.placementGeneration >= 0
@@ -25,10 +29,17 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
     async authorize({ action, metadata, byteLength }) {
       if (byteLength !== 0) return false;
       if (metadata.operation === 'describe') return true;
+      if (metadata.operation === 'publication') {
+        const sending = action === 'send' || action === 'accept';
+        const request = (sending ? active : deliveries).get(metadata.attemptId)?.request;
+        return canonical && !!request && matchingEntryPublication(metadata, request)
+          && request.requesterId === (sending ? remoteParticipantId : localParticipantId)
+          && await authorize(structuredClone(request), { action }) === true;
+      }
       if (metadata.operation === 'delta') {
         const sending = action === 'send' || action === 'accept';
         const request = sending ? active.get(metadata.attemptId)?.request : deliveries.get(metadata.attemptId)?.request;
-        return !!request && metadata.requesterId === request.requesterId
+        return !!request && request.schema === 'reploid.partition-input/v1' && metadata.requesterId === request.requesterId
           && metadata.participantA === request.participantA && metadata.threadId === request.threadId
           && metadata.requesterId === (sending ? remoteParticipantId : localParticipantId)
           && Number.isSafeInteger(metadata.sequence) && metadata.sequence >= 0
@@ -42,6 +53,11 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       return await authorize(structuredClone(metadata), { action }) === true;
     },
     async serve(m, _bytes, { signal }) {
+      if (m.operation === 'publication') {
+        const scope = deliveries.get(m.attemptId)?.publication;
+        assert(scope, 'Requester publication owner unavailable');
+        return scope.call(m.method, m.body);
+      }
       if (m.operation === 'delta') {
         const delivery = deliveries.get(m.attemptId);
         assert(delivery && m.sequence === delivery.sequence, 'Stream delta is stale or out of order');
@@ -61,15 +77,28 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         && model.partition?.planId === m.planId && model.partition.participantA === m.participantA
         && model.partition.participantB === m.participantB && model.availability === 'ready');
       assert(model, 'Requested placement is not ready');
+      const isCanonical = m.schema === 'reploid.partition-input/v2';
+      if (isCanonical) {
+        assert(model.canonical && ['coordinatorEpoch', 'routeId', 'generation', 'stages', 'vocabSize'].every(key =>
+          canonicalPartitionJson(model.canonical[key]) === canonicalPartitionJson(m.canonical[key])),
+        'Canonical entry placement changed');
+      }
+      const publicationCall = (method, body) => endpoint.request(entryPublicationEnvelope(m, method, body),
+        new Uint8Array(), { signal });
+      const publication = isCanonical ? Object.freeze({ requiresCommitEvidence: true,
+        reconcile: () => publicationCall('head', {}), admitAttempt: body => publicationCall('admit', body),
+        publish: (value, { evidence } = {}) => publicationCall('publish', { publication: value, evidence }),
+        cancel: (attemptId, coordinatorEpoch) => publicationCall('cancel', { attemptId, coordinatorEpoch }) }) : undefined;
       retired.add(m.attemptId);
       const admission = { request: structuredClone(m), operation: null };
       active.set(m.attemptId, admission);
       let delivery = Promise.resolve(), sequence = 0;
       const operation = Promise.resolve().then(() => service.generate({ meshId: m.meshId, participantId: m.requesterId,
         threadId: m.threadId, attemptId: m.attemptId, placementGeneration: m.placementGeneration,
-        model, messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
-      { signal, requestApproval: async () => authorize(structuredClone(m), { action: 'execute' }),
+        model, ...(isCanonical ? { canonical: structuredClone(m.canonical) } : {}), messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
+      { signal, publication, requestApproval: async () => authorize(structuredClone(m), { action: 'execute' }),
         onState() {}, onDelta({ text }) {
+          if (isCanonical) return; // Requester projects the durable publication RPC, never this raw callback.
           const delta = { operation: 'delta', requesterId: m.requesterId, participantA: m.participantA,
             threadId: m.threadId, attemptId: m.attemptId, sequence: sequence++, text };
           delivery = delivery.then(() => endpoint.request(delta, new Uint8Array(), { signal }));
@@ -89,7 +118,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
   });
   return Object.freeze({
     id: remoteParticipantId,
-    getState() { return { ready: !closed && now() - observedAt < policy.descriptorTtlMs
+    getState() { return { ready: !closed && unsettledPublications.size === 0 && now() - observedAt < policy.descriptorTtlMs
       && descriptor?.accepting === true && descriptor.slots > 0,
     descriptor: structuredClone(descriptor), observedAt, receipt: endpoint.getReceipt() }; },
     async refresh({ signal } = {}) {
@@ -98,23 +127,58 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         'Invalid entry descriptor');
       observedAt = now(); return this.getState();
     },
-    async generate(request, { signal, onDelta } = {}) {
+    async generate(request, { signal, onDelta, publication, onPublished } = {}) {
       assert(!closed && this.getState().ready, 'Refresh an available entry before requesting execution');
-      const metadata = { ...structuredClone(request), operation: 'generate', schema: 'reploid.partition-input/v1',
+      const isCanonical = request.canonical !== undefined;
+      assert(!isCanonical || canonical, 'Canonical entry capability unavailable');
+      assert(isCanonical || publication === undefined, 'Publication owner requires explicit canonical context');
+      const metadata = { ...structuredClone(request), operation: 'generate',
+        schema: isCanonical ? 'reploid.partition-input/v2' : 'reploid.partition-input/v1',
         requesterId: localParticipantId, participantA: remoteParticipantId };
       assert(!deliveries.has(metadata.attemptId), 'Entry attempt already streaming');
-      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, onDelta });
+      assert(valid(metadata), 'Invalid partition entry input');
+      const scope = isCanonical ? createEntryPublicationScope({ request: metadata, owner: publication, onPublished,
+        authorize: () => authorize(structuredClone(metadata), { action: 'publish' }),
+        maxControlBytes: limits.maxControlBytes, maxOutputCharacters: policy.maxOutputCharacters }) : null;
+      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, onDelta, publication: scope });
       let result;
-      try { result = await endpoint.request(metadata, new Uint8Array(), { signal }); }
-      finally { deliveries.delete(metadata.attemptId); }
+      let failure = null;
+      try {
+        result = await endpoint.request(metadata, new Uint8Array(), { signal });
       assert(typeof result.content === 'string' && result.content.length <= policy.maxOutputCharacters
         && ['requesterId', 'participantA', 'participantB', 'modelId', 'modelIdentity', 'planId', 'threadId',
           'attemptId', 'placementGeneration'].every(key => result.execution?.[key] === metadata[key]),
       'Entry response identity mismatch');
+      if (scope) {
+        const projection = scope.getProjection();
+        assert(projection.count > 0 && projection.terminal && result.content === projection.content, 'Entry result differs from durable publication');
+      }
+      }
+      catch (error) { failure = error; }
+      finally {
+        try { await scope?.close({ cancel: failure !== null }); }
+        catch (error) {
+          unsettledPublications.add(scope);
+          failure = failure ? new AggregateError([failure, error], 'Entry execution and publication cancellation failed') : error;
+        }
+        deliveries.delete(metadata.attemptId);
+      }
+      if (failure) throw failure;
       return result;
     },
     async drain() { draining = true; await Promise.allSettled([...active.values()].map(item => item.operation)); },
-    async close() { closed = true; endpoint.close(); await Promise.allSettled([...active.values()].map(item => item.operation)); deliveries.clear(); },
+    async close() {
+      closed = true; endpoint.close();
+      const scopes = [...new Set([...unsettledPublications, ...[...deliveries.values()].map(item => item.publication).filter(Boolean)])];
+      const closing = await Promise.allSettled(scopes.map(async scope => {
+        unsettledPublications.add(scope);
+        await scope.close({ cancel: true }); unsettledPublications.delete(scope);
+      }));
+      await Promise.allSettled([...active.values()].map(item => item.operation));
+      const failures = closing.filter(item => item.status === 'rejected').map(item => item.reason);
+      if (failures.length) throw new AggregateError(failures, 'Entry publication cancellation did not settle');
+      deliveries.clear();
+    },
   });
 }
 
