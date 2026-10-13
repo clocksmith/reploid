@@ -1,0 +1,92 @@
+{
+  "sources": {
+    "/packages/reploid/src/mesh/partitions/automatic-partitions.js": "8b2d44c0ba91db723c7a42b4d2fa29edc5524d76cccd2dc55c742bdc5063e0a7",
+    "/tests/unit/automatic-partition-discovery-lifetime.test.js": "bc5898ac2adc9ff91bffecbd4ff1fb09c0e146b0640aa70dd0f4ccfe58324ee9"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "File has 26 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/automatic-partition-discovery-lifetime.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "complexity",
+        "timestamp": 1791856364458,
+        "metric": "functions",
+        "value": 26,
+        "threshold": 20,
+        "message": "File has 26 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791856364458,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791856364460,
+        "path": "/tests/unit/automatic-partition-discovery-lifetime.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791856364461,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/tests/unit/automatic-partition-discovery-lifetime.test.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/tests/unit/automatic-partition-discovery-lifetime.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 26,
+          "threshold": 20,
+          "message": "File has 26 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/tests/unit/automatic-partition-discovery-lifetime.test.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

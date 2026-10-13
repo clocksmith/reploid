@@ -1,0 +1,1719 @@
+{
+  "sourcePath": "/home/clocksmith/.local/state/reploid/public-native-budget-20261012.log",
+  "readOnly": true,
+  "sourceSizeAtRead": 1214134341,
+  "scope": "Selected exact native state fields from adjacent complete JSON log rows; capability clocks are observations, not log timestamps; no restart or GPU launch.",
+  "targetAttemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+  "rows": [
+    {
+      "offset": 1181289017,
+      "rawBytes": 62483,
+      "rawLineSha256": "347263541004173fce13dc01c274e2dfbfbf51ab367685520b1a6c6b20055c6a",
+      "phase": "ready",
+      "error": null,
+      "placement": [
+        "peer:57adcc49bae5ed5eefe8fbf1",
+        "peer:8293261cfefa530c6a7ade6c"
+      ],
+      "placementDecision": {
+        "participants": [
+          "peer:57adcc49bae5ed5eefe8fbf1",
+          "peer:8293261cfefa530c6a7ade6c"
+        ],
+        "eligibility": [
+          {
+            "participantId": "peer:688e732256ab83155c54f72e",
+            "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+            "observedAt": 1791855341908,
+            "expiresAt": 1791855351908,
+            "reason": "approved-model-contribution",
+            "index": 0
+          },
+          {
+            "participantId": "peer:8293261cfefa530c6a7ade6c",
+            "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+            "observedAt": 1791855341908,
+            "expiresAt": 1791855351908,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b271a1a35a47e50f133b9952",
+            "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+            "observedAt": 1791855341901,
+            "expiresAt": 1791855351901,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b069f16956c55011037180f4",
+            "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+            "observedAt": 1791855341921,
+            "expiresAt": 1791855351921,
+            "reason": "model-mismatch",
+            "index": null
+          },
+          {
+            "participantId": "peer:df530c7bf3fb4d235e9b1824",
+            "transportId": "2e22debf-c841-44d9-9f9a-f7c4c680d558",
+            "observedAt": 1791855341921,
+            "expiresAt": 1791855351921,
+            "reason": "model-mismatch",
+            "index": null
+          }
+        ],
+        "reason": "retain-input-owner"
+      },
+      "capabilities": [
+        {
+          "participantId": "peer:688e732256ab83155c54f72e",
+          "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+          "observedAt": 1791855343907,
+          "expiresAt": 1791855353907,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "ready",
+            "index": 0,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:57adcc49bae5ed5eefe8fbf1"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:8293261cfefa530c6a7ade6c",
+          "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "observedAt": 1791855343907,
+          "expiresAt": 1791855353907,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:8293261cfefa530c6a7ade6c"
+            ],
+            "capacity": {
+              "active": 1,
+              "availableSlots": 1,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b271a1a35a47e50f133b9952",
+          "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "observedAt": 1791855343901,
+          "expiresAt": 1791855353901,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:b271a1a35a47e50f133b9952"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b069f16956c55011037180f4",
+          "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "observedAt": 1791855343920,
+          "expiresAt": 1791855353920,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:df530c7bf3fb4d235e9b1824",
+          "transportId": "2e22debf-c841-44d9-9f9a-f7c4c680d558",
+          "observedAt": 1791855341921,
+          "expiresAt": 1791855351921,
+          "available": false,
+          "reason": "description-unavailable",
+          "description": {
+            "phase": null,
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+          "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+          "observedAt": 0,
+          "expiresAt": 10000,
+          "available": false,
+          "reason": "unobserved",
+          "description": {
+            "phase": null,
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        }
+      ],
+      "attempts": [
+        {
+          "identity": {
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+            "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+            "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+            "participantB": "peer:8293261cfefa530c6a7ade6c",
+            "requesterId": "peer:b069f16956c55011037180f4",
+            "placementGeneration": 0
+          },
+          "phase": "executing",
+          "startedAt": 1791855339784,
+          "failure": null,
+          "reservations": [
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+                "participantB": "peer:8293261cfefa530c6a7ade6c",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+                "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+                "requesterId": "peer:b069f16956c55011037180f4",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+              "index": 0,
+              "phase": "reserved",
+              "reservedAt": 1791855339776,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+                "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+                "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+                "participantB": "peer:8293261cfefa530c6a7ade6c",
+                "requesterId": "peer:b069f16956c55011037180f4",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:8293261cfefa530c6a7ade6c",
+              "index": 1,
+              "phase": "reserved",
+              "reservedAt": 1791855339793,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            }
+          ],
+          "cleanupStartedAt": null,
+          "cleanupSettledAt": null,
+          "cleanup": []
+        }
+      ],
+      "reservation": {
+        "active": 1,
+        "records": [
+          {
+            "identity": {
+              "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+              "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+              "participantB": "peer:8293261cfefa530c6a7ade6c",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+              "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+              "requesterId": "peer:b069f16956c55011037180f4",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "index": 0,
+            "phase": "reserved",
+            "reservedAt": 1791855339776,
+            "settlingAt": null,
+            "settledAt": null,
+            "failure": null,
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ]
+      },
+      "unsettledOwners": 0
+    },
+    {
+      "offset": 1181351500,
+      "rawBytes": 62483,
+      "rawLineSha256": "347263541004173fce13dc01c274e2dfbfbf51ab367685520b1a6c6b20055c6a",
+      "phase": "ready",
+      "error": null,
+      "placement": [
+        "peer:57adcc49bae5ed5eefe8fbf1",
+        "peer:8293261cfefa530c6a7ade6c"
+      ],
+      "placementDecision": {
+        "participants": [
+          "peer:57adcc49bae5ed5eefe8fbf1",
+          "peer:8293261cfefa530c6a7ade6c"
+        ],
+        "eligibility": [
+          {
+            "participantId": "peer:688e732256ab83155c54f72e",
+            "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+            "observedAt": 1791855341908,
+            "expiresAt": 1791855351908,
+            "reason": "approved-model-contribution",
+            "index": 0
+          },
+          {
+            "participantId": "peer:8293261cfefa530c6a7ade6c",
+            "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+            "observedAt": 1791855341908,
+            "expiresAt": 1791855351908,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b271a1a35a47e50f133b9952",
+            "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+            "observedAt": 1791855341901,
+            "expiresAt": 1791855351901,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b069f16956c55011037180f4",
+            "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+            "observedAt": 1791855341921,
+            "expiresAt": 1791855351921,
+            "reason": "model-mismatch",
+            "index": null
+          },
+          {
+            "participantId": "peer:df530c7bf3fb4d235e9b1824",
+            "transportId": "2e22debf-c841-44d9-9f9a-f7c4c680d558",
+            "observedAt": 1791855341921,
+            "expiresAt": 1791855351921,
+            "reason": "model-mismatch",
+            "index": null
+          }
+        ],
+        "reason": "retain-input-owner"
+      },
+      "capabilities": [
+        {
+          "participantId": "peer:688e732256ab83155c54f72e",
+          "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+          "observedAt": 1791855343907,
+          "expiresAt": 1791855353907,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "ready",
+            "index": 0,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:57adcc49bae5ed5eefe8fbf1"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:8293261cfefa530c6a7ade6c",
+          "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "observedAt": 1791855343907,
+          "expiresAt": 1791855353907,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:8293261cfefa530c6a7ade6c"
+            ],
+            "capacity": {
+              "active": 1,
+              "availableSlots": 1,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b271a1a35a47e50f133b9952",
+          "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "observedAt": 1791855343901,
+          "expiresAt": 1791855353901,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:b271a1a35a47e50f133b9952"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b069f16956c55011037180f4",
+          "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "observedAt": 1791855343920,
+          "expiresAt": 1791855353920,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:df530c7bf3fb4d235e9b1824",
+          "transportId": "2e22debf-c841-44d9-9f9a-f7c4c680d558",
+          "observedAt": 1791855341921,
+          "expiresAt": 1791855351921,
+          "available": false,
+          "reason": "description-unavailable",
+          "description": {
+            "phase": null,
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+          "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+          "observedAt": 0,
+          "expiresAt": 10000,
+          "available": false,
+          "reason": "unobserved",
+          "description": {
+            "phase": null,
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        }
+      ],
+      "attempts": [
+        {
+          "identity": {
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+            "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+            "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+            "participantB": "peer:8293261cfefa530c6a7ade6c",
+            "requesterId": "peer:b069f16956c55011037180f4",
+            "placementGeneration": 0
+          },
+          "phase": "executing",
+          "startedAt": 1791855339784,
+          "failure": null,
+          "reservations": [
+            {
+              "identity": {
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+                "participantB": "peer:8293261cfefa530c6a7ade6c",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+                "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+                "requesterId": "peer:b069f16956c55011037180f4",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+              "index": 0,
+              "phase": "reserved",
+              "reservedAt": 1791855339776,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            },
+            {
+              "identity": {
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+                "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+                "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+                "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+                "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+                "participantB": "peer:8293261cfefa530c6a7ade6c",
+                "requesterId": "peer:b069f16956c55011037180f4",
+                "placementGeneration": 0
+              },
+              "participantId": "peer:8293261cfefa530c6a7ade6c",
+              "index": 1,
+              "phase": "reserved",
+              "reservedAt": 1791855339793,
+              "settlingAt": null,
+              "settledAt": null,
+              "failure": null,
+              "resources": {
+                "attemptSlots": 1,
+                "maxPromptTokens": 4096,
+                "maxTokens": 4096,
+                "maxActivationBytes": 33554432,
+                "scope": "application-attempt-limits"
+              }
+            }
+          ],
+          "cleanupStartedAt": null,
+          "cleanupSettledAt": null,
+          "cleanup": []
+        }
+      ],
+      "reservation": {
+        "active": 1,
+        "records": [
+          {
+            "identity": {
+              "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+              "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+              "participantB": "peer:8293261cfefa530c6a7ade6c",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+              "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+              "requesterId": "peer:b069f16956c55011037180f4",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "index": 0,
+            "phase": "reserved",
+            "reservedAt": 1791855339776,
+            "settlingAt": null,
+            "settledAt": null,
+            "failure": null,
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ]
+      },
+      "unsettledOwners": 0
+    },
+    {
+      "offset": 1181413983,
+      "rawBytes": 45002,
+      "rawLineSha256": "d1c7181ccb5ba7f3fdff0032a27dfa6e615f40762962ff983aec4091d360baa1",
+      "phase": "waiting",
+      "error": null,
+      "placement": [
+        "peer:57adcc49bae5ed5eefe8fbf1",
+        "peer:8293261cfefa530c6a7ade6c"
+      ],
+      "placementDecision": {
+        "participants": [],
+        "eligibility": [
+          {
+            "participantId": "peer:688e732256ab83155c54f72e",
+            "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+            "observedAt": 1791855343907,
+            "expiresAt": 1791855353907,
+            "reason": "expired",
+            "index": 0
+          },
+          {
+            "participantId": "peer:8293261cfefa530c6a7ade6c",
+            "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+            "observedAt": 1791855343907,
+            "expiresAt": 1791855353907,
+            "reason": "expired",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b271a1a35a47e50f133b9952",
+            "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+            "observedAt": 1791855343901,
+            "expiresAt": 1791855353901,
+            "reason": "expired",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b069f16956c55011037180f4",
+            "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+            "observedAt": 1791855343920,
+            "expiresAt": 1791855353920,
+            "reason": "expired",
+            "index": null
+          },
+          {
+            "participantId": "peer:df530c7bf3fb4d235e9b1824",
+            "transportId": "2e22debf-c841-44d9-9f9a-f7c4c680d558",
+            "observedAt": 1791855341921,
+            "expiresAt": 1791855351921,
+            "reason": "description-unavailable",
+            "index": null
+          },
+          {
+            "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+            "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+            "observedAt": 0,
+            "expiresAt": 10000,
+            "reason": "unobserved",
+            "index": null
+          }
+        ],
+        "reason": "missing-complementary-contributor"
+      },
+      "capabilities": [
+        {
+          "participantId": "peer:688e732256ab83155c54f72e",
+          "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+          "observedAt": 1791855343907,
+          "expiresAt": 1791855353907,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "ready",
+            "index": 0,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:57adcc49bae5ed5eefe8fbf1"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:8293261cfefa530c6a7ade6c",
+          "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "observedAt": 1791855343907,
+          "expiresAt": 1791855353907,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:8293261cfefa530c6a7ade6c"
+            ],
+            "capacity": {
+              "active": 1,
+              "availableSlots": 1,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b271a1a35a47e50f133b9952",
+          "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "observedAt": 1791855343901,
+          "expiresAt": 1791855353901,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:b271a1a35a47e50f133b9952"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b069f16956c55011037180f4",
+          "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "observedAt": 1791855343920,
+          "expiresAt": 1791855353920,
+          "available": false,
+          "reason": "expired",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:df530c7bf3fb4d235e9b1824",
+          "transportId": "2e22debf-c841-44d9-9f9a-f7c4c680d558",
+          "observedAt": 1791855341921,
+          "expiresAt": 1791855351921,
+          "available": false,
+          "reason": "description-unavailable",
+          "description": {
+            "phase": null,
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+          "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+          "observedAt": 0,
+          "expiresAt": 10000,
+          "available": false,
+          "reason": "unobserved",
+          "description": {
+            "phase": null,
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        }
+      ],
+      "attempts": [],
+      "reservation": {
+        "active": 0,
+        "records": [
+          {
+            "identity": {
+              "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+              "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+              "participantB": "peer:8293261cfefa530c6a7ade6c",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+              "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+              "requesterId": "peer:b069f16956c55011037180f4",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "index": 0,
+            "phase": "failed",
+            "reservedAt": 1791855339776,
+            "settlingAt": 1791855353952,
+            "settledAt": 1791855353953,
+            "failure": "Partition runner closed",
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ]
+      },
+      "unsettledOwners": 0
+    },
+    {
+      "offset": 1181473650,
+      "rawBytes": 44938,
+      "rawLineSha256": "2937d328a3b13338e4126d49e14655f9ec780cbd87384e00ce914016fb5c3639",
+      "phase": "waiting",
+      "error": null,
+      "placement": [
+        "peer:57adcc49bae5ed5eefe8fbf1",
+        "peer:8293261cfefa530c6a7ade6c"
+      ],
+      "placementDecision": {
+        "participants": [],
+        "eligibility": [
+          {
+            "participantId": "peer:688e732256ab83155c54f72e",
+            "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+            "observedAt": 1791855343907,
+            "expiresAt": 1791855353907,
+            "reason": "expired",
+            "index": 0
+          },
+          {
+            "participantId": "peer:8293261cfefa530c6a7ade6c",
+            "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+            "observedAt": 1791855343907,
+            "expiresAt": 1791855353907,
+            "reason": "expired",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b271a1a35a47e50f133b9952",
+            "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+            "observedAt": 1791855343901,
+            "expiresAt": 1791855353901,
+            "reason": "expired",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b069f16956c55011037180f4",
+            "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+            "observedAt": 1791855343920,
+            "expiresAt": 1791855353920,
+            "reason": "expired",
+            "index": null
+          },
+          {
+            "participantId": "peer:df530c7bf3fb4d235e9b1824",
+            "transportId": "2e22debf-c841-44d9-9f9a-f7c4c680d558",
+            "observedAt": 1791855341921,
+            "expiresAt": 1791855351921,
+            "reason": "description-unavailable",
+            "index": null
+          },
+          {
+            "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+            "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+            "observedAt": 0,
+            "expiresAt": 10000,
+            "reason": "unobserved",
+            "index": null
+          }
+        ],
+        "reason": "missing-complementary-contributor"
+      },
+      "capabilities": [
+        {
+          "participantId": "peer:688e732256ab83155c54f72e",
+          "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+          "observedAt": 1791855355964,
+          "expiresAt": 1791855365964,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "waiting",
+            "index": 0,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:57adcc49bae5ed5eefe8fbf1"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:8293261cfefa530c6a7ade6c",
+          "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "observedAt": 1791855355962,
+          "expiresAt": 1791855365962,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:8293261cfefa530c6a7ade6c"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b271a1a35a47e50f133b9952",
+          "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "observedAt": 1791855355959,
+          "expiresAt": 1791855365959,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:b271a1a35a47e50f133b9952"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b069f16956c55011037180f4",
+          "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "observedAt": 1791855355983,
+          "expiresAt": 1791855365983,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+          "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+          "observedAt": 1791855355983,
+          "expiresAt": 1791855365983,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        }
+      ],
+      "attempts": [],
+      "reservation": {
+        "active": 0,
+        "records": [
+          {
+            "identity": {
+              "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+              "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+              "participantB": "peer:8293261cfefa530c6a7ade6c",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+              "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+              "requesterId": "peer:b069f16956c55011037180f4",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "index": 0,
+            "phase": "failed",
+            "reservedAt": 1791855339776,
+            "settlingAt": 1791855353952,
+            "settledAt": 1791855353953,
+            "failure": "Partition runner closed",
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ]
+      },
+      "unsettledOwners": 0
+    },
+    {
+      "offset": 1181518588,
+      "rawBytes": 44938,
+      "rawLineSha256": "2937d328a3b13338e4126d49e14655f9ec780cbd87384e00ce914016fb5c3639",
+      "phase": "waiting",
+      "error": null,
+      "placement": [
+        "peer:57adcc49bae5ed5eefe8fbf1",
+        "peer:8293261cfefa530c6a7ade6c"
+      ],
+      "placementDecision": {
+        "participants": [],
+        "eligibility": [
+          {
+            "participantId": "peer:688e732256ab83155c54f72e",
+            "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+            "observedAt": 1791855343907,
+            "expiresAt": 1791855353907,
+            "reason": "expired",
+            "index": 0
+          },
+          {
+            "participantId": "peer:8293261cfefa530c6a7ade6c",
+            "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+            "observedAt": 1791855343907,
+            "expiresAt": 1791855353907,
+            "reason": "expired",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b271a1a35a47e50f133b9952",
+            "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+            "observedAt": 1791855343901,
+            "expiresAt": 1791855353901,
+            "reason": "expired",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b069f16956c55011037180f4",
+            "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+            "observedAt": 1791855343920,
+            "expiresAt": 1791855353920,
+            "reason": "expired",
+            "index": null
+          },
+          {
+            "participantId": "peer:df530c7bf3fb4d235e9b1824",
+            "transportId": "2e22debf-c841-44d9-9f9a-f7c4c680d558",
+            "observedAt": 1791855341921,
+            "expiresAt": 1791855351921,
+            "reason": "description-unavailable",
+            "index": null
+          },
+          {
+            "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+            "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+            "observedAt": 0,
+            "expiresAt": 10000,
+            "reason": "unobserved",
+            "index": null
+          }
+        ],
+        "reason": "missing-complementary-contributor"
+      },
+      "capabilities": [
+        {
+          "participantId": "peer:688e732256ab83155c54f72e",
+          "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+          "observedAt": 1791855355964,
+          "expiresAt": 1791855365964,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "waiting",
+            "index": 0,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:57adcc49bae5ed5eefe8fbf1"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:8293261cfefa530c6a7ade6c",
+          "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "observedAt": 1791855355962,
+          "expiresAt": 1791855365962,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:8293261cfefa530c6a7ade6c"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b271a1a35a47e50f133b9952",
+          "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "observedAt": 1791855355959,
+          "expiresAt": 1791855365959,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:b271a1a35a47e50f133b9952"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b069f16956c55011037180f4",
+          "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "observedAt": 1791855355983,
+          "expiresAt": 1791855365983,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+          "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+          "observedAt": 1791855355983,
+          "expiresAt": 1791855365983,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        }
+      ],
+      "attempts": [],
+      "reservation": {
+        "active": 0,
+        "records": [
+          {
+            "identity": {
+              "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+              "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+              "participantB": "peer:8293261cfefa530c6a7ade6c",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+              "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+              "requesterId": "peer:b069f16956c55011037180f4",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "index": 0,
+            "phase": "failed",
+            "reservedAt": 1791855339776,
+            "settlingAt": 1791855353952,
+            "settledAt": 1791855353953,
+            "failure": "Partition runner closed",
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ]
+      },
+      "unsettledOwners": 0
+    },
+    {
+      "offset": 1181563526,
+      "rawBytes": 44938,
+      "rawLineSha256": "2937d328a3b13338e4126d49e14655f9ec780cbd87384e00ce914016fb5c3639",
+      "phase": "waiting",
+      "error": null,
+      "placement": [
+        "peer:57adcc49bae5ed5eefe8fbf1",
+        "peer:8293261cfefa530c6a7ade6c"
+      ],
+      "placementDecision": {
+        "participants": [],
+        "eligibility": [
+          {
+            "participantId": "peer:688e732256ab83155c54f72e",
+            "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+            "observedAt": 1791855343907,
+            "expiresAt": 1791855353907,
+            "reason": "expired",
+            "index": 0
+          },
+          {
+            "participantId": "peer:8293261cfefa530c6a7ade6c",
+            "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+            "observedAt": 1791855343907,
+            "expiresAt": 1791855353907,
+            "reason": "expired",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b271a1a35a47e50f133b9952",
+            "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+            "observedAt": 1791855343901,
+            "expiresAt": 1791855353901,
+            "reason": "expired",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b069f16956c55011037180f4",
+            "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+            "observedAt": 1791855343920,
+            "expiresAt": 1791855353920,
+            "reason": "expired",
+            "index": null
+          },
+          {
+            "participantId": "peer:df530c7bf3fb4d235e9b1824",
+            "transportId": "2e22debf-c841-44d9-9f9a-f7c4c680d558",
+            "observedAt": 1791855341921,
+            "expiresAt": 1791855351921,
+            "reason": "description-unavailable",
+            "index": null
+          },
+          {
+            "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+            "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+            "observedAt": 0,
+            "expiresAt": 10000,
+            "reason": "unobserved",
+            "index": null
+          }
+        ],
+        "reason": "missing-complementary-contributor"
+      },
+      "capabilities": [
+        {
+          "participantId": "peer:688e732256ab83155c54f72e",
+          "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+          "observedAt": 1791855355964,
+          "expiresAt": 1791855365964,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "waiting",
+            "index": 0,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:57adcc49bae5ed5eefe8fbf1"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:8293261cfefa530c6a7ade6c",
+          "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "observedAt": 1791855355962,
+          "expiresAt": 1791855365962,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:8293261cfefa530c6a7ade6c"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b271a1a35a47e50f133b9952",
+          "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "observedAt": 1791855355959,
+          "expiresAt": 1791855365959,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:b271a1a35a47e50f133b9952"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b069f16956c55011037180f4",
+          "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "observedAt": 1791855355983,
+          "expiresAt": 1791855365983,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+          "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+          "observedAt": 1791855355983,
+          "expiresAt": 1791855365983,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        }
+      ],
+      "attempts": [],
+      "reservation": {
+        "active": 0,
+        "records": [
+          {
+            "identity": {
+              "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+              "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+              "participantB": "peer:8293261cfefa530c6a7ade6c",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+              "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+              "requesterId": "peer:b069f16956c55011037180f4",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "index": 0,
+            "phase": "failed",
+            "reservedAt": 1791855339776,
+            "settlingAt": 1791855353952,
+            "settledAt": 1791855353953,
+            "failure": "Partition runner closed",
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ]
+      },
+      "unsettledOwners": 0
+    },
+    {
+      "offset": 1181608464,
+      "rawBytes": 44830,
+      "rawLineSha256": "3cb5a21c80a29a4d7ba94d7676a8de7aeb8e607c156163b3927c279a45782e82",
+      "phase": "ready",
+      "error": null,
+      "placement": [
+        "peer:57adcc49bae5ed5eefe8fbf1",
+        "peer:8293261cfefa530c6a7ade6c"
+      ],
+      "placementDecision": {
+        "participants": [
+          "peer:57adcc49bae5ed5eefe8fbf1",
+          "peer:8293261cfefa530c6a7ade6c"
+        ],
+        "eligibility": [
+          {
+            "participantId": "peer:688e732256ab83155c54f72e",
+            "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+            "observedAt": 1791855355964,
+            "expiresAt": 1791855365964,
+            "reason": "approved-model-contribution",
+            "index": 0
+          },
+          {
+            "participantId": "peer:8293261cfefa530c6a7ade6c",
+            "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+            "observedAt": 1791855355962,
+            "expiresAt": 1791855365962,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b271a1a35a47e50f133b9952",
+            "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+            "observedAt": 1791855355959,
+            "expiresAt": 1791855365959,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b069f16956c55011037180f4",
+            "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+            "observedAt": 1791855355983,
+            "expiresAt": 1791855365983,
+            "reason": "model-mismatch",
+            "index": null
+          },
+          {
+            "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+            "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+            "observedAt": 1791855355983,
+            "expiresAt": 1791855365983,
+            "reason": "model-mismatch",
+            "index": null
+          }
+        ],
+        "reason": "retain-input-owner"
+      },
+      "capabilities": [
+        {
+          "participantId": "peer:688e732256ab83155c54f72e",
+          "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+          "observedAt": 1791855355964,
+          "expiresAt": 1791855365964,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "waiting",
+            "index": 0,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:57adcc49bae5ed5eefe8fbf1"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:8293261cfefa530c6a7ade6c",
+          "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "observedAt": 1791855355962,
+          "expiresAt": 1791855365962,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:8293261cfefa530c6a7ade6c"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b271a1a35a47e50f133b9952",
+          "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "observedAt": 1791855355959,
+          "expiresAt": 1791855365959,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:b271a1a35a47e50f133b9952"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b069f16956c55011037180f4",
+          "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "observedAt": 1791855355983,
+          "expiresAt": 1791855365983,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+          "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+          "observedAt": 1791855355983,
+          "expiresAt": 1791855365983,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        }
+      ],
+      "attempts": [],
+      "reservation": {
+        "active": 0,
+        "records": [
+          {
+            "identity": {
+              "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+              "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+              "participantB": "peer:8293261cfefa530c6a7ade6c",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+              "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+              "requesterId": "peer:b069f16956c55011037180f4",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "index": 0,
+            "phase": "failed",
+            "reservedAt": 1791855339776,
+            "settlingAt": 1791855353952,
+            "settledAt": 1791855353953,
+            "failure": "Partition runner closed",
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ]
+      },
+      "unsettledOwners": 0
+    },
+    {
+      "offset": 1181653294,
+      "rawBytes": 44830,
+      "rawLineSha256": "3cb5a21c80a29a4d7ba94d7676a8de7aeb8e607c156163b3927c279a45782e82",
+      "phase": "ready",
+      "error": null,
+      "placement": [
+        "peer:57adcc49bae5ed5eefe8fbf1",
+        "peer:8293261cfefa530c6a7ade6c"
+      ],
+      "placementDecision": {
+        "participants": [
+          "peer:57adcc49bae5ed5eefe8fbf1",
+          "peer:8293261cfefa530c6a7ade6c"
+        ],
+        "eligibility": [
+          {
+            "participantId": "peer:688e732256ab83155c54f72e",
+            "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+            "observedAt": 1791855355964,
+            "expiresAt": 1791855365964,
+            "reason": "approved-model-contribution",
+            "index": 0
+          },
+          {
+            "participantId": "peer:8293261cfefa530c6a7ade6c",
+            "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+            "observedAt": 1791855355962,
+            "expiresAt": 1791855365962,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b271a1a35a47e50f133b9952",
+            "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+            "observedAt": 1791855355959,
+            "expiresAt": 1791855365959,
+            "reason": "approved-model-contribution",
+            "index": 1
+          },
+          {
+            "participantId": "peer:b069f16956c55011037180f4",
+            "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+            "observedAt": 1791855355983,
+            "expiresAt": 1791855365983,
+            "reason": "model-mismatch",
+            "index": null
+          },
+          {
+            "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+            "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+            "observedAt": 1791855355983,
+            "expiresAt": 1791855365983,
+            "reason": "model-mismatch",
+            "index": null
+          }
+        ],
+        "reason": "retain-input-owner"
+      },
+      "capabilities": [
+        {
+          "participantId": "peer:688e732256ab83155c54f72e",
+          "transportId": "2116055b-3685-4d3e-8469-532f46b30e4a",
+          "observedAt": 1791855355964,
+          "expiresAt": 1791855365964,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "waiting",
+            "index": 0,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:57adcc49bae5ed5eefe8fbf1"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:8293261cfefa530c6a7ade6c",
+          "transportId": "3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c",
+          "observedAt": 1791855355962,
+          "expiresAt": 1791855365962,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:57adcc49bae5ed5eefe8fbf1",
+              "peer:8293261cfefa530c6a7ade6c"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b271a1a35a47e50f133b9952",
+          "transportId": "e907c78d-ab06-42e1-af07-b6955d8c6036",
+          "observedAt": 1791855355959,
+          "expiresAt": 1791855365959,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "ready",
+            "index": 1,
+            "placement": [
+              "peer:688e732256ab83155c54f72e",
+              "peer:b271a1a35a47e50f133b9952"
+            ],
+            "capacity": {
+              "active": 0,
+              "availableSlots": 2,
+              "closed": false
+            }
+          }
+        },
+        {
+          "participantId": "peer:b069f16956c55011037180f4",
+          "transportId": "2d390fa2-0fd1-4668-af83-25b0d5baa8bf",
+          "observedAt": 1791855355983,
+          "expiresAt": 1791855365983,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        },
+        {
+          "participantId": "peer:e826ce43f6ed8e459b11d6d7",
+          "transportId": "0b2ed4b9-8c16-4b52-b3c8-2750c997a303",
+          "observedAt": 1791855355983,
+          "expiresAt": 1791855365983,
+          "available": true,
+          "reason": "observed",
+          "description": {
+            "phase": "idle",
+            "index": null,
+            "placement": null,
+            "capacity": null
+          }
+        }
+      ],
+      "attempts": [],
+      "reservation": {
+        "active": 0,
+        "records": [
+          {
+            "identity": {
+              "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+              "participantA": "peer:57adcc49bae5ed5eefe8fbf1",
+              "participantB": "peer:8293261cfefa530c6a7ade6c",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "threadId": "0927fb34-752f-4b92-91c2-a71d849df792",
+              "attemptId": "17f433e3-b437-488b-ac89-184ec92cae15",
+              "requesterId": "peer:b069f16956c55011037180f4",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+            "index": 0,
+            "phase": "failed",
+            "reservedAt": 1791855339776,
+            "settlingAt": 1791855353952,
+            "settledAt": 1791855353953,
+            "failure": "Partition runner closed",
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ]
+      },
+      "unsettledOwners": 0
+    }
+  ]
+}
