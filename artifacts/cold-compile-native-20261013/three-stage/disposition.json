@@ -1,0 +1,64 @@
+{
+  "schema": "reploid.ordered-physical-disposition/v1",
+  "status": "failed",
+  "scope": "Exact three-host numerical fixture; not signed application qualification",
+  "archiveSha256": "9264d265a90c7c0b046adf46135965b2032d2d9f6e5e60d6a8149d10f0988ec4",
+  "capture": {
+    "path": "reference.json.gz",
+    "uncompressedSha256": "799032807b3feb64d1ebeecdff2edba7a9361358570eafbfc1528855c5e3889b",
+    "uncompressedBytes": 33088005,
+    "compressedSha256": "5b5a94266804cd2cdbbd725c24986a6980d6cebce9e84913d5fb7b319c44e95b"
+  },
+  "tolerance": 0.001,
+  "requiredPrefixes": 55,
+  "passedPrefixes": 4,
+  "failure": {
+    "name": "AssertionError",
+    "message": "Independent F64 tolerance failed"
+  },
+  "failedPrefix": {
+    "request": 2,
+    "step": 0,
+    "inputTokens": 184,
+    "maximumAbsoluteError": 14.471379474862829
+  },
+  "residentSettlement": [
+    {
+      "executorId": "mac-stage-0",
+      "residentClosed": true,
+      "elapsedMs": 251.74670799996238,
+      "peakGpuBufferBytes": 708011168
+    },
+    {
+      "executorId": "amd-stage-1",
+      "residentClosed": true,
+      "elapsedMs": 802.2201249999925,
+      "peakGpuBufferBytes": 199119984
+    },
+    {
+      "executorId": "suby-stage-2",
+      "residentClosed": true,
+      "elapsedMs": 652.1495829999913,
+      "peakGpuBufferBytes": 341007632
+    }
+  ],
+  "nativeHostSettlements": [
+    {
+      "closed": true,
+      "providerOpened": true,
+      "ownedProviderReleased": true,
+      "executorId": "amd-stage-1",
+      "pid": 3385589
+    },
+    {
+      "closed": true,
+      "providerOpened": true,
+      "ownedProviderReleased": true,
+      "executorId": "suby-stage-2",
+      "pid": 996844
+    }
+  ],
+  "cleanupFailure": null,
+  "cachePolicy": "Retained driver caches; not cold-start or performance acceptance",
+  "next": "Compare original long-prefix intermediate boundaries before changing model or kernels; retain original reference and tolerance."
+}
