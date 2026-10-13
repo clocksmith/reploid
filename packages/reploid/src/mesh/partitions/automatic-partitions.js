@@ -1,3 +1,4 @@
+import { createAutomaticOrderedPartitions } from './automatic-ordered-partitions.js';
 import { createPartitionDiscovery } from './partition-discovery.js';
 import { selectPartitionPlacement, selectPartitionExecution } from './partition-placement.js';
 import { createPartitionPeer } from './partition-peer.js';
@@ -9,7 +10,11 @@ import { canonicalPartitionJson, assertPartition as assert } from './partition-c
 /** Automatic placement over authenticated discovery. Only the supplied host
  * loader may open Doppler, and only after local contribution approval. */
 export function createAutomaticPartitions({ identity, meshId, models, policy, peers, createNetwork,
-  loadProgram, canonical = null, onChange = () => {} }) {
+  loadProgram, canonical = null, ordered = null, onChange = () => {} }) {
+  if (ordered !== null) {
+    assert(canonical === null, 'Ordered automatic participation is distinct from canonical publication');
+    return createAutomaticOrderedPartitions({ identity, meshId, models, policy, peers, createNetwork, loadProgram, ordered, onChange });
+  }
   const config = structuredClone(policy), catalog = structuredClone(models);
   assert(identity?.peerId && typeof peers === 'function' && typeof createNetwork === 'function'
     && typeof loadProgram === 'function' && Number.isSafeInteger(config.pollMs) && config.pollMs > 0,

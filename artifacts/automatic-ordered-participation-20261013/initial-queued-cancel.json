@@ -1,0 +1,11 @@
+{
+  "scope": "Retained initial test-harness failure transcribed from actual command output; historical source was not frozen.",
+  "command": "npx vitest run tests/unit/automatic-ordered-partitions.test.js",
+  "observedTests": 13,
+  "passed": 12,
+  "failed": 1,
+  "failure": "Test timed out in 5000ms; afterEach hook timed out in 10000ms.",
+  "test": "cancels a queued conversation while the first continues on its retained route",
+  "cause": "Test awaited queued cancellation before releasing the earlier same-stage task; runner checks cancellation once that lease becomes available.",
+  "disposition": "Release earlier task, assert cancelled numerical task never runs and independent request completes with confirmed settlement. No immediate-preemption claim."
+}
