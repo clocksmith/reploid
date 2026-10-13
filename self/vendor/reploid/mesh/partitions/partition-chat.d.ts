@@ -1,3 +1,5 @@
+import type { EntryPublicationContext } from './partition-entry-publication.js';
+import type { CanonicalPublicationPort } from './partition-canonical-execution.js';
 import type { ChatModel, ChatRequest, ChatControls, ChatResult, ChatEnvelope } from '../../chat/index.js';
 import type { PartitionRuntime, PartitionPlan, PartitionLimits, PartitionRunnerState } from './partition-runner.js';
 import type { ResidentPartition } from './resident-partition.js';
@@ -8,11 +10,11 @@ export interface PartitionChat {
   getState(): PartitionRunnerState;
   subscribe(listener: (models: ChatModel[]) => void): () => void;
   refresh(options?: { signal?: AbortSignal }): Promise<ChatModel[]>;
-  generate(request: ChatRequest & ChatEnvelope & { meshId: string; participantId: string; placementGeneration?: number }, controls: ChatControls): Promise<ChatResult>;
+  generate(request: ChatRequest & ChatEnvelope & { meshId: string; participantId: string; placementGeneration?: number; canonical?:EntryPublicationContext }, controls: ChatControls & {publication?:CanonicalPublicationPort}): Promise<ChatResult>;
   /** Cancels owned conversations, preserving borrowed residents and network endpoints. */
   close(): Promise<void>;
 }
 export function createPartitionChat(options: { runtime: PartitionRuntime; local: ResidentPartition; remote: PartitionPeer;
   authority: PartitionGrantAuthority; model: ChatModel; plan: PartitionPlan; planId: string;
-  limits: PartitionLimits; grantTtlMs: number;
+  limits: PartitionLimits; grantTtlMs: number; canonical?: {coordinatorEpoch:string} | null;
   authorizeRequester?: (request: ChatRequest & { participantId: string }, signal: AbortSignal) => Promise<boolean>; now?: () => number }): PartitionChat;

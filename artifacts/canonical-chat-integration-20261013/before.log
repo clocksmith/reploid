@@ -1,0 +1,15 @@
+file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-runner.js:5
+const assert = (ok, message) => { if (!ok) throw new Error(message); };
+                                                 ^
+
+Error: Partition authorization declined: mesh.execute_partition_a
+    at assert (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-runner.js:5:50)
+    at permit (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-runner.js:126:7)
+    at async authorize (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-canonical-execution.js:52:7)
+    at async executeCanonicalPartition (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-canonical-execution.js:72:5)
+    at async execute (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-runner.js:131:36)
+    at async Object.generate (file:///Users/xyz/deco/reploid/packages/reploid/src/mesh/partitions/partition-chat.js:83:13)
+    at async check (file:///Users/xyz/deco/reploid/tests/canonical-chat-source.js:35:22)
+    at async file:///Users/xyz/deco/reploid/tests/canonical-chat-source.js:45:115
+
+Node.js v22.20.0

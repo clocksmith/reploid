@@ -670,14 +670,24 @@
       "sha256": "b81075e71d15160e44e9ed90505a8e29b3d9e1d863bade85c7b8a90486d3371b"
     },
     {
+      "path": "mesh/partitions/partition-chat-canonical.d.ts",
+      "bytes": 1342,
+      "sha256": "5eee0c6a90ba896cc960a2ea69281a520256ae52a8c3c1229d2c011eccafbf73"
+    },
+    {
+      "path": "mesh/partitions/partition-chat-canonical.js",
+      "bytes": 3867,
+      "sha256": "5370227a15d06624adfc8ae23b484aaa2ced8421e21466b8c80cb29f81ad823b"
+    },
+    {
       "path": "mesh/partitions/partition-chat.d.ts",
-      "bytes": 1354,
-      "sha256": "0b456ec810808bdfb673337f97488e8f7ba048c779def15629ef7d33b784a7ce"
+      "bytes": 1643,
+      "sha256": "da68e3197c87f3719bf8a28017e4d65cea9a27d9b3ed7282b84a9a2f41253507"
     },
     {
       "path": "mesh/partitions/partition-chat.js",
-      "bytes": 6251,
-      "sha256": "aceaa1c60e9fd54c00be20f3def39bc1fb44484e75873367e3010eb718cefc36"
+      "bytes": 8363,
+      "sha256": "a50fe14896f2e2d15a897549cc51a91f964670bc87c76822b075176adc5884a6"
     },
     {
       "path": "mesh/partitions/partition-contract.d.ts",
