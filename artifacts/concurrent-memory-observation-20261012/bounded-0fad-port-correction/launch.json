@@ -1,0 +1,33 @@
+{
+  "controllerPid": 85760,
+  "amdBrowserLauncherPid": 3538048,
+  "amdProfile": "/tmp/reploid-paired-split-browser-EigZwe",
+  "localServerPid": 85749,
+  "remoteServerPid": 3537794,
+  "observedStarted": true,
+  "testDeliverySha256": "f966d582293bb7149810aad33fe8895696851c298c446fccf83894856294d4fa",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "rootReservation": "Explicit root approval after port-only correction and final live process check",
+  "sharedMachine": {
+    "amdSampledGpuBusyPercent": 0,
+    "publicNativePid": 3379363,
+    "publicNativeState": {
+      "phase": "ready",
+      "attempts": [],
+      "unsettledOwners": 0
+    },
+    "publicNativeCpuTicksPerSecond": 120,
+    "publicBrowserControllerPid": 3391808,
+    "macMemoryFreePercent": 72,
+    "macPublicContexts": "Existing requester/file supplier and ordinary Chrome/Fawn remained untouched",
+    "exclusivePerformanceClaim": false
+  },
+  "setupFailures": [
+    {
+      "scope": "Before GPU/model launch",
+      "failure": "Extraction began while SCP tar transfer was incomplete; gzip unexpected EOF and missing fixture rejected",
+      "resolution": "Stopped owned SCP85373; retained incomplete directory; copied already-verified remote5296 tree plus three port/binding/runner files; all2011fixture and1976archive identities then verified"
+    }
+  ],
+  "modelManifestSha256BothHosts": "ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e"
+}
