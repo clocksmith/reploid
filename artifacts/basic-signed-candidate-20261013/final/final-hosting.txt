@@ -1,0 +1,14 @@
+
+> reploid@0.1.0 prepare:hosting
+> npm run verify:browser-bundle:local && npm run package:hosting
+
+
+> reploid@0.1.0 verify:browser-bundle:local
+> node scripts/build-browser-bundle-manifest.js --check
+
+[browser-bundle] 2019 served files match sha256:6ab27132598fea70c62dcef71fe491ba0f7a70e46c73cd6caf2f74db5c3e19f2
+
+> reploid@0.1.0 package:hosting
+> node scripts/package-hosting.js
+
+[hosting] packaged 2020 files as sha256:6ab27132598fea70c62dcef71fe491ba0f7a70e46c73cd6caf2f74db5c3e19f2

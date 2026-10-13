@@ -1,0 +1,25 @@
+{
+  "sourceRevision": "7a49a7eabf2415163d36c08c0dfc62859a098834",
+  "stage": "final-signed-delivery; physical application journey pending",
+  "files": {
+    "README.md": "548c6c080fa30c25666d1dad04a5dc4a7e3291c6cd439869cfbb49e7d3d731f3",
+    "final-browser-manifest.txt": "aad20d7298ec0f45b2581aa64970fd1aa327238289e4d3d8695b4936d94d6cee",
+    "final-browser-verification.json": "1cd2ef4d6acd0002326c963a6fb8e1daf626271f8220741888cb5330698840a9",
+    "final-hosting.txt": "84a263d4eb4765a0b719d9104bcb4868aa4e2a6cacfef44c76b90f73e41a9cc6",
+    "final-inventory.txt": "21e801d00099c71ee009fda330cce6b919e18ce7605de42bcb90646dc9b99454",
+    "final-native-package.txt": "e3b099124de16e9b24ddec3b8d3de4256d49d40da2769a2b46173ad00714d51a",
+    "final-runtime-sync.txt": "92401d8e60a27c96782d8fa3783a626e17f61f89f9941c77b49d68d5d012a973",
+    "final-vfs.txt": "2b2b1de799274d3a6ea3b1fd49ab55ce8546f1de489bd283cbe103e3183eb261",
+    "metadata-staging.json": "ed74faaf8c83d88d04c6a6c3f5bcbbbcc670a9d5dc85b4731e5e06ee23278480",
+    "native-help.txt": "371009d2fe7278de0edcba903600155d1ebfb45b2bb6ff4aeba97457b74b0871",
+    "native-install.txt": "fb99984382949b621f633becf8c0d9e0bc287f72c7e03b3756a05af30d85f5d4",
+    "native-verification.json": "2225cd1dd13434b7acc4c5b1c1591f178b3e455d976ec3b6266f9f2c7af932ed",
+    "producer-handoff.json": "afeeca59a412c4ab0d9fb9963e9023a0047fccc55492e490edcdb18b6961e8b7",
+    "stage-catalog.js": "4b8a183ff69c0c0d6b7be2a49972538e18f31c29e7ed205a385d2f1fb51ba3d9",
+    "stage-catalog.test.js": "5201c12d42774a1922c1704fc3b47a6975e3c17753f454f42bef9c44026e5cf6",
+    "stage-controls.txt": "e3c33625a45530a9433324e0548395a80b717746c0d66b8914a1532307ee9dd8",
+    "verify-native.js": "e3166bc588eb99b601e27db6517587f042c1ecd5c8d96bb51be5b231661620cc",
+    "verify-worker.js": "051747fe01ce2c544cd7b35a90fce22a583ee2d424ae9c461a633a47f62a9708",
+    "worker.json": "5ab6c0e23a360a68a781ebadd6cf65385c5c5dd50c03bbe3d11759bcd509f065"
+  }
+}
