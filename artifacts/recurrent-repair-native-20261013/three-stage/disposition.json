@@ -1,0 +1,70 @@
+{
+  "schema": "reploid.repaired-three-stage-disposition/v1",
+  "qualified": false,
+  "failure": {
+    "name": "DiagnosticDeadlineError",
+    "message": "request-0:step-0:stage-2 exceeded 300000ms; completion and ownership unknown"
+  },
+  "cleanupFailure": "close-resident-2 exceeded 10000ms; completion and ownership unknown",
+  "completedPrefixes": 0,
+  "stage0And1FirstPromptCompleted": true,
+  "allResidentsPrepared": true,
+  "nativeHostSettlements": [
+    {
+      "closed": true,
+      "providerOpened": true,
+      "ownedProviderReleased": true,
+      "executorId": "amd-stage-1",
+      "pid": 3048968
+    }
+  ],
+  "residentSettlement": [
+    {
+      "index": 0,
+      "closed": true,
+      "error": null
+    },
+    {
+      "index": 1,
+      "closed": true,
+      "error": null
+    },
+    {
+      "index": 2,
+      "closed": false,
+      "error": "close-resident-2 exceeded 10000ms; completion and ownership unknown"
+    }
+  ],
+  "referenceSha256": "27ac795e3e1ad43f37eaf7fcdb5c79707b8a54df6538407bd2ff2bb6a40ccc70",
+  "referenceBytes": 4853133,
+  "runtimeArchiveSha256": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4",
+  "meaning": "Recurrent operator repair and three-stage opening pass. Suby first full-model step exceeded unchanged 300-second deadline during attention compilation after two RMSNorm specializations; Suby normal cleanup unconfirmed. No numerical prefix qualified. Public runtime unchanged.",
+  "hostMemory": {
+    "amd": {
+      "peakBytes": 2030452736,
+      "exit": {
+        "at": "2026-10-13T20:09:06.426Z",
+        "phase": "provider-exit",
+        "code": 0,
+        "signal": null,
+        "memory.current": "21372928",
+        "memory.peak": "2030452736",
+        "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0\nsock_throttled 0",
+        "cleanup": "Read provider events; exit alone does not establish GPU settlement."
+      }
+    },
+    "suby": {
+      "peakBytes": 10950643712,
+      "exit": {
+        "at": "2026-10-13T20:09:47.006Z",
+        "phase": "provider-exit",
+        "code": null,
+        "signal": "SIGTERM",
+        "memory.current": "10182656",
+        "memory.peak": "10950643712",
+        "memory.events": "low 0\nhigh 87036\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+        "cleanup": "Read provider events; exit alone does not establish GPU settlement."
+      }
+    }
+  }
+}

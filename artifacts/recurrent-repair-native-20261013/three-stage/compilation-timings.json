@@ -1,0 +1,907 @@
+[
+  {
+    "operation": "prepare-stage-1",
+    "pipeline": "rope_precompute_paired_pipeline",
+    "elapsedMs": 8.0
+  },
+  {
+    "operation": "tokenize-0",
+    "pipeline": "rope_precompute_paired_pipeline",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "tokenize-0",
+    "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "tokenize-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_beta_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "tokenize-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_scale_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "tokenize-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_log_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "tokenize-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "tokenize-0",
+    "pipeline": "gated_delta_recurrent_paired_qk_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "tokenize-0",
+    "pipeline": "gated_delta_recurrent_paired_state_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "tokenize-0",
+    "pipeline": "gated_delta_recurrent_paired_norm_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "tokenize-0",
+    "pipeline": "gated_delta_recurrent_paired_gate_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "rope_precompute_paired_pipeline",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_beta_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_scale_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_log_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "gated_delta_recurrent_paired_qk_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "gated_delta_recurrent_paired_state_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "gated_delta_recurrent_paired_norm_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "gated_delta_recurrent_paired_gate_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "gather_f16_vec4_pipeline",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "cast_f32_to_two_f32_pipeline",
+    "elapsedMs": 59.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 160.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 55.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+    "elapsedMs": 53.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 162.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 122.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "paired_pointwise_add_pipeline",
+    "elapsedMs": 39.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "split_qg_paired_pipeline",
+    "elapsedMs": 17.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "rope_qk_paired_pipeline",
+    "elapsedMs": 149.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "cast_two_f32_to_f16_pipeline",
+    "elapsedMs": 14.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "attention_paired_pipeline",
+    "elapsedMs": 198.0
+  },
+  {
+    "operation": "request-0:step-0:stage-0",
+    "pipeline": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 113.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "rope_precompute_paired_pipeline",
+    "elapsedMs": 8.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 6.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_beta_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_scale_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_log_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "gated_delta_recurrent_paired_qk_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "gated_delta_recurrent_paired_state_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "gated_delta_recurrent_paired_norm_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "gated_delta_recurrent_paired_gate_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 7.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 6.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 4464.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "paired_pointwise_add_pipeline",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "split_qg_paired_pipeline",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "rope_qk_paired_pipeline",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "cast_two_f32_to_f16_pipeline",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "attention_paired_pipeline",
+    "elapsedMs": 9.0
+  },
+  {
+    "operation": "request-0:step-0:stage-1",
+    "pipeline": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 3734.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "rope_precompute_paired_pipeline",
+    "elapsedMs": 26.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 12.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "qwen_linear_attention_prepare_paired_beta_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 9.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_scale_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 8.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "qwen_linear_attention_prepare_paired_log_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 9.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 12.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "gated_delta_recurrent_paired_qk_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 10.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "gated_delta_recurrent_paired_state_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 10.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "gated_delta_recurrent_paired_norm_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 12.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "gated_delta_recurrent_paired_gate_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 10.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 88548.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 3054.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+    "elapsedMs": 3286.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 94525.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 32488.999999999996
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "paired_pointwise_add_pipeline",
+    "elapsedMs": 1362.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "split_qg_paired_pipeline",
+    "elapsedMs": 10.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "rope_qk_paired_pipeline",
+    "elapsedMs": 56256.0
+  },
+  {
+    "operation": "request-0:step-0:stage-2",
+    "pipeline": "cast_two_f32_to_f16_pipeline",
+    "elapsedMs": 10.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "rope_precompute_paired_pipeline",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_beta_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_scale_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_log_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "gated_delta_recurrent_paired_qk_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "gated_delta_recurrent_paired_state_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "gated_delta_recurrent_paired_norm_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "gated_delta_recurrent_paired_gate_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "gather_f16_vec4_pipeline",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "cast_f32_to_two_f32_pipeline",
+    "elapsedMs": 59.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 160.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 55.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+    "elapsedMs": 53.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 162.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 122.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "paired_pointwise_add_pipeline",
+    "elapsedMs": 39.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "split_qg_paired_pipeline",
+    "elapsedMs": 17.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "rope_qk_paired_pipeline",
+    "elapsedMs": 149.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "cast_two_f32_to_f16_pipeline",
+    "elapsedMs": 14.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "attention_paired_pipeline",
+    "elapsedMs": 198.0
+  },
+  {
+    "operation": "close-attempt-0-0",
+    "pipeline": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 113.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "rope_precompute_paired_pipeline",
+    "elapsedMs": 8.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 6.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_beta_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_scale_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_log_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "gated_delta_recurrent_paired_qk_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "gated_delta_recurrent_paired_state_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "gated_delta_recurrent_paired_norm_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "gated_delta_recurrent_paired_gate_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 7.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 6.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 4464.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "paired_pointwise_add_pipeline",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "split_qg_paired_pipeline",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "rope_qk_paired_pipeline",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "cast_two_f32_to_f16_pipeline",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "attention_paired_pipeline",
+    "elapsedMs": 9.0
+  },
+  {
+    "operation": "close-attempt-0-1",
+    "pipeline": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 3734.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "rope_precompute_paired_pipeline",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_beta_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_scale_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_log_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "gated_delta_recurrent_paired_qk_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "gated_delta_recurrent_paired_state_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "gated_delta_recurrent_paired_norm_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "gated_delta_recurrent_paired_gate_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "gather_f16_vec4_pipeline",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "cast_f32_to_two_f32_pipeline",
+    "elapsedMs": 59.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 160.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 55.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+    "elapsedMs": 53.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 162.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 122.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "paired_pointwise_add_pipeline",
+    "elapsedMs": 39.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "split_qg_paired_pipeline",
+    "elapsedMs": 17.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "rope_qk_paired_pipeline",
+    "elapsedMs": 149.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "cast_two_f32_to_f16_pipeline",
+    "elapsedMs": 14.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "attention_paired_pipeline",
+    "elapsedMs": 198.0
+  },
+  {
+    "operation": "close-resident-0",
+    "pipeline": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 113.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "rope_precompute_paired_pipeline",
+    "elapsedMs": 8.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 6.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_beta_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_scale_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_log_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "gated_delta_recurrent_paired_qk_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "gated_delta_recurrent_paired_state_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "gated_delta_recurrent_paired_norm_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "gated_delta_recurrent_paired_gate_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 7.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 6.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 4464.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "paired_pointwise_add_pipeline",
+    "elapsedMs": 4.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "split_qg_paired_pipeline",
+    "elapsedMs": 2.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "rope_qk_paired_pipeline",
+    "elapsedMs": 5.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "cast_two_f32_to_f16_pipeline",
+    "elapsedMs": 1.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "attention_paired_pipeline",
+    "elapsedMs": 9.0
+  },
+  {
+    "operation": "close-resident-1",
+    "pipeline": "paired_pointwise_sigmoid_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 3734.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "rope_precompute_paired_pipeline",
+    "elapsedMs": 26.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 12.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "qwen_linear_attention_prepare_paired_beta_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 9.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_scale_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 8.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "qwen_linear_attention_prepare_paired_log_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 9.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "qwen_linear_attention_prepare_paired_decay_pipeline_WORKGROUP_SIZE=64",
+    "elapsedMs": 12.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "gated_delta_recurrent_paired_qk_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 10.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "gated_delta_recurrent_paired_state_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 10.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "gated_delta_recurrent_paired_norm_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 12.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "gated_delta_recurrent_paired_gate_pipeline_WORKGROUP_SIZE=128",
+    "elapsedMs": 10.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=0|POST_RESIDUAL=0|PRE_RESIDUAL=0|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 88548.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "matmul_paired_q4k_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=0|WEIGHT_Q4K=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 3054.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "matmul_paired_f16_pipeline_SCALAR_OUTPUT=0|TRANSPOSE_B=1|WEIGHT_F16=1|WEIGHT_Q4K=0|WORKGROUP_SIZE=64",
+    "elapsedMs": 3286.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "rmsnorm_paired_pipeline_OUTPUT_PRENORM=1|POST_RESIDUAL=0|PRE_RESIDUAL=1|WEIGHT_F16=1|WEIGHT_OFFSET=1|WORKGROUP_SIZE=64",
+    "elapsedMs": 94525.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "paired_pointwise_silu_pipeline_HAS_GATE=1|INPUT_USE_IDENTITY=1",
+    "elapsedMs": 32488.999999999996
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "paired_pointwise_add_pipeline",
+    "elapsedMs": 1362.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "split_qg_paired_pipeline",
+    "elapsedMs": 10.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "rope_qk_paired_pipeline",
+    "elapsedMs": 56256.0
+  },
+  {
+    "operation": "close-resident-2",
+    "pipeline": "cast_two_f32_to_f16_pipeline",
+    "elapsedMs": 10.0
+  }
+]
