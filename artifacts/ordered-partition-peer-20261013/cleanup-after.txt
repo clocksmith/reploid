@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/ordered-partition-peer.test.js (11 tests) 280ms
+
+ Test Files  1 passed (1)
+      Tests  11 passed (11)
+   Start at  10:31:00
+   Duration  561ms (transform 54ms, setup 0ms, import 131ms, tests 280ms, environment 91ms)
+

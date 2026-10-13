@@ -1,0 +1,13 @@
+# Ordered authenticated peer
+
+Component: existing partition peer/receiver and bounded channel composition. Intent adds explicit ordinary ordered mode; legacy A/B and canonical two-stage routes remain unchanged.
+
+`createPartitionPeer({ordered:{route,partitionIndex}, ...})` binds host-authenticated coordinator/stage endpoints, the provider plan hash and the exact resident/execution/transport identities. Refresh requires a matching v2 ready descriptor and stage capability. The stage-zero coordinator receives middle-stage activations through a reverse binary request on the existing duplex channel, then forwards them to the next stage. Signed v4 disclosure includes this coordinator observation. No direct-adjacent transfer or efficiency claim is made.
+
+The reverse request is admitted only for an already pending exact attempt/stage/step/generation and bounded tensor layout/size. Its bytes have a fingerprint checked before the original execution acknowledgment is accepted. Retained output bytes have a separate counter capped by the existing pending-byte allocation. No tensors are encoded as JSON control replies. Token output remains bounded control data.
+
+Unknown reservation or cleanup acknowledgment remains charged. Receiver cancellation waits for pending computation; the peer reservation owner then invokes resident cleanup once. Duplicate settlements share one promise; failed cleanup can retry; successful cleanup leaves a tombstone that rejects late admission. `cleanup-before.txt` retains the initial concurrent-cleanup defect and its associated test failure; `cleanup-after.txt` proves the corrected dependency order. Two initial harness mistakes are retained separately: invalid buffered/control test limits and a mutation aimed at a nonexistent wire-frame kind. Production limits/protocol validation were preserved.
+
+`after.txt` covers 12 new controls and 63 existing API/channel controls. It includes actual WebCrypto v4 signing and existing channel framing/fragmentation over in-process RTC test channels, a remote middle/final traversal, exact replay versus changed bytes, unsupported version, corrupted reverse bytes, cancellation after binary output before final acknowledgment, sibling survival, lost cleanup acknowledgment, explicit cleanup retry, duplicate settlement, late reservation rejection and capability refusal. Numerical execution remains injected. Worker/types/charter receipts are retained; actual Worker warnings remain visible.
+
+Not established: physical WebRTC/GPU N-stage execution, automatic host preparation/selection, requester entry wiring, canonical N-stage publication, physical device accounting or performance. No runtime pin, production policy, served delivery or GPU process changed.
