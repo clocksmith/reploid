@@ -47,14 +47,16 @@ it.each([2,3,4,5,6,7])('discovers a complete %i-stage route and serves local plu
     const remoteModel=meshes[count].getModels().find(model=>model.partition?.schema==='reploid.partition-selection/v2');
     expect(remoteModel.partition.route).toEqual(f.route);expect(meshes[0].getModels().some(model=>model.partition?.route.stages.length===count)).toBe(true);
     signaling=false;
-    const remoteApproval=vi.fn(async()=>true), localApproval=vi.fn(async()=>true), remoteDeltas=[], localDeltas=[];
+    const remoteApproval=vi.fn(async()=>true), localApproval=vi.fn(async()=>true), remoteDeltas=[], localDeltas=[], remoteActivity=[], localActivity=[];
     const [remote,local]=await Promise.all([
       meshes[count].generate({model:remoteModel,messages:[{role:'user',content:'Remote synthetic request'}],threadId:'remote',attemptId:'remote'},
-        {requestApproval:remoteApproval,onDelta:event=>remoteDeltas.push(event.text)}),
+        {requestApproval:remoteApproval,onActivity:event=>remoteActivity.push(event),onDelta:event=>remoteDeltas.push(event.text)}),
       meshes[0].generate({model:meshes[0].getModels().find(model=>model.partition?.route.stages[0].participantId===identities[0].peerId),
         messages:[{role:'user',content:'Local synthetic request'}],threadId:'local',attemptId:'local'},
-        {requestApproval:localApproval,onDelta:event=>localDeltas.push(event.text)})]);
+        {requestApproval:localApproval,onActivity:event=>localActivity.push(event),onDelta:event=>localDeltas.push(event.text)})]);
     expect(remote.content).toBe('012');expect(local.content).toBe('012');expect(remoteDeltas.join('')).toBe('012');expect(localDeltas.join('')).toBe('012');
+    expect(remoteActivity.map(row=>row.sequence)).toEqual([0,1,2]);expect(localActivity.map(row=>row.sequence)).toEqual([0,1,2]);
+    expect(remoteActivity.at(-1).stepSummary.stages).toEqual(remote.execution.stepSummary.stages);expect(localActivity.at(-1).stepSummary.stages).toEqual(local.execution.stepSummary.stages);
     expect(remote.execution.identity.route).toEqual(f.route);expect(local.execution.identity.route).toEqual(f.route);
     expect(remoteApproval.mock.calls[0][0].input.recipients).toEqual([...identities.slice(0,count).map(row=>row.peerId),identities[count].peerId]);
     expect(loads[count]).not.toHaveBeenCalled();expect(loads.slice(0,count).every(load=>load.mock.calls.length===1)).toBe(true);

@@ -1,0 +1,160 @@
+{
+  "files": {
+    "packages/reploid/src/chat/thread-grants.js": "00332e3a79496732995f8754120c39044d5031166ec0de7017c093b9ef741b0f",
+    "packages/reploid/src/chat/workspace.js": "beac3f1795ac72fc36f05e1aaf3ed64aad1e0097122b7961452a8a3c7b52c160",
+    "tests/unit/chat-ordered-thread-grants.test.js": "4c6e1caaa334b4f52bfaf9773cf0fcc003665a14ab8b48e4f329a9d23331fe78",
+    "tests/unit/chat-ordered-grant-replacement.test.js": "0bcd17fa7403e5a6fb60f9a47d4c36601f632e05f272f33ae78e842905035798"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/packages/reploid/src/chat/thread-grants.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/packages/reploid/src/chat/thread-grants.js:60: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /testing/packages/reploid/src/chat/workspace.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/packages/reploid/src/chat/workspace.js:19: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 49 functions (max 20) - consider modularizing",
+      "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "Warning in /testing/tests/unit/chat-ordered-thread-grants.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/tests/unit/chat-ordered-thread-grants.test.js:32: Dynamic property write detected: [field] - verify input sanitization",
+      "Warning in /testing/tests/unit/chat-ordered-grant-replacement.test.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791913847939,
+        "path": "/testing/packages/reploid/src/chat/thread-grants.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791913847941,
+        "path": "/testing/packages/reploid/src/chat/thread-grants.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 60,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791913847954,
+        "path": "/testing/packages/reploid/src/chat/workspace.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791913847956,
+        "path": "/testing/packages/reploid/src/chat/workspace.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 19,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791913847956,
+        "metric": "functions",
+        "value": 49,
+        "threshold": 20,
+        "message": "File has 49 functions (max 20) - consider modularizing",
+        "path": "/testing/packages/reploid/src/chat/workspace.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791913847956,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/testing/packages/reploid/src/chat/workspace.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791913847959,
+        "path": "/testing/tests/unit/chat-ordered-thread-grants.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791913847959,
+        "path": "/testing/tests/unit/chat-ordered-thread-grants.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [field] - verify input sanitization",
+        "line": 32,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791913847961,
+        "path": "/testing/tests/unit/chat-ordered-grant-replacement.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/packages/reploid/src/chat/thread-grants.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/packages/reploid/src/chat/workspace.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/tests/unit/chat-ordered-thread-grants.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/testing/tests/unit/chat-ordered-grant-replacement.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 49,
+          "threshold": 20,
+          "message": "File has 49 functions (max 20) - consider modularizing",
+          "path": "/testing/packages/reploid/src/chat/workspace.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/testing/packages/reploid/src/chat/workspace.js"
+        }
+      ],
+      "filesAnalyzed": 4
+    }
+  }
+}

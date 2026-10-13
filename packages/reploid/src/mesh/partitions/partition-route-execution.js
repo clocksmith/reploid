@@ -76,7 +76,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     try { return await item.cleaning; } finally { item.cleaning = null; }
   }
 
-  async function execute({ identity, tokenIds, generation, grants, maxTokens, signal, onDelta = () => {} }) {
+  async function execute({ identity, tokenIds, generation, grants, maxTokens, signal, onDelta = () => {}, onActivity = () => {} }) {
     assert(!closed, 'Partition runner is closed');
     signal?.throwIfAborted();
     // Freeze caller-owned request data before asynchronous plan validation.
@@ -90,7 +90,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
       && tokenIds.every(id => Number.isSafeInteger(id) && id >= 0 && id < plan.vocabSize), 'Invalid ordered prompt allocation');
     assert(positive(maxTokens) && maxTokens <= policy.maxTokens && generation?.maxTokens === maxTokens,
       'Invalid ordered generation allocation');
-    assert(typeof onDelta === 'function', 'Output delivery callback required');
+    assert(typeof onDelta === 'function' && typeof onActivity === 'function', 'Output delivery callback required');
     assert(grants && ['execution', 'tokenContext'].every(key => Array.isArray(grants[key])
       && grants[key].length === devices.length && grants[key].every(value => value && typeof value === 'object'))
       && Array.isArray(grants.activation) && grants.activation.length === devices.length - 1
@@ -112,6 +112,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     attempts.set(binding.attemptId, item);
     let input = [...tokenIds], position = 0, content = '', logits = null, stopReason = 'length', activationBytes = 0;
     const continuations = devices.map(() => null), outputTokens = [], steps = [];
+    const activityStages = devices.map((_, partitionIndex) => ({partitionIndex,steps:0,stepMs:{count:0,total:0}}));
     let failure;
     const permit = async (action, grant, extra) => {
       combined.throwIfAborted();
@@ -225,6 +226,13 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
           if (final.done) stopReason = final.stopReason;
           return { delta: final.delta, done: final.done };
         })();
+        combined.throwIfAborted();
+        for (const stage of steps.at(-1).stages) {
+          const row = activityStages[stage.partitionIndex];
+          row.steps++; row.stepMs.count++; row.stepMs.total += stage.elapsedMs;
+        }
+        await onActivity({ schema: 'reploid.partition-activity/v1', identity: clone(binding), sequence: index,
+          stepSummary: {count:index + 1,stages:clone(activityStages)} });
         combined.throwIfAborted();
         if (delivery.delta) await onDelta(delivery.delta);
         combined.throwIfAborted();

@@ -1,0 +1,64 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+········xxx·····················x·····················································································
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/execution-activity.test.js > renders one measured time-share bar and all stage rates from completed step observations
+ReferenceError: document is not defined
+ ❯ tests/unit/execution-activity.test.js:37:16
+     35|   expect(nodes.map(node => node.share)).toEqual([0.1, 0.2, 0.7]);
+     36|   expect(nodes.map(node => node.speed)).toEqual([10, 5, 1000 / 700]);
+     37|   const root = document.createElement('details');
+       |                ^
+     38|   root.innerHTML = '<summary></summary><div data-activity-detail></div…
+     39|   updateExecutionActivity(root, state);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/unit/execution-ribbon.test.js > Execution ribbon interactions > keeps one quiet status and opens assigned execution details only on activation
+ReferenceError: document is not defined
+ ❯ mount tests/unit/execution-ribbon.test.js:75:5
+     73|   afterEach(() => { binding?.dispose(); root?.remove(); vi.useRealTime…
+     74|   function mount(onInspect = () => {}) {
+     75|     root = document.createElement('div'); root.innerHTML = renderExecu…
+       |     ^
+     76|     binding = bindExecutionRibbon(root, { onInspect });
+     77|   }
+ ❯ tests/unit/execution-ribbon.test.js:79:30
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/unit/execution-ribbon.test.js > Execution ribbon interactions > pulses only for new observed output, not execution state, history selection, or unrelated updates
+ReferenceError: document is not defined
+ ❯ mount tests/unit/execution-ribbon.test.js:75:5
+     73|   afterEach(() => { binding?.dispose(); root?.remove(); vi.useRealTime…
+     74|   function mount(onInspect = () => {}) {
+     75|     root = document.createElement('div'); root.innerHTML = renderExecu…
+       |     ^
+     76|     binding = bindExecutionRibbon(root, { onInspect });
+     77|   }
+ ❯ tests/unit/execution-ribbon.test.js:90:25
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/unit/execution-ribbon.test.js > Execution ribbon interactions > escapes participant and model labels
+ReferenceError: document is not defined
+ ❯ mount tests/unit/execution-ribbon.test.js:75:5
+     73|   afterEach(() => { binding?.dispose(); root?.remove(); vi.useRealTime…
+     74|   function mount(onInspect = () => {}) {
+     75|     root = document.createElement('div'); root.innerHTML = renderExecu…
+       |     ^
+     76|     binding = bindExecutionRibbon(root, { onInspect });
+     77|   }
+ ❯ tests/unit/execution-ribbon.test.js:104:5
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  2 failed | 6 passed (8)
+      Tests  4 failed | 114 passed (118)
+   Start at  13:38:13
+   Duration  2.47s (transform 490ms, setup 0ms, import 1.19s, tests 4.40s, environment 0ms)
+

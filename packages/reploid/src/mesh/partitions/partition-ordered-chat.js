@@ -96,6 +96,7 @@ export function createOrderedPartitionChat({ runtime, authority, model, plan, pl
         maxTokens: generation.maxTokens, signal,
         grants: { execution: stages.map(() => grant), tokenContext: stages.map(() => grant),
           activation: stages.slice(1).map(() => grant), output: grant },
+        onActivity: activity => controls.onActivity?.({threadId: identity.threadId, attemptId: identity.attemptId, ...activity}),
         onDelta: text => controls.onDelta?.({ threadId: identity.threadId, attemptId: identity.attemptId, sequence: sequence++, text }) });
       try {
         const result = await operation;

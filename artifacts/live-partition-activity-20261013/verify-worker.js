@@ -1,0 +1,17 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import { createHash } from 'node:crypto';
+const baseline = process.argv.includes('--baseline');
+const files = ['packages/reploid/src/chat/workspace.js', ...['partition-summary','partition-route-execution','partition-entry','partition-ordered-chat','automatic-ordered-partitions'].map(name=>'packages/reploid/src/mesh/partitions/'+name+'.js')];
+const snapshot = Object.fromEntries(files.map(file => ['/testing/' + file, fs.readFileSync(file, 'utf8')]));
+let result;
+const sandbox = { console, setTimeout, clearTimeout };
+sandbox.self = sandbox; sandbox.postMessage = value => { result = value; };
+const context = vm.createContext(sandbox);
+sandbox.importScripts = file => vm.runInContext(fs.readFileSync('self' + file, 'utf8'), context, { filename: file });
+vm.runInContext(fs.readFileSync('self/core/verification-worker.js', 'utf8'), context);
+await sandbox.onmessage({ data: { type: 'VERIFY', snapshot } });
+const evidence = { files: Object.fromEntries(files.map(file => [file, createHash('sha256').update(fs.readFileSync(file)).digest('hex')])), result };
+fs.writeFileSync(new URL(baseline ? './worker-baseline.json' : './worker.json', import.meta.url), JSON.stringify(evidence, null, 2) + '\n');
+if (!result.passed) throw Error(JSON.stringify(result));
+console.log('Actual Verification Worker passed; warnings retained in worker.json');

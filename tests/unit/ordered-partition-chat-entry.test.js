@@ -383,3 +383,86 @@ it.each(['output','input','schema'])('rejects final %s usage changed in a bound 
     await expect(f.client.generate({...f.request,generationRequest:callerGeneration(3)})).rejects.toThrow('usage');
   }finally{await f.close();}
 });
+
+it.each([2,3,4,7])('delivers measured %i-stage activity before later tokens complete',async count=>{
+  const f=await fixture(count,true),activity=[],gate=Promise.withResolvers(),entered=Promise.withResolvers();
+  const original=f.f.stages[0].executeStage.getMockImplementation();
+  f.f.stages[0].executeStage.mockImplementation(async args=>{if(args.step===1){entered.resolve();await gate.promise;}return original(args);});
+  try{
+    const operation=f.client.generate(f.request,{onActivity:event=>activity.push(structuredClone(event))});
+    await entered.promise;
+    expect(activity).toHaveLength(1);expect(activity[0].identity.route).toEqual(f.f.route);
+    expect(activity[0].stepSummary.count).toBe(1);expect(activity[0].stepSummary.stages).toHaveLength(count);
+    expect(activity[0].stepSummary.stages.every(row=>row.steps===1&&row.stepMs.count===1&&Number.isFinite(row.stepMs.total)&&row.stepMs.total>=0)).toBe(true);
+    gate.resolve();const result=await operation;
+    expect(activity.map(row=>row.sequence)).toEqual([0,1,2]);
+    expect(activity.at(-1).stepSummary.stages).toEqual(result.execution.stepSummary.stages);
+  }finally{gate.resolve();await f.close();}
+});
+
+it.each(['route','stage','sequence','duration','overflow','sample-count','decrease','duplicate','attempt'])('rejects mutated authenticated activity: %s',async mutation=>{
+  const f=await fixture(),seen=[];const send=f.pair[1].send;let intercepted=0;
+  f.pair[1].send=function(data){
+    if(typeof data==='string'){
+      const row=JSON.parse(data),metadata=row.metadata;
+      if(metadata?.operation==='delta'&&metadata.activity){
+        intercepted++;const event=metadata.activity;
+        if(mutation==='route')event.identity.route.stages[1].executionId='substituted';
+        if(mutation==='attempt')event.identity.attemptId='other';
+        if(mutation==='stage')event.stepSummary.stages[1].partitionIndex=0;
+        if(mutation==='sequence')event.sequence++;
+        if(mutation==='duration')event.stepSummary.stages[0].stepMs.total=-1;
+        if(mutation==='overflow')event.stepSummary.stages.forEach(row=>{row.stepMs.total=Number.MAX_VALUE;});
+        if(mutation==='sample-count'){event.sequence=Number.MAX_SAFE_INTEGER;event.stepSummary.count=event.sequence+1;event.stepSummary.stages.forEach(row=>{row.steps=event.stepSummary.count;row.stepMs.count=event.stepSummary.count;});}
+        if(mutation==='decrease'&&intercepted===2)event.stepSummary.stages[0].stepMs.total=0;
+        if(mutation==='duplicate'&&intercepted===2){event.sequence=0;event.stepSummary.count=1;event.stepSummary.stages.forEach(x=>{x.steps=1;x.stepMs.count=1;});}
+        data=JSON.stringify(row);
+      }
+    }
+    return send.call(this,data);
+  };
+  try{await expect(f.client.generate(f.request,{onActivity:event=>seen.push(event)})).rejects.toThrow();expect(intercepted).toBeGreaterThan(0);expect(seen.length).toBe(mutation==='decrease'||mutation==='duplicate'?1:0);}
+  finally{await f.close();}
+});
+
+it('rejects retained producer activity after the attempt settled',async()=>{
+  const f=await fixture();let callback,last;const generate=f.chat.generate;
+  const service={...f.chat,generate(request,controls){callback=controls.onActivity;return generate(request,{...controls,onActivity:event=>{last=structuredClone(event);return callback(event);}});}};
+  const pair=channels(),server=createPartitionEntry({channel:pair[1],localParticipantId:f.request.coordinatorId,remoteParticipantId:'late-requester',service,ordered:true,authorize:async()=>true,limits:{maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:4096,maxPendingBytes:16384,maxPendingRequests:8,maxRequestsPerChannel:256,maxBufferedBytes:262144,maxTransferBytes:4194304,timeoutMs:1000},inputLimits:{maxInputCharacters:4096,maxOutputCharacters:100,maxAttempts:20,maxConcurrentAttempts:2,descriptorTtlMs:10000}});
+  const client=createPartitionEntry({channel:pair[0],localParticipantId:'late-requester',remoteParticipantId:f.request.coordinatorId,ordered:true,authorize:async()=>true,limits:{maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:4096,maxPendingBytes:16384,maxPendingRequests:8,maxRequestsPerChannel:256,maxBufferedBytes:262144,maxTransferBytes:4194304,timeoutMs:1000},inputLimits:{maxInputCharacters:4096,maxOutputCharacters:100,maxAttempts:20,maxConcurrentAttempts:2,descriptorTtlMs:10000}});
+  try{await client.refresh();await client.generate({...f.request,attemptId:'late'},{onActivity:()=>{}});expect(()=>callback(last)).toThrow(/late/);}
+  finally{await Promise.allSettled([client.close(),server.close()]);await f.close();}
+});
+
+it('keeps activity silent for an older ordered requester without explicit event opt-in',async()=>{
+  const f=await fixture(),send=f.pair[1].send,operations=[];
+  f.pair[1].send=function(data){if(typeof data==='string')operations.push(JSON.parse(data).metadata?.activity);return send.call(this,data);};
+  try{const result=await f.client.generate(f.request);expect(result.content).toBe('012');expect(operations.filter(Boolean)).toEqual([]);}
+  finally{await f.close();}
+});
+
+it('piggybacks activity on existing deltas without blocking later numerical stages on a requester acknowledgment',async()=>{
+  const f=await fixture(),send=f.pair[0].send,serverSend=f.pair[1].send,operations=[],events=[],deltas=[];let held,released=false;
+  f.pair[0].send=function(data){if(typeof data==='string'){const row=JSON.parse(data);if(!held&&row.type==='result'&&row.result?.received===true){held=()=>send.call(this,data);return;}}return send.call(this,data);};
+  f.pair[1].send=function(data){if(typeof data==='string'){const row=JSON.parse(data);if(row.type==='request')operations.push(row.metadata.operation);}return serverSend.call(this,data);};
+  try{
+    const pending=f.client.generate(f.request,{onActivity:event=>events.push(event),onDelta:text=>deltas.push(text)});
+    await vi.waitFor(()=>expect(f.f.stages.every(stage=>stage.executeStage.mock.calls.length===3)).toBe(true));
+    expect(held).toBeTypeOf('function');expect(deltas).toEqual(['0']);expect(operations).toEqual(['delta']);
+    held();released=true;const result=await pending;expect(result.content).toBe('012');expect(operations).toEqual(['delta','delta','delta']);expect(events).toHaveLength(3);
+  }finally{if(!released)held?.();await f.close();}
+});
+
+it.each([false,true])('carries coalesced observations in existing text/final frames when empty decoded samples occur (all empty=%s)',async allEmpty=>{
+  const f=await fixture(),stage=f.f.stages.at(-1),execute=stage.executeStage.getMockImplementation(),events=[];
+  stage.executeStage.mockImplementation(async request=>({...await execute(request),delta:!allEmpty&&request.step===1?'one':''}));
+  try{const result=await f.client.generate(f.request,{onActivity:event=>events.push(event)});expect(result.content).toBe(allEmpty?'':'one');expect(events.map(row=>row.sequence)).toEqual(allEmpty?[2]:[1,2]);expect(events.at(-1).stepSummary).toMatchObject({count:3,stages:result.execution.stepSummary.stages});}
+  finally{await f.close();}
+});
+
+it('rejects changed final-only activity before publishing that observation',async()=>{
+  const f=await fixture(),stage=f.f.stages.at(-1),execute=stage.executeStage.getMockImplementation(),events=[],send=f.pair[1].send;
+  stage.executeStage.mockImplementation(async request=>({...await execute(request),delta:''}));
+  f.pair[1].send=function(data){if(typeof data==='string'){const row=JSON.parse(data);if(row.result?.activity){row.result.activity.stepSummary.stages[0].stepMs.total++;data=JSON.stringify(row);}}return send.call(this,data);};
+  try{await expect(f.client.generate(f.request,{onActivity:event=>events.push(event)})).rejects.toThrow(/activity/);expect(events).toEqual([]);}finally{await f.close();}
+});

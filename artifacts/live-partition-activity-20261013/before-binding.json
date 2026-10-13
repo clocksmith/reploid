@@ -1,0 +1,15 @@
+{
+  "sourceCommit": "1848e7d8",
+  "sourceRoot": "/var/tmp/reploid-text-messages-20261013/source",
+  "command": "node node_modules/vitest/vitest.mjs run tests/unit/partition-live-activity.test.js --root /var/tmp/reploid-text-messages-20261013/source --reporter=dot",
+  "sourceFiles": {
+    "packages/reploid/src/chat/workspace.js": "88a1d9e16c0db5e3cee4bfd8c8385d9ef6e0978dc653d3c64db533bac8e9384a",
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js": "cc4aeacc46682ec82fa849865e26b08d91e5ea59548360e8904e35dffe8a1056",
+    "packages/reploid/src/mesh/partitions/partition-entry.js": "918b7b3b5e4095c3096cf0291178f1684f7a063786d848cbf3b8dc23c2b6de6c",
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.js": "cef481c04b4238be438b1be79d3b07192a066631122827bfcf69bca7e28bd60c",
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js": "4c5cfe5957d1837b960cc88a02503628e5e45c16bcbd428809baa83f03132f49",
+    "packages/reploid/src/mesh/partitions/partition-summary.js": "6f2a678ce7356a2a1b19b6d0c66a879fb9eda3da326726c7485d66ad3010f6ac"
+  },
+  "testSha256": "e695505d006ab403b2c1bec87d90b7798b824e746face0ff83908313df01357b",
+  "scope": "Actual new composition regression over unchanged pre-fix source; no timing available before completion"
+}
