@@ -1,0 +1,36 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/partition-memory-settlement.test.js (5 tests | 1 failed) 5ms
+   × accepts settled ownership with the exact retained reusable-weight accounting control 3ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/partition-memory-settlement.test.js > accepts settled ownership with the exact retained reusable-weight accounting control
+AssertionError: expected [Function] to not throw an error but 'AssertionError [ERR_ASSERTION]: Close…' was thrown
+
+- Expected:
+undefined
+
++ Received:
+"AssertionError [ERR_ASSERTION]: Closed resident weights were not destroyed
+
+256 !== 0
+"
+
+ ❯ tests/unit/partition-memory-settlement.test.js:14:60
+     12|   expect(value.device.categories.weights).toBe(256);
+     13|   expect(value.pool.resources.reusable.bytes).toBe(256);
+     14|   expect(() => assertPartitionMemorySettlement(value)).not.toThrow();
+       |                                                            ^
+     15|   expect(value).toEqual(before);
+     16| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  07:27:36
+   Duration  86ms (transform 10ms, setup 0ms, import 15ms, tests 5ms, environment 0ms)
+

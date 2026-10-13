@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 
 // Fixture deadlines do not change the application's 300-second execution policy.
 export const CONCURRENT_DEADLINES = Object.freeze({ operationMs: 300000,
@@ -79,7 +80,8 @@ export function createConcurrentOperationObserver({ evidence, persist,
 
 /** Interleave real resident attempts; never imply simultaneous GPU kernels. */
 export async function runConcurrentPartitionMemory({ pages, pageA, pageB, request,
-  generation, planId, runs, persist, onProgress = () => {}, operation }) {
+  generation, planId, runs, persist, onProgress = () => {}, operation, prefillObservationOnly = false }) {
+  assert.equal(typeof prefillObservationOnly, 'boolean', 'Explicit prefill observation selector required');
   const evaluate = operation || createConcurrentOperationObserver({ evidence: {}, persist });
   const snapshot = () => Promise.all(pages.map((page, index) => evaluate(page, `settle-memory-${index}`, () => settleMemory(), undefined, true)));
   const checkMemory = snapshots => {
@@ -147,6 +149,16 @@ export async function runConcurrentPartitionMemory({ pages, pageA, pageB, reques
       await persist();
       return;
     }
+    if (prefillObservationOnly) {
+      assert.equal(row.steps, 0, 'Prefill observation cannot decode');
+      const { data, ...metadata } = a.activation;
+      const bytes = Buffer.from(data, 'base64');
+      row.prefillObservation = { scope: 'Group0 first activation only; no decode or concurrency qualification',
+        activation: metadata, byteLength: bytes.byteLength,
+        sha256: createHash('sha256').update(bytes).digest('hex'), continuation: a.continuation };
+      await persist();
+      return;
+    }
     const b = await evaluate(pageB, `${row.name}:step-${row.steps}:group-1`, async ({ parameters, ids, activation, continuation }) => {
       observePrefill = parameters.step === 0;
       const value = await resident.executeGroup1({ ...parameters, inputTokenIds: ids,
@@ -179,8 +191,10 @@ export async function runConcurrentPartitionMemory({ pages, pageA, pageB, reques
   let failure;
   try {
     const baseline = await open('concurrent-baseline'); states.push(baseline);
-    await finish(baseline);
+    if (prefillObservationOnly) await step(baseline);
+    else await finish(baseline);
     await close(baseline);
+    if (!prefillObservationOnly) {
     const cancelled = await open('concurrent-cancelled'); states.push(cancelled);
     const survivor = await open('concurrent-survivor'); states.push(survivor);
     // Both full prompts and one decode step materialize before interruption.
@@ -214,6 +228,7 @@ export async function runConcurrentPartitionMemory({ pages, pageA, pageB, reques
     assert.equal(retry.row.text, baseline.row.text, 'Fresh retry changed the answer');
     assert.deepEqual(retry.row.tokenIds, baseline.row.tokenIds, 'Fresh retry changed tokens');
     await close(retry);
+    }
   } catch (error) {
     failure = error;
   } finally {

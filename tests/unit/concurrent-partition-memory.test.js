@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { createContext, runInContext } from 'node:vm';
 import { runConcurrentPartitionMemory, createConcurrentOperationObserver } from '../fixtures/concurrent-partition-memory.js';
 
-function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = false, deviceEvents = [], observationErrors = [], stallInput = false, stallClose = false } = {}) {
+function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = false, deviceEvents = [], observationErrors = [], stallInput = false, stallClose = false, prefillObservationOnly = false } = {}) {
   const events = [], runs = [], live = [new Set(), new Set()];
   const pages = [0, 1].map(index => {
     let context;
@@ -49,7 +49,7 @@ function fixture({ corruptSurvivor = false, rejectClose = false, ignoreAbort = f
   });
   return { events, runs, live, run: () => runConcurrentPartitionMemory({ pages, pageA: pages[0], pageB: pages[1],
     request: { model: { id: 'synthetic', identity: 'synthetic' }, messages: [] },
-    generation: { maxTokens: 8 }, planId: 'synthetic', runs, persist: async () => {},
+    generation: { maxTokens: 8 }, planId: 'synthetic', runs, prefillObservationOnly, persist: async () => {},
     operation: createConcurrentOperationObserver({ evidence: {}, persist: async () => {},
       deadlines: { operationMs: 30, cleanupMs: 10, observationMs: 5, sampleMs: 2 } }) }) };
 }
@@ -172,4 +172,23 @@ describe('bounded physical observations (synthetic unresolved providers)', () =>
     expect(() => createConcurrentOperationObserver({ evidence: {}, persist: async () => {},
       deadlines: { ...CONCURRENT_DEADLINES, cleanupMs: 0 } })).toThrow('Invalid');
   });
+});
+
+it('prefill observation stops after exact long group0 input and settles both owners without decode', async () => {
+  const value = fixture({ prefillObservationOnly: true });
+  await value.run();
+  expect(value.events.filter(row => row[0] === 'input')).toHaveLength(1);
+  expect(value.events.filter(row => row[0] === 'output')).toEqual([]);
+  expect(value.events.filter(row => row[0] === 'close')).toHaveLength(2);
+  expect(value.runs).toHaveLength(1);
+  expect(value.runs[0]).toMatchObject({ inputTokens: 1588, completed: false, closed: true,
+    steps: 0, tokenIds: [], prefillObservation: { byteLength: 4 } });
+  expect(value.runs[0].prefillObservation.sha256).toMatch(/^[a-f0-9]{64}$/);
+});
+it('prefill observation preserves the timeout and still attempts both owner closes', async () => {
+  const value = fixture({ prefillObservationOnly: true, stallInput: true });
+  await expect(value.run()).rejects.toThrow('exceeded 30ms');
+  expect(value.events.filter(row => row[0] === 'close')).toHaveLength(2);
+  expect(value.runs[0].prefillObservation).toBeUndefined();
+  expect(value.runs[0].completed).toBe(false);
 });

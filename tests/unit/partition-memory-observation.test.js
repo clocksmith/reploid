@@ -3,7 +3,7 @@ import { test, expect, vi } from 'vitest';
 import { createHash, webcrypto } from 'node:crypto';
 import { preparePartitionMemory } from '../fixtures/prepare-partition-memory.js';
 
-test('device loss remains observable when the global device and pool disappear', async () => {
+test.each([false, true])('device loss and explicit profiler=%s remain observable', async profileImmediate => {
   const names = ['__nativePartitionFixture', '__DOPPLER_KERNEL_BASE_PATH__', 'gpuValidationErrors',
     'partitionDeviceEvents', 'partitionGpuSubmissions', 'resident', 'chunks', 'observePrefill', 'abortOnSubmit', 'encodeBytes', 'memorySnapshot', 'settleMemory', 'rejectOversizedAllocation'];
   const prior = new Map(names.map(name => [name, Object.getOwnPropertyDescriptor(globalThis, name)]));
@@ -26,7 +26,7 @@ test('device loss remains observable when the global device and pool disappear',
       dispatchWorkgroups: (...args) => dispatched.push(args), dispatchWorkgroupsIndirect() {} }), finish: () => ({}) }) }; 
   const runtime = { createLayerPartitionPlan: () => ({}), hashLayerPartitionPlan: () => 'test-plan',
     configureDeviceMemoryBudget: async () => {}, inspectDeviceMemory: () => ({ liveBytes: 12 }),
-    createManifestResidentPartitionFactory: () => ({ openResidentPartition: async () => ({ getDescriptor: () => ({ ready: true }) }) }) };
+    createManifestResidentPartitionFactory: vi.fn(() => ({ openResidentPartition: async () => ({ getDescriptor: () => ({ ready: true }) }) })) };
   const modules = { 'partitions.js': runtime,
     'device.js': { getDevice: () => lost ? null : device, getKernelCapabilities: () => ({}) },
     'buffer-pool.js': { getBufferPool: () => { if (lost) throw Error('pool lost');
@@ -38,7 +38,8 @@ test('device loss remains observable when the global device and pool disappear',
   try {
     await preparePartitionMemory({ model: { identity, generation: { maxSeqLen: 32 } }, index: 0,
       modelSource: 'https://fixture/', config: { DOPPLER_PARTITIONS_MODULE_URL: 'https://fixture/src/partitions.js' },
-      policy: { maxGpuBufferBytes: 1420000000 } });
+      policy: { maxGpuBufferBytes: 1420000000 }, profileImmediate });
+    expect(runtime.createManifestResidentPartitionFactory.mock.calls[0][0].runtimeConfig.shared.debug.profiler.enabled).toBe(profileImmediate);
     const descriptor = { label: 'test pipeline', compute: { entryPoint: 'main', constants: { WIDTH: 8 } } };
     expect(device.createShaderModule({ label: 'test shader', code: 'source' })).toBe(shaderModule);
     expect(shaderModule.getCompilationInfo()).toBe(infoResult);
