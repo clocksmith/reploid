@@ -1,0 +1,14 @@
+{
+  "files": {
+    "server/native-participant.js": "42138de26346c63b0dc9defe1f5a7a0cecdac355e3d04a1329d1d2f0316fcd0a",
+    "tests/unit/native-status-log.test.js": "b389aaae368cdce23e24836e4ed23728886799a6a0eac3ee9efe876c769a805f",
+    "artifacts/native-status-log-20261013/before.txt": "e6363b8865c5fad782e037c488ee46ae5fa41cd080c019ab8ef94d9f3803b48f",
+    "artifacts/native-status-log-20261013/after.txt": "a283ac172a0c478badbc2ddbec1d72ec8b2e79cdfae34ae5a7be45eb84ba3240",
+    "artifacts/native-status-log-20261013/types.txt": "c506d0cc9d9cefa4c95d86c4d9e2f96c055daf8a3d88cd154a54c42549d522a1",
+    "artifacts/native-status-log-20261013/worker.json": "46cf2cd657f1277e2e78d09652a165ccf43aa716dbea877744391d5a71b0778f",
+    "artifacts/native-status-log-20261013/retained-log-projection.json": "5c4a37b936a4c6bbfd76f5c69cde3c6e66d404d24b01a611478381ff0cc5e8d8"
+  },
+  "productionScope": "CLI-only bounded projection; full getState and host onChange unchanged",
+  "noDeployment": true,
+  "noTimingClaim": true
+}

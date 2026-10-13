@@ -1,0 +1,9 @@
+{
+  "sourceFunctionSha256": "159e1941cf545192f8fe9f18cfb95436b3d9088f0e90efb09104347a227ce306",
+  "originalLogSha256": "b5aa68abde5a72f8cc4270f473aac99053479b825db6f598fa9d6c18161807f5",
+  "count": 1402,
+  "beforeBytes": 339813386,
+  "projectedBytes": 1610245,
+  "maximumProjectedRecordBytes": 1275,
+  "scope": "Offline projection of retained records, no live timing or responsiveness claim"
+}

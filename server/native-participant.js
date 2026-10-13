@@ -27,6 +27,38 @@ import { createPartitionTokenizerGuard } from '../self/host/work-partition-token
 
 const hash = bytes => 'sha256:' + createHash('sha256').update(bytes).digest('hex');
 const requireValue = (condition, message) => { if (!condition) throw new Error(message); };
+
+/** CLI status only. Detailed receipts remain available through getState(); routine
+ * notifications must not serialize signed artifact bodies or conversation text. */
+export function summarizeNativePartitionState(state) {
+  const text = (value, limit = 256) => typeof value === 'string'
+    ? value.length > limit ? value.slice(0, limit) + '…' : value : null;
+  const scalar = value => typeof value === 'string' ? text(value)
+    : typeof value === 'boolean' || typeof value === 'number' && Number.isFinite(value) ? value : null;
+  const pick = (value, keys) => Object.fromEntries(keys.filter(key => value?.[key] !== undefined)
+    .map(key => [key, scalar(value[key])]));
+  const rows = (values, project) => {
+    const entries = Array.isArray(values) ? values : [];
+    return { count: entries.length, omitted: Math.max(0, entries.length - 16), records: entries.slice(0, 16).map(project) };
+  };
+  const placement = Array.isArray(state.placement) ? state.placement : [];
+  const acquisition = state.acquisition;
+  return { event: 'partition-state', phase: text(state.phase), error: text(state.error, 1024),
+    offering: state.offering === true, modelId: text(state.modelId), unsettledOwners: scalar(state.unsettledOwners),
+    progress: state.progress ? pick(state.progress, ['stage', 'phase', 'message', 'loaded', 'total', 'progress']) : null,
+    placement: placement.slice(0, 16).map(value => text(value)), placementOmitted: Math.max(0, placement.length - 16),
+    descriptor: state.descriptor ? { ...pick(state.descriptor, ['schema', 'modelId', 'modelIdentity', 'planId', 'index',
+      'participantId', 'ready', 'residentWeightBytes', 'generationDigest', 'canonicalGenerationId']),
+      layerRange: Array.isArray(state.descriptor.layerRange) ? state.descriptor.layerRange.slice(0, 2).map(scalar) : null } : null,
+    reservations: state.reservations ? { ...pick(state.reservations, ['active', 'availableSlots', 'closed']),
+      ...rows(state.reservations.records, record => ({ attemptId: text(record.identity?.attemptId),
+        ...pick(record, ['phase', 'failure', 'reservedAt', 'settlingAt', 'settledAt']) })) } : null,
+    attempts: rows(state.attempts, record => pick(record, ['attemptId', 'threadId', 'status', 'phase'])),
+    acquisition: acquisition ? { openingMode: text(acquisition.openingMode),
+      memory: pick(acquisition.memory, ['liveBytes', 'allocatedBytes', 'maxBytes', 'peakBytes', 'allocations', 'rejected', 'lost']),
+      preparation: pick(acquisition.preparation, ['openMs', 'acquisitionAndMaterializationMs']) } : null };
+}
+
 const events = () => {
   const emitter = new EventEmitter();
   return { emit: (...args) => emitter.emit(...args), on(name, handler) {
@@ -447,7 +479,7 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
-    nativeGpu: () => gpuHost.open(), onChange: state => console.log(JSON.stringify({ event: 'partition-state', ...state })) });
+    nativeGpu: () => gpuHost.open(), onChange: state => console.log(JSON.stringify(summarizeNativePartitionState(state))) });
   const timer = setInterval(() => { participant.announceFiles(); console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),
     files: participant.getFileState({ includeReceipts: false }) })); }, policy.pollMs);
   const shutdown = createNativeShutdown(participant, gpuHost);
