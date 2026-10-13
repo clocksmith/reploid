@@ -12,7 +12,7 @@ export function projectExecutionActivity(state) {
       ? { count: values.length, total: values.reduce((a, b) => a + b, 0) } : null;
   };
   const nodes = view.executors.map((node, index) => {
-    const timing = view.split ? metric(index === 0 ? 'localStepMs' : 'remoteStepMs') : null;
+    const timing = view.ordered ? node.timing : view.split ? metric(index === 0 ? 'localStepMs' : 'remoteStepMs') : null;
     return { ...node, timing, speed: timing?.total > 0 ? 1000 * timing.count / timing.total : null };
   });
   const total = nodes.length && nodes.every(node => node.timing?.total > 0)

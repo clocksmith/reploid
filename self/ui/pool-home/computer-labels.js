@@ -17,8 +17,10 @@ function collect(state, registry) {
   for (const thread of [...(state.threads || []), state.activeThread].filter(Boolean)) {
     for (const attempt of thread.attempts || []) {
       const execution = attempt.execution;
-      for (const id of [execution?.participantA, execution?.participantB, execution?.peerId]) {
-        if (id && id !== execution?.requesterId && !own.has(id)) ids.add(id);
+      const route = execution?.identity?.schema === 'reploid.partition-attempt/v2' ? execution.identity.route : null;
+      for (const id of [execution?.participantA, execution?.participantB, execution?.peerId,
+        ...(route?.stages || []).map(stage => stage.participantId)]) {
+        if (id && id !== (execution?.identity?.requesterId || execution?.requesterId) && !own.has(id)) ids.add(id);
       }
     }
   }

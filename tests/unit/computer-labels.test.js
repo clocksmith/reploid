@@ -26,3 +26,14 @@ it('shares computer labels across transport aliases, assigned stage order and di
   state.network.consumer.peers = []; state.network.partitionPeers = [];
   expect(projectExecutionRibbon(withComputerLabels(state, session)).executors.map(node => node.label)).toEqual(['Computer 2', 'Computer 1']);
 });
+
+it('retains ordered route labels when disconnected executors only exist in saved history', () => {
+  const execution = { identity: { schema: 'reploid.partition-attempt/v2', requesterId: 'self',
+    route: { schema: 'reploid.partition-route/v1', stages: ['c', 'a', 'b'].map((participantId, index) => ({ index, participantId })) } } };
+  const thread = { messages: [], model: { name: 'Model' }, attempts: [{ status: 'completed', execution }] };
+  const session = {}, state = { participantId: 'self', threads: [thread], activeThread: thread };
+  const first = projectExecutionRibbon(withComputerLabels(state, session)).executors.map(node => node.label);
+  expect(new Set(first).size).toBe(3);
+  state.network = { consumer: { peers: [{ peerId: 'new' }] } };
+  expect(projectExecutionRibbon(withComputerLabels(state, session)).executors.map(node => node.label)).toEqual(first);
+});

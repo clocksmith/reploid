@@ -157,24 +157,28 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
           let activation, final;
           const stageMetrics = [];
           for (let stage = 0; stage < devices.length; stage++) {
+            let elapsedMs;
             const result = await lease(stage, async () => {
               // Recheck authority after queueing, immediately before disclosure.
               await permit('mesh.execute_partition_stage', authority.execution[stage], { ...step, partitionIndex: stage });
               await permit('mesh.transfer_token_context', authority.tokenContext[stage], { ...step, partitionIndex: stage,
                 recipients: recipients(coordinatorId, devices[stage].id) });
-              return clone(await devices[stage].executeStage({ identity: binding, partitionIndex: stage, ...step,
+              const started = performance.now();
+              const output = clone(await devices[stage].executeStage({ identity: binding, partitionIndex: stage, ...step,
                 inputTokenIds: [...input], generation: settings, continuation: continuations[stage], activation,
                 executionGrant: authority.execution[stage], tokenContextGrant: authority.tokenContext[stage],
                 ...(stage > 0 ? { incomingActivationGrant: authority.activation[stage - 1] } : {}),
                 ...(stage < devices.length - 1 ? { outgoingActivationGrant: authority.activation[stage] } : {}),
                 ...(stage === devices.length - 1 ? { outputGrant: authority.output } : {}),
                 signal: combined }));
+              elapsedMs = performance.now() - started;
+              return output;
             });
             combined.throwIfAborted();
             assert(sameRouteAttemptIdentity(result?.identity, binding) && result.partitionIndex === stage
               && result.step === index && result.tokenPosition === position, 'Ordered stage result binding mismatch');
             continuations[stage] = result.continuation;
-            stageMetrics.push({ partitionIndex: stage, metrics: result.metrics ?? null });
+            stageMetrics.push({ partitionIndex: stage, elapsedMs, metrics: result.metrics ?? null });
             if (stage === devices.length - 1) { final = result; break; }
             assert(!('tokenId' in result) && !('delta' in result), 'Only final stage may sample or publish tokens');
             const tensor = result.activationTensor;

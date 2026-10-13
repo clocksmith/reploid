@@ -1,0 +1,15 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/partition-route-runner.test.js (21 tests) 225ms
+ ✓ tests/unit/partition-summary.test.js (2 tests) 20ms
+ ✓ tests/unit/execution-ribbon.test.js (11 tests) 12ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js (22 tests) 566ms
+ ✓ tests/unit/computer-labels.test.js (2 tests) 2ms
+ ✓ tests/unit/execution-activity.test.js (4 tests) 8ms
+
+ Test Files  6 passed (6)
+      Tests  62 passed (62)
+   Start at  11:14:40
+   Duration  1.12s (transform 119ms, setup 0ms, import 321ms, tests 833ms, environment 690ms)
+

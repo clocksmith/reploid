@@ -31,3 +31,17 @@ describe('bounded partition completion receipt', () => {
     expect(execution.steps).toHaveLength(count);
   });
 });
+
+it('bounds N-stage receipts while retaining complete and missing timing coverage honestly', () => {
+  const count = policy.limits.maxTokens;
+  const execution = { schema: 'reploid.mesh.partition-execution/v3', identity: { route: 'unchanged' },
+    steps: Array.from({ length: count }, () => ({ stages: Array.from({ length: 7 }, (_, partitionIndex) => ({ partitionIndex, elapsedMs: partitionIndex === 6 ? undefined : 10 })) })) };
+  const summary = summarizePartitionExecution(execution);
+  expect(summary.identity).toEqual(execution.identity);
+  expect(summary.stepSummary.count).toBe(count);
+  expect(summary.stepSummary.stages).toHaveLength(7);
+  expect(summary.stepSummary.stages[0]).toEqual({ partitionIndex: 0, steps: count, stepMs: { count, total: count * 10 } });
+  expect(summary.stepSummary.stages[6].stepMs).toEqual({ count: 0, total: 0 });
+  expect(new TextEncoder().encode(JSON.stringify(summary)).byteLength).toBeLessThan(2048);
+  expect(execution.steps).toHaveLength(count);
+});

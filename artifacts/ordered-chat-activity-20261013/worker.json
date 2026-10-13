@@ -1,0 +1,175 @@
+{
+  "files": {
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js": "95b10db985eadd60c3310bb6396d190d27b6138833152cf5c003f5b55ebad58d",
+    "packages/reploid/src/mesh/partitions/partition-summary.js": "e5fbb91788acf6af97267d770619ce8ca5719ab7979633e345af8f06753066cc",
+    "self/ui/pool-home/computer-labels.js": "4169e8147c06b477ebeea7062ad41f0fad8e8b4185e94243bd18208b273f4eec",
+    "self/ui/pool-home/execution-activity.js": "8e3696e22c9ad96a437f3d113c640356b0b49f59a22e9e9a824cb466f45dbddb",
+    "self/ui/pool-home/execution-ribbon.js": "4859a1a2483990869cbfb273ef23d73ff41e5ed2bf9b53c8f81ec2fc4d572157"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:35: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:36: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:52: Dynamic property write detected: [stage] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:65: Dynamic property write detected: [index] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:67: Dynamic property write detected: [index] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:180: Dynamic property write detected: [stage] - verify input sanitization",
+      "Nesting depth of 9 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-summary.js:50: Dynamic property write detected: [owner] - verify input sanitization",
+      "Warning in /self/ui/pool-home/computer-labels.js:19: Suspicious variable name: execution - may indicate code execution",
+      "Warning in /self/ui/pool-home/execution-activity.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /self/ui/pool-home/execution-activity.js: innerHTML assignment is risky - consider textContent",
+      "Warning in /self/ui/pool-home/execution-ribbon.js:31: Suspicious variable name: executors - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348575,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 35,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348575,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 36,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348575,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [stage] - verify input sanitization",
+        "line": 52,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348575,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index] - verify input sanitization",
+        "line": 65,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348575,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index] - verify input sanitization",
+        "line": 67,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348575,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [stage] - verify input sanitization",
+        "line": 180,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791904348577,
+        "metric": "nesting",
+        "value": 9,
+        "threshold": 5,
+        "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348579,
+        "path": "/packages/reploid/src/mesh/partitions/partition-summary.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [owner] - verify input sanitization",
+        "line": 50,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348580,
+        "path": "/self/ui/pool-home/computer-labels.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execution - may indicate code execution",
+        "line": 19,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348582,
+        "path": "/self/ui/pool-home/execution-activity.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348582,
+        "path": "/self/ui/pool-home/execution-activity.js",
+        "patternId": "innerhtml_assign",
+        "category": "dom",
+        "message": "innerHTML assignment is risky - consider textContent",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791904348586,
+        "path": "/self/ui/pool-home/execution-ribbon.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executors - may indicate code execution",
+        "line": 31,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/self/ui/pool-home/execution-activity.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/self/ui/pool-home/execution-activity.js",
+          "patternId": "innerhtml_assign",
+          "category": "dom",
+          "message": "innerHTML assignment is risky - consider textContent",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 9,
+          "threshold": 5,
+          "message": "Nesting depth of 9 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js"
+        }
+      ],
+      "filesAnalyzed": 5
+    }
+  }
+}
