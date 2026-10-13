@@ -1,0 +1,11 @@
+{
+  "applicationDirectory": "/var/tmp/reploid-native-readiness-candidate-20261012/reploid",
+  "nativeDeliverySha256": "0c15e450a9f86d6093b18de629fb6a005c3bc780c9cf8fc2dfebaa3b0b0abce1",
+  "providerModule": "webgpu",
+  "testDelivery": {
+    "root": "/var/tmp/reploid-closure-qualification-20261013",
+    "bindingPath": "/var/tmp/reploid-closure-qualification-20261013/snapshot-binding.json",
+    "bindingSha256": "4b5128faf5008e7c1b206ae244fbd88bc6a7eb22c88dc6cd90c07cf22d38dec3",
+    "archivePath": "/var/tmp/reploid-closure-qualification-20261013/archive.tgz"
+  }
+}
