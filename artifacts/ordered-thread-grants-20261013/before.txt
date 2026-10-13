@@ -1,0 +1,232 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/chat-ordered-thread-grants.test.js (5 tests | 4 failed) 77ms
+   × binds an ordered 2-stage disclosure to every route identity and recipient 4ms
+   × binds an ordered 3-stage disclosure to every route identity and recipient 1ms
+   × binds an ordered 7-stage disclosure to every route identity and recipient 0ms
+   ✓ rejects malformed or broadened ordered disclosure before reusable authorization 1ms
+   × uses Send authorization and remembers/restores the exact actual ordered route 71ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/chat-ordered-thread-grants.test.js > binds an ordered 2-stage disclosure to every route identity and recipient
+AssertionError: expected null to match object { …(3) }
+
+- Expected:
+{
+  "disclosure": "ordered-partition-activations-and-tokens",
+  "requesterIdentity": "peer:ffffffffffffffffffffffff",
+  "route": {
+    "activation": {
+      "components": 1,
+      "dtype": "f32",
+      "elementStrideBytes": 4,
+      "hiddenSize": 8,
+      "precision": "f32",
+      "schema": "doppler.activation-tensor/v1",
+    },
+    "modelId": "model",
+    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "planId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "schema": "reploid.partition-route/v1",
+    "stages": [
+      {
+        "executionId": "execution-0",
+        "index": 0,
+        "participantId": "peer:000000000000000000000000",
+        "residentId": "resident-0",
+        "transportId": "transport-0",
+      },
+      {
+        "executionId": "execution-1",
+        "index": 1,
+        "participantId": "peer:111111111111111111111111",
+        "residentId": "resident-1",
+        "transportId": "transport-1",
+      },
+    ],
+  },
+}
+
++ Received:
+null
+
+ ❯ tests/unit/chat-ordered-thread-grants.test.js:24:17
+     22| it.each([2,3,7])('binds an ordered %i-stage disclosure to every route …
+     23|   const f=previewFixture(count), scope=disclosureScope(f.request,f.pre…
+     24|   expect(scope).toMatchObject({disclosure:'ordered-partition-activatio…
+       |                 ^
+     25|   const grant={...scope,id:'grant',meshId:'mesh',threadId:'thread',cre…
+     26|   expect(()=>validateThreadGrants([grant],'thread','mesh',4,f.requeste…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/unit/chat-ordered-thread-grants.test.js > binds an ordered 3-stage disclosure to every route identity and recipient
+AssertionError: expected null to match object { …(3) }
+
+- Expected:
+{
+  "disclosure": "ordered-partition-activations-and-tokens",
+  "requesterIdentity": "peer:ffffffffffffffffffffffff",
+  "route": {
+    "activation": {
+      "components": 1,
+      "dtype": "f32",
+      "elementStrideBytes": 4,
+      "hiddenSize": 8,
+      "precision": "f32",
+      "schema": "doppler.activation-tensor/v1",
+    },
+    "modelId": "model",
+    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "planId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "schema": "reploid.partition-route/v1",
+    "stages": [
+      {
+        "executionId": "execution-0",
+        "index": 0,
+        "participantId": "peer:000000000000000000000000",
+        "residentId": "resident-0",
+        "transportId": "transport-0",
+      },
+      {
+        "executionId": "execution-1",
+        "index": 1,
+        "participantId": "peer:111111111111111111111111",
+        "residentId": "resident-1",
+        "transportId": "transport-1",
+      },
+      {
+        "executionId": "execution-2",
+        "index": 2,
+        "participantId": "peer:222222222222222222222222",
+        "residentId": "resident-2",
+        "transportId": "transport-2",
+      },
+    ],
+  },
+}
+
++ Received:
+null
+
+ ❯ tests/unit/chat-ordered-thread-grants.test.js:24:17
+     22| it.each([2,3,7])('binds an ordered %i-stage disclosure to every route …
+     23|   const f=previewFixture(count), scope=disclosureScope(f.request,f.pre…
+     24|   expect(scope).toMatchObject({disclosure:'ordered-partition-activatio…
+       |                 ^
+     25|   const grant={...scope,id:'grant',meshId:'mesh',threadId:'thread',cre…
+     26|   expect(()=>validateThreadGrants([grant],'thread','mesh',4,f.requeste…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/unit/chat-ordered-thread-grants.test.js > binds an ordered 7-stage disclosure to every route identity and recipient
+AssertionError: expected null to match object { …(3) }
+
+- Expected:
+{
+  "disclosure": "ordered-partition-activations-and-tokens",
+  "requesterIdentity": "peer:ffffffffffffffffffffffff",
+  "route": {
+    "activation": {
+      "components": 1,
+      "dtype": "f32",
+      "elementStrideBytes": 4,
+      "hiddenSize": 8,
+      "precision": "f32",
+      "schema": "doppler.activation-tensor/v1",
+    },
+    "modelId": "model",
+    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "planId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+    "schema": "reploid.partition-route/v1",
+    "stages": [
+      {
+        "executionId": "execution-0",
+        "index": 0,
+        "participantId": "peer:000000000000000000000000",
+        "residentId": "resident-0",
+        "transportId": "transport-0",
+      },
+      {
+        "executionId": "execution-1",
+        "index": 1,
+        "participantId": "peer:111111111111111111111111",
+        "residentId": "resident-1",
+        "transportId": "transport-1",
+      },
+      {
+        "executionId": "execution-2",
+        "index": 2,
+        "participantId": "peer:222222222222222222222222",
+        "residentId": "resident-2",
+        "transportId": "transport-2",
+      },
+      {
+        "executionId": "execution-3",
+        "index": 3,
+        "participantId": "peer:333333333333333333333333",
+        "residentId": "resident-3",
+        "transportId": "transport-3",
+      },
+      {
+        "executionId": "execution-4",
+        "index": 4,
+        "participantId": "peer:444444444444444444444444",
+        "residentId": "resident-4",
+        "transportId": "transport-4",
+      },
+      {
+        "executionId": "execution-5",
+        "index": 5,
+        "participantId": "peer:555555555555555555555555",
+        "residentId": "resident-5",
+        "transportId": "transport-5",
+      },
+      {
+        "executionId": "execution-6",
+        "index": 6,
+        "participantId": "peer:666666666666666666666666",
+        "residentId": "resident-6",
+        "transportId": "transport-6",
+      },
+    ],
+  },
+}
+
++ Received:
+null
+
+ ❯ tests/unit/chat-ordered-thread-grants.test.js:24:17
+     22| it.each([2,3,7])('binds an ordered %i-stage disclosure to every route …
+     23|   const f=previewFixture(count), scope=disclosureScope(f.request,f.pre…
+     24|   expect(scope).toMatchObject({disclosure:'ordered-partition-activatio…
+       |                 ^
+     25|   const grant={...scope,id:'grant',meshId:'mesh',threadId:'thread',cre…
+     26|   expect(()=>validateThreadGrants([grant],'thread','mesh',4,f.requeste…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/unit/chat-ordered-thread-grants.test.js > uses Send authorization and remembers/restores the exact actual ordered route
+AssertionError: expected 'failed' to be 'completed' // Object.is equality
+
+Expected: "completed"
+Received: "failed"
+
+ ❯ tests/unit/chat-ordered-thread-grants.test.js:63:26
+     61|     const thread=app.createThread({model:f.select(5,0),permissions:{sh…
+     62|     const first=await app.send(thread,tasks[0].prompt,{authorizeDisclo…
+     63|     expect(first.status).toBe('completed');expect(authorize).toHaveBee…
+       |                          ^
+     64|     expect(first.authorization).toMatchObject({source:'send',requester…
+     65|     const second=app.send(thread,tasks[0].prompt);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed | 1 passed (5)
+   Start at  13:39:33
+   Duration  463ms (transform 83ms, setup 0ms, import 165ms, tests 77ms, environment 157ms)
+

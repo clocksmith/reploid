@@ -1,0 +1,26 @@
+
+ RUN  v4.1.10 /var/tmp/reploid-text-messages-20261013/source
+
+x
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/partition-live-activity.test.js > projects authenticated measured stage timing in the actual requester workspace before generation finishes
+TypeError: Cannot read properties of null (reading 'count')
+ ❯ ../../../../private/var/tmp/reploid-text-messages-20261013/source/tests/unit/partition-live-activity.test.js:27:45
+     25|     expect(activeThread.messages.at(-1).content).toBe(tasks[0].chunks[…
+     26|     expect(view.nodes).toHaveLength(3);
+     27|     expect(view.nodes.every(row=>row.timing.count===1&&Number.isFinite…
+       |                                             ^
+     28|     expect(view.nodes.reduce((sum,row)=>sum+row.share,0)).toBeCloseTo(…
+     29|     expect(view.nodes.map(row=>row.id)).toEqual(f.select(5,0).partitio…
+ ❯ ../../../../private/var/tmp/reploid-text-messages-20261013/source/tests/unit/partition-live-activity.test.js:27:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  13:37:48
+   Duration  448ms (transform 94ms, setup 0ms, import 197ms, tests 188ms, environment 0ms)
+

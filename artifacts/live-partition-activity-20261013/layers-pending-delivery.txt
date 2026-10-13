@@ -1,0 +1,50 @@
+
+> reploid@0.1.0 verify:layers
+> node scripts/verify-layers.js
+
+[
+  {
+    "source": "self/vendor/reploid/chat/index.d.ts",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/chat/thread-grants.js",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/chat/workspace.js",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-entry.d.ts",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-entry.js",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-ordered-chat.js",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-route-execution.d.ts",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-route-execution.js",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-summary.d.ts",
+    "reason": "generated delivery differs from canonical source"
+  },
+  {
+    "source": "self/vendor/reploid/mesh/partitions/partition-summary.js",
+    "reason": "generated delivery differs from canonical source"
+  }
+]

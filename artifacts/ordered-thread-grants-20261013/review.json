@@ -1,0 +1,28 @@
+{
+  "reviewer": "document_quality independent subagent",
+  "scope": "Ordered reusable thread disclosure; CPU source composition only",
+  "files": {
+    "packages/reploid/src/chat/thread-grants.js": "00332e3a79496732995f8754120c39044d5031166ec0de7017c093b9ef741b0f",
+    "packages/reploid/src/chat/workspace.js": "beac3f1795ac72fc36f05e1aaf3ed64aad1e0097122b7961452a8a3c7b52c160",
+    "packages/reploid/src/chat/index.d.ts": "73e2fd5901ca6f698267aab65ed43cabc8619c2cce5685418bff231e2ff1936c",
+    "packages/reploid/src/mesh/partitions/partition-contract.js": "97ab2918549977e3c76a94fb37e964aa4fef292e6b8d13ce863b7b7f3c49d59b",
+    "packages/reploid/src/mesh/partitions/partition-grants.js": "8210d8a1ea58463f27b236bbb22d1e1cd08a58ceb0e3eb8c361fa243b8325877",
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js": "92748a347f692f1df039f085fed1c350555c8b9786da5755a223bcdec6d19bbc",
+    "tests/unit/chat-ordered-thread-grants.test.js": "4c6e1caaa334b4f52bfaf9773cf0fcc003665a14ab8b48e4f329a9d23331fe78",
+    "tests/unit/chat-ordered-grant-replacement.test.js": "0bcd17fa7403e5a6fb60f9a47d4c36601f632e05f272f33ae78e842905035798"
+  },
+  "review": {
+    "scope": "Full canonical route, authenticated requester/coordinator, model/plan/adapters/sharing scope and exact disclosure recipient paths retained.",
+    "restoration": "Stored grants require current requester, same thread/mesh, valid complete route and revocation state.",
+    "reuse": "No reuse after any participant, transport, resident or execution identity changes. Ordered grants do not authorize canonical execution.",
+    "actualReplacement": "Existing automatic fixture and actual workspace remember a grant, join replica, withdraw middle, block without new approval or dispatch, deny, explicitly retry with a new approval, and reuse only the new grant.",
+    "limits": "Synthetic model outputs and channel certificate observations; no physical model, GPU, hardware identity or deployed UI claim."
+  },
+  "checks": {
+    "originalGrantWorkspaceControls": 29,
+    "addedReplacementControls": 1,
+    "command": "npx vitest run tests/unit/chat-ordered-grant-replacement.test.js tests/unit/chat-ordered-thread-grants.test.js tests/unit/chat-thread-grants.test.js tests/unit/chat-workspace.test.js tests/unit/ordered-partition-chat-entry.test.js tests/unit/partition-live-activity.test.js",
+    "result": "independent-tests.txt"
+  },
+  "testPreparationFailure": "First new test omitted required store port; rejected before conversation execution. Fixed test fixture to provide explicit inert store. No production change."
+}

@@ -188,14 +188,14 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       await service.refresh({ signal });
       return { ready: !!offer && !stopping && phase === 'ready', descriptor: { models: service.getModels() } };
     },
-    async generate(input, { signal, onDelta, onUsage }) {
+    async generate(input, { signal, onDelta, onUsage, onActivity }) {
       assert(equal(admissions.get(input.attemptId), input), 'Local ordered input is not approved');
       const model = service.getModels().find(row => equal(row.partition?.route, input.route) && row.availability === 'ready');
       assert(model, 'Approved local ordered route unavailable');
       const result = await service.generate({ meshId, participantId: identity.peerId, threadId: input.threadId,
         attemptId: input.attemptId, placementGeneration: input.placementGeneration, disclosureExpiresAt: input.disclosureExpiresAt, model, messages: structuredClone(input.messages), ...(input.generationRequest ? {generationRequest: input.generationRequest} : {}),
         permissions: { sharingScope: 'approved-partition-path' } }, { signal,
-        requestApproval: async () => equal(admissions.get(input.attemptId), input), onUsage: value => onUsage?.({schema:value.schema,inputTokens:value.inputTokens,outputTokens:value.outputTokens}), onDelta: event => onDelta?.(event.text) });
+        requestApproval: async () => equal(admissions.get(input.attemptId), input), onActivity: value => onActivity?.(value), onUsage: value => onUsage?.({schema:value.schema,inputTokens:value.inputTokens,outputTokens:value.outputTokens}), onDelta: event => onDelta?.(event.text) });
       return { content: result.content, ...(result.usage ? {usage: result.usage} : {}), execution: summarizePartitionExecution(result.execution) };
     }
   };
@@ -260,12 +260,13 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       signal.throwIfAborted(); assert(Date.now() < expiresAt, 'Ordered disclosure expired');
       const input = { schema: 'reploid.partition-input/v3', operation: 'generate', meshId, requesterId: identity.peerId,
         coordinatorId: route.stages[0].participantId, route, modelId: model.id, modelIdentity: model.identity, planId: route.planId,
+        ...(controls.onActivity ? {activity:'reploid.partition-activity/v1'} : {}),
         threadId: request.threadId, attemptId: request.attemptId, placementGeneration: identityBinding.placementGeneration, disclosureExpiresAt: expiresAt, messages: request.messages, ...(requested ? {generationRequest: requested} : {}) };
       assert(!admissions.has(input.attemptId), 'Ordered requester attempt already admitted'); admissions.set(input.attemptId, structuredClone(input));
       let sequence = 0;
       try {
         controls.onState?.({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing', execution: { placement: 'ordered-layer-partition', identity: identityBinding } });
-        const result = await entry.generate(input, { signal, onUsage: usage => controls.onUsage?.({threadId: request.threadId, attemptId: request.attemptId, ...usage}), onDelta: text => controls.onDelta?.({ threadId: request.threadId,
+        const result = await entry.generate(input, { signal, ...(controls.onActivity ? {onActivity: activity => controls.onActivity({threadId:request.threadId,attemptId:request.attemptId,...activity})} : {}), onUsage: usage => controls.onUsage?.({threadId: request.threadId, attemptId: request.attemptId, ...usage}), onDelta: text => controls.onDelta?.({ threadId: request.threadId,
           attemptId: request.attemptId, sequence: sequence++, text }) });
         return { ...result, threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: model.identity,
           adapterIdentities: [], execution: { ...result.execution, selection: selected } };

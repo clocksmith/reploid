@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/chat-thread-grants.test.js (8 tests) 11ms
+ ✓ tests/unit/chat-workspace.test.js (16 tests) 11ms
+ ✓ tests/unit/chat-ordered-thread-grants.test.js (5 tests) 449ms
+   ✓ uses Send authorization and remembers/restores the exact actual ordered route  445ms
+
+ Test Files  3 passed (3)
+      Tests  29 passed (29)
+   Start at  13:43:25
+   Duration  817ms (transform 135ms, setup 0ms, import 268ms, tests 471ms, environment 373ms)
+

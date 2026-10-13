@@ -1,0 +1,37 @@
+{
+  "sourceBase": "b6126b448788fa6ac2e7cad445b9f7ff25a732d4",
+  "source": {
+    "packages/reploid/src/chat/workspace.js": "beac3f1795ac72fc36f05e1aaf3ed64aad1e0097122b7961452a8a3c7b52c160",
+    "packages/reploid/src/chat/index.d.ts": "73e2fd5901ca6f698267aab65ed43cabc8619c2cce5685418bff231e2ff1936c",
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js": "95d848643da22b35c43368b7f71a2fa965a33722a923f6f4726bdca4631a0f6e",
+    "packages/reploid/src/mesh/partitions/partition-route-execution.d.ts": "fa44ac056e8854f32a21060907cf5414e312aa4e136154601e09c23b85637f60",
+    "packages/reploid/src/mesh/partitions/partition-entry.js": "9d8405c5792ebcfa9dcf8cc3702abf41417192455899e1ab75ad96af9522c718",
+    "packages/reploid/src/mesh/partitions/partition-entry.d.ts": "f01dfab5a091505b6acc74cc48c2fe6075e1e2409c52c2652a1dbc118e4e7d9c",
+    "packages/reploid/src/mesh/partitions/partition-summary.js": "37d7eaf1875e32a866682dc1a121746600a1fe8d4412e8970f21c46a0a80f657",
+    "packages/reploid/src/mesh/partitions/partition-summary.d.ts": "58a85e19e9aa8911d93b31bb1c97edd3fbe8521240fb8488835a4e2a3ff5c7b7",
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.js": "d586ab8be74fd617ff73af6dca1c01b4445f7544072dca036159472debb2e243",
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js": "92748a347f692f1df039f085fed1c350555c8b9786da5755a223bcdec6d19bbc",
+    "tests/unit/partition-live-activity.test.js": "e695505d006ab403b2c1bec87d90b7798b824e746face0ff83908313df01357b",
+    "tests/unit/ordered-partition-chat-entry.test.js": "ea8b80b7960211086cb3b0e5fa32c62a0735aca3eeba6d3f653b445db8fedaca",
+    "tests/unit/automatic-ordered-network.test.js": "7fbb446152b95e506823acda8d4ce7326232e4dd7f334c807c7ca7fbc84a5d36"
+  },
+  "evidence": {
+    "before.txt": "3a09859f4e4c00491834fe9fab2855d610ee865ea6c78dac5fecf81aeaaa9708",
+    "before-binding.json": "94e9b9b3a3db8f6b689c04168ea4534210bc175e8aa68cc58aeff9ba34c49e06",
+    "after.txt": "2df718bb9551a5a30e6ab8738e55112ddd59039a3aa27cefa6177fb5706716c6",
+    "ui-tests.txt": "19895ab4737433744d30f37bc4ddd7bdae087f03a18dee1b0244f3d1aecbe5bd",
+    "worker.json": "b4ec26dd4f61c3fcdf85871299f4b19340d7f7ae0b0b7a9f52ded0d3f029b91b",
+    "types.txt": "c506d0cc9d9cefa4c95d86c4d9e2f96c055daf8a3d88cd154a54c42549d522a1",
+    "charters.txt": "462ce329868b81c1954a53d9e813ddd23d934d41ec803d3f65f99a2e22838a72",
+    "layers-pending-delivery.txt": "99406f28163feca4a1279bb0ed2270e395cbc5262f89a9556c3fe1f808c9804e"
+  },
+  "scope": {
+    "numericalExecution": "injected",
+    "physicalAcceptance": false,
+    "nodeTests": 110,
+    "uiProjectionTests": 15,
+    "measurement": "coordinator monotonic clock around existing stage RPC; no cross-host clocks",
+    "canonicalPublication": "unchanged",
+    "transport": "optional timing piggybacks existing delta/final response; no additional activity RPC"
+  }
+}

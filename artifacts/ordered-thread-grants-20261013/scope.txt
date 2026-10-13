@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/chat-ordered-thread-grants.test.js (5 tests | 1 skipped) 4ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed | 1 skipped (5)
+   Start at  13:40:12
+   Duration  320ms (transform 83ms, setup 0ms, import 167ms, tests 4ms, environment 90ms)
+
