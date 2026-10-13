@@ -13,7 +13,12 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
   };
   const peers = new Map(), pending = new Map(), suppliers = new Map(), channels = new Map(), channelWaiters = new Map();
   const lifetime = new AbortController();
-  const operations = new Set();
+  const operations = new Set(), supplyOperations = new Set();
+  const ownSupply = operation => {
+    operations.add(operation); supplyOperations.add(operation);
+    operation.finally(() => { operations.delete(operation); supplyOperations.delete(operation); }).catch(() => {});
+    return operation;
+  };
   let offered = [], supply = false, supplyEpoch = 0, reserved = 0, preparing = 0, acquiring = 0, closed = false;
   const key = artifact => JSON.stringify([artifact.path, artifact.hash, artifact.hashAlgorithm, artifact.sizeBytes]);
   const valid = artifact => artifact && typeof artifact === 'object'
@@ -45,7 +50,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
           bus = createChannel({ channel, limits: policy.channel, serve: request => {
             const entry = suppliers.get(request.transferId);
             if (!supply || entry?.peer !== peer) throw new Error('File supply is not authorized');
-            return entry.supplier.serve(request);
+            return ownSupply(Promise.resolve(entry.supplier.serve(request)));
           } });
           resolve(bus);
         } catch (error) { channel.close(); reject(error); }
@@ -93,7 +98,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     for (const entry of suppliers.values()) { clearTimeout(entry.timer); entry.supplier.close(); }
     suppliers.clear();
   };
-  const stopSupply = () => { revokeSupply(); announce(); notify(); };
+  const stopSupply = () => { revokeSupply(); announce(); notify(); return Promise.allSettled([...supplyOperations]); };
   const unsub = transport.onDataChannel('reploid-custody', install);
   transport.onMessage('reploid:custody-offer', (peer, message) => {
     if (closed || !Array.isArray(message?.artifacts) || message.artifacts.length > policy.maxInventoryFiles
@@ -188,8 +193,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     })().catch(error => {
       if (!closed) transport.sendToPeer(peer, 'reploid:custody-response', { id: message?.id, error: error.message });
     });
-    operations.add(operation);
-    operation.finally(() => operations.delete(operation)).catch(() => {});
+    ownSupply(operation);
   });
   const rangeDescriptor = (artifact, range) => {
     if (range == null) return artifact;
@@ -214,7 +218,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     if (!transport.sendToPeer(peer, 'reploid:custody-request', { id, artifact, range, maxExpiresAt,
       requester: { peerId: identity.peerId, publicKey: identity.publicKey } })) finish(new Error('File peer disconnected'));
   });
-  const acquireFrom = async (peer, source, combined, range) => {
+  const acquireFrom = async (peer, source, combined, range, reserveDownload) => {
       const artifact = rangeDescriptor(source, range);
       const bus = await channelFor(peer, combined);
       const maxExpiresAt = now() + policy.grantMs;
@@ -226,10 +230,21 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         || grant.limits.maxArtifactBytes > policy.maxArtifactBytes || grant.limits.maxChunkBytes > policy.channel.maxChunkBytes
         || grant.limits.maxTransferBytes > artifact.sizeBytes || grant.limits.requestTimeoutMs > policy.channel.timeoutMs
         || grant.expiresAt > maxExpiresAt) throw new Error('File grant exceeds requested acquisition');
-      let store;
+      let store, reservationFailure;
       try {
         store = await createStore({ authorization: grant, index: result.index, inventories: [result.inventory],
-          requesterPrivateKey: identity.privateKey, requestChunk: (_, message, controls) => bus.requestChunk(message, controls),
+          requesterPrivateKey: identity.privateKey, requestChunk: async (_, message, controls) => {
+            // Checkpoint hits never call this port. Reserve every requested chunk,
+            // including failed attempts/retries, before any payload can arrive.
+            controls.signal.throwIfAborted();
+            if (reservationFailure) throw reservationFailure;
+            if (reserveDownload) {
+              try { await reserveDownload(message.sizeBytes); }
+              catch (cause) { reservationFailure = cause; throw cause; }
+            }
+            controls.signal.throwIfAborted();
+            return bus.requestChunk(message, controls);
+          },
           checkpoints, signal: combined, now,
           maxConcurrentChunks: Math.min(grant.limits.maxConcurrentChunks ?? 1, policy.channel.maxPendingRequests) });
         const bytes = await store.readArtifact(declared);
@@ -250,7 +265,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         }
         ports.observe?.(store.getReceipt()); return bytes;
       } catch (error) {
-        if (store) ports.observe?.({ ...store.getReceipt(), failure: error.message }); throw error;
+        if (store) ports.observe?.({ ...store.getReceipt(), failure: error.message }); throw reservationFailure || error;
       } finally {
         store?.close(); transport.sendToPeer(peer, 'reploid:custody-request', { release: grant.transferId });
       }
@@ -275,8 +290,9 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       revokeSupply(); offered = replacement; supply = true; announce(); notify();
     },
     stopSupply,
-    async acquire(artifact, { signal, range = null }) {
+    async acquire(artifact, { signal, range = null, reserveDownload = null }) {
       live();
+      if (reserveDownload !== null && typeof reserveDownload !== 'function') throw new Error('Invalid acquisition accounting port');
       if (!valid(artifact)) throw new Error('Invalid file acquisition');
       range = range == null ? null : structuredClone(range);
       rangeDescriptor(artifact, range);
@@ -290,10 +306,10 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         const failures = [];
         for (const peer of eligible) {
           combined.throwIfAborted();
-          try { return await acquireFrom(peer, descriptor, combined, range); }
+          try { return await acquireFrom(peer, descriptor, combined, range, reserveDownload); }
           catch (error) {
             combined.throwIfAborted();
-            if (error.code === 'CUSTODY_LOCAL_COMMIT_FAILED') throw error;
+            if (error.code === 'CUSTODY_LOCAL_COMMIT_FAILED' || error.code?.startsWith('CUSTODY_BUDGET_')) throw error;
             failures.push(error);
           }
         }

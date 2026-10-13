@@ -1,3 +1,4 @@
+import type { PartitionActivity } from './partition-summary.js';
 import type { OrderedPartitionPlan, OrderedPartitionRuntime, PartitionRoute, RouteAttemptBinding } from './partition-contract.js';
 import type { ActivationTensor, ActivationFrame } from './partition-runner.js';
 export interface OrderedExecutionPlan extends OrderedPartitionPlan {
@@ -33,7 +34,7 @@ export interface OrderedRouteLimits {
 export interface OrderedRouteRequest {
   identity: RouteAttemptBinding; tokenIds: number[]; generation: Record<string, unknown> & { maxTokens: number };
   grants: { execution: object[]; tokenContext: object[]; activation: object[]; output: object };
-  maxTokens: number; signal?: AbortSignal; onDelta?: (delta: string) => void | Promise<void>;
+  maxTokens: number; signal?: AbortSignal; onActivity?: (activity:PartitionActivity)=>void|Promise<void>; onDelta?: (delta: string) => void | Promise<void>;
 }
 export interface OrderedRouteReceipt {
   identity: RouteAttemptBinding; phase: 'admitting' | 'executing' | 'settling' | 'cleanup-failed' | 'completed' | 'cancelled' | 'failed';

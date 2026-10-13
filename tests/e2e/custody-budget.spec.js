@@ -55,3 +55,22 @@ test('an aborted real IndexedDB reservation is unconfirmed and cannot authorize 
  expect(result.code).toBe('CUSTODY_BUDGET_STORAGE');expect(result.state.reservedBytes).toBe(0);
  await page.reload();expect((await initialize(page,name)).reservedBytes).toBe(0);
 });
+
+test('acquisition allowance is independent, immutable, durable and serialized across tabs', async ({page,context}) => {
+ const name='download-'+crypto.randomUUID();
+ const open=async p=>{await p.goto('/config/chat-files.json');return p.evaluate(async({name,modulePath})=>{
+  const {openBrowserAcquisitionBudget}=await import(modulePath);
+  window.budget=await openBrowserAcquisitionBudget({name,maxBytes:10,allowInitialize:true});return window.budget.getState();
+ },{name,modulePath});};
+ expect((await open(page)).schema).toBe('reploid.custody-acquisition-budget/v1');
+ await page.evaluate(()=>window.budget.reserve(7));await page.reload();expect((await open(page)).reservedBytes).toBe(7);
+ const other=await context.newPage();await open(other);
+ const outcomes=await Promise.all([page,other].map(p=>p.evaluate(async()=>{try{return await window.budget.reserve(2);}catch(e){return {error:e.code};}})));
+ expect(outcomes.filter(x=>x.reservedBytes===9)).toHaveLength(1);
+ expect(outcomes.filter(x=>x.error==='CUSTODY_BUDGET_LIMIT')).toHaveLength(1);
+ const code=await page.evaluate(async({name,modulePath})=>{
+  const {openBrowserAcquisitionBudget}=await import(modulePath);
+  try{await openBrowserAcquisitionBudget({name,maxBytes:20,allowInitialize:true});}catch(e){return e.code;}
+ },{name,modulePath});
+ expect(code).toBe('CUSTODY_BUDGET_POLICY');await other.close();await page.reload();expect((await open(page)).reservedBytes).toBe(9);
+});

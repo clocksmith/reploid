@@ -164,7 +164,10 @@ it('stop while artifact verification is pending does not publish a late custody 
     const acquisition = a.acquire(f.file, { signal: new AbortController().signal });
     const failure = expect(acquisition).rejects.toThrow('stopped');
     await vi.waitFor(() => expect(finish).toBeTypeOf('function'));
-    b.stopSupply(); finish(f.bytes); await failure;
+    let settled = false;
+    const stopping = b.stopSupply().then(() => { settled = true; });
+    await Promise.resolve(); expect(settled).toBe(false);
+    finish(f.bytes); await stopping; await failure;
     expect(f.receipts).toEqual([]); expect(b.getState().sharing).toBe(false);
   } finally { f.close(); }
 });
@@ -330,5 +333,66 @@ it.each(['false', 'throw'])('settles a supplier whose authorization response sen
     rejectOffer = false;
     expect(await a.acquire(f.file,{signal:new AbortController().signal})).toEqual(f.bytes);
     expect(b.getState().suppliedBytes).toBe(20);
+  } finally {await f.close();}
+});
+
+it('reserves acquisition chunks before transfer and charges no verified checkpoint hits', async () => {
+  let reserved = 0, transferred = 0;
+  const f = await fixture({ onSupplier: supplier => {
+    const serve = supplier.serve.bind(supplier);
+    vi.spyOn(supplier, 'serve').mockImplementation(async request => {
+      expect(reserved).toBeGreaterThanOrEqual(transferred + request.sizeBytes);
+      transferred += request.sizeBytes; return serve(request);
+    });
+  } });
+  const [a, b] = f.owners;
+  const reserveDownload = vi.fn(async bytes => { reserved += bytes; });
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    expect(await a.acquire(f.file, { signal: new AbortController().signal, reserveDownload })).toEqual(f.bytes);
+    expect(reserved).toBe(5); expect(transferred).toBe(5);
+    expect(await a.acquire(f.file, { signal: new AbortController().signal, reserveDownload })).toEqual(f.bytes);
+    expect(reserved).toBe(5); expect(reserveDownload).toHaveBeenCalledTimes(3);
+  } finally { await f.close(); }
+});
+
+it('failed acquisition reservations block payloads and retain their original accounting error', async () => {
+  const serve = vi.fn();
+  const f = await fixture({ count: 3, onSupplier: supplier => {
+    const original = supplier.serve.bind(supplier);
+    vi.spyOn(supplier, 'serve').mockImplementation(request => { serve(); return original(request); });
+  } });
+  try {
+    for (const owner of f.owners.slice(1)) owner.offer([f.file]);
+    const a = f.owners[0]; await vi.waitFor(() => expect(a.getState().peers).toHaveLength(2));
+    const denied = Object.assign(new Error('Download allowance exhausted'), { code: 'CUSTODY_BUDGET_LIMIT' });
+    await expect(a.acquire(f.file, { signal: new AbortController().signal, reserveDownload: async () => { throw denied; } })).rejects.toBe(denied);
+    expect(serve).not.toHaveBeenCalled(); expect(f.reads).toHaveBeenCalledOnce();
+  } finally { await f.close(); }
+});
+
+
+it('settling local supply does not wait for unrelated acquisition', async () => {
+  const f=await fixture(), [a,b]=f.owners;
+  let finish;f.reads.mockImplementationOnce(()=>new Promise(resolve=>{finish=resolve;}));
+  try {
+    b.offer([f.file]);await vi.waitFor(()=>expect(a.has(f.file)).toBe(true));
+    const acquisition=a.acquire(f.file,{signal:new AbortController().signal});
+    await vi.waitFor(()=>expect(finish).toBeTypeOf('function'));
+    await a.stopSupply();expect(a.getState().pending).toBe(1);
+    finish(f.bytes);expect(await acquisition).toEqual(f.bytes);
+  } finally {await f.close();}
+});
+
+it('retains failed chunk reservations when retrying another authorized supplier', async () => {
+  let reserved=0;
+  const f=await fixture({count:3,onSupplier:(supplier,index)=>{
+    if(index===1)vi.spyOn(supplier,'serve').mockRejectedValue(new Error('Failed payload attempt'));
+  }});
+  const [a,b,c]=f.owners;
+  try {
+    b.offer([f.file]);c.offer([f.file]);await vi.waitFor(()=>expect(a.getState().peers).toHaveLength(2));
+    expect(await a.acquire(f.file,{signal:new AbortController().signal,reserveDownload:async bytes=>{reserved+=bytes;}})).toEqual(f.bytes);
+    expect(reserved).toBeGreaterThan(5);expect(f.receipts.some(r=>r.failure)).toBe(true);
   } finally {await f.close();}
 });

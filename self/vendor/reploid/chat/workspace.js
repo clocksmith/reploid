@@ -1,4 +1,5 @@
 /** Conversation state only. Execution, trust and transport are explicit host ports. */
+import { partitionActivity } from '../mesh/partitions/partition-summary.js';
 import defaults from './policy.json' with { type: 'json' };
 import { disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
 
@@ -40,7 +41,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       && Array.isArray(thread.members) && thread.messages.length <= limits.maxMessagesPerThread, 'Invalid stored conversation');
     thread.grants ??= [];
     thread.systemContext = validateSystemContext(thread.systemContext);
-    validateThreadGrants(thread.grants, thread.id, meshId, limits.maxThreadGrants);
+    validateThreadGrants(thread.grants, thread.id, meshId, limits.maxThreadGrants, participantId);
     for (const attempt of thread.attempts) if (activeStatuses.has(attempt.status)) {
       attempt.status = 'interrupted'; attempt.error = 'Connection interrupted. Retry starts a new attempt.';
       attempt.approval = null; attempt.finishedAt = now();
@@ -164,6 +165,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
             run.nextSequence++;
             response.content += envelope.text; response.status = 'streaming'; attempt.status = 'executing'; persist();
           },
+          onActivity(envelope) {
+            assert(live() && matches(envelope) && !transactional && attempt.status === 'executing', 'Late or unbound execution activity');
+            const activity = partitionActivity(envelope, attempt.execution?.identity, run.activity, true);
+            run.activity = activity;
+            attempt.execution = { ...attempt.execution, stepSummary: copy(activity.stepSummary) };
+            notify();
+          },
           onState(envelope) {
             if (!live() || !matches(envelope)) return;
             assert(['queued', 'loading', 'executing'].includes(envelope.status), 'Invalid execution state');
@@ -175,7 +183,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
               && typeof preview.peerId === 'string' && preview.peerId && Number.isFinite(preview.expiresAt)
               && preview.expiresAt > now(), 'Invalid conversation disclosure');
             assert(!run.approval, 'An approval is already pending');
-            const scope = disclosureScope(request, preview), grant = matchingThreadGrant(thread.grants, scope);
+            const scope = disclosureScope(request, preview, participantId), grant = matchingThreadGrant(thread.grants, scope);
             if (transactional) assert(scope?.disclosure === 'partition-activations-and-tokens', 'Canonical disclosure requires exact verified partition recipients');
             if (authorizeDisclosure) {
               assert(scope, 'Peer disclosure does not match the selected model and verified recipients');
@@ -312,7 +320,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       if (accepted !== true) { run.controller.abort(new Error('Disclosure declined')); return; }
       const allowed = accepted === true && attempt.approval.expiresAt > now() && !run.controller.signal.aborted;
       if (allowed) {
-        const scope = disclosureScope(attempt.request, attempt.approval);
+        const scope = disclosureScope(attempt.request, attempt.approval, participantId);
         let grant = null;
         if (remember) {
           assert(scope, 'Reusable disclosure requires a verified recipient and exact execution identity');
