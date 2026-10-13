@@ -1,0 +1,6 @@
+{
+  "path": "self/pool/pool-config.json",
+  "oldSha256": "fd1a267c992ddee1b51ba5717b6d183db9af3f2819369cf65e7500cc47e93095",
+  "newSha256": "da34b8f36c9db682bc34cfcf80890b545280097b7e14ca4c6ab06effa6015598",
+  "scope": "Isolated candidate runtime declaration, no public pin or model eligibility changed"
+}
