@@ -1,0 +1,6 @@
+{
+  "tokenAuditScript": "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/remaining/result/audit.py",
+  "sha256": "382ba977734f8d14f2abc8485ac038d524cf91e45a9f339804e1fd7a16829722",
+  "modelConstructed": false,
+  "newGenerationCalls": 0
+}

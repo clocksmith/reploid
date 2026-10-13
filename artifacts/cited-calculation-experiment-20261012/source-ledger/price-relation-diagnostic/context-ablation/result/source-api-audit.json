@@ -1,0 +1,176 @@
+{
+  "schema": "reploid.price-context-source-api-audit/v1",
+  "neuralModelConstructed": false,
+  "newGenerationCalls": 0,
+  "sourceOutputSha256": "f345a109a18e51af615ce3d71e35438cf2997e15250c1ffea7fc11287ed9c5fa",
+  "rows": [
+    {
+      "id": "fresh-1-control",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 377,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-1-without_global_question",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 350,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-2-control",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 371,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-2-without_global_question",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 344,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-3-control",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 373,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-3-without_global_question",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 346,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-4-control",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 375,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-4-without_global_question",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 348,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-5-control",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 372,
+      "generationTokens": 9,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-5-without_global_question",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 345,
+      "generationTokens": 9,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-6-control",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 374,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-6-without_global_question",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 347,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-7-control",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 376,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-7-without_global_question",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 349,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-8-control",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 377,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-8-without_global_question",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 350,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-9-control",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 378,
+      "generationTokens": 8,
+      "eos": 151645
+    },
+    {
+      "id": "fresh-9-without_global_question",
+      "exactMessagesRenderAndIds": true,
+      "closedNonthinkingPrefix": true,
+      "promptTokens": 351,
+      "generationTokens": 8,
+      "eos": 151645
+    }
+  ],
+  "observedFiles": {
+    "/var/tmp/doppler-archive9-unit-4umv8z92/workspace/doppler/tools/source-model-task-quality.py": "3e1dd96f7e338a48a0c778e7d9b2b20f0c9c2982ff9a59194d03774ed42da483",
+    "/var/tmp/doppler-archive9-unit-4umv8z92/workspace/doppler/tools/lib/source_task_quality.py": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+    "/var/tmp/doppler-qwen3-17b-source-20261011/config.json": "1ddb5b89ebc90dcb417a45c213d818577e65976454d29385c8f6140771d95197",
+    "/var/tmp/doppler-qwen3-17b-source-20261011/tokenizer_config.json": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
+    "/var/tmp/doppler-qwen3-17b-source-20261011/tokenizer.json": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+    "/home/x/.local/lib/python3.14/site-packages/transformers/models/qwen3/modeling_qwen3.py": "fbdcfeeb1b54135ca67ba7df924da92f4b264e1252b517eea2de989289ebaeab"
+  },
+  "template": "Actual retained official template explicitly emits closed empty think block when enable_thinking=false. Exact source and official tokenizer IDs, complete input roundtrip, assistant prefix and bounds reproduce all18 recorded calls.",
+  "policy": {
+    "temperature": 0,
+    "topK": 1,
+    "topP": 1,
+    "repetitionPenalty": 1.0,
+    "presencePenalty": 0,
+    "maxTokens": 64,
+    "padsAndStops": "Tokenizer pad151643 also allowed as terminal EOS by frozen suite; every observed output ends with canonical configEOS151645. No alternate pad stop occurred.",
+    "qualification": "This is the declared greedy policy, not a claim to match all upstream model.generate defaults or recommended quality sampling."
+  },
+  "state": "Frozen evaluator creates StoredHalfCache, history and complete input IDs inside each task loop. First call receives all prompt IDs; subsequent calls receive exactly the prior generated token. Real cache storage/reset control confirms independent fresh instances and declared F16 rounding. Installed Qwen3Model derives positions from cache sequence length and creates its causal mask for unpadded inputs; logits_to_keep1 selects the last input position.",
+  "grammar": "Arm resets prefix/generated/previous each call; all seven labels are globally legal. All actual allowed-ID hashes reproduced separately in token-audit.json. Earlier compact JSON removes a preferred whitespace; therefore this remains a constrained-policy result, not an unconstrained counterfactual.",
+  "arithmeticLimit": "Original checkpoint metadata declares bfloat16. Frozen evaluator deliberately represents original weights in F32 and stores K/V in F16; this policy was declared and unchanged. It does not establish identical behavior to upstream default BF16 generation.",
+  "discrepancyFound": false,
+  "causeConclusion": "No concrete dropped-input, wrong template, stale cache, wrong last-logit selection or semantic-option omission found. These checks do not prove intrinsic model weakness, exclude arithmetic sensitivity, or isolate the effect of prior syntactic masking. No further treatment selected."
+}

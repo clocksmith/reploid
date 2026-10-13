@@ -1,0 +1,46 @@
+{
+  "schema": "reploid.source-ledger-run/v1",
+  "frozenRevision": "474e8009",
+  "freezeSha256": "5a1cb7335fa494b12cc1c38afe84f1ecd94ef672ae4795969af112b84c4b5198",
+  "command": [
+    "taskset",
+    "-c",
+    "4-7",
+    "nice",
+    "-n",
+    "10",
+    "python3",
+    "-u",
+    "/var/tmp/reploid-price-context-474e8009/repo/artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/context-ablation/run.py",
+    "--doppler",
+    "/var/tmp/doppler-archive9-unit-4umv8z92/workspace/doppler",
+    "--source",
+    "/var/tmp/doppler-qwen3-17b-source-20261011",
+    "--out",
+    "/var/tmp/reploid-price-context-474e8009/results/source.json"
+  ],
+  "startedAtUtc": "2026-10-13T13:10:19.331766+00:00",
+  "status": "completed",
+  "wrapperPid": 2873176,
+  "concurrency": "Root approved single fresh matched18-call metadata batch, concurrent with numerical corrected-graph Mac/AMD correctness and native CPU package preparation; no timing or performance claims. No separate CPU4-7 owner observed before launch.",
+  "gpu": false,
+  "cpuAffinity": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "nice": 10,
+  "threads": 4,
+  "outputDirectory": "/var/tmp/reploid-price-context-474e8009/results",
+  "environment": {
+    "PYTHONPATH": "/tmp/doppler-reference-deps",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4"
+  },
+  "sourcePid": 2873496,
+  "exitCode": 0,
+  "finishedAtUtc": "2026-10-13T13:12:14.830667+00:00"
+}

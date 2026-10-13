@@ -1,0 +1,243 @@
+{
+  "schema": "reploid.price-context-matched-review/v1",
+  "frozenRevision": "474e8009",
+  "freezeSha256": "5a1cb7335fa494b12cc1c38afe84f1ecd94ef672ae4795969af112b84c4b5198",
+  "sourceOutputSha256": "f345a109a18e51af615ce3d71e35438cf2997e15250c1ffea7fc11287ed9c5fa",
+  "reviewer": "document_quality independent source-passage review against pre-output criteria; root review pending",
+  "rows": [
+    {
+      "sourceOccurrence": {
+        "source": "F1:P1",
+        "passage": "The quoted workshop refit price is $6,430, including installation.",
+        "value": "$6,430",
+        "occurrenceIndex": 0,
+        "start": 35,
+        "end": 41
+      },
+      "requiredRelation": "quoted_total",
+      "reason": "The occurrence states the offered refit price, with installation included.",
+      "control": {
+        "id": "fresh-1-control",
+        "rawOutput": "{\"relation\":\"quoted_total\"}",
+        "selected": "quoted_total",
+        "supported": true
+      },
+      "withoutGlobalQuestion": {
+        "id": "fresh-1-without_global_question",
+        "rawOutput": "{\"relation\":\"quoted_total\"}",
+        "selected": "quoted_total",
+        "supported": true
+      }
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F2:P1",
+        "passage": "Workstations cost $137 each; delivery is excluded.",
+        "value": "$137",
+        "occurrenceIndex": 0,
+        "start": 18,
+        "end": 22
+      },
+      "requiredRelation": "unit_price",
+      "reason": "The explicit each qualifier defines one workstation, not total requested quantity.",
+      "control": {
+        "id": "fresh-2-control",
+        "rawOutput": "{\"relation\":\"quoted_total\"}",
+        "selected": "quoted_total",
+        "supported": false
+      },
+      "withoutGlobalQuestion": {
+        "id": "fresh-2-without_global_question",
+        "rawOutput": "{\"relation\":\"unit_price\"}",
+        "selected": "unit_price",
+        "supported": true
+      }
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F3:P1",
+        "passage": "Add a mandatory $286 delivery charge to the quoted work price.",
+        "value": "$286",
+        "occurrenceIndex": 0,
+        "start": 16,
+        "end": 20
+      },
+      "requiredRelation": "additional_charge",
+      "reason": "The separate charge is explicit and mandatory in this passage.",
+      "control": {
+        "id": "fresh-3-control",
+        "rawOutput": "{\"relation\":\"additional_charge\"}",
+        "selected": "additional_charge",
+        "supported": true
+      },
+      "withoutGlobalQuestion": {
+        "id": "fresh-3-without_global_question",
+        "rawOutput": "{\"relation\":\"additional_charge\"}",
+        "selected": "additional_charge",
+        "supported": true
+      }
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F4:P1",
+        "passage": "If the inspection identifies water damage, an additional $713 repair fee applies.",
+        "value": "$713",
+        "occurrenceIndex": 0,
+        "start": 57,
+        "end": 61
+      },
+      "requiredRelation": "additional_charge",
+      "reason": "The extra charge is conditional. Classification must not establish that damage was found or add it unconditionally.",
+      "control": {
+        "id": "fresh-4-control",
+        "rawOutput": "{\"relation\":\"additional_charge\"}",
+        "selected": "additional_charge",
+        "supported": true
+      },
+      "withoutGlobalQuestion": {
+        "id": "fresh-4-without_global_question",
+        "rawOutput": "{\"relation\":\"additional_charge\"}",
+        "selected": "additional_charge",
+        "supported": true
+      }
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F5:P1",
+        "passage": "The quoted price already includes a $368 allowance for wiring.",
+        "value": "$368",
+        "occurrenceIndex": 0,
+        "start": 36,
+        "end": 40
+      },
+      "requiredRelation": "included_allowance",
+      "reason": "Already includes states that this amount is covered, not added.",
+      "control": {
+        "id": "fresh-5-control",
+        "rawOutput": "{\"relation\":\"included_allowance\"}",
+        "selected": "included_allowance",
+        "supported": true
+      },
+      "withoutGlobalQuestion": {
+        "id": "fresh-5-without_global_question",
+        "rawOutput": "{\"relation\":\"included_allowance\"}",
+        "selected": "included_allowance",
+        "supported": true
+      }
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F6:P1",
+        "passage": "We received your $924 payment; this credit reduces the remaining balance.",
+        "value": "$924",
+        "occurrenceIndex": 0,
+        "start": 17,
+        "end": 21
+      },
+      "requiredRelation": "prior_payment",
+      "reason": "Received and credit explicitly describe an existing payment, not a future deposit.",
+      "control": {
+        "id": "fresh-6-control",
+        "rawOutput": "{\"relation\":\"prior_payment\"}",
+        "selected": "prior_payment",
+        "supported": true
+      },
+      "withoutGlobalQuestion": {
+        "id": "fresh-6-without_global_question",
+        "rawOutput": "{\"relation\":\"quoted_total\"}",
+        "selected": "quoted_total",
+        "supported": false
+      }
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F7:P1",
+        "passage": "The advance deposit is 18% of $5,270.",
+        "value": "$5,270",
+        "occurrenceIndex": 0,
+        "start": 30,
+        "end": 36
+      },
+      "requiredRelation": "deposit_basis",
+      "reason": "The occurrence is only the percentage basis, not the deposit payable or a separately introduced quote.",
+      "control": {
+        "id": "fresh-7-control",
+        "rawOutput": "{\"relation\":\"quoted_total\"}",
+        "selected": "quoted_total",
+        "supported": false
+      },
+      "withoutGlobalQuestion": {
+        "id": "fresh-7-without_global_question",
+        "rawOutput": "{\"relation\":\"quoted_total\"}",
+        "selected": "quoted_total",
+        "supported": false
+      }
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F8:P1",
+        "passage": "Deposit due on acceptance: 32% of $7,360.",
+        "value": "$7,360",
+        "occurrenceIndex": 0,
+        "start": 34,
+        "end": 40
+      },
+      "requiredRelation": "deposit_basis",
+      "reason": "This is the explicit deposit calculation basis despite the different wording.",
+      "control": {
+        "id": "fresh-8-control",
+        "rawOutput": "{\"relation\":\"quoted_total\"}",
+        "selected": "quoted_total",
+        "supported": false
+      },
+      "withoutGlobalQuestion": {
+        "id": "fresh-8-without_global_question",
+        "rawOutput": "{\"relation\":\"quoted_total\"}",
+        "selected": "quoted_total",
+        "supported": false
+      }
+    },
+    {
+      "sourceOccurrence": {
+        "source": "F9:P1",
+        "passage": "The form lists $482 beside an unlabeled reference field; its purpose is not specified.",
+        "value": "$482",
+        "occurrenceIndex": 0,
+        "start": 15,
+        "end": 19
+      },
+      "requiredRelation": "unknown",
+      "reason": "The passage does not state a supported role; no default may be inferred.",
+      "control": {
+        "id": "fresh-9-control",
+        "rawOutput": "{\"relation\":\"quoted_total\"}",
+        "selected": "quoted_total",
+        "supported": false
+      },
+      "withoutGlobalQuestion": {
+        "id": "fresh-9-without_global_question",
+        "rawOutput": "{\"relation\":\"quoted_total\"}",
+        "selected": "quoted_total",
+        "supported": false
+      }
+    }
+  ],
+  "controlSupported": 5,
+  "treatmentSupported": 5,
+  "requiredPerArm": 9,
+  "localTreatmentAccepted": false,
+  "fullTaskQualified": false,
+  "disposition": "Rejected. Removing global question fixes unit price but breaks prior-payment recognition; both arms fail both deposit bases and unknown. No favorable subset selected; no further experiment, calculation or final answer.",
+  "accounting": {
+    "promptTokens": 6503,
+    "generatedTokens": 146,
+    "totalChargedTokens": 6649,
+    "rawUtf16": 697
+  },
+  "unrun": [],
+  "elapsedIncludingLoadingSeconds": 115.498901,
+  "performanceQualified": false,
+  "originalFullTasks": "Original seven complete tasks and two locked holdouts unchanged and unrun by this local diagnostic. No converted-model or production qualification.",
+  "independentReview": "Parent/root reviewed all9 exact passages and expected roles and confirms5/9 each and rejection.",
+  "sourceApiAudit": "source-api-audit.json"
+}

@@ -1,0 +1,92 @@
+{
+  "schema": "reploid.single-price-postrun-identity/v1",
+  "observedAtUtc": "2026-10-13T13:12:43.271694+00:00",
+  "freezeSha256": "5a1cb7335fa494b12cc1c38afe84f1ecd94ef672ae4795969af112b84c4b5198",
+  "frozenFilesUnchanged": true,
+  "observed": {
+    "files": {
+      "bind_preflight.py": "12e707303b88929125a757f78e5431a011e9bc433138500263f03e5097286e9a",
+      "fixture_test.py": "cce9c727d3631ff2cf4fd6059b1db4ac45066120f6fa01d8cf5dee78281cd231",
+      "freeze.py": "8685a597f154fd4f7e27217694a9ca1b6ddf8603b43873acd6f03d1db4a8ce95",
+      "input.json": "004a53d453df321ab28fe37ae0b67393752baa629e989b77c35f6322da12e8c9",
+      "preflight.py": "e531081cfa771dc263e18a6ec7f3051078f7e88386fa94a2f7147597c36c223d",
+      "prepare.py": "a90f56aed94d151553203f2a6a75896e36fe62428bd7c06c4ae422a2102c79d4",
+      "review-criteria.json": "dcb6278aea064d8d04edca0a0bb3a3e36a4c4d955e847c00e119596be1091d0e",
+      "run.py": "ac324e928330ad8cf43aa3e4d203cbc10f9fc7079c4c4cbbd746fd81811e9e00",
+      "runner_test.py": "7ca70c1ad995af9f3da6d15ad9b144669c90271b83022dac8c27647f2b33b40b",
+      "suite.json": "c88d34a6c2db4a89110bceadea4fe16492189c5b37deb632abda691223f924bc",
+      "token-preflight.json": "e0f98054f5f2aea01ee741a99e5767fd015623e02cae1cb881eb847e96ccbfdd"
+    },
+    "reusedSources": {
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/grammar-experiment/constraint.py": "0717f1305e888429455093e6a79d2aafda7589875eb97167de588d7cba919d75",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/grammar-experiment/grammar.py": "610984b06ed137ccb2e0bcaad4d9ef529ece4a3943d31a990e3d95e787808434",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/grammar-experiment/freeze.json": "6ec0fb8f8c100eda60ee4bd7f1859f0c7b1918af2434ce3cd0c84481b28387e4",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/inputs.json": "4c7a68a0545d46fbdfa9695f9ed80080d0b910c94b1d286fe5504e30acd1d6a2",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/suite.json": "5c6c50868097f62b35980e95ee005a0b7f7819df604700e483b08f0faab04e8e",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/template-binding.json": "9b6c2ff0af91e28169d50f705ba3a9f96e5a20225aeafaff30084a5f8d2af92e",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/token-preflight.json": "a7f1885b6170b7e732861e4a452be9c40f26100d8e4196507792df37f4500985",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/source-weight-binding.json": "dd01d12e3aa39173ece81f4054ded6797eb147cf14f901125d9a93de60b73216",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/freeze.json": "e84785d1030e057d69db16f0b50c48ecc9a779d08db070a7b117a057a4e59141",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-proposal/locked-holdouts.json": "863d2e49dcf6387d65b5f70943ad8f27be8e812441e644606be105d07c01fad3",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/contract.py": "6f4ce09c8cfcd73e6eb12e09ff7c4fabbfb24af04308e433112c76fdb33c3c5d",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/constraint_adapter.py": "b32101ec0794bf5d4cfe955532c469cd429338d6a2693082ddf8158b707cffe9",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/freeze.json": "0ca4300b333a7f0a48944bd458ae20e4e43a1b31a21aa4f2a022c440b2a5b622",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/composition-inputs.json": "2b0938a3887d85c74ae4d8e610b7706b6562a9f5b0eb274af375a3e48a80011f",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/token-preflight.json": "0ce62438fc2d1a6218132ae675d79c6a0c2cbe7d989efeefa6e7a64b2b5d480c",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/first-result/review.json": "a768baf2340957a5bb12d76f2a7f0fcf714e75efcd773788c8b7f6b95f25dd0b",
+      "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/first-result/source.json.gz": "4235329bb88bdc40f07139f17786b0d71af1039bdcf5c930a9e86b74994a8862"
+    },
+    "dopplerSources": {
+      "tools/source-model-task-quality.py": "3e1dd96f7e338a48a0c778e7d9b2b20f0c9c2982ff9a59194d03774ed42da483",
+      "tools/lib/source_task_quality.py": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f"
+    },
+    "sourceIdentity": {
+      "tokenizer_config.json": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
+      "download-receipt.json": "eaf732de3eb6a2d4c754b3959269c2ef6aab0014e3becda960e08dd78b148c8a",
+      "tokenizer.json": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+    }
+  },
+  "sourceFilesUnchanged": [
+    {
+      "path": "config.json",
+      "bytes": 726,
+      "sha256": "1ddb5b89ebc90dcb417a45c213d818577e65976454d29385c8f6140771d95197"
+    },
+    {
+      "path": "tokenizer_config.json",
+      "bytes": 9732,
+      "sha256": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101"
+    },
+    {
+      "path": "generation_config.json",
+      "bytes": 239,
+      "sha256": "2325da0f15bb848e018c5ae071b7943332e9f871d6b60e2ed22ca97d4cb993d2"
+    },
+    {
+      "path": "tokenizer.json",
+      "bytes": 11422654,
+      "sha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+    },
+    {
+      "path": "model.safetensors.index.json",
+      "bytes": 25605,
+      "sha256": "0d660e94b165eb912669a5249dff44b83188c4777a07ddb9611fb78d91b0578d"
+    },
+    {
+      "path": "model-00001-of-00002.safetensors",
+      "bytes": 3441185608,
+      "sha256": "169ad53ec313c3a34b06c0809216e4fc072cce444a5d4ff2b59690d064130ed5"
+    },
+    {
+      "path": "model-00002-of-00002.safetensors",
+      "bytes": 622329984,
+      "sha256": "912becff8d60672aa8628ef08c05898d9adf17c2ad4ae3caf99b065622fdeff9"
+    }
+  ],
+  "ownedProcessesAlive": {
+    "2873176": false,
+    "2873496": false
+  },
+  "sourceOutputSha256": "f345a109a18e51af615ce3d71e35438cf2997e15250c1ffea7fc11287ed9c5fa",
+  "runLogSha256": "9a46102e5601353bf13724131510be445cd6f16dbf0b21295d9c22301219f9aa"
+}
