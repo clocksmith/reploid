@@ -1,0 +1,1 @@
+package source closure check passed (981 runtime JS, 493 declarations, 493 resources)

@@ -1,0 +1,33 @@
+{
+  "file": "/var/tmp/reploid-signed-compact-20261013/native.log",
+  "bytes": 340444956,
+  "sha256": "b5aa68abde5a72f8cc4270f473aac99053479b825db6f598fa9d6c18161807f5",
+  "events": {
+    "native-initialized": {
+      "count": 1,
+      "bytes": 115,
+      "maxBytes": 115
+    },
+    "partition-state": {
+      "count": 1402,
+      "bytes": 339813386,
+      "maxBytes": 271273
+    },
+    "network": {
+      "count": 668,
+      "bytes": 610946,
+      "maxBytes": 1467
+    }
+  },
+  "nonJSONLines": 441,
+  "partitionState": {
+    "count": 1402,
+    "medianBytes": 270721,
+    "maxBytes": 271273
+  },
+  "capsuleVerification": {
+    "count": 1256,
+    "medianBytes": 244872,
+    "maxBytes": 244872
+  }
+}

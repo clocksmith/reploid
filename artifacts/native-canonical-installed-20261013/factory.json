@@ -1,0 +1,29 @@
+{
+  "publicEntry": "file:///private/var/tmp/reploid-canonical-installed-20261013.7IKAGb/final/consumer/node_modules/doppler-gpu/src/partitions.js",
+  "required": [
+    "canonicalGenerationIdentity",
+    "metadataDigest",
+    "tokenDigest",
+    "validateResidentAttemptIdentity",
+    "residentAttemptDigest",
+    "residentPublicationDecisionDigest",
+    "validateExecutionPublication",
+    "validateAdmissionPublication",
+    "validateResidentCursor",
+    "validateOrdinaryActivation",
+    "serializeActivationFrame",
+    "validateActivationFrameForPlan",
+    "admitResidentPrompt",
+    "bootstrapResidentCursor",
+    "decideResidentBlock",
+    "hashLayerPartitionPlan",
+    "createResidentPartitionFactory",
+    "createManifestResidentPartitionFactory"
+  ],
+  "publicFactoryForwarding": true,
+  "preparationAbortCleanup": true,
+  "missingResidentCleanup": true,
+  "cleanupAggregate": true,
+  "injectedCapsuleOpener": true,
+  "physicalResidentQualified": false
+}

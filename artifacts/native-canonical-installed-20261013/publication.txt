@@ -1,0 +1,1 @@
+durable evidence: actual transition/signatures, restart, corruption, snapshot races, cancellation/takeover/revocation, unknown commits pass
