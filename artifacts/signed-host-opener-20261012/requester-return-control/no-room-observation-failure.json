@@ -1,0 +1,22 @@
+{
+  "scope": "GPU-disabled host observation and unsent draft only; zero Send/contribution/model invocations requested",
+  "startedAt": "2026-10-13T13:32:06.541Z",
+  "before": {
+    "schema": "reploid.chat-owner-observation/v1",
+    "source": "existing host getState/getDraft",
+    "storageMode": "legacy",
+    "threads": [],
+    "selectedId": null,
+    "runningIds": [],
+    "storageError": null,
+    "drafts": {
+      "new": {
+        "text": "",
+        "files": []
+      }
+    }
+  },
+  "passed": false,
+  "failure": "Error: Requester custody observation unavailable\n    at file:///Users/xyz/deco/reploid/artifacts/signed-host-opener-20261012/requester-return-control/reploid-requester-custody-observation.mjs:37:51\n    at async observeOwner (file:///Users/xyz/deco/reploid/artifacts/signed-host-opener-20261012/requester-return-control/reploid-requester-custody-observation.mjs:23:12)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-host-opener-20261012/requester-return-control/observation-control.mjs:15:76",
+  "finishedAt": "2026-10-13T13:32:06.732Z"
+}

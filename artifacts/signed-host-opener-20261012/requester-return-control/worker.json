@@ -1,0 +1,41 @@
+{
+  "scope": "Actual Verification Worker AST analysis of controller tooling; no model execution",
+  "at": "2026-10-13T13:42:11.056Z",
+  "sources": [
+    {
+      "name": "run.mjs",
+      "sha256": "920ae1fdc9802969a3b015e501a621be2fff54b563db6027bf318af1b129fbe0"
+    },
+    {
+      "name": "checks.mjs",
+      "sha256": "4be60494c2dd4367da37c73be4bd9c823cbb4f97a7786fb57f741240324ca3f0"
+    },
+    {
+      "name": "checks.test.mjs",
+      "sha256": "35e182c1c63c4a8442170197e7ca699ae3e60e7875f007276ba22d3f5ffd0c60"
+    },
+    {
+      "name": "reploid-requester-custody-observation.mjs",
+      "sha256": "ca3865f79053804e6a3fe1b03360c8ab3cfe8373fdca3adc859b81ab405d53f7"
+    },
+    {
+      "name": "observation-control.mjs",
+      "sha256": "9039774687bb8afe86e81559e411ae1ccc67605bc061a43e6d8f2dd0599ae208"
+    },
+    {
+      "name": "verify-worker.mjs",
+      "sha256": "f483dc5afa51c52aae6f3dea242b1a651ce8662d6bead24f48296b97dc173ea8"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "events": [],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 0
+    }
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "schema": "reploid.basic-chat-controller-preparation/v1",
+  "sourceAtPreparation": "8a4c9b4943692ccee565afc91d7df928590ff0b5",
+  "files": {
+    "README.md": "a00b1d682696a0cd010c6c8a56a5a1a3416234e4e83325da9eff1d3bd4874873",
+    "checks.mjs": "4be60494c2dd4367da37c73be4bd9c823cbb4f97a7786fb57f741240324ca3f0",
+    "checks.test.mjs": "35e182c1c63c4a8442170197e7ca699ae3e60e7875f007276ba22d3f5ffd0c60",
+    "checks.txt": "33ceefb4649f949ff734f1477d525c9b62cd1364634a943eeca9c470ff55fae0",
+    "fresh-observation-control.json": "3a19b7f431fe7a6f1690f4c0b4fe63d8fae0d89526ce24cd14d17b4342ba139e",
+    "no-room-observation-failure.json": "3af2622d93d49b30a4ea4c04512abf563bc2257ce8cf5d2a54d097111a0191b4",
+    "observation-control.mjs": "9039774687bb8afe86e81559e411ae1ccc67605bc061a43e6d8f2dd0599ae208",
+    "plain-chat.json": "be517a576e491df9e0cc1bfc793dd863619480829774f6f85a9778bc80e4f27b",
+    "ready-control.json": "02f6638cfddc7e075fbcbb8df4e4ac6109067b6f2518c9c269d7f6e267aa202c",
+    "reploid-requester-custody-observation.mjs": "ca3865f79053804e6a3fe1b03360c8ab3cfe8373fdca3adc859b81ab405d53f7",
+    "room-observation-control.json": "2478ed7324b2ccfa590afc96b81d1bf3ab78cc89e20e050156a8f90bcabcb26b",
+    "run.mjs": "920ae1fdc9802969a3b015e501a621be2fff54b563db6027bf318af1b129fbe0",
+    "verify-worker.mjs": "f483dc5afa51c52aae6f3dea242b1a651ce8662d6bead24f48296b97dc173ea8",
+    "worker.json": "1f121e4b2abe84b61b0ef4d8c37f6e65ef9d76b43a9bbe2929ca832199bb5877"
+  },
+  "scope": "Controller tooling and synthetic/GPU-disabled no-send controls only. Actual signed useful conversation remains unrun.",
+  "checks": {
+    "pureReceiptTests": 15,
+    "verificationWorker": "passed; zero errors and warnings",
+    "oldLegacySnapshotHostDraftControl": "passed; zero sends and contribution actions",
+    "transactionalHistoryPhysicalRun": "not run",
+    "signedUsefulConversation": "not run"
+  },
+  "componentIntent": "preserved",
+  "boundaryEffects": "none"
+}

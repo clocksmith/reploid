@@ -1,0 +1,24 @@
+{
+  "scope": "Observation harness control only; no contribution, generation or model load requested",
+  "at": "2026-10-13T13:14:13.545Z",
+  "value": {
+    "state": {
+      "sharing": false,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "peers": [],
+      "model": null,
+      "supplyBudgetError": null,
+      "preparing": false,
+      "error": "",
+      "progress": null,
+      "receivedBytes": 0,
+      "verifiedFiles": [],
+      "limits": {
+        "storedBytes": 3221225472,
+        "supplyBytes": 4294967296
+      }
+    },
+    "receipts": []
+  }
+}

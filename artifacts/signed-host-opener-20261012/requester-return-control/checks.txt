@@ -1,0 +1,100 @@
+TAP version 13
+# Subtest: coherent synthetic receipt passes interactions only, never coding semantics
+ok 1 - coherent synthetic receipt passes interactions only, never coding semantics
+  ---
+  duration_ms: 1.52975
+  type: 'test'
+  ...
+# Subtest: rejects transport cutoff
+ok 2 - rejects transport cutoff
+  ---
+  duration_ms: 0.287958
+  type: 'test'
+  ...
+# Subtest: rejects output cap
+ok 3 - rejects output cap
+  ---
+  duration_ms: 0.173333
+  type: 'test'
+  ...
+# Subtest: rejects unknown cleanup
+ok 4 - rejects unknown cleanup
+  ---
+  duration_ms: 0.10925
+  type: 'test'
+  ...
+# Subtest: rejects hidden fallback
+ok 5 - rejects hidden fallback
+  ---
+  duration_ms: 0.2245
+  type: 'test'
+  ...
+# Subtest: rejects fabricated history
+ok 6 - rejects fabricated history
+  ---
+  duration_ms: 0.162875
+  type: 'test'
+  ...
+# Subtest: rejects terminal-only output
+ok 7 - rejects terminal-only output
+  ---
+  duration_ms: 0.149417
+  type: 'test'
+  ...
+# Subtest: rejects invisible stream
+ok 8 - rejects invisible stream
+  ---
+  duration_ms: 0.094542
+  type: 'test'
+  ...
+# Subtest: rejects wrong clipboard
+ok 9 - rejects wrong clipboard
+  ---
+  duration_ms: 0.321667
+  type: 'test'
+  ...
+# Subtest: rejects missing custody
+ok 10 - rejects missing custody
+  ---
+  duration_ms: 0.709709
+  type: 'test'
+  ...
+# Subtest: rejects reload redispatch
+ok 11 - rejects reload redispatch
+  ---
+  duration_ms: 0.525042
+  type: 'test'
+  ...
+# Subtest: rejects changed reload text
+ok 12 - rejects changed reload text
+  ---
+  duration_ms: 0.097583
+  type: 'test'
+  ...
+# Subtest: rejects short return observation
+ok 13 - rejects short return observation
+  ---
+  duration_ms: 0.069167
+  type: 'test'
+  ...
+# Subtest: rejects lost draft
+ok 14 - rejects lost draft
+  ---
+  duration_ms: 0.064792
+  type: 'test'
+  ...
+# Subtest: incorrect answer with complete transport never becomes semantic acceptance
+ok 15 - incorrect answer with complete transport never becomes semantic acceptance
+  ---
+  duration_ms: 0.09825
+  type: 'test'
+  ...
+1..15
+# tests 15
+# suites 0
+# pass 15
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 50.478
