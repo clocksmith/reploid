@@ -1,0 +1,37 @@
+{
+  "scope": "CPU/source and installed protocol composition only; no GPU or cloud calls",
+  "sourceBaseCommit": "6cac02000a8e6b2244bf3068adf4f300a44a747b",
+  "files": {
+    "server/chat-completions.js": "5217d7169545bc906c654db641da27f4d960edf8501f24e2b75c87551a833bed",
+    "server/native-participant.js": "ebe08f8264d0d59e27a78e6dfb1fa21a63316d7ffdcb962b57acaf0633c8a536",
+    "docs/native-participant.md": "f4b411f279c5f091415291735895142a38f11c98082ef85cb0e8bb1738d2420e",
+    "tests/integration/chat-completions.test.js": "a475a55ecd73f8ed880414150003293343535f2f0bc1be90c65817d4c8f6c242",
+    "tests/unit/ordered-host-composition.test.js": "57e413e420d3e49ac138064bead0f0d64e98f66cd0f9918dfbd9dde7d8c10905"
+  },
+  "standaloneUnchangedSha256": "37cbdd90e03dfa99bc918f9661a7aab558d54bd062e8b407a9d56728fb7a4103",
+  "evidence": {
+    "artifacts/text-chat-completions-20261013/README.md": "77fe7fabd82a784225bf1aa548c1a0463c57873f19761ba5ed9f9c20136d89f9",
+    "artifacts/text-chat-completions-20261013/charters.txt": "f27eb0e4c0c49f6e069c4f54b29f66a00b7dc57e40a8fec90173abacd614eec5",
+    "artifacts/text-chat-completions-20261013/default-mount-expectation-failure.txt": "45c1459404f135f5d94428740f228a790c9195086126cc05b15184ec0e49ac16",
+    "artifacts/text-chat-completions-20261013/installed-consumer.mjs": "02041bf66490b0fe3d0c8c10f1769bc7f989059100bc3421e7bc8608e0dddf37",
+    "artifacts/text-chat-completions-20261013/installed-result.json": "0a41e933034c1f5eea477264511c7a8fa11bccb644275b5cbb7601fa1ec2fd98",
+    "artifacts/text-chat-completions-20261013/native-package.json": "5ea0d7cbbc1e85504d6dacfb67af603618648b9b5217e317703cbdb151a1b13f",
+    "artifacts/text-chat-completions-20261013/native-regressions.txt": "e129873ba4728c0fa1076f393ce59bc2d5920043537caa63cdda6fe1f81e5cb9",
+    "artifacts/text-chat-completions-20261013/npm-ci.txt": "7ac632bae85376b914eb866ff73aa1a51eae355c3cc6b2cfd6781e20af3bdd6e",
+    "artifacts/text-chat-completions-20261013/package-before-disclosure-status.json": "672437849bf2d25f6d45e78bc51e050d73bc1043965d20a1156819aae20d2846",
+    "artifacts/text-chat-completions-20261013/package-intermediate.json": "440e87b312d01c02a011f916b8f9a540be185ab9cb02a839de35053963b75ef7",
+    "artifacts/text-chat-completions-20261013/sdk-initial-lock.json": "4106fc3846c89f3a6bddb000d16dac2a7914121fd1d424bf0268e5ee2f67f27b",
+    "artifacts/text-chat-completions-20261013/sdk-lock.json": "c145388f06164fbb462b1e5e7321855c8c7a8955a1be2a0d24b824e74cebbf48",
+    "artifacts/text-chat-completions-20261013/sdk-package.json": "905f2d95ac8ed2809b255c6a6cfe21a6ac32a4be547cc2f0c975e9f9c22fb068",
+    "artifacts/text-chat-completions-20261013/tests.txt": "ef4fa73f5c08483cdb88e469e0bf5e0cee24728f1565753fcf75281c43f5856f",
+    "artifacts/text-chat-completions-20261013/types.txt": "c506d0cc9d9cefa4c95d86c4d9e2f96c055daf8a3d88cd154a54c42549d522a1",
+    "artifacts/text-chat-completions-20261013/verify-worker.js": "412b321ffaa93dee27199b07026768fff57e105f227d28f7a9ed784f855b20b5",
+    "artifacts/text-chat-completions-20261013/worker-baseline.json": "1bf29f5a2e1d3dd3c9d3e5c400dd3d1210ebcbc32196b327857c9288e39047c8",
+    "artifacts/text-chat-completions-20261013/worker-baseline.txt": "3b658e6eb7cdecaa8499c6d03478f1fdc6c0d3f63a155b1f282da08e245841d6",
+    "artifacts/text-chat-completions-20261013/worker-existing-literal-rejection.json": "8a78867b3142cfb86a0dc059474aa85e630386cb1239e25f3aa6b6444df6d3c2",
+    "artifacts/text-chat-completions-20261013/worker.json": "8f4cff9843e529cec6e656fcecd2e08bb891918c91c9bbc048a4fd433a17d15c"
+  },
+  "installedNativeAndCurrentSourceEqual": true,
+  "canonicalDurablePublicationQualified": false,
+  "fullDeveloperCompatibilityQualified": false
+}
