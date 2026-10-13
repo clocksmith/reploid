@@ -58,7 +58,7 @@ qualify execution or authorize adoption; those remain application/operator contr
 
 ## Current implementation sequence
 
-[TODO.md](TODO.md) owns the active cross-repository checklist: dependable
+[ROADMAP.md](ROADMAP.md) owns the active cross-repository checklist: dependable
 distributed chat, qualification and delivery, then durable independent jobs.
 Other plans retain design contracts and historical evidence, not parallel queues.
 

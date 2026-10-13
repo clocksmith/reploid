@@ -6,9 +6,10 @@
 
 ## Current implementation work
 
-Follow [TODO.md](TODO.md), the single Doppler–Reploid implementation checklist.
-Update its evidence and checkboxes as complete acceptance passes. Historical
-plans cannot start a competing campaign. Preserve the GOALS and CATSCAN boundaries.
+Follow [ROADMAP.md](ROADMAP.md), the single Doppler–Reploid implementation roadmap.
+Update acceptance evidence and checkboxes in the linked
+[canonical requirements](docs/roadmap/requirements.md) as complete acceptance passes.
+Historical plans cannot start a competing campaign. Preserve the GOALS and CATSCAN boundaries.
 
 ## Git workflow: direct to main
 

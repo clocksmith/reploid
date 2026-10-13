@@ -1,0 +1,110 @@
+{
+  "schema": "reploid.roadmap-migration-evidence/v1",
+  "migrationBase": "229a6e601adbd970de38c3315d069de4ba707cce",
+  "applicationBase": "9264238208ae0b372fa5314daaf230413b201b1b",
+  "inputPatchSha256": "a3a1ca826a780ad766ddac1d643184010ae435b50d7032e6b50b6f39a7ac2b4e",
+  "appliedFiles": 19,
+  "exactBundleFiles": 17,
+  "reconciledFiles": [
+    "ROADMAP.md",
+    "docs/roadmap/requirements.md"
+  ],
+  "preservedStableIds": 47,
+  "preservedCheckboxes": {
+    "total": 87,
+    "checked": 31,
+    "unchecked": 56
+  },
+  "preservedLegacyAnchors": 74,
+  "checkedUniqueLocalPathsFragmentsAndGitPinnedObjects": 301,
+  "unchangedExternalTargetsNotRequalified": 32,
+  "rdCanon": "Exact original body after four navigation-only substitutions",
+  "newerEvidencePreserved": "Storage participation, commits 563f5351/e8258bc7/92642382; source/browser scope retained, installed live-mesh acceptance remains open",
+  "checks": {
+    "journeys": "passed",
+    "catscan": "39 component charters and generated index passed",
+    "gitDiffCheck": "passed"
+  },
+  "runtimeChanges": false,
+  "runtimeTestsRun": false,
+  "deployment": false,
+  "crossRepositoryWrites": false,
+  "files": {
+    "AGENTS.md": {
+      "inputSha256": "ec6813935c6d2121bd7154931ffdc147c1333837be0abe5781431733ece4b683",
+      "appliedSha256": "ec6813935c6d2121bd7154931ffdc147c1333837be0abe5781431733ece4b683"
+    },
+    "GOALS.md": {
+      "inputSha256": "ef95d13e60238d6d1298a06b506a54a36e66f4d02cced6a92079a88b72225734",
+      "appliedSha256": "ef95d13e60238d6d1298a06b506a54a36e66f4d02cced6a92079a88b72225734"
+    },
+    "README.md": {
+      "inputSha256": "00b9d1e5cd741cdf25c665873da77622c48cac1cd6601492387ec7059f12f2a0",
+      "appliedSha256": "00b9d1e5cd741cdf25c665873da77622c48cac1cd6601492387ec7059f12f2a0"
+    },
+    "ROADMAP.md": {
+      "inputSha256": "2de89273608a0e390870df21441369bbc322cf4f52106892600ca2046d12805f",
+      "appliedSha256": "ee39022820e6210f1d85015170b40f6677bfdb1f6a3eef4ee45fef791dce683f"
+    },
+    "TODO.md": {
+      "inputSha256": "e9d81eba469f9f41da06cd6dca752d09a12960a2ae0e061672cfcdea941d9f5a",
+      "appliedSha256": "e9d81eba469f9f41da06cd6dca752d09a12960a2ae0e061672cfcdea941d9f5a"
+    },
+    "docs/GOVERNANCE_DETAILS.md": {
+      "inputSha256": "5a76b21954096688b1cb2c807adc7c3583adea8ef87eaf394b4ad21fa3303788",
+      "appliedSha256": "5a76b21954096688b1cb2c807adc7c3583adea8ef87eaf394b4ad21fa3303788"
+    },
+    "docs/INDEX.md": {
+      "inputSha256": "13d5a56621bb9220e17a655b8ba93586b881d9205bb8f23741a073124ba82d02",
+      "appliedSha256": "13d5a56621bb9220e17a655b8ba93586b881d9205bb8f23741a073124ba82d02"
+    },
+    "docs/QUICK-START.md": {
+      "inputSha256": "67684fdc1d19e99ea31e21475dc3d10d45ad3cf01b3f36b01a4d355abb5033f5",
+      "appliedSha256": "67684fdc1d19e99ea31e21475dc3d10d45ad3cf01b3f36b01a4d355abb5033f5"
+    },
+    "docs/chat-mvp.md": {
+      "inputSha256": "caa3619c3fdd4d763e675962d513968ea606d05d85af44015dff734cd1b4bd44",
+      "appliedSha256": "caa3619c3fdd4d763e675962d513968ea606d05d85af44015dff734cd1b4bd44"
+    },
+    "docs/critical-user-journeys.md": {
+      "inputSha256": "3579dc24b0a5a603e6475f2411ac29564a1eb9d9d74062d77a757b3edf51cc83",
+      "appliedSha256": "3579dc24b0a5a603e6475f2411ac29564a1eb9d9d74062d77a757b3edf51cc83"
+    },
+    "docs/open-mesh-architecture.md": {
+      "inputSha256": "a1d8fa31af1a8702372b9327328d9d660ec7ceaa368eb8b3c1d8e7d0a1b798c3",
+      "appliedSha256": "a1d8fa31af1a8702372b9327328d9d660ec7ceaa368eb8b3c1d8e7d0a1b798c3"
+    },
+    "docs/poolday/critical-user-journeys.md": {
+      "inputSha256": "b4aec5c6cbec7a6209be064cdbc18ca3cdb57ae1ff54ea14de8fab95acd64d22",
+      "appliedSha256": "b4aec5c6cbec7a6209be064cdbc18ca3cdb57ae1ff54ea14de8fab95acd64d22"
+    },
+    "docs/poolday/product-intent.md": {
+      "inputSha256": "cbe80c1faaa26ca7ef72016da3aa1eb69fdb50b9796847100ab3bbaf13eb2ba0",
+      "appliedSha256": "cbe80c1faaa26ca7ef72016da3aa1eb69fdb50b9796847100ab3bbaf13eb2ba0"
+    },
+    "docs/roadmap/history.md": {
+      "inputSha256": "b1ab365d7a1a3d53290461e99473be9018754d98a26270abe0d252d0e75a0923",
+      "appliedSha256": "b1ab365d7a1a3d53290461e99473be9018754d98a26270abe0d252d0e75a0923"
+    },
+    "docs/roadmap/rd-canon-1.md": {
+      "inputSha256": "51c8c43134326e47c400537d57f5eb3d866fab274434b5925259c79b2cb16955",
+      "appliedSha256": "51c8c43134326e47c400537d57f5eb3d866fab274434b5925259c79b2cb16955"
+    },
+    "docs/roadmap/requirements.md": {
+      "inputSha256": "158546008c0d602578e694a658c96d706557e9b9b56a2d4721647cb974e6220c",
+      "appliedSha256": "9834629abaf07522286e7365ccf163814c6745cfe9bd0ec355593eec8ada7f38"
+    },
+    "docs/x/critical-user-journeys.md": {
+      "inputSha256": "1844618fe145e52c0e82a861f399c1bd805b72356d7db33b52949355d04a8484",
+      "appliedSha256": "1844618fe145e52c0e82a861f399c1bd805b72356d7db33b52949355d04a8484"
+    },
+    "docs/zero/critical-user-journeys.md": {
+      "inputSha256": "d1642d73a1464715299812ccea5358733230b29239d202d06cb04735df1afdf4",
+      "appliedSha256": "d1642d73a1464715299812ccea5358733230b29239d202d06cb04735df1afdf4"
+    },
+    "self/blueprints/README.md": {
+      "inputSha256": "222dacee41b04510df9d2ba2db8c8523f64d5472a1a86a9e5c8ad1122099e6f4",
+      "appliedSha256": "222dacee41b04510df9d2ba2db8c8523f64d5472a1a86a9e5c8ad1122099e6f4"
+    }
+  }
+}

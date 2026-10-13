@@ -120,7 +120,7 @@ It is not the whole network’s onboarding or acceptance contract.
 Partition code and retained physical execution establish their identified
 mechanisms, not full release acceptance. Keep implemented, tested under a named
 configuration, qualification open and planned distinct. See
-[current package and qualification gates](../../TODO.md)
+[current package and qualification gates](../../ROADMAP.md)
 and [conversation acceptance](../chat-mvp.md).
 
 Compare useful outcomes against the strongest feasible local option and comparable

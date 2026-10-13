@@ -604,7 +604,7 @@ executable policy live in:
 - [`docs/rsi-improvement-episodes.md`](rsi-improvement-episodes.md)
 - [`docs/status/surface-claim-index.json`](status/surface-claim-index.json)
 - [`self/pool/pool-config.json`](../self/pool/pool-config.json)
-- [Current implementation checklist](../TODO.md)
+- [Current implementation checklist](../ROADMAP.md)
 
 External baseline references:
 

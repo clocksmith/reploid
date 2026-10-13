@@ -26,7 +26,7 @@ Numbered blueprints define unique mechanics and verification conditions. These
 conditions remain requirements until their scoped evidence exists; removing an
 unchecked marker does not mark them verified. Declared artifact/status metadata
 and its generated registry remain unchanged. Actual implementation selection
-belongs only to [TODO.md](../../TODO.md), not a blueprint work order.
+belongs only to [ROADMAP.md](../../ROADMAP.md), not a blueprint work order.
 
 ## Status
 
