@@ -1,0 +1,13 @@
+{
+  "deployedAt": "2026-10-13T18:27:45.048071+00:00",
+  "sourceCommit": "daa928d6201478144fe5ffe5bc922c01704d91ab",
+  "url": "https://replo.id",
+  "hostingOnly": true,
+  "bundleHash": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+  "declaredFilesVerified": 1921,
+  "hostingFiles": 1922,
+  "runtime": "unchanged accepted Doppler 0.6.27",
+  "liveUiChecks": "16 panel/viewport states across 1440, 900, 390, 320px; keyboard close, New chat, centered controls and preserved drafts",
+  "inferenceRun": false,
+  "handoff": "UI request completed; stop. No runtime work resumed."
+}

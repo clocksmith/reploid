@@ -1,0 +1,96 @@
+# Page snapshot
+
+```yaml
+- main [ref=e2]:
+  - navigation "Reploid"
+  - region "Conversation workspace" [ref=e4]:
+    - complementary "Conversation controls" [ref=e5]:
+      - generic [ref=e6]:
+        - button "Toggle threads" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]:
+            - generic [ref=e10]: "7"
+            - superscript [ref=e11]: "7"
+        - button "New thread" [ref=e12] [cursor=pointer]:
+          - img [ref=e13]
+        - button "Choose model" [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+        - button "Inspect network" [expanded] [ref=e20] [cursor=pointer]:
+          - img [ref=e21]
+      - complementary "Network and settings" [ref=e27]:
+        - dialog "Network" [ref=e28]:
+          - generic [ref=e29]:
+            - heading "Network" [level=2] [ref=e30]
+            - button "Close network and settings" [ref=e31] [cursor=pointer]:
+              - img [ref=e32]
+          - navigation "Network sections" [ref=e34]:
+            - button "This conversation" [ref=e35] [cursor=pointer]:
+              - img [ref=e36]
+            - button "Computers" [pressed] [ref=e38] [cursor=pointer]:
+              - img [ref=e39]
+              - generic [ref=e44]: 4 computers
+            - button "This device" [ref=e45] [cursor=pointer]:
+              - img [ref=e46]
+            - button "Settings" [ref=e49] [cursor=pointer]:
+              - img [ref=e50]
+          - text: ↔ ↔
+          - region "Available computers" [ref=e55]:
+            - generic [ref=e56]:
+              - generic [ref=e57]:
+                - strong [ref=e58]: Network connection
+                - generic [ref=e59]: Connected
+              - switch "Connect to network" [checked] [ref=e60] [cursor=pointer]
+            - paragraph [ref=e61]: 4 ready · 0 working · 0 unavailable
+            - list [ref=e62]:
+              - listitem [ref=e63]:
+                - generic [ref=e64]:
+                  - strong [ref=e65]: Computer 1
+                  - generic [ref=e66]: Qwen 3.5 0.8B
+                  - group [ref=e67]:
+                    - generic "Details" [ref=e68]
+                - generic [ref=e69]: ● Ready
+              - listitem [ref=e70]:
+                - generic [ref=e71]:
+                  - strong [ref=e72]: Computer 2
+                  - generic [ref=e73]: Qwen 3.5 0.8B
+                  - group [ref=e74]:
+                    - generic "Details" [ref=e75]
+                - generic [ref=e76]: ● Ready
+              - listitem [ref=e77]:
+                - generic [ref=e78]:
+                  - strong [ref=e79]: Computer 3
+                  - generic [ref=e80]: Qwen 3.5 0.8B
+                  - group [ref=e81]:
+                    - generic "Details" [ref=e82]
+                - generic [ref=e83]: ● Ready
+              - listitem [ref=e84]:
+                - generic [ref=e85]:
+                  - strong [ref=e86]: Computer 4
+                  - generic [ref=e87]: Qwen 3.5 0.8B
+                  - group [ref=e88]:
+                    - generic "Details" [ref=e89]
+                - generic [ref=e90]: ● Ready
+    - region "Current conversation" [ref=e91]:
+      - log "Messages" [ref=e92]:
+        - article [ref=e93]:
+          - generic [ref=e95]: Jump!
+          - generic [ref=e96]:
+            - button "Copy response":
+              - img
+        - article [ref=e97]:
+          - group [ref=e98]:
+            - generic "Complete · 2 computers" [ref=e99] [cursor=pointer]
+          - generic [ref=e101]: Ready for the challenge. Let’s go.
+          - button "Copy response" [ref=e103] [cursor=pointer]:
+            - img [ref=e104]
+      - generic [ref=e108]:
+        - generic [ref=e109]: Message
+        - generic [ref=e110]:
+          - textbox "Message" [ref=e111]:
+            - /placeholder: Ask a question…
+          - generic "Attach files" [ref=e112] [cursor=pointer]:
+            - img [ref=e113]
+            - generic [ref=e115]: Attach files
+            - button "Attach files" [ref=e116]
+          - button "Send" [ref=e118] [cursor=pointer]:
+            - img [ref=e119]
+```

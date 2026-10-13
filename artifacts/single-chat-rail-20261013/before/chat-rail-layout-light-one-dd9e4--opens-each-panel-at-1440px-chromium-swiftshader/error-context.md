@@ -1,0 +1,53 @@
+# Page snapshot
+
+```yaml
+- main [ref=e2]:
+  - navigation "Reploid"
+  - region "Conversation workspace" [ref=e4]:
+    - complementary "Threads" [ref=e5]:
+      - button "Toggle threads" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]:
+          - generic [ref=e10]: "7"
+          - superscript [ref=e11]: "7"
+      - button "New thread" [ref=e12] [cursor=pointer]:
+        - img [ref=e13]
+      - generic [ref=e15]:
+        - button "Choose model" [ref=e16] [cursor=pointer]:
+          - img [ref=e17]
+        - group [ref=e20]:
+          - generic "Conversation actions" [ref=e21] [cursor=pointer]:
+            - img [ref=e22]
+    - region "Current conversation" [ref=e26]:
+      - log "Messages" [ref=e27]:
+        - article [ref=e28]:
+          - generic [ref=e30]: Jump!
+          - generic [ref=e31]:
+            - button "Copy response":
+              - img
+        - article [ref=e32]:
+          - group [ref=e33]:
+            - generic "Complete · 2 computers" [ref=e34] [cursor=pointer]
+          - generic [ref=e36]: Ready for the challenge. Let’s go.
+          - button "Copy response" [ref=e38] [cursor=pointer]:
+            - img [ref=e39]
+      - generic [ref=e43]:
+        - generic [ref=e44]: Message
+        - generic [ref=e45]:
+          - textbox "Message" [ref=e46]:
+            - /placeholder: Ask a question…
+          - generic "Attach files" [ref=e47] [cursor=pointer]:
+            - img [ref=e48]
+            - generic [ref=e50]: Attach files
+            - button "Attach files" [ref=e51]
+          - button "Send" [ref=e53] [cursor=pointer]:
+            - img [ref=e54]
+    - complementary "Network and settings" [ref=e56]:
+      - group [ref=e59]:
+        - generic "Settings" [ref=e60] [cursor=pointer]:
+          - generic [ref=e61]:
+            - generic [ref=e62]: "7"
+            - superscript [ref=e63]: "7"
+      - button "Inspect network" [ref=e64] [cursor=pointer]:
+        - img [ref=e65]
+      - text: ↔ ↔ ● ● ● ●
+```
