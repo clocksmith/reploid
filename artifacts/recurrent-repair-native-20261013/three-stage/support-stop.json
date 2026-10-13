@@ -1,0 +1,23 @@
+{
+  "local": [
+    {
+      "pid": 91778,
+      "signal": "SIGTERM",
+      "purpose": "owned three-stage inspector tunnel"
+    },
+    {
+      "pid": 91780,
+      "signal": "SIGTERM",
+      "purpose": "owned three-stage inspector tunnel"
+    }
+  ],
+  "providersAbsent": [
+    3048968,
+    972625
+  ],
+  "publicNativePresent": [
+    4103868,
+    297260
+  ],
+  "macBrowserClosed": true
+}
