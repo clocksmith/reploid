@@ -1,0 +1,26 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: Browser version differs from pre-run observation
++ actual - expected
+
++ '155.0.8059.40'
+- '155.0.8059.39'
+              ^
+
+    at same (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:13:52)
+    at file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:163:7
+    at Array.map (<anonymous>)
+    at producePhysicalReports (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:117:39)
+    at main (file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:248:20)
+    at async file:///Users/xyz/deco/doppler/artifacts/signed-resident-producer-20261012/produce-physical-reports.js:272:90 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '155.0.8059.40',
+  expected: '155.0.8059.39',
+  operator: 'deepStrictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.20.0
