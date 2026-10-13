@@ -71,7 +71,7 @@ Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md
 - **[docs/API.md](./API.md)** - Module API documentation
 - **[docs/status/surface-claim-index.json](./status/surface-claim-index.json)** - Machine-checked surface status, evidence, blockers, and claim permission
 - **[docs/browser-inference-pool.md](./browser-inference-pool.md)** - Current Poolday runtime, peer, coordinator, and deployment contract
-- **[docs/critical-user-journeys.md](./critical-user-journeys.md)** - Canonical index for Poolday, Zero, and X user outcomes
+- **[docs/critical-user-journeys.md](./critical-user-journeys.md)** - Outcome-based Reploid journey catalogue, coverage variants, and retained Poolday/Zero/X registries
 - **[docs/status/poolday-critical-user-journeys.json](./status/poolday-critical-user-journeys.json)** - Canonical Poolday user outcomes, prerequisites, evidence, limitations, and remaining work
 - **[docs/poolday/critical-user-journeys.md](./poolday/critical-user-journeys.md)** - Human-readable Poolday journey status
 - **[docs/status/zero-critical-user-journeys.json](./status/zero-critical-user-journeys.json)** - Canonical Zero user outcomes, evidence, limitations, and remaining work
