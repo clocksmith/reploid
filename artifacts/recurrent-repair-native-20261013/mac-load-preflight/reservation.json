@@ -1,0 +1,11 @@
+{
+  "owner": "root-runtime-repair",
+  "observedAt": "2026-10-13T19:59:03.696656+00:00",
+  "machine": "local Mac",
+  "scope": "Owned Chromium stage 0 preparation and close; no token execution",
+  "maxGpuBufferBytes": 1420000000,
+  "operationMs": 300000,
+  "cleanupMs": 10000,
+  "publicProcesses": "Preserve all existing browser processes; own only newly launched Chromium",
+  "coTenancy": "Nonexclusive; not a performance measurement"
+}

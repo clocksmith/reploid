@@ -1,0 +1,11 @@
+{
+  "scope": "Process observation only; no local GPU launch or exclusive reservation",
+  "processes": [
+    {
+      "pid": "91510",
+      "ppid": "46689",
+      "command": "node",
+      "class": "current load controller"
+    }
+  ]
+}

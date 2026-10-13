@@ -1,0 +1,69 @@
+{
+  "schema": "reploid.repaired-input-stage-opening/v1",
+  "preparedSuccessfully": true,
+  "descriptor": {
+    "schema": "doppler.resident-partition/v2",
+    "ready": true,
+    "stageCount": 3,
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:c747015acfb61ead7384b0efc820963855c27fbca3627882fa9ec8c1e03ceac7",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "index": 0,
+    "layerRange": [
+      0,
+      7
+    ],
+    "residentWeightBytes": 603512832,
+    "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+  },
+  "runtimeArchiveSha256": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4",
+  "peakGpuBufferBytes": 622440768,
+  "poolAfterResidentClose": {
+    "retainedModel": {
+      "bytes": 0,
+      "count": 0
+    },
+    "active": {
+      "bytes": 0,
+      "count": 0
+    },
+    "reusable": {
+      "bytes": 558257664,
+      "count": 64
+    },
+    "deferredCleanup": {
+      "bytes": 0,
+      "count": 0
+    }
+  },
+  "browserVersion": "155.0.8059.40",
+  "executableIdentity": {
+    "path": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "sha256": "428dccc1a45819d23c5db4fb37388883f8d9ba64611cbd6c42395eac4a18b6a4",
+    "sizeBytes": 367696
+  },
+  "pid": 91664,
+  "browserExited": true,
+  "operations": [
+    {
+      "label": "load-only-stage-0",
+      "status": "completed"
+    },
+    {
+      "label": "close-load-only-stage-0",
+      "status": "completed"
+    },
+    {
+      "label": "close-context",
+      "status": "completed"
+    },
+    {
+      "label": "close-provider",
+      "status": "completed"
+    }
+  ],
+  "captureSha256": "ae77afc6fb85b337f6eaea2f149a63bb0cde551b203661fecefd11928210e495",
+  "tokensExecuted": 0,
+  "numericalQualified": false,
+  "signedApplicationQualified": false
+}

@@ -1,0 +1,207 @@
+{
+  "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
+  "files": {
+    "mac-load-preflight/prepare-files.js": "a6f3c28e35ceeea3d6b89a6ecfc4a9df64df49700605518c4c0d83c4ad516717",
+    "mac-load-preflight/load-preflight.js": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a",
+    "verify-native.js": "106f76014eb1b04240671f994fe4ad70552f20eec99ebce4f59412713c89b31a",
+    "load-preflight/load-preflight.js": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a",
+    "load-preflight/native-partition-process.js": "d59c3c2f841dc20f01dd3598357d8457d551e2ce2a22f7adbcae19a2cb4abd02",
+    "load-preflight/native-provider-observation.js": "ece1784bedc5cfe3de79a8f4ee8462c8844777dbf393eba927c9bd9a5e41601b",
+    "load-preflight/numerical-test-delivery.js": "eb6531431666fc7a022a8ebaf48f87e4ef7d3578b22b5e872a441f976ef683db",
+    "load-preflight/observe-native.js": "44088fc02d991c83d8cc75eeed68f30cbc6bc5a283137f982d9649df9289bd4b",
+    "load-preflight/prepare-files.js": "aa6da0ea87b14b82f1aeb33a473e9c909db57f5f26840f1f847b4cc39ce84933"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/mac-load-preflight/load-preflight.js:6: Dynamic property write detected: [root, output, stageText, endpoint] - verify input sanitization",
+      "Warning in /testing/mac-load-preflight/load-preflight.js:21: Dynamic property write detected: [manifestBytes, graphBytes, archiveBytes, referenceBytes, pairedBytes, policyBytes] - verify input sanitization",
+      "Warning in /testing/mac-load-preflight/load-preflight.js:30: Suspicious variable name: evaluate - may indicate code execution",
+      "Warning in /testing/mac-load-preflight/load-preflight.js:36: Suspicious variable name: executable - may indicate code execution",
+      "8 lines exceed 200 characters",
+      "Warning in /testing/verify-native.js:9: Dynamic property write detected: [directory, archive, output] - verify input sanitization",
+      "Warning in /testing/verify-native.js:42: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/verify-native.js:12: Suspicious variable name: exec - may indicate code execution",
+      "Warning in /testing/load-preflight/load-preflight.js:6: Dynamic property write detected: [root, output, stageText, endpoint] - verify input sanitization",
+      "Warning in /testing/load-preflight/load-preflight.js:21: Dynamic property write detected: [manifestBytes, graphBytes, archiveBytes, referenceBytes, pairedBytes, policyBytes] - verify input sanitization",
+      "Warning in /testing/load-preflight/load-preflight.js:30: Suspicious variable name: evaluate - may indicate code execution",
+      "Warning in /testing/load-preflight/load-preflight.js:36: Suspicious variable name: executable - may indicate code execution",
+      "8 lines exceed 200 characters",
+      "Warning in /testing/load-preflight/numerical-test-delivery.js:28: Suspicious variable name: execute - may indicate code execution",
+      "Warning in /testing/load-preflight/observe-native.js:4: Dynamic property write detected: [probe, config, receipt] - verify input sanitization"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562678,
+        "path": "/testing/mac-load-preflight/load-preflight.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [root, output, stageText, endpoint] - verify input sanitization",
+        "line": 6,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562678,
+        "path": "/testing/mac-load-preflight/load-preflight.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [manifestBytes, graphBytes, archiveBytes, referenceBytes, pairedBytes, policyBytes] - verify input sanitization",
+        "line": 21,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562678,
+        "path": "/testing/mac-load-preflight/load-preflight.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: evaluate - may indicate code execution",
+        "line": 30,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562678,
+        "path": "/testing/mac-load-preflight/load-preflight.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executable - may indicate code execution",
+        "line": 36,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791921562679,
+        "metric": "line_length",
+        "value": 8,
+        "threshold": 5,
+        "message": "8 lines exceed 200 characters",
+        "path": "/testing/mac-load-preflight/load-preflight.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562680,
+        "path": "/testing/verify-native.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [directory, archive, output] - verify input sanitization",
+        "line": 9,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562680,
+        "path": "/testing/verify-native.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 42,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562680,
+        "path": "/testing/verify-native.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 12,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562684,
+        "path": "/testing/load-preflight/load-preflight.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [root, output, stageText, endpoint] - verify input sanitization",
+        "line": 6,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562684,
+        "path": "/testing/load-preflight/load-preflight.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [manifestBytes, graphBytes, archiveBytes, referenceBytes, pairedBytes, policyBytes] - verify input sanitization",
+        "line": 21,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562684,
+        "path": "/testing/load-preflight/load-preflight.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: evaluate - may indicate code execution",
+        "line": 30,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562684,
+        "path": "/testing/load-preflight/load-preflight.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executable - may indicate code execution",
+        "line": 36,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791921562684,
+        "metric": "line_length",
+        "value": 8,
+        "threshold": 5,
+        "message": "8 lines exceed 200 characters",
+        "path": "/testing/load-preflight/load-preflight.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562687,
+        "path": "/testing/load-preflight/numerical-test-delivery.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: execute - may indicate code execution",
+        "line": 28,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791921562687,
+        "path": "/testing/load-preflight/observe-native.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [probe, config, receipt] - verify input sanitization",
+        "line": 4,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 8,
+          "threshold": 5,
+          "message": "8 lines exceed 200 characters",
+          "path": "/testing/mac-load-preflight/load-preflight.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "line_length",
+          "value": 8,
+          "threshold": 5,
+          "message": "8 lines exceed 200 characters",
+          "path": "/testing/load-preflight/load-preflight.js"
+        }
+      ],
+      "filesAnalyzed": 9
+    }
+  }
+}
