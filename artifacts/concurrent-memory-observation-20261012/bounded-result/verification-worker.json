@@ -1,0 +1,16 @@
+{
+  "scope": "Actual Worker testing capability; CPU mocked-device accounting control only",
+  "path": "artifacts/concurrent-memory-observation-20261012/bounded-result/accounting-control.js",
+  "sha256": "059070af9d223a4e8df69dd3102fa50db7ddb714dd00a5be62e19289b21686ad",
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "events": [],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 1
+    }
+  }
+}
