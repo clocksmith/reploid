@@ -1,0 +1,1909 @@
+{
+  "scope": "Fresh public UI geometry, keyboard, New chat and preserved draft; no inference or physical keyboard claim",
+  "rows": [
+    {
+      "width": 1440,
+      "state": "collapsed",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 398.5,
+        "y": 16,
+        "width": 720,
+        "height": 686,
+        "top": 16,
+        "right": 1118.5,
+        "bottom": 702,
+        "left": 398.5
+      },
+      "composer": {
+        "x": 398.5,
+        "y": 726,
+        "width": 720,
+        "height": 134,
+        "top": 726,
+        "right": 1118.5,
+        "bottom": 860,
+        "left": 398.5
+      },
+      "area": {
+        "x": 118.5,
+        "y": 16,
+        "width": 1280,
+        "height": 844,
+        "top": 16,
+        "right": 1398.5,
+        "bottom": 860,
+        "left": 118.5
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 61,
+        "height": 868,
+        "top": 16,
+        "right": 77,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 1440,
+      "state": "threads",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 556,
+        "y": 16,
+        "width": 720,
+        "height": 686,
+        "top": 16,
+        "right": 1276,
+        "bottom": 702,
+        "left": 556
+      },
+      "composer": {
+        "x": 556,
+        "y": 726,
+        "width": 720,
+        "height": 134,
+        "top": 726,
+        "right": 1276,
+        "bottom": 860,
+        "left": 556
+      },
+      "area": {
+        "x": 408,
+        "y": 16,
+        "width": 1016,
+        "height": 844,
+        "top": 16,
+        "right": 1424,
+        "bottom": 860,
+        "left": 408
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 376,
+        "height": 868,
+        "top": 16,
+        "right": 392,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": true,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 1440,
+      "state": "network",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 556,
+        "y": 16,
+        "width": 720,
+        "height": 686,
+        "top": 16,
+        "right": 1276,
+        "bottom": 702,
+        "left": 556
+      },
+      "composer": {
+        "x": 556,
+        "y": 726,
+        "width": 720,
+        "height": 134,
+        "top": 726,
+        "right": 1276,
+        "bottom": 860,
+        "left": 556
+      },
+      "area": {
+        "x": 408,
+        "y": 16,
+        "width": 1016,
+        "height": 844,
+        "top": 16,
+        "right": 1424,
+        "bottom": 860,
+        "left": 408
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 376,
+        "height": 868,
+        "top": 16,
+        "right": 392,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": true,
+      "overflow": -8
+    },
+    {
+      "width": 1440,
+      "state": "closed",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 398.5,
+        "y": 16,
+        "width": 720,
+        "height": 686,
+        "top": 16,
+        "right": 1118.5,
+        "bottom": 702,
+        "left": 398.5
+      },
+      "composer": {
+        "x": 398.5,
+        "y": 726,
+        "width": 720,
+        "height": 134,
+        "top": 726,
+        "right": 1118.5,
+        "bottom": 860,
+        "left": 398.5
+      },
+      "area": {
+        "x": 118.5,
+        "y": 16,
+        "width": 1280,
+        "height": 844,
+        "top": 16,
+        "right": 1398.5,
+        "bottom": 860,
+        "left": 118.5
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 61,
+        "height": 868,
+        "top": 16,
+        "right": 77,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 900,
+      "state": "collapsed",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 128.5,
+        "y": 16,
+        "width": 720,
+        "height": 686,
+        "top": 16,
+        "right": 848.5,
+        "bottom": 702,
+        "left": 128.5
+      },
+      "composer": {
+        "x": 128.5,
+        "y": 726,
+        "width": 720,
+        "height": 134,
+        "top": 726,
+        "right": 848.5,
+        "bottom": 860,
+        "left": 128.5
+      },
+      "area": {
+        "x": 93,
+        "y": 16,
+        "width": 791,
+        "height": 844,
+        "top": 16,
+        "right": 884,
+        "bottom": 860,
+        "left": 93
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 61,
+        "height": 868,
+        "top": 16,
+        "right": 77,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 900,
+      "state": "threads",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 408,
+        "y": 16,
+        "width": 476,
+        "height": 686,
+        "top": 16,
+        "right": 884,
+        "bottom": 702,
+        "left": 408
+      },
+      "composer": {
+        "x": 408,
+        "y": 726,
+        "width": 476,
+        "height": 134,
+        "top": 726,
+        "right": 884,
+        "bottom": 860,
+        "left": 408
+      },
+      "area": {
+        "x": 408,
+        "y": 16,
+        "width": 476,
+        "height": 844,
+        "top": 16,
+        "right": 884,
+        "bottom": 860,
+        "left": 408
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 376,
+        "height": 868,
+        "top": 16,
+        "right": 392,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": true,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 900,
+      "state": "network",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 408,
+        "y": 16,
+        "width": 476,
+        "height": 686,
+        "top": 16,
+        "right": 884,
+        "bottom": 702,
+        "left": 408
+      },
+      "composer": {
+        "x": 408,
+        "y": 726,
+        "width": 476,
+        "height": 134,
+        "top": 726,
+        "right": 884,
+        "bottom": 860,
+        "left": 408
+      },
+      "area": {
+        "x": 408,
+        "y": 16,
+        "width": 476,
+        "height": 844,
+        "top": 16,
+        "right": 884,
+        "bottom": 860,
+        "left": 408
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 376,
+        "height": 868,
+        "top": 16,
+        "right": 392,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": true,
+      "overflow": -8
+    },
+    {
+      "width": 900,
+      "state": "closed",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 128.5,
+        "y": 16,
+        "width": 720,
+        "height": 686,
+        "top": 16,
+        "right": 848.5,
+        "bottom": 702,
+        "left": 128.5
+      },
+      "composer": {
+        "x": 128.5,
+        "y": 726,
+        "width": 720,
+        "height": 134,
+        "top": 726,
+        "right": 848.5,
+        "bottom": 860,
+        "left": 128.5
+      },
+      "area": {
+        "x": 93,
+        "y": 16,
+        "width": 791,
+        "height": 844,
+        "top": 16,
+        "right": 884,
+        "bottom": 860,
+        "left": 93
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 61,
+        "height": 868,
+        "top": 16,
+        "right": 77,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 390,
+      "state": "collapsed",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 93,
+        "y": 16,
+        "width": 281,
+        "height": 647,
+        "top": 16,
+        "right": 374,
+        "bottom": 663,
+        "left": 93
+      },
+      "composer": {
+        "x": 93,
+        "y": 687,
+        "width": 281,
+        "height": 181,
+        "top": 687,
+        "right": 374,
+        "bottom": 868,
+        "left": 93
+      },
+      "area": {
+        "x": 93,
+        "y": 16,
+        "width": 281,
+        "height": 852,
+        "top": 16,
+        "right": 374,
+        "bottom": 868,
+        "left": 93
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 61,
+        "height": 868,
+        "top": 16,
+        "right": 77,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 390,
+      "state": "threads",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 93,
+        "y": 16,
+        "width": 281,
+        "height": 647,
+        "top": 16,
+        "right": 374,
+        "bottom": 663,
+        "left": 93
+      },
+      "composer": {
+        "x": 93,
+        "y": 687,
+        "width": 281,
+        "height": 181,
+        "top": 687,
+        "right": 374,
+        "bottom": 868,
+        "left": 93
+      },
+      "area": {
+        "x": 93,
+        "y": 16,
+        "width": 281,
+        "height": 852,
+        "top": 16,
+        "right": 374,
+        "bottom": 868,
+        "left": 93
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 358,
+        "height": 868,
+        "top": 16,
+        "right": 374,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": true,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 390,
+      "state": "network",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 93,
+        "y": 16,
+        "width": 281,
+        "height": 647,
+        "top": 16,
+        "right": 374,
+        "bottom": 663,
+        "left": 93
+      },
+      "composer": {
+        "x": 93,
+        "y": 687,
+        "width": 281,
+        "height": 181,
+        "top": 687,
+        "right": 374,
+        "bottom": 868,
+        "left": 93
+      },
+      "area": {
+        "x": 93,
+        "y": 16,
+        "width": 281,
+        "height": 852,
+        "top": 16,
+        "right": 374,
+        "bottom": 868,
+        "left": 93
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 358,
+        "height": 868,
+        "top": 16,
+        "right": 374,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": true,
+      "overflow": -8
+    },
+    {
+      "width": 390,
+      "state": "closed",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 93,
+        "y": 16,
+        "width": 281,
+        "height": 647,
+        "top": 16,
+        "right": 374,
+        "bottom": 663,
+        "left": 93
+      },
+      "composer": {
+        "x": 93,
+        "y": 687,
+        "width": 281,
+        "height": 181,
+        "top": 687,
+        "right": 374,
+        "bottom": 868,
+        "left": 93
+      },
+      "area": {
+        "x": 93,
+        "y": 16,
+        "width": 281,
+        "height": 852,
+        "top": 16,
+        "right": 374,
+        "bottom": 868,
+        "left": 93
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 61,
+        "height": 868,
+        "top": 16,
+        "right": 77,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 320,
+      "state": "collapsed",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 93,
+        "y": 16,
+        "width": 211,
+        "height": 594,
+        "top": 16,
+        "right": 304,
+        "bottom": 610,
+        "left": 93
+      },
+      "composer": {
+        "x": 93,
+        "y": 634,
+        "width": 211,
+        "height": 234,
+        "top": 634,
+        "right": 304,
+        "bottom": 868,
+        "left": 93
+      },
+      "area": {
+        "x": 93,
+        "y": 16,
+        "width": 211,
+        "height": 852,
+        "top": 16,
+        "right": 304,
+        "bottom": 868,
+        "left": 93
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 61,
+        "height": 868,
+        "top": 16,
+        "right": 77,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 320,
+      "state": "threads",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 93,
+        "y": 16,
+        "width": 211,
+        "height": 594,
+        "top": 16,
+        "right": 304,
+        "bottom": 610,
+        "left": 93
+      },
+      "composer": {
+        "x": 93,
+        "y": 634,
+        "width": 211,
+        "height": 234,
+        "top": 634,
+        "right": 304,
+        "bottom": 868,
+        "left": 93
+      },
+      "area": {
+        "x": 93,
+        "y": 16,
+        "width": 211,
+        "height": 852,
+        "top": 16,
+        "right": 304,
+        "bottom": 868,
+        "left": 93
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 288,
+        "height": 868,
+        "top": 16,
+        "right": 304,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": true,
+      "network": false,
+      "overflow": -8
+    },
+    {
+      "width": 320,
+      "state": "network",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 93,
+        "y": 16,
+        "width": 211,
+        "height": 594,
+        "top": 16,
+        "right": 304,
+        "bottom": 610,
+        "left": 93
+      },
+      "composer": {
+        "x": 93,
+        "y": 634,
+        "width": 211,
+        "height": 234,
+        "top": 634,
+        "right": 304,
+        "bottom": 868,
+        "left": 93
+      },
+      "area": {
+        "x": 93,
+        "y": 16,
+        "width": 211,
+        "height": 852,
+        "top": 16,
+        "right": 304,
+        "bottom": 868,
+        "left": 93
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 288,
+        "height": 868,
+        "top": 16,
+        "right": 304,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": true,
+      "overflow": -8
+    },
+    {
+      "width": 320,
+      "state": "closed",
+      "bundle": "sha256:9fd73d06d9f1b16b2f6d6b4a94d5506a71c840a09c41a9f52d9138e5499dd9bd",
+      "stream": {
+        "x": 93,
+        "y": 16,
+        "width": 211,
+        "height": 594,
+        "top": 16,
+        "right": 304,
+        "bottom": 610,
+        "left": 93
+      },
+      "composer": {
+        "x": 93,
+        "y": 634,
+        "width": 211,
+        "height": 234,
+        "top": 634,
+        "right": 304,
+        "bottom": 868,
+        "left": 93
+      },
+      "area": {
+        "x": 93,
+        "y": 16,
+        "width": 211,
+        "height": 852,
+        "top": 16,
+        "right": 304,
+        "bottom": 868,
+        "left": 93
+      },
+      "rail": {
+        "x": 16,
+        "y": 16,
+        "width": 61,
+        "height": 868,
+        "top": 16,
+        "right": 77,
+        "bottom": 884,
+        "left": 16
+      },
+      "controls": [
+        {
+          "selector": "[data-toggle-thread-rail]",
+          "box": {
+            "x": 25,
+            "y": 25,
+            "width": 44,
+            "height": 44,
+            "top": 25,
+            "right": 69,
+            "bottom": 69,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-new-thread]",
+          "box": {
+            "x": 25,
+            "y": 77,
+            "width": 44,
+            "height": 44,
+            "top": 77,
+            "right": 69,
+            "bottom": 121,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-open-model]",
+          "box": {
+            "x": 25,
+            "y": 129,
+            "width": 44,
+            "height": 44,
+            "top": 129,
+            "right": 69,
+            "bottom": 173,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        },
+        {
+          "selector": "[data-toggle-inspector]",
+          "box": {
+            "x": 25,
+            "y": 181,
+            "width": 44,
+            "height": 44,
+            "top": 181,
+            "right": 69,
+            "bottom": 225,
+            "left": 25
+          },
+          "dx": 0,
+          "dy": 0,
+          "visible": true,
+          "inRail": true
+        }
+      ],
+      "logos": 1,
+      "threads": false,
+      "network": false,
+      "overflow": -8
+    }
+  ]
+}

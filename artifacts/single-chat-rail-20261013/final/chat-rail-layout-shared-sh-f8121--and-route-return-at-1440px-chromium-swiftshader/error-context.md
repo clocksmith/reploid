@@ -1,0 +1,70 @@
+# Page snapshot
+
+```yaml
+- main [ref=e2]:
+  - navigation "Reploid"
+  - region "Conversation workspace" [ref=e4]:
+    - complementary "Conversation controls" [ref=e5]:
+      - generic [ref=e6]:
+        - button "Toggle threads" [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]:
+            - generic [ref=e10]: "7"
+            - superscript [ref=e11]: "7"
+        - button "New thread" [ref=e12] [cursor=pointer]:
+          - img [ref=e13]
+        - button "Choose model" [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+        - button "Inspect network" [expanded] [ref=e20] [cursor=pointer]:
+          - img [ref=e21]
+      - complementary "Network and settings" [ref=e27]:
+        - dialog "Network" [ref=e28]:
+          - generic [ref=e29]:
+            - heading "Network" [level=2] [ref=e30]
+            - button "Close network and settings" [ref=e31] [cursor=pointer]:
+              - img [ref=e32]
+          - navigation "Network sections" [ref=e34]:
+            - button "This conversation" [ref=e35] [cursor=pointer]:
+              - img [ref=e36]
+            - button "Computers" [ref=e38] [cursor=pointer]:
+              - img [ref=e39]
+              - generic [ref=e44]: 4 computers
+            - button "This device" [ref=e45] [cursor=pointer]:
+              - img [ref=e46]
+            - button "Settings" [pressed] [ref=e49] [cursor=pointer]:
+              - img [ref=e50]
+          - text: ↔ ↔ ● ● ● ●
+          - region "Settings" [ref=e55]:
+            - group "Appearance" [ref=e56]:
+              - button "System" [ref=e57] [cursor=pointer]
+              - button "Light" [ref=e58] [cursor=pointer]
+              - button "Dark" [active] [pressed] [ref=e59] [cursor=pointer]
+            - link "Changes" [ref=e60] [cursor=pointer]:
+              - /url: /improve
+            - link "Examples" [ref=e61] [cursor=pointer]:
+              - /url: /examples
+    - region "Current conversation" [ref=e62]:
+      - log "Messages" [ref=e63]:
+        - article [ref=e64]:
+          - generic [ref=e66]: Jump!
+          - generic [ref=e67]:
+            - button "Copy response":
+              - img
+        - article [ref=e68]:
+          - group [ref=e69]:
+            - generic "Complete · 2 computers" [ref=e70] [cursor=pointer]
+          - generic [ref=e72]: Ready for the challenge. Let’s go.
+          - button "Copy response" [ref=e74] [cursor=pointer]:
+            - img [ref=e75]
+      - generic [ref=e79]:
+        - generic [ref=e80]: Message
+        - generic [ref=e81]:
+          - textbox "Message" [ref=e82]:
+            - /placeholder: Ask a question…
+            - text: Preserve my draft across navigation.
+          - generic "Attach files" [ref=e83] [cursor=pointer]:
+            - img [ref=e84]
+            - generic [ref=e86]: Attach files
+            - button "Attach files" [ref=e87]
+          - button "Send" [ref=e89] [cursor=pointer]:
+            - img [ref=e90]
+```

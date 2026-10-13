@@ -1,0 +1,53 @@
+# Page snapshot
+
+```yaml
+- main [ref=e2]:
+  - navigation "Reploid"
+  - region "Conversation workspace" [ref=e4]:
+    - complementary "Conversation controls" [ref=e5]:
+      - generic [ref=e6]:
+        - button "Toggle threads" [expanded] [ref=e8] [cursor=pointer]:
+          - generic [ref=e9]:
+            - generic [ref=e10]: "7"
+            - superscript [ref=e11]: "7"
+        - button "New thread" [ref=e12] [cursor=pointer]:
+          - img [ref=e13]
+        - button "Choose model" [ref=e15] [cursor=pointer]:
+          - img [ref=e16]
+        - button "Inspect network" [ref=e20] [cursor=pointer]:
+          - img [ref=e21]
+      - region "Threads" [ref=e26]:
+        - heading "Threads" [level=2] [ref=e27]
+        - generic [ref=e28]:
+          - button "Qwen 3.5 0.8B. Choose a model for a new thread" [active] [ref=e31] [cursor=pointer]: Qwen 3.5 0.8B
+          - group [ref=e32]:
+            - generic "Conversation actions" [ref=e33] [cursor=pointer]:
+              - img [ref=e34]
+              - generic [ref=e38]: Conversation
+      - text: ↔ ↔ ● ● ● ●
+    - region "Current conversation" [ref=e39]:
+      - log "Messages" [ref=e40]:
+        - article [ref=e41]:
+          - generic [ref=e43]: Jump!
+          - generic [ref=e44]:
+            - button "Copy response":
+              - img
+        - article [ref=e45]:
+          - group [ref=e46]:
+            - generic "Complete · 2 computers" [ref=e47] [cursor=pointer]
+          - generic [ref=e49]: Ready for the challenge. Let’s go.
+          - button "Copy response" [ref=e51] [cursor=pointer]:
+            - img [ref=e52]
+      - generic [ref=e56]:
+        - generic [ref=e57]: Message
+        - generic [ref=e58]:
+          - textbox "Message" [ref=e59]:
+            - /placeholder: Ask a question…
+            - text: Keep this draft.
+          - generic "Attach files" [ref=e60] [cursor=pointer]:
+            - img [ref=e61]
+            - generic [ref=e63]: Attach files
+            - button "Attach files" [ref=e64]
+          - button "Send" [ref=e66] [cursor=pointer]:
+            - img [ref=e67]
+```
