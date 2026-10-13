@@ -1,0 +1,21 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/work-partitions-lifecycle.test.js (64 tests) 1497ms
+   ✓ uses composed public openers while the low-level entry requires explicit runtime ports  1478ms
+ ✓ tests/unit/conversation-workspace.test.js (19 tests) 771ms
+ ✓ tests/unit/work-swarm-lifecycle.test.js (14 tests) 396ms
+ ✓ tests/unit/canonical-composer-admission.test.js (3 tests) 321ms
+ ✓ tests/unit/partition-api.test.js (41 tests) 3608ms
+     ✓ discovers cooperative executors with replica coverage=false  1644ms
+     ✓ discovers cooperative executors with replica coverage=true  1292ms
+ ✓ tests/unit/canonical-contributor.test.js (4 tests) 6ms
+ ✓ tests/unit/canonical-shell-opening.test.js (3 tests) 38ms
+ ✓ tests/unit/signed-canonical-resident.test.js (5 tests) 4ms
+ ✓ tests/unit/canonical-product-session.test.js (4 tests) 5ms
+
+ Test Files  9 passed (9)
+      Tests  157 passed (157)
+   Start at  08:29:21
+   Duration  4.65s (transform 1.52s, setup 0ms, import 1.25s, tests 6.65s, environment 737ms)
+

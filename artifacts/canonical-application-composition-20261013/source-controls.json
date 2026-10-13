@@ -1,0 +1,77 @@
+[
+  {
+    "file": "canonical-automatic-source.js",
+    "status": 0,
+    "output": "ordinary automatic path: source canonical capability, real duplex publication, saved host approval and verified UI projection pass\n"
+  },
+  {
+    "file": "canonical-chat-source.js",
+    "status": 0,
+    "output": "canonical chat: actual prompt-bound v3 grant, target/mirror transitions, durable signatures, N=0 and changed placement refusal pass\n"
+  },
+  {
+    "file": "canonical-entry-publication-source.js",
+    "status": 0,
+    "output": "entry publication: existing duplex framing, requester-owned storage before projection, exact attempt scope and no unrelated history disclosure pass\n"
+  },
+  {
+    "file": "canonical-grants-source.js",
+    "status": 0,
+    "output": "canonical grants: exact attempt/generation/C/L scope, zero-output admission, limits, revocation and settlement passed\n"
+  },
+  {
+    "file": "canonical-peer-contract-source.js",
+    "status": 0,
+    "output": "canonical peer contract: actual codecs, payload/epoch binding, real stage signatures and exact publication/receipt controls pass\npeer reserve\npeer admit\npeer first step\npeer publication\ncanonical peer RPC: actual grants/channel frames/stage evidence, duplicate replay and publication barrier pass\n"
+  },
+  {
+    "file": "canonical-publication-evidence-source.js",
+    "status": 0,
+    "output": "durable evidence: actual transition/signatures, restart, corruption, snapshot races, cancellation/takeover/revocation, unknown commits pass\n"
+  },
+  {
+    "file": "canonical-publication-source.js",
+    "status": 0,
+    "output": "canonical publication source integration: route/empty outcomes, duplicates, cancellation, unknown writes, takeover, revocation and retention passed\n"
+  },
+  {
+    "file": "canonical-receiver-source.js",
+    "status": 0,
+    "output": "canonical receiver: real signed transitions; pending join, replay, epoch/payload collision, expiry and cleanup retry pass\ncanonical receiver bounds: control sizes, tombstones, close-over-hash, post-execution permission and pending settlement pass\n"
+  },
+  {
+    "file": "canonical-resident-source.js",
+    "status": 0,
+    "output": "canonical contributor: allocation, capability, identity, routing, FIFO and in-flight cleanup passed\n"
+  },
+  {
+    "file": "canonical-runner-source.js",
+    "status": 0,
+    "output": "canonical runner: actual transition/signature/publication ordering, no premature UI, N=0, forged B, unknown commit and refusal pass\n"
+  },
+  {
+    "file": "canonical-session-source.js",
+    "status": 0,
+    "output": "actual host session: saved approval, stage recipient binding, durable drafts, actual signed output, revoked-grant history reopen without dispatch pass\n"
+  },
+  {
+    "file": "canonical-stage-commit-source.js",
+    "status": 0,
+    "output": "stage commitments: real transitions, ECDSA/Ed25519, full stage/attempt binding and tamper rejection passed\ncontributor stage evidence: B signs after result, tampered B cannot mutate A, both real successors bind one decision\n"
+  },
+  {
+    "file": "canonical-workspace-history-source.js",
+    "status": 0,
+    "output": "workspace history: exact legacy import, shared writer CAS, signed record hydration, single output authority, unknown-commit fencing and stale-writer refusal pass\n"
+  },
+  {
+    "file": "canonical-workspace-source.js",
+    "status": 0,
+    "output": "workspace: awaited transaction admission and saved-record projection, no raw output authority, stale writer and unknown-write refusal pass\n"
+  },
+  {
+    "file": "canonical-workspace-visibility-source.js",
+    "status": 0,
+    "output": "transactional workspace visibility: delayed writes, overlapping notifications and separate ephemeral execution never expose pending admission/output/terminal metadata\nactual failed metadata admission rejects admitted promise and dispatches nothing\n"
+  }
+]

@@ -1,19 +1,22 @@
 // Source-only ordinary two-stage runner integration; numerical dispatch is
 // injected, while cursor transitions, stage signatures and publications are real.
-import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
-import { pathToFileURL } from 'node:url';
+import assert from './fixtures/canonical-assert.js';
 import { createLayerPartitionRunner } from '../packages/reploid/src/mesh/partitions/partition-runner.js';
 import { createConversationPublication } from '../packages/reploid/src/chat/workspace-publication.js';
 import { createPartitionGrantAuthority } from '../packages/reploid/src/mesh/partitions/partition-grants.js';
 import { createSigningIdentity } from '../packages/reploid/src/artifacts/identity.js';
 import { createPartitionStageCommitAuthority, verifyPartitionStageCommit } from '../packages/reploid/src/mesh/partitions/partition-stage-commit.js';
-const root = process.env.DOPPLER_SOURCE_ROOT; assert(root, 'Explicit source root required');
-const runtime = await import(pathToFileURL(root + '/src/partitions.js'));
-const { createResidentTargetState, createResidentCursorMirror } = await import(pathToFileURL(root + '/src/inference/resident-target-state.js'));
-const { createResidentOutputState } = await import(pathToFileURL(root + '/src/inference/resident-output-state.js'));
-const { createBundledIncrementalDecoder } = await import(pathToFileURL(root + '/src/inference/tokenizers/bundled/incremental-decoder.js'));
-const basePolicy = JSON.parse(await readFile(root + '/tests/fixtures/canonical-generation-policy.json', 'utf8'));
+const browserSource = globalThis.CANONICAL_TEST_SOURCE;
+const sourceRoot = browserSource ? null : process.env.DOPPLER_SOURCE_ROOT;
+assert(browserSource || sourceRoot, 'Explicit source root required');
+const root = browserSource ? new URL(browserSource.runtimeBase, location.href)
+  : (await import('node:url')).pathToFileURL(sourceRoot + '/src/');
+const runtime = await import(new URL('partitions.js', root));
+const { createResidentTargetState, createResidentCursorMirror } = await import(new URL('inference/resident-target-state.js', root));
+const { createResidentOutputState } = await import(new URL('inference/resident-output-state.js', root));
+const { createBundledIncrementalDecoder } = await import(new URL('inference/tokenizers/bundled/incremental-decoder.js', root));
+const basePolicy = browserSource ? structuredClone(browserSource.policy)
+  : JSON.parse(await (await import('node:fs/promises')).readFile(sourceRoot + '/tests/fixtures/canonical-generation-policy.json', 'utf8'));
 const hash = 'sha256:' + 'a'.repeat(64), epoch = '0'.repeat(32);
 const keys = await Promise.all([0, 1].map(() => createSigningIdentity({ algorithm: 'ECDSA' })));
 const stages = keys.map((key, i) => ({ stageId: 'sha256:' + String(i).repeat(64), participantId: key.peerId,
@@ -22,12 +25,12 @@ const plan = runtime.createLayerPartitionPlan({ modelId: 'fixture', numLayers: 4
 const planId = runtime.hashLayerPartitionPlan(plan);
 const limits = { maxTokens: 16, maxPromptTokens: 64, maxActivationBytes: 4096, maxOutputCharacters: 4096,
   maxAttempts: 8, maxConcurrentAttempts: 2 };
-async function fixture({ zero = false, full = false, forged = false, unknown = false, decline = false, authenticationGate = null, attemptId = 'a', observedPublications = null } = {}) {
+async function fixture({ zero = false, full = false, forged = false, unknown = false, decline = false, authenticationGate = null, attemptId = 'a', requesterId = 'requester', observedPublications = null } = {}) {
   const policy = { ...basePolicy, maxGeneratedTokens: zero ? 0 : 2, ...(full ? { totalAcceptedTokenLimit: 2 } : {}) };
   const generation = runtime.canonicalGenerationIdentity(policy, hash, 100);
   const identity = { modelId: plan.modelId, modelIdentity: hash, planId, threadId: 'thread-' + attemptId, attemptId,
-    participantA: keys[0].peerId, participantB: keys[1].peerId, requesterId: 'requester', placementGeneration: 0 };
-  const attempt = { schema: 'doppler.resident-attempt/v2', attemptId, requesterId: 'requester',
+    participantA: keys[0].peerId, participantB: keys[1].peerId, requesterId, placementGeneration: 0 };
+  const attempt = { schema: 'doppler.resident-attempt/v2', attemptId, requesterId,
     inputDigest: runtime.tokenDigest([1, 2], 100, 64), authorizationScope: hash, routeId: hash,
     generationId: generation.generationId, coordinatorEpoch: epoch, publisherEpoch: epoch, routeKind: 'two-stage-layer', stages };
   const grantAuthority = createPartitionGrantAuthority({ identity: keys[0], meshId: 'mesh', maxGrants: 8, maxTtlMs: 60000, canonicalRuntime: runtime });

@@ -326,8 +326,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 8102,
-      "sha256": "0d1070014c62165470241a004e8fcc5ab2524f10b3900de26a06cf809aae1acc"
+      "bytes": 8210,
+      "sha256": "f5105ea1e888dfece84a54ecd9d7891293f281fda8f3fab18088567d8a6c9d42"
     },
     {
       "path": "chat/index.js",
@@ -376,8 +376,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 25010,
-      "sha256": "ffd7316fab21b4958d60a65ed8492d07b10fb3bf44ee3dc17ceb8885e90755b0"
+      "bytes": 25124,
+      "sha256": "c6904c474e99c7a9d919ff189fc879e36d7cf927d7a668b7e4d8dc6587a0c857"
     },
     {
       "path": "config/defaults.json",
@@ -651,13 +651,13 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.d.ts",
-      "bytes": 3528,
-      "sha256": "b209416aeebbeaf703450f3f7dda1c2993dd0b017a649ac9589912ed964f60fe"
+      "bytes": 3796,
+      "sha256": "b43d7b49b43c199b7f09ea780d30ebf922845b37c93617c443b175814838b10c"
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 16674,
-      "sha256": "e5facadd3d811628ac2ed284c116abfe52735c12148381d0bd234c94d87a4b7e"
+      "bytes": 18398,
+      "sha256": "3cb2289669d4bc87889097308acbed8b833ada86cffac0d92539a0a06863b4be"
     },
     {
       "path": "mesh/partitions/partition-canonical-contract.d.ts",
@@ -846,13 +846,13 @@
     },
     {
       "path": "mesh/partitions/signed-resident-factory.d.ts",
-      "bytes": 1064,
-      "sha256": "c45d6f85bfa4e41c4ba73ef1c77bee010d61d293af9bf2fa377a4fd38ef32749"
+      "bytes": 1084,
+      "sha256": "f9fe481b2c1198272794ba29a86248d673be99a4ae32f62b1db16aff58b17344"
     },
     {
       "path": "mesh/partitions/signed-resident-factory.js",
-      "bytes": 2593,
-      "sha256": "28976614627ca5a815dfcc39ba2948796cd1207979b8b52d174eb7779a89a535"
+      "bytes": 3248,
+      "sha256": "eff43eb5275b551630100bab8f3e4a784627c8e03a0e8518a97ca38eeaaf2197"
     },
     {
       "path": "mesh/peer-identity.js",

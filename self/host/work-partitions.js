@@ -1,5 +1,5 @@
 /** Host composition of explicit manifest or signed Capsule residents and verified pieces. */
-import { createResidentPartition } from '../vendor/reploid/mesh/index.js';
+import { createResidentPartition, createPartitionStageCommitAuthority } from '../vendor/reploid/mesh/index.js';
 import { DOPPLER_MODULE_URL, DOPPLER_PARTITIONS_MODULE_URL, DOPPLER_KERNEL_BASE_URL } from '../config/doppler-local-models.js';
 import { resolvePartitionGeneration } from '../config/partition-generation.js';
 import policy from '../config/partition-policy.json' with { type: 'json' };
@@ -9,17 +9,21 @@ import { createSignedResidentFactory } from '../vendor/reploid/mesh/partitions/s
 import { snapshotWorkPartitionSelection, createWorkPartitionPlan } from './work-partition-plan.js';
 import { createPartitionTokenizerGuard } from './work-partition-tokenizer-guard.js';
 
-export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress, registerCleanup }) {
+export async function loadWorkPartition(files, selected, index, { signal, participantId, onProgress, registerCleanup, canonical = null }) {
+  canonical = canonical ? Object.freeze({ identity: canonical.identity, participantEpoch: canonical.participantEpoch }) : null;
   selected = snapshotWorkPartitionSelection(selected);
   const model = { ...selected, generation: resolvePartitionGeneration(selected) };
   const openedAt = performance.now();
   globalThis.__DOPPLER_KERNEL_BASE_PATH__ = DOPPLER_KERNEL_BASE_URL;
   const runtime = await import(DOPPLER_PARTITIONS_MODULE_URL);
+  if (canonical && (typeof runtime.canonicalGenerationIdentity !== 'function'
+    || canonical.identity?.peerId !== participantId || !/^[a-f0-9]{32}$/.test(canonical.participantEpoch)
+    || !selected.canonicalGeneration)) throw new Error('Canonical contribution requires declared generation and provider capability');
   await runtime.configureDeviceMemoryBudget({ maxBytes: policy.maxGpuBufferBytes });
   const acquisitionStarted = performance.now();
   const source = await files.preparePartitionSource(selected, { signal, onProgress });
   const manifest = source.manifest;
-  let resident = null, release = null, capsuleVerification = null;
+  let resident = null, release = null, capsuleVerification = null, commitAuthority = null;
   let sourceSettled = false, releaseSettled = false;
   const sessions = new Set();
   const trackSession = session => { sessions.add(session); return () => sessions.delete(session); };
@@ -34,7 +38,7 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
   let cleaning = null;
   const cleanupOwner = { close() {
     return cleaning ||= (async () => {
-      const failures = [];
+      const failures = []; commitAuthority?.close();
       try { await resident?.close(); } catch (error) { failures.push(error); }
       for (const session of sessions) {
         try { await session.close(); sessions.delete(session); } catch (error) { failures.push(error); }
@@ -51,6 +55,17 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
     signal?.throwIfAborted();
     const plan = createWorkPartitionPlan(runtime, manifest, selected);
     const planId = runtime.hashLayerPartitionPlan(plan);
+    let canonicalOptions = {};
+    if (canonical) {
+      const generation = runtime.canonicalGenerationIdentity(selected.canonicalGeneration.policy,
+        selected.canonicalGeneration.executionIdentity, plan.vocabSize);
+      const stage = { participantId, participantEpoch: canonical.participantEpoch,
+        deviceEpoch: crypto.randomUUID().replaceAll('-', ''), residentId: crypto.randomUUID(), partitionIndex: index,
+        executionId: generation.executionIdentity };
+      stage.stageId = runtime.metadataDigest('reploid.partition-resident-stage/v1', { modelIdentity: model.identity, planId, ...stage });
+      commitAuthority = createPartitionStageCommitAuthority({ runtime, identity: canonical.identity, stage });
+      canonicalOptions = { canonicalGeneration: selected.canonicalGeneration, canonicalRuntime: runtime, canonicalCommitAuthority: commitAuthority };
+    }
     let factory;
     if (selected.capsule !== undefined) {
       if (!source.artifactStore || !selected.packOpenOptions || !selected.executablePack) {
@@ -61,20 +76,21 @@ export async function loadWorkPartition(files, selected, index, { signal, partic
       factory = createSignedResidentFactory({ createFactory: runtime.createResidentPartitionFactory,
         openCapsule, model, artifactStore: source.artifactStore, release,
         assertSession: assertWorkResidentCapsule, closeSources, trackSession,
-        onVerification: value => { capsuleVerification = value; } });
+        canonical: !!canonical, onVerification: value => { capsuleVerification = value; } });
     } else factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: model.identity,
       runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: policy.profileGpu } } },
         inference: { session: { kvcache: { maxSeqLen: model.generation.maxSeqLen },
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => tokenizer.storage });
     resident = createResidentPartition({ runtime: factory, model, plan, planId, index,
-      participantId, limits: policy.limits });
+      participantId, limits: policy.limits, ...canonicalOptions });
     await resident.prepare({ approved: true, signal });
     tokenizer.assertAvailable();
     const preparation = { openMs: performance.now() - openedAt,
       acquisitionAndMaterializationMs: performance.now() - acquisitionStarted,
       memoryAtOpen: runtime.inspectDeviceMemory() };
-    return { runtime, model, plan, planId, resident,
+    return { runtime, model, plan, planId, resident: canonical ? Object.freeze({ ...resident,
+      close() { commitAuthority.close(); return resident.close(); } }) : resident,
       getReceipt: () => ({ ...(selected.capsule === undefined ? source.getReceipt() : { sourceAcquisition: source.getReceipt() }),
         preparation, memory: runtime.inspectDeviceMemory(),
         openingMode: selected.capsule === undefined ? 'pinned-manifest' : 'signed-capsule', capsuleVerification }) };
