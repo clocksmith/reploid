@@ -1,0 +1,1 @@
+{"version":"0.6.28","integrity":"sha512-b7RoU6v0Ysj16Vuuwxhi/A3E/mzbp4lTnSnSb98C+EBGjd8s3+G7unImyyedORYa538mGtGmMWim9m74omBZSw==","files":1976,"target":"/private/var/tmp/reploid-sigmoid-native-20261013/source/self/vendor/doppler/0.6.28"}
