@@ -1,0 +1,10 @@
+{
+  "requester-discovery.json.gz": {
+    "sha256": "94135abf16c6c1893dd9f7ed373958de2c21a305217859c6fa256613ad613ffa",
+    "uncompressedBytes": 373668
+  },
+  "mac-signed-preparation.json.gz": {
+    "sha256": "13720cecccf2e0f05d25db9355f8ff039842e2e8385fcb461b74278ba3b63501",
+    "uncompressedBytes": 33102
+  }
+}
