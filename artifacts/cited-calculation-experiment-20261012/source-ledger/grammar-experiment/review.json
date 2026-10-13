@@ -1,0 +1,58 @@
+{
+  "schema": "reploid.syntax-row-result-review/v1",
+  "status": "rejected",
+  "sourceRevision": "604bbd78",
+  "freezeSha256": "6ec0fb8f8c100eda60ee4bd7f1859f0c7b1918af2434ce3cd0c84481b28387e4",
+  "sourceResultSha256": "a6c898a67a81defdd2f3d8357ad8d33b8c809b01cb251c0f4acd80e35ad80421",
+  "factualQualification": false,
+  "completedUsefulTasks": 0,
+  "attemptedOriginalCases": 1,
+  "unrunOriginalCases": [
+    "fresh-bathroom-correction",
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "unrunFreshHoldouts": 2,
+  "caseId": "fresh-bathroom-comparison",
+  "originalCriteria": [
+    "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+    "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+    "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+    "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+    "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges."
+  ],
+  "syntax": {
+    "completeEnvelope": true,
+    "factRows": 17,
+    "passageRows": 9,
+    "allowedTagsOnly": true,
+    "tokens": 281,
+    "maskedRawChoices": 9,
+    "terminalEOSReplacedRawWinner": false,
+    "completionAuthority": "Grammar-terminal EOS; raw winner independently happened to be EOS, not an unconstrained rerun."
+  },
+  "rejection": {
+    "owner": "Unchanged compileRows tool admission",
+    "error": "Conflicting price roles",
+    "replayedFromUnmodifiedRawSelection": true,
+    "modelRerunForReview": false,
+    "mechanism": "Repeated global tag groups are applied to facts rather than selecting their source-supported roles. First question money row simultaneously claims base, unitPrice, additional, payment, includedAmount and depositBase, as well as budget/deadline. Grammar permits those tags syntactically; unchanged validator rejects incompatible price roles.",
+    "finalAnswerProduced": false,
+    "arithmeticExecuted": false,
+    "productionPromoted": false
+  },
+  "accounting": {
+    "promptTokens": 2276,
+    "generatedTokens": 281,
+    "totalChargedTokens": 2557,
+    "rawUtf16": 1388,
+    "withinBudgets": true,
+    "maskSeconds": 1.0050320327281952,
+    "elapsedIncludingLoadingSeconds": 259.342243,
+    "performanceQualification": false
+  },
+  "scope": "Syntax admission now works on this reused first case; semantic source-role selection does not. No task/citation/followup criterion weakened, no invalid role repaired, no later case/seed/model tried. This result does not isolate general source-model capability or qualify distributed generation."
+}

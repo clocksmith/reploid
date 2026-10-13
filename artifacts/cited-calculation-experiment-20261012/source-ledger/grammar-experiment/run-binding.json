@@ -1,0 +1,46 @@
+{
+  "schema": "reploid.source-ledger-run/v1",
+  "frozenRevision": "604bbd78",
+  "freezeSha256": "6ec0fb8f8c100eda60ee4bd7f1859f0c7b1918af2434ce3cd0c84481b28387e4",
+  "command": [
+    "taskset",
+    "-c",
+    "4-7",
+    "nice",
+    "-n",
+    "10",
+    "python3",
+    "-u",
+    "/var/tmp/reploid-grammar-604bbd78/repo/artifacts/cited-calculation-experiment-20261012/source-ledger/grammar-experiment/run.py",
+    "--doppler",
+    "/var/tmp/doppler-archive9-unit-4umv8z92/workspace/doppler",
+    "--source",
+    "/var/tmp/doppler-qwen3-17b-source-20261011",
+    "--out",
+    "/var/tmp/reploid-grammar-604bbd78/results/source.json"
+  ],
+  "startedAtUtc": "2026-10-13T12:09:21.415405+00:00",
+  "status": "completed",
+  "wrapperPid": 2211671,
+  "concurrency": "Root approved frozen grammar first case concurrent with functional native-ready/Mac acquisition and public contributor processes; no timing or performance claims. No separate CPU4-7 owner observed before launch.",
+  "gpu": false,
+  "cpuAffinity": [
+    4,
+    5,
+    6,
+    7
+  ],
+  "nice": 10,
+  "threads": 4,
+  "outputDirectory": "/var/tmp/reploid-grammar-604bbd78/results",
+  "environment": {
+    "PYTHONPATH": "/tmp/doppler-reference-deps",
+    "PYTHONDONTWRITEBYTECODE": "1",
+    "OPENBLAS_NUM_THREADS": "4",
+    "OMP_NUM_THREADS": "4",
+    "MKL_NUM_THREADS": "4"
+  },
+  "sourcePid": 2212038,
+  "exitCode": 0,
+  "finishedAtUtc": "2026-10-13T12:13:40.757648+00:00"
+}
