@@ -1,0 +1,147 @@
+{
+  "schema": "reploid.flat-source-ledger-review/v1",
+  "qualified": false,
+  "status": "rejected",
+  "frozenRevision": "bfa37fcf",
+  "freezeSha256": "a6568fee06775b5793b85a438f2e41bed4d681c562a55946682b5a457a498f01",
+  "completedModelCalls": 2,
+  "structurallyCompleteReports": 1,
+  "acceptedTasks": 0,
+  "unrunCases": [
+    "contractor-comparison",
+    "contractor-retained-correction",
+    "fresh-printing-balance",
+    "fresh-schedule-condition",
+    "fresh-included-credit-conflict"
+  ],
+  "generatedTokens": 502,
+  "chargedTokens": 5445,
+  "elapsedSeconds": 710.199519,
+  "timingScope": "Includes loading/prefill and concurrent correctness-only work; not a throughput benchmark.",
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "structurallyComplete": true,
+      "fullFactualAcceptance": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "promptTokens": 2414,
+      "generatedTokens": 93,
+      "chargedTokens": 2507,
+      "rawOutputUtf16": 318,
+      "renderedOutputUtf16": 2520,
+      "failure": null,
+      "criteria": [
+        {
+          "criterion": "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+          "status": "fail",
+          "reason": "No prices, inclusions/exclusions, subtotals or headroom were selected or reported."
+        },
+        {
+          "criterion": "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+          "status": "fail",
+          "reason": "All source schedule roles and conditions are absent; no deadline comparison or Linden duration conclusion."
+        },
+        {
+          "criterion": "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+          "status": "fail",
+          "reason": "No plumbing contradiction or specific questions identified; blanket unresolved notices do not satisfy this criterion."
+        },
+        {
+          "criterion": "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+          "status": "fail",
+          "reason": "No document passage citations or supported document claims are present. Budget/deadline citations to U0 do not meet source-document requirements."
+        },
+        {
+          "criterion": "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges.",
+          "status": "not exercised",
+          "reason": "No deposits were stated; optional arithmetic constraint is not exercised and supplies no positive task acceptance."
+        }
+      ]
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "structurallyComplete": false,
+      "fullFactualAcceptance": false,
+      "naturalCompletion": true,
+      "withinBudgets": true,
+      "promptTokens": 2529,
+      "generatedTokens": 409,
+      "chargedTokens": 2938,
+      "rawOutputUtf16": 831,
+      "renderedOutputUtf16": 0,
+      "failure": "Multiple base facts for D1",
+      "criteria": [
+        {
+          "criterion": "Birch: $8,400 includes installation/disposal/plumbing, excludes tax/electrical; $1,600 budget remains before exclusions. Quarry: $9,100 includes installation/disposal/tax/plumbing and up to $500 electrical; $900 remains before possible additional electrical costs. Linden: $7,900+$450=$8,350, $1,650 remains before exclusions. No unknown all-in total or extra addition of the included allowance.",
+          "status": "fail",
+          "reason": "Strict source-role validation rejected the call; no task answer was produced. Generated selections are retained, never repaired."
+        },
+        {
+          "criterion": "Birch estimated September 18 depends on permit approval; Quarry September 20 promise requires deposit by August 15. Linden starts September 12, with three weeks extending into October, past September 25. Do not confuse start and completion or claim unconditional guarantees.",
+          "status": "fail",
+          "reason": "Strict source-role validation rejected the call; no task answer was produced. Generated selections are retained, never repaired."
+        },
+        {
+          "criterion": "Identify Linden conflicting plumbing clauses without resolving them by assumption. Ask to clarify plumbing, exclusions and deadline conditions; any recommendation must remain conditional.",
+          "status": "fail",
+          "reason": "Strict source-role validation rejected the call; no task answer was produced. Generated selections are retained, never repaired."
+        },
+        {
+          "criterion": "Citations must exist and support the claim. Preserve all included versus excluded charges; cite schedule and electrical conditions from the correct passages.",
+          "status": "fail",
+          "reason": "Strict source-role validation rejected the call; no task answer was produced. Generated selections are retained, never repaired."
+        },
+        {
+          "criterion": "If stating deposits: Birch $2,100; Quarry $2,730; Linden $3,160 based on $7,900 only. Deposits are not extra charges.",
+          "status": "fail",
+          "reason": "Strict source-role validation rejected the call; no task answer was produced. Generated selections are retained, never repaired."
+        },
+        {
+          "criterion": "Explicitly reject and correct the retained wrong answer: Linden start, exclusions and subtotal; Quarry included allowance and conditional deadline; Birch included disposal and plumbing. Do not endorse the earlier recommendation as already correct.",
+          "status": "fail",
+          "reason": "Strict source-role validation rejected the call; no task answer was produced. Generated selections are retained, never repaired."
+        }
+      ]
+    }
+  ],
+  "observedBoundary": {
+    "first": "Flat schema parses, but the model selects no document operands or relations. The renderer honestly shows unresolved values and fails usefulness.",
+    "second": "Both f002 and f005 belong to D1 and were selected as base; first strict failure is Multiple base facts for D1.",
+    "additionalUnexecutedInvalidSelections": [
+      "depositBase f004 is25%, not money",
+      "included|D1:P3|f002 cites a fact whose actual source is D1:P1",
+      "included|D2:P1|f005 cites a fact whose actual source is D1:P3",
+      "credits f013 selects the $450 disposal charge as a credit; this semantic reversal would fail factual review even if types passed"
+    ]
+  },
+  "interpretation": "The schema simplification allowed one structurally valid report but did not qualify useful source extraction. The follow-up still misassigns known source operands. No calculator, distribution or serialization defect established.",
+  "replay": "Retained first selection reproduced identical ledger/report; retained second selection reproduced exact strict error locally without model execution.",
+  "repair": false,
+  "retry": false,
+  "productionChanged": false,
+  "files": {
+    "source.json.gz": {
+      "sha256": "787e40c29c55dc45f37151cbe8c3cf7c5963d6caa5d113ac60253ee3e3dfb23e",
+      "uncompressedSha256": "af65a43c23e5a7df21cc86e4bfcb7d6cdae00acf4da4b1a95bcbf0627d1b7e73",
+      "uncompressedBytes": 111815
+    },
+    "run.log.gz": {
+      "sha256": "fc2df1517dfa6e3fef77a03c736481468329292f9547cecf461dced5aeef0798",
+      "uncompressedSha256": "0ee40f520767b7ab2bc6c4d57467eb0480709074f25a1447d116f520b25a2ad4",
+      "uncompressedBytes": 2946
+    },
+    "run-binding.json": {
+      "sha256": "043d730086e12b4952ff103201c9d3e4fcfc990907197e545b15b967e4256bc3"
+    },
+    "executing-host-identity.json": {
+      "sha256": "f4da1a460726803f4406a11f2cd97a0e0ac67ef24af74394b5b79a1a77c00d88"
+    },
+    "postrun-identity.json": {
+      "sha256": "686597ca012c75f1ffce0a9def1abc8c8e9349f3bcb69ac0174a83ba9e9d2dc0"
+    },
+    "launch.py": {
+      "sha256": "205f0f0661e4f71e2a2a59cab4da51381eeb32e4be368eabe8367a1c323e23c6"
+    }
+  }
+}
