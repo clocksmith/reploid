@@ -1,0 +1,14 @@
+{
+  "sourceCommit": "ffd4430a",
+  "sourceRoot": "/var/tmp/reploid-gate-native-20261013/source",
+  "runtimeArchiveSha256": "1cb2a5b8b7ebcefd6269b6a065fea0347c6471fe0c044479c78ef5b9f0c096eb",
+  "scope": "Isolated numerical candidate; public pins and contributors unchanged",
+  "installedDirectory": "/var/tmp/reploid-gate-native-20261013/installed/reploid",
+  "native": {
+    "directory": "/private/var/tmp/reploid-gate-native-20261013/source/output/reploid-native-QBN3WZ/reploid",
+    "archive": "/private/var/tmp/reploid-gate-native-20261013/source/output/reploid-native-QBN3WZ/reploid-native-0.1.0.tgz",
+    "fileCount": 111,
+    "manifestSha256": "301766bbbad9d7d12f64a6bf8bd18d41d7949b5e7fe8f9ccb09debefc5b58806",
+    "archiveSha256": "2a1f836bf29622d66c01cebd1fc71311b60f5c44f50530d6b67772ee39a0a590"
+  }
+}

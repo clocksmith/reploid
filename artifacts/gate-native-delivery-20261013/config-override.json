@@ -1,0 +1,10 @@
+{
+  "path": "self/pool/pool-config.json",
+  "oldSha256": "fd1a267c992ddee1b51ba5717b6d183db9af3f2819369cf65e7500cc47e93095",
+  "newSha256": "da34b8f36c9db682bc34cfcf80890b545280097b7e14ca4c6ab06effa6015598",
+  "replacementCount": 1,
+  "scope": "isolated runtime declarations only; no model enabled or qualified",
+  "newSha256Stage": "after explicit version replacement, before sync-runtime-config.js",
+  "finalSha256": "fec8a8bde4bdf2ae3907b1b08eadac1c945e4976bce86144689dcb2ce9756862",
+  "finalStage": "after canonical sync-runtime-config.js normalization; see runtime-config.log"
+}

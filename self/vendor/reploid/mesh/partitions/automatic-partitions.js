@@ -1,3 +1,4 @@
+import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
 import { createAutomaticOrderedPartitions } from './automatic-ordered-partitions.js';
 import { createPartitionDiscovery } from './partition-discovery.js';
 import { selectPartitionPlacement, selectPartitionExecution } from './partition-placement.js';
@@ -218,6 +219,9 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       return operation;
     },
     async generate(request, controls) {
+      request = structuredClone(request);
+      const requested = generationRequest(request.generationRequest);
+      assert(!requested || requested.maxOutputTokens <= config.limits.maxTokens, 'Caller token limit exceeds route budget');
       assert(!!controls.publication === !!canonical && (!canonical || typeof controls.onPublished === 'function'
         && /^[a-f0-9]{32}$/.test(controls.publisherEpoch)), 'Canonical requester requires durable publication and explicit mesh capability');
       const decision = selectPartitionExecution({ model: request.model, capabilities: discovery.getSnapshot() });
@@ -228,13 +232,14 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
         && model.identity === request.model.identity && model.availability === 'ready');
       assert(refreshed.ready && model, 'No prepared cooperative partition path is available');
       assert(!!model.canonical === !!canonical, 'Prepared route has a different publication capability');
+      requireGenerationCapability(model, requested, !!canonical);
       const messages = structuredClone(request.messages), expiresAt = Date.now() + config.grantMs;
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId,
         attemptId: request.attemptId, operation: 'generate-partition',
         peerId: model.partition.participantA, recipientIdentity: model.partition.participantA,
         ...model.partition, modelId: model.id, modelIdentity: model.identity,
         disclosure: 'partition-activations-and-tokens', adapterIdentities: [], expiresAt,
-        input: { messages: structuredClone(messages), recipients: [model.partition.participantA, model.partition.participantB] } });
+        input: { messages: structuredClone(messages), ...(requested ? {generationRequest: requested} : {}), recipients: [model.partition.participantA, model.partition.participantB] } });
       assert(approved === true, 'Partition input disclosure declined'); controls.signal.throwIfAborted();
       assert(Date.now() < expiresAt, 'Partition input disclosure expired');
       // Human review can outlive an availability descriptor. Refresh liveness,
@@ -249,7 +254,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       const input = { schema: canonical ? 'reploid.partition-input/v2' : 'reploid.partition-input/v1', operation: 'generate', meshId,
         requesterId: identity.peerId, ...model.partition, modelId: model.id, modelIdentity: model.identity,
         threadId: request.threadId, attemptId: request.attemptId, placementGeneration: 0,
-        messages, ...(canonical ? { canonical: { schema: 'reploid.partition-publication-context/v1',
+        messages, ...(requested ? {generationRequest: requested} : {}), ...(canonical ? { canonical: { schema: 'reploid.partition-publication-context/v1',
           ...structuredClone(model.canonical), publisherEpoch: controls.publisherEpoch, deadlineAt: expiresAt } } : {}) };
       admissions.set(request.attemptId, input);
       let sequence = 0;
@@ -257,6 +262,7 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
         execution: { placement: 'two-device-layer-partition', ...model.partition } });
       try {
         const result = await entry.generate(input, { signal: controls.signal,
+          onUsage: usage => controls.onUsage?.({threadId: request.threadId, attemptId: request.attemptId, ...usage}),
           ...(canonical ? { publication: controls.publication, onPublished: controls.onPublished } : {}),
           onDelta: text => controls.onDelta({ threadId: request.threadId, attemptId: request.attemptId, sequence: sequence++, text }) });
         return { ...result, threadId: request.threadId, attemptId: request.attemptId,
