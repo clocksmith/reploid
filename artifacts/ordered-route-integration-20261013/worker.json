@@ -1,6 +1,6 @@
 {
   "scope": "Actual Verification Worker AST analysis of controller tooling; no model execution",
-  "at": "2026-10-13T14:16:40.943Z",
+  "at": "2026-10-13T14:46:08.470Z",
   "sources": [
     {
       "name": "run.mjs",
@@ -11,8 +11,12 @@
       "sha256": "e2a7d632e02e77a7faa4bda44a5400fe295cabf27a3985b540927f8444744192"
     },
     {
+      "name": "peer.mjs",
+      "sha256": "a746c508faf5122667ce4ff5aae70e5bbea3e7997284c6fb8e451f1cb40fee26"
+    },
+    {
       "name": "verify-worker.mjs",
-      "sha256": "b14751b3ad481fcba5d0b0c917b8ab2343910ecaf44c6a913aab7f0b806f6dfe"
+      "sha256": "e76fba844c8e3e56ebc2773e9abae44734c112dda74c9cb7634358269f382b33"
     }
   ],
   "result": {

@@ -34,3 +34,13 @@ Run the facade variant with the same explicit checkout/report arguments:
 ```sh
 node artifacts/ordered-route-integration-20261013/facade.mjs /absolute/path/to/doppler /new/facade-report.json
 ```
+
+The `peer.mjs` variant composes the actual existing ordered peer ports and duplex binary channel with those facades and Doppler residents. Each logical participant receives its own generated identity; real v4 grants bind the coordinator-mediated path. The channels are in-process EventTargets with ordered cloned delivery, not WebRTC or separate authenticated machines. This exercises real message authorization, framing, checksums, pending output matching, receiver ordering, reservations, and settlement. It does not establish network behavior, GPU execution, canonical publication, capacity, or model usefulness.
+
+`peer-final-result.json` passes four controls: altered grant rejection before numerical dispatch, incremental three-stage output, actual-output follow-up history delivery to the synthetic tokenizer, and cancellation with an independent survivor. It records 29 injected numerical calls, 11 private states each closed once, no unsettled reservations or retained tensor bytes, and matching sent/received channel byte counters. Only the middle stage sends reverse binary tensors; the final stage returns token control results. `peer-source-binding.json` records the exact exercised subset, including any concurrent runner source distinct from HEAD; before/after source hashes matched.
+
+`peer-initial-result.json` and `peer-result.json` retain two harness failures. The first inherited an in-process error-text assertion although the bounded transport returns its declared generic cancellation error. The corrected check requires an explicitly aborted signal, a cancelled runner receipt with confirmed settlement, and successful survivor output. The second incorrectly expected reverse requests from the final stage; its actual token-only result needs none. No production correction or numerical/result transformation was made for these harness failures.
+
+```sh
+node artifacts/ordered-route-integration-20261013/peer.mjs /absolute/path/to/doppler /new/peer-report.json
+```
