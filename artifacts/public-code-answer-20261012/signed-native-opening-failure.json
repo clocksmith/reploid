@@ -1,0 +1,253 @@
+{
+  "verification": {
+    "applicationFiles": 123,
+    "runtimeFiles": 1976,
+    "artifactSha256": "888c3bd13e3a49d5654a6d7c00bc271182225ea4204784c2714ebf6826293cc1",
+    "runtimeArchiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+    "descriptorSha256": "4d9a093f385c1f49c2a1df26a330d4eb0da7db943ef44d58fcd3140647b546f5",
+    "consent": {
+      "approvedAt": "2026-10-13T01:33:48.132334+00:00",
+      "scope": "isolated signed Qwen0.8B candidate test",
+      "maxSupplyBytes": 4294967296,
+      "persistentCache": "/var/tmp/reploid-signed-native-metadata-20261012/cache",
+      "publicLedgerUnchanged": true
+    },
+    "consentSha256": "1db04d6fed8b3861625689f147c5c6d9627f38695988f00dad8a73283e855d54",
+    "budgetBefore": {
+      "schema": "reploid.custody-supply-budget/v1",
+      "maxBytes": 4294967296,
+      "reservedBytes": 0
+    },
+    "peerId": "peer:9af15d884eba51b0c0540e2a",
+    "identitySha256": "871ad22c05ae95c8780707cf7cf4520d935d6696be6b380082c570e1aff94e30",
+    "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+    "privateRoomFileSha256": "a4abd567aa93b37e56b4a890eb390c3170ea4bea315cb698caf8331a53bb86bc"
+  },
+  "fixture": {
+    "sourceDirectory": "/var/tmp/doppler-paired-first-20261012/model",
+    "modelDirectory": "/var/tmp/reploid-signed-physical-current-20261012/verified-model",
+    "reason": "Native approved-directory guard rejects original symlink fixture; exact copies preserve pinned model bytes.",
+    "files": [
+      {
+        "name": "manifest.json",
+        "source": "/var/tmp/doppler-paired-first-20261012/model/manifest.json",
+        "bytes": 219369,
+        "hash": "ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+        "algorithm": "sha256",
+        "regular": true
+      },
+      {
+        "name": "tokenizer.json",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/tokenizer.json",
+        "bytes": 9088480,
+        "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+        "algorithm": "sha256",
+        "regular": true
+      },
+      {
+        "name": "shard_00000.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00000.bin",
+        "bytes": 67108864,
+        "hash": "4dd461bea0d6cc891f78a7fe4dc744c0d269ea685b5a5a5de74c07d5422e4a3e",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00001.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00001.bin",
+        "bytes": 67108864,
+        "hash": "627234b5f84ede2314d044d0eb479068766b0cd5f936a29bd6373d9397ac7614",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00002.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00002.bin",
+        "bytes": 67108864,
+        "hash": "772a45a3111f9f0b826600a7950cc77991b65d6c3650df5ad6e882015522c600",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00003.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00003.bin",
+        "bytes": 67108864,
+        "hash": "a201dbf89e6ff7d6898e452bed94de20b02c9080aaa8efb6c52581069b6b80f9",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00004.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00004.bin",
+        "bytes": 67108864,
+        "hash": "1b7a6b6cb47286a640ac67692a160f3292e46bd496c7fe467ab932851bce054b",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00005.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00005.bin",
+        "bytes": 67108864,
+        "hash": "de1383a9cb1bf810079f0aefe923846d8e827257416b41b0740343d497ad4c36",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00006.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00006.bin",
+        "bytes": 67108864,
+        "hash": "d5143b6dea2e1d072041d933b174c6e3974ea5d434fa00149cc0ef9883bc8194",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00007.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00007.bin",
+        "bytes": 67108864,
+        "hash": "9c059d5f25fbf63dc3d43809b18864d23db3d737988783a1cc905568076e96ca",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00008.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00008.bin",
+        "bytes": 67108864,
+        "hash": "a58d96d7b4dd46f527c8cab0d3f88a8400f977ced510e047a246b64d0ea30d7e",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00009.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00009.bin",
+        "bytes": 67108864,
+        "hash": "9e3dfd8dafd142a7075d5596a3c14ce5fe450b7559915c4dfafcef5979ce7e7d",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00010.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00010.bin",
+        "bytes": 67108864,
+        "hash": "c53a446230d5fa3ea6f4291770484befb92ac3b8cf866c299a2375902f0141eb",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00011.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00011.bin",
+        "bytes": 67108864,
+        "hash": "21bd0db18c8da3b98ee7bc48427b6b7d0a4dedf314fb36f59b5d2979703d6070",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00012.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00012.bin",
+        "bytes": 67108864,
+        "hash": "b84051c7d492efe08a444e1bec385dd5ec181f74c94a415b8a62e4fa923143a4",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00013.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00013.bin",
+        "bytes": 67108864,
+        "hash": "e01ff5a0e6a93892a07ca34b4e5ee66c8cda8c39b21f5160d2170c3871acb0be",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00014.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00014.bin",
+        "bytes": 67108864,
+        "hash": "393c6068148c6225bc44a6271b9542e3992d8d6e7c59fe91adc28ff985650025",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00015.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00015.bin",
+        "bytes": 67108864,
+        "hash": "174b4177b49dbb8ac2bef25034d1c4ee8afa501e0b84f4e0b520485463864648",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00016.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00016.bin",
+        "bytes": 67108864,
+        "hash": "3e6de75e7637d3b238a7b82ef563eaf08a1a2a0d1f48b2525e2471df61fd0d71",
+        "algorithm": "blake3",
+        "regular": true
+      },
+      {
+        "name": "shard_00017.bin",
+        "source": "/home/x/deco/doppler/models/local/qwen-3-5-0-8b-q4k-ehaf16/shard_00017.bin",
+        "bytes": 5198016,
+        "hash": "327c92a0a817f9936880c6051f3f33d0f1fb7096ead14bcb06d5dc777550ca3f",
+        "algorithm": "blake3",
+        "regular": true
+      }
+    ]
+  },
+  "launch": {
+    "pid": 62144,
+    "supervisorPid": 62143,
+    "startedAt": 1791857861.982713,
+    "args": [
+      "node",
+      "server/native-participant.js",
+      "--contribute",
+      "--share-files",
+      "--model",
+      "qwen-3-5-0-8b-q4k-ehaf16",
+      "--model-directory",
+      "/var/tmp/reploid-signed-physical-current-20261012/verified-model",
+      "--cache-directory",
+      "/var/tmp/reploid-signed-native-metadata-20261012/cache",
+      "--identity-file",
+      "/var/tmp/reploid-signed-native-metadata-20261012/identity.json",
+      "--rtc-module",
+      "@roamhq/wrtc",
+      "--ws-module",
+      "ws",
+      "--gpu-module",
+      "webgpu",
+      "--origin",
+      "http://127.0.0.1:29670",
+      "--signaling-url",
+      "ws://127.0.0.1:29670/swarm",
+      "--room",
+      "[PRIVATE ROOM]",
+      "--room-token",
+      "[REDACTED]"
+    ],
+    "log": "/var/tmp/reploid-signed-physical-current-20261012/native-v2.log",
+    "cwd": "/var/tmp/reploid-signed-physical-current-20261012/reploid",
+    "sharedPhysicalGPU": true
+  },
+  "alive": true,
+  "state": {
+    "phase": "failed",
+    "error": "Capsule runtime openCapsule() requires explicit ports: device, programFactory.",
+    "placement": [
+      "peer:9af15d884eba51b0c0540e2a",
+      "peer:f33d3a68b0f0c0a5af9d0a58"
+    ],
+    "attempts": [],
+    "reservations": null,
+    "unsettledOwners": 0
+  },
+  "budgetAfter": {
+    "schema": "reploid.custody-supply-budget/v1",
+    "maxBytes": 4294967296,
+    "reservedBytes": 0
+  },
+  "log": {
+    "path": "/var/tmp/reploid-signed-physical-current-20261012/native-v2.log",
+    "bytes": 111777,
+    "boundedSuffixBytes": 111777,
+    "boundedSuffixSha256": "53f29ad45a13b99cd1d2201779e328b2319ff852f5e26ae7e0c61751f6313117"
+  },
+  "scope": "Actual signed application opening failed before Ready. Supplier process remains alive pending coordinator action; public contributors untouched."
+}

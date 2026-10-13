@@ -1,0 +1,743 @@
+{
+  "schema": "reploid.public-followup-rollout/v1",
+  "sourceCommit": "2ae255ea",
+  "nativeArtifactSha256": "74265dfce3c9c83127f7c9b2ff6fde406d9c570ab6c51cf81e8d37680db5a77b",
+  "browserBundleHash": "sha256:88b4f6bbf3ce9b8deb43a9393178783dbe1528653748f1cfd091c6317ae1725c",
+  "acceptedRuntime": "0.6.27",
+  "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "native": {
+    "x": {
+      "checkedAt": 1791857399.6711242,
+      "old": {
+        "pid": 4047510,
+        "args": [
+          "node",
+          "server/native-participant.js",
+          "--contribute",
+          "--share-files",
+          "--model",
+          "qwen-3-5-0-8b-q4k-ehaf16",
+          "--model-directory",
+          "/home/x/.local/share/reploid/public-native/weights",
+          "--cache-directory",
+          "/home/x/.local/share/reploid/public-native/cache-budget-20261012",
+          "--identity-file",
+          "/home/x/.local/share/reploid/public-native/identity.json",
+          "--rtc-module",
+          "@roamhq/wrtc",
+          "--ws-module",
+          "ws",
+          "--gpu-module",
+          "webgpu",
+          "--origin",
+          "https://replo.id",
+          "--signaling-url",
+          "wss://reploid-swarm.reploid.workers.dev/swarm"
+        ],
+        "cwd": "/var/tmp/reploid-public-route-native-20261012/reploid",
+        "exe": "/usr/bin/node",
+        "state": {
+          "phase": "ready",
+          "error": null,
+          "attempts": [],
+          "reservations": {
+            "closed": false,
+            "active": 0,
+            "availableSlots": 2,
+            "records": []
+          },
+          "unsettledOwners": 0,
+          "placement": [
+            "peer:8293261cfefa530c6a7ade6c",
+            "peer:688e732256ab83155c54f72e"
+          ],
+          "executionPeer": null,
+          "fileSupply": null
+        },
+        "identitySha256": "b1e30444277904583cb0790d8f614d68103898ebabab9f10da4bd5029d436323",
+        "budget": {
+          "schema": "reploid.custody-supply-budget/v1",
+          "maxBytes": 4294967296,
+          "reservedBytes": 637534208
+        },
+        "log": "/home/x/.local/state/reploid/public-native-budget-restart-20261012.log",
+        "logOffset": 1235697771,
+        "checkedAt": 1791857017.4376388,
+        "exitObserved": true,
+        "exitCodeKnown": false
+      },
+      "new": {
+        "pid": 4103868,
+        "startedAt": 1791857017.8636572,
+        "log": "/home/x/.local/state/reploid/public-native-budget-restart-20261012.log",
+        "logOffset": 1235700998
+      },
+      "verification": {
+        "applicationFiles": 97,
+        "runtimeFiles": 1897,
+        "runtimeVersion": "0.6.27",
+        "descriptorSha256": "a11fc8f8949d06e1cd157b21f1a66216e2e10baef3780760a64f83e45ba56d91",
+        "artifactSha256": "74265dfce3c9c83127f7c9b2ff6fde406d9c570ab6c51cf81e8d37680db5a77b"
+      },
+      "argsUnchanged": true,
+      "identityUnchanged": true,
+      "identitySha256": "b1e30444277904583cb0790d8f614d68103898ebabab9f10da4bd5029d436323",
+      "budgetAfter": {
+        "schema": "reploid.custody-supply-budget/v1",
+        "maxBytes": 4294967296,
+        "reservedBytes": 637534208
+      },
+      "budgetUnchanged": true,
+      "nativeInitialized": {
+        "event": "native-initialized",
+        "participantId": "peer:688e732256ab83155c54f72e",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16"
+      },
+      "current": {
+        "phase": "ready",
+        "error": null,
+        "attempts": [],
+        "reservations": {
+          "closed": false,
+          "active": 0,
+          "availableSlots": 2,
+          "records": []
+        },
+        "unsettledOwners": 0,
+        "placement": [
+          "peer:57adcc49bae5ed5eefe8fbf1",
+          "peer:688e732256ab83155c54f72e"
+        ]
+      },
+      "shutdownLogEvents": [
+        "[312828.7ms][Pipeline] Unloaded",
+        "[312891.7ms][GPU] Device lost: device was destroyed, Reason: destroyed"
+      ],
+      "logRange": {
+        "offset": 1235697771,
+        "bytes": 9974197,
+        "sha256": "8ba81a137dae15f7538fdd75c9c879aeb4f89ecab4fdf42346f1e94994daf2cf"
+      },
+      "oldExitStatusLimitation": "Existing detached process was not a child; process disappearance plus explicit unload/device destruction observed, exit code unavailable."
+    },
+    "suby": {
+      "checkedAt": 1791857400.4592447,
+      "old": {
+        "pid": 292233,
+        "args": [
+          "node",
+          "server/native-participant.js",
+          "--contribute",
+          "--model",
+          "qwen-3-5-0-8b-q4k-ehaf16",
+          "--model-directory",
+          "/home/clocksmith/.local/share/reploid/public-native/weights",
+          "--cache-directory",
+          "/home/clocksmith/.local/share/reploid/public-native/cache",
+          "--identity-file",
+          "/home/clocksmith/.local/share/reploid/public-native/identity.json",
+          "--rtc-module",
+          "@roamhq/wrtc",
+          "--ws-module",
+          "ws",
+          "--gpu-module",
+          "webgpu",
+          "--origin",
+          "https://replo.id",
+          "--signaling-url",
+          "wss://reploid-swarm.reploid.workers.dev/swarm"
+        ],
+        "cwd": "/var/tmp/reploid-public-route-native-20261012/reploid",
+        "exe": "/usr/bin/node",
+        "state": {
+          "phase": "ready",
+          "error": null,
+          "attempts": [],
+          "reservations": {
+            "closed": false,
+            "active": 0,
+            "availableSlots": 2,
+            "records": []
+          },
+          "unsettledOwners": 0,
+          "placement": [
+            "peer:8293261cfefa530c6a7ade6c",
+            "peer:57adcc49bae5ed5eefe8fbf1"
+          ],
+          "executionPeer": null,
+          "fileSupply": null
+        },
+        "identitySha256": "313051cdce950090c08d408fc3a8d82f9713f7923cb8c5007c10e4d972718812",
+        "budget": null,
+        "log": "/home/clocksmith/.local/state/reploid/public-native-budget-20261012.log",
+        "logOffset": 1249407574,
+        "checkedAt": 1791857039.8348012,
+        "exitObserved": true,
+        "exitCodeKnown": false
+      },
+      "new": {
+        "pid": 297260,
+        "startedAt": 1791857040.276221,
+        "log": "/home/clocksmith/.local/state/reploid/public-native-budget-20261012.log",
+        "logOffset": 1249410801
+      },
+      "verification": {
+        "applicationFiles": 97,
+        "runtimeFiles": 1897,
+        "runtimeVersion": "0.6.27",
+        "descriptorSha256": "a11fc8f8949d06e1cd157b21f1a66216e2e10baef3780760a64f83e45ba56d91",
+        "artifactSha256": "74265dfce3c9c83127f7c9b2ff6fde406d9c570ab6c51cf81e8d37680db5a77b"
+      },
+      "argsUnchanged": true,
+      "identityUnchanged": true,
+      "identitySha256": "313051cdce950090c08d408fc3a8d82f9713f7923cb8c5007c10e4d972718812",
+      "budgetAfter": null,
+      "budgetUnchanged": true,
+      "nativeInitialized": {
+        "event": "native-initialized",
+        "participantId": "peer:57adcc49bae5ed5eefe8fbf1",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16"
+      },
+      "current": {
+        "phase": "ready",
+        "error": null,
+        "attempts": [],
+        "reservations": {
+          "closed": false,
+          "active": 0,
+          "availableSlots": 2,
+          "records": []
+        },
+        "unsettledOwners": 0,
+        "placement": [
+          "peer:57adcc49bae5ed5eefe8fbf1",
+          "peer:688e732256ab83155c54f72e"
+        ]
+      },
+      "shutdownLogEvents": [
+        "[298097.7ms][Pipeline] Unloaded",
+        "[298279.6ms][GPU] Device lost: device was destroyed, Reason: destroyed",
+        "[84587.6ms][Pipeline] Unloaded"
+      ],
+      "logRange": {
+        "offset": 1249407574,
+        "bytes": 9221505,
+        "sha256": "c732284191628a2b223c79ee13352c466403553070d6c96fd82a87403f3320fd"
+      },
+      "oldExitStatusLimitation": "Existing detached process was not a child; process disappearance plus explicit unload/device destruction observed, exit code unavailable."
+    }
+  },
+  "browser": {
+    "x": {
+      "old": {
+        "pid": 3391808,
+        "args": [
+          "node",
+          "scripts/run-mesh-contributor.js",
+          "--url",
+          "https://replo.id/",
+          "--model",
+          "qwen-3-5-0-8b-q4k-ehaf16",
+          "--profile",
+          "/home/x/.local/share/reploid/public-compute",
+          "--contribute",
+          "compute"
+        ],
+        "cwd": "/home/x/deco/reploid",
+        "log": "/home/x/.local/state/reploid/public-browser-budget-restored-20261012.log",
+        "logOffset": 156129,
+        "descendants": [
+          3391874,
+          3391889,
+          3391890,
+          3391910,
+          3391913,
+          3391922,
+          3391957,
+          3391960
+        ],
+        "controllerSha256": "10dc852364ab144e195755b21dcb3e964033bcff8f0da741c581b48826a8eaae",
+        "eventsBefore": [
+          {
+            "event": "contribution-authorized",
+            "url": "https://replo.id/",
+            "model": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "contribution": "compute",
+            "profile": "/home/x/.local/share/reploid/public-compute"
+          },
+          {
+            "event": "participant",
+            "identities": [
+              {
+                "peerId": "peer:8293261cfefa530c6a7ade6c"
+              },
+              {
+                "peerId": "peer:c28ce596935711a4daf45f34"
+              },
+              {
+                "peerId": "peer:7337aa1e8a048a1fec2a930a"
+              },
+              {
+                "peerId": "peer:57a025d0f5fbd0d01ba1a57b"
+              },
+              {
+                "peerId": "peer:7796914cb326ad2e7ad83a63"
+              },
+              {
+                "peerId": "peer:3a2b40dc8eb239c20d0c42b3"
+              },
+              {
+                "peerId": "peer:e5f274414c98019940b70148"
+              },
+              {
+                "peerId": "peer:8859afd6087f8a96d2e43ee7"
+              },
+              {
+                "peerId": "peer:14adb2840442b34e408f98c8"
+              }
+            ]
+          },
+          {
+            "phase": "Loading",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Loading",
+            "progress": "Reusing qwen-0-8b-pieces.json",
+            "error": ""
+          },
+          {
+            "event": "resident-prepared",
+            "participantId": "peer:8293261cfefa530c6a7ade6c",
+            "descriptor": {
+              "schema": "doppler.resident-partition/v1",
+              "ready": true,
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+              "index": 1,
+              "layerRange": [
+                12,
+                23
+              ],
+              "residentWeightBytes": 285497344,
+              "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+            }
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Loading",
+            "progress": "Reusing qwen-0-8b-pieces.json",
+            "error": ""
+          },
+          {
+            "event": "resident-prepared",
+            "participantId": "peer:8293261cfefa530c6a7ade6c",
+            "descriptor": {
+              "schema": "doppler.resident-partition/v1",
+              "ready": true,
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+              "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+              "index": 0,
+              "layerRange": [
+                0,
+                11
+              ],
+              "residentWeightBytes": 650989568,
+              "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+            }
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          }
+        ],
+        "checkedAt": 1791857113.4489915,
+        "idleAuthority": "Root holds requester work; native-observed capabilities active0 before browser restart.",
+        "exitObserved": true,
+        "remainingDescendants": []
+      },
+      "new": {
+        "pid": 4121371,
+        "startedAt": 1791857113.6726444,
+        "logOffset": 156129
+      },
+      "alive": true,
+      "argsUnchanged": true,
+      "eventsAfter": [
+        {
+          "event": "contribution-authorized",
+          "url": "https://replo.id/",
+          "model": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+          "contribution": "compute",
+          "profile": "/home/x/.local/share/reploid/public-compute"
+        },
+        {
+          "event": "participant",
+          "identities": [
+            {
+              "peerId": "peer:556d15e16d9510909a80fafc"
+            },
+            {
+              "peerId": "peer:8293261cfefa530c6a7ade6c"
+            },
+            {
+              "peerId": "peer:c28ce596935711a4daf45f34"
+            },
+            {
+              "peerId": "peer:7337aa1e8a048a1fec2a930a"
+            },
+            {
+              "peerId": "peer:57a025d0f5fbd0d01ba1a57b"
+            },
+            {
+              "peerId": "peer:7796914cb326ad2e7ad83a63"
+            },
+            {
+              "peerId": "peer:3a2b40dc8eb239c20d0c42b3"
+            },
+            {
+              "peerId": "peer:e5f274414c98019940b70148"
+            },
+            {
+              "peerId": "peer:8859afd6087f8a96d2e43ee7"
+            },
+            {
+              "peerId": "peer:14adb2840442b34e408f98c8"
+            }
+          ]
+        },
+        {
+          "phase": "Sharing",
+          "progress": "Waiting for another contributor",
+          "error": ""
+        },
+        {
+          "phase": "Sharing",
+          "progress": "Waiting for another contributor",
+          "error": "Peer connection unavailable; check the invitation route and ICE/relay configuration"
+        },
+        {
+          "phase": "Loading",
+          "progress": "Waiting for another contributor",
+          "error": ""
+        },
+        {
+          "phase": "Loading",
+          "progress": "Reusing qwen-0-8b-pieces.json",
+          "error": ""
+        },
+        {
+          "event": "resident-prepared",
+          "participantId": "peer:556d15e16d9510909a80fafc",
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+          }
+        },
+        {
+          "phase": "Ready",
+          "progress": "",
+          "error": ""
+        },
+        {
+          "phase": "Sharing",
+          "progress": "Waiting for another contributor",
+          "error": ""
+        },
+        {
+          "phase": "Ready",
+          "progress": "",
+          "error": ""
+        }
+      ],
+      "logBytes": 69681,
+      "logSha256": "45717ec8d3ba155da45ffb8ae75f04c10cc69df7a167af2020139b72f7ab0484",
+      "ready": true
+    },
+    "suby": {
+      "old": {
+        "pid": 8241,
+        "args": [
+          "node",
+          "scripts/run-mesh-contributor.js",
+          "--url",
+          "https://replo.id/",
+          "--profile",
+          "/home/clocksmith/.local/share/reploid/public-compute",
+          "--model",
+          "qwen-3-5-0-8b-q4k-ehaf16",
+          "--contribute",
+          "compute",
+          "--browser",
+          "chromium"
+        ],
+        "cwd": "/home/clocksmith/deco/reploid",
+        "log": "/home/clocksmith/.local/state/reploid/public-browser-budget-restored-20261012.log",
+        "logOffset": 232814,
+        "descendants": [
+          8258,
+          8265,
+          8266,
+          8283,
+          8287,
+          8290,
+          8318,
+          8319
+        ],
+        "controllerSha256": "10dc852364ab144e195755b21dcb3e964033bcff8f0da741c581b48826a8eaae",
+        "eventsBefore": [
+          {
+            "phase": "Loading",
+            "progress": "Reusing qwen-0-8b-pieces.json",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          },
+          {
+            "phase": "Sharing",
+            "progress": "Waiting for another contributor",
+            "error": ""
+          },
+          {
+            "phase": "Ready",
+            "progress": "",
+            "error": ""
+          }
+        ],
+        "checkedAt": 1791857234.5948036,
+        "idleAuthority": "Root holds requester work; native-observed capabilities active0 before browser restart.",
+        "exitObserved": true,
+        "remainingDescendants": []
+      },
+      "new": {
+        "pid": 299769,
+        "startedAt": 1791857234.8437707,
+        "logOffset": 232814
+      },
+      "alive": true,
+      "argsUnchanged": true,
+      "eventsAfter": [
+        {
+          "event": "contribution-authorized",
+          "url": "https://replo.id/",
+          "model": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+          "contribution": "compute",
+          "profile": "/home/clocksmith/.local/share/reploid/public-compute"
+        },
+        {
+          "event": "participant",
+          "identities": [
+            {
+              "peerId": "peer:b9aaa1a01518b61f288fff1d"
+            },
+            {
+              "peerId": "peer:b271a1a35a47e50f133b9952"
+            },
+            {
+              "peerId": "peer:322d8b8a7122d00767862513"
+            },
+            {
+              "peerId": "peer:38f2749365584b92c2f115bc"
+            },
+            {
+              "peerId": "peer:7f6db79296b32d74e2d99d7d"
+            },
+            {
+              "peerId": "peer:eb2239e208132544b4109b58"
+            },
+            {
+              "peerId": "peer:ddfbc2c9c6e061e3bb259231"
+            },
+            {
+              "peerId": "peer:0f0934c55b1e2b2078b221f6"
+            }
+          ]
+        },
+        {
+          "phase": "Sharing",
+          "progress": "Waiting for another contributor",
+          "error": ""
+        },
+        {
+          "phase": "Sharing",
+          "progress": "Waiting for another contributor",
+          "error": "Peer connection unavailable; check the invitation route and ICE/relay configuration"
+        },
+        {
+          "phase": "Loading",
+          "progress": "Waiting for another contributor",
+          "error": "Peer connection unavailable; check the invitation route and ICE/relay configuration"
+        },
+        {
+          "phase": "Loading",
+          "progress": "Reusing qwen-0-8b-pieces.json",
+          "error": "Peer connection unavailable; check the invitation route and ICE/relay configuration"
+        },
+        {
+          "phase": "Loading",
+          "progress": "Reusing qwen-0-8b-pieces.json",
+          "error": ""
+        },
+        {
+          "event": "resident-prepared",
+          "participantId": "peer:b9aaa1a01518b61f288fff1d",
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+            "planId": "sha256:c908ebff98a542b556e6b78417e4e6a4e4014c8c50a7c47ba36665cf4f2097a0",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:6e93db9235af8a6e9204cf3c6785e4f081bea4860722252bd2ee74ee553a4906"
+          }
+        },
+        {
+          "phase": "Ready",
+          "progress": "",
+          "error": ""
+        }
+      ],
+      "logBytes": 49208,
+      "logSha256": "f21b0750d6b480acbf53dbf5ae9fa9aa0888e95fabb3c75b400809ff4d3a4178",
+      "ready": true
+    }
+  },
+  "complete": true,
+  "limits": [
+    "Native identities, arguments, environment, cache directories and allowance records preserved exactly.",
+    "Browser arguments and profiles preserved; the application's existing identity behavior generated a new active identity on each restart, with prior identities still present.",
+    "Initial browser peer connection errors recovered without further intervention; retained in readiness event sequences.",
+    "No new allowance, no candidate runtime, no numerical profiling or benchmark.",
+    "Old detached process exit codes unavailable; native unload/device destruction and browser descendant exits observed."
+  ],
+  "completionScope": "All four processes restarted sequentially and observed Ready; fresh inference acceptance belongs to coordinator's follow-up."
+}
