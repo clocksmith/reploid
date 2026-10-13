@@ -58,3 +58,39 @@ export function createWorkPartitionPlan(runtime, manifest, selected, index = 0) 
   partitionActivationContract(runtime, plan);
   return plan;
 }
+
+/** Snapshot operator-selected geometry and limits before host connection awaits. */
+export function snapshotWorkOrderedParticipation(ordered, canonical, models) {
+  if (ordered === null) return null;
+  if (!ordered || canonical) throw new Error('Ordered participation requires an explicit ordinary host configuration');
+  const copy = structuredClone(ordered);
+  for (const key of ['maxStages', 'maxStageOffersPerPeer', 'maxRouteBytes', 'maxSelectionSteps', 'maxRoutes']) {
+    if (!Number.isSafeInteger(copy[key]) || copy[key] <= 0) throw new Error('Explicit ordered host limit required: ' + key);
+  }
+  if (copy.stage !== null) {
+    const stage = copy.stage, selected = models.find(model => model.id === stage?.modelId);
+    if (!selected || selected.partitionPlan?.schema !== 'doppler.layer-partition-contract/v3'
+      || !Number.isSafeInteger(stage.index) || stage.index < 0 || stage.index >= selected.partitionPlan.stageCount
+      || selected.partitionPlan.stageCount > copy.maxStages
+      || !['residentId', 'executionId'].every(key => typeof stage[key] === 'string' && stage[key].length > 0)
+      || Object.keys(stage).some(key => !['modelId', 'index', 'residentId', 'executionId', 'participantId', 'transportId'].includes(key))) {
+      throw new Error('Ordered host stage requires a matching declared model plan and allocation identity');
+    }
+  }
+  return freezeJson(copy);
+}
+
+/** Bind identity from the authenticated host, never from discovery or a caller route. */
+export function bindWorkOrderedParticipation(options, participantId, transportId, policy) {
+  if (!options) return { ordered: null, policy };
+  const configured = options.stage;
+  if (![participantId, transportId].every(value => typeof value === 'string' && value.length > 0)
+    || configured && (configured.participantId !== undefined && configured.participantId !== participantId
+      || configured.transportId !== undefined && configured.transportId !== transportId)) {
+    throw new Error('Ordered host identity differs from the authenticated transport');
+  }
+  const stage = configured === null ? null : { index: configured.index, participantId, transportId,
+    residentId: configured.residentId, executionId: configured.executionId };
+  return { ordered: { stage, maxRouteBytes: options.maxRouteBytes, maxSelectionSteps: options.maxSelectionSteps, maxRoutes: options.maxRoutes },
+    policy: { ...policy, maxStageOffersPerPeer: options.maxStageOffersPerPeer, limits: { ...policy.limits, maxStages: options.maxStages } } };
+}

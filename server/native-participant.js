@@ -22,7 +22,7 @@ import bootstrap from '../self/config/swarm-bootstrap.json' with { type: 'json' 
 import { resolvePartitionGeneration } from '../self/config/partition-generation.js';
 import { prepareLocalPackRelease } from '../self/pool/pack-release-policy.js';
 import { snapshotWorkPartitionSelection, createWorkPartitionPlan,
-  snapshotWorkPartitionStage, workOrderedResidentOptions } from '../self/host/work-partition-plan.js';
+  snapshotWorkPartitionStage, workOrderedResidentOptions, snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../self/host/work-partition-plan.js';
 import { assertWorkResidentCapsule } from '../self/host/work-partition-capsule.js';
 import { createPartitionTokenizerGuard } from '../self/host/work-partition-tokenizer-guard.js';
 
@@ -335,7 +335,9 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
 }
 
 export async function createNativeParticipant({ model, modelDirectory, identity, rtc, WebSocket,
-  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, onFileChange = () => {}, onChange = () => {}, logger = console }) {
+  signalingUrl, roomId, roomToken, nativeGpu, cacheDirectory, canonical = null, ordered = null, onFileChange = () => {}, onChange = () => {}, logger = console }) {
+  if (ordered !== null) model = structuredClone(model);
+  ordered = snapshotWorkOrderedParticipation(ordered, canonical, [model]);
   requireValue(identity?.privateJwk && await createPeerIdFromPublicJwk(identity.publicJwk) === identity.peerId,
     'Native participant requires its own valid signing identity');
   requireValue(typeof rtc?.RTCPeerConnection === 'function' && typeof WebSocket === 'function', 'Native WebRTC and WebSocket required');
@@ -401,7 +403,7 @@ export async function createNativeParticipant({ model, modelDirectory, identity,
     if (canonical) epochs = await openNativeCanonicalEpochs({ directory: canonical.epochDirectory, participantId: identity.peerId, meshId: roomId });
     await mesh.connect();
     if (cacheDirectory) files = await createNativeModelFiles({ transport, modelDirectory, cacheDirectory, onChange: onFileChange });
-    partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], policy,
+    partitions = createAutomaticPartitions({ identity, meshId: roomId, models: [model], ...bindWorkOrderedParticipation(ordered, identity.peerId, ordered ? transport._getPeerId() : null, policy),
       canonical: epochs ? { runtime: canonicalRuntime, participantEpoch: epochs.participantEpoch, coordinatorEpoch: epochs.coordinatorEpoch } : null,
       peers: () => transport.getConnectedPeers().map(peer => ({ ...peer, localTransportId: transport._getPeerId() })),
       createNetwork(options) {
@@ -438,7 +440,7 @@ export function createNativeShutdown(participant, gpuHost) {
 
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
-    'ws-module', 'gpu-module', 'signaling-url', 'room', 'room-token', 'origin', 'cache-directory'].map(key => [key, { type: 'string' }]).concat([
+    'ws-module', 'gpu-module', 'ordered-config', 'signaling-url', 'room', 'room-token', 'origin', 'cache-directory'].map(key => [key, { type: 'string' }]).concat([
       ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
@@ -448,6 +450,7 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
   [--room <namespace>] [--room-token <join marker>] [--origin <allowed origin>]
+  [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
   [--canonical] (requires explicit catalog generation and a capable installed runtime)
 
 File sharing and compute are separate explicit choices; both may be enabled.
@@ -459,6 +462,13 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
   requireValue(values.contribute || values['share-files'] || values['connect-only'], 'Choose --contribute, --share-files or --connect-only explicitly');
   if (values.contribute) requireValue(values['gpu-module'], '--gpu-module is required for compute');
   for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');
+  let ordered = null;
+  if (values['ordered-config']) {
+    requireValue(!values.canonical && path.isAbsolute(values['ordered-config']), 'Ordered config requires an absolute file path and ordinary execution');
+    ordered = JSON.parse(await fs.readFile(values['ordered-config'], 'utf8'));
+    requireValue(ordered && typeof ordered === 'object', 'Ordered config requires an explicit configuration object');
+    snapshotWorkOrderedParticipation(ordered, null, models);
+  }
   const identityFile = path.resolve(values['identity-file']);
   let identity;
   try { identity = JSON.parse(await fs.readFile(identityFile, 'utf8')); }
@@ -481,7 +491,7 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
     roomId: values.room || bootstrap.publicRoomId, roomToken: values['room-token'] || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
-    canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
+    ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,
     nativeGpu: () => gpuHost.open(), onChange: state => console.log(JSON.stringify(summarizeNativePartitionState(state))) });
   const timer = setInterval(() => { participant.announceFiles(); console.log(JSON.stringify({ event: 'network', ...participant.getNetworkState(),

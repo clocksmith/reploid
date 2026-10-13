@@ -19,7 +19,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
   };
   const dispose = () => {
     adapter = null;
-    cleanup ||= Promise.resolve().then(() => service.close(scope));
+    cleanup ||= Promise.resolve().then(() => service.close(scope)).catch(cause => { cleanup = null; throw cause; });
     return cleanup;
   };
   const fail = async cause => {
@@ -88,7 +88,7 @@ export function createWorkResidentProvider({ service, model, generation, maxOutc
       try { await dispose(); phase = 'idle'; }
       catch (cause) { phase = 'failed'; error = cause?.message || String(cause); throw cause; }
       finally { notify(); }
-    })();
+    })().catch(cause => { closing = null; throw cause; });
     notify();
     return closing;
   };

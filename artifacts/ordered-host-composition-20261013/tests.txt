@@ -1,0 +1,20 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:53553) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/work-resident-provider.test.js (10 tests) 8ms
+ ✓ tests/unit/native-ordered-config.test.js (1 test) 239ms
+ ✓ tests/unit/work-partition-plan.test.js (8 tests) 9ms
+ ✓ tests/unit/work-partition-network-cleanup.test.js (2 tests) 3ms
+ ✓ tests/unit/native-participant.test.js (9 tests) 20ms
+ ✓ tests/unit/native-canonical-cleanup.test.js (4 tests) 86ms
+ ✓ tests/unit/ordered-host-composition.test.js (6 tests) 12ms
+ ✓ tests/unit/canonical-product-session.test.js (6 tests) 6ms
+ ✓ tests/unit/work-swarm-lifecycle.test.js (16 tests) 488ms
+
+ Test Files  9 passed (9)
+      Tests  62 passed (62)
+   Start at  11:32:17
+   Duration  1.26s (transform 2.00s, setup 0ms, import 3.12s, tests 870ms, environment 660ms)
+

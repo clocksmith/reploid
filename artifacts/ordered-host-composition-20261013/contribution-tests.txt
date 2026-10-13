@@ -1,0 +1,11 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/work-resident-provider.test.js (10 tests) 9ms
+ ✓ tests/unit/work-swarm-lifecycle.test.js (16 tests) 492ms
+
+ Test Files  2 passed (2)
+      Tests  26 passed (26)
+   Start at  11:31:46
+   Duration  1.00s (transform 267ms, setup 0ms, import 369ms, tests 500ms, environment 265ms)
+

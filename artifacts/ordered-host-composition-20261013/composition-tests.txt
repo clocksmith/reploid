@@ -1,0 +1,10 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/ordered-host-composition.test.js (4 tests) 9ms
+
+ Test Files  1 passed (1)
+      Tests  4 passed (4)
+   Start at  11:22:52
+   Duration  425ms (transform 261ms, setup 0ms, import 358ms, tests 9ms, environment 0ms)
+

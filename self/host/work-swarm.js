@@ -14,11 +14,13 @@ import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkPeerOffers } from './work-peer-offers.js';
 import { createWorkModelFiles, getFileContributionLimits } from './work-model-files.js';
 import { loadWorkPartition } from './work-partitions.js';
+import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from './work-partition-plan.js';
 import { createWorkPartitionNetworks } from './work-partition-networks.js';
 import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 
 export function createWorkSwarm({ storage, evolution, onChange = () => {}, service = createReploidDopplerRuntimeService(), networkOptions = createLegacyNetworkOptions,
-  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null }) {
+  createModelFiles = createWorkModelFiles, createPartitions = createAutomaticPartitions, canonical = null, ordered = null }) {
+  ordered = snapshotWorkOrderedParticipation(ordered, canonical, LOCAL_DOPPLER_MODELS);
   canonical = canonical ? Object.freeze({ runtime: canonical.runtime, meshId: canonical.meshId,
     participantId: canonical.participantId, participantEpoch: canonical.participantEpoch, coordinatorEpoch: canonical.coordinatorEpoch }) : null;
   const utils = Utils.factory({}), eventBus = EventBus.factory({ Utils: utils });
@@ -28,7 +30,23 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let connectionFailure = null;
   let disconnecting = null, sharingConnection = null, generation = 0, paused = false;
   let automaticAllowed = options.autoConnect !== false;
-  const requests = new Map();
+  const requests = new Map(), cleanupDebt = new Set(), contributionDebt = new Set(), closingOwners = new WeakMap(), settledOwners = new WeakSet();
+  const closeOwner = owner => {
+    if (!owner || settledOwners.has(owner)) return Promise.resolve();
+    if (closingOwners.has(owner)) return closingOwners.get(owner);
+    cleanupDebt.add(owner);
+    const pending = Promise.resolve().then(() => owner.close()).then(() => {
+      cleanupDebt.delete(owner); settledOwners.add(owner);
+    }).finally(() => closingOwners.delete(owner));
+    closingOwners.set(owner, pending); return pending;
+  };
+  const closeContributionOwners = async owners => {
+    for (const owner of owners) if (owner) contributionDebt.add(owner);
+    const results = await Promise.allSettled([...contributionDebt].map(owner => closeOwner(owner)
+      .then(() => contributionDebt.delete(owner))));
+    const failures = results.filter(row => row.status === 'rejected').map(row => row.reason);
+    if (failures.length) throw new AggregateError(failures, 'Contribution cleanup remains unsettled');
+  };
   let partitionNetworks = null;
   let consumerTransport = null;
   let modelFiles = null, partitionMesh = null, consumerIdentity = null;
@@ -44,7 +62,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   let contributor = null, stoppingContribution = null, contributionEpoch = 0;
   let contribution = { phase: 'idle', completed: 0, modelId: null, modelIdentity: null, progress: null };
   const getState = () => ({ introductionAssistance, sharing, stopping, connecting, paused,
-    error: error || connectionFailure?.message || '', models: LOCAL_DOPPLER_MODELS,
+    error: error || connectionFailure?.message || '', unsettledOwners: cleanupDebt.size, models: LOCAL_DOPPLER_MODELS,
     discoveryScope: options.discoveryScope,
     partitionPeers: partitionMesh?.getState?.()?.capabilities || [],
     contribution: { ...contribution }, limits: { maxInboundJobs: contribution.partition ? partitionPolicy.limits.maxConcurrentAttempts : 1, maxOutputTokens: profile.generation.maxTokens },
@@ -161,10 +179,13 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
         partitionMesh = createPartitions({ canonical: canonical ? { runtime: canonical.runtime,
           coordinatorEpoch: canonical.coordinatorEpoch, participantEpoch: canonical.participantEpoch } : null, identity: consumerIdentity, meshId: options.config.value.mesh.roomId,
           models: LOCAL_DOPPLER_MODELS.filter(model => model.source?.files.some(file => file.role === 'model-piece-index')),
-          policy: partitionPolicy,
+          ...bindWorkOrderedParticipation(ordered, consumerIdentity.peerId, ordered ? consumerTransport._getPeerId() : null, partitionPolicy),
           peers: () => (consumerTransport?.getConnectedPeers() || []).map(peer => ({ ...peer, localTransportId: consumerTransport._getPeerId() })),
           createNetwork: openPartitionNetwork,
-          loadProgram: (model, index, controls) => loadWorkPartition(modelFiles, model, index, controls),
+          loadProgram: (model, index, controls) => {
+            if (ordered && model.id !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');
+            return loadWorkPartition(modelFiles, model, index, controls);
+          },
           onChange(state) {
             if (state.offering || contribution.partition) {
               sharing = state.offering;
@@ -185,7 +206,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
       const owners = [partitionMesh, partitionNetworks, modelFiles, consumer];
       partitionMesh = null; partitionNetworks = null; modelFiles = null; consumer = null; consumerTransport = null;
       peerOffers?.close();
-      const results = await Promise.allSettled(owners.map(owner => Promise.resolve().then(() => owner?.close())));
+      const results = await Promise.allSettled(owners.map(closeOwner));
       if (version === generation) error = cause.message;
       const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
       if (failures.length) throw new AggregateError([cause, ...failures], cause.message + '; connection cleanup failed');
@@ -196,6 +217,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
   const connect = async ({ automatic = false } = {}) => {
     if (disconnecting) await disconnecting;
     if (closed) throw new Error('Text swarm is closed');
+    if (cleanupDebt.size) throw new Error('Previous connection cleanup remains unsettled; retry disconnect');
     if (automatic && (!automaticAllowed || paused)) return getState();
     if (!automatic) {
       paused = false; automaticAllowed = true;
@@ -237,13 +259,13 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     if (stoppingContribution) return stoppingContribution;
     sharing = false; stopping = true;
     contribution = { ...contribution, phase: 'stopping' };
-    const previous = supplier, execution = contributor, pending = sharingConnection;
+    const previous = supplier, execution = contributor, pending = sharingConnection, previousPartition = partitionMesh;
     supplier = null; contributor = null;
     // Invalidate the resident before waiting for transport or loader settlement.
-    const retiring = execution?.close();
+    const retiring = closeContributionOwners([execution, previous]);
     stoppingContribution = (async () => {
-      const results = await Promise.allSettled([retiring, previous?.close(), pending, partitionMesh?.stop()]);
-      const cleanupFailure = [results[0], results[3]].find(result => result.status === 'rejected')?.reason || null;
+      const results = await Promise.allSettled([retiring, pending, Promise.resolve().then(() => previousPartition?.stop())]);
+      const cleanupFailure = [results[0], results[2]].find(result => result.status === 'rejected')?.reason || null;
       contribution = { ...contribution, phase: cleanupFailure ? 'failed' : 'idle' };
       if (cleanupFailure) { error = cleanupFailure.message; throw cleanupFailure; }
     })().finally(() => { stoppingContribution = null; stopping = false; notify(); });
@@ -255,17 +277,20 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     generation++;
     connectionFailure = null;
     const contributionStop = stopContribution();
-    const partitionStop = partitionMesh?.close(); partitionMesh = null;
-    const fileStop = modelFiles?.close(); modelFiles = null;
-    const previousConsumer = consumer;
-    consumer = null; consumerTransport?.disconnect(); consumerTransport = null;
+    const partitionStop = closeOwner(partitionMesh); partitionMesh = null;
+    const fileStop = closeOwner(modelFiles); modelFiles = null;
+    const previousConsumer = consumer, previousTransport = consumerTransport;
+    consumer = null; consumerTransport = null;
+    const transportStop = Promise.resolve().then(() => previousTransport?.disconnect());
     peerOffers?.close();
-    const networkStop = partitionNetworks?.close(); partitionNetworks = null;
-    const pending = [connection, contributionStop, previousConsumer?.close(), fileStop, partitionStop, networkStop];
+    const networkStop = closeOwner(partitionNetworks); partitionNetworks = null;
+    const pending = [connection, contributionStop, closeOwner(previousConsumer), fileStop, partitionStop, networkStop, transportStop,
+      ...[...cleanupDebt].map(closeOwner)];
     disconnecting = (async () => {
       const results = await Promise.allSettled(pending);
       peerOffers?.close();
       if (results[1].status === 'rejected') throw results[1].reason;
+      if (results[2].status === 'rejected') throw results[2].reason;
       if (results[3].status === 'rejected') throw results[3].reason;
       const partitionFailures = results.slice(4).filter(result => result.status === 'rejected').map(result => result.reason);
       if (partitionFailures.length) throw new AggregateError(partitionFailures, 'Partition network settlement failed');
@@ -273,9 +298,9 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     notify();
     return disconnecting;
   };
-  function openPartitionNetwork({ createEndpoint, maxPeers, timeoutMs, onPeer, label }) {
+  function openPartitionNetwork({ createEndpoint, maxPeers, timeoutMs, onPeer, label, ordered }) {
       if (closed || paused || !partitionNetworks) throw new Error('Connect before opening partition channels');
-      return partitionNetworks.open({ createEndpoint, maxPeers, timeoutMs, onPeer, label });
+      return partitionNetworks.open({ createEndpoint, maxPeers, timeoutMs, onPeer, label, ...(ordered ? { ordered } : {}) });
     }
   return Object.freeze({ getState, connect, disconnect, partitions,
     allowIntroductions(allowed) {
@@ -308,6 +333,7 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
     async share(modelId, approved, adapters = []) {
       if (closed || supplier || stopping || sharingConnection) throw new Error('Stop existing sharing first');
       if (approved !== true) throw new Error('Approve public prompt execution before sharing');
+      if (ordered && modelId !== ordered.stage?.modelId) throw new Error('Model differs from assigned ordered stage');
       const base = LOCAL_DOPPLER_MODELS.find(item => item.id === modelId);
       if (!base) throw new Error('Select an available local model');
       if (base.source?.files.some(file => file.role === 'model-piece-index')) {
@@ -356,11 +382,13 @@ export function createWorkSwarm({ storage, evolution, onChange = () => {}, servi
           if (closed || contributor !== execution || version !== generation) throw new Error('Contribution stopped');
           await execution.prepare();
         } catch (cause) {
-          await Promise.allSettled([active?.close(), execution?.close()]);
+          let cleanupFailure;
+          try { await closeContributionOwners([active, execution]); } catch (cleanup) { cleanupFailure = cleanup; }
           if (active && supplier === active) {
             supplier = null; contributor = null; sharing = false;
             contribution = { ...execution.getState(), phase: 'failed' }; error = cause.message;
           }
+          if (cleanupFailure) throw new AggregateError([cause, cleanupFailure], 'Contribution opening and cleanup failed');
           throw cause;
         } finally { sharingConnection = null; notify(); }
       });

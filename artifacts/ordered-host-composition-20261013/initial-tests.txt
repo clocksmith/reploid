@@ -1,0 +1,54 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:52387) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/work-partition-network-cleanup.test.js (2 tests) 3ms
+ ✓ tests/unit/work-partition-plan.test.js (8 tests) 4ms
+ ✓ tests/unit/native-participant.test.js (9 tests) 19ms
+ ✓ tests/unit/native-canonical-cleanup.test.js (4 tests) 83ms
+ ❯ tests/unit/ordered-host-composition.test.js (4 tests | 2 failed) 14ms
+   ✓ browser forwards explicit ordered null and immutable actual host binding 5ms
+   ✓ browser forwards explicit ordered contributor and immutable actual host binding 1ms
+   × native forwards actual authenticated stage and preserves separate file and compute consent 5ms
+   × native rejects unbound catalog geometry and conflicting identity without loading a GPU 3ms
+ ✓ tests/unit/work-swarm-lifecycle.test.js (14 tests) 387ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-host-composition.test.js > native forwards actual authenticated stage and preserves separate file and compute consent
+Error: Private introduction room capability required
+ ❯ createRoomIntroductionAdmission packages/reploid/src/transport/introduction-admission.js:7:11
+      5| export function createRoomIntroductionAdmission({ roomId, token }) {
+      6|   if (typeof roomId !== 'string' || !roomId || typeof token !== 'strin…
+      7|     throw new Error('Private introduction room capability required');
+       |           ^
+      8|   }
+      9|   const encoder = new TextEncoder();
+ ❯ Module.createNativeParticipant server/native-participant.js:362:95
+ ❯ tests/unit/ordered-host-composition.test.js:53:23
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/ordered-host-composition.test.js > native rejects unbound catalog geometry and conflicting identity without loading a GPU
+AssertionError: expected [Function] to throw error including 'authenticated' but got 'Private introduction room capability …'
+
+Expected: "authenticated"
+Received: "Private introduction room capability required"
+
+ ❯ tests/unit/ordered-host-composition.test.js:64:113
+     62|   const base = {identity:ports.identity,model,modelDirectory:'/unused'…
+     63|   await expect(createNativeParticipant({...base,model:{...model,partit…
+     64|   await expect(createNativeParticipant({...base,ordered:orderedConfig(…
+       |                                                                                                                 ^
+     65|   expect(ports.options).toBeNull(); expect(gpu).not.toHaveBeenCalled();
+     66| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed | 5 passed (6)
+      Tests  2 failed | 39 passed (41)
+   Start at  11:22:18
+   Duration  1.00s (transform 1.18s, setup 0ms, import 1.94s, tests 509ms, environment 274ms)
+
