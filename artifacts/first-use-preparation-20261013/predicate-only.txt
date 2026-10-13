@@ -1,0 +1,16 @@
+[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+[2m[WebServer] [22m(node:65619) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 4 tests using 1 worker
+
+(node:65627) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65627) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 390px in light (341ms)
+  ✓  2 tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 1440px in light (283ms)
+  ✓  3 tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 390px in dark (271ms)
+  ✓  4 tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 1440px in dark (288ms)
+
+  4 passed (2.2s)

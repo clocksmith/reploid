@@ -186,15 +186,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
         && model.identity === peer.description.offer?.identity)
       && (!requestedModel || requestedModel.id === peer.description.offer?.id
         && requestedModel.identity === peer.description.offer?.identity));
-    const preparing = localPreparing || remotePreparing;
+    const selectedPreparing = catalogModels.some(model => keyFor(model) === current
+      && ['loading', 'preparing'].includes(model.availability));
+    const preparing = localPreparing || remotePreparing || selectedPreparing;
     const attempt = thread?.attempts.at(-1);
-    // Availability belongs to the header. Keep only errors and actions specific
-    // to this composer, rather than repeating the same network state here.
+    // The collapsed rails hide the header status. Explain a disabled composer
+    // here, including before the first attempt, without adding another panel.
     modelStatus.textContent = thread?.closed ? 'Restore this thread to continue.'
       : state.localModel?.error && !usable ? 'Download failed: ' + state.localModel.error
       : !usable && current && !preparing && catalogModels.some(model => ['ready', 'busy'].includes(model.availability))
         ? 'Choose an available model.'
-      : !usable && attempt ? preparing ? 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.' : 'Model unavailable.' : '';
+      : !usable ? preparing ? 'Model preparing…' : state.network?.paused ? 'Reconnect to continue.'
+        : state.network?.connecting || ['connecting', 'retrying'].includes(networkState) ? 'Finding capacity…' : 'Model unavailable.' : '';
     modelStatus.hidden = !modelStatus.textContent;
     find('[data-model-control]').hidden = !models.length;
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';

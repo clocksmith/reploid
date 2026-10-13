@@ -1,0 +1,141 @@
+[2m[WebServer] [22m[Proxy] Config loader not available, using environment variables
+[2m[WebServer] [22m(node:65799) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[2m[WebServer] [22m(Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 4 tests using 1 worker
+
+(node:65807) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65807) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 390px in light (1.8s)
+(node:65816) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65816) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 1440px in light (1.8s)
+(node:65827) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65827) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  3 tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 390px in dark (1.8s)
+(node:65835) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:65835) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  4 tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 1440px in dark (1.9s)
+
+
+  1) tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 390px in light 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-retry-connection]')
+    Expected: hidden
+    Received: visible
+    Timeout:  1500ms
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 1500ms[22m
+    [2m  - waiting for locator('[data-retry-connection]')[22m
+    [2m    5 × locator resolved to <button type="button" data-retry-connection="" class="pool-button btn-ghost">Retry connection</button>[22m
+    [2m      - unexpected value "visible"[22m
+
+
+      64 |     if (evidence) { await mkdir(evidence, { recursive: true }); await page.screenshot({ path: path.join(evidence, `${theme}-${width}-preparing.png`), fullPage: true }); }
+      65 |     try {
+    > 66 |       await expect(page.locator('[data-retry-connection]')).toBeHidden();
+         |                                                             ^
+      67 |       await expect(page.locator('[data-model-status]')).toBeVisible();
+      68 |       await expect(page.locator('[data-model-status]')).toHaveText('Model preparing…');
+      69 |       await page.evaluate(() => window.firstUse.phase('ready'));
+        at /Users/xyz/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
+
+    Error Context: ../../../../var/tmp/reploid-first-use-preparation-results/first-use-preparation-fres-2b3a1-eps-draft-at-390px-in-light/error-context.md
+
+  2) tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 1440px in light 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-retry-connection]')
+    Expected: hidden
+    Received: visible
+    Timeout:  1500ms
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 1500ms[22m
+    [2m  - waiting for locator('[data-retry-connection]')[22m
+    [2m    5 × locator resolved to <button type="button" data-retry-connection="" class="pool-button btn-ghost">Retry connection</button>[22m
+    [2m      - unexpected value "visible"[22m
+
+
+      64 |     if (evidence) { await mkdir(evidence, { recursive: true }); await page.screenshot({ path: path.join(evidence, `${theme}-${width}-preparing.png`), fullPage: true }); }
+      65 |     try {
+    > 66 |       await expect(page.locator('[data-retry-connection]')).toBeHidden();
+         |                                                             ^
+      67 |       await expect(page.locator('[data-model-status]')).toBeVisible();
+      68 |       await expect(page.locator('[data-model-status]')).toHaveText('Model preparing…');
+      69 |       await page.evaluate(() => window.firstUse.phase('ready'));
+        at /Users/xyz/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
+
+    Error Context: ../../../../var/tmp/reploid-first-use-preparation-results/first-use-preparation-fres-2d167-ps-draft-at-1440px-in-light/error-context.md
+
+  3) tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 390px in dark 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-retry-connection]')
+    Expected: hidden
+    Received: visible
+    Timeout:  1500ms
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 1500ms[22m
+    [2m  - waiting for locator('[data-retry-connection]')[22m
+    [2m    5 × locator resolved to <button type="button" data-retry-connection="" class="pool-button btn-ghost">Retry connection</button>[22m
+    [2m      - unexpected value "visible"[22m
+
+
+      64 |     if (evidence) { await mkdir(evidence, { recursive: true }); await page.screenshot({ path: path.join(evidence, `${theme}-${width}-preparing.png`), fullPage: true }); }
+      65 |     try {
+    > 66 |       await expect(page.locator('[data-retry-connection]')).toBeHidden();
+         |                                                             ^
+      67 |       await expect(page.locator('[data-model-status]')).toBeVisible();
+      68 |       await expect(page.locator('[data-model-status]')).toHaveText('Model preparing…');
+      69 |       await page.evaluate(() => window.firstUse.phase('ready'));
+        at /Users/xyz/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
+
+    Error Context: ../../../../var/tmp/reploid-first-use-preparation-results/first-use-preparation-fres-0eca0-eeps-draft-at-390px-in-dark/error-context.md
+
+  4) tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 1440px in dark 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-retry-connection]')
+    Expected: hidden
+    Received: visible
+    Timeout:  1500ms
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 1500ms[22m
+    [2m  - waiting for locator('[data-retry-connection]')[22m
+    [2m    5 × locator resolved to <button type="button" data-retry-connection="" class="pool-button btn-ghost">Retry connection</button>[22m
+    [2m      - unexpected value "visible"[22m
+
+
+      64 |     if (evidence) { await mkdir(evidence, { recursive: true }); await page.screenshot({ path: path.join(evidence, `${theme}-${width}-preparing.png`), fullPage: true }); }
+      65 |     try {
+    > 66 |       await expect(page.locator('[data-retry-connection]')).toBeHidden();
+         |                                                             ^
+      67 |       await expect(page.locator('[data-model-status]')).toBeVisible();
+      68 |       await expect(page.locator('[data-model-status]')).toHaveText('Model preparing…');
+      69 |       await page.evaluate(() => window.firstUse.phase('ready'));
+        at /Users/xyz/deco/reploid/tests/e2e/first-use-preparation.spec.js:66:61
+
+    Error Context: ../../../../var/tmp/reploid-first-use-preparation-results/first-use-preparation-fres-6ea4a-eps-draft-at-1440px-in-dark/error-context.md
+
+  4 failed
+    tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 390px in light 
+    tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 1440px in light 
+    tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 390px in dark 
+    tests/e2e/first-use-preparation.spec.js:8:3 › fresh requester preparation keeps draft at 1440px in dark 

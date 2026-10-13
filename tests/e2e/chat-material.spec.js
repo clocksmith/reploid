@@ -61,7 +61,13 @@ async function installConversation(page, theme) {
 
 const animation = (locator, pseudo = '::after') => locator.evaluate((node, pseudo) => getComputedStyle(node, pseudo).animationName, pseudo);
 
-test('compact chat keeps attempt status reachable and composer visible', async ({ page }, info) => {
+test('compact chat keeps attempt status reachable and composer visible', async ({ page, baseURL }, info) => {
+  const origin = new URL(baseURL).origin;
+  await page.route('**/*', route => new URL(route.request().url()).origin === origin ? route.continue() : route.abort());
+  await page.routeWebSocket('**/*', socket => {
+    const url = new URL(socket.url()); url.protocol = url.protocol === 'wss:' ? 'https:' : 'http:';
+    if (url.origin === origin) socket.connectToServer(); else socket.close();
+  });
   await page.setViewportSize({ width: 320, height: 460 });
   await page.goto('/');
   await expect(page.locator('[data-chat-workspace]')).toBeVisible();
@@ -77,7 +83,8 @@ test('compact chat keeps attempt status reachable and composer visible', async (
       await expect(status).toBeInViewport();
     }
     if (mode === 'empty') {
-      await expect(page.locator('[data-model-status]')).toBeHidden();
+      await expect(page.locator('[data-model-status]')).toBeVisible();
+      await expect(page.locator('[data-model-status]')).toHaveText('Model unavailable.');
       await expect(page.locator('[data-message-stream]')).toBeEmpty();
       await expect(page.locator('[data-composer-input]')).toHaveAttribute('placeholder', 'Ask a question…');
     }

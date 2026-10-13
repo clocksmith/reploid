@@ -20,7 +20,8 @@ describe('Conversation workspace', () => {
   it('keeps the composer and draft while network capacity is unavailable', () => {
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(find('[data-active-model-select]').textContent).toBe('No models available');
-    expect(find('[data-model-status]').hidden).toBe(true);
+    expect(find('[data-model-status]').hidden).toBe(false);
+    expect(find('[data-model-status]').textContent).toBe('Model unavailable.');
     expect(find('[data-model-control]').hidden).toBe(true);
     expect(find('[data-model-setup]').disabled).toBe(false);
     expect(find('[data-composer-send]').hidden).toBe(false);
@@ -88,14 +89,43 @@ describe('Conversation workspace', () => {
       swarm: { getState: () => ({ partitionPeers: [peer], consumer: { peers: [] } }) } });
     dispose = bindConversationWorkspace(root, session);
     find('[data-composer-input]').value = 'Keep my question';
-    expect(find('[data-model-status]').hidden).toBe(true);
+    expect(find('[data-model-status]').hidden).toBe(false);
+    expect(find('[data-model-status]').textContent).toBe('Model preparing…');
     expect(find('[data-retry-connection]').hidden).toBe(true);
     expect(find('[data-composer-send]').disabled).toBe(true);
     expect(service.calls).toHaveLength(0);
     peer.available = false; session.refreshNetwork();
-    expect(find('[data-model-status]').hidden).toBe(true);
+    expect(find('[data-model-status]').hidden).toBe(false);
+    expect(find('[data-model-status]').textContent).toBe('Model unavailable.');
     expect(find('[data-retry-connection]').hidden).toBe(false);
     expect(find('[data-composer-input]').value).toBe('Keep my question');
+  });
+
+  it('uses the selected whole-request model preparation state without treating other models as capacity', async () => {
+    dispose(); await session.close();
+    const model = CANONICAL_CHAT_MODELS[0], other = CANONICAL_CHAT_MODELS[1];
+    const peers = [model, other].map((item, index) => ({ peerId: 'peer-' + index,
+      model: item.id, modelIdentity: item.identity, readiness: 'loading',
+      hasInference: true, availableSlots: 0 }));
+    session = createChatSession({ storage: null, service,
+      swarm: { getState: () => ({ consumer: { connectionState: 'connected', peers } }) } });
+    dispose = bindConversationWorkspace(root, session);
+    const select = find('[data-active-model-select]');
+    select.value = model.id; select.dispatchEvent(new Event('change'));
+    find('[data-composer-input]').value = 'Keep my question';
+    expect(find('[data-retry-connection]').hidden).toBe(true);
+    expect(find('[data-composer-send]').disabled).toBe(true);
+
+    peers[0].readiness = 'ready'; peers[0].availableSlots = 1; session.refreshNetwork();
+    expect(find('[data-composer-send]').disabled).toBe(false);
+    expect(find('[data-retry-connection]').hidden).toBe(true);
+
+    peers.shift(); session.refreshNetwork();
+    expect(select.value).toBe(model.id);
+    expect(find('[data-composer-send]').disabled).toBe(true);
+    expect(find('[data-retry-connection]').hidden).toBe(false);
+    expect(find('[data-composer-input]').value).toBe('Keep my question');
+    expect(service.calls).toHaveLength(0);
   });
 
   it('shows download size, preserves the draft, and enables local chat without sharing', async () => {

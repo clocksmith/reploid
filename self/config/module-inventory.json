@@ -3162,7 +3162,7 @@
     {
       "path": "ui/pool-home/conversation-workspace.js",
       "owner": "ui",
-      "sha256": "sha256:6c9cf2c0b33caa7edddc2293dd2c360ef7d75b3fd60734364b3038a1b7df1207",
+      "sha256": "sha256:49f6c80d2f316e1a8db6933bbaacdf3e7abd1cbf8b03e9c79f6cc5da699cf58b",
       "imports": [
         "../components/attachments.js",
         "../components/dialog.js",
