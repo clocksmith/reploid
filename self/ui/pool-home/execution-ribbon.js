@@ -5,20 +5,35 @@ const measured = value => Number.isFinite(value) && value >= 0;
 const ms = value => measured(value) ? `${Math.round(value)} ms` : 'Not reported';
 const sum = (steps, key) => steps?.length && steps.every(step => measured(step[key])) ? steps.reduce((n, step) => n + step[key], 0) : null;
 const terminal = new Set(['completed', 'failed', 'cancelled', 'interrupted']);
+const orderedTiming = (execution, index) => {
+  const summary = execution?.stepSummary;
+  if (summary) {
+    const row = summary.stages?.find(stage => stage.partitionIndex === index);
+    return Number.isSafeInteger(summary.count) && summary.count > 0 && row?.steps === summary.count
+      && row.stepMs?.count === summary.count && measured(row.stepMs.total) ? row.stepMs : null;
+  }
+  const values = execution?.steps?.map(step => step.stages?.find(stage => stage.partitionIndex === index)?.elapsedMs);
+  return values?.length && values.every(measured) ? { count: values.length, total: values.reduce((a, b) => a + b, 0) } : null;
+};
 
 export function projectExecutionRibbon(state) {
   const thread = state.activeThread, attempt = thread?.attempts.at(-1), execution = attempt?.execution;
-  const requester = execution?.requesterId || state.participantId || 'This device';
+  const ordered = execution?.identity?.schema === 'reploid.partition-attempt/v2'
+    && execution.identity.route?.schema === 'reploid.partition-route/v1' && Array.isArray(execution.identity.route.stages)
+    ? execution.identity.route : null;
+  const requester = (ordered ? execution.identity.requesterId : execution?.requesterId) || state.participantId || 'This device';
   const local = execution?.placement === 'local-webgpu';
-  const split = execution?.placement === 'two-device-layer-partition';
+  const split = !!ordered || execution?.placement === 'two-device-layer-partition';
   // Selected/discovered models are not proof of placement. Use this attempt's receipt only.
-  const ids = local ? [requester] : split ? [execution.participantA, execution.participantB].filter(Boolean)
+  const ids = ordered ? ordered.stages.map(stage => stage.participantId) : local ? [requester] : split ? [execution.participantA, execution.participantB].filter(Boolean)
     : execution?.peerId ? [execution.peerId] : [];
   const layer = Number.isSafeInteger(execution?.splitLayer) ? execution.splitLayer : null;
   const executors = ids.map((id, i) => ({ id, label: id === requester ? 'This device' : computerLabel(state, id),
-    layers: split ? layer === null ? 'Not reported' : i === 0 ? `0–${layer - 1}` : `${layer} onward` : 'Whole model',
-    contribution: split ? i === 0 ? 'Initial layers; relays output' : 'Final layers; produces output' : 'Whole-model execution',
-    duration: split ? sum(execution.steps, i === 0 ? 'localStepMs' : 'remoteStepMs') : null }));
+    layers: ordered ? `Stage ${i + 1} of ${ids.length}` : split ? layer === null ? 'Not reported' : i === 0 ? `0–${layer - 1}` : `${layer} onward` : 'Whole model',
+    contribution: ordered ? i === 0 ? 'Initial layers; relays output' : i === ids.length - 1 ? 'Final layers; produces output' : 'Intermediate layers'
+      : split ? i === 0 ? 'Initial layers; relays output' : 'Final layers; produces output' : 'Whole-model execution',
+    timing: ordered ? orderedTiming(execution, i) : null,
+    duration: ordered ? orderedTiming(execution, i)?.total ?? null : split ? sum(execution.steps, i === 0 ? 'localStepMs' : 'remoteStepMs') : null }));
   const active = attempt && !terminal.has(attempt.status);
   let status = attempt?.status || 'idle';
   // Discovery reports availability, never the health of an assigned execution channel.
@@ -35,7 +50,8 @@ export function projectExecutionRibbon(state) {
   const labels = { idle: availability, queued: 'Queued', loading: 'Loading', executing: 'Executing', approval: 'Awaiting approval',
     completed: 'Complete', failed: 'Failed', cancelled: 'Stopped', cancelling: 'Stopping', interrupted: 'Interrupted', disconnected: 'Disconnected', recovering: 'Recovering' };
   const response = thread?.messages.find(message => message.id === attempt?.responseId)?.content || '';
-  return { key: attempt ? `${thread.id}:${attempt.id}` : null, thread, attempt, execution, requester, local, split, executors,
+  return { key: attempt ? `${thread.id}:${attempt.id}` : null, thread, attempt, execution, requester, local, split, ordered: !!ordered, executors,
+    planId: ordered?.planId || execution?.planId,
     requesterExecutes: executors.some(node => node.id === requester),
     model: executors.length ? thread.model.name : null, status, statusLabel: labels[status] || status,
     response, active: !!active, totalMs: measured(attempt?.finishedAt) && measured(attempt?.createdAt) ? attempt.finishedAt - attempt.createdAt : null,
@@ -73,7 +89,7 @@ export function detailMarkup(view) {
       <dt>${view.split ? 'Recorded step time' : 'Compute time'}</dt><dd>${ms(node.duration)}</dd></dl></li>`).join('')}</ul>` : '<p>No executing participant has been assigned to this attempt.</p>'}
     ${view.split ? '<p>Output returns through the first executor. Step times include runtime and transport overhead; they are not GPU-only measurements.</p>' : ''}
     ${!view.requesterExecutes && executors.length ? '<p>Receiving the answer does not require model weights on this device.</p>' : ''}
-    ${execution?.planId ? `<p>Plan <code>${escape(execution.planId)}</code></p>` : ''}`;
+    ${view.planId ? `<p>Plan <code>${escape(view.planId)}</code></p>` : ''}`;
 }
 
 export function bindExecutionRibbon(root, { onInspect = () => {}, labelSession = root } = {}) {

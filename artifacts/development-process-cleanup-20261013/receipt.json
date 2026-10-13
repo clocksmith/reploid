@@ -58,5 +58,38 @@
     }
   ],
   "publicContributorsChanged": false,
-  "remainingTargetPids": []
+  "remainingTargetPids": [],
+  "fileContributorBrowserChild": {
+    "pid": 17595,
+    "presentAfter": false
+  },
+  "portsWithoutListeners": [
+    8000,
+    29670,
+    28940,
+    28941,
+    28960,
+    28961,
+    28942,
+    28962
+  ],
+  "remoteCleanup": {
+    "machine": "x128",
+    "scope": "obsolete paired and concurrent delivery servers; public contributors untouched",
+    "processes": [
+      {
+        "pid": 1340542,
+        "cwd": "/var/tmp/reploid-paired-0.6.28-20261012",
+        "action": "SIGTERM",
+        "presentAfter": false
+      },
+      {
+        "pid": 1824573,
+        "cwd": "/var/tmp/reploid-concurrent-0.6.28-20261012",
+        "action": "SIGTERM",
+        "presentAfter": false
+      }
+    ]
+  },
+  "retainedProcesses": "Public native/browser contributors and processes with unknown ownership; no cache, profile or sharing-ledger deletion."
 }

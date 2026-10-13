@@ -1,0 +1,80 @@
+{
+  "scope": "Source presentation fixture; no model or WebGPU work",
+  "cases": [
+    {
+      "theme": "light",
+      "width": 320,
+      "measured": false,
+      "rows": 7,
+      "bars": 0,
+      "text": "Generating · 7 computersComputer 1Stage 1 of 7Computer 2Stage 2 of 7Computer 3Stage 3 of 7Computer 4Stage 4 of 7Computer 5Stage 5 of 7Computer 6Stage 6 of 7Computer 7Stage 7 of 7Timing pending",
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 320,
+      "measured": true,
+      "rows": 7,
+      "bars": 1,
+      "text": "Complete · 7 computersComputer 14% · 10.0 tok/sComputer 27% · 5.0 tok/sComputer 311% · 3.3 tok/sComputer 414% · 2.5 tok/sComputer 518% · 2.0 tok/sComputer 621% · 1.7 tok/sComputer 725% · 1.4 tok/sStep-time share · includes overhead",
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 1280,
+      "measured": false,
+      "rows": 7,
+      "bars": 0,
+      "text": "Generating · 7 computersComputer 1Stage 1 of 7Computer 2Stage 2 of 7Computer 3Stage 3 of 7Computer 4Stage 4 of 7Computer 5Stage 5 of 7Computer 6Stage 6 of 7Computer 7Stage 7 of 7Timing pending",
+      "overflow": false
+    },
+    {
+      "theme": "light",
+      "width": 1280,
+      "measured": true,
+      "rows": 7,
+      "bars": 1,
+      "text": "Complete · 7 computersComputer 14% · 10.0 tok/sComputer 27% · 5.0 tok/sComputer 311% · 3.3 tok/sComputer 414% · 2.5 tok/sComputer 518% · 2.0 tok/sComputer 621% · 1.7 tok/sComputer 725% · 1.4 tok/sStep-time share · includes overhead",
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 320,
+      "measured": false,
+      "rows": 7,
+      "bars": 0,
+      "text": "Generating · 7 computersComputer 1Stage 1 of 7Computer 2Stage 2 of 7Computer 3Stage 3 of 7Computer 4Stage 4 of 7Computer 5Stage 5 of 7Computer 6Stage 6 of 7Computer 7Stage 7 of 7Timing pending",
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 320,
+      "measured": true,
+      "rows": 7,
+      "bars": 1,
+      "text": "Complete · 7 computersComputer 14% · 10.0 tok/sComputer 27% · 5.0 tok/sComputer 311% · 3.3 tok/sComputer 414% · 2.5 tok/sComputer 518% · 2.0 tok/sComputer 621% · 1.7 tok/sComputer 725% · 1.4 tok/sStep-time share · includes overhead",
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 1280,
+      "measured": false,
+      "rows": 7,
+      "bars": 0,
+      "text": "Generating · 7 computersComputer 1Stage 1 of 7Computer 2Stage 2 of 7Computer 3Stage 3 of 7Computer 4Stage 4 of 7Computer 5Stage 5 of 7Computer 6Stage 6 of 7Computer 7Stage 7 of 7Timing pending",
+      "overflow": false
+    },
+    {
+      "theme": "dark",
+      "width": 1280,
+      "measured": true,
+      "rows": 7,
+      "bars": 1,
+      "text": "Complete · 7 computersComputer 14% · 10.0 tok/sComputer 27% · 5.0 tok/sComputer 311% · 3.3 tok/sComputer 414% · 2.5 tok/sComputer 518% · 2.0 tok/sComputer 621% · 1.7 tok/sComputer 725% · 1.4 tok/sStep-time share · includes overhead",
+      "overflow": false
+    }
+  ],
+  "errors": [],
+  "serverClosed": true,
+  "browserClosed": true
+}

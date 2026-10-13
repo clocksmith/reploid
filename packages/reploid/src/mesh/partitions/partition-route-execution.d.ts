@@ -43,7 +43,7 @@ export interface OrderedRouteReceipt {
 export interface OrderedRouteResult {
   content: string; tokenIds: number[]; logits: Float32Array | number[] | null; stopReason: string;
   execution: { schema: 'reploid.mesh.partition-execution/v3'; identity: RouteAttemptBinding; activationBytes: number;
-    steps: Array<OrderedStep & { tokenId: number; stages: Array<{ partitionIndex: number; metrics: Record<string, unknown> | null }> }>;
+    steps: Array<OrderedStep & { tokenId: number; stages: Array<{ partitionIndex: number; elapsedMs: number; metrics: Record<string, unknown> | null }> }>;
     settlement: OrderedRouteReceipt };
 }
 export interface OrderedRouteRunner {
