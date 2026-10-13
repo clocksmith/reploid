@@ -1,0 +1,16 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:21300) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ tests/unit/pool-peer-pack-data-channel.test.js (6 tests) 7ms
+ ✓ tests/unit/native-data-channel-backpressure.test.js (7 tests) 18ms
+ ✓ tests/unit/native-participant.test.js (8 tests) 23ms
+ ✓ tests/unit/pool-peer-pack-custody.test.js (17 tests) 91ms
+ ✓ tests/unit/native-model-files.test.js (12 tests) 597ms
+
+ Test Files  5 passed (5)
+      Tests  50 passed (50)
+   Start at  07:54:06
+   Duration  784ms (transform 637ms, setup 0ms, import 1.04s, tests 737ms, environment 372ms)
+
