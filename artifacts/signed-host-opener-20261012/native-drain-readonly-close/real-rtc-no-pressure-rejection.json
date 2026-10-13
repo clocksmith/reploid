@@ -1,0 +1,14 @@
+{
+  "scope": "Actual installed wrtc CPU-only local RTC transfer; no GPU, model or live participant",
+  "started": "2026-10-13T11:55:24.366Z",
+  "sourceSha256": "3d427a2c78ff929c3f7d3f83c4b66749572419a0112605a229a7f1ec7c7ad374",
+  "wrtcVersion": "0.10.0",
+  "lowWaits": 0,
+  "maxObservedBufferedAmount": 0,
+  "error": "AssertionError [ERR_ASSERTION]: Control must actually enter native low-water waiting\n    at file:///var/tmp/reploid-native-drain-smoke-20261013/real-rtc-smoke.mjs:49:10\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)",
+  "finished": "2026-10-13T11:55:24.405Z",
+  "peerStates": [
+    "closed",
+    "closed"
+  ]
+}

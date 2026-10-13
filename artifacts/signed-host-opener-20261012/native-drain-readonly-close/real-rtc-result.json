@@ -1,0 +1,48 @@
+{
+  "scope": "Actual installed wrtc CPU-only local RTC transfer; no GPU, model or live participant",
+  "started": "2026-10-13T11:56:17.955Z",
+  "sourceSha256": "3d427a2c78ff929c3f7d3f83c4b66749572419a0112605a229a7f1ec7c7ad374",
+  "wrtcVersion": "0.10.0",
+  "lowWaits": 0,
+  "maxObservedBufferedAmount": 0,
+  "actualBackpressureObserved": false,
+  "backpressureScope": "Native API and exact transfer smoke; deterministic provider-shaped test separately forces drain waiting",
+  "client": {
+    "schema": "reploid.pool.pack-custody-channel/v1",
+    "sentFrameBytes": 411,
+    "receivedFrameBytes": 788076,
+    "sentFrames": 3,
+    "receivedFrames": 54,
+    "completedRequests": 3,
+    "cancelledRequests": 0,
+    "interruptedPayloadBytes": 0,
+    "discardedFrames": 0,
+    "pendingRequests": 0,
+    "inboundRequests": 0,
+    "closed": false,
+    "wireBytes": null,
+    "relayBytes": null
+  },
+  "supplier": {
+    "schema": "reploid.pool.pack-custody-channel/v1",
+    "sentFrameBytes": 788076,
+    "receivedFrameBytes": 411,
+    "sentFrames": 54,
+    "receivedFrames": 3,
+    "completedRequests": 0,
+    "cancelledRequests": 0,
+    "interruptedPayloadBytes": 0,
+    "discardedFrames": 0,
+    "pendingRequests": 0,
+    "inboundRequests": 0,
+    "closed": false,
+    "wireBytes": null,
+    "relayBytes": null
+  },
+  "passed": true,
+  "finished": "2026-10-13T11:56:18.000Z",
+  "peerStates": [
+    "closed",
+    "closed"
+  ]
+}

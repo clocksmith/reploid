@@ -1,0 +1,24 @@
+{
+  "component": "Native RTC adapter",
+  "intent": "preserved",
+  "source": "server/native-participant.js",
+  "sourceSha256": "3d427a2c78ff929c3f7d3f83c4b66749572419a0112605a229a7f1ec7c7ad374",
+  "retainedFailure": {
+    "nativeArtifact": "56f488a7",
+    "pid": 2027092,
+    "boundary": "Cannot assign to read only property close of RTCDataChannel; before GPU opening",
+    "fullLog": "/var/tmp/reploid-signed-drain-20261013/native.log",
+    "processSettlement": "Root owns failed process closure; this repair makes no natural-settlement claim for it"
+  },
+  "repair": "Never assigns native close; retains close/error event cleanup and disposes drain waiters when polling observes a non-open channel.",
+  "tests": {
+    "before": "Exact nonwritable/nonconfigurable close descriptors fail normalization",
+    "after": "50 tests across five files pass",
+    "actualInstalledProvider": "wrtc0.10.0 two local RTCPeerConnections, native adapter used on both created/received datachannels, three256KiB chunks byte-exact, original native close method preserved, both peers closed, process exit0",
+    "actualBackpressure": "Not observed in localhost transfer; original overly strict smoke rejection retained. Provider-shaped framing test independently forces and verifies drain waiting.",
+    "worker": "Passed0errors10warnings",
+    "libraryTypes": "Passed"
+  },
+  "runtimeAndLimits": "No GPU/model or live participant changes. Existing grant, runtime, browser path, custody deadlines and budgets unchanged.",
+  "pending": "Root-owned isolated artifact replacement and signed acquisition physical requalification."
+}

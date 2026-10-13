@@ -50,7 +50,7 @@ export function normalizeNativeDataChannel(channel) {
 function normalizeNativeDrainEvents(channel) {
   if ('bufferedAmountLowThreshold' in channel || typeof channel.addEventListener !== 'function') return;
   const add = channel.addEventListener.bind(channel), remove = channel.removeEventListener.bind(channel);
-  const send = channel.send.bind(channel), close = channel.close.bind(channel);
+  const send = channel.send.bind(channel);
   const waiters = new Map();
   let timer = null, previous = channel.bufferedAmount;
   Object.defineProperty(channel, 'bufferedAmountLowThreshold', { value: 0, writable: true, configurable: true });
@@ -68,7 +68,8 @@ function normalizeNativeDrainEvents(channel) {
   }
   function poll() {
     timer = null;
-    if (!waiters.size || channel.readyState !== 'open') return;
+    if (!waiters.size) return;
+    if (channel.readyState !== 'open') { dispose(); return; }
     const current = channel.bufferedAmount;
     const crossed = previous > channel.bufferedAmountLowThreshold && current <= channel.bufferedAmountLowThreshold;
     previous = current;
@@ -97,7 +98,6 @@ function normalizeNativeDrainEvents(channel) {
     if (channel.bufferedAmount > channel.bufferedAmountLowThreshold) { previous = channel.bufferedAmount; schedule(); }
     return result;
   };
-  channel.close = function(...args) { dispose(); return close(...args); };
   add('close', dispose); add('error', dispose);
 }
 

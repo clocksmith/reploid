@@ -31,6 +31,7 @@ function channels(Events = EventTarget) {
     },
     close() { this.readyState = 'closed'; this.dispatchEvent(new Event('close')); }
   });
+  for (const channel of result) Object.defineProperty(channel, 'close', { value: channel.close, writable: false, configurable: false });
   return result.map(normalizeNativeDataChannel);
 }
 const limits = { maxFrameBytes: 128, maxControlBytes: 1024, maxChunkBytes: 1024,
