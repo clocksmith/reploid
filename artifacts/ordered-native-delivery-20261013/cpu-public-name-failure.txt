@@ -1,0 +1,20 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: createResidentPartitionSession
++ actual - expected
+
++ 'undefined'
+- 'function'
+
+    at file:///var/tmp/reploid-ordered-native-d29cdec8-20261013/check-installed.js:16:34 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 'undefined',
+  expected: 'function',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.1

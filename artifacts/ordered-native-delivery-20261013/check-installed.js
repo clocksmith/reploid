@@ -1,0 +1,26 @@
+// CPU-only public capability and existing numerical-delivery closure check.
+import assert from 'node:assert/strict';
+import { readFile, writeFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+const [base, output] = process.argv.slice(2);
+assert(base && output);
+const app = resolve(base, 'reploid');
+const { verifyNumericalTestDelivery } = await import(pathToFileURL(resolve(base, 'startup/numerical-test-delivery.js')));
+const config = JSON.parse(await readFile(resolve(base, 'startup-config.json')));
+const delivery = await verifyNumericalTestDelivery({ ...config.testDelivery, runtimeDirectory: resolve(app, 'node_modules/doppler-gpu') });
+const runtime = await import(pathToFileURL(resolve(app, 'node_modules/doppler-gpu/src/partitions.js')));
+const { createNativeGpuHost } = await import(pathToFileURL(resolve(app, 'server/native-participant.js')));
+assert.equal(typeof createNativeGpuHost, 'function');
+const names = ['createOrderedLayerPartitionPlan', 'validateOrderedLayerPartitionPlan', 'hashLayerPartitionPlan', 'createManifestResidentPartitionFactory'];
+for (const name of names) assert.equal(typeof runtime[name], 'function', name);
+const plan = runtime.createOrderedLayerPartitionPlan({ modelId: 'cpu-contract', numLayers: 24, hiddenSize: 1024, vocabSize: 248320, splitLayers: [8, 16], activationDtype: 'f32', activationPrecision: 'two-f32' });
+assert.equal(plan.partitions.length, 3);
+assert.equal(plan.schema, 'doppler.layer-partition-contract/v3');
+const planId = await runtime.hashLayerPartitionPlan(plan);
+let providerLoads = 0;
+const host = createNativeGpuHost(() => { providerLoads++; throw Error('CPU control must not open provider'); });
+assert.equal(typeof host.open, 'function'); assert.equal(typeof host.close, 'function');
+await host.close();
+assert.equal(providerLoads, 0);
+await writeFile(output, JSON.stringify({ scope: 'Installed public import/three-stage contract plus unopened host close only', node: process.version, delivery, exports: names, syntheticPlanId: planId, providerLoads, GPUOpened: false, physicalQualified: false }, null, 2) + '\n');

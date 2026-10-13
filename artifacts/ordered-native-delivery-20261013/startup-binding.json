@@ -1,0 +1,31 @@
+{
+  "scope": "CPU-only preparation of existing native fixture startup; no physical acceptance or signed ordered eligibility",
+  "sourceRevision": "d29cdec863665105973879870d3e2d747c45f636",
+  "directory": "/var/tmp/reploid-ordered-native-d29cdec8-20261013/startup",
+  "files": [
+    {
+      "path": "native-partition-process.js",
+      "sha256": "d59c3c2f841dc20f01dd3598357d8457d551e2ce2a22f7adbcae19a2cb4abd02",
+      "bytes": 4060
+    },
+    {
+      "path": "native-provider-observation.js",
+      "sha256": "ece1784bedc5cfe3de79a8f4ee8462c8844777dbf393eba927c9bd9a5e41601b",
+      "bytes": 1005
+    },
+    {
+      "path": "numerical-test-delivery.js",
+      "sha256": "eb6531431666fc7a022a8ebaf48f87e4ef7d3578b22b5e872a441f976ef683db",
+      "bytes": 2784
+    }
+  ],
+  "configSha256": "803966b3ee2ab89099798e5228abfcaaa40acbe0bd4aa3c6b336ee9e122d5d96",
+  "numericalDeliverySha256": "9d7b6eeedd1cc8641a759212c653605344c436bdaead2a054f828b4372687bd2",
+  "nativeDeliverySha256": "1b04241f1ad12defebc2f4e038d7a47b5b07843b6076a38d64ee4ec7b4ab9cd4",
+  "launchReady": false,
+  "remainingInputs": [
+    "Observed per-executor provider/library identity and exact native Node version",
+    "Immutable complete expectations and their hash",
+    "Explicit GPU reservation and authenticated owned inspector endpoints"
+  ]
+}

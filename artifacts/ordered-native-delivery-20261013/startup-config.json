@@ -1,0 +1,11 @@
+{
+  "applicationDirectory": "/var/tmp/reploid-ordered-native-d29cdec8-20261013/reploid",
+  "nativeDeliverySha256": "1b04241f1ad12defebc2f4e038d7a47b5b07843b6076a38d64ee4ec7b4ab9cd4",
+  "providerModule": "webgpu",
+  "testDelivery": {
+    "root": "/var/tmp/reploid-ordered-three-stage-20261013",
+    "bindingPath": "/var/tmp/reploid-ordered-three-stage-20261013/snapshot-binding.json",
+    "bindingSha256": "9d7b6eeedd1cc8641a759212c653605344c436bdaead2a054f828b4372687bd2",
+    "archivePath": "/var/tmp/reploid-ordered-three-stage-20261013/archive.tgz"
+  }
+}

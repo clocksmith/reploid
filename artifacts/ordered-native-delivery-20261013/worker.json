@@ -1,0 +1,64 @@
+{
+  "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
+  "files": {
+    "verify-native.js": "d57de4ad1f9825371df762c87019ee2d4de2948ca46a2a963dd49ba557daaae9",
+    "check-installed.js": "4370a56bd10897e05084046d31622a8f6ebae25cf6856a82c3fa751b727d03ac"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/verify-native.js:9: Dynamic property write detected: [directory, archive, output] - verify input sanitization",
+      "Warning in /testing/verify-native.js:42: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/verify-native.js:12: Suspicious variable name: exec - may indicate code execution",
+      "Warning in /testing/check-installed.js:6: Dynamic property write detected: [base, output] - verify input sanitization"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791906468588,
+        "path": "/testing/verify-native.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [directory, archive, output] - verify input sanitization",
+        "line": 9,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791906468588,
+        "path": "/testing/verify-native.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 42,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791906468588,
+        "path": "/testing/verify-native.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 12,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791906468590,
+        "path": "/testing/check-installed.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [base, output] - verify input sanitization",
+        "line": 6,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 2
+    }
+  }
+}

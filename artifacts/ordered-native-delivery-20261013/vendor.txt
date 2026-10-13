@@ -1,0 +1,1 @@
+{"version":"0.6.28","integrity":"sha512-LtG88/tHsuJ5WjNnEaXpIVxCzZZj9PukXobqMjMU3MjRsxgK6GT79Hu/LzZ+/okSn06NF/cSDyeDHGLxe2W0vA==","files":1976,"target":"/private/var/tmp/reploid-ordered-native-d29cdec8-20261013/source/self/vendor/doppler/0.6.28"}

@@ -1,0 +1,16 @@
+node:internal/fs/promises:636
+  return new FileHandle(await PromisePrototypeThen(
+                        ^
+
+Error: ENOENT: no such file or directory, open '/var/tmp/reploid-ordered-three-stage-20261013/snapshot-binding.json'
+    at async open (node:internal/fs/promises:636:25)
+    at async readFile (node:internal/fs/promises:1235:14)
+    at async verifyNumericalTestDelivery (file:///var/tmp/reploid-ordered-native-d29cdec8-20261013/startup/numerical-test-delivery.js:11:17)
+    at async file:///var/tmp/reploid-ordered-native-d29cdec8-20261013/check-installed.js:11:18 {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/var/tmp/reploid-ordered-three-stage-20261013/snapshot-binding.json'
+}
+
+Node.js v22.22.1
