@@ -34,6 +34,36 @@ Where no physical result is identified, that acceptance remains open. Attachment
 independent jobs and speculative execution have their own gates; they do not
 become prerequisites for otherwise qualified ordinary chat.
 
+## Acquisition, residency and recovery paths
+
+Avoiding repeated acquisition and retaining useful verified pieces are explicit
+objectives. These four paths are variants of the existing journeys, not new
+queues or claims of working recovery:
+
+| Path | Starting point and intended outcome | Existing journeys |
+| --- | --- | --- |
+| Cold acquisition | Required verified pieces are missing. Authorized transfers complete useful stage coverage, followed by GPU preparation and a runnable route. | CONTRIB-01, CONTRIB-02, MESH-04, CHAT-01 |
+| Prepared service | Weights are resident and executable. Requests reuse them and move authorized inputs, activations and outputs without downloading weights again; conversation state remains separately admitted. | CHAT-01, CHAT-02, MESH-01 |
+| Warm replacement | A replacement already has the required weights, but lacks this conversation's inference state. Check execution readiness separately, then reconstruct from authorized history for an explicit fresh attempt. | KEEP-04, MESH-03 |
+| Cold replacement | The replacement lacks both weights and inference state. Show acquisition and reconstruction requirements; offer an explicit restart or unavailable capacity rather than promising transparent continuation. | KEEP-04, MESH-04 |
+
+For each applicable run, record missing verified bytes, actual supplier throughput,
+retries and verification cost, GPU preparation, time to complete a runnable route,
+state reconstruction, prefill and decode separately. Also retain end-to-end time
+and overlap, so parallel phases are not double counted. Measure how often requests
+encounter missing weights, bytes avoided through retention, and whether preparation
+finishes before the contributing computer leaves. Peer supply does not remove
+bandwidth cost; no bottleneck is presumed dominant in both cold and resident use.
+
+Ordinary layer execution retains each stage's inference state locally. Warm
+weights do not provide a conversation checkpoint. If a future, separately qualified
+recovery contract transfers state, measure bytes and latency by model, context and
+active-conversation count, including attention caches, recurrent/convolution state
+and required replay history. Sparse attention alone does not establish retained
+state size, and KV transfer is not assumed cheap. Current recovery uses explicit
+authorized retry; portable checkpoints and transparent failover remain excluded
+by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
+
 ## Catalogue
 
 | Family | User outcomes |
@@ -53,9 +83,9 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Actor and trigger:** A requester opens Reploid to ask a question.
 - **Starting conditions:** A supported model has eligible prepared capacity; disclosure is authorized.
 - **Main flow:** 1. Open chat and choose an available model → 2. Submit a question and authorize its actual recipients → 3. Read the streamed, durably accepted answer.
-- **Successful outcome:** A useful, complete answer addresses the question accurately, or explicitly identifies insufficient knowledge instead of inventing facts. It remains in history; the requester acquires no weights. Basic-chat acceptance does not depend on attachment qualification.
+- **Successful outcome:** A useful, complete answer addresses the question accurately, or explicitly identifies insufficient knowledge instead of inventing facts. It remains in history; the requester acquires no weights. Prepared contributors reuse resident weights without downloading them again per request. Basic-chat acceptance does not depend on attachment qualification.
 - **Interruption and recovery:** Unavailable capacity is explicit. Interrupted published output remains; retry is a new authorized attempt.
-- **Variants:** Phone/desktop requester; browser/native contributors; 1/2/N stages; cold or resident capacity; unfamiliar first use without coaching.
+- **Variants:** Phone/desktop requester; browser/native contributors; 1/2/N stages; prepared service or waiting for cold acquisition through MESH-04; unfamiliar first use without coaching. Record the separate readiness and service phases above.
 - **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md). These cover different scopes/packages; signed N-stage release and [transactional publication milestones](../TODO.md#dr-5) remain open.
 
 ### CHAT-02 — Continue my conversation
@@ -63,7 +93,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Actor and trigger:** A returning requester asks a follow-up.
 - **Starting conditions:** Saved messages exist; eligible contributors may differ from the previous request.
 - **Main flow:** 1. Open the conversation and see saved history → 2. Submit a follow-up and authorize additional recipients if needed → 3. Read the durably accepted response.
-- **Successful outcome:** The answer uses the authorized context, is saved once, and leaves concurrent conversations isolated.
+- **Successful outcome:** The answer uses the authorized context, is saved once, and leaves concurrent conversations isolated. Reused weights avoid reacquisition; retained conversation state and reconstruction from saved history are measured separately.
 - **Interruption and recovery:** Only published output survives. Explicit retry creates a new attempt; history does not restore lost GPU state.
 - **Variants:** Phone/browser requester; browser/native hosts; 1/2/N stages; reused/new residents; overlapping routes.
 - **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [conversation isolation/history tests](../tests/unit/chat-workspace.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); exact-package durable release: [transactional publication milestones](../TODO.md#dr-5).
@@ -134,10 +164,10 @@ become prerequisites for otherwise qualified ordinary chat.
 
 - **Actor and trigger:** A requester wants another attempt after failure.
 - **Starting conditions:** A prior attempt and its published partial output remain visible.
-- **Main flow:** 1. Inspect the failure → 2. Choose Retry and approve any changed recipients → 3. Read a separate new response.
+- **Main flow:** 1. Inspect the failure and whether replacement needs model acquisition or conversation reconstruction → 2. Choose Retry and approve any changed recipients → 3. Read a separate new response after eligible capacity is ready.
 - **Successful outcome:** The old response remains distinct; retry uses a fresh attempt and only authorized context.
-- **Interruption and recovery:** Repeated failure leaves both attempts inspectable; no silent continuation from lost model state.
-- **Variants:** Any failed stage; alternate replica; native/browser replacement; revoked prior grant.
+- **Interruption and recovery:** Repeated failure leaves both attempts inspectable; no silent continuation from lost model state. Warm weights do not establish state readiness. Cold replacement can remain unavailable; acquisition or reconstruction failure preserves the original published answer.
+- **Variants:** Any failed stage; warm replacement with weights but missing conversation state; cold replacement missing both; native/browser replacement; revoked prior grant. Measure acquisition, preparation and authorized reconstruction separately.
 - **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); signed N-stage replacement and durable publication remain open in [transactional publication milestones](../TODO.md#dr-5).
 
 ### KEEP-05 — Manage retained conversations
@@ -168,8 +198,8 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Starting conditions:** Verified pieces exist; a separate bounded file-sharing grant is available.
 - **Main flow:** 1. Select the model and transfer allowance → 2. Enable file sharing → 3. Inspect supplied bytes and remaining allowance.
 - **Successful outcome:** Only permitted verified pieces are supplied and transfers consume the persistent allowance.
-- **Interruption and recovery:** Restart does not silently renew the allowance; supply withdrawal preserves already verified recipient pieces.
-- **Variants:** Storage-only or compute+storage; replacement supplier; interrupted transfer; process restart.
+- **Interruption and recovery:** Restart does not silently renew the allowance. Resume interrupted acquisition within renewed or still-valid grants; retain and verify committed pieces across restarts rather than reacquiring them. Supply withdrawal preserves already verified recipient pieces within retention policy.
+- **Variants:** Storage-only or compute+storage; replacement supplier; interrupted/resumed transfer; process restart; contended or slow supply. Record actual throughput, transferred/verified bytes and avoided reacquisition.
 - **Acceptance evidence:** [custody acceptance](../TODO.md#rep-5); [persistent transfer-budget tests](../tests/unit/native-supply-budget.test.js) and [source verification tests](../tests/unit/work-partition-blake3-source.test.js). Receipts must identify the model and ledger; compute consent alone is insufficient.
 
 ### CONTRIB-03 — Ask while contributing
@@ -238,10 +268,10 @@ become prerequisites for otherwise qualified ordinary chat.
 
 - **Actor and trigger:** A contributor offers capacity for incomplete model coverage.
 - **Starting conditions:** The model is authorized but a required stage or verified supply is absent.
-- **Main flow:** 1. Choose to contribute → 2. Observe which authorized dependency is being prepared → 3. See the model become usable only when a full route is ready.
-- **Successful outcome:** Readiness reflects complete eligible coverage, not merely connected nodes or downloaded pieces.
-- **Interruption and recovery:** Missing file consent or supplier departure is visible; preparation can stop without losing committed pieces.
-- **Variants:** Cold contribution; complementary stages; replacement supplier; demand-driven replicas.
+- **Main flow:** 1. Choose to contribute → 2. Observe authorized acquisition prioritizing pieces that complete a useful route, then GPU preparation → 3. See the model become usable only when a full route is executable.
+- **Successful outcome:** Readiness reflects complete eligible coverage, not merely connected nodes or downloaded pieces. Useful retained pieces reduce future missing bytes and repeated acquisition; measured route readiness includes supplier throughput and preparation.
+- **Interruption and recovery:** Missing file consent or supplier departure is visible. Resume authorized transfers and preserve verified pieces across restarts; unverified partial data never becomes executable merely because a transfer resumed.
+- **Variants:** Cold acquisition; complementary stages; replacement supplier; cold replacement; demand-driven replicas; contributor departure before preparation completes. Record time and bytes to a runnable route, and unsuccessful preparation as well as completed service.
 - **Acceptance evidence:** [stage preparation](../artifacts/ordered-host-preparation-20261013/README.md); [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md). Automatic cold complementary-stage assignment and demand-driven replication remain open in [combined-capacity acceptance](../TODO.md#dr-6).
 
 ### MESH-05 — Wait for capacity without losing my request
@@ -401,6 +431,9 @@ IDs, frozen identities, matrix values, injections and observed outcome.
 | Route/model | Whole model; 2/3/4/5/6/7 ordered stages; larger generated routes; uneven contiguous layer ranges; incompatible middle stage |
 | Hosts | Browser/browser; browser/native; native/native; independent physical hosts versus several logical nodes on one GPU |
 | Replicas | One owner per stage; multiple compatible replicas; stale offer; missing stage; selected replica departure |
+| Readiness path | Cold acquisition; prepared service; warm replacement with weights but no conversation state; cold replacement missing both; verified local pieces still needing GPU preparation |
+| Acquisition and retention | Missing bytes; useful complementary pieces; supplier throughput/contention; interrupted/resumed transfer; verification failure; retained pieces after restart; contributor leaves before route readiness |
+| Inference state | Stage-local attention/recurrent/convolution state; model/context/conversation-count geometry; authorized history reconstruction; measured future state transfer only under a separately qualified contract |
 | Demand | One requester; overlapping conversations; requester also contributes; saturated admission/queue; slow or starved stage |
 | Permission | Fresh/reused/expired/revoked grants; changed model, input or recipients; compute and file supply separately authorized |
 | Durability | Successful commit; failed write; unknown write outcome; duplicate delivery; refresh/upgrade; no publication before commit |
@@ -417,6 +450,8 @@ IDs, frozen identities, matrix values, injections and observed outcome.
 | Bounded coding task | JOB-06, JOB-03, TRUST-01 | Authorized files, isolated preview, console feedback and reviewed real-folder writes | Complete task behavior and effect reconciliation require evidence; optional after basic chat. |
 | Application composition | DEV-01, KEEP-03, TRUST-02 | Browser/native consumers with host-owned ports and independently installed packages | Public import, accepted delivery, persistence failures and settled shutdown require exact-package evidence. |
 | Ordinary conversation | CHAT-01, CHAT-02, CHAT-05, KEEP-01, KEEP-03, KEEP-04 | Current two-stage browser/native baseline | Existing scoped numerical/physical receipts must not be combined into an unrun signed release claim. |
+| Acquire once, serve repeatedly | CONTRIB-01, CONTRIB-02, MESH-04, CHAT-01, CHAT-02 | Cold route acquisition, interrupted supply, contributor restart, then prepared repeated requests | Verify piece retention and resumed transfer; measure acquisition, GPU preparation, route readiness and generation separately. Prepared requests must avoid repeated weight downloads. This acceptance remains open. |
+| Replace with warm or cold capacity | KEEP-04, MESH-03, MESH-04, TRUST-01 | Weights present/state absent versus both absent; long contexts and overlapping conversations | Explicit authorized retry, separate reconstruction cost and honest unavailable capacity; warm weights never imply transferred GPU state. Preserve prior output and unaffected conversations. Physical acceptance remains open. |
 | Ordered network | CHAT-01, CHAT-02, CONTRIB-03, MESH-01, KEEP-02 | Two through seven stages; two overlapping requesters; signaling loss | [Actual source integration](../artifacts/automatic-ordered-participation-20261013/README.md) uses injected numerical stages. Independent physical hosts and signed delivery remain separate. |
 | Replicated larger model | MESH-01, MESH-02, MESH-03, MESH-05 | Twelve computers, three stages, four prepared replicas per stage | Intended capacity scenario; full-route admission, useful answers and independent failure domains need evidence. |
 | Sustained concurrent demand | MESH-01, MESH-05, CONTRIB-04, CONTRIB-05, KEEP-03, KEEP-04 | Twenty conversations, sixty stage states, five states per computer on twelve computers | Intended scenario, not a supported setting. Prove memory, fair progress and settlement before increasing admission limits. Active states do not mean simultaneous GPU operations. |
