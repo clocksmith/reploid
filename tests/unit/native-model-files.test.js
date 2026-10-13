@@ -201,6 +201,9 @@ it('loads nested signed metadata from its pinned native bundle without treating 
     file instanceof URL && file.pathname.endsWith('/self' + metadata.url) ? Promise.resolve(bytes) : original(file, ...args));
   const source = await f.owners[0].preparePartitionSource(f.model);
   try {
+    await f.owners[0].share(f.model, true);
+    expect(f.writes.filter(row => row.type === 'reploid:custody-offer').flatMap(row => row.message.artifacts)
+      .some(file => file.path === metadata.path)).toBe(false);
     expect(await source.artifactStore.readArtifact(artifact)).toEqual(new Uint8Array(bytes));
     expect(f.writes.some(row => row.type === 'reploid:custody-request')).toBe(false);
   } finally { await source.storage.close(); read.mockRestore(); }

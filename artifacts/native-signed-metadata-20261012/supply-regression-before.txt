@@ -1,0 +1,30 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:94345) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/unit/native-model-files.test.js (12 tests | 1 failed | 11 skipped) 81ms
+   × loads nested signed metadata from its pinned native bundle without treating it as a model filename 81ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-model-files.test.js > loads nested signed metadata from its pinned native bundle without treating it as a model filename
+Error: Plain model filename required
+ ❯ assert server/native-model-files.js:14:50
+     12| import policy from '../self/config/chat-files.json' with { type: 'json…
+     13|
+     14| const assert = (ok, message) => { if (!ok) throw new Error(message); };
+       |                                                  ^
+     15| const digest = bytes => createHash('sha256').update(bytes).digest('hex…
+     16| const key = file => { assert(file.hashAlgorithm === 'sha256' && /^[a-f…
+ ❯ readLocal server/native-model-files.js:82:31
+ ❯ server/native-model-files.js:224:56
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 skipped (12)
+   Start at  21:34:09
+   Duration  195ms (transform 40ms, setup 0ms, import 54ms, tests 81ms, environment 0ms)
+
