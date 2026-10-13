@@ -1,0 +1,9 @@
+{
+  "sourceCommit": "720d3514",
+  "files": {
+    "startup/native-partition-process.js": "d59c3c2f841dc20f01dd3598357d8457d551e2ce2a22f7adbcae19a2cb4abd02",
+    "startup/native-provider-observation.js": "ece1784bedc5cfe3de79a8f4ee8462c8844777dbf393eba927c9bd9a5e41601b",
+    "startup/numerical-test-delivery.js": "eb6531431666fc7a022a8ebaf48f87e4ef7d3578b22b5e872a441f976ef683db"
+  },
+  "configSha256": "d97808e54123a778c65da78366ece213a9a9587aed8c9608d9c9bb3b1b2f439c"
+}

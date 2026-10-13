@@ -1,0 +1,23 @@
+{
+  "id": "root-sigmoid-three-stage-load-20261013",
+  "approved": true,
+  "authority": "Root authorizes fresh Mac/AMD/Suby load-only after candidate bindings verified",
+  "frozenAt": "2026-10-13T16:34:58.297033+00:00",
+  "inventorySha256": "906088f3753c108735b5c610bbe1766370c396dc688c100e5175f36ecdecac1f",
+  "bindingSha256": "55c1b860598d8ca2990504b7f29d83a627c953a01c5643053836cf3c0b52d566",
+  "publicCoTenants": {
+    "mac": [
+      34460
+    ],
+    "amd": [
+      4103868,
+      4121371
+    ],
+    "suby": [
+      297260,
+      299769
+    ]
+  },
+  "performanceIsolation": false,
+  "operation": "Load only; no55prefixes until all observations pass and expected identities frozen"
+}
