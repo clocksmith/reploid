@@ -1,0 +1,69 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/ordered-partition-grants.test.js (4 tests | 4 failed) 6ms
+     × signs and verifies complete coordinator-mediated recipient closure with actual WebCrypto 4ms
+     × rejects unapproved relay disclosure, changed stage, changed recipient path and changed payload budget 0ms
+     × rejects revoked or expired execution but permits only the exact owner cleanup 0ms
+     × does not accept signature tampering or reinterpret legacy grants 0ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-grants.test.js > explicit ordinary ordered route grants > signs and verifies complete coordinator-mediated recipient closure with actual WebCrypto
+TypeError: orderedPartitionDisclosure is not a function
+ ❯ fixture tests/unit/ordered-partition-grants.test.js:14:48
+     12|       residentId: 'r' + index, executionId: 'e' + index })) };
+     13|   const identity = { schema: 'reploid.partition-attempt/v2', route, th…
+     14|   const disclosure = orderedPartitionDisclosure(identity);
+       |                                                ^
+     15|   const limits = { maxTokens: 4, maxPromptTokens: 32, maxActivationByt…
+     16|   const controls = { approved: true, ttlMs: 100, disclosure, generatio…
+ ❯ tests/unit/ordered-partition-grants.test.js:24:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/unit/ordered-partition-grants.test.js > explicit ordinary ordered route grants > rejects unapproved relay disclosure, changed stage, changed recipient path and changed payload budget
+TypeError: orderedPartitionDisclosure is not a function
+ ❯ fixture tests/unit/ordered-partition-grants.test.js:14:48
+     12|       residentId: 'r' + index, executionId: 'e' + index })) };
+     13|   const identity = { schema: 'reploid.partition-attempt/v2', route, th…
+     14|   const disclosure = orderedPartitionDisclosure(identity);
+       |                                                ^
+     15|   const limits = { maxTokens: 4, maxPromptTokens: 32, maxActivationByt…
+     16|   const controls = { approved: true, ttlMs: 100, disclosure, generatio…
+ ❯ tests/unit/ordered-partition-grants.test.js:33:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/unit/ordered-partition-grants.test.js > explicit ordinary ordered route grants > rejects revoked or expired execution but permits only the exact owner cleanup
+TypeError: orderedPartitionDisclosure is not a function
+ ❯ fixture tests/unit/ordered-partition-grants.test.js:14:48
+     12|       residentId: 'r' + index, executionId: 'e' + index })) };
+     13|   const identity = { schema: 'reploid.partition-attempt/v2', route, th…
+     14|   const disclosure = orderedPartitionDisclosure(identity);
+       |                                                ^
+     15|   const limits = { maxTokens: 4, maxPromptTokens: 32, maxActivationByt…
+     16|   const controls = { approved: true, ttlMs: 100, disclosure, generatio…
+ ❯ tests/unit/ordered-partition-grants.test.js:45:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  tests/unit/ordered-partition-grants.test.js > explicit ordinary ordered route grants > does not accept signature tampering or reinterpret legacy grants
+TypeError: orderedPartitionDisclosure is not a function
+ ❯ fixture tests/unit/ordered-partition-grants.test.js:14:48
+     12|       residentId: 'r' + index, executionId: 'e' + index })) };
+     13|   const identity = { schema: 'reploid.partition-attempt/v2', route, th…
+     14|   const disclosure = orderedPartitionDisclosure(identity);
+       |                                                ^
+     15|   const limits = { maxTokens: 4, maxPromptTokens: 32, maxActivationByt…
+     16|   const controls = { approved: true, ttlMs: 100, disclosure, generatio…
+ ❯ tests/unit/ordered-partition-grants.test.js:53:15
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  10:06:23
+   Duration  221ms (transform 27ms, setup 0ms, import 36ms, tests 6ms, environment 113ms)
+
