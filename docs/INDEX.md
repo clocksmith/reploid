@@ -2,8 +2,10 @@
 
 Guide to all documentation in the REPLOID project.
 
-Active implementation: [canonical Doppler–Reploid checklist](../TODO.md).
-Topology requirements and inherited fixtures: [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
+Active implementation: [canonical Doppler–Reploid roadmap](../ROADMAP.md).
+Full task entries and acceptance: [canonical requirements](roadmap/requirements.md).
+Historical narrative: [roadmap history](roadmap/history.md).
+Topology requirements and inherited fixtures: [RD-CANON/1](roadmap/rd-canon-1.md).
 
 Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md).
 
@@ -207,7 +209,7 @@ does not create Markdown blueprints unless a module introduces an architectural 
 - `./self/infrastructure/` - Support services
 - `./self/ui/` - Proto UI
 - `./self/blueprints/` - Architectural specifications
-- `docs/` - Human-facing documentation. Component ownership and invariants live in the applicable CATSCAN chain; [TODO.md](../TODO.md) owns active implementation work.
+- `docs/` - Human-facing documentation. Component ownership and invariants live in the applicable CATSCAN chain; [ROADMAP.md](../ROADMAP.md) owns active implementation work.
 
 **External Links:**
 - [DOPPLER](https://github.com/clocksmith/doppler) - WebGPU inference engine (separate repo)

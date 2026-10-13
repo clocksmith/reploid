@@ -6,7 +6,7 @@ The README overview retains its two-contributor example. Its technical diagram
 shows the intended N-stage mesh: a route selected per attempt, a coordinator on
 the first contributor, final-stage sampling, and separate request state on shared
 residents. Five computers illustrate the route; they are not a fixed stage count
-or a claim of qualified capacity. [TODO.md](../TODO.md) owns implementation and
+or a claim of qualified capacity. [ROADMAP.md](../ROADMAP.md) owns implementation and
 qualification status.
 
 The sequences and source map below trace the ordinary two-partition implementation
@@ -573,7 +573,7 @@ These are interaction requirements, not final marketing copy. The user's promise
 
 ## 13. Work selection
 
-[TODO.md](../TODO.md) owns implementation selection and dependencies. This
+[ROADMAP.md](../ROADMAP.md) owns implementation selection and dependencies. This
 architecture defines mechanics and acceptance, not a second ordered campaign.
 A selected change retains its failure reproduction, public contract identities,
 regression checks, resource limits, and failed outcomes.
@@ -614,7 +614,7 @@ resource or disclosure constraints and is introduced after this baseline works.
 ## 15. Evidence routing
 
 [Chat acceptance](chat-mvp.md), the [surface claim index](status/surface-claim-index.json),
-and [TODO.md](../TODO.md) own current qualification and selected work. The
+and [ROADMAP.md](../ROADMAP.md) own current qualification and selected work. The
 [storage checkpoint](../artifacts/open-mesh/20261001/README.md) retains the original
 loading repair and subsequent generation failure; its scope is historical.
 Architecture diagrams and specifications do not establish current deployment.

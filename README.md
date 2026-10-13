@@ -48,7 +48,7 @@ permissions remain distinct.
 Reploid coordinates, Doppler computes, and Poolday transports. The overview keeps
 its two-contributor example; the technical view describes the broader multistage
 target. Neither diagram establishes package, route, concurrency, or deployment
-qualification; the [implementation checklist](TODO.md) owns those gates.
+qualification; the [implementation checklist](ROADMAP.md) owns those gates.
 
 [Architecture and source owners](docs/open-mesh-architecture.md) · [Attempt recovery](docs/open-mesh-architecture.md#attempt-failure-and-recovery)
 

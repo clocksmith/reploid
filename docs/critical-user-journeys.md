@@ -2,7 +2,8 @@
 
 This catalogue describes what people intend to accomplish. It is not a list of
 supported configurations or another engineering queue. Implementation, milestone
-ordering and completion checkboxes remain in [TODO.md](../TODO.md). The
+ordering remain in [ROADMAP.md](../ROADMAP.md); completion checkboxes and full
+acceptance criteria remain in the [canonical requirements](roadmap/requirements.md). The
 [chat contract](chat-mvp.md) and [mesh architecture](open-mesh-architecture.md)
 explain the product and its mechanisms; neither advances acceptance by itself.
 
@@ -62,7 +63,7 @@ active-conversation count, including attention caches, recurrent/convolution sta
 and required replay history. Sparse attention alone does not establish retained
 state size, and KV transfer is not assumed cheap. Current recovery uses explicit
 authorized retry; portable checkpoints and transparent failover remain excluded
-by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
+by [RD-CANON/1](roadmap/rd-canon-1.md).
 
 ## Catalogue
 
@@ -86,7 +87,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** A useful, complete answer addresses the question accurately, or explicitly identifies insufficient knowledge instead of inventing facts. It remains in history; the requester acquires no weights. Prepared contributors reuse resident weights without downloading them again per request. Basic-chat acceptance does not depend on attachment qualification.
 - **Interruption and recovery:** Unavailable capacity is explicit. Interrupted published output remains; retry is a new authorized attempt.
 - **Variants:** Phone/desktop requester; browser/native contributors; 1/2/N stages; prepared service or waiting for cold acquisition through MESH-04; unfamiliar first use without coaching. Record the separate readiness and service phases above.
-- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md). These cover different scopes/packages; signed N-stage release and [transactional publication milestones](../TODO.md#dr-5) remain open.
+- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md). These cover different scopes/packages; signed N-stage release and [transactional publication milestones](roadmap/requirements.md#dr-5) remain open.
 
 ### CHAT-02 — Continue my conversation
 
@@ -96,7 +97,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** The answer uses the authorized context, is saved once, and leaves concurrent conversations isolated. Reused weights avoid reacquisition; retained conversation state and reconstruction from saved history are measured separately.
 - **Interruption and recovery:** Only published output survives. Explicit retry creates a new attempt; history does not restore lost GPU state.
 - **Variants:** Phone/browser requester; browser/native hosts; 1/2/N stages; reused/new residents; overlapping routes.
-- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [conversation isolation/history tests](../tests/unit/chat-workspace.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); exact-package durable release: [transactional publication milestones](../TODO.md#dr-5).
+- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [conversation isolation/history tests](../tests/unit/chat-workspace.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); exact-package durable release: [transactional publication milestones](roadmap/requirements.md#dr-5).
 
 ### CHAT-03 — Ask about an attachment
 
@@ -106,7 +107,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** The answer addresses the question accurately, with factual claims supported by the cited passages, or explicitly identifies insufficient evidence. Authorized passages arrive in order, and usable citations navigate to the supporting source. Citation presence alone is insufficient.
 - **Interruption and recovery:** Keep the attachment and draft after failure; never silently drop input to fit a route.
 - **Variants:** One/multiple attachments; follow-up reuse; changed recipients; long context.
-- **Acceptance evidence:** [attachment passages/history/export controls](../tests/unit/document-comparison.test.js); [application acceptance](../TODO.md#rep-7). Factual/citation qualification remains separate and incomplete; it does not gate basic chat.
+- **Acceptance evidence:** [attachment passages/history/export controls](../tests/unit/document-comparison.test.js); [application acceptance](roadmap/requirements.md#rep-7). Factual/citation qualification remains separate and incomplete; it does not gate basic chat.
 
 ### CHAT-04 — Start with another supported model
 
@@ -116,7 +117,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** The selected model identity is preserved; an unavailable choice is not silently substituted.
 - **Interruption and recovery:** Keep the draft and original conversation if preparation fails.
 - **Variants:** Ready/busy/preparing models; compatible adapters; local or distributed route.
-- **Acceptance evidence:** [model/adapter substitution tests](../tests/unit/chat-workspace.test.js); [application acceptance](../TODO.md#rep-7). Model-specific physical/release evidence must be attached before support is claimed.
+- **Acceptance evidence:** [model/adapter substitution tests](../tests/unit/chat-workspace.test.js); [application acceptance](roadmap/requirements.md#rep-7). Model-specific physical/release evidence must be attached before support is claimed.
 
 ### CHAT-05 — Inspect and copy an answer
 
@@ -138,7 +139,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** The same committed messages and drafts return without redispatching old requests.
 - **Interruption and recovery:** Storage failure is explicit; unreadable history is not overwritten with an empty success state.
 - **Variants:** Fresh/returning installation; upgrade; browser restart; interrupted prior attempt.
-- **Acceptance evidence:** [draft transaction tests](../tests/unit/chat-draft-transactions.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); frozen upgrade acceptance: [transactional publication milestones](../TODO.md#dr-5).
+- **Acceptance evidence:** [draft transaction tests](../tests/unit/chat-draft-transactions.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); frozen upgrade acceptance: [transactional publication milestones](roadmap/requirements.md#dr-5).
 
 ### KEEP-02 — Reconnect during a request
 
@@ -148,7 +149,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** Healthy authorized execution survives signaling loss; lost execution state is reported honestly.
 - **Interruption and recovery:** Preserve published output and keep unknown remote allocations charged until settlement.
 - **Variants:** Bootstrap loss; healthy data channel; contributor departure at any stage; independent networks.
-- **Acceptance evidence:** [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); independent-network and signed N-stage acceptance remain open in [combined-capacity acceptance](../TODO.md#dr-6).
+- **Acceptance evidence:** [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); independent-network and signed N-stage acceptance remain open in [combined-capacity acceptance](roadmap/requirements.md#dr-6).
 
 ### KEEP-03 — Stop one response
 
@@ -158,7 +159,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** No further output is published for the stopped attempt; unrelated conversations and weights survive.
 - **Interruption and recovery:** Unknown or failed cleanup remains visible and charged; offer Retry stopping when supported.
 - **Variants:** Queued/acquiring/prefilling/decoding attempts; overlapping stops; shared contributors.
-- **Acceptance evidence:** [ordered runner controls](../artifacts/ordered-route-runner-20261013/README.md); [scoped physical cleanup/retry](../artifacts/cleanup-failure-20261012/README.md); concurrent long exact-package acceptance: [transactional publication milestones](../TODO.md#dr-5).
+- **Acceptance evidence:** [ordered runner controls](../artifacts/ordered-route-runner-20261013/README.md); [scoped physical cleanup/retry](../artifacts/cleanup-failure-20261012/README.md); concurrent long exact-package acceptance: [transactional publication milestones](roadmap/requirements.md#dr-5).
 
 ### KEEP-04 — Retry an interrupted answer
 
@@ -168,7 +169,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** The old response remains distinct; retry uses a fresh attempt and only authorized context.
 - **Interruption and recovery:** Repeated failure leaves both attempts inspectable; no silent continuation from lost model state. Warm weights do not establish state readiness. Cold replacement can remain unavailable; acquisition or reconstruction failure preserves the original published answer.
 - **Variants:** Any failed stage; warm replacement with weights but missing conversation state; cold replacement missing both; native/browser replacement; revoked prior grant. Measure acquisition, preparation and authorized reconstruction separately.
-- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); signed N-stage replacement and durable publication remain open in [transactional publication milestones](../TODO.md#dr-5).
+- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); signed N-stage replacement and durable publication remain open in [transactional publication milestones](roadmap/requirements.md#dr-5).
 
 ### KEEP-05 — Manage retained conversations
 
@@ -200,7 +201,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** Only permitted verified pieces are supplied and transfers consume the persistent allowance.
 - **Interruption and recovery:** Restart does not silently renew the allowance. Resume interrupted acquisition within renewed or still-valid grants; retain and verify committed pieces across restarts rather than reacquiring them. Supply withdrawal preserves already verified recipient pieces within retention policy.
 - **Variants:** Storage-only or compute+storage; replacement supplier; interrupted/resumed transfer; process restart; contended or slow supply. Record actual throughput, transferred/verified bytes and avoided reacquisition.
-- **Acceptance evidence:** [custody acceptance](../TODO.md#rep-5); [persistent transfer-budget tests](../tests/unit/native-supply-budget.test.js) and [source verification tests](../tests/unit/work-partition-blake3-source.test.js). Receipts must identify the model and ledger; compute consent alone is insufficient.
+- **Acceptance evidence:** [custody acceptance](roadmap/requirements.md#rep-5); [persistent transfer-budget tests](../tests/unit/native-supply-budget.test.js) and [source verification tests](../tests/unit/work-partition-blake3-source.test.js). Receipts must identify the model and ledger; compute consent alone is insufficient.
 
 ### CONTRIB-03 — Ask while contributing
 
@@ -220,7 +221,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** New work is rejected or queued predictably when it cannot be admitted; unknown allocations remain charged.
 - **Interruption and recovery:** Lowering limits cannot erase outstanding ownership or silently claim immediate GPU preemption.
 - **Variants:** Browser/native co-hosting; per-attempt state; shared physical GPU; retained cleanup debt.
-- **Acceptance evidence:** [memory settlement tests](../tests/unit/partition-memory-settlement.test.js); [combined-capacity acceptance](../TODO.md#dr-6). Shared physical-device enforcement remains open; per-executor accounting is not equivalent.
+- **Acceptance evidence:** [memory settlement tests](../tests/unit/partition-memory-settlement.test.js); [combined-capacity acceptance](roadmap/requirements.md#dr-6). Shared physical-device enforcement remains open; per-executor accounting is not equivalent.
 
 ### CONTRIB-05 — Pause or withdraw contribution
 
@@ -242,7 +243,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** Conversations make bounded progress and cannot read or cancel each other’s state.
 - **Interruption and recovery:** Cancel or fail one attempt while survivors continue; unknown ownership remains reserved.
 - **Variants:** Shared/disjoint routes; replicas; multiple requester roles; uneven stage speeds.
-- **Acceptance evidence:** [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md); [ordered runner controls](../artifacts/ordered-route-runner-20261013/README.md); physical fairness and long concurrency acceptance: [combined-capacity acceptance](../TODO.md#dr-6).
+- **Acceptance evidence:** [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md); [ordered runner controls](../artifacts/ordered-route-runner-20261013/README.md); physical fairness and long concurrency acceptance: [combined-capacity acceptance](roadmap/requirements.md#dr-6).
 
 ### MESH-02 — Access a model my device cannot run
 
@@ -252,7 +253,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** The workload succeeds collaboratively under limits that prevent each executor running it alone.
 - **Interruption and recovery:** Missing stages are explicit; replacement requires a new authorized attempt when state was lost.
 - **Variants:** 2/N stages; uneven layer ranges; three stages with four replicas each on twelve computers.
-- **Acceptance evidence:** [runtime/source composition](../artifacts/ordered-route-integration-20261013/README.md); [combined-capacity acceptance](../TODO.md#dr-6). The twelve-computer deployment and capacity advantage remain acceptance targets.
+- **Acceptance evidence:** [runtime/source composition](../artifacts/ordered-route-integration-20261013/README.md); [combined-capacity acceptance](roadmap/requirements.md#dr-6). The twelve-computer deployment and capacity advantage remain acceptance targets.
 
 ### MESH-03 — Join a busy network
 
@@ -272,7 +273,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** Readiness reflects complete eligible coverage, not merely connected nodes or downloaded pieces. Useful retained pieces reduce future missing bytes and repeated acquisition; measured route readiness includes supplier throughput and preparation.
 - **Interruption and recovery:** Missing file consent or supplier departure is visible. Resume authorized transfers and preserve verified pieces across restarts; unverified partial data never becomes executable merely because a transfer resumed.
 - **Variants:** Cold acquisition; complementary stages; replacement supplier; cold replacement; demand-driven replicas; contributor departure before preparation completes. Record time and bytes to a runnable route, and unsuccessful preparation as well as completed service.
-- **Acceptance evidence:** [stage preparation](../artifacts/ordered-host-preparation-20261013/README.md); [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md). Automatic cold complementary-stage assignment and demand-driven replication remain open in [combined-capacity acceptance](../TODO.md#dr-6).
+- **Acceptance evidence:** [stage preparation](../artifacts/ordered-host-preparation-20261013/README.md); [automatic network source integration](../artifacts/automatic-ordered-participation-20261013/README.md). Automatic cold complementary-stage assignment and demand-driven replication remain open in [combined-capacity acceptance](roadmap/requirements.md#dr-6).
 
 ### MESH-05 — Wait for capacity without losing my request
 
@@ -294,7 +295,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** One accepted result exists per unit; retries need not imply exactly-once execution.
 - **Interruption and recovery:** Keep committed units and retry unfinished ones after contributor loss.
 - **Variants:** Embedding/indexing or other qualified operations; many workers; reordered delivery.
-- **Acceptance evidence:** [durable job tests](../tests/unit/pool-peer-pack-job.test.js) and [independent-unit acceptance fixture](../tests/e2e/independent-units.spec.js); [durable job foundation](../TODO.md#rep-1). Indexing remains deferred; generation permission does not authorize another operation.
+- **Acceptance evidence:** [durable job tests](../tests/unit/pool-peer-pack-job.test.js) and [independent-unit acceptance fixture](../tests/e2e/independent-units.spec.js); [durable job foundation](roadmap/requirements.md#rep-1). Indexing remains deferred; generation permission does not authorize another operation.
 
 ### JOB-02 — Let an agent coordinate bounded subtasks
 
@@ -334,7 +335,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** No newly unauthorized units are admitted and previously committed results remain inspectable.
 - **Interruption and recovery:** Unknown remote execution stays charged until observed settlement; retry only unfinished authorized units.
 - **Variants:** Worker loss; overlapping stops; partial job; storage failure.
-- **Acceptance evidence:** [durable job tests](../tests/unit/pool-peer-pack-job.test.js) and [independent-unit acceptance fixture](../tests/e2e/independent-units.spec.js); [durable jobs and contribution acceptance](../TODO.md#rep-3). Job cancellation is separate from generation-state recovery.
+- **Acceptance evidence:** [durable job tests](../tests/unit/pool-peer-pack-job.test.js) and [independent-unit acceptance fixture](../tests/e2e/independent-units.spec.js); [durable jobs and contribution acceptance](roadmap/requirements.md#rep-3). Job cancellation is separate from generation-state recovery.
 
 ### JOB-06 — Build and check a change with coding tools
 
@@ -344,7 +345,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** The requested behavior passes declared checks, the applied files match the approved diff, and unrelated files remain intact. An unsuccessful proposal is reported as unsuccessful.
 - **Interruption and recovery:** Denied writes, changed file versions and unavailable tools stop the affected action. Reconcile unknown external effects under JOB-03 before retry; preserve existing files and accepted results when cancellation occurs.
 - **Variants:** Browser preview; host file ports; native workspace adapters; read-only review; failed checks; concurrent file edits.
-- **Acceptance evidence:** [tool authority journey](zero/critical-user-journeys.md); [application implementation and acceptance queue](../TODO.md#rep-7). Existing tool components do not qualify this complete coding workflow; its integration follows basic chat.
+- **Acceptance evidence:** [tool authority journey](zero/critical-user-journeys.md); [application implementation and acceptance queue](roadmap/requirements.md#rep-7). Existing tool components do not qualify this complete coding workflow; its integration follows basic chat.
 
 ## Control trust and change
 
@@ -366,7 +367,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** Revocation blocks further authorized steps as defined by the contract and cannot be silently renewed.
 - **Interruption and recovery:** Already disclosed bytes cannot be recalled; outstanding execution ownership still requires settlement.
 - **Variants:** Queued/running requests; changed recipients; disconnected contributor.
-- **Acceptance evidence:** [thread grant tests](../tests/unit/chat-thread-grants.test.js); [ordered grant tests](../tests/unit/ordered-partition-grants.test.js); exact-package revocation acceptance: [transactional publication milestones](../TODO.md#dr-5).
+- **Acceptance evidence:** [thread grant tests](../tests/unit/chat-thread-grants.test.js); [ordered grant tests](../tests/unit/ordered-partition-grants.test.js); exact-package revocation acceptance: [transactional publication milestones](roadmap/requirements.md#dr-5).
 
 ### TRUST-03 — Inspect contribution and execution costs
 
@@ -396,7 +397,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** The intended bytes run and retained histories/drafts remain usable; unrelated experiments stay inactive.
 - **Interruption and recovery:** Failed rollout preserves the prior accepted configuration and explicit recovery evidence.
 - **Variants:** Browser/native/runtime releases; reversible policy; fresh/existing installations.
-- **Acceptance evidence:** [evaluated improvement tests](../tests/unit/improvement-episode.test.js); [release gates](../TODO.md#all-6). Approval alone does not qualify numerical, lifecycle or application behavior.
+- **Acceptance evidence:** [evaluated improvement tests](../tests/unit/improvement-episode.test.js); [release gates](roadmap/requirements.md#all-6). Approval alone does not qualify numerical, lifecycle or application behavior.
 
 ## Compose an application
 
@@ -408,7 +409,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** The application receives only accepted results and preserves its own interface, credentials and storage authority. Shutdown settles owned resources without disrupting other consumers.
 - **Interruption and recovery:** Failed or unknown storage outcomes cannot publish candidate results. Revocation stops further admission; uncertain remote ownership remains charged until observed settlement. Restart uses explicit authorized recovery rather than assuming retained GPU state.
 - **Variants:** Browser/native composition; injected ports; independent consumers sharing prepared capacity; installed package outside the repository; cancellation and shutdown failures.
-- **Acceptance evidence:** [public library consumer harness](../tests/library-package-acceptance.js); [typed public contracts](../tests/types/library-contracts.ts); [browser cancellation controls](../tests/unit/browser-library-cancellation.test.js). These identify component and consumer checks, not full signed N-stage acceptance; [exact-package release gates](../TODO.md#all-6) remain applicable.
+- **Acceptance evidence:** [public library consumer harness](../tests/library-package-acceptance.js); [typed public contracts](../tests/types/library-contracts.ts); [browser cancellation controls](../tests/unit/browser-library-cancellation.test.js). These identify component and consumer checks, not full signed N-stage acceptance; [exact-package release gates](roadmap/requirements.md#all-6) remain applicable.
 
 ### DEV-02 — Connect an existing model client
 
@@ -418,7 +419,7 @@ by [RD-CANON/1](../TODO.md#canonical-topology-contract-rd-canon1).
 - **Successful outcome:** Supported parameters preserve declared semantics, unsupported parameters fail explicitly before execution, and accepted output reaches the application without exposing unpublished candidates.
 - **Interruption and recovery:** Protocol errors, capacity loss, revoked grants and unknown persistence outcomes remain distinguishable. Tool outcomes require JOB-03 reconciliation; reconnecting does not silently replay external effects.
 - **Variants:** OpenAI Chat Completions/Responses; Anthropic Messages; tool calls/results; structured outputs; seed/top_p; browser/native consumers; streaming and nonstreaming calls.
-- **Acceptance evidence:** [existing library consumer harness](../tests/library-package-acceptance.js); [compatibility implementation queue](../TODO.md#rep-7). This is a compatibility target, not a claim that all listed protocols or settings are currently supported.
+- **Acceptance evidence:** [existing library consumer harness](../tests/library-package-acceptance.js); [compatibility implementation queue](roadmap/requirements.md#rep-7). This is a compatibility target, not a claim that all listed protocols or settings are currently supported.
 
 ## Coverage matrix
 
@@ -484,7 +485,7 @@ If it changes recipients, TRUST-01 applies before any additional disclosure.
 
 These retained registries own status for their named supporting surfaces; they
 do not qualify the distributed-chat catalogue above. Implementation sequencing
-for the shared mesh remains in TODO.md.
+for the shared mesh remains in ROADMAP.md.
 Architecture documents and blueprints may explain mechanisms, but they do not
 advance completion status.
 
