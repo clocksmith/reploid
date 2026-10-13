@@ -1,0 +1,134 @@
+{
+  "at": "2026-10-13T11:57:33.683Z",
+  "sources": [
+    {
+      "path": "packages/reploid/src/transport/swarm.js",
+      "sha256": "407d453582b837099f34c07788892d88a1b1af49db2625ea2799ad59e3d2da6e"
+    },
+    {
+      "path": "tests/unit/swarm-signaling-independence.test.js",
+      "sha256": "ce5d688c3a3c83ceb60f7858389601c17c1e87f922dfb02f60de606a2fc5da25"
+    }
+  ],
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/transport/swarm.js: Path traversal pattern detected (../) - potential security risk",
+      "File exceeds 500 lines (1229) - consider splitting",
+      "File has 102 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code",
+      "Warning in /tests/unit/swarm-signaling-independence.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Nesting depth of 6 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892653673,
+        "path": "/packages/reploid/src/transport/swarm.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791892653676,
+        "metric": "lines",
+        "value": 1229,
+        "threshold": 500,
+        "message": "File exceeds 500 lines (1229) - consider splitting",
+        "path": "/packages/reploid/src/transport/swarm.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791892653676,
+        "metric": "functions",
+        "value": 102,
+        "threshold": 20,
+        "message": "File has 102 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/transport/swarm.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791892653676,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/transport/swarm.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791892653679,
+        "path": "/tests/unit/swarm-signaling-independence.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791892653680,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/tests/unit/swarm-signaling-independence.test.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/packages/reploid/src/transport/swarm.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/tests/unit/swarm-signaling-independence.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "lines",
+          "value": 1229,
+          "threshold": 500,
+          "message": "File exceeds 500 lines (1229) - consider splitting",
+          "path": "/packages/reploid/src/transport/swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 102,
+          "threshold": 20,
+          "message": "File has 102 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/transport/swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/transport/swarm.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/tests/unit/swarm-signaling-independence.test.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}

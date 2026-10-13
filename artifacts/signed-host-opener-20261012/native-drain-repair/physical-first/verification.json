@@ -1,0 +1,14 @@
+{
+  "applicationFiles": 123,
+  "runtimeFiles": 1976,
+  "artifactSha256": "56f488a7035efdfd98214e706b8233a6e2e38c055dbabe748916738163ae15be",
+  "runtimeArchiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "descriptorSha256": "e91c942b035f5d73292e9bb8a3bc846a3839a26cfead96bb45582efee0ee3cba",
+  "consentSha256": "1db04d6fed8b3861625689f147c5c6d9627f38695988f00dad8a73283e855d54",
+  "identitySha256": "871ad22c05ae95c8780707cf7cf4520d935d6696be6b380082c570e1aff94e30",
+  "budgetBefore": {
+    "schema": "reploid.custody-supply-budget/v1",
+    "maxBytes": 4294967296,
+    "reservedBytes": 457745496
+  }
+}

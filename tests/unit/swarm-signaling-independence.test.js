@@ -4,7 +4,7 @@ import { resolveConfig } from '../../packages/reploid/src/config/index.js';
 
 afterEach(() => vi.useRealTimers());
 
-function fixture() {
+function fixture({ failChannel = false } = {}) {
   const sockets = [], connections = [], events = [];
   class Socket {
     static OPEN = 1;
@@ -19,6 +19,7 @@ function fixture() {
     constructor() { connections.push(this); }
     close = vi.fn();
     createDataChannel(label, options) {
+      if (label === 'reploid' && failChannel) throw new Error('native channel adaptation failed');
       if (label === 'reploid') return this.channel;
       return Object.assign(new EventTarget(), { label, ...options, readyState: 'open',
         close: vi.fn(), send: vi.fn(), maxRetransmits: null, maxPacketLifeTime: null });
@@ -237,4 +238,20 @@ it('cancels terminal peer recovery on explicit disconnect', async () => {
   await vi.advanceTimersByTimeAsync(5000);
   expect(f.sockets).toHaveLength(1);
   expect(f.connections).toHaveLength(1);
+});
+
+// Channel construction can throw before the peer is registered for disconnect.
+it('closes a newly allocated connection when primary channel creation fails', async () => {
+  vi.useFakeTimers();
+  const f = fixture({ failChannel: true });
+  try {
+    const pending = f.swarm.init(); f.sockets[0].onopen();
+    await f.sockets[0].receive({ type: 'joined', peerId: 'local', roomId: 'test', peers: ['direct'] });
+    await pending;
+    expect(f.connections).toHaveLength(1);
+    expect(f.connections[0].close).toHaveBeenCalledOnce();
+    expect(f.swarm.getConnectedPeers()).toEqual([]);
+  } finally { f.swarm.disconnect(); }
+  expect(f.connections[0].close).toHaveBeenCalledOnce();
+  expect(vi.getTimerCount()).toBe(0);
 });

@@ -1,0 +1,8 @@
+{
+  "accepted": false,
+  "artifact": "56f488a7035efdfd98214e706b8233a6e2e38c055dbabe748916738163ae15be",
+  "error": "Cannot assign to read only property close of RTCDataChannel",
+  "phase": "primary channel creation; before any resident preparation/inference",
+  "shutdown": "SIGTERM did not exit within20seconds; root stopped ownedPID2027092 withSIGKILL; no normal settlement claim",
+  "logSha256": "0dfe6fc1cbb3da7ba621813d56e68eee926722c5ca6e1c8f85020cc3d53b377e"
+}
