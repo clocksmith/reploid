@@ -21,8 +21,8 @@ export type AdmissionEnvelope = Omit<PublicationEnvelope<never, never>, 'success
 export interface PublicationHistory<Attempt, Policy, Cursor, Publication> {
   schema: 'reploid.publication-history/v1'; writerEpoch: string | null; head: string | null;
   attempts: Array<{ identity: Attempt; generationPolicy: Policy; executionIdentity: string; vocabSize: number;
-    deadlineAt: number; digest: string; status: 'live' | 'interrupted' | 'cancelled' | 'completed'; nextSequence: number; cursor: Cursor | null }>;
-  records: Array<{ publication: Publication; receipt: PublicationReceipt }>;
+    deadlineAt: number; requireCommitEvidence?: true; digest: string; status: 'live' | 'interrupted' | 'cancelled' | 'completed'; nextSequence: number; cursor: Cursor | null }>;
+  records: Array<{ publication: Publication; receipt: PublicationReceipt; evidence?: readonly unknown[]; evidenceDigest?: string }>;
 }
 export function createConversationPublication<Attempt extends PublicationAttempt, Policy,
   Cursor extends { terminal: boolean }, Ack extends { stageId: string }, Publication extends PublicationEnvelope<Cursor, Ack>,
@@ -36,14 +36,17 @@ export function createConversationPublication<Attempt extends PublicationAttempt
       validateExecutionPublication(input: unknown, attempt: Attempt, policy: Policy, vocabSize: number, base: Cursor | null): Publication;
       validateAdmissionPublication(input: unknown, attempt: Attempt, policy: Policy, vocabSize: number): Admission;
     };
-    authenticateCommit(ack: Ack, stage: Attempt['stages'][number], attempt: Attempt): Promise<boolean>;
+    authenticateCommit(ack: Ack, stage: Attempt['stages'][number], attempt: Attempt, evidence?: unknown): Promise<boolean>;
+    /** Require exact signed stage evidence in the same transaction as output. Persisted admission prevents restart downgrade. */
+    requireCommitEvidence?: boolean;
     authorize(scope: { conversationId: string; writerEpoch: string; action: 'writer'|'admit'|'publish'|'cancel'|'read'|'replay'; attempt: Attempt | null }): boolean;
     policy?: { maxAttempts: number; maxPublications: number }; now?: () => number;
   }): {
+    readonly requiresCommitEvidence: boolean;
     claimWriter(expectedEpoch: string | null): Promise<{ writerEpoch: string; head: string | null }>;
     admitAttempt(input: { identity: Attempt; generationPolicy: Policy; executionIdentity: string; vocabSize: number; deadlineAt: number }):
       Promise<PublicationHistory<Attempt, Policy, Cursor, Publication | Admission>['attempts'][number]>;
-    publish(input: Publication | Admission): Promise<PublicationReceipt>;
+    publish(input: Publication | Admission, options?: { evidence?: readonly unknown[] }): Promise<PublicationReceipt>;
     cancel(attemptId: string, coordinatorEpoch: string): Promise<{ status: string; head: string | null }>;
     reconcile(): Promise<PublicationHistory<Attempt, Policy, Cursor, Publication | Admission>>;
     readPublished(afterIndex: number): Promise<PublicationHistory<Attempt, Policy, Cursor, Publication | Admission>['records']>;

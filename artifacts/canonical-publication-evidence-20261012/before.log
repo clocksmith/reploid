@@ -1,0 +1,23 @@
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: first publication needs durable signed evidence
+    at async file:///Users/xyz/deco/reploid/tests/canonical-publication-evidence-source.js:65:3 {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: Error: Unauthenticated stage commit
+      at reject (file:///Users/xyz/deco/reploid/packages/reploid/src/chat/workspace-publication.js:5:49)
+      at assert (file:///Users/xyz/deco/reploid/packages/reploid/src/chat/workspace-publication.js:6:44)
+      at Object.publish (file:///Users/xyz/deco/reploid/packages/reploid/src/chat/workspace-publication.js:115:9)
+      at async waitForActual (node:assert:644:5)
+      at async Function.rejects (node:assert:767:25)
+      at async file:///Users/xyz/deco/reploid/tests/canonical-publication-evidence-source.js:65:3 {
+    code: 'PUBLICATION_REJECTED'
+  },
+  expected: /evidence/i,
+  operator: 'rejects',
+  diff: 'simple'
+}
+
+Node.js v22.20.0

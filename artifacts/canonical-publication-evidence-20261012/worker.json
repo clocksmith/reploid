@@ -1,0 +1,67 @@
+{
+  "scope": "Actual Verification Worker source validation; no physical execution",
+  "sources": {
+    "packages/reploid/src/chat/workspace-publication.js": "0568c8ef40209063794757a4fc9d2f7690e0afbb84175ea880afdd7f6fc27002"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/chat/workspace-publication.js:18: Dynamic property write detected: [method] - verify input sanitization",
+      "File has 32 functions (max 20) - consider modularizing",
+      "Nesting depth of 6 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791858463549,
+        "path": "/packages/reploid/src/chat/workspace-publication.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [method] - verify input sanitization",
+        "line": 18,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791858463550,
+        "metric": "functions",
+        "value": 32,
+        "threshold": 20,
+        "message": "File has 32 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/chat/workspace-publication.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791858463550,
+        "metric": "nesting",
+        "value": 6,
+        "threshold": 5,
+        "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/chat/workspace-publication.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 32,
+          "threshold": 20,
+          "message": "File has 32 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/chat/workspace-publication.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 6,
+          "threshold": 5,
+          "message": "Nesting depth of 6 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/chat/workspace-publication.js"
+        }
+      ],
+      "filesAnalyzed": 1
+    }
+  }
+}

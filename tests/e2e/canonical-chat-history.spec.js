@@ -133,3 +133,66 @@ test('Verification Worker accepts the transactional adapter', async ({ page }) =
   expect(result.errors).toEqual([]);
   expect(result.passed).toBe(true);
 });
+
+test('signed canonical evidence survives actual IndexedDB closure and rejects retained corruption', async ({ page }) => {
+  test.skip(!process.env.DOPPLER_SOURCE_ROOT, 'Explicit source contract required; accepted pin unchanged');
+  const policy = JSON.parse(await readFile(process.env.DOPPLER_SOURCE_ROOT + '/tests/fixtures/canonical-generation-policy.json', 'utf8'));
+  const observed = await page.evaluate(async policy => {
+    const [{ openChatHistory }, { createConversationPublication }, runtime, { createSigningIdentity },
+      { createPartitionStageCommitAuthority, verifyPartitionStageCommit }, { createResidentTargetState },
+      { createResidentOutputState }, { createBundledIncrementalDecoder }] = await Promise.all([
+      import('/host/chat-history.js'), import('/vendor/reploid/chat/workspace-publication.js'), import('/doppler/partitions.js'),
+      import('/vendor/reploid/artifacts/identity.js'), import('/vendor/reploid/mesh/partitions/partition-stage-commit.js'),
+      import('/doppler/inference/resident-target-state.js'), import('/doppler/inference/resident-output-state.js'),
+      import('/doppler/inference/tokenizers/bundled/incremental-decoder.js'),
+    ]);
+    const hash = 'sha256:' + 'a'.repeat(64), epoch = '0'.repeat(32);
+    const keys = await Promise.all([0, 1].map(() => createSigningIdentity({ algorithm: 'ECDSA' })));
+    const stages = keys.map((key, i) => ({ stageId: 'sha256:' + String(i).repeat(64), participantId: key.peerId,
+      participantEpoch: epoch, deviceEpoch: epoch, residentId: 'r' + i, partitionIndex: i, executionId: hash }));
+    const generation = runtime.canonicalGenerationIdentity(policy, hash, 100);
+    const attempt = { schema: 'doppler.resident-attempt/v2', attemptId: 'a', requesterId: 'q',
+      inputDigest: runtime.tokenDigest([1, 2], 100, 64), authorizationScope: hash, routeId: hash,
+      generationId: generation.generationId, coordinatorEpoch: epoch, publisherEpoch: epoch, routeKind: 'two-stage-layer', stages };
+    const decoder = () => createBundledIncrementalDecoder({ tokenForId: id => String(id), byteLevel: false,
+      byteDecoder: new Map(), wordPiece: false, splitEveryCharacter: false, wordPiecePrefix: '##' });
+    const target = createResidentTargetState([1, 2], policy, 100, generation.generationId,
+      createResidentOutputState(decoder(), decoder(), policy, 100));
+    const logits = new Float32Array(100).fill(-Infinity); logits[3] = 0;
+    const transition = target.bootstrap(logits);
+    const authorities = keys.map((identity, i) => createPartitionStageCommitAuthority({ runtime, identity, stage: stages[i] }));
+    const commits = await Promise.all(authorities.map(a => a.sign({ attempt, sequence: 0, baseCursorId: null, transition })));
+    const body = { schema: 'doppler.execution-publication/v2', attemptId: attempt.attemptId, coordinatorEpoch: epoch,
+      attemptDigest: runtime.residentAttemptDigest(attempt), sequence: 0, expectedRevision: null, previousPublicationDigest: null,
+      baseCursorId: null, decisionId: commits[0].acknowledgment.decisionId, acceptedTokenIds: transition.acceptedTokenIds,
+      tokenRange: transition.tokenRange, successor: transition.successor, delta: { text: transition.delta, outputDigest: transition.outputDigest },
+      stoppingOutcome: transition.successor.stopReason, acknowledgments: commits.map(c => c.acknowledgment) };
+    const publication = { ...body, publicationDigest: runtime.metadataDigest(body.schema, body) };
+    const options = { name: 'canonical-evidence-' + crypto.randomUUID(), maxConversations: 1,
+      maxConversationBytes: 1000000, openTimeoutMs: 1000 };
+    const ownerOptions = { conversationId: 'thread', writerEpoch: epoch, doppler: runtime, authorize: () => true,
+      requireCommitEvidence: true, authenticateCommit: (acknowledgment, stage, attempt, evidence) =>
+        verifyPartitionStageCommit({ runtime, acknowledgment, stage, attempt, evidence }) };
+    let store = await openChatHistory(options);
+    const first = createConversationPublication({ ...ownerOptions, store });
+    await first.claimWriter(null); await first.admitAttempt({ identity: attempt, generationPolicy: policy,
+      executionIdentity: hash, vocabSize: 100, deadlineAt: Date.now() + 60000 });
+    const evidence = commits.map(c => c.evidence);
+    const receipt = await first.publish(publication, { evidence });
+    await store.close(); authorities.forEach(a => a.close()); keys.length = 0;
+    store = await openChatHistory(options);
+    const restarted = createConversationPublication({ ...ownerOptions, requireCommitEvidence: false, store });
+    const duplicate = await restarted.publish(publication), [saved] = await restarted.readPublished(-1);
+    await store.transact('thread', state => {
+      state.records[0].evidence[0].signature = 'bad'; return { state, result: null };
+    });
+    const corruptionRejected = await restarted.readPublished(-1).then(() => false, () => true);
+    await store.close();
+    return { receipt, duplicate, savedEvidence: saved.evidence, evidence,
+      text: saved.publication.delta.text, expectedText: transition.delta, corruptionRejected };
+  }, policy);
+  expect(observed.duplicate).toEqual(observed.receipt);
+  expect(observed.savedEvidence).toEqual(observed.evidence);
+  expect(observed.text).toBe(observed.expectedText);
+  expect(observed.corruptionRejected).toBe(true);
+});
