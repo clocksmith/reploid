@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-13T18:25:31.198Z",
+  "bundle": {
+    "bundleHash": "sha256:975aa791c2a48c592fed62f1467549841a1e473990ffe8318e3bf1fd779fceda",
+    "files": 1921
+  },
+  "network": "7\n7\nSettings\n5 computers\nNetwork\n5 computers\nNetwork connection\nConnected\n\n4 ready · 0 working · 0 unavailable\n\nComputer 1\nNo model offered\nDetails\nConnected\nComputer 2\nQwen 3.5 0.8B\nDetails\nReady\nComputer 3\nQwen 3.5 0.8B\nDetails\nReady\nComputer 4\nQwen 3.5 0.8B\nDetails\nReady\nComputer 5\nQwen 3.5 0.8B\nDetails\nReady",
+  "globals": [
+    "REPLOID_BUILD_VERSION",
+    "REPLOID_SW_VERSION",
+    "REPLOID_VFS_VERSION",
+    "REPLOID_POOL_CONNECT_OPERATIONS",
+    "REPLOID_POOL_ATTACH_DOPPLER_HANDLE",
+    "REPLOID_POOL_FIREBASE_APP",
+    "REPLOID_POOL_FIREBASE_AUTH",
+    "REPLOID_FIREBASE_SIGN_IN_ANONYMOUSLY"
+  ],
+  "errors": []
+}
