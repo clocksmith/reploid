@@ -105,13 +105,17 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
     readArtifact: async file => { const bytes = await cache.get(file); assert(bytes, 'Advertised native bytes are unavailable'); return bytes; },
     verifyArtifact: verify, commitArtifact: (file, bytes, controls) => cache.put(file, bytes, controls), observe, onChange
   } });
-  const readMetadata = async (file, signal) => {
+  const readAvailableMetadata = async (file, signal) => {
     signal.throwIfAborted(); let bytes = await cache.get(file);
     // Capsule metadata paths are logical names, not paths inside the weight directory.
     if (!bytes && /^[a-zA-Z0-9_.-]+$/.test(file.path)) bytes = await readLocal(file.path, { signal });
     if (!bytes && /^\/config\/model-(manifests|pieces|artifacts)\/[a-zA-Z0-9_.-]+$/.test(file.url || '')) {
       bytes = new Uint8Array(await fs.readFile(new URL('../self' + file.url, import.meta.url)));
     }
+    return bytes;
+  };
+  const readMetadata = async (file, signal) => {
+    let bytes = await readAvailableMetadata(file, signal);
     if (!bytes) {
       assert(exchange.has(file), 'No authorized peer offers required model metadata'); bytes = await exchange.acquire(file, { signal });
     }
@@ -221,7 +225,10 @@ export async function createNativeModelFiles({ transport, modelDirectory, cacheD
       try {
         const data = await metadata(model, signal), offered = [];
         for (const file of model.source.files) {
-          const bytes = await cache.get(file) || await readLocal(file.path, { signal });
+          // Program/evidence metadata ships in the application. Custody offers
+          // manifest-local model files and verified pieces, never nested program paths.
+          if (!/^[a-zA-Z0-9_.-]+$/.test(file.path)) continue;
+          const bytes = await readAvailableMetadata(file, signal);
           if (bytes) { await verify(file, bytes); await cache.put(file, bytes, { signal }); offered.push(file); }
         }
         for (const file of data.index.files) for (const piece of file.pieces) {

@@ -1,0 +1,18 @@
+[WebRTCSwarm] Initializing - peerId: 2ae9df00-0663-49f9-880c-27df6e3be324, room: reploid-swarm-signed-0fad-qualification
+[WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-signed-0fad-qualification
+[WebRTCSwarm] Received welcome from signaling server
+[WebRTCSwarm] Joined room reploid-swarm-signed-0fad-qualification, existing peers: 0
+[SwarmTransport] Using WebRTC transport via WebRTCSwarm
+(node:3782455) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+{"event":"native-initialized","participantId":"peer:9af15d884eba51b0c0540e2a","modelId":"qwen-3-5-0-8b-q4k-ehaf16"}
+file:///var/tmp/reploid-signed-native-metadata-20261012/reploid/server/native-model-files.js:14
+const assert = (ok, message) => { if (!ok) throw new Error(message); };
+                                                 ^
+
+Error: Plain model filename required
+    at assert (file:///var/tmp/reploid-signed-native-metadata-20261012/reploid/server/native-model-files.js:14:50)
+    at readLocal (file:///var/tmp/reploid-signed-native-metadata-20261012/reploid/server/native-model-files.js:82:31)
+    at file:///var/tmp/reploid-signed-native-metadata-20261012/reploid/server/native-model-files.js:224:56
+
+Node.js v22.22.1
