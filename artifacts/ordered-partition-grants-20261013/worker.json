@@ -1,0 +1,66 @@
+{
+  "files": {
+    "packages/reploid/src/mesh/partitions/partition-grants.js": "fac89ffe1466bc700bc9cad3661348894065792dfcf40e803bf692b8834137d1"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/mesh/partitions/partition-grants.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-grants.js:32: Dynamic property write detected: [method] - verify input sanitization",
+      "File has 21 functions (max 20) - consider modularizing"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900726375,
+        "path": "/packages/reploid/src/mesh/partitions/partition-grants.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900726376,
+        "path": "/packages/reploid/src/mesh/partitions/partition-grants.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [method] - verify input sanitization",
+        "line": 32,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791900726377,
+        "metric": "functions",
+        "value": 21,
+        "threshold": 20,
+        "message": "File has 21 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/partition-grants.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/packages/reploid/src/mesh/partitions/partition-grants.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 21,
+          "threshold": 20,
+          "message": "File has 21 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/partition-grants.js"
+        }
+      ],
+      "filesAnalyzed": 1
+    }
+  }
+}

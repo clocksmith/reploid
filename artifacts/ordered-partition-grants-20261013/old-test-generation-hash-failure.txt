@@ -1,0 +1,34 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/ordered-partition-grants.test.js (5 tests | 1 failed) 14ms
+     ✓ signs and verifies complete coordinator-mediated recipient closure with actual WebCrypto 5ms
+     ✓ rejects unapproved relay disclosure, changed stage, changed recipient path and changed payload budget 2ms
+     ✓ rejects revoked or expired execution but permits only the exact owner cleanup 1ms
+     ✓ does not accept signature tampering or reinterpret legacy grants 1ms
+   × runs the existing ordered runner under genuine signed v4 grants (injected numerical ports) 5ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-grants.test.js > runs the existing ordered runner under genuine signed v4 grants (injected numerical ports)
+Error: Ordered route authorization declined: mesh.execute_partition_stage
+ ❯ assert packages/reploid/src/mesh/partitions/partition-route-execution.js:6:50
+      4|   sameRouteAttemptIdentity } from './partition-contract.js';
+      5|
+      6| const assert = (ok, message) => { if (!ok) throw new Error(message); };
+       |                                                  ^
+      7| const positive = value => Number.isSafeInteger(value) && value > 0;
+      8| const clone = value => structuredClone(value);
+ ❯ permit packages/reploid/src/mesh/partitions/partition-route-execution.js:118:7
+ ❯ permitRoute packages/reploid/src/mesh/partitions/partition-route-execution.js:124:9
+ ❯ Object.execute packages/reploid/src/mesh/partitions/partition-route-execution.js:138:7
+ ❯ tests/unit/ordered-partition-grants.test.js:73:20
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 4 passed (5)
+   Start at  10:07:09
+   Duration  279ms (transform 40ms, setup 0ms, import 113ms, tests 14ms, environment 92ms)
+
