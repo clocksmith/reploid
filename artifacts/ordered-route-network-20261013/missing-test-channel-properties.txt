@@ -1,0 +1,48 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/ordered-partition-network.test.js (11 tests | 1 failed) 112ms
+     ✓ keeps simultaneous routes to the same participant on distinct channels and retires only the named route 6ms
+     × hands the bound channel to the existing binary transport after authentication 3ms
+     ✓ snapshots route before authentication awaits and passes exact authenticated transport metadata 2ms
+     ✓ rejects host stage mismatch before endpoint creation 1ms
+     ✓ rejects an altered acceptance route and closes the already prepared peer endpoint 1ms
+     ✓ bounds handshake bytes before parsing and refuses extra routes without evicting a healthy one 1ms
+     ✓ checks certificates again after asynchronous route validation 0ms
+     ✓ retains failed cleanup capacity and permits retry without disturbing another route 1ms
+     ✓ does not infer resident cleanup from a lost socket and retries network close explicitly 53ms
+     ✓ bounds a stalled validator and ignores its late completion without creating an endpoint 21ms
+     ✓ times out an absent handshake and never creates an endpoint 21ms
+ ✓ tests/unit/partition-api.test.js (42 tests) 3743ms
+     ✓ discovers cooperative executors with replica coverage=false  1653ms
+     ✓ discovers cooperative executors with replica coverage=true  1378ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > hands the bound channel to the existing binary transport after authentication
+Error: Ordered channel closed during authentication
+ ❯ AbortSignal.lost packages/reploid/src/mesh/partitions/partition-route-network.js:37:33
+     35|         error ? reject(error) : resolve(value);
+     36|       };
+     37|       const lost = () => finish(new Error('Ordered channel closed duri…
+       |                                 ^
+     38|       const receive = event => {
+     39|         try {
+ ❯ AbortSignal.#callDispatchEventListeners node_modules/happy-dom/src/event/EventTarget.ts:305:41
+ ❯ AbortSignal.dispatchEvent node_modules/happy-dom/src/event/EventTarget.ts:142:35
+ ❯ AbortSignal.#goThroughDispatchEventPhases node_modules/happy-dom/src/event/EventTarget.ts:214:32
+ ❯ AbortSignal.dispatchEvent node_modules/happy-dom/src/event/EventTarget.ts:135:38
+ ❯ AbortSignal.[abort] node_modules/happy-dom/src/fetch/AbortSignal.ts:95:7
+ ❯ AbortController.abort node_modules/happy-dom/src/fetch/AbortController.ts:23:36
+ ❯ EventTarget.channel.addEventListener.once packages/reploid/src/mesh/partitions/partition-route-network.js:100:43
+ ❯ EventTarget.#callDispatchEventListeners node_modules/happy-dom/src/event/EventTarget.ts:305:41
+ ❯ EventTarget.dispatchEvent node_modules/happy-dom/src/event/EventTarget.ts:142:35
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 52 passed (53)
+   Start at  11:03:59
+   Duration  4.35s (transform 286ms, setup 0ms, import 551ms, tests 3.86s, environment 273ms)
+
