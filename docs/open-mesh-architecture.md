@@ -2,10 +2,16 @@
 
 ## Technical diagrams
 
-These views trace the ordinary distributed conversation through the implementation
+The README overview retains its two-contributor example. Its technical diagram
+shows the intended N-stage mesh: a route selected per attempt, a coordinator on
+the first contributor, final-stage sampling, and separate request state on shared
+residents. Five computers illustrate the route; they are not a fixed stage count
+or a claim of qualified capacity. [TODO.md](../TODO.md) owns implementation and
+qualification status.
+
+The sequences and source map below trace the ordinary two-partition implementation
 at `1c8860f4`. They describe ownership and message flow, not a qualification result.
-The README contains the graphical system overview and component map. Recovery
-diagrams, the generation sequence, source owners, and contracts remain here.
+Recovery diagrams, the generation sequence, source owners, and contracts remain here.
 The dated design and its original gap ledger remain below. Solid arrows in the
 component view are calls or data flow; dotted arrows supply observations.
 

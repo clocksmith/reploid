@@ -1,114 +1,135 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" role="img" aria-labelledby="title desc">
-<title id="title">Reploid: technical architecture</title>
-<desc id="desc">Ten components connect persistent conversations to discovery, admission, authorized model-piece preparation, and two Doppler executors. Activations travel from A to B; selected tokens return to the coordinator for the next step. Weight delivery and contribution permission are separate from requester input disclosure.</desc>
-<style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.label{font-size:14px;font-weight:500;paint-order:stroke;stroke:white;stroke-width:6px;stroke-linejoin:round}</style>
-<defs>
-<marker id="ink" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#16181d" stroke-width="1.5"/></marker>
-<marker id="purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#7441ce" stroke-width="1.5"/></marker>
-<marker id="blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#245cd6" stroke-width="1.5"/></marker>
-<marker id="red" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#d52749" stroke-width="1.5"/></marker>
-<marker id="gray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#626976" stroke-width="1.5"/></marker>
-</defs>
-<rect x="1" y="1" width="1198" height="898" rx="18" fill="white" stroke="#dcdfe6"/>
-<text x="40" y="44" font-size="22" fill="#16181d" font-weight="650" text-anchor="start">reploid</text>
-<text x="1160" y="44" font-size="12" fill="#626976" font-weight="500" text-anchor="end">TECHNICAL ARCHITECTURE</text>
-<text x="40" y="80" font-size="23" fill="#16181d" font-weight="600" text-anchor="start">One answer, cooperating computers</text>
-<path d="M360 158 H452" fill="none" stroke="white" stroke-width="6"/>
-<path d="M360 158 H452" fill="none" stroke="#16181d" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ink)"/>
-<text x="406" y="149" font-size="14" fill="#626976" font-weight="500" text-anchor="middle" class="label">request</text>
-<path d="M452 203 H360" fill="none" stroke="white" stroke-width="6"/>
-<path d="M452 203 H360" fill="none" stroke="#16181d" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ink)"/>
-<text x="406" y="194" font-size="14" fill="#626976" font-weight="500" text-anchor="middle" class="label">render</text>
-<path d="M748 178 H840" fill="none" stroke="white" stroke-width="6"/>
-<path d="M748 178 H840" fill="none" stroke="#245cd6" stroke-width="1.8" stroke-linejoin="round" marker-start="url(#blue)" marker-end="url(#blue)"/>
-<text x="794" y="168" font-size="14" fill="#245cd6" font-weight="500" text-anchor="middle" class="label">save / load</text>
-<path d="M600 228 V310" fill="none" stroke="white" stroke-width="6"/>
-<path d="M600 228 V310" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
-<text x="600" y="273" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">approved disclosure</text>
-<path d="M360 359 H452" fill="none" stroke="white" stroke-width="6"/>
-<path d="M360 359 H452" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="5 5" marker-end="url(#purple)"/>
-<text x="406" y="350" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">candidates</text>
-<path d="M530 408 V463 H212 V510" fill="none" stroke="white" stroke-width="6"/>
-<path d="M530 408 V463 H212 V510" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
-<text x="365" y="455" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">admitted attempt</text>
-<path d="M360 551 H452" fill="none" stroke="white" stroke-width="6"/>
-<path d="M360 551 H452" fill="none" stroke="#d52749" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#red)"/>
-<text x="406" y="542" font-size="14" fill="#d52749" font-weight="500" text-anchor="middle" class="label">tokens</text>
-<path d="M748 551 H840" fill="none" stroke="white" stroke-width="6"/>
-<path d="M748 551 H840" fill="none" stroke="#d52749" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#red)"/>
-<text x="794" y="542" font-size="14" fill="#d52749" font-weight="500" text-anchor="middle" class="label">activations</text>
-<path d="M988 608 V651 H212 V608" fill="none" stroke="white" stroke-width="6"/>
-<path d="M988 608 V651 H212 V608" fill="none" stroke="#d52749" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#red)"/>
-<text x="420" y="637" font-size="14" fill="#d52749" font-weight="500" text-anchor="middle" class="label">next token + delta + stop</text>
-<path d="M64 560 H30 V269 H490 V228" fill="none" stroke="white" stroke-width="6"/>
-<path d="M64 560 H30 V269 H490 V228" fill="none" stroke="#16181d" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#ink)"/>
-<text x="248" y="260" font-size="14" fill="#626976" font-weight="500" text-anchor="middle" class="label">ordered output / failure</text>
-<path d="M480 510 V437 H212 V408" fill="none" stroke="white" stroke-width="6"/>
-<path d="M480 510 V437 H212 V408" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" stroke-dasharray="5 5" marker-end="url(#purple)"/>
-<text x="342" y="429" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">prepared path</text>
-<path d="M900 408 V469 H666 V510" fill="none" stroke="white" stroke-width="6"/>
-<path d="M900 408 V469 H666 V510" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
-<text x="820" y="460" font-size="14" fill="#7441ce" font-weight="500" text-anchor="middle" class="label">compute grant</text>
-<path d="M1136 359 H1170 V759 H1136" fill="none" stroke="white" stroke-width="6"/>
-<path d="M1136 359 H1170 V759 H1136" fill="none" stroke="#7441ce" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#purple)"/>
-<path d="M840 756 H795 V687 H600 V608" fill="none" stroke="white" stroke-width="6"/>
-<path d="M840 756 H795 V687 H600 V608" fill="none" stroke="#245cd6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#blue)"/>
-<text x="614" y="680" font-size="14" fill="#245cd6" font-weight="500" text-anchor="middle" class="label">verified pieces</text>
-<path d="M988 710 V687 H1104 V608" fill="none" stroke="white" stroke-width="6"/>
-<path d="M988 710 V687 H1104 V608" fill="none" stroke="#245cd6" stroke-width="1.8" stroke-linejoin="round" marker-end="url(#blue)"/>
-<path d="M900 469 H1060 V510" fill="none" stroke="#7441ce" stroke-width="1.8" marker-end="url(#purple)"/>
-<g data-component="Conversation UI"><rect x="64" y="130" width="296" height="98" rx="10" fill="#ffffff" stroke="#16181d" stroke-width="1.3"/>
-<text x="82" y="151" font-size="11" fill="#16181d" font-weight="600" text-anchor="start">REQUESTER · NO WEIGHTS</text>
-<text x="82" y="176" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Conversation UI</text>
-<text x="82" y="199" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Prompt, disclosure, stream, Stop</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760" role="img" aria-labelledby="title desc">
+<title id="title">Reploid: technical architecture</title><desc id="desc">Blue distributed ownership shows durable conversations using a general N-stage route, illustrated by five computers. The first contributor owns the coordinator, intermediate stages forward activations and token context, and the last samples and decodes. Each computer retains reusable weights and separate admitted request state; storage contributes pieces independently. This is intended architecture, not qualification evidence.</desc>
+<style>text{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.edge-label{paint-order:stroke;stroke:white;stroke-width:5px;stroke-linejoin:round}</style>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#2466bf" stroke-width="1.6"/></marker><marker id="neutral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M1 1 L9 5 L1 9" fill="none" stroke="#657083" stroke-width="1.6"/></marker></defs>
+<rect x="1" y="1" width="1198" height="758" rx="18" fill="white" stroke="#dce1e9" stroke-width="1.4"/>
+<text x="36" y="43" font-size="24" fill="#2466bf" font-weight="700" text-anchor="start">reploid</text>
+<text x="1164" y="42" font-size="11" fill="#657083" font-weight="600" text-anchor="end">TECHNICAL ARCHITECTURE</text>
+<text x="36" y="84" font-size="25" fill="#202735" font-weight="600" text-anchor="start">Many computers. Selected routes. Independent conversations.</text>
+<rect x="32" y="280" width="218" height="342" rx="18" fill="#f1f6fd" stroke="#2466bf" stroke-width="1.4"/>
+<text x="50" y="306" font-size="12" fill="#2466bf" font-weight="650" text-anchor="start">REQUESTER · NO WEIGHTS</text>
+<path d="M500 174 H558" fill="none" stroke="#2466bf" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="529" y="159" font-size="13" fill="#657083" font-weight="500" text-anchor="middle" class="edge-label">offers</text>
+<path d="M910 174 H810" fill="none" stroke="#2466bf" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="860" y="159" font-size="13" fill="#657083" font-weight="500" text-anchor="middle" class="edge-label">grants</text>
+<path d="M684 214 V238 H376 V283" fill="none" stroke="#2466bf" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="613" y="231" font-size="13" fill="#657083" font-weight="500" text-anchor="middle" class="edge-label">admit complete route · reserve every stage</text>
+<text x="775" y="253" font-size="13" fill="#657083" font-weight="500" text-anchor="middle" class="edge-label">selected token + decoding / stop outcome</text>
+<path d="M230 426 H272 V333 H302" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M302 357 H260 V467 H230" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M140 369 V401" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="190" y="389" font-size="13" fill="#657083" font-weight="500" text-anchor="middle" class="edge-label">request</text>
+<path d="M110 541 V486" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="160" y="524" font-size="13" fill="#657083" font-weight="500" text-anchor="middle" class="edge-label">save / replay</text>
+<path d="M98 401 V369" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M464 413 H496" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M626 413 H658" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M788 413 H820" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M950 413 H966 V376 H982" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="729" y="309" font-size="12" fill="#2466bf" font-weight="600" text-anchor="middle">ACTIVATIONS + TOKEN CONTEXT →</text>
+<path d="M752 636 V591 H375 V548" fill="none" stroke="#2466bf" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 6" marker-end="url(#arrow)"/>
+<path d="M752 591 H1070 V548" fill="none" stroke="#2466bf" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 6" marker-end="url(#arrow)"/>
+<path d="M561 591 V548" fill="none" stroke="#2466bf" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 6" marker-end="url(#arrow)"/>
+<path d="M723 591 V548" fill="none" stroke="#2466bf" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 6" marker-end="url(#arrow)"/>
+<path d="M885 591 V548" fill="none" stroke="#2466bf" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 6" marker-end="url(#arrow)"/>
+<text x="792" y="618" font-size="13" fill="#657083" font-weight="500" text-anchor="middle" class="edge-label">verified model pieces · preparation</text>
+<g data-component="Discovery">
+<rect x="300" y="132" width="200" height="82" rx="12" fill="white" stroke="#2466bf" stroke-width="1.4"/>
+<text x="316" y="158" font-size="17" fill="#202735" font-weight="600" text-anchor="start">Discovery</text>
+<text x="316" y="182" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Capabilities + readiness</text>
 </g>
-<g data-component="Conversation workspace"><rect x="452" y="130" width="296" height="98" rx="10" fill="#ffffff" stroke="#16181d" stroke-width="1.3"/>
-<text x="470" y="151" font-size="11" fill="#16181d" font-weight="600" text-anchor="start">APPLICATION</text>
-<text x="470" y="176" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Conversation workspace</text>
-<text x="470" y="199" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Threads, grants, isolated attempts</text>
+<g data-component="Placement + admission">
+<rect x="558" y="132" width="252" height="82" rx="12" fill="white" stroke="#2466bf" stroke-width="1.4"/>
+<text x="574" y="158" font-size="17" fill="#202735" font-weight="600" text-anchor="start">Placement + admission</text>
+<text x="574" y="182" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Route · permissions · budgets</text>
 </g>
-<g data-component="Persistent history"><rect x="840" y="130" width="296" height="98" rx="10" fill="#f2f6ff" stroke="#245cd6" stroke-width="1.3"/>
-<text x="858" y="151" font-size="11" fill="#245cd6" font-weight="600" text-anchor="start">LOCAL STORAGE</text>
-<text x="858" y="176" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Persistent history</text>
-<text x="858" y="199" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Drafts, partial answers, retries</text>
+<g data-component="Contribution controls">
+<rect x="910" y="132" width="246" height="82" rx="12" fill="white" stroke="#657083" stroke-width="1.4"/>
+<text x="926" y="158" font-size="17" fill="#202735" font-weight="600" text-anchor="start">Contribution controls</text>
+<text x="926" y="182" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Compute · custody · disclosure</text>
 </g>
-<g data-component="Discovery"><rect x="64" y="310" width="296" height="98" rx="10" fill="#f7f3ff" stroke="#7441ce" stroke-width="1.3"/>
-<text x="82" y="331" font-size="11" fill="#7441ce" font-weight="600" text-anchor="start">OBSERVATION</text>
-<text x="82" y="356" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Discovery</text>
-<text x="82" y="379" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Capabilities and readiness expire</text>
+<g data-component="Conversation UI">
+<rect x="52" y="313" width="178" height="56" rx="12" fill="white" stroke="#657083" stroke-width="1.4"/>
+<text x="68" y="339" font-size="17" fill="#202735" font-weight="600" text-anchor="start">Conversation UI</text>
 </g>
-<g data-component="Placement + admission"><rect x="452" y="310" width="296" height="98" rx="10" fill="#f7f3ff" stroke="#7441ce" stroke-width="1.3"/>
-<text x="470" y="331" font-size="11" fill="#7441ce" font-weight="600" text-anchor="start">COORDINATION</text>
-<text x="470" y="356" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Placement + admission</text>
-<text x="470" y="379" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Compatible split, scoped reservations</text>
+<g data-component="Workspace">
+<rect x="52" y="401" width="178" height="85" rx="12" fill="white" stroke="#2466bf" stroke-width="1.4"/>
+<text x="68" y="427" font-size="17" fill="#202735" font-weight="600" text-anchor="start">Workspace</text>
+<text x="68" y="451" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Threads + publication</text>
+<text x="68" y="471" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Attempt ownership</text>
 </g>
-<g data-component="Contribution controls"><rect x="840" y="310" width="296" height="98" rx="10" fill="#ffffff" stroke="#16181d" stroke-width="1.3"/>
-<text x="858" y="331" font-size="11" fill="#16181d" font-weight="600" text-anchor="start">PARTICIPANT CHOICE</text>
-<text x="858" y="356" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Contribution controls</text>
-<text x="858" y="379" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Compute and file-sharing permissions</text>
+<g data-component="Durable history">
+<rect x="52" y="541" width="178" height="56" rx="12" fill="white" stroke="#657083" stroke-width="1.4"/>
+<text x="68" y="567" font-size="17" fill="#202735" font-weight="600" text-anchor="start">Durable history</text>
 </g>
-<g data-component="Partition coordinator"><rect x="64" y="510" width="296" height="98" rx="10" fill="#f7f3ff" stroke="#7441ce" stroke-width="1.3"/>
-<text x="82" y="531" font-size="11" fill="#7441ce" font-weight="600" text-anchor="start">REPLOID ON A</text>
-<text x="82" y="556" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Partition coordinator</text>
-<text x="82" y="579" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Ordered steps, cancellation, settlement</text>
+<rect x="286" y="283" width="178" height="265" rx="18" fill="#f1f6fd" stroke="#2466bf" stroke-width="1.4"/>
+<text x="304" y="309" font-size="12" fill="#2466bf" font-weight="650" text-anchor="start">COMPUTER 1</text>
+<g data-component="Coordinator">
+<rect x="302" y="315" width="146" height="53" rx="12" fill="#2466bf" stroke="#2466bf" stroke-width="1.4"/>
+<text x="318" y="341" font-size="17" fill="white" font-weight="600" text-anchor="start">Coordinator</text>
 </g>
-<g data-component="Executor A · Doppler"><rect x="452" y="510" width="296" height="98" rx="10" fill="#fff3f5" stroke="#d52749" stroke-width="1.3"/>
-<text x="470" y="531" font-size="11" fill="#d52749" font-weight="600" text-anchor="start">PHYSICAL COMPUTER A</text>
-<text x="470" y="556" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Executor A · Doppler</text>
-<text x="470" y="579" font-size="14" fill="#626976" font-weight="400" text-anchor="start">First layers; own attention / state</text>
+<text x="304" y="413" font-size="15" fill="#202735" font-weight="600" text-anchor="start">Stage 1 · Doppler</text>
+<text x="304" y="436" font-size="13" fill="#657083" font-weight="400" text-anchor="start">Input / first layers</text>
+<rect x="298" y="459" width="154" height="35" rx="7" fill="white" stroke="#dce1e9" stroke-width="1.4"/>
+<text x="375.0" y="482" font-size="12" fill="#657083" font-weight="500" text-anchor="middle">Resident weights</text>
+<rect x="298" y="506" width="154" height="28" rx="6" fill="white" stroke="#2466bf" stroke-width="1.4"/>
+<text x="375.0" y="525" font-size="12" fill="#2466bf" font-weight="500" text-anchor="middle">Q1  ·  Q2 state</text>
+<rect x="496" y="330" width="130" height="218" rx="18" fill="#f1f6fd" stroke="#2466bf" stroke-width="1.4"/>
+<text x="514" y="356" font-size="12" fill="#2466bf" font-weight="650" text-anchor="start">COMPUTER 2</text>
+<text x="510" y="384" font-size="17" fill="#202735" font-weight="600" text-anchor="start">Stage 2</text>
+<text x="510" y="412" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Doppler layers</text>
+<rect x="508" y="459" width="106" height="35" rx="7" fill="white" stroke="#dce1e9" stroke-width="1.4"/>
+<text x="561.0" y="482" font-size="12" fill="#657083" font-weight="500" text-anchor="middle">Resident weights</text>
+<rect x="508" y="506" width="106" height="28" rx="6" fill="white" stroke="#2466bf" stroke-width="1.4"/>
+<text x="561.0" y="525" font-size="12" fill="#2466bf" font-weight="500" text-anchor="middle">Q1  ·  Q2 state</text>
+<rect x="658" y="330" width="130" height="218" rx="18" fill="#f1f6fd" stroke="#2466bf" stroke-width="1.4"/>
+<text x="676" y="356" font-size="12" fill="#2466bf" font-weight="650" text-anchor="start">COMPUTER 3</text>
+<text x="672" y="384" font-size="17" fill="#202735" font-weight="600" text-anchor="start">Stage 3</text>
+<text x="672" y="412" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Doppler layers</text>
+<rect x="670" y="459" width="106" height="35" rx="7" fill="white" stroke="#dce1e9" stroke-width="1.4"/>
+<text x="723.0" y="482" font-size="12" fill="#657083" font-weight="500" text-anchor="middle">Resident weights</text>
+<rect x="670" y="506" width="106" height="28" rx="6" fill="white" stroke="#2466bf" stroke-width="1.4"/>
+<text x="723.0" y="525" font-size="12" fill="#2466bf" font-weight="500" text-anchor="middle">Q1  ·  Q2 state</text>
+<rect x="820" y="330" width="130" height="218" rx="18" fill="#f1f6fd" stroke="#2466bf" stroke-width="1.4"/>
+<text x="838" y="356" font-size="12" fill="#2466bf" font-weight="650" text-anchor="start">COMPUTER N−1</text>
+<text x="834" y="384" font-size="17" fill="#202735" font-weight="600" text-anchor="start">Stage N−1</text>
+<text x="834" y="412" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Doppler layers</text>
+<rect x="832" y="459" width="106" height="35" rx="7" fill="white" stroke="#dce1e9" stroke-width="1.4"/>
+<text x="885.0" y="482" font-size="12" fill="#657083" font-weight="500" text-anchor="middle">Resident weights</text>
+<rect x="832" y="506" width="106" height="28" rx="6" fill="white" stroke="#2466bf" stroke-width="1.4"/>
+<text x="885.0" y="525" font-size="12" fill="#2466bf" font-weight="500" text-anchor="middle">Q1  ·  Q2 state</text>
+<rect x="982" y="283" width="178" height="265" rx="18" fill="#f1f6fd" stroke="#2466bf" stroke-width="1.4"/>
+<text x="1000" y="309" font-size="12" fill="#2466bf" font-weight="650" text-anchor="start">COMPUTER N</text>
+<text x="1000" y="354" font-size="15" fill="#202735" font-weight="600" text-anchor="start">Stage N · Doppler</text>
+<text x="1000" y="378" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Final layers</text>
+<g data-component="Sampling">
+<rect x="998" y="392" width="146" height="60" rx="12" fill="#2466bf" stroke="#2466bf" stroke-width="1.4"/>
+<text x="1014" y="418" font-size="17" fill="white" font-weight="600" text-anchor="start">Sampling</text>
+<text x="1014" y="442" font-size="14" fill="#f7eef4" font-weight="400" text-anchor="start">Decode + stop</text>
 </g>
-<g data-component="Executor B · Doppler"><rect x="840" y="510" width="296" height="98" rx="10" fill="#fff3f5" stroke="#d52749" stroke-width="1.3"/>
-<text x="858" y="531" font-size="11" fill="#d52749" font-weight="600" text-anchor="start">PHYSICAL COMPUTER B</text>
-<text x="858" y="556" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Executor B · Doppler</text>
-<text x="858" y="579" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Remaining layers; sampling; own state</text>
+<rect x="994" y="459" width="154" height="35" rx="7" fill="white" stroke="#dce1e9" stroke-width="1.4"/>
+<text x="1071.0" y="482" font-size="12" fill="#657083" font-weight="500" text-anchor="middle">Resident weights</text>
+<rect x="994" y="506" width="154" height="28" rx="6" fill="white" stroke="#2466bf" stroke-width="1.4"/>
+<text x="1071.0" y="525" font-size="12" fill="#2466bf" font-weight="500" text-anchor="middle">Q1  ·  Q2 state</text>
+<path d="M378 368 V393" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="422" y="384" font-size="13" fill="#657083" font-weight="500" text-anchor="middle" class="edge-label">tokens</text>
+<path d="M1070 383 V392" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M1144 423 H1175 V260 H480 V346 H448" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<path d="M162 486 V541" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="804" y="368" font-size="23" fill="#657083" font-weight="500" text-anchor="middle">…</text>
+<g data-component="Independent piece custody">
+<rect x="592" y="636" width="332" height="70" rx="12" fill="white" stroke="#2466bf" stroke-width="1.4"/>
+<text x="608" y="662" font-size="17" fill="#202735" font-weight="600" text-anchor="start">Independent piece custody</text>
+<text x="608" y="686" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Authorized suppliers · verified content</text>
 </g>
-<g data-component="Authorized piece custody"><rect x="840" y="710" width="296" height="98" rx="10" fill="#f2f6ff" stroke="#245cd6" stroke-width="1.3"/>
-<text x="858" y="731" font-size="11" fill="#245cd6" font-weight="600" text-anchor="start">STORAGE PARTICIPANTS</text>
-<text x="858" y="756" font-size="19" fill="#16181d" font-weight="600" text-anchor="start">Authorized piece custody</text>
-<text x="858" y="779" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Supplier offers, verification, limits</text>
-</g>
-<text x="64" y="743" font-size="16" fill="#16181d" font-weight="600" text-anchor="start">The decode loop returns a selected token, not a second answer.</text>
-<text x="64" y="770" font-size="15" fill="#626976" font-weight="400" text-anchor="start">A → B carries activations and token context over WebRTC.</text>
-<text x="64" y="795" font-size="15" fill="#626976" font-weight="400" text-anchor="start">Each attempt closes on both executors; weights can remain resident.</text>
-<text x="64" y="857" font-size="14" fill="#626976" font-weight="400" text-anchor="start">Purple: coordination / grants · Blue: storage / pieces · Red: inference · Dashed: availability</text>
+<text x="36" y="660" font-size="14" fill="#202735" font-weight="500" text-anchor="start">Each attempt fixes one admitted route through the mesh.</text>
+<text x="36" y="683" font-size="14" fill="#657083" font-weight="400" text-anchor="start">Q1 / Q2 keep separate state on shared residents.</text>
+<text x="36" y="706" font-size="13" fill="#657083" font-weight="400" text-anchor="start">Cancel one attempt; settle its work; retain reusable weights.</text>
+<path d="M36 737 H72" fill="none" stroke="#2466bf" stroke-width="2.3" stroke-linejoin="round" stroke-linecap="round" marker-end="url(#arrow)"/>
+<text x="82" y="742" font-size="12" fill="#657083" font-weight="400" text-anchor="start">execution</text>
+<path d="M166 737 H202" fill="none" stroke="#2466bf" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="7 5" marker-end="url(#arrow)"/>
+<text x="212" y="742" font-size="12" fill="#657083" font-weight="400" text-anchor="start">coordination</text>
+<path d="M319 737 H355" fill="none" stroke="#2466bf" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="2 6" marker-end="url(#arrow)"/>
+<text x="365" y="742" font-size="12" fill="#657083" font-weight="400" text-anchor="start">preparation</text>
+<text x="1164" y="742" font-size="12" fill="#657083" font-weight="400" text-anchor="end">N-stage target · route length varies · qualification is separate</text>
 </svg>

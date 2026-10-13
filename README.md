@@ -31,16 +31,24 @@ own permissions and limits. See the [conversation contract](docs/chat-mvp.md).
 
 ### Component ownership
 
-![Ten components connect conversations, persistent history, discovery, admission, contribution controls, piece custody, a partition coordinator, and two Doppler executors.](docs/diagrams/technical-architecture.svg)
+![The blue N-stage architecture shows durable conversations, route admission, independent piece custody, and five contributor computers along a variable-length route. The first computer coordinates; the last samples and decodes. Shared residents retain separate request state.](docs/diagrams/technical-architecture.svg)
 
-Discovery supplies candidates; admission checks the split, grants, and capacity.
-Custody supplies verified pieces to executors. The coordinator sends ordered
-steps: activations travel forward, selected tokens return for the next step,
-and identified output reaches the conversation. Each executor owns separate
-attempt state. Storage, compute, and disclosure permissions remain distinct.
+The technical view shows the intended N-stage architecture, with five computers
+illustrating a variable-length route. Discovery supplies candidates; placement
+and admission select a compatible route within grants and capacity. The route
+stays fixed for its attempt. Independent custody supplies verified pieces.
+The first contributor coordinates ordered steps; activations and token context
+travel forward, and the final contributor samples and decodes. Selected tokens
+return to the coordinator; identified output returns to the conversation owner.
+Computers can contribute to multiple admitted questions, with separate attempt
+state and reusable resident weights. Cancellation settles an attempt without
+implying that its computer stops contributing. Storage, compute, and disclosure
+permissions remain distinct.
 
-Reploid coordinates, Doppler computes, and Poolday transports. These diagrams
-explain the two-partition design; they do not establish deployment acceptance.
+Reploid coordinates, Doppler computes, and Poolday transports. The overview keeps
+its two-contributor example; the technical view describes the broader multistage
+target. Neither diagram establishes package, route, concurrency, or deployment
+qualification; the [implementation checklist](TODO.md) owns those gates.
 
 [Architecture and source owners](docs/open-mesh-architecture.md) · [Attempt recovery](docs/open-mesh-architecture.md#attempt-failure-and-recovery)
 
