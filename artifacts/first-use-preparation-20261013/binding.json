@@ -1,0 +1,82 @@
+{
+  "schema": "reploid.first-use-preparation-evidence/v1",
+  "sourceRevision": "56c5496cb8d9b435b7ebb73bb15a26199bf1825c",
+  "workingTreeSource": true,
+  "scope": "Actual Chromium production UI/session/catalogue with injected peer discovery. No generation, GPU, contribution, deployment or external connection.",
+  "before": {
+    "cases": 4,
+    "failed": 4,
+    "reason": "Retry connection incorrectly visible while connected selected whole-request model loading"
+  },
+  "predicateOnly": {
+    "cases": 4,
+    "passed": 4,
+    "limitation": "Initial assertions checked hidden header text, not visible preparation; screenshots exposed CSS-hidden header and absent composer guidance."
+  },
+  "after": {
+    "cases": 4,
+    "passed": 4,
+    "viewports": [
+      390,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "assertions": [
+      "Preparing message visible; Retry hidden; Send disabled",
+      "Ready hides message; Send enabled",
+      "Unavailable message and Retry visible; Send disabled",
+      "Draft unchanged; zero connect calls; zero threads; no browser page errors"
+    ]
+  },
+  "files": {
+    "tests/e2e/first-use-preparation.spec.js": "4ac9f09d3bfa88d098e59ea53538feb26f077e0e5d79cd590e416eb8ff555038",
+    "tests/e2e/chat-material.spec.js": "3e9ea042b11e428239bc4a8b61bc623968e5eda11420d0e54c43a28ca235386e",
+    "self/ui/pool-home/conversation-workspace.js": "49f6c80d2f316e1a8db6933bbaacdf3e7abd1cbf8b03e9c79f6cc5da699cf58b",
+    "tests/unit/conversation-workspace.test.js": "072cd43e338a48c8466a2add00322a50c77796fec615bda762b61fa8ef530529",
+    "artifacts/first-use-preparation-20261013/unit.txt": "be564c8c2aa5477df0b32de8816b4347c08847f851b0bf3ce630863ef936de85",
+    "artifacts/first-use-preparation-20261013/before.txt": "cf90f638b6ec14f481a65daa2ff9cb7bf3566b0f4822782abea4de47386abd73",
+    "artifacts/first-use-preparation-20261013/before-phone.png": "9189c46443709272685783858e1d26e477df2d81675611d87bdbdd82cf706eb7",
+    "artifacts/first-use-preparation-20261013/conversation-workspace-before.js": "6c9cf2c0b33caa7edddc2293dd2c360ef7d75b3fd60734364b3038a1b7df1207",
+    "artifacts/first-use-preparation-20261013/playwright.config.js": "9daa4669314b8b70fb403135e8b4b8961cecf25a9aaff38b85239fac87081c3c",
+    "artifacts/first-use-preparation-20261013/after.txt": "124b7dd1d214b296540e7cbc7317c3a51fd97db7c32e993f340cee967cfc4923",
+    "artifacts/first-use-preparation-20261013/worker.json": "90a3311e819fd597f0bde6850f74e3a99a27b30e20dc183b45d7dd8e2714355a",
+    "artifacts/first-use-preparation-20261013/verify-worker.js": "babdb9b413977c7ee9b27ba24fc5cd67662113e77ae04c6c82d3af4382311bae",
+    "artifacts/first-use-preparation-20261013/compact-material.txt": "b16e6cd6d790c923dc49fb6290c99a3eb9c6e43283ff9d7f4bf4f60af99a0e3c",
+    "artifacts/first-use-preparation-20261013/predicate-only.txt": "aa88e75b9b51103cb5b5533a42b38cde29b8f0b10a3b39b6b6b04f3af02434dc",
+    "artifacts/first-use-preparation-20261013/predicate-only/light-390-preparing.png": "cc588901e017f4fb05b61d14516dd51af60f6d76034615d8b93200c1754424fc",
+    "artifacts/first-use-preparation-20261013/predicate-only/dark-1440-preparing.png": "84090da753f46421cccbfa71413a7722737be49409a768106d9168cba8174e2e",
+    "artifacts/first-use-preparation-20261013/predicate-only/light-1440.json": "e4bfe9402e6e50f08ea2012bbc8de3a32eb4adea55ce0b86009bf8933b41d2b8",
+    "artifacts/first-use-preparation-20261013/predicate-only/dark-390-preparing.png": "0a8059c0c14f8089907f13d9c280a73b7664895dae015b4cc83c54b29e61449b",
+    "artifacts/first-use-preparation-20261013/predicate-only/light-390.json": "f3fbd7276c47d06e689d455c9850843d86c1be855871c9f3c4bd9e14e8d19a31",
+    "artifacts/first-use-preparation-20261013/predicate-only/dark-1440.json": "03beb74317acf575127aee9e163821d8a9d524eaf6c709893fd2adfe19b06202",
+    "artifacts/first-use-preparation-20261013/predicate-only/light-1440-preparing.png": "4af81dadd851184c99de46bd1eaf29f62f351c1722b4a64b6adda444806b0789",
+    "artifacts/first-use-preparation-20261013/predicate-only/dark-390.json": "20ac776d311ef485a09e267e8b54dd47d0063db951e7da89b97c043d5a01fab8",
+    "artifacts/first-use-preparation-20261013/before/light-390-preparing.png": "bc9d07cf156fc7bcafb8bdb909a6857ffcda8d37d7397e7bbc7f9592ccefb97b",
+    "artifacts/first-use-preparation-20261013/before/dark-1440-preparing.png": "30fe6d719249c74ab77985cb3e7dbabd8a8e86635109eaed3ed366bb37b8c469",
+    "artifacts/first-use-preparation-20261013/before/light-1440.json": "3098029a8e1333073ae4ee7a11224acdc74264b341fc5780181701945620541f",
+    "artifacts/first-use-preparation-20261013/before/dark-390-preparing.png": "cd2677f3ad338db905457ce012b1b8ae3a63d5fde0a9da7f34079fdc8bc0285a",
+    "artifacts/first-use-preparation-20261013/before/light-390.json": "402777880ca176b3f071f84c3623e1ea04ece6f00e8463173c39543ae9acb0dc",
+    "artifacts/first-use-preparation-20261013/before/dark-1440.json": "ae5f85a41c7511b450d58e8adab05a84a6f9c303ad2f6fa47dc66e64106620cb",
+    "artifacts/first-use-preparation-20261013/before/light-1440-preparing.png": "dd806239690200bdfc4411501e7b58582470f36d8cfca5bb63751d41a100119f",
+    "artifacts/first-use-preparation-20261013/before/dark-390.json": "cda61a85d30bec488bcc402741e3814238e0cca9945f1b85dcda61d4ada67fad",
+    "artifacts/first-use-preparation-20261013/after/light-390-preparing.png": "f9879a48a82ac6182b77a0f7d9b7ea010e48c09c4aa64ab8be928d83f5b251c7",
+    "artifacts/first-use-preparation-20261013/after/dark-1440-preparing.png": "b23d1949d5e3bc40f1d2c26c29f898564029824f23c71165b0e50ae2fabc601e",
+    "artifacts/first-use-preparation-20261013/after/light-1440.json": "fc575f571492dcbc3e5d4fa728b3d2c884f20e3d8e553bf968f9c21d03da14e1",
+    "artifacts/first-use-preparation-20261013/after/dark-390-preparing.png": "fb12d60f424f783bdff53a55805a679ce9aba5fc60412ca155e51854b3d24ef9",
+    "artifacts/first-use-preparation-20261013/after/light-390.json": "ebfa8fbeafabb89b5bf6e6b46ddab3645805d0959c35356e92fbf6387e8ef355",
+    "artifacts/first-use-preparation-20261013/after/dark-1440.json": "1e83312ae44ce3b7f33700923461f5908199b66860e6e8786a697b5b3941a2c0",
+    "artifacts/first-use-preparation-20261013/after/light-1440-preparing.png": "d8cf2ab8fc1bba89c441025ecdad982d09b8adf3962dc02e31b0406903a5c5f6",
+    "artifacts/first-use-preparation-20261013/after/dark-390.json": "04c403a90e42543c37287fcc0b164fb076fbbdc5bd43cdd7ca47762dad5496f2"
+  },
+  "compactMaterial": {
+    "passed": 1,
+    "viewport": [
+      320,
+      460
+    ],
+    "scope": "Actual local page boot with external HTTP/WebSocket blocked, then injected presentation state; no generation/contribution"
+  }
+}
