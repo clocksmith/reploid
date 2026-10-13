@@ -14,7 +14,7 @@ function channelPair() {
   });
   return channels;
 }
-async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {}, supplyBudgets = [] } = {}) {
+async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {}, supplyBudgets = [], sendResult = () => true, onSupplier = () => {} } = {}) {
   const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [], requests = [];
   const file = { path: 'shard.bin', role: 'model-weights', sizeBytes: 5, hash: (await sha256Hex(bytes)).slice(7), hashAlgorithm: 'sha256' };
   const policy = { maxTransfers: 2, maxPeers, maxAcquisitionAttempts: 4, maxSupplyBytes, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
@@ -30,6 +30,7 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, m
     const transport = { getConnectedPeers: () => stores.map((_, index) => ({ id: String(index) })).filter(peer => peer.id !== String(i)),
       onMessage: (type, handler) => stores[i].set(type, handler),
       sendToPeer: (peer, type, payload) => {
+        if (!sendResult(i, peer, type, payload)) return false;
         if (type === 'reploid:custody-request' && payload.maxExpiresAt !== undefined) requests.push(structuredClone(payload));
         queueMicrotask(() => stores[Number(peer)].get(type)?.(String(i), structuredClone(payload))); return true;
       },
@@ -40,7 +41,7 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, m
     owners.push(createCustodyExchange({ transport, identity: { peerId: String(i), privateKey: pair.privateKey, publicKey: await exportPublicKey(pair.publicKey) },
       policy: { ...policy, grantMs: grantMs[i] ?? policy.grantMs },
       ports: { supplyBudget, now: () => Date.now() + (clockOffsets[i] || 0),
-        createSupplier: options => { supplierGrant(options.authorization, i); return createPeerPackSupplier(options); }, createStore: createPeerPackArtifactStore,
+        createSupplier: async options => { supplierGrant(options.authorization, i); const supplier = await createPeerPackSupplier(options); onSupplier(supplier, i); return supplier; }, createStore: createPeerPackArtifactStore,
         createChannel: createPeerPackDataChannel, readArtifact: (file, controls) => reads(file, controls, i),
         async verifyArtifact(descriptor, data) { if (await sha256Hex(data) !== 'sha256:' + descriptor.hash) throw new Error('integrity'); },
         commitArtifact,
@@ -301,4 +302,33 @@ it('persists the supply reservation before reading bytes or issuing a grant', as
     await expect(f.owners[0].acquire(f.file, { signal: new AbortController().signal })).rejects.toThrow('Durable budget unavailable');
     expect(reserve).toHaveBeenCalledWith(5); expect(f.reads).not.toHaveBeenCalled();
   } finally { await Promise.all(f.owners.map(owner => owner.close())); }
+});
+
+
+it.each(['false', 'throw'])('settles a supplier whose authorization response send returns %s', async mode => {
+  let rejectOffer = true;
+  const suppliers = [];
+  const f = await fixture({
+    sendResult: (_, peer, type, payload) => {
+      if (rejectOffer && type === 'reploid:custody-response' && payload.authorization) {
+        if (mode === 'throw') throw new Error('offer send threw');
+        return false;
+      }
+      return true;
+    },
+    onSupplier: supplier => { vi.spyOn(supplier, 'close'); suppliers.push(supplier); }
+  });
+  const [a,b] = f.owners;
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    // More rejections than the simultaneous-transfer ceiling must leave no ghost owners.
+    for (let i=0;i<3;i++) {
+      await expect(a.acquire(f.file,{signal:new AbortController().signal})).rejects.toThrow(mode === 'throw' ? 'offer send threw' : 'File offer response could not be queued');
+      expect(suppliers[i].close).toHaveBeenCalledOnce();
+    }
+    expect(b.getState().suppliedBytes).toBe(15); // A failed send cannot renew consent.
+    rejectOffer = false;
+    expect(await a.acquire(f.file,{signal:new AbortController().signal})).toEqual(f.bytes);
+    expect(b.getState().suppliedBytes).toBe(20);
+  } finally {await f.close();}
 });

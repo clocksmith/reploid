@@ -174,7 +174,16 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         if (closed || !supply || epoch !== supplyEpoch) { supplier.close(); throw new Error('File contribution stopped'); }
         const timer = setTimeout(() => { supplier.close(); suppliers.delete(authorization.transferId); }, Math.max(0, authorization.expiresAt - now()));
         suppliers.set(authorization.transferId, { supplier, peer, timer });
-        transport.sendToPeer(peer, 'reploid:custody-response', { id: message.id, authorization, index, inventory: supplier.inventory });
+        try {
+          if (!transport.sendToPeer(peer, 'reploid:custody-response', { id: message.id, authorization, index, inventory: supplier.inventory })) {
+            throw new Error('File offer response could not be queued');
+          }
+        } catch (error) {
+          // A rejected send owns no live grant. Keep the durable reservation
+          // charged, but release supplier bytes and the simultaneous-transfer slot.
+          clearTimeout(timer); suppliers.delete(authorization.transferId); supplier.close();
+          throw error;
+        }
       } finally { preparing--; notify(); }
     })().catch(error => {
       if (!closed) transport.sendToPeer(peer, 'reploid:custody-response', { id: message?.id, error: error.message });
