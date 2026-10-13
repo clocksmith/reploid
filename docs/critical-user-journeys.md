@@ -64,7 +64,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Successful outcome:** The answer uses the authorized context, is saved once, and leaves concurrent conversations isolated.
 - **Interruption and recovery:** Only published output survives. Explicit retry creates a new attempt; history does not restore lost GPU state.
 - **Variants:** Phone/browser requester; browser/native hosts; 1/2/N stages; reused/new residents; overlapping routes.
-- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [context tests](../tests/unit/chat-context.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); exact-package durable release: [transactional publication milestones](../TODO.md#dr-5).
+- **Acceptance evidence:** [ordered chat/entry source tests](../tests/unit/ordered-partition-chat-entry.test.js); [conversation isolation/history tests](../tests/unit/chat-workspace.test.js); [retained short physical conversation/recovery](../artifacts/live-conversation-20261012/README.md); exact-package durable release: [transactional publication milestones](../TODO.md#dr-5).
 
 ### CHAT-03 — Ask about an attachment
 
@@ -74,7 +74,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Successful outcome:** Authorized passages arrive in order and usable citations point back to the supplied source.
 - **Interruption and recovery:** Keep the attachment and draft after failure; never silently drop input to fit a route.
 - **Variants:** One/multiple attachments; follow-up reuse; changed recipients; long context.
-- **Acceptance evidence:** [attachment/context controls](../tests/unit/chat-context.test.js); [application acceptance](../TODO.md#rep-7). Factual/citation qualification remains separate and incomplete; it does not gate basic chat.
+- **Acceptance evidence:** [attachment passages/history/export controls](../tests/unit/document-comparison.test.js); [application acceptance](../TODO.md#rep-7). Factual/citation qualification remains separate and incomplete; it does not gate basic chat.
 
 ### CHAT-04 — Start with another supported model
 
@@ -84,7 +84,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Successful outcome:** The selected model identity is preserved; an unavailable choice is not silently substituted.
 - **Interruption and recovery:** Keep the draft and original conversation if preparation fails.
 - **Variants:** Ready/busy/preparing models; compatible adapters; local or distributed route.
-- **Acceptance evidence:** [model identity tests](../tests/unit/chat-model-manifests.test.js); [application acceptance](../TODO.md#rep-7). Model-specific physical/release evidence must be attached before support is claimed.
+- **Acceptance evidence:** [model/adapter substitution tests](../tests/unit/chat-workspace.test.js); [application acceptance](../TODO.md#rep-7). Model-specific physical/release evidence must be attached before support is claimed.
 
 ### CHAT-05 — Inspect and copy an answer
 
@@ -168,7 +168,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Successful outcome:** Only permitted verified pieces are supplied and transfers consume the persistent allowance.
 - **Interruption and recovery:** Restart does not silently renew the allowance; supply withdrawal preserves already verified recipient pieces.
 - **Variants:** Storage-only or compute+storage; replacement supplier; interrupted transfer; process restart.
-- **Acceptance evidence:** [custody acceptance](../TODO.md#rep-5); [source verification tests](../tests/unit/work-partition-blake3-source.test.js). Receipts must identify the model and ledger; compute consent alone is insufficient.
+- **Acceptance evidence:** [custody acceptance](../TODO.md#rep-5); [persistent transfer-budget tests](../tests/unit/native-supply-budget.test.js) and [source verification tests](../tests/unit/work-partition-blake3-source.test.js). Receipts must identify the model and ledger; compute consent alone is insufficient.
 
 ### CONTRIB-03 — Ask while contributing
 
@@ -188,7 +188,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Successful outcome:** New work is rejected or queued predictably when it cannot be admitted; unknown allocations remain charged.
 - **Interruption and recovery:** Lowering limits cannot erase outstanding ownership or silently claim immediate GPU preemption.
 - **Variants:** Browser/native co-hosting; per-attempt state; shared physical GPU; retained cleanup debt.
-- **Acceptance evidence:** [memory settlement tests](../tests/unit/partition-memory-settlement.test.js); [combined-capacity acceptance](../TODO.md#dr-6). Shared physical-device enforcement remains open; per-device accounting is not equivalent.
+- **Acceptance evidence:** [memory settlement tests](../tests/unit/partition-memory-settlement.test.js); [combined-capacity acceptance](../TODO.md#dr-6). Shared physical-device enforcement remains open; per-executor accounting is not equivalent.
 
 ### CONTRIB-05 — Pause or withdraw contribution
 
@@ -262,7 +262,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Successful outcome:** One accepted result exists per unit; retries need not imply exactly-once execution.
 - **Interruption and recovery:** Keep committed units and retry unfinished ones after contributor loss.
 - **Variants:** Embedding/indexing or other qualified operations; many workers; reordered delivery.
-- **Acceptance evidence:** [independent-job channel tests](../tests/unit/pool-peer-pack-job-channel.test.js); [durable job foundation](../TODO.md#rep-1). Indexing remains deferred; generation permission does not authorize another operation.
+- **Acceptance evidence:** [durable job tests](../tests/unit/pool-peer-pack-job.test.js) and [independent-unit acceptance fixture](../tests/e2e/independent-units.spec.js); [durable job foundation](../TODO.md#rep-1). Indexing remains deferred; generation permission does not authorize another operation.
 
 ### JOB-02 — Let an agent coordinate bounded subtasks
 
@@ -292,7 +292,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Successful outcome:** Completed work, failed experiments and unqualified capabilities remain distinguishable.
 - **Interruption and recovery:** Missing evidence is reported; a departed worker does not erase committed results.
 - **Variants:** Independent job, agent subtask, evaluated change; partial completion.
-- **Acceptance evidence:** [independent-job channel tests](../tests/unit/pool-peer-pack-job-channel.test.js); [records journeys](poolday/critical-user-journeys.md). Those supporting surfaces do not establish ordinary chat release qualification.
+- **Acceptance evidence:** [durable job tests](../tests/unit/pool-peer-pack-job.test.js) and [independent-unit acceptance fixture](../tests/e2e/independent-units.spec.js); [records journeys](poolday/critical-user-journeys.md). Those supporting surfaces do not establish ordinary chat release qualification.
 
 ### JOB-05 — Cancel unfinished delegated work
 
@@ -302,7 +302,7 @@ become prerequisites for otherwise qualified ordinary chat.
 - **Successful outcome:** No newly unauthorized units are admitted and previously committed results remain inspectable.
 - **Interruption and recovery:** Unknown remote execution stays charged until observed settlement; retry only unfinished authorized units.
 - **Variants:** Worker loss; overlapping stops; partial job; storage failure.
-- **Acceptance evidence:** [independent-job channel tests](../tests/unit/pool-peer-pack-job-channel.test.js); [durable jobs and contribution acceptance](../TODO.md#rep-3). Job cancellation is separate from generation-state recovery.
+- **Acceptance evidence:** [durable job tests](../tests/unit/pool-peer-pack-job.test.js) and [independent-unit acceptance fixture](../tests/e2e/independent-units.spec.js); [durable jobs and contribution acceptance](../TODO.md#rep-3). Job cancellation is separate from generation-state recovery.
 
 ## Control trust and change
 
@@ -376,7 +376,7 @@ IDs, frozen identities, matrix values, injections and observed outcome.
 | Scenario | Journeys exercised | Deployment variant | Acceptance boundary |
 | --- | --- | --- | --- |
 | Ordinary conversation | CHAT-01/02/05, KEEP-01/03/04 | Current two-stage browser/native baseline | Existing scoped numerical/physical receipts must not be combined into an unrun signed release claim. |
-| Ordered network | CHAT-01/02, CONTRIB-03, MESH-01, KEEP-02 | Three stages; two overlapping requesters; signaling loss | [Actual source integration](../artifacts/automatic-ordered-participation-20261013/README.md) uses injected numerical stages. Independent physical hosts and signed delivery remain separate. |
+| Ordered network | CHAT-01/02, CONTRIB-03, MESH-01, KEEP-02 | Two through seven stages; two overlapping requesters; signaling loss | [Actual source integration](../artifacts/automatic-ordered-participation-20261013/README.md) uses injected numerical stages. Independent physical hosts and signed delivery remain separate. |
 | Replicated larger model | MESH-01/02/03/05 | Twelve computers, three stages, four prepared replicas per stage | Intended capacity scenario; full-route admission, useful answers and independent failure domains need evidence. |
 | Sustained concurrent demand | MESH-01/05, CONTRIB-04/05, KEEP-03/04 | Twenty conversations, sixty stage states, five states per computer on twelve computers | Intended scenario, not a supported setting. Prove memory, fair progress and settlement before increasing admission limits. Active states do not mean simultaneous GPU operations. |
 | Mixed large mesh | CHAT-04, CONTRIB-01/02, MESH-03/04 | One hundred computers, several models, mixed file supply and compute | Intended scenario. Prove bounded discovery, compatible routing, preparation and replication within grants; do not broadcast every request to everyone. |
