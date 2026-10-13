@@ -1,0 +1,102 @@
+{
+  "observedUnixSeconds": 1791920779.6312566,
+  "processes": [
+    {
+      "pid": 297260,
+      "comm": "node",
+      "cwd": "/var/tmp/reploid-output-route-native-20261012/reploid",
+      "scripts": [
+        "server/native-participant.js"
+      ]
+    },
+    {
+      "pid": 299769,
+      "comm": "node",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": [
+        "scripts/run-mesh-contributor.js"
+      ]
+    },
+    {
+      "pid": 299780,
+      "comm": "chrome",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 299787,
+      "comm": "chrome",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 299788,
+      "comm": "chrome",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 299808,
+      "comm": "chrome",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 299809,
+      "comm": "chrome",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 299811,
+      "comm": "chrome",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 299848,
+      "comm": "chrome",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 299850,
+      "comm": "chrome",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 3989443,
+      "comm": "npm exec tsx sc",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 3989455,
+      "comm": "sh",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 3989456,
+      "comm": "node",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 3989481,
+      "comm": "node",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    },
+    {
+      "pid": 3989493,
+      "comm": "esbuild",
+      "cwd": "/home/clocksmith/deco/reploid",
+      "scripts": []
+    }
+  ],
+  "availableHostBytes": 28036153344,
+  "totalHostBytes": 33294401536,
+  "gpuWindowReserved": false
+}

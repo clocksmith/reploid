@@ -1,0 +1,63 @@
+{
+  "schema": "reploid.repaired-output-stage-opening/v1",
+  "preparedSuccessfully": true,
+  "descriptor": {
+    "schema": "doppler.resident-partition/v2",
+    "ready": true,
+    "stageCount": 3,
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:c747015acfb61ead7384b0efc820963855c27fbca3627882fa9ec8c1e03ceac7",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "index": 2,
+    "layerRange": [
+      16,
+      23
+    ],
+    "residentWeightBytes": 238020608,
+    "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+  },
+  "nativeDeliverySha256": "4f928c86b726be4b8d6803fdd65642c65da98f26c28933370393c218614a8e22",
+  "runtimeArchiveSha256": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4",
+  "maxGpuBufferBytes": 1420000000,
+  "peakGpuBufferBytes": 256948544,
+  "poolAfterResidentClose": {
+    "retainedModel": {
+      "bytes": 0,
+      "count": 0
+    },
+    "active": {
+      "bytes": 0,
+      "count": 0
+    },
+    "reusable": {
+      "bytes": 49698816,
+      "count": 64
+    },
+    "deferredCleanup": {
+      "bytes": 0,
+      "count": 0
+    }
+  },
+  "providerSettlement": {
+    "closed": true,
+    "providerOpened": true,
+    "ownedProviderReleased": true
+  },
+  "peakCgroupHostBytes": 999129088,
+  "providerExit": {
+    "at": "2026-10-13T19:50:34.624Z",
+    "phase": "provider-exit",
+    "code": 0,
+    "signal": null,
+    "memory.current": "52445184",
+    "memory.peak": "999129088",
+    "memory.events": "low 0\nhigh 0\nmax 0\noom 0\noom_kill 0\noom_group_kill 0",
+    "cleanup": "Read provider events; exit alone does not establish GPU settlement."
+  },
+  "scopeInvocation": "e2750f6af1dc4f1a8e838776357da4f3",
+  "captureSha256": "0e1f97f1d3d8a39a563c52366f32de92158a7e5c064dd8c49cb928d4c6aa9595",
+  "tokensExecuted": 0,
+  "numericalQualified": false,
+  "signedApplicationQualified": false,
+  "notes": "Retained caches; preparation/close only. Original wrong-scheme inspector call retained in suby-result.json before GPU open."
+}

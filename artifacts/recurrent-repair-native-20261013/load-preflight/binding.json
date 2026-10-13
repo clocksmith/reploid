@@ -1,0 +1,23 @@
+{
+  "sourceCommit": "461ac0ff",
+  "files": [
+    {
+      "path": "load-preflight.js",
+      "sha256": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a"
+    },
+    {
+      "path": "native-partition-process.js",
+      "sha256": "d59c3c2f841dc20f01dd3598357d8457d551e2ce2a22f7adbcae19a2cb4abd02"
+    },
+    {
+      "path": "native-provider-observation.js",
+      "sha256": "ece1784bedc5cfe3de79a8f4ee8462c8844777dbf393eba927c9bd9a5e41601b"
+    },
+    {
+      "path": "numerical-test-delivery.js",
+      "sha256": "eb6531431666fc7a022a8ebaf48f87e4ef7d3578b22b5e872a441f976ef683db"
+    }
+  ],
+  "startupConfigSha256": "7775237428d9b1c23e304352e8023c59a8926a3e3fa6650da5bd8e6fecdd9060",
+  "scope": "Existing installed host and load-only controller; no numerical test or runtime edits"
+}

@@ -1,0 +1,16 @@
+{
+  "remote": [
+    {
+      "pid": 964286,
+      "purpose": "owned read-only model server",
+      "signal": "SIGTERM"
+    }
+  ],
+  "local": [
+    {
+      "pid": 91375,
+      "purpose": "owned inspector tunnel",
+      "signal": "SIGTERM"
+    }
+  ]
+}
