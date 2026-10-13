@@ -1,0 +1,59 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/native-gpu-lifetime.test.js (3 tests | 3 failed) 58ms
+   × keeps the provider reachable until the exact owned device lost event settles 56ms
+   × times out without removing provider reachability and explicitly retries after later settlement 1ms
+   × retains provider after queue rejection and retries that boundary before destroying device 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-gpu-lifetime.test.js > keeps the provider reachable until the exact owned device lost event settles
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/unit/native-gpu-lifetime.test.js:25:21
+     23|   await vi.waitFor(()=>expect(f.device.destroy).toHaveBeenCalledOnce()…
+     24|   state.device = null; // Runtime invalidation cannot replace the alre…
+     25|   expect(completed).toBe(false); expect(navigator.gpu).toBe(f.provider…
+       |                     ^
+     26|   f.lost.resolve({reason:'destroyed'}); await first;
+     27|   expect(navigator.hostMarker).toBe(true); expect(navigator.gpu).toBeU…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/unit/native-gpu-lifetime.test.js > times out without removing provider reachability and explicitly retries after later settlement
+TypeError: .toMatch() expects to receive a string, but got undefined
+ ❯ tests/unit/native-gpu-lifetime.test.js:32:84
+     30|   vi.useFakeTimers(); const f = await fixture();
+     31|   const first = f.host.close(), outcome = first.then(value => ({value}…
+     32|   await vi.advanceTimersByTimeAsync(10001); expect((await outcome).err…
+       |                                                                                    ^
+     33|   expect(navigator.gpu).toBe(f.provider); expect(f.device.destroy).toH…
+     34|   expect(()=>f.host.open()).toThrow('closing');
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/unit/native-gpu-lifetime.test.js > retains provider after queue rejection and retries that boundary before destroying device
+Error: queue unknown
+ ❯ tests/unit/native-gpu-lifetime.test.js:41:87
+     39| });
+     40| it('retains provider after queue rejection and retries that boundary b…
+     41|   const f = await fixture(); f.device.queue.onSubmittedWorkDone.mockRe…
+       |                                                                                       ^
+     42|   await expect(f.host.close()).rejects.toThrow('queue unknown');
+     43|   expect(navigator.gpu).toBe(f.provider); expect(f.device.destroy).not…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  11:25:36
+   Duration  372ms (transform 187ms, setup 0ms, import 246ms, tests 58ms, environment 0ms)
+

@@ -1,0 +1,15 @@
+{
+  "scope": "source CPU lifetime proof; physical corrected teardown pending",
+  "beforeSourceCommit": "9f55a5f1",
+  "physicalDiagnosis": {
+    "repository": "doppler",
+    "commit": "61dab4df",
+    "path": "artifacts/ordered-partitions-20261013/suby-paired-control"
+  },
+  "files": {
+    "server/native-participant.js": "82613fd4a21f818382c90292962a9f246587cbc10954c1102f3f19d93353c313",
+    "tests/unit/native-gpu-lifetime.test.js": "18e26d3c6e62c3286c822314fad11b11c09cd29fae670e9f15a1f5900b79532d",
+    "tests/unit/native-participant.test.js": "377964d70bf74c9550a8734b841f08cf3d3c2ed6fef9956bb8df4f91c8e49dc6",
+    "node_modules/webgpu/README.md": "9feae40e146fd7e9fee881b84e4bd6a08b37ec9355317a66e4102dbe5bab83c7"
+  }
+}
