@@ -19,6 +19,22 @@ Qwen3.8-Flash-Next is the flagship engineering target, not Reploid's identity. R
 
 Status comes from the snapshot and linked receipts. Historical reviews are not evidence of a later run. Package archive prefixes above are not Git commits. See [DR-6](docs/roadmap/requirements.md#dr-6) for the failing candidate and source integration, [DR-4](docs/roadmap/requirements.md#dr-4) for historical numerical qualification, and [DR-1](docs/roadmap/requirements.md#dr-1) for package boundaries.
 
+## Cumulative launches
+
+Each launch delivers a complete usable capability. Keep the accepted site live while candidates qualify separately; development can overlap without one shared deployment date.
+
+| Launch | Usable capability and acceptance |
+| --- | --- |
+| **1. Dependable distributed chat** | Qualified configuration; installed answers, follow-ups, history/reload, cancellation, permissions and settlement. Publish proven device, context and concurrency limits. Flash-Next is not a dependency. |
+| **2. Useful optional contribution** | Cached-only, bounded acquisition and explicit seeding through the public app; persistent allowances across tabs/reloads, resumed transfers and conversations preserved when contribution stops. May precede Flash-Next on a compatible accepted release. |
+| **3. Concurrent prepared service** | Automatic preparation/placement, useful replicas and independent conversations within measured limits; isolated cancellation/departures, visible queues and explicit retries when capacity or valid state is unavailable. |
+| **4. Flash-Next access** | Exact conversion/runtime, reference accuracy, useful answers, distributed execution and the same conversation/lifecycle gates. Keep the existing model available; expand proven hardware/context limits separately. |
+| **5. Larger and more efficient service** | Qualify each additional model, device combination and capacity increase. Speculation, transferable state and finer expert placement require preserved correctness and measured benefit; none gates earlier launches. |
+
+**Every launch:** freeze website, browser/native runtime, model artifact and supported configuration together. Qualify preview → limited opt-in → public promotion. Retain a known-good rollback package and compatible history migrations. Unsupported combinations remain unavailable with a clear explanation. UI-only improvements may deploy independently after testing against the accepted runtime.
+
+**Release unit:** a working user capability plus its supported model configuration. Source completion alone never enables it publicly. Existing IDs and their scoped evidence remain the acceptance authority below.
+
 ## Execution order and ownership
 
 Finish correct installed execution and complete conversations together, exercising acquisition, permissions, cancellation and recovery through that same application. Prepare Flash-Next's reference and missing operators during repair. Extend placement and progressive contribution through existing owners. Begin measurement collection now; comparative economic conclusions require dependable execution.
