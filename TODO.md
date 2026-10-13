@@ -2,6 +2,8 @@
 
 [Open the product roadmap](ROADMAP.md). This file preserves legacy links only; it is not a work queue. Stable tasks and their unchanged scoped acceptance live in the [canonical task register](docs/roadmap/requirements.md).
 
+[Cumulative launches and shared release gate](ROADMAP.md#cumulative-launches): dependable distributed chat → useful optional contribution → concurrent prepared service → Flash-Next access → larger and more efficient service.
+
 ## Legacy anchors
 
 <a id="reploid-doppler-and-doe-implementation-checklist"></a>
