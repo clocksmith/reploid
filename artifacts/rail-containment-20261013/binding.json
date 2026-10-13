@@ -1,0 +1,31 @@
+{
+  "schema": "reploid.ui-repair-source/v1",
+  "baseCommit": "c0a0d662179f9e01b5d7d79b46b44c693fd199ba",
+  "scope": "UI source proof; not deployed, no inference",
+  "files": [
+    {
+      "path": "self/styles/poolday/components/conversation.css",
+      "sha256": "82d84e78581ac16db6218681d857a907a7c663810883683ef78ccf5ab8ed7b2d"
+    },
+    {
+      "path": "self/styles/poolday/components/interaction.css",
+      "sha256": "16e48f183f28db5f0876dccbfcfd1ad59bea0dd75d36f0a4fedadea48f8165a8"
+    },
+    {
+      "path": "self/styles/poolday/tokens.css",
+      "sha256": "010a1cf8fdad696122c2164eff2ef1095701718a128458a197cdbd02e245e801"
+    },
+    {
+      "path": "self/ui/pool-home/conversation-workspace.js",
+      "sha256": "1e0f99b9af6320adf999703b49f6c92c59c2d963921d86f879fcd06d38636900"
+    },
+    {
+      "path": "tests/e2e/chat-rail-layout.spec.js",
+      "sha256": "6ca1fbfb0072c99b3b8efdd7ac1e3f13b9e4da3121fc06db653f8fa67f5dd7fc"
+    },
+    {
+      "path": "artifacts/rail-containment-20261013/ui-only.patch",
+      "sha256": "db7944a27d62695053675f41f9968656e73aa2b827d215983fdbe8217cedb099"
+    }
+  ]
+}

@@ -1,0 +1,1514 @@
+[
+  {
+    "width": 1440,
+    "state": "collapsed",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 900,
+          "top": 0,
+          "right": 1440,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "16px 92px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 1256,
+          "height": 868,
+          "top": 16,
+          "right": 1348,
+          "bottom": 884,
+          "left": 92
+        },
+        "padding": "0px 0px 24px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 1256,
+          "height": 844,
+          "top": 16,
+          "right": 1348,
+          "bottom": 860,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 1256,
+          "height": 686,
+          "top": 16,
+          "right": 1348,
+          "bottom": 702,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 360,
+          "y": 16,
+          "width": 720,
+          "height": 32,
+          "top": 16,
+          "right": 1080,
+          "bottom": 48,
+          "left": 360
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 360,
+          "y": 726,
+          "width": 720,
+          "height": 134,
+          "top": 726,
+          "right": 1080,
+          "bottom": 860,
+          "left": 360
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 60,
+          "height": 868,
+          "top": 16,
+          "right": 76,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 1356,
+          "y": 16,
+          "width": 60,
+          "height": 868,
+          "top": 16,
+          "right": 1416,
+          "bottom": 884,
+          "left": 1356
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 1440,
+    "state": "left",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 900,
+          "top": 0,
+          "right": 1440,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "16px 92px 16px 302px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 302,
+          "y": 16,
+          "width": 1046,
+          "height": 868,
+          "top": 16,
+          "right": 1348,
+          "bottom": 884,
+          "left": 302
+        },
+        "padding": "0px 0px 24px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 302,
+          "y": 16,
+          "width": 1046,
+          "height": 844,
+          "top": 16,
+          "right": 1348,
+          "bottom": 860,
+          "left": 302
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 302,
+          "y": 16,
+          "width": 1046,
+          "height": 686,
+          "top": 16,
+          "right": 1348,
+          "bottom": 702,
+          "left": 302
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 465,
+          "y": 16,
+          "width": 720,
+          "height": 32,
+          "top": 16,
+          "right": 1185,
+          "bottom": 48,
+          "left": 465
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 465,
+          "y": 726,
+          "width": 720,
+          "height": 134,
+          "top": 726,
+          "right": 1185,
+          "bottom": 860,
+          "left": 465
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 270,
+          "height": 868,
+          "top": 16,
+          "right": 286,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 1356,
+          "y": 16,
+          "width": 60,
+          "height": 868,
+          "top": 16,
+          "right": 1416,
+          "bottom": 884,
+          "left": 1356
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 1440,
+    "state": "both",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 900,
+          "top": 0,
+          "right": 1440,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "16px 347px 16px 302px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 302,
+          "y": 16,
+          "width": 791,
+          "height": 868,
+          "top": 16,
+          "right": 1093,
+          "bottom": 884,
+          "left": 302
+        },
+        "padding": "0px 0px 24px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 302,
+          "y": 16,
+          "width": 791,
+          "height": 844,
+          "top": 16,
+          "right": 1093,
+          "bottom": 860,
+          "left": 302
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 302,
+          "y": 16,
+          "width": 791,
+          "height": 686,
+          "top": 16,
+          "right": 1093,
+          "bottom": 702,
+          "left": 302
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 337.5,
+          "y": 16,
+          "width": 720,
+          "height": 32,
+          "top": 16,
+          "right": 1057.5,
+          "bottom": 48,
+          "left": 337.5
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 337.5,
+          "y": 726,
+          "width": 720,
+          "height": 134,
+          "top": 726,
+          "right": 1057.5,
+          "bottom": 860,
+          "left": 337.5
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 270,
+          "height": 868,
+          "top": 16,
+          "right": 286,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 1101,
+          "y": 16,
+          "width": 315,
+          "height": 868,
+          "top": 16,
+          "right": 1416,
+          "bottom": 884,
+          "left": 1101
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 1440,
+    "state": "right",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 1440,
+          "height": 900,
+          "top": 0,
+          "right": 1440,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "16px 347px 16px 92px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 1001,
+          "height": 868,
+          "top": 16,
+          "right": 1093,
+          "bottom": 884,
+          "left": 92
+        },
+        "padding": "0px 0px 24px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 1001,
+          "height": 844,
+          "top": 16,
+          "right": 1093,
+          "bottom": 860,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 1001,
+          "height": 686,
+          "top": 16,
+          "right": 1093,
+          "bottom": 702,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 232.5,
+          "y": 16,
+          "width": 720,
+          "height": 32,
+          "top": 16,
+          "right": 952.5,
+          "bottom": 48,
+          "left": 232.5
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 232.5,
+          "y": 726,
+          "width": 720,
+          "height": 134,
+          "top": 726,
+          "right": 952.5,
+          "bottom": 860,
+          "left": 232.5
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 60,
+          "height": 868,
+          "top": 16,
+          "right": 76,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 1101,
+          "y": 16,
+          "width": 315,
+          "height": 868,
+          "top": 16,
+          "right": 1416,
+          "bottom": 884,
+          "left": 1101
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 900,
+    "state": "collapsed",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 900,
+          "height": 900,
+          "top": 0,
+          "right": 900,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "16px 92px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 868,
+          "top": 16,
+          "right": 808,
+          "bottom": 884,
+          "left": 92
+        },
+        "padding": "0px 0px 24px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 844,
+          "top": 16,
+          "right": 808,
+          "bottom": 860,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 686,
+          "top": 16,
+          "right": 808,
+          "bottom": 702,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 32,
+          "top": 16,
+          "right": 808,
+          "bottom": 48,
+          "left": 92
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 92,
+          "y": 726,
+          "width": 716,
+          "height": 134,
+          "top": 726,
+          "right": 808,
+          "bottom": 860,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 60,
+          "height": 868,
+          "top": 16,
+          "right": 76,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 816,
+          "y": 16,
+          "width": 60,
+          "height": 868,
+          "top": 16,
+          "right": 876,
+          "bottom": 884,
+          "left": 816
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 900,
+    "state": "left",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 900,
+          "height": 900,
+          "top": 0,
+          "right": 900,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "16px 92px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 868,
+          "top": 16,
+          "right": 808,
+          "bottom": 884,
+          "left": 92
+        },
+        "padding": "0px 0px 24px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 844,
+          "top": 16,
+          "right": 808,
+          "bottom": 860,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 686,
+          "top": 16,
+          "right": 808,
+          "bottom": 702,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 32,
+          "top": 16,
+          "right": 808,
+          "bottom": 48,
+          "left": 92
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 92,
+          "y": 726,
+          "width": 716,
+          "height": 134,
+          "top": 726,
+          "right": 808,
+          "bottom": 860,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 270,
+          "height": 868,
+          "top": 16,
+          "right": 286,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 816,
+          "y": 16,
+          "width": 60,
+          "height": 868,
+          "top": 16,
+          "right": 876,
+          "bottom": 884,
+          "left": 816
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 900,
+    "state": "both",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 900,
+          "height": 900,
+          "top": 0,
+          "right": 900,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "16px 92px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 868,
+          "top": 16,
+          "right": 808,
+          "bottom": 884,
+          "left": 92
+        },
+        "padding": "0px 0px 24px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 844,
+          "top": 16,
+          "right": 808,
+          "bottom": 860,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 686,
+          "top": 16,
+          "right": 808,
+          "bottom": 702,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 32,
+          "top": 16,
+          "right": 808,
+          "bottom": 48,
+          "left": 92
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 92,
+          "y": 726,
+          "width": 716,
+          "height": 134,
+          "top": 726,
+          "right": 808,
+          "bottom": 860,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 270,
+          "height": 868,
+          "top": 16,
+          "right": 286,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 561,
+          "y": 16,
+          "width": 315,
+          "height": 868,
+          "top": 16,
+          "right": 876,
+          "bottom": 884,
+          "left": 561
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 900,
+    "state": "right",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 900,
+          "height": 900,
+          "top": 0,
+          "right": 900,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "16px 92px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 868,
+          "top": 16,
+          "right": 808,
+          "bottom": 884,
+          "left": 92
+        },
+        "padding": "0px 0px 24px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 844,
+          "top": 16,
+          "right": 808,
+          "bottom": 860,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 686,
+          "top": 16,
+          "right": 808,
+          "bottom": 702,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 92,
+          "y": 16,
+          "width": 716,
+          "height": 32,
+          "top": 16,
+          "right": 808,
+          "bottom": 48,
+          "left": 92
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 92,
+          "y": 726,
+          "width": 716,
+          "height": 134,
+          "top": 726,
+          "right": 808,
+          "bottom": 860,
+          "left": 92
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 60,
+          "height": 868,
+          "top": 16,
+          "right": 76,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 561,
+          "y": 16,
+          "width": 315,
+          "height": 868,
+          "top": 16,
+          "right": 876,
+          "bottom": 884,
+          "left": 561
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 390,
+    "state": "collapsed",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "top": 0,
+          "right": 390,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "72px 16px 16px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 812,
+          "top": 72,
+          "right": 374,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "0px 0px 16px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 796,
+          "top": 72,
+          "right": 374,
+          "bottom": 868,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 638,
+          "top": 72,
+          "right": 374,
+          "bottom": 710,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 32,
+          "top": 72,
+          "right": 374,
+          "bottom": 104,
+          "left": 16
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 16,
+          "y": 734,
+          "width": 358,
+          "height": 134,
+          "top": 734,
+          "right": 374,
+          "bottom": 868,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 170,
+          "height": 62,
+          "top": 16,
+          "right": 186,
+          "bottom": 78,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 294,
+          "y": 16,
+          "width": 72,
+          "height": 62,
+          "top": 16,
+          "right": 366,
+          "bottom": 78,
+          "left": 294
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 390,
+    "state": "left",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "top": 0,
+          "right": 390,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "72px 16px 16px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 812,
+          "top": 72,
+          "right": 374,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "0px 0px 16px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 796,
+          "top": 72,
+          "right": 374,
+          "bottom": 868,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 638,
+          "top": 72,
+          "right": 374,
+          "bottom": 710,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 32,
+          "top": 72,
+          "right": 374,
+          "bottom": 104,
+          "left": 16
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 16,
+          "y": 734,
+          "width": 358,
+          "height": 134,
+          "top": 734,
+          "right": 374,
+          "bottom": 868,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 270,
+          "height": 868,
+          "top": 16,
+          "right": 286,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 294,
+          "y": 16,
+          "width": 72,
+          "height": 62,
+          "top": 16,
+          "right": 366,
+          "bottom": 78,
+          "left": 294
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 390,
+    "state": "both",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "top": 0,
+          "right": 390,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "72px 16px 16px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 812,
+          "top": 72,
+          "right": 374,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "0px 0px 16px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 796,
+          "top": 72,
+          "right": 374,
+          "bottom": 868,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 638,
+          "top": 72,
+          "right": 374,
+          "bottom": 710,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 32,
+          "top": 72,
+          "right": 374,
+          "bottom": 104,
+          "left": 16
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 16,
+          "y": 734,
+          "width": 358,
+          "height": 134,
+          "top": 734,
+          "right": 374,
+          "bottom": 868,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 270,
+          "height": 868,
+          "top": 16,
+          "right": 286,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 51,
+          "y": 16,
+          "width": 315,
+          "height": 868,
+          "top": 16,
+          "right": 366,
+          "bottom": 884,
+          "left": 51
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  },
+  {
+    "width": 390,
+    "state": "right",
+    "geometry": {
+      ".pool-home": {
+        "rect": {
+          "x": 0,
+          "y": 0,
+          "width": 390,
+          "height": 900,
+          "top": 0,
+          "right": 390,
+          "bottom": 900,
+          "left": 0
+        },
+        "padding": "72px 16px 16px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      ".pool-route-content": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 812,
+          "top": 72,
+          "right": 374,
+          "bottom": 884,
+          "left": 16
+        },
+        "padding": "0px 0px 16px",
+        "alignSelf": "auto",
+        "display": "grid"
+      },
+      "[data-conversation-area]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 796,
+          "top": 72,
+          "right": 374,
+          "bottom": 868,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-chat-transcript]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 638,
+          "top": 72,
+          "right": 374,
+          "bottom": 710,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "auto",
+        "display": "block"
+      },
+      "[data-message-stream]": {
+        "rect": {
+          "x": 16,
+          "y": 72,
+          "width": 358,
+          "height": 32,
+          "top": 72,
+          "right": 374,
+          "bottom": 104,
+          "left": 16
+        },
+        "padding": "16px 0px",
+        "alignSelf": "center",
+        "display": "flex"
+      },
+      "[data-composer-area]": {
+        "rect": {
+          "x": 16,
+          "y": 734,
+          "width": 358,
+          "height": 134,
+          "top": 734,
+          "right": 374,
+          "bottom": 868,
+          "left": 16
+        },
+        "padding": "0px",
+        "alignSelf": "center",
+        "display": "block"
+      },
+      "[data-thread-sidebar]": {
+        "rect": {
+          "x": 16,
+          "y": 16,
+          "width": 170,
+          "height": 62,
+          "top": 16,
+          "right": 186,
+          "bottom": 78,
+          "left": 16
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      },
+      "[data-network-rail]": {
+        "rect": {
+          "x": 51,
+          "y": 16,
+          "width": 315,
+          "height": 868,
+          "top": 16,
+          "right": 366,
+          "bottom": 884,
+          "left": 51
+        },
+        "padding": "8px",
+        "alignSelf": "auto",
+        "display": "flex"
+      }
+    }
+  }
+]

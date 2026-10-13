@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/message-list.test.js (6 tests) 30ms
+ ✓ tests/unit/conversation-permission.test.js (2 tests) 85ms
+ ✓ tests/unit/canonical-composer-admission.test.js (3 tests) 331ms
+ ✓ tests/unit/conversation-workspace.test.js (20 tests) 897ms
+
+ Test Files  4 passed (4)
+      Tests  31 passed (31)
+   Start at  13:58:16
+   Duration  1.59s (transform 634ms, setup 0ms, import 898ms, tests 1.34s, environment 920ms)
+

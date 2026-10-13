@@ -1,0 +1,13 @@
+
+Running 4 tests using 1 worker
+
+(node:73075) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:73075) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✓  1 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 1440px (3.9s)
+  ✓  2 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 320px (631ms)
+  ✓  3 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › dark stationary glyphs and marble switches retain focus and reduced motion at 1440px (865ms)
+  ✓  4 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › dark stationary glyphs and marble switches retain focus and reduced motion at 320px (524ms)
+
+  4 passed (6.6s)

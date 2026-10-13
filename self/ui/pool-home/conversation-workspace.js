@@ -36,7 +36,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
       <div class="chat-thread-list" data-thread-list></div>
     </aside>
     <section class="chat-conversation-area pool-surface" data-conversation-area aria-label="Current conversation">
-      <div class="chat-transcript" data-chat-transcript><div class="chat-message-stream" data-message-stream role="log" aria-label="Messages" aria-live="polite"></div></div>
+      <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <p class="chat-error" role="alert" data-chat-error hidden></p>
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
@@ -134,6 +134,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     input.style.height = 'auto';
     input.style.height = Math.min(Math.max(48, input.scrollHeight), Math.max(72, (globalThis.visualViewport?.height || globalThis.innerHeight || 800) * 0.22)) + 'px';
   }
+  // Rail changes alter the input width without a window resize.
+  let inputWidth = input.getBoundingClientRect().width;
+  const inputResize = typeof ResizeObserver === 'function' ? new ResizeObserver(() => {
+    const width = input.getBoundingClientRect().width;
+    if (!controller.signal.aborted && width !== inputWidth) { inputWidth = width; resizeInput(); }
+  }) : null;
+  inputResize?.observe(input);
   const showFiles = () => { resizeInput(); renderAttachments(find('[data-attachments-preview]'), files); find('[data-attachment-help]').hidden = !files.length; };
   const updatePicker = state => {
     const keyFor = model => model?.selectionId || model?.id;
@@ -361,6 +368,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   });
   return () => {
     try { observe(saveDraft()); } catch (cause) { error(cause); }
+    inputResize?.disconnect();
     messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose();
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');

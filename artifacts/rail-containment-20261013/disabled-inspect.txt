@@ -1,0 +1,36 @@
+
+Running 1 test using 1 worker
+
+(node:72774) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72774) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 1440px (3.8s)
+
+
+  1) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 1440px 
+
+    Error: {"disabled":true,"matches":true,"opacity":"1","token":"0.444","base":"0.444"}
+
+    [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: < [32m1[39m
+    Received:   [31m1[39m
+
+      186 |     await toggle.evaluate(node => { node.disabled = true; }); await expect(toggle).toBeDisabled();
+      187 |     const disabledState = await toggle.evaluate(node => ({ disabled: node.disabled, matches: node.matches(':disabled'), opacity: getComputedStyle(node).opacity, token: getComputedStyle(node).getPropertyValue('--pool-opacity-disabled'), base: getComputedStyle(node).getPropertyValue('--opacity-disabled') }));
+    > 188 |     expect(Number(disabledState.opacity), JSON.stringify(disabledState)).toBeLessThan(1);
+          |                                                                          ^
+      189 |     await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
+      190 |   });
+      191 | }
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:188:74
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/rail-containment-20261013/disabled-inspect/chat-rail-layout-light-sta-e4a4e-nd-reduced-motion-at-1440px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/rail-containment-20261013/disabled-inspect/chat-rail-layout-light-sta-e4a4e-nd-reduced-motion-at-1440px-chromium-swiftshader/error-context.md
+
+  1 failed
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 1440px 

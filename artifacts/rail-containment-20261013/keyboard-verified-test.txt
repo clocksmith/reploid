@@ -1,0 +1,118 @@
+
+Running 4 tests using 1 worker
+
+(node:72542) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72542) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  1 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 1440px (4.9s)
+(node:72556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72556) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  2 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 320px (4.6s)
+(node:72581) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72581) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  3 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › dark stationary glyphs and marble switches retain focus and reduced motion at 1440px (4.9s)
+(node:72597) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:72597) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ✘  4 [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › dark stationary glyphs and marble switches retain focus and reduced motion at 320px (4.5s)
+
+
+  1) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 1440px 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: < [32m1[39m
+    Received:   [31m1[39m
+
+      185 |     await page.keyboard.press('Space'); await expect(toggle).toHaveAttribute('aria-checked', 'true');
+      186 |     await toggle.evaluate(node => { node.disabled = true; }); await expect(toggle).toBeDisabled();
+    > 187 |     expect(Number(await toggle.evaluate(node => getComputedStyle(node).opacity))).toBeLessThan(1);
+          |                                                                                   ^
+      188 |     await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
+      189 |   });
+      190 | }
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-light-sta-e4a4e-nd-reduced-motion-at-1440px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-light-sta-e4a4e-nd-reduced-motion-at-1440px-chromium-swiftshader/error-context.md
+
+  2) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 320px 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: < [32m1[39m
+    Received:   [31m1[39m
+
+      185 |     await page.keyboard.press('Space'); await expect(toggle).toHaveAttribute('aria-checked', 'true');
+      186 |     await toggle.evaluate(node => { node.disabled = true; }); await expect(toggle).toBeDisabled();
+    > 187 |     expect(Number(await toggle.evaluate(node => getComputedStyle(node).opacity))).toBeLessThan(1);
+          |                                                                                   ^
+      188 |     await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
+      189 |   });
+      190 | }
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-light-sta-cf42c-and-reduced-motion-at-320px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-light-sta-cf42c-and-reduced-motion-at-320px-chromium-swiftshader/error-context.md
+
+  3) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › dark stationary glyphs and marble switches retain focus and reduced motion at 1440px 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: < [32m1[39m
+    Received:   [31m1[39m
+
+      185 |     await page.keyboard.press('Space'); await expect(toggle).toHaveAttribute('aria-checked', 'true');
+      186 |     await toggle.evaluate(node => { node.disabled = true; }); await expect(toggle).toBeDisabled();
+    > 187 |     expect(Number(await toggle.evaluate(node => getComputedStyle(node).opacity))).toBeLessThan(1);
+          |                                                                                   ^
+      188 |     await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
+      189 |   });
+      190 | }
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-dark-stat-9aa0e-nd-reduced-motion-at-1440px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-dark-stat-9aa0e-nd-reduced-motion-at-1440px-chromium-swiftshader/error-context.md
+
+  4) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › dark stationary glyphs and marble switches retain focus and reduced motion at 320px 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBeLessThan[2m([22m[32mexpected[39m[2m)[22m
+
+    Expected: < [32m1[39m
+    Received:   [31m1[39m
+
+      185 |     await page.keyboard.press('Space'); await expect(toggle).toHaveAttribute('aria-checked', 'true');
+      186 |     await toggle.evaluate(node => { node.disabled = true; }); await expect(toggle).toBeDisabled();
+    > 187 |     expect(Number(await toggle.evaluate(node => getComputedStyle(node).opacity))).toBeLessThan(1);
+          |                                                                                   ^
+      188 |     await page.screenshot({ path: info.outputPath('marble-on-disabled.png') });
+      189 |   });
+      190 | }
+        at /Users/xyz/deco/reploid/tests/e2e/chat-rail-layout.spec.js:187:83
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-dark-stat-7746d-and-reduced-motion-at-320px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: artifacts/rail-containment-20261013/keyboard-verified/chat-rail-layout-dark-stat-7746d-and-reduced-motion-at-320px-chromium-swiftshader/error-context.md
+
+  4 failed
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 1440px 
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › light stationary glyphs and marble switches retain focus and reduced motion at 320px 
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › dark stationary glyphs and marble switches retain focus and reduced motion at 1440px 
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:161:3 › dark stationary glyphs and marble switches retain focus and reduced motion at 320px 
