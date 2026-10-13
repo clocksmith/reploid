@@ -1,0 +1,97 @@
+{
+  "schema": "reploid.ordered-load-preflight-disposition/v1",
+  "full55Started": false,
+  "numericalQualification": false,
+  "stages": [
+    {
+      "index": 0,
+      "host": "Mac",
+      "loadOnlyPassed": true,
+      "ownedBrowserPid": 56666,
+      "closed": true
+    },
+    {
+      "index": 1,
+      "host": "AMD",
+      "loadOnlyPassed": true,
+      "ownedNativePid": 413185,
+      "naturalExitCode": 0
+    },
+    {
+      "index": 2,
+      "host": "Suby",
+      "loadOnlyPassed": false,
+      "ownedNativePid": 792477,
+      "operationLimitMs": 300000,
+      "failureAtDeadline": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64 createComputePipelineAsync pending",
+      "cleanupLimitMs": 10000,
+      "cleanupWithinLimit": false,
+      "weightBuffersBeforeLateClose": 116,
+      "nativeNaturalExitCode": 0,
+      "lateShutdown": "Actual host eventually logged device destroyed and pipeline unload; no signals sent. This does not convert bounded cleanup failure to pass."
+    }
+  ],
+  "pipelineDurations": [
+    {
+      "operation": "createShaderModule",
+      "label": "rope_precompute_paired",
+      "milliseconds": 6.0
+    },
+    {
+      "operation": "getCompilationInfo",
+      "label": "rope_precompute_paired",
+      "milliseconds": 1.0
+    },
+    {
+      "operation": "createComputePipelineAsync",
+      "label": "rope_precompute_paired_pipeline",
+      "milliseconds": 260375.0
+    },
+    {
+      "operation": "createShaderModule",
+      "label": "gated_delta_conv_paired",
+      "milliseconds": 5.0
+    },
+    {
+      "operation": "getCompilationInfo",
+      "label": "gated_delta_conv_paired",
+      "milliseconds": 0.0
+    }
+  ],
+  "lastPending": [
+    {
+      "id": 5,
+      "operation": "createComputePipelineAsync",
+      "label": "gated_delta_conv_paired_pipeline_WORKGROUP_SIZE=64",
+      "entryPoint": "main",
+      "constants": {
+        "WORKGROUP_SIZE": 64
+      },
+      "at": "2026-10-13T16:00:26.838Z",
+      "status": "started"
+    }
+  ],
+  "gpuErrorsAtDeadline": [],
+  "deviceEventsAtDeadline": [],
+  "trackedGpuBufferBytesAtDeadline": 256948496,
+  "separateProcessRssKiBObserved": 10880212,
+  "coTenantsUntouched": [
+    4103868,
+    4121371,
+    297260,
+    299769
+  ],
+  "ownedServersStopped": [
+    56348,
+    413186,
+    792414
+  ],
+  "ownedTunnelsStopped": [
+    56364,
+    56366
+  ],
+  "publicPinChanged": false,
+  "nextControlProposal": "CPU/source trace identifies paired transcendental expansion shared by the slow RoPE and pending convolution pipelines. Next bounded compiler-only control should isolate unchanged pair_exp and pair_sin_cos entry reachability against exact paired arithmetic baseline before selecting any source correction. No new GPU trial yet, no timeout extension or fabricated N-stage reports.",
+  "observedSubmissionsAtDeadline": 0,
+  "submissionCoverage": "Frozen queue.submit wrapper is installed after resident.open completes; no preparation-submit coverage. Empty list must not be interpreted as zero GPU dispatches."
+}

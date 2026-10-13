@@ -1,0 +1,7 @@
+[393723.1ms][Pipeline] Model loaded successfully (269895ms)
+[460769.5ms][GPU] Device lost: device was destroyed, Reason: destroyed
+[460775.1ms][ExpertCache] Cache cleared
+[460775.5ms][Pipeline] Unloaded
+Debugger ending on ws://127.0.0.1:29912/5d04ec01-ec7f-45ce-a956-5253317967ca
+For help, see: https://nodejs.org/en/docs/inspector
+

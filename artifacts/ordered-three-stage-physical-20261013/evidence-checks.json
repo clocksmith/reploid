@@ -1,0 +1,26 @@
+{
+  "scope": "Post-run evidence consistency, not an independent numerical pass",
+  "checks": [
+    "Mac/AMD load-only success and settled ownership",
+    "Suby exact300s timeout and10s close failure retained",
+    "260375ms pipeline duration from timestamp pairs",
+    "No full55/token-execution claim"
+  ],
+  "files": {
+    "process-observation.json": "27b3482e18a18a2b98909dfb6305c8149eeaf7377d619ee8f37e542509e1fa9c",
+    "disposition.json": "5958ac2fa2791f4ed59b540e04824eaac08d8967a18120feab7926b163c3c979",
+    "final-processes.json": "7158ebdddc60da5a7a578135f20decc5e31ddfbe1ce88313a8f5c23fee9234bc",
+    "suby-load-preflight.json": "1ccd46bcbca01eed2414ac0aebee321a7ebb6608ee0eeb9ffd5ebeeadb5c4f28",
+    "suby-native-late-shutdown.txt": "0247aebf8dc0d9e6da41580be834a53361a0f4683a39a38ec735065bd800bfed",
+    "README.md": "4a92069ba924cfd0213089f04603034149398372f411030c1cd8b63cece1e85d",
+    "suby-native-preparation.txt": "4124ef631539c7f23503647b1394ff7304697077060c16e9545b204c8355bd24",
+    "mac-load-preflight-v2.json": "a3a6267b35719cd5ffa047d00f5317ac3aee75ee8d1922d9bd8446844c706fff",
+    "reservation.json": "17c2a1e821c17c27bbd986e238d6035afd4d30785ec6f94b07833014b93a5395",
+    "load-preflight-before-route.js": "de46f73c1c037aa918d9bfe6f0833b1efe5a4507bfdc0648ee194d64ef308e5d",
+    "suby-pipeline-source-observation.json": "7fe7d5ae632b3f0226437c6b5d843632acf09878b8d446be313845df31dda7c2",
+    "load-preflight.js": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a",
+    "mac-load-route-rejected.json": "ca7a56658b89ba43eea58e4e0fe6224389ce60059669296a68ddb6f5411353fa",
+    "preflight-binding.json": "7c828fbc6eb6e3101c664e647b30e4a76e3e35bf39161cf40be5a301adfb9aa9",
+    "amd-load-preflight.json": "5db119ae9aa975723aca2e03d1149a7535364609b2599fae8a44dfe9f5526393"
+  }
+}
