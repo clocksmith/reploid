@@ -1,3 +1,5 @@
+import type { PartitionRoute } from '../mesh/partitions/partition-contract.js';
+import type { PartitionActivity } from '../mesh/partitions/partition-summary.js';
 import type { PartitionGenerationRequest, PartitionTokenUsage } from '../mesh/partitions/partition-generation-request.js';
 export { openCanonicalWorkspaceHistory } from './workspace-history.js';
 import type { CanonicalWorkspaceHistory } from './workspace-history.js';
@@ -48,8 +50,8 @@ export interface ChatApproval extends ChatEnvelope {
 export interface ChatThreadGrant {
   id: string; meshId: string; threadId: string; recipientIdentity: string;
   modelId: string; modelIdentity: string; adapterIdentities: string[];
-  sharingScope: string; disclosure: 'public' | 'partition-activations' | 'partition-activations-and-tokens';
-  planId?: string; participantA?: string; createdAt: number; revokedAt: number | null;
+  sharingScope: string; disclosure: 'public' | 'partition-activations' | 'partition-activations-and-tokens' | 'ordered-partition-activations-and-tokens';
+  planId?: string; participantA?: string; route?: PartitionRoute; requesterIdentity?: string; createdAt: number; revokedAt: number | null;
 }
 export interface ChatResult extends ChatEnvelope {
   modelId: string; modelIdentity: string; adapterIdentities: string[];
@@ -69,7 +71,7 @@ export interface ChatAttempt {
   approval: ChatApproval | null;
   authorization: { kind: 'once' | 'thread-grant'; grantId: string | null; peerId: string; recipientIdentity?: string | null;
     source?: 'send'; expiresAt?: number; modelId?: string; modelIdentity?: string; adapterIdentities?: string[];
-    participantA?: string; planId?: string; sharingScope?: string; disclosure?: string } | null;
+    participantA?: string; planId?: string; route?: PartitionRoute; requesterIdentity?: string; sharingScope?: string; disclosure?: string } | null;
   execution: Record<string, unknown> | null;
   request: ChatRequest;
   systemContext?: ChatSystemContext | null;
@@ -88,6 +90,7 @@ export interface ChatState {
   limits: { maxThreads: number; maxMessageCharacters: number };
 }
 export interface ChatControls {
+  onActivity?(activity:ChatEnvelope & PartitionActivity):void|Promise<void>;
   onUsage?(usage:ChatEnvelope & PartitionTokenUsage):void|Promise<void>;
   publication?:CanonicalPublicationPort;publisherEpoch?:string;onPublished?:(record:EntryPublicationRecord)=>Promise<void>;
   signal: AbortSignal;
