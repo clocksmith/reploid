@@ -9,6 +9,7 @@ import { loadPairedPartitionFixture, assertPartitionTraversal } from './paired-p
 import { runConcurrentPartitionMemory, createConcurrentOperationObserver } from './concurrent-partition-memory.js';
 import { selectPartitionDiagnostic, assertNativePartitionPhase } from './partition-diagnostic-selection.js';
 import { observePartitionAttemptCleanup } from './partition-attempt-cleanup.js';
+import { assertPartitionMemorySettlement } from './partition-memory-settlement.js';
 import { connectNativePartitionEndpoint } from './native-partition-endpoint.js';
 import { preparePartitionMemory } from './prepare-partition-memory.js';
 import { verifyNumericalTestDelivery } from './numerical-test-delivery.js';
@@ -40,6 +41,9 @@ const testDelivery = process.env.REPLOID_TEST_DELIVERY_BINDING ? await verifyNum
 const policy = JSON.parse(await readFile(new URL('../../self/config/partition-policy.json', import.meta.url)));
 const profile = JSON.parse(await readFile(new URL('../../self/config/work-profile.json', import.meta.url)));
 const phase = process.env.REPLOID_MEMORY_PHASE ?? 'repetition';
+const prefillObservationOnly = process.env.REPLOID_PREFILL_OBSERVATION_ONLY === '1';
+const profileImmediate = process.env.REPLOID_PROFILE_IMMEDIATE === '1';
+if (prefillObservationOnly) assert(phase === 'concurrent' && profileImmediate, 'Prefill observation requires explicit concurrent profiler diagnostic');
 const referenceBytes = phase === 'reference' ? await readFile(process.env.REPLOID_REFERENCE_FILE) : null;
 if (referenceBytes) assert.equal(createHash('sha256').update(referenceBytes).digest('hex'),
   process.env.REPLOID_REFERENCE_SHA256 || referenceContract.sha256);
@@ -119,6 +123,9 @@ try {
     const index = reverse ? 1 - slot : slot;
     const context = await browser.newContext(); contexts.push(context);
     const page = await context.newPage(); pages.push(page);
+    if (profileImmediate) page.on('console', message => {
+      if (message.text().includes('[Profile]')) console.log(JSON.stringify({ event: 'gpu-profile', index, text: message.text() }));
+    });
     if (browser.native) await browser.open();
     else await page.goto(new URL('/config/chat-files.json', process.env.REPLOID_E2E_BASE_URL || 'http://localhost:8000').href);
     const openingObserver = pairedBinding ? await observeResidentOpening(page, {
@@ -140,7 +147,7 @@ try {
       const config = await import('/config/doppler-local-models.js');
       return { DOPPLER_PACKAGE_VERSION: config.DOPPLER_PACKAGE_VERSION, DOPPLER_PARTITIONS_MODULE_URL: new URL(config.DOPPLER_PARTITIONS_MODULE_URL, location.href).href,
         DOPPLER_KERNEL_BASE_URL: new URL(config.DOPPLER_KERNEL_BASE_URL, location.href).href };
-    }), policy, model: { ...(capacityModel || requests[0].model), generation }, index, pairedBinding,
+    }), policy, model: { ...(capacityModel || requests[0].model), generation }, index, pairedBinding, profileImmediate,
       modelSource: (browser === remote ? process.env.REPLOID_PEER_MODEL_BASE_URL : null)
         || process.env.REPLOID_MODEL_BASE_URL || 'http://127.0.0.1:9230/' });
     if (openingObserver) prepared.openingObservation = await openingObserver.finish();
@@ -159,9 +166,12 @@ try {
   }
   const pageA = pages[reverse ? 1 : 0], pageB = pages[reverse ? 0 : 1];
   if (phase === 'concurrent') {
-    evidence.scope = 'Two live 1,588-token resident attempts, submitted cancellation, surviving output and fresh retry; Node tensor forwarding, not signed application acceptance';
+    evidence.scope = prefillObservationOnly
+      ? 'Original 1,588-token group0 prefill observation only; no decode, concurrency or signed application qualification'
+      : 'Two live 1,588-token resident attempts, submitted cancellation, surviving output and fresh retry; Node tensor forwarding, not signed application acceptance';
+    evidence.profiling = { enabled: profileImmediate, prefillObservationOnly, records: 'Controller gpu-profile JSON lines; strict runtime timestamp coverage' };
     await runConcurrentPartitionMemory({ pages, pageA, pageB, request: requests[1], generation,
-      planId: descriptors[0].planId, runs, operation: boundedOperation,
+      planId: descriptors[0].planId, runs, operation: boundedOperation, prefillObservationOnly,
       persist: persistEvidence,
       onProgress: row => console.log(JSON.stringify(row)) });
   } else for (const [attempt, testCase] of cases.entries()) {
@@ -292,11 +302,7 @@ try {
     for (const settlement of evidence.residentSettlement) {
       assert(!settlement.error, 'Resident cleanup observation failed');
       const { snapshot } = settlement;
-      assert.equal(snapshot.pool.resources.retainedModel.count, 0, 'Closed resident still owns weights');
-      assert.equal(snapshot.pool.resources.active.count, 0, 'Closed resident still owns active buffers');
-      assert.equal(snapshot.pool.resources.deferredCleanup.count, 0, 'Retired buffers did not settle');
-      assert.equal(snapshot.device.categories.weights, 0, 'Closed resident weights were not destroyed');
-      assert.deepEqual(snapshot.gpuValidationErrors, [], 'Cleanup produced WebGPU errors');
+      assertPartitionMemorySettlement(snapshot);
     }
   } catch (error) {
     cleanupFailure = error;

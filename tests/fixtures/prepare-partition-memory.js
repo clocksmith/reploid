@@ -1,5 +1,6 @@
 /** Shared physical fixture preparation; runs in browser or owned Node inspector. */
-export async function preparePartitionMemory({ model, index, modelSource, pairedBinding, config, policy }) {
+export async function preparePartitionMemory({ model, index, modelSource, pairedBinding, config, policy, profileImmediate = false }) {
+      if (typeof profileImmediate !== 'boolean') throw Error('Explicit profiler selection required');
       const importModule = globalThis.__nativePartitionFixture
         ? url => globalThis.__nativePartitionFixture.importModule(String(url)) : url => import(url);
       const base = new URL(config.DOPPLER_PARTITIONS_MODULE_URL);
@@ -156,7 +157,7 @@ export async function preparePartitionMemory({ model, index, modelSource, paired
       };
       const beforePreparation = { device: runtime.inspectDeviceMemory() };
       const factory = runtime.createManifestResidentPartitionFactory({ manifest, manifestIdentity: identity,
-        runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: false } } }, inference: { session: {
+        runtimeConfig: { shared: { bufferPool: policy.bufferPool, debug: { profiler: { enabled: profileImmediate } } }, inference: { session: {
           ...pairedBinding?.session, kvcache: { maxSeqLen: model.generation.maxSeqLen }, prefillChunkLayers: policy.prefillChunkLayers,
           prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
         createStorage: () => createHttpArtifactStorageContext(source, manifest, { verifyHashes: true }) });
