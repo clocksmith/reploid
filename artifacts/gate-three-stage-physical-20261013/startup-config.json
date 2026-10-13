@@ -1,0 +1,11 @@
+{
+  "applicationDirectory": "/var/tmp/reploid-gate-native-20261013/installed/reploid",
+  "nativeDeliverySha256": "301766bbbad9d7d12f64a6bf8bd18d41d7949b5e7fe8f9ccb09debefc5b58806",
+  "providerModule": "webgpu",
+  "testDelivery": {
+    "root": "/var/tmp/reploid-gate-three-stage-20261013",
+    "bindingPath": "/var/tmp/reploid-gate-three-stage-20261013/snapshot-binding.json",
+    "bindingSha256": "6f69ef692a5916f1736ca356625df0bd81267a8b2e5ea6edf725e96e53220d2d",
+    "archivePath": "/var/tmp/reploid-gate-three-stage-20261013/archive.tgz"
+  }
+}

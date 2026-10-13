@@ -1,0 +1,35 @@
+{
+  "mac": {
+    "observedAt": "2026-10-13T17:44:13.114691+00:00",
+    "requestedPids": [
+      68714,
+      68798,
+      68922,
+      34460
+    ],
+    "processes": "  PID  PPID STAT     ELAPSED COMM\n34460     1 S    03-17:11:56 /Applications/Google Chrome.app/Contents/MacOS/Google Chrome\n",
+    "listeners": ""
+  },
+  "amd": {
+    "observedAt": "2026-10-13T17:44:13.922058+00:00",
+    "requestedPids": [
+      1505919,
+      1507268,
+      4103868,
+      4121371
+    ],
+    "processes": "    PID    PPID STAT     ELAPSED COMMAND\n4103868       1 Rsl     15:40:35 node\n4121371       1 Ssl     15:38:59 node\n",
+    "listeners": ""
+  },
+  "suby": {
+    "observedAt": "2026-10-13T17:44:14.870856+00:00",
+    "requestedPids": [
+      862430,
+      862617,
+      297260,
+      299769
+    ],
+    "processes": "    PID    PPID STAT     ELAPSED COMMAND\n 297260       1 Rsl     15:40:14 node\n 299769       1 Ssl     15:36:59 node\n",
+    "listeners": ""
+  }
+}
