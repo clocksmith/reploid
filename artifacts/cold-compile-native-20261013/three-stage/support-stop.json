@@ -1,0 +1,59 @@
+{
+  "at": "2026-10-13T20:43:34.156015+00:00",
+  "ownedMacBrowser": {
+    "pid": 93478,
+    "closedByOwner": true
+  },
+  "nativeProviders": [
+    {
+      "host": "AMD",
+      "pid": 3385589,
+      "absent": true,
+      "exitCode": 0
+    },
+    {
+      "host": "Suby",
+      "pid": 996844,
+      "absent": true,
+      "exitCode": 0
+    }
+  ],
+  "stoppedOwnedSupport": [
+    {
+      "host": "Mac",
+      "pid": 93235,
+      "role": "snapshot delivery/model server"
+    },
+    {
+      "host": "Mac",
+      "pid": 93496,
+      "role": "AMD inspector tunnel"
+    },
+    {
+      "host": "Mac",
+      "pid": 93498,
+      "role": "Suby inspector tunnel"
+    },
+    {
+      "host": "AMD",
+      "pid": 3385821,
+      "role": "snapshot model server"
+    },
+    {
+      "host": "Suby",
+      "pid": 997028,
+      "role": "snapshot model server"
+    }
+  ],
+  "publicNativeObservedPresent": [
+    {
+      "host": "AMD",
+      "pid": 4103868
+    },
+    {
+      "host": "Suby",
+      "pid": 297260
+    }
+  ],
+  "note": "Owned support identities verified before SIGTERM. Native queue/device/provider settlement is in the immutable capture; process exits are corroboration. Prior failed scopes retain their original unknown settlement."
+}
