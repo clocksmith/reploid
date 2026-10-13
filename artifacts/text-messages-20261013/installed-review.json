@@ -1,0 +1,54 @@
+{
+  "schema": "reploid.messages-installed-independent-review/v1",
+  "passed": true,
+  "scope": "Actual installed public native API and official SDK CPU/loopback controls, injected tokenization/sampling only",
+  "nativeArchiveSha256": "b47d5c8462aea21a9048cc89227c0e9cb45bea9ef8a13587f1662efabe81cf75",
+  "nativeDeliverySha256": "5fc71a7d9e67665ef9d7e6cddc3425d74a8e21a94ff0761f5a4d2f9d4fdb3824",
+  "closure": {
+    "nativeDescriptorEntries": 113,
+    "nativeArchiveRegularFiles": 114,
+    "descriptorExtraFileIncluded": true,
+    "runtimeArchiveFilesCompared": 1897,
+    "sourceOverlaysCompared": 13,
+    "allNativeArchiveMembersEqualInstalled": true,
+    "runtimePinSha512Verified": true,
+    "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+    "sourceOverlaysMatchLiveAndFrozenSource": true,
+    "sdkLockMatchesInstalled": true
+  },
+  "sdkVersions": {
+    "@anthropic-ai/sdk": "0.133.0",
+    "openai": "7.32.0"
+  },
+  "independentRun": {
+    "command": "node artifacts/text-messages-20261013/installed-consumer.mjs artifacts/text-messages-20261013/native-package.json /var/tmp/reploid-text-messages-20261013/consumer /tmp/reploid-messages-independent-installed-result.json",
+    "exitCode": 0,
+    "requests": 9,
+    "result": "independent-installed-result.json",
+    "ownerReceiptIdentical": true
+  },
+  "controlsReviewed": [
+    "Strict text-only input rejection before generation",
+    "Messages nonstream/typed SSE/official finalMessage accumulator",
+    "Smaller caller output cap and raw terminal-inclusive counts",
+    "Empty visible output with one sampled terminal token",
+    "Cancellation keeps unsettled HTTP request charged until injected operation settles",
+    "Installed Chat Completions and Responses regression compatibility"
+  ],
+  "limitations": [
+    "No GPU/provider initialization, model loading, cloud request or physical inference",
+    "Token usage is explicit raw-model-tokens/v1, not Claude tokenization/billing equality",
+    "Full compiled-model/runtime qualification remains separate; unchanged accepted0.6.27 pin"
+  ],
+  "files": {
+    "native-package.json": "4e706e9cbf0956ad15fbc5521ded0f6ec64cf9b2e1b40fd68fd2a648e52a18f7",
+    "source-overlay.json": "7498195d75b53fc2debb89ef034246c4d781936d9912474860ece2c2b4693420",
+    "installed-consumer.mjs": "38553eeacc5e89780e6e41dfa5276f344c855c453e55ce2c02bc6827d0367e6c",
+    "installed-result.json": "74bc8146ac24aef99abf84d20800ec817ee143cb8b4b70d02408aa417585662b",
+    "independent-installed-result.json": "74bc8146ac24aef99abf84d20800ec817ee143cb8b4b70d02408aa417585662b",
+    "sdk-lock.json": "adddd45c6c91494b20f5631bd58328e8e1106d965edbea251fd2ad538e0e486c",
+    "sdk-identity.json": "4e8bcd5022a01d8fc7f9cecc062943102529913e5a8ffed0c9d926cdbd1e9e4b",
+    "protocol.json": "3c78b281f6fd28b5f8deb920c2478ba681a81cddb3648d64f3778ed4e4be5201"
+  },
+  "conclusion": "No blocker found in exact installed protocol/SDK scope; all owned HTTP processes settled."
+}

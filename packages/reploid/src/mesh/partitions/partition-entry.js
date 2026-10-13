@@ -1,3 +1,4 @@
+import { generationRequest, requireGenerationCapability, tokenUsage } from './partition-generation-request.js';
 import { createPartitionDataChannel } from '../../transport/partition-data-channel.js';
 import { assertPartition as assert, canonicalPartitionJson, canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from './partition-contract.js';
 import { summarizePartitionExecution } from './partition-summary.js';
@@ -23,6 +24,9 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
   const attempt = m => canonicalRouteAttemptBinding({ schema: 'reploid.partition-attempt/v2',
     route: m.route, threadId: m.threadId, attemptId: m.attemptId,
     requesterId: m.requesterId, placementGeneration: m.placementGeneration });
+  function validGeneration(m) {
+    try { return !generationRequest(m.generationRequest) || m.schema !== 'reploid.partition-input/v2'; } catch { return false; }
+  }
   function validMode(m) {
     if (orderedInput(m)) {
       try {
@@ -35,7 +39,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       || canonical && m?.schema === 'reploid.partition-input/v2' && !!validateEntryPublicationContext(m.canonical, m))
       && m.participantA !== m.participantB;
   }
-  const valid = m => m?.operation === 'generate' && validMode(m) && m.requesterId !== coordinator(m)
+  const valid = m => m?.operation === 'generate' && validMode(m) && validGeneration(m) && m.requesterId !== coordinator(m)
     && typeof m.attemptId === 'string' && m.attemptId.length <= 128
     && typeof m.threadId === 'string' && m.threadId.length <= 128
     && Number.isSafeInteger(m.placementGeneration) && m.placementGeneration >= 0
@@ -53,7 +57,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           && request.requesterId === (sending ? remoteParticipantId : localParticipantId)
           && await authorize(structuredClone(request), { action }) === true;
       }
-      if (metadata.operation === 'delta') {
+      if (metadata.operation === 'delta' || metadata.operation === 'usage') {
         const sending = action === 'send' || action === 'accept';
         const request = sending ? active.get(metadata.attemptId)?.request : deliveries.get(metadata.attemptId)?.request;
         return !!request && request.schema !== 'reploid.partition-input/v2'
@@ -61,8 +65,12 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           && (orderedInput(request) ? metadata.coordinatorId === request.coordinatorId
             && sameRouteAttemptIdentity(metadata.identity, attempt(request)) : metadata.participantA === request.participantA) && metadata.threadId === request.threadId
           && metadata.requesterId === (sending ? remoteParticipantId : localParticipantId)
-          && Number.isSafeInteger(metadata.sequence) && metadata.sequence >= 0
-          && typeof metadata.text === 'string' && metadata.text.length <= policy.maxOutputCharacters;
+          && (metadata.operation === 'usage' ? !!request.generationRequest
+            && canonicalPartitionJson(metadata.generationRequest) === canonicalPartitionJson(request.generationRequest)
+            && metadata.usage?.outputTokens === 0
+            && canonicalPartitionJson(metadata.usage) === canonicalPartitionJson(tokenUsage(metadata.usage?.inputTokens, 0, request.generationRequest))
+            : Number.isSafeInteger(metadata.sequence) && metadata.sequence >= 0
+              && typeof metadata.text === 'string' && metadata.text.length <= policy.maxOutputCharacters);
       }
       const outgoing = action === 'send' || action === 'accept';
       if (!valid(metadata) || metadata.requesterId !== (outgoing ? localParticipantId : remoteParticipantId)
@@ -77,9 +85,15 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         assert(scope, 'Requester publication owner unavailable');
         return scope.call(m.method, m.body);
       }
+      if (m.operation === 'usage') {
+        const delivery = deliveries.get(m.attemptId);
+        assert(delivery && !delivery.usage && delivery.sequence === 0, 'Unexpected or duplicate input token usage');
+        delivery.usage = structuredClone(m.usage);
+        await delivery.onUsage?.(structuredClone(m.usage)); return {received: true};
+      }
       if (m.operation === 'delta') {
         const delivery = deliveries.get(m.attemptId);
-        assert(delivery && m.sequence === delivery.sequence, 'Stream delta is stale or out of order');
+        assert(delivery && (!delivery.request.generationRequest || delivery.usage) && m.sequence === delivery.sequence, 'Stream delta is stale or out of order');
         delivery.characters += m.text.length;
         assert(delivery.characters <= policy.maxOutputCharacters, 'Stream output budget exhausted');
         delivery.sequence++; if (orderedInput(delivery.request)) delivery.content += m.text; delivery.onDelta?.(m.text); return { received: true };
@@ -99,6 +113,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           : model.partition.participantA === m.participantA && model.partition.participantB === m.participantB)
         && model.availability === 'ready');
       assert(model, 'Requested placement is not ready');
+      const requested = requireGenerationCapability(model, m.generationRequest, m.schema === 'reploid.partition-input/v2');
       const isCanonical = m.schema === 'reploid.partition-input/v2';
       if (isCanonical) {
         assert(model.canonical && ['coordinatorEpoch', 'routeId', 'generation', 'stages', 'vocabSize'].every(key =>
@@ -117,9 +132,18 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       let delivery = Promise.resolve(), sequence = 0;
       const operation = Promise.resolve().then(() => service.generate({ meshId: m.meshId, participantId: m.requesterId,
         threadId: m.threadId, attemptId: m.attemptId, placementGeneration: m.placementGeneration,
-        model, ...(orderedInput(m) && m.disclosureExpiresAt !== undefined ? {disclosureExpiresAt:m.disclosureExpiresAt} : {}), ...(isCanonical ? { canonical: structuredClone(m.canonical) } : {}), messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
+        model, ...(requested ? {generationRequest: requested} : {}), ...(orderedInput(m) && m.disclosureExpiresAt !== undefined ? {disclosureExpiresAt:m.disclosureExpiresAt} : {}), ...(isCanonical ? { canonical: structuredClone(m.canonical) } : {}), messages: structuredClone(m.messages), permissions: { sharingScope: 'approved-partition-path' } },
       { signal, publication, requestApproval: async () => authorize(structuredClone(m), { action: 'execute' }),
-        onState() {}, onDelta({ text }) {
+        onState() {}, onUsage(value) {
+          assert(requested && value.threadId === m.threadId && value.attemptId === m.attemptId, 'Unbound provider usage');
+          const usage = tokenUsage(value.inputTokens, value.outputTokens, requested);
+          assert(value.outputTokens === 0 && value.schema === usage.schema, 'Initial usage must precede sampling');
+          const metadata = {operation:'usage', requesterId:m.requesterId,
+            ...(orderedInput(m) ? {coordinatorId:m.coordinatorId, identity:attempt(m)} : {participantA:m.participantA}),
+            threadId:m.threadId, attemptId:m.attemptId, generationRequest:requested, usage};
+          delivery = delivery.then(() => endpoint.request(metadata, new Uint8Array(), {signal}));
+          delivery.catch(() => {}); return delivery;
+        }, onDelta({ text }) {
           if (isCanonical) return; // Requester projects the durable publication RPC, never this raw callback.
           const delta = { operation: 'delta', requesterId: m.requesterId,
             ...(orderedInput(m) ? { coordinatorId: m.coordinatorId, identity: attempt(m) } : { participantA: m.participantA }),
@@ -135,7 +159,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           && (orderedInput(m) ? sameRouteAttemptIdentity(result.execution?.identity, attempt(m))
             : result.execution?.requesterId === m.requesterId && result.execution.attemptId === m.attemptId
               && result.execution.placementGeneration === m.placementGeneration), 'Execution returned an unbound result');
-        return { content: result.content, execution: summarizePartitionExecution(result.execution) };
+        return { content: result.content, ...(requested ? {usage: result.usage} : {}), execution: summarizePartitionExecution(result.execution) };
       } finally { active.delete(m.attemptId); }
     },
   });
@@ -150,7 +174,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
         'Invalid entry descriptor');
       observedAt = now(); return this.getState();
     },
-    async generate(request, { signal, onDelta, publication, onPublished } = {}) {
+    async generate(request, { signal, onDelta, onUsage, publication, onPublished } = {}) {
       assert(!closed && this.getState().ready, 'Refresh an available entry before requesting execution');
       const isCanonical = request.canonical !== undefined, isOrdered = request.route !== undefined;
       assert(!isOrdered || ordered && !isCanonical, 'Ordered entry capability unavailable');
@@ -164,7 +188,7 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
       const scope = isCanonical ? createEntryPublicationScope({ request: metadata, owner: publication, onPublished,
         authorize: () => authorize(structuredClone(metadata), { action: 'publish' }),
         maxControlBytes: limits.maxControlBytes, maxOutputCharacters: policy.maxOutputCharacters }) : null;
-      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, content: '', onDelta, publication: scope });
+      deliveries.set(metadata.attemptId, { request: metadata, sequence: 0, characters: 0, content: '', onDelta, onUsage, usage:null, publication: scope });
       let result;
       let failure = null;
       try {
@@ -174,6 +198,13 @@ export function createPartitionEntry({ channel, localParticipantId, remotePartic
           : ['requesterId', 'participantA', 'participantB', 'modelId', 'modelIdentity', 'planId', 'threadId',
             'attemptId', 'placementGeneration'].every(key => result.execution?.[key] === metadata[key])),
       'Entry response identity mismatch');
+      if (metadata.generationRequest) {
+        const observed = deliveries.get(metadata.attemptId).usage;
+        assert(observed && result.usage?.inputTokens === observed.inputTokens
+          && result.usage.outputTokens === result.execution?.stepSummary?.count
+          && canonicalPartitionJson(result.usage) === canonicalPartitionJson(tokenUsage(result.usage.inputTokens, result.usage.outputTokens, metadata.generationRequest)),
+        'Final token usage differs from admitted observed input');
+      }
       if (isOrdered) assert(result.content === deliveries.get(metadata.attemptId).content, 'Ordered result differs from delivered text');
       if (scope) {
         const projection = scope.getProjection();
@@ -216,10 +247,11 @@ export function createPartitionRequester({ entries, requesterId, meshId, modelId
   assert(typeof ordered === 'boolean' && typeof entries === 'function' && typeof authorize === 'function'
     && Number.isSafeInteger(maxPlacements) && maxPlacements > 0, 'Explicit requester placement policy required');
   return Object.freeze({
-    async generate({ messages, threadId, disclosureExpiresAt }, { signal, onDelta } = {}) {
+    async generate({ messages, threadId, disclosureExpiresAt, generationRequest: requested }, { signal, onDelta, onUsage } = {}) {
       assert(disclosureExpiresAt === undefined || ordered && Number.isSafeInteger(disclosureExpiresAt) && disclosureExpiresAt > Date.now(),
         'Requester disclosure deadline expired or invalid');
       messages = structuredClone(messages);
+      requested = generationRequest(requested);
       const attempted = new Set(), failures = [], started = now();
       for (let generation = 0; generation < maxPlacements; generation++) {
         signal?.throwIfAborted();
@@ -233,7 +265,9 @@ export function createPartitionRequester({ entries, requesterId, meshId, modelId
               && (ordered ? m.partition.schema === 'reploid.partition-selection/v2' && m.partition.coordinatorId === entry.id
                 : m.partition.route === undefined));
             if (!state.ready || !model) continue;
+            requireGenerationCapability(model, requested);
             const placement = { requesterId, modelId, modelIdentity, planId,
+              ...(requested ? {generationRequest: requested} : {}),
               ...(disclosureExpiresAt !== undefined ? {disclosureExpiresAt} : {}),
               ...(ordered ? {coordinatorId: entry.id, route: structuredClone(model.partition.route)}
                 : {participantA: entry.id, participantB: model.partition.participantB}) };
@@ -251,12 +285,15 @@ export function createPartitionRequester({ entries, requesterId, meshId, modelId
         const request = { ...selected.placement, meshId, threadId, messages: structuredClone(messages),
           attemptId: newId(), placementGeneration: generation };
         onAttempt({ ...structuredClone(request), messages: undefined, phase: generation ? 'restarting' : 'executing' });
+        let published = false;
         try {
           const result = await selected.entry.generate(request, { signal,
-            onDelta: text => onDelta?.({text,threadId,attemptId:request.attemptId,placementGeneration:generation}) });
+            onUsage: usage => { published = true; return onUsage?.(usage); },
+            onDelta: text => { published = true; return onDelta?.({text,threadId,attemptId:request.attemptId,placementGeneration:generation}); } });
           return { ...result, recovery: { attempts: generation + 1, failures, elapsedMs: now() - started,
             stateTransfer: 'new-attempt-from-authorized-input' } };
         } catch (error) {
+          if (published) throw error;
           signal?.throwIfAborted(); failures.push({ ...(ordered ? {coordinatorId:selected.entry.id} : {participantA:selected.entry.id}), attemptId: request.attemptId, error: String(error.message) });
           onAttempt({ attemptId: request.attemptId, placementGeneration: generation, phase: 'failed', error: String(error.message) });
         }

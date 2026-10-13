@@ -1,0 +1,62 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/automatic-partition-discovery-lifetime.test.js > keeps an active healthy route across discovery expiry and replica changes until settlement 12ms
+ ✓ tests/unit/automatic-partition-discovery-lifetime.test.js > does not treat a closed execution channel as healthy during discovery loss 1ms
+ ✓ tests/unit/automatic-partition-discovery-lifetime.test.js > still stops an active route when contribution permission is withdrawn 1ms
+ ✓ tests/unit/automatic-partition-discovery-lifetime.test.js > does not reassign a busy output resident when discovery temporarily loses its input owner 1ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js > coalesces overlapping stops and denies replacement until the owned resident settles 64ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js > keeps failed cleanup owned and blocks replacement until an explicit retry succeeds 2ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js > waits for a cancelled loader and prevents its late result from retiring a replacement 54ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js > retains failed loader resources and blocks replacement until explicit cleanup succeeds 1ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js > retains cleanup registered by a loader that throws synchronously 1ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js > does not retain a preparation owner whose cleanup already succeeded 0ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > advertises a signed model over bounded control without copying its local opening closure 14ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > carries a sanitized DOPPLER_RESIDENT_OUTPUT_LIMIT failure through signed execution to the chat adapter 69ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > carries a sanitized LEGACY_027_OUTPUT_LIMIT failure through signed execution to the chat adapter 65ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > carries a sanitized DOPPLER_GENERATION_OUTPUT_INVALID failure through signed execution to the chat adapter 67ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > carries a sanitized UNRECOGNIZED_PRIVATE_ERROR failure through signed execution to the chat adapter 67ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > retains partial output and charged capacity when remote cleanup fails 81ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > keeps imports inert and requires explicit contribution before readiness 2ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a mismatched resident schema before readiness 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a mismatched resident ready before readiness 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a mismatched resident modelId before readiness 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a mismatched resident modelIdentity before readiness 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a mismatched resident planId before readiness 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a mismatched resident index before readiness 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a mismatched resident layerRange before readiness 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a mismatched resident generationDigest before readiness 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > declares live continuation unsupported after the session is closed 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > verifies signatures, exact attempt/recipient/plan binding, expiry, revocation and cleanup authority 2ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > admits immediate reservations within explicit clock skew without extending expiry 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > streams two conversations through the host, reuses resident weights and remembers scoped disclosure 124ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > forwards a lower request limit through authenticated binary transfer to the resident executor 11ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > refuses an activation-only grant before sending prompt token context or computing a step 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a missing remote token limit before computation 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a over-budget remote token limit before computation 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects a mismatched remote token limit before computation 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > revokes a live conversation and waits for remote settlement without mixing another attempt 135ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > shares admission across independent channels and holds capacity until cleanup settles 7ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > does not release a reservation on failed cleanup, and records full-owner settlement 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > prevents a delayed reservation from reopening an already cancelled attempt 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > retries rejected resident disposal without releasing its charged reservation early 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects unavailable split selection without loading a whole model 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > settles a model that finishes opening after contribution is stopped 0ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > retires a session whose loaded identity changes without calling its executor 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > does not reuse activation disclosure for another plan, recipient or whole-prompt request 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > rejects certificate replacement during network authentication and settles connection cancellation 1ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > shares pending endpoint settlement across repeated shutdowns, peer loss: false 0ms
+ ✓ tests/unit/partition-api.test.js > Reploid partition APIs with injected Doppler sessions > shares pending endpoint settlement across repeated shutdowns, peer loss: true 0ms
+ ✓ tests/unit/partition-api.test.js > weightless requester entry > runs A and B without any requester runtime, retaining requester and generation binding 17ms
+ ✓ tests/unit/partition-api.test.js > weightless requester entry > drains a resident without cancelling an already admitted generation 15ms
+ ✓ tests/unit/partition-api.test.js > weightless requester entry > keeps shared weights available after a single malformed input fails 15ms
+ ✓ tests/unit/partition-api.test.js > weightless requester entry > restarts using a new identity on a separately approved replacement 0ms
+ ✓ tests/unit/partition-api.test.js > automatic cooperative placement > discovers cooperative executors with replica coverage=false 1677ms
+ ✓ tests/unit/partition-api.test.js > automatic cooperative placement > discovers cooperative executors with replica coverage=true 1377ms
+ ✓ tests/unit/partition-api.test.js > carries caller cap and actual usage through legacy entry and resident generation without changing defaults 12ms
+
+ Test Files  3 passed (3)
+      Tests  53 passed (53)
+   Start at  13:17:17
+   Duration  4.17s (transform 370ms, setup 0ms, import 582ms, tests 3.91s, environment 0ms)
+

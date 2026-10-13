@@ -1,3 +1,4 @@
+import { TEXT_GENERATION_CAPABILITY, requireGenerationCapability, boundedGeneration, tokenUsage } from './partition-generation-request.js';
 import { createOrderedPartitionChat } from './partition-ordered-chat.js';
 import { createCanonicalChatBinding } from './partition-chat-canonical.js';
 import { createLayerPartitionRunner } from './partition-runner.js';
@@ -28,7 +29,7 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
   let closed = false;
   const models = () => {
     const description = canonicalBinding?.describe() ?? null;
-    return [{ ...structuredClone(selection), ...(description ? { canonical: description } : {}),
+    return [{ ...structuredClone(selection), ...(canonicalBinding ? {} : {textGeneration: TEXT_GENERATION_CAPABILITY}), ...(description ? { canonical: description } : {}),
     availability: closed || canonicalBinding && !description ? 'unavailable' : local.getState().ready && remote.getState().ready ? 'ready'
       : local.getState().phase === 'loading' ? 'loading' : 'unavailable',
     providerIds: [local.id, remote.id], placement: 'two-device-layer-partition' }];
@@ -48,6 +49,8 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
     async generate(request, controls) {
       // Keep caller-owned request metadata stable through approval and tokenization.
       request = structuredClone(request);
+      const requested = requireGenerationCapability(models()[0], request.generationRequest, !!canonicalBinding);
+      assert(!requested || requested.maxOutputTokens <= policy.maxTokens, 'Caller token limit exceeds route budget');
       const delegated = request.participantId !== local.id;
       assert(!!canonicalBinding === (request.canonical !== undefined), 'Explicit canonical chat context required');
       assert(!closed && request.meshId === authority.meshId && request.model.id === selection.id
@@ -70,7 +73,7 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
         modelId: selection.id, modelIdentity: selection.identity, adapterIdentities: [],
         operation: 'generate-partition', disclosure: 'partition-activations-and-tokens', ...selection.partition,
         expiresAt: now() + grantTtlMs,
-        input: { messages: structuredClone(request.messages),
+        input: { messages: structuredClone(request.messages), ...(requested ? {generationRequest: requested} : {}),
           disclosure: 'Intermediate model activations and prompt token context are disclosed to the selected participant for sampling.' } });
       controls.signal.throwIfAborted();
       assert(approved === true, 'Partition disclosure was declined');
@@ -85,12 +88,17 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
         if (!canonicalBinding) assert(input.generation
           && Number.isSafeInteger(input.generation.maxTokens) && input.generation.maxTokens > 0
           && input.generation.maxTokens <= policy.maxTokens, 'Doppler tokenization or generation contract mismatch');
+        const generation = boundedGeneration(input.generation, requested);
+        if (requested) {
+          await controls.onUsage?.({threadId: request.threadId, attemptId: request.attemptId, ...tokenUsage(input.tokenIds.length, 0, requested)});
+          controls.signal.throwIfAborted();
+        }
         const attempt = canonicalBinding?.attempt({ context, binding: identity, publication: controls.publication, tokenIds: input.tokenIds });
         grant = canonicalBinding
           ? await authority.issueCanonical(identity, canonicalBinding.grantLimits, { approved: true, ttlMs: grantTtlMs,
             disclosure: 'partition-activations-and-tokens', generation: context.generation, canonicalAttempt: attempt, vocabSize: plan.vocabSize })
           : await authority.issue(identity, policy, { approved: true, ttlMs: grantTtlMs,
-            disclosure: 'partition-activations-and-tokens', generationDigest: await partitionFingerprint(input.generation) });
+            disclosure: 'partition-activations-and-tokens', generationDigest: await partitionFingerprint(generation) });
         controls.onState({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing',
           execution: { placement: 'two-device-layer-partition', ...selection.partition } });
         const run = { tokenIds: input.tokenIds, identity,
@@ -99,9 +107,10 @@ export function createPartitionChat({ runtime, local, remote, authority, model, 
         const result = canonicalBinding
           ? await runner.executeCanonical({ ...run, canonical: { attempt, generation: context.generation,
             publication: controls.publication, deadlineAt: context.deadlineAt } })
-          : await runner.execute({ ...run, generation: input.generation, maxTokens: input.generation.maxTokens });
+          : await runner.execute({ ...run, generation, maxTokens: generation.maxTokens });
         return { threadId: request.threadId, attemptId: request.attemptId, modelId: result.execution.modelId,
           modelIdentity: result.execution.modelIdentity, adapterIdentities: [], content: result.content,
+          ...(requested ? {usage: tokenUsage(input.tokenIds.length, result.tokenIds.length, requested)} : {}),
           execution: { ...result.execution, provider: 'peer', transport: remote.getState().receipt } };
       } finally {
         if (grant) authority.revoke(grant);

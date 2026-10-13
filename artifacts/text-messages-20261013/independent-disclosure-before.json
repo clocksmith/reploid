@@ -1,0 +1,24 @@
+{
+  "status": 200,
+  "actions": [
+    "chat.execute"
+  ],
+  "body": {
+    "id": "msg_e16ae89199d04b229cc93069ad38c122",
+    "type": "message",
+    "role": "assistant",
+    "model": "fixture",
+    "content": [
+      {
+        "type": "text",
+        "text": "unapproved"
+      }
+    ],
+    "stop_reason": "end_turn",
+    "stop_sequence": null,
+    "usage": {
+      "input_tokens": 2,
+      "output_tokens": 1
+    }
+  }
+}

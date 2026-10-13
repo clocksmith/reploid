@@ -1,0 +1,158 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/integration/responses.test.js > rejects unsupported previous_response_id without executing 2ms
+ ✓ tests/integration/responses.test.js > rejects unsupported conversation without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported background without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported tools without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported tool_choice without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported text without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported response_format without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported temperature without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported top_p without executing 1ms
+ ✓ tests/integration/responses.test.js > rejects unsupported seed without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported max_output_tokens without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported metadata without executing 0ms
+ ✓ tests/integration/responses.test.js > rejects unsupported stream_options without executing 0ms
+ ✓ tests/integration/responses.test.js > requires explicit store:false, rejects undefined 0ms
+ ✓ tests/integration/responses.test.js > requires explicit store:false, rejects true 0ms
+ ✓ tests/integration/responses.test.js > requires explicit store:false, rejects null 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape undefined 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"role":"user","content":"x"} 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"role":"developer","content":"x"} 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"role":"tool","content":"x"} 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"role":"user","content":[{"type":"input_text","text":"x"}]} 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"type":"function_call_output","role":"user","content":"x"} 0ms
+ ✓ tests/integration/responses.test.js > rejects unimplemented input shape {"role":"user","content":"x","id":"prior"} 0ms
+ ✓ tests/integration/responses.test.js > mounted route binds instructions and messages to actual authorization, preserving response identity without usage guesses 18ms
+ ✓ tests/integration/responses.test.js > streams contiguous typed events with one stable item and a genuine completed terminal 5ms
+ ✓ tests/integration/responses.test.js > max-tokens emits incomplete not completed (stream=false) 2ms
+ ✓ tests/integration/responses.test.js > max-tokens emits incomplete not completed (stream=true) 2ms
+ ✓ tests/integration/responses.test.js > does not fabricate terminal success or output budget for context-limit 6ms
+ ✓ tests/integration/responses.test.js > does not fabricate terminal success or output budget for unknown 5ms
+ ✓ tests/integration/responses.test.js > handles complete output without callbacks including empty text "" 5ms
+ ✓ tests/integration/responses.test.js > handles complete output without callbacks including empty text "no-delta" 2ms
+ ✓ tests/integration/chat-completions.test.js > requires explicit authentication and disclosure ports 1ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported tools explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported tool_choice explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported response_format explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported temperature explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported seed explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported top_p explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported max_tokens explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported n explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported stream_options explicitly 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"tool","content":"x"} 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"developer","content":"x"} 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"user","content":[{"type":"text","text":"x"}]} 0ms
+ ✓ tests/integration/chat-completions.test.js > rejects unsupported message shape {"role":"assistant","content":"x","tool_calls":[]} 0ms
+ ✓ tests/integration/chat-completions.test.js > mounted route authenticates exact immutable request and disclosure then returns bound completion without usage guesses 16ms
+ ✓ tests/integration/chat-completions.test.js > streams ordered deltas and one terminal reason with a stable completion identity 4ms
+ ✓ tests/integration/chat-completions.test.js > maps actual stop-token termination to stop 2ms
+ ✓ tests/integration/chat-completions.test.js > maps actual stop-sequence termination to stop 1ms
+ ✓ tests/integration/chat-completions.test.js > maps actual max-tokens termination to length 2ms
+ ✓ tests/integration/chat-completions.test.js > maps actual context-limit termination to length 1ms
+ ✓ tests/integration/chat-completions.test.js > rejects unknown termination and a changed result identity instead of claiming successful completion 6ms
+ ✓ tests/integration/chat-completions.test.js > unauthenticated and denied calls never execute or fall back 5ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > streams through 2 stages and preserves the complete route in compact returned evidence 72ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > streams through 3 stages and preserves the complete route in compact returned evidence 36ms
+ ✓ tests/integration/messages.test.js > rejects unsupported tools 1ms
+ ✓ tests/integration/messages.test.js > rejects unsupported tool_choice 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported thinking 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output_config 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported temperature 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported top_p 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported top_k 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported seed 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported stop_sequences 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported metadata 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported service_tier 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported container 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling undefined before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 0 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling -1 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 1.5 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 9007199254740991 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 9007199254740992 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"assistant","content":"prefill"} 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"system","content":"hidden"} 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"user","content":"a"} 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"user","content":[{"type":"text","text":"a"}]} 0ms
+ ✓ tests/integration/messages.test.js > authenticates immutable caller ceiling, actual disclosure and input/output token observations 17ms
+ ✓ tests/integration/messages.test.js > streams observed input usage before text and final cumulative raw output count 4ms
+ ✓ tests/unit/automatic-ordered-network.test.js > discovers a complete 2-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners 182ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > streams through 4 stages and preserves the complete route in compact returned evidence 54ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > streams through 7 stages and preserves the complete route in compact returned evidence 90ms
+ ✓ tests/integration/messages.test.js > actual HTTP/automatic/grant/peer chain enforces a smaller cap and reports tokenizer and sampler counts 174ms
+ ✓ tests/integration/messages.test.js > recipient denial after execution approval dispatches no stages 62ms
+ ✓ tests/integration/messages.test.js > refuses missing usage rather than inventing protocol counts 2ms
+ ✓ tests/integration/messages.test.js > refuses late usage rather than inventing protocol counts 2ms
+ ✓ tests/integration/messages.test.js > refuses different-attempt usage rather than inventing protocol counts 1ms
+ ✓ tests/integration/messages.test.js > refuses duplicate usage rather than inventing protocol counts 1ms
+ ✓ tests/integration/messages.test.js > refuses changed-final usage rather than inventing protocol counts 3ms
+ ✓ tests/integration/messages.test.js > refuses over-cap usage rather than inventing protocol counts 1ms
+ ✓ tests/integration/responses.test.js > HTTP Responses reaches actual automatic requester and disclosure denial dispatches zero numerical stages 199ms
+ ✓ tests/unit/automatic-ordered-network.test.js > discovers a complete 3-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners 195ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > preserves runtime ending eos-token through ordered chat and requester summary 87ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > preserves runtime ending max-tokens through ordered chat and requester summary 80ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > preserves runtime ending stop-sequence through ordered chat and requester summary 79ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > preserves runtime ending context-limit through ordered chat and requester summary 82ms
+ ✓ tests/unit/automatic-ordered-network.test.js > discovers a complete 4-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners 279ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > connects requester entry through real v4 grants, a remote middle activation and final peer response 80ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > approves every token recipient and all coordinator-mediated activation paths before tokenization 15ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > rejects a changed middle replica before tokenizer or numerical admission 2ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > rejects tampered ordered stream identities and does not project their text 14ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > rejects a final acknowledgment with another route even when its text matches 15ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > rejects text invented in the final acknowledgment after a valid stream 14ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > does not repeat runner-owned failed cleanup in the chat finally block 14ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > refuses an unsupported provider plan hash before advertising or tokenizing 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > the public ordered requester helper uses the actual entry path without A/B projection 85ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > ordered requester retry preserves reviewed routes and uses a new full attempt after failure 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > snapshots requester messages before asynchronous placement approval 15ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > does not silently renew disclosure after a delayed approval 2ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > carries the requester deadline through entry and caps every signed stage grant to it 85ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > rejects an expired requester deadline before entry admission and tokenization 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > does not replace an expired remote approval with the coordinators longer local lifetime 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > does not silently enable canonical publication or disclose before approval 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > retains failed tokenizer cleanup and retries it when the chat owner closes 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > close aborts a pending approval, prevents dispatch and preserves borrowed residents 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > binds caller output ceiling before genuine stage grants and returns actual raw token counts before text 64ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > counts a sampled stop token even when its decoded visible output is empty 40ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects malformed/over-budget caller ceiling 0 before tokenization or stages 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects malformed/over-budget caller ceiling -1 before tokenization or stages 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects malformed/over-budget caller ceiling 1.5 before tokenization or stages 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects malformed/over-budget caller ceiling 9007199254740992 before tokenization or stages 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects malformed/over-budget caller ceiling 11 before tokenization or stages 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > caller mutation during approval cannot raise the cap, and allocation overflow rejects before numerical dispatch 11ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects untrusted usage cap before numerical dispatch 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects untrusted usage counts before numerical dispatch 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects untrusted usage attempt before numerical dispatch 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > cancellation while input usage is observed settles tokenizer state without sampling 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > does not splice a fresh retry after onUsage is published 2ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > does not splice a fresh retry after onDelta is published 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects a second semantic usage event before sampling 2ms
+ ✓ tests/unit/automatic-ordered-network.test.js > discovers a complete 5-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners 394ms
+ ✓ tests/unit/automatic-ordered-network.test.js > discovers a complete 6-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners 455ms
+ ✓ tests/unit/automatic-ordered-network.test.js > discovers a complete 7-stage route and serves local plus weightless remote conversations through actual authenticated protocol owners 575ms
+ ✓ tests/integration/chat-completions.test.js > disconnect propagates abort and retains HTTP admission while execution remains unresolved 4007ms
+ ✓ tests/integration/messages.test.js > cancellation keeps unresolved HTTP admission charged and cannot publish a late terminal 4003ms
+ ✓ tests/integration/messages.test.js > does not invent counts for an old route, accepts no unauthorized request and rejects unknown protocol headers 9ms
+ ✓ tests/integration/responses.test.js > shares admission between protocols; disconnect and adapter close keep unsettled work charged without closing borrowed requester 4008ms
+ ✓ tests/integration/chat-completions.test.js > disconnect while host authentication awaits never proceeds to execution 4010ms
+ ✓ tests/integration/chat-completions.test.js > disconnect during an incomplete JSON body releases admission without calling requester 107ms
+ ✓ tests/integration/responses.test.js > abort while authenticate awaits cannot execute late approval 4006ms
+ ✓ tests/integration/chat-completions.test.js > actual mounted handler reaches weightless automatic requester, signed grants and all ordered stages 198ms
+ ✓ tests/integration/chat-completions.test.js > streamed partial output with unknown stopping reason ends in an error without a successful DONE 1ms
+ ✓ tests/integration/responses.test.js > abort while authorize awaits cannot execute late approval 4005ms
+ ✓ tests/integration/responses.test.js > authentication failure, unsupported input and wrong output identity never become a successful response 9ms
+ ✓ tests/integration/chat-completions.test.js > disconnect while execution authorization awaits cannot dispatch a late approved request 4005ms
+ ✓ tests/integration/chat-completions.test.js > does not mount the compatibility endpoint by default 6ms
+ ✓ tests/integration/chat-completions.test.js > execution approval cannot substitute for denied actual recipient disclosure 69ms
+ ✓ tests/integration/chat-completions.test.js > bounds HTTP admission and leaves borrowed owner closure to its caller 3ms
+ ✓ tests/integration/chat-completions.test.js > normalizes a host failure without an Error object into an explicit HTTP failure 2ms
+
+ Test Files  5 passed (5)
+      Tests  149 passed (149)
+   Start at  13:16:04
+   Duration  12.75s (transform 336ms, setup 0ms, import 1.14s, tests 32.15s, environment 0ms)
+

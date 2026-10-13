@@ -1,0 +1,766 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+OPTIONS http://127.0.0.1:51427/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51427/v1/chat/completions".
+OPTIONS http://127.0.0.1:51428/v1/responses 405 (Method Not Allowed)
+OPTIONS http://127.0.0.1:51429/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51428/v1/responses".
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51429/v1/messages".
+OPTIONS http://127.0.0.1:51433/v1/chat/completions 405 (Method Not Allowed)
+OPTIONS http://127.0.0.1:51436/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51436/v1/messages".
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51433/v1/chat/completions".
+OPTIONS http://127.0.0.1:51435/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51435/v1/responses".
+OPTIONS http://127.0.0.1:51439/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51439/v1/chat/completions".
+OPTIONS http://127.0.0.1:51442/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51442/v1/chat/completions".
+OPTIONS http://127.0.0.1:51441/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51441/v1/responses".
+OPTIONS http://127.0.0.1:51446/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51446/v1/responses".
+OPTIONS http://127.0.0.1:51445/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51445/v1/chat/completions".
+OPTIONS http://127.0.0.1:51450/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51450/v1/chat/completions".
+OPTIONS http://127.0.0.1:51449/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51449/v1/responses".
+OPTIONS http://127.0.0.1:51453/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51453/v1/chat/completions".
+OPTIONS http://127.0.0.1:51455/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51455/v1/responses".
+OPTIONS http://127.0.0.1:51457/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51457/v1/chat/completions".
+OPTIONS http://127.0.0.1:51459/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51459/v1/responses".
+OPTIONS http://127.0.0.1:51462/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51462/v1/responses".
+OPTIONS http://127.0.0.1:51461/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51461/v1/chat/completions".
+OPTIONS http://127.0.0.1:51465/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51465/v1/messages".
+OPTIONS http://127.0.0.1:51467/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51467/v1/responses".
+OPTIONS http://127.0.0.1:51469/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51469/v1/responses".
+OPTIONS http://127.0.0.1:51469/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51469/v1/chat/completions".
+···OPTIONS http://127.0.0.1:51473/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51473/v1/messages".
+······················xxxOPTIONS http://127.0.0.1:51475/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51475/v1/messages".
+OPTIONS http://127.0.0.1:51477/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51477/v1/messages".
+OPTIONS http://127.0.0.1:51479/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51479/v1/messages".
+OPTIONS http://127.0.0.1:51481/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51481/v1/messages".
+OPTIONS http://127.0.0.1:51483/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51483/v1/messages".
+OPTIONS http://127.0.0.1:51485/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51485/v1/messages".
+OPTIONS http://127.0.0.1:51487/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51487/v1/messages".
+xxxxxxx·······················································xxxxxxxxOPTIONS http://127.0.0.1:51493/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51493/v1/chat/completions".
+·······················xxxxxxxxxOPTIONS http://127.0.0.1:51495/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51495/v1/responses".
+xOPTIONS http://127.0.0.1:51498/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51498/v1/messages".
+OPTIONS http://127.0.0.1:51500/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51500/v1/messages".
+OPTIONS http://127.0.0.1:51502/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51502/v1/messages".
+OPTIONS http://127.0.0.1:51504/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51504/v1/messages".
+OPTIONS http://127.0.0.1:51506/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51506/v1/messages".
+OPTIONS http://127.0.0.1:51508/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51508/v1/messages".
+OPTIONS http://127.0.0.1:51510/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51510/v1/messages".
+OPTIONS http://127.0.0.1:51512/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51512/v1/messages".
+OPTIONS http://127.0.0.1:51514/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51514/v1/messages".
+OPTIONS http://127.0.0.1:51516/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51516/v1/messages".
+OPTIONS http://127.0.0.1:51518/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51518/v1/messages".
+OPTIONS http://127.0.0.1:51520/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51520/v1/messages".
+OPTIONS http://127.0.0.1:51522/v1/messages 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51522/v1/messages".
+xxxxxxxxxxxxxxxOPTIONS http://127.0.0.1:51529/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51529/v1/responses".
+xxOPTIONS http://127.0.0.1:51531/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51531/v1/chat/completions".
+OPTIONS http://127.0.0.1:51533/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51533/v1/chat/completions".
+OPTIONS http://127.0.0.1:51535/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51535/v1/chat/completions".
+·xxOPTIONS http://127.0.0.1:51540/v1/responses 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51540/v1/responses".
+xxPOST http://127.0.0.1:51542/v1/chat/completions 404 (Not Found)
+OPTIONS http://127.0.0.1:51545/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51545/v1/chat/completions".
+OPTIONS http://127.0.0.1:51547/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51547/v1/chat/completions".
+OPTIONS http://127.0.0.1:51547/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51547/v1/chat/completions".
+x·xOPTIONS http://127.0.0.1:51552/v1/chat/completions 405 (Method Not Allowed)
+Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51552/v1/chat/completions".
+xx
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 53 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/integration/chat-completions.test.js > mounted route authenticates exact immutable request and disclosure then returns bound completion without usage guesses
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51427/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:40:39
+     38| });
+     39| it('mounted route authenticates exact immutable request and disclosure…
+     40|   const f=await boot();const response=await f.post();expect(response.s…
+       |                                       ^
+     41|   expect(result).toMatchObject({object:'chat.completion',model:model.i…
+     42|   expect(result.usage).toBeUndefined();expect(response.headers.get('x-…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > streams ordered deltas and one terminal reason with a stable completion identity
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51433/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:48:39
+     46| });
+     47| it('streams ordered deltas and one terminal reason with a stable compl…
+     48|   const f=await boot();const response=await f.post({...input,stream:tr…
+       |                                       ^
+     49|   const rows=(await response.text()).trim().split('\n\n').map(row=>row…
+     50|   const chunks=rows.map(JSON.parse);expect(new Set(chunks.map(row=>row…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > maps actual stop-token termination to stop
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51439/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:56:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > maps actual stop-sequence termination to stop
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51442/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:56:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > maps actual max-tokens termination to length
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51445/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:56:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > maps actual context-limit termination to length
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51450/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:56:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > rejects unknown termination and a changed result identity instead of claiming successful completion
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51453/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:60:11
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > unauthenticated and denied calls never execute or fall back
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51457/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:65:32
+     63| });
+     64| it('unauthenticated and denied calls never execute or fall back',async…
+     65|   const f=await boot();expect((await f.post(input,{headers:{'content-t…
+       |                                ^
+     66|   f.authorize.mockResolvedValue(false);expect((await f.post()).status)…
+     67|   expect(f.generate).not.toHaveBeenCalled();expect(f.fallback).not.toH…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > disconnect propagates abort and retains HTTP admission while execution remains unresolved
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/chat-completions.test.js:69:3
+     67|   expect(f.generate).not.toHaveBeenCalled();expect(f.fallback).not.toH…
+     68| });
+     69| it('disconnect propagates abort and retains HTTP admission while execu…
+       |   ^
+     70|   const entered=Promise.withResolvers(), release=Promise.withResolvers…
+     71|   const f=await boot({participant:{generate:async(request,controls)=>{…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > disconnect while host authentication awaits never proceeds to execution
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/chat-completions.test.js:78:3
+     76|   release.resolve();await vi.waitFor(()=>expect(f.app.chatCompletions.…
+     77| });
+     78| it('disconnect while host authentication awaits never proceeds to exec…
+       |   ^
+     79|   const entered=Promise.withResolvers(), release=Promise.withResolvers…
+     80|   const f=await boot({authenticate:async(req,{signal})=>{authSignal=si…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > actual mounted handler reaches weightless automatic requester, signed grants and all ordered stages
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51531/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:96:18
+     94|   await vi.waitFor(()=>expect(mesh.select(5,0)).toBeTruthy());
+     95|   const f=await boot({participant:mesh.meshes[5]});
+     96|   const response=await f.post({model:mesh.model.id,messages:[{role:'us…
+       |                  ^
+     97|   expect(response.status).toBe(200);const rows=(await response.text())…
+     98|   expect(rows.map(JSON.parse).map(row=>row.choices[0].delta.content||'…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > streamed partial output with unknown stopping reason ends in an error without a successful DONE
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51533/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:109:18
+    107|     return {...request,modelId:model.id,modelIdentity:model.identity,c…
+    108|   }}});
+    109|   const response=await f.post({...input,stream:true}), text=await resp…
+       |                  ^
+    110|   expect(text).toContain('partial');expect(text).toContain('terminatio…
+    111| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > disconnect while execution authorization awaits cannot dispatch a late approved request
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/chat-completions.test.js:112:3
+    110|   expect(text).toContain('partial');expect(text).toContain('terminatio…
+    111| });
+    112| it('disconnect while execution authorization awaits cannot dispatch a …
+       |   ^
+    113|   const entered=Promise.withResolvers(), release=Promise.withResolvers…
+    114|   const f=await boot({authorize:async({signal})=>{approvalSignal=signa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > execution approval cannot substitute for denied actual recipient disclosure
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51545/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:132:18
+    130|   const authorize=vi.fn(async ({action})=>action==='chat.execute');
+    131|   const f=await boot({participant:mesh.meshes[5],authorize});
+    132|   const response=await f.post({model:mesh.model.id,messages:[{role:'us…
+       |                  ^
+    133|   expect(response.status).toBe(403);expect(authorize.mock.calls.map(([…
+    134|   expect(authorize.mock.calls[1][0].preview.disclosure).toBeTruthy();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > bounds HTTP admission and leaves borrowed owner closure to its caller
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/chat-completions.test.js:138:3
+    136| });
+    137|
+    138| it('bounds HTTP admission and leaves borrowed owner closure to its cal…
+       |   ^
+    139|   const entered=Promise.withResolvers(),release=Promise.withResolvers(…
+    140|   const f=await boot({participant:{close,generate:async(request,{signa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/53]⎯
+
+ FAIL  tests/integration/chat-completions.test.js > normalizes a host failure without an Error object into an explicit HTTP failure
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51552/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/chat-completions.test.js:150:18
+    148| it('normalizes a host failure without an Error object into an explicit…
+    149|   const f=await boot({authenticate:async()=>{throw null;}});
+    150|   const response=await f.post();expect(response.status).toBe(502);expe…
+       |                  ^
+    151|   expect(f.generate).not.toHaveBeenCalled();
+    152| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/53]⎯
+
+ FAIL  tests/integration/messages.test.js > authenticates immutable caller ceiling, actual disclosure and input/output token observations
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51429/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:29:33
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/53]⎯
+
+ FAIL  tests/integration/messages.test.js > streams observed input usage before text and final cumulative raw output count
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51436/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:35:42
+     33| });
+     34| it('streams observed input usage before text and final cumulative raw …
+     35|   const f=await boot(),rows=events(await(await f.post({...input,stream…
+       |                                          ^
+     36|   expect(rows.map(r=>r.type)).toEqual(['message_start','content_block_…
+     37|   expect(rows[0].message.usage).toEqual({input_tokens:7,output_tokens:…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/53]⎯
+
+ FAIL  tests/integration/messages.test.js > actual HTTP/automatic/grant/peer chain enforces a smaller cap and reports tokenizer and sampler counts
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51465/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:43:61
+     41|   const last=mesh.states[2].resident,execute=last.executeStage.getMock…
+     42|   last.executeStage.mockImplementation(async request=>({...await execu…
+     43|   const f=await boot({participant:mesh.meshes[5]}),response=await f.po…
+       |                                                             ^
+     44|   expect(response.status).toBe(200);const rows=events(await response.t…
+     45|   expect(rows.at(-2)).toMatchObject({type:'message_delta',delta:{stop_…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/53]⎯
+
+ FAIL  tests/integration/messages.test.js > recipient denial after execution approval dispatches no stages
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51473/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:52:11
+     50|   const mesh=await automaticOrderedMesh();owners.push(()=>mesh.close()…
+     51|   const f=await boot({participant:mesh.meshes[5],authorize:async({acti…
+     52|   expect((await f.post({model:mesh.model.id,messages:[{role:'user',con…
+       |           ^
+     53|   expect(mesh.states.filter(row=>row.resident).every(row=>row.resident…
+     54| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/53]⎯
+
+ FAIL  tests/integration/messages.test.js > refuses missing usage rather than inventing protocol counts
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51475/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:64:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/53]⎯
+
+ FAIL  tests/integration/messages.test.js > refuses late usage rather than inventing protocol counts
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51477/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:64:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/53]⎯
+
+ FAIL  tests/integration/messages.test.js > refuses different-attempt usage rather than inventing protocol counts
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51479/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:64:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/53]⎯
+
+ FAIL  tests/integration/messages.test.js > refuses duplicate usage rather than inventing protocol counts
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51481/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:64:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/53]⎯
+
+ FAIL  tests/integration/messages.test.js > refuses changed-final usage rather than inventing protocol counts
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51483/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:64:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/53]⎯
+
+ FAIL  tests/integration/messages.test.js > refuses over-cap usage rather than inventing protocol counts
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51485/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:64:18
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/53]⎯
+
+ FAIL  tests/integration/messages.test.js > cancellation keeps unresolved HTTP admission charged and cannot publish a late terminal
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/messages.test.js:66:3
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/53]⎯
+
+ FAIL  tests/integration/messages.test.js > does not invent counts for an old route, accepts no unauthorized request and rejects unknown protocol headers
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51498/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:73:109
+     71| });
+     72| it('does not invent counts for an old route, accepts no unauthorized r…
+     73|   const f=await boot({participant:{getState:()=>({models:[{...model,te…
+       |                                                                                                             ^
+     74|   const denied=await f.post(input,{headers:{'content-type':'applicatio…
+     75|   expect((await f.post(input,{headers:{'content-type':'application/jso…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/53]⎯
+
+ FAIL  tests/integration/messages.test.js > refuses output while disclosure is missing even if borrowed provider violates callback contract
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51500/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:84:22
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/53]⎯
+
+ FAIL  tests/integration/messages.test.js > refuses output while disclosure is pending even if borrowed provider violates callback contract
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51502/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:84:22
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[30/53]⎯
+
+ FAIL  tests/integration/messages.test.js > refuses output while disclosure is denied even if borrowed provider violates callback contract
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51504/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:84:22
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[31/53]⎯
+
+ FAIL  tests/integration/messages.test.js > validates final-only input usage before emitting fallback text
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51506/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:92:20
+     90|       usage:{schema:field==='schema'?'wrong':'raw-model-tokens/v1',inp…
+     91|   };
+     92|   const text=await(await f.post({...input,stream:true})).text();expect…
+       |                    ^
+     93| });
+     94| it.each(['thread','attempt','model','messages','cap'])('unrelated disc…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[32/53]⎯
+
+ FAIL  tests/integration/messages.test.js > validates final-only output usage before emitting fallback text
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51508/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:92:20
+     90|       usage:{schema:field==='schema'?'wrong':'raw-model-tokens/v1',inp…
+     91|   };
+     92|   const text=await(await f.post({...input,stream:true})).text();expect…
+       |                    ^
+     93| });
+     94| it.each(['thread','attempt','model','messages','cap'])('unrelated disc…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[33/53]⎯
+
+ FAIL  tests/integration/messages.test.js > validates final-only schema usage before emitting fallback text
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51510/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:92:20
+     90|       usage:{schema:field==='schema'?'wrong':'raw-model-tokens/v1',inp…
+     91|   };
+     92|   const text=await(await f.post({...input,stream:true})).text();expect…
+       |                    ^
+     93| });
+     94| it.each(['thread','attempt','model','messages','cap'])('unrelated disc…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[34/53]⎯
+
+ FAIL  tests/integration/messages.test.js > unrelated disclosure thread cannot unlock output
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51512/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:99:18
+     97|     await controls.requestApproval(p);throw Error('should not execute'…
+     98|   };
+     99|   const response=await f.post({...input,stream:true});expect(response.…
+       |                  ^
+    100| });
+    101| it('callbacks retained by a completed provider cannot publish late out…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[35/53]⎯
+
+ FAIL  tests/integration/messages.test.js > unrelated disclosure attempt cannot unlock output
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51514/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:99:18
+     97|     await controls.requestApproval(p);throw Error('should not execute'…
+     98|   };
+     99|   const response=await f.post({...input,stream:true});expect(response.…
+       |                  ^
+    100| });
+    101| it('callbacks retained by a completed provider cannot publish late out…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[36/53]⎯
+
+ FAIL  tests/integration/messages.test.js > unrelated disclosure model cannot unlock output
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51516/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:99:18
+     97|     await controls.requestApproval(p);throw Error('should not execute'…
+     98|   };
+     99|   const response=await f.post({...input,stream:true});expect(response.…
+       |                  ^
+    100| });
+    101| it('callbacks retained by a completed provider cannot publish late out…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[37/53]⎯
+
+ FAIL  tests/integration/messages.test.js > unrelated disclosure messages cannot unlock output
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51518/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:99:18
+     97|     await controls.requestApproval(p);throw Error('should not execute'…
+     98|   };
+     99|   const response=await f.post({...input,stream:true});expect(response.…
+       |                  ^
+    100| });
+    101| it('callbacks retained by a completed provider cannot publish late out…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[38/53]⎯
+
+ FAIL  tests/integration/messages.test.js > unrelated disclosure cap cannot unlock output
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51520/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:99:18
+     97|     await controls.requestApproval(p);throw Error('should not execute'…
+     98|   };
+     99|   const response=await f.post({...input,stream:true});expect(response.…
+       |                  ^
+    100| });
+    101| it('callbacks retained by a completed provider cannot publish late out…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[39/53]⎯
+
+ FAIL  tests/integration/messages.test.js > callbacks retained by a completed provider cannot publish late output or approval
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51522/v1/messages".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/messages.test.js:104:11
+    102|   const f=await boot(),generate=f.participant.generate;let request,con…
+    103|   f.participant.generate=async(r,c)=>{request=r;controls=c;return gene…
+    104|   expect((await f.post()).status).toBe(200);await vi.waitFor(()=>expec…
+       |           ^
+    105|   expect(()=>controls.onDelta({threadId:request.threadId,attemptId:req…
+    106|   await expect(controls.requestApproval(preview(request))).rejects.toT…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[40/53]⎯
+
+ FAIL  tests/integration/responses.test.js > mounted route binds instructions and messages to actual authorization, preserving response identity without usage guesses
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51428/v1/responses".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/responses.test.js:35:33
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[41/53]⎯
+
+ FAIL  tests/integration/responses.test.js > streams contiguous typed events with one stable item and a genuine completed terminal
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51435/v1/responses".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/responses.test.js:44:42
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[42/53]⎯
+
+ FAIL  tests/integration/responses.test.js > max-tokens emits incomplete not completed (stream=false)
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51441/v1/responses".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/responses.test.js:52:180
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[43/53]⎯
+
+ FAIL  tests/integration/responses.test.js > max-tokens emits incomplete not completed (stream=true)
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51446/v1/responses".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/responses.test.js:52:180
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[44/53]⎯
+
+ FAIL  tests/integration/responses.test.js > does not fabricate terminal success or output budget for context-limit
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51449/v1/responses".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/responses.test.js:58:27
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[45/53]⎯
+
+ FAIL  tests/integration/responses.test.js > does not fabricate terminal success or output budget for unknown
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51455/v1/responses".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/responses.test.js:58:27
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[46/53]⎯
+
+ FAIL  tests/integration/responses.test.js > handles complete output without callbacks including empty text ""
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51459/v1/responses".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/responses.test.js:63:174
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[47/53]⎯
+
+ FAIL  tests/integration/responses.test.js > handles complete output without callbacks including empty text "no-delta"
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51462/v1/responses".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/responses.test.js:63:174
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[48/53]⎯
+
+ FAIL  tests/integration/responses.test.js > HTTP Responses reaches actual automatic requester and disclosure denial dispatches zero numerical stages
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51467/v1/responses".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/responses.test.js:69:84
+     67|   const mesh=await automaticOrderedMesh();owners.push(()=>mesh.close()…
+     68|   const f=await boot({participant:mesh.meshes[5]}),body={model:mesh.mo…
+     69|   f.authorize.mockImplementation(async({action})=>action==='chat.execu…
+       |                                                                                    ^
+     70|   expect(mesh.states.filter(row=>row.resident).every(row=>row.resident…
+     71|   f.authorize.mockResolvedValue(true);const rows=events(await(await f.…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[49/53]⎯
+
+ FAIL  tests/integration/responses.test.js > shares admission between protocols; disconnect and adapter close keep unsettled work charged without closing borrowed requester
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/responses.test.js:75:3
+     73|   expect(mesh.states.every(row=>row.attempts.size===0)).toBe(true);
+     74| });
+     75| it('shares admission between protocols; disconnect and adapter close k…
+       |   ^
+     76|   const entered=Promise.withResolvers(),release=Promise.withResolvers(…
+     77|   const f=await boot({participant:{close,generate:async(request,{signa…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[50/53]⎯
+
+ FAIL  tests/integration/responses.test.js > abort while authenticate awaits cannot execute late approval
+ FAIL  tests/integration/responses.test.js > abort while authorize awaits cannot execute late approval
+Error: Test timed out in 5000ms.
+If this is a long-running test, pass a timeout value as the last argument or configure it globally with "testTimeout".
+ ❯ tests/integration/responses.test.js:85:38
+     83|   release.resolve();await Promise.all([second,stopping]);expect(f.api.…
+     84| });
+     85| it.each(['authenticate','authorize'])('abort while %s awaits cannot ex…
+       |                                      ^
+     86|   const entered=Promise.withResolvers(),release=Promise.withResolvers(…
+     87|   const f=await boot({[port]:async(...args)=>{signal=port==='authentic…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[51/53]⎯
+
+ FAIL  tests/integration/responses.test.js > authentication failure, unsupported input and wrong output identity never become a successful response
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51540/v1/responses".
+ ❯ Fetch.send node_modules/happy-dom/src/fetch/Fetch.ts:250:10
+ ❯ GlobalWindow.fetch node_modules/happy-dom/src/window/BrowserWindow.ts:2730:9
+ ❯ tests/integration/responses.test.js:92:32
+     90| });
+     91| it('authentication failure, unsupported input and wrong output identit…
+     92|   const f=await boot();expect((await f.post(input,{headers:{'content-t…
+       |                                ^
+     93|   expect((await f.post({...input,tools:[]})).status).toBe(400);expect(…
+     94|   f.participant.generate=async request=>({...result(request),attemptId…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[52/53]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 3 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51469/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/lib/fetch/Fetch.js:185:23
+ ❯ processTicksAndRejections node:internal/process/task_queues:105:5
+ ❯ GlobalWindow.fetch node_modules/happy-dom/lib/window/BrowserWindow.js:2186:16
+
+This error originated in "tests/integration/responses.test.js" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "shares admission between protocols; disconnect and adapter close keep unsettled work charged without closing borrowed requester". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51547/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/lib/fetch/Fetch.js:185:23
+ ❯ processTicksAndRejections node:internal/process/task_queues:105:5
+ ❯ GlobalWindow.fetch node_modules/happy-dom/lib/window/BrowserWindow.js:2186:16
+
+This error originated in "tests/integration/chat-completions.test.js" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "bounds HTTP admission and leaves borrowed owner closure to its caller". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+NetworkError: Cross-Origin Request Blocked: The Same Origin Policy disallows reading the remote resource at "http://127.0.0.1:51547/v1/chat/completions".
+ ❯ Fetch.send node_modules/happy-dom/lib/fetch/Fetch.js:185:23
+ ❯ processTicksAndRejections node:internal/process/task_queues:105:5
+ ❯ GlobalWindow.fetch node_modules/happy-dom/lib/window/BrowserWindow.js:2186:16
+
+This error originated in "tests/integration/chat-completions.test.js" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "bounds HTTP admission and leaves borrowed owner closure to its caller". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  3 failed | 1 passed (4)
+      Tests  53 failed | 105 passed (158)
+     Errors  3 errors
+   Start at  13:23:27
+   Duration  20.81s (transform 344ms, setup 0ms, import 872ms, tests 41.58s, environment 728ms)
+

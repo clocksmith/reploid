@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "scope": "installed public native Messages + official SDK; injected tokenization/sampling, no model claim",
+  "nativeArchiveSha256": "b47d5c8462aea21a9048cc89227c0e9cb45bea9ef8a13587f1662efabe81cf75",
+  "nativeDeliverySha256": "5fc71a7d9e67665ef9d7e6cddc3425d74a8e21a94ff0761f5a4d2f9d4fdb3824",
+  "nativeFiles": 113,
+  "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+  "runtimeVersion": "0.6.27",
+  "runtimeFiles": 1897,
+  "sdk": {
+    "name": "@anthropic-ai/sdk",
+    "version": "0.133.0",
+    "lockSha256": "adddd45c6c91494b20f5631bd58328e8e1106d965edbea251fd2ad538e0e486c"
+  },
+  "controls": [
+    "Messages nonstream",
+    "Messages typed stream",
+    "SDK finalMessage accumulator",
+    "actual caller cap=1 nonstream and stream",
+    "empty visible answer still counts sampled terminal",
+    "unsupported parameters/cache-only rejected",
+    "SDK abort retains unresolved HTTP admission",
+    "Chat Completions and Responses regressions"
+  ],
+  "generatedRequests": 9,
+  "tokenUsage": "raw-model-tokens/v1; local template and selected tokens including terminal; no Claude billing equivalence",
+  "providerInitialized": false,
+  "modelLoaded": false,
+  "cloudCalls": false,
+  "node": "v22.20.0",
+  "platform": "darwin"
+}

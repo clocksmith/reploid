@@ -1,0 +1,87 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > streams through 2 stages and preserves the complete route in compact returned evidence 44ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > streams through 3 stages and preserves the complete route in compact returned evidence 32ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > streams through 4 stages and preserves the complete route in compact returned evidence 41ms
+ ✓ tests/integration/messages.test.js > rejects unsupported tools 1ms
+ ✓ tests/integration/messages.test.js > rejects unsupported tool_choice 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported thinking 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output_config 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported temperature 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported top_p 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported top_k 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported seed 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported stop_sequences 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported metadata 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported service_tier 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported container 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling undefined before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 0 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling -1 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 1.5 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 9007199254740991 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported output ceiling 9007199254740992 before generation 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"assistant","content":"prefill"} 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"system","content":"hidden"} 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"user","content":"a"} 0ms
+ ✓ tests/integration/messages.test.js > rejects unsupported prompt shape {"role":"user","content":[{"type":"text","text":"a"}]} 0ms
+ ✓ tests/integration/messages.test.js > authenticates immutable caller ceiling, actual disclosure and input/output token observations 17ms
+ ✓ tests/integration/messages.test.js > streams observed input usage before text and final cumulative raw output count 4ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > streams through 7 stages and preserves the complete route in compact returned evidence 82ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > preserves runtime ending eos-token through ordered chat and requester summary 81ms
+ ✓ tests/integration/messages.test.js > actual HTTP/automatic/grant/peer chain enforces a smaller cap and reports tokenizer and sampler counts 152ms
+ ✓ tests/integration/messages.test.js > recipient denial after execution approval dispatches no stages 60ms
+ ✓ tests/integration/messages.test.js > refuses missing usage rather than inventing protocol counts 4ms
+ ✓ tests/integration/messages.test.js > refuses late usage rather than inventing protocol counts 4ms
+ ✓ tests/integration/messages.test.js > refuses different-attempt usage rather than inventing protocol counts 1ms
+ ✓ tests/integration/messages.test.js > refuses duplicate usage rather than inventing protocol counts 1ms
+ ✓ tests/integration/messages.test.js > refuses changed-final usage rather than inventing protocol counts 3ms
+ ✓ tests/integration/messages.test.js > refuses over-cap usage rather than inventing protocol counts 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > preserves runtime ending max-tokens through ordered chat and requester summary 74ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > preserves runtime ending stop-sequence through ordered chat and requester summary 73ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > preserves runtime ending context-limit through ordered chat and requester summary 72ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > connects requester entry through real v4 grants, a remote middle activation and final peer response 73ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > approves every token recipient and all coordinator-mediated activation paths before tokenization 14ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > rejects a changed middle replica before tokenizer or numerical admission 2ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > rejects tampered ordered stream identities and does not project their text 13ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > rejects a final acknowledgment with another route even when its text matches 14ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > rejects text invented in the final acknowledgment after a valid stream 14ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > does not repeat runner-owned failed cleanup in the chat finally block 13ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > refuses an unsupported provider plan hash before advertising or tokenizing 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > the public ordered requester helper uses the actual entry path without A/B projection 78ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > ordered requester retry preserves reviewed routes and uses a new full attempt after failure 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > snapshots requester messages before asynchronous placement approval 14ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > does not silently renew disclosure after a delayed approval 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > carries the requester deadline through entry and caps every signed stage grant to it 73ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > rejects an expired requester deadline before entry admission and tokenization 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > does not replace an expired remote approval with the coordinators longer local lifetime 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > does not silently enable canonical publication or disclose before approval 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > retains failed tokenizer cleanup and retries it when the chat owner closes 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > ordinary ordered chat and requester entry with genuine grants and injected numerical stages > close aborts a pending approval, prevents dispatch and preserves borrowed residents 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > binds caller output ceiling before genuine stage grants and returns actual raw token counts before text 54ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > counts a sampled stop token even when its decoded visible output is empty 32ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects malformed/over-budget caller ceiling 0 before tokenization or stages 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects malformed/over-budget caller ceiling -1 before tokenization or stages 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects malformed/over-budget caller ceiling 1.5 before tokenization or stages 0ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects malformed/over-budget caller ceiling 9007199254740992 before tokenization or stages 0ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects malformed/over-budget caller ceiling 11 before tokenization or stages 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > caller mutation during approval cannot raise the cap, and allocation overflow rejects before numerical dispatch 10ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects untrusted usage cap before numerical dispatch 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects untrusted usage counts before numerical dispatch 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects untrusted usage attempt before numerical dispatch 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > cancellation while input usage is observed settles tokenizer state without sampling 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > does not splice a fresh retry after onUsage is published 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > does not splice a fresh retry after onDelta is published 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects a second semantic usage event before sampling 1ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects final output usage changed in a bound response 14ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects final input usage changed in a bound response 14ms
+ ✓ tests/unit/ordered-partition-chat-entry.test.js > rejects final schema usage changed in a bound response 14ms
+ ✓ tests/integration/messages.test.js > cancellation keeps unresolved HTTP admission charged and cannot publish a late terminal 4007ms
+ ✓ tests/integration/messages.test.js > does not invent counts for an old route, accepts no unauthorized request and rejects unknown protocol headers 11ms
+
+ Test Files  2 passed (2)
+      Tests  78 passed (78)
+   Start at  13:19:30
+   Duration  4.51s (transform 143ms, setup 0ms, import 345ms, tests 5.23s, environment 0ms)
+

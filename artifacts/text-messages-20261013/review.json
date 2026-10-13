@@ -1,0 +1,57 @@
+{
+  "schema": "reploid.text-messages-independent-review/v1",
+  "scope": "Read-only source review and actual local HTTP/CPU controls; no GPU/model/deployment or installed SDK rerun",
+  "findings": [
+    {
+      "issue": "Final usage could report0 sampled tokens while execution summary counted3",
+      "before": "usage-count-before.txt",
+      "resolution": "Final output count must equal execution summary raw sampled-step count; independent permanent tamper tests pass."
+    },
+    {
+      "issue": "Borrowed provider could publish with only execution approval and no recipient disclosure",
+      "before": "independent-disclosure-before.json",
+      "resolution": "Output/success requires awaited disclosure authorization bound to exact attempt, model, messages and caller ceiling; absent/pending/denied/unrelated previews reject."
+    },
+    {
+      "issue": "Callbacks accepted after HTTP success and active request removal",
+      "before": "independent-late-delta-before.json",
+      "resolution": "Explicit callback lifetime rejects late output and approval before mutation."
+    }
+  ],
+  "reviewed": [
+    "Lower maxTokens enters same signed generationDigest; caller mutation cannot change approved ceiling",
+    "Input usage follows actual model tokenization and approved disclosure, before grant/dispatch; no guessed visible-text counts",
+    "Raw terminal sampled token counted even with empty delta",
+    "Duplicate and reordered initial usage reject; no silent requester retry after usage or text published",
+    "Cancellation before sampling closes opening owner; failed physical cleanup remains under existing debt owner, never inferred from HTTP disconnect",
+    "Messages final-only text validation precedes emission; termination mapping fails unsupported context/stop-sequence cases",
+    "Chat and Responses regression protocols preserved; no provider/tool/continuation fallback"
+  ],
+  "tests": {
+    "command": "npx vitest run tests/unit/ordered-partition-chat-entry.test.js tests/integration/messages.test.js tests/integration/chat-completions.test.js tests/integration/responses.test.js --reporter=dot",
+    "files": 4,
+    "passed": 158,
+    "result": "independent-review-tests.txt",
+    "environmentFailure": "Initial reviewer invocation used tests/vitest.config.js (happy-dom) and hit HTTP CORS; retained separately, not product failure."
+  },
+  "limitations": [
+    "Prepared numerical stages are injected in source composition tests",
+    "Consistent remote usage fields are not hardware attestation or proof against a malicious provider forging all fields",
+    "No universal Anthropic/Claude tokenizer, billing, caching, tools or reasoning compatibility claimed"
+  ],
+  "files": {
+    "server/messages.js": "521eef4b56211fdeb69649b10369a187e65fe109bbd697dcff0ef6a312a655c0",
+    "server/text-requester.js": "e3ff138842d477d1abe30beb8a84d24899fe1ddfc725c1eba5e6d0f1345e13b6",
+    "packages/reploid/src/mesh/partitions/partition-generation-request.js": "f6bc06d1491095119b768d3ef822991e10af98409bf5e795b2f32eea7d7a717e",
+    "packages/reploid/src/mesh/partitions/partition-entry.js": "918b7b3b5e4095c3096cf0291178f1684f7a063786d848cbf3b8dc23c2b6de6c",
+    "packages/reploid/src/mesh/partitions/partition-ordered-chat.js": "cef481c04b4238be438b1be79d3b07192a066631122827bfcf69bca7e28bd60c",
+    "packages/reploid/src/mesh/partitions/partition-chat.js": "96d5893fa6e85dd75a4da77c135542c1a079fa0ccfa947fa0f6f143765c8ffb1",
+    "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js": "4c5cfe5957d1837b960cc88a02503628e5e45c16bcbd428809baa83f03132f49",
+    "packages/reploid/src/mesh/partitions/automatic-partitions.js": "497a8b38592b98f2873fabb4f4c3c7534e96faa7d276259741c72e7e6381925a",
+    "tests/unit/ordered-partition-chat-entry.test.js": "aa9beaeb2491fd51320e532e85061e8c15a4c4699eda8f7196d1f52988799ae1",
+    "tests/integration/messages.test.js": "fd75dd99537db4137189a8d7fd15a459c01df86f1257d595a0e23329519836cf",
+    "tests/integration/chat-completions.test.js": "795bd35d726bece5e7c946e0bc421d97d90d83282e17a112d0d080ccfff7613f",
+    "tests/integration/responses.test.js": "87481c08ae8cb7e43df7ac18ec90a286d9106c4518f1f33835156965965fa690"
+  },
+  "conclusion": "No remaining blocker in reviewed bounded source/protocol scope after fixes."
+}

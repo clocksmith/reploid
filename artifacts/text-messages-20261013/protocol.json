@@ -1,0 +1,20 @@
+{
+  "scope": "Stateless text Messages wire projection over local model token accounting; not Claude service/billing equivalence",
+  "officialSources": [
+    "https://platform.claude.com/docs/en/api/messages/create",
+    "https://platform.claude.com/docs/en/build-with-claude/streaming"
+  ],
+  "sdk": {"name":"@anthropic-ai/sdk","version":"0.133.0"},
+  "inputs": ["model", "alternating user/assistant string messages beginning and ending user", "optional system string", "positive integer max_tokens within route budget", "optional stream boolean"],
+  "unsupported": ["cache-only max_tokens:0", "assistant prefill", "consecutive same-role turns", "content blocks", "tools", "thinking", "structured output", "sampling overrides", "stop_sequences", "metadata", "beta headers"],
+  "usage": {
+    "profile": "raw-model-tokens/v1",
+    "input_tokens": "actual materialized prompt tokenIds length after the selected model template",
+    "output_tokens": "actual sampled output tokenIds length including terminal tokens; not visible text retokenization",
+    "header": "x-reploid-token-usage: raw-model-tokens/v1",
+    "billing": "No Claude billing, prompt cache or service usage equivalence claimed"
+  },
+  "events": ["message_start with actual input count and zero samples before dispatch", "content_block_start", "content_block_delta", "content_block_stop", "message_delta with final cumulative sampled count", "message_stop"],
+  "stop": {"eos-or-stop-token":"end_turn", "max-tokens":"max_tokens", "context-limit":"explicit api_error", "stop-sequence-without-matched-string":"explicit api_error", "unknown":"explicit api_error"},
+  "authority": "Immutable generationRequest appears in execution/disclosure approval; lower maxTokens enters existing signed generationDigest before any numerical dispatch. Prior protocol defaults and canonical policy are unchanged."
+}

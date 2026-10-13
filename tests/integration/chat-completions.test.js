@@ -3,13 +3,14 @@ import { afterEach, expect, it, vi } from 'vitest';
 import { createStandaloneSignalingServer } from '../../server/reploid-signaling.js';
 import { createChatCompletions, parseTextChatCompletion } from '../../server/chat-completions.js';
 import { automaticOrderedMesh, tasks } from '../fixtures/automatic-ordered-mesh.js';
+const preview = (request, recipients=['stage']) => ({threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,recipients,input:{messages:request.messages,...(request.generationRequest?{generationRequest:request.generationRequest}:{})}});
 const model = { id:'test-model',identity:'sha256:'+'a'.repeat(64),partition:{prepared:true} };
 const input = {model:model.id,messages:[{role:'user',content:'hello'}]};
 const owners=[];
 afterEach(async()=>{for(const close of owners.splice(0).reverse()) await close();});
 async function boot(overrides={}) {
   const generate=vi.fn(async (request,controls)=>{
-    if(!await controls.requestApproval({recipients:['actual-stage'],input:request.messages})) throw Error('Disclosure declined');
+    if(!await controls.requestApproval(preview(request,['actual-stage']))) throw Error('Disclosure declined');
     for(const [sequence,text] of ['hel','lo'].entries()) controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence,text});
     return {threadId:request.threadId,attemptId:request.attemptId,modelId:request.model.id,modelIdentity:request.model.identity,
       content:'hello',execution:{stopReason:'eos-token'}};
@@ -51,11 +52,11 @@ it('streams ordered deltas and one terminal reason with a stable completion iden
   expect(chunks[0].choices[0].delta.role).toBe('assistant');expect(chunks.at(-1).choices[0].finish_reason).toBe('stop');
 });
 it.each([['stop-token','stop'],['stop-sequence','stop'],['max-tokens','length'],['context-limit','length']])('maps actual %s termination to %s',async(reason,expected)=>{
-  const f=await boot({participant:{generate:async request=>({...request,modelId:model.id,modelIdentity:model.identity,content:'text',execution:{stopReason:reason}})}});
+  const f=await boot({participant:{generate:async(request,controls)=>{await controls.requestApproval(preview(request));return {...request,modelId:model.id,modelIdentity:model.identity,content:'text',execution:{stopReason:reason}};}}});
   const response=await f.post();expect((await response.json()).choices[0].finish_reason).toBe(expected);
 });
 it('rejects unknown termination and a changed result identity instead of claiming successful completion',async()=>{
-  const f=await boot({participant:{generate:async request=>({...request,modelId:model.id,modelIdentity:model.identity,content:'text',execution:{stopReason:'unknown'}})}});
+  const f=await boot({participant:{generate:async(request,controls)=>{await controls.requestApproval(preview(request));return {...request,modelId:model.id,modelIdentity:model.identity,content:'text',execution:{stopReason:'unknown'}};}}});
   expect((await f.post()).status).toBe(502);
   f.participant.generate=async request=>({...request,attemptId:'other',modelId:model.id,modelIdentity:model.identity,content:'text',execution:{stopReason:'stop-token'}});
   expect((await f.post()).status).toBe(502);
@@ -101,6 +102,7 @@ it('actual mounted handler reaches weightless automatic requester, signed grants
 });
 it('streamed partial output with unknown stopping reason ends in an error without a successful DONE',async()=>{
   const f=await boot({participant:{generate:async(request,controls)=>{
+    await controls.requestApproval(preview(request));
     controls.onDelta({threadId:request.threadId,attemptId:request.attemptId,sequence:0,text:'partial'});
     return {...request,modelId:model.id,modelIdentity:model.identity,content:'partial',execution:{stopReason:'unknown'}};
   }}});
