@@ -1,0 +1,31 @@
+{
+  "schema": "reploid.remaining-price-runner-control/v1",
+  "passed": true,
+  "sourceModelExecuted": false,
+  "controls": [
+    {
+      "artificialLabel": "unknown",
+      "injectedFailure": false,
+      "tokens": {
+        "promptTokens": 2881,
+        "generatedTokens": 44,
+        "totalChargedTokens": 2925,
+        "rawUtf16": 229
+      },
+      "modelExecuted": false,
+      "semanticAcceptance": false
+    },
+    {
+      "artificialLabel": "unit_price",
+      "injectedFailure": true,
+      "tokens": {
+        "promptTokens": 1634,
+        "generatedTokens": 24,
+        "totalChargedTokens": 1658,
+        "rawUtf16": 117
+      },
+      "modelExecuted": false,
+      "semanticAcceptance": false
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "meminfo": "MemTotal:       128799988 kB\nMemFree:        16921340 kB\nMemAvailable:   68459020 kB\nBuffers:         1960132 kB\nCached:         96281776 kB\nSwapCached:        26820 kB\nActive:         29258996 kB\nInactive:       73608244 kB\nActive(anon):   27064516 kB\nInactive(anon): 28033124 kB\nActive(file):    2194480 kB\nInactive(file): 45575120 kB\nUnevictable:          16 kB\nMlocked:              16 kB\nSwapTotal:       8388604 kB\nSwapFree:            208 kB\nZswap:                 0 kB\nZswapped:              0 kB\nDirty:              9436 kB\nWriteback:             0 kB\nAnonPages:       4598392 kB\nMapped:           806440 kB\nShmem:          50473028 kB\nKReclaimable:    4941748 kB\nSlab:            6406084 kB\nSReclaimable:    4941748 kB\nSUnreclaim:      1464336 kB\nKernelStack:       29712 kB\nPageTables:       101924 kB\nSecPageTables:      6080 kB\nNFS_Unstable:          0 kB\nBounce:                0 kB\nWritebackTmp:          0 kB\nCommitLimit:    72788596 kB\nCommitted_AS:   77913468 kB\nVmallocTotal:   34359738367 kB\nVmallocUsed:      117556 kB\nVmallocChunk:          0 kB\nPercpu:           114304 kB\nHardwareCorrupted:     0 kB\nAnonHugePages:         0 kB\nShmemHugePages:        0 kB\nShmemPmdMapped:        0 kB\nFileHugePages:   8140800 kB\nFilePmdMapped:         0 kB\nCmaTotal:              0 kB\nCmaFree:         5776340 kB\nUnaccepted:            0 kB\nBalloon:               0 kB\nHugePages_Total:       0\nHugePages_Free:        0\nHugePages_Rsvd:        0\nHugePages_Surp:        0\nHugepagesize:       2048 kB\nHugetlb:               0 kB\nDirectMap4k:     9784012 kB\nDirectMap2M:    107962368 kB\nDirectMap1G:    16777216 kB\n",
+  "processes": [
+    {
+      "pid": 81706,
+      "comm": "python3",
+      "cpuAllowed": "0-31",
+      "rss": "13516 kB"
+    },
+    {
+      "pid": 1022507,
+      "comm": "node",
+      "cpuAllowed": "0-31",
+      "rss": "14824 kB"
+    },
+    {
+      "pid": 1257860,
+      "comm": "node",
+      "cpuAllowed": "0-31",
+      "rss": "15008 kB"
+    },
+    {
+      "pid": 1340542,
+      "comm": "node",
+      "cpuAllowed": "0-31",
+      "rss": "94220 kB"
+    },
+    {
+      "pid": 1451266,
+      "comm": "node",
+      "cpuAllowed": "0-31",
+      "rss": "97248 kB"
+    },
+    {
+      "pid": 1451388,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "110300 kB"
+    },
+    {
+      "pid": 1451407,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "22492 kB"
+    },
+    {
+      "pid": 1451409,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "22628 kB"
+    },
+    {
+      "pid": 1451449,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "65048 kB"
+    },
+    {
+      "pid": 1451455,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "49956 kB"
+    },
+    {
+      "pid": 1451466,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "30988 kB"
+    },
+    {
+      "pid": 1824573,
+      "comm": "node",
+      "cpuAllowed": "0-31",
+      "rss": "101576 kB"
+    },
+    {
+      "pid": 2525843,
+      "comm": "python3",
+      "cpuAllowed": "0-31",
+      "rss": "13144 kB"
+    },
+    {
+      "pid": 2525851,
+      "comm": "node",
+      "cpuAllowed": "0-31",
+      "rss": "773212 kB"
+    },
+    {
+      "pid": 2597644,
+      "comm": "python3",
+      "cpuAllowed": "0-31",
+      "rss": "18424 kB"
+    },
+    {
+      "pid": 3966937,
+      "comm": "node",
+      "cpuAllowed": "0-31",
+      "rss": "417264 kB"
+    },
+    {
+      "pid": 3967031,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "123140 kB"
+    },
+    {
+      "pid": 3967044,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "22812 kB"
+    },
+    {
+      "pid": 3967045,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "22960 kB"
+    },
+    {
+      "pid": 3967069,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "77236 kB"
+    },
+    {
+      "pid": 3967070,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "56856 kB"
+    },
+    {
+      "pid": 3967079,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "32108 kB"
+    },
+    {
+      "pid": 4018986,
+      "comm": "node",
+      "cpuAllowed": "0-31",
+      "rss": "48216 kB"
+    },
+    {
+      "pid": 4103868,
+      "comm": "node",
+      "cpuAllowed": "0-31",
+      "rss": "718392 kB"
+    },
+    {
+      "pid": 4121371,
+      "comm": "node",
+      "cpuAllowed": "0-31",
+      "rss": "146304 kB"
+    },
+    {
+      "pid": 4121431,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "196856 kB"
+    },
+    {
+      "pid": 4121452,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "64680 kB"
+    },
+    {
+      "pid": 4121453,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "64264 kB"
+    },
+    {
+      "pid": 4121472,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "212232 kB"
+    },
+    {
+      "pid": 4121476,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "123012 kB"
+    },
+    {
+      "pid": 4121488,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "54784 kB"
+    },
+    {
+      "pid": 4121525,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "69108 kB"
+    },
+    {
+      "pid": 4121526,
+      "comm": "chrome",
+      "cpuAllowed": "0-31",
+      "rss": "334408 kB"
+    }
+  ],
+  "commandLinesExcluded": true
+}

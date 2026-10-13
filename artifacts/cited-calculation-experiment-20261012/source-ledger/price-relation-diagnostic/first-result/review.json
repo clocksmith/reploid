@@ -1,0 +1,26 @@
+{
+  "schema": "reploid.single-price-local-review/v1",
+  "frozenSourceRevision": "1875e259",
+  "freezeSha256": "0ca4300b333a7f0a48944bd458ae20e4e43a1b31a21aa4f2a022c440b2a5b622",
+  "sourceOutputSha256": "0c2e61aa8d8d6f10b4c2363416f98e2105dc2164c988b358b1508e816601dd4a",
+  "rawOutput": "{\"relation\":\"quoted_total\"}",
+  "selectedRelation": "quoted_total",
+  "localRelationSupported": true,
+  "independentReviewer": "Parent/root reviewed exact occurrence and raw selected relation before authorizing extension.",
+  "reason": "D1:P1 explicitly quotes $8,400 for bathroom work including installation and disposal. This occurrence introduces the quoted work price; the distinct deposit-basis occurrence is in D1:P3. Sales tax is excluded, so quoted_total does not mean an all-in price.",
+  "fullTaskQualified": false,
+  "factualCitationAndFollowupGates": "Unchanged and open",
+  "additionalCalls": 0,
+  "calculationOrFinalAnswer": false,
+  "accounting": {
+    "promptTokens": 407,
+    "generatedTokens": 8,
+    "totalChargedTokens": 415,
+    "rawUtf16": 37
+  },
+  "maskedRawChoices": 1,
+  "terminalEOSReplacedRawWinner": false,
+  "elapsedIncludingLoadingSeconds": 21.364173,
+  "performanceQualified": false,
+  "disposition": "Retain first observation; do not rerun it. Remaining six occurrences require a separately frozen ordered extension."
+}
