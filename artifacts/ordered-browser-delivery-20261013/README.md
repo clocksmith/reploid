@@ -21,3 +21,12 @@ Reproduce with `node scripts/sync-reploid-library.js`,
 `node scripts/build-browser-bundle-manifest.js`, and its `--check` mode.
 `verify.js` records changed-file Worker evidence before committing generated
 assets; its source-copy comparison always covers the complete inventory.
+
+## Complete generated metadata
+
+The subsequent inventory check found stale module/VFS projections. Their existing
+generators now enumerate 1,453 source modules and current VFS files; the maintained
+blueprint registry remains unchanged and passes its check. `final-inventories.json`
+binds the resulting `2c41fd5e...` bundle. Every JavaScript hash from the earlier
+Worker receipt is unchanged; only generated inventory/manifest bytes changed.
+This remains an undeployed source delivery, not an application qualification.

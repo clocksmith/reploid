@@ -1,0 +1,11 @@
+{
+  "scope": "Generated metadata refresh; all previously Worker-bound JavaScript hashes unchanged",
+  "files": {
+    "self/config/module-inventory.json": "bf9ebed41b38c1748d9a1febf8aa0958fac5d802a95268da777ef3b7ce00fcce",
+    "self/config/vfs-manifest.json": "f0ab9dd47ae93155d0d2ed2efe6063eb1c77c93b03e272bdcd46298e292a4b78",
+    "self/config/browser-bundle-manifest.json": "3409dd1b05fdf0829cef1a7087bd50a7dd0fc485ef36dad30ac9128dc746be53"
+  },
+  "bundle": "sha256:2c41fd5e623163da73df1a31d0b42b094b443438c72b024b4be34b803c2bf4b0",
+  "sourceModules": 1453,
+  "deployed": false
+}
