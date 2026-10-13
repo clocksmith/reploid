@@ -1,0 +1,15 @@
+{
+  "scope": "Fresh requester after native drain repair; capacity remained unavailable",
+  "nativeArtifact": "19dbecf5161853389a96156be45767bb5ad5801e82e9309799d96763330a31ba",
+  "runtimeArchive": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "requesterReportSha256": "a7726ea9bfb128d49a765abe7fa6b7fa0ebbe9b999486108cdff44f07db644e2",
+  "startedAt": "2026-10-13T12:06:35.094Z",
+  "finishedAt": "2026-10-13T12:11:35.910Z",
+  "questionsSent": 0,
+  "requesterWeightRequests": 0,
+  "result": "rejected: capacity did not become ready within declared 300 seconds",
+  "limitations": [
+    "No inference or answer-quality test occurred",
+    "Native signed readiness does not establish Mac output readiness"
+  ]
+}
