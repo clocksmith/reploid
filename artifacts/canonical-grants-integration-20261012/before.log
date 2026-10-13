@@ -1,0 +1,9 @@
+file:///Users/xyz/deco/reploid/tests/canonical-grants-source.js:21
+ const authorizationScope=authority.canonicalScope({identity:binding,limits,disclosure,generationId:generation.generationId});
+                                    ^
+
+TypeError: authority.canonicalScope is not a function
+    at context (file:///Users/xyz/deco/reploid/tests/canonical-grants-source.js:21:37)
+    at file:///Users/xyz/deco/reploid/tests/canonical-grants-source.js:28:15
+
+Node.js v22.20.0
