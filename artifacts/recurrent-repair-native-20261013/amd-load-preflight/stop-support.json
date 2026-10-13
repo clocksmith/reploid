@@ -1,0 +1,19 @@
+{
+  "local": [
+    {
+      "pid": 91497,
+      "purpose": "owned inspector tunnel",
+      "signal": "SIGTERM"
+    }
+  ],
+  "providerAbsent": true,
+  "publicNativePid": 4103868,
+  "publicBrowserControllerPid": 4121371,
+  "remote": [
+    {
+      "pid": 2972850,
+      "purpose": "owned read-only model server",
+      "signal": "SIGTERM"
+    }
+  ]
+}

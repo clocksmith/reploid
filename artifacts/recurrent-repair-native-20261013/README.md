@@ -34,3 +34,14 @@ rejected before GPU opening. Its receipt remains separate. The corrected call
 uses the actual owned loopback WebSocket endpoint. `stop-support.json` records
 termination of only the owned file server and inspector tunnel after completion.
 The Verification Worker also passes the retained controller/preparation tools.
+
+AMD middle-stage and Mac input-stage opening now pass on the same archive.
+Their `amd-load-preflight/summary.json` and `mac-load-preflight/summary.json`
+retain the exact provider/executable identities, 113,881,408 and 622,440,768-byte
+GPU peaks respectively, and successful close operations. AMD host-memory peak
+is 2,860,175,360 bytes with zero limit events; its provider exits zero. Mac
+closes the owned Chromium and confirms its process is absent. Neither check
+executes tokens. Both leave reusable pool allocations at resident close; final
+provider/browser teardown follows. Existing contributors remain running.
+Boundary effects: none; these are preparation observations for the frozen
+three-stage numerical route, not signed chat or deployment acceptance.

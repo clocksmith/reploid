@@ -1,0 +1,11 @@
+{
+  "applicationDirectory": "/var/tmp/reploid-recurrent-memory-20261013/installed-repair/reploid",
+  "nativeDeliverySha256": "4f928c86b726be4b8d6803fdd65642c65da98f26c28933370393c218614a8e22",
+  "providerModule": "webgpu",
+  "testDelivery": {
+    "root": "/var/tmp/reploid-repaired-three-stage-v2-20261013",
+    "bindingPath": "/var/tmp/reploid-repaired-three-stage-v2-20261013/snapshot-binding.json",
+    "bindingSha256": "d3317a0b35be79bf3dce45fe73e9e75ded32152b4909eca1685c38050b74b019",
+    "archivePath": "/var/tmp/reploid-repaired-three-stage-v2-20261013/archive.tgz"
+  }
+}
