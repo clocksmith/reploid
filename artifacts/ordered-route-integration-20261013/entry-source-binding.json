@@ -1,0 +1,141 @@
+{
+  "scope": "CPU named source subset, actual requester/chat/peers/facades/resident contracts with synthetic channels/tokenizer/numerics. Not installed, physical, model quality, canonical publication or deployment.",
+  "reploidHead": "60da0eb208b74cb4e111e7f71529fe75f7824f39",
+  "dopplerHead": "c6ea5976e8a4cc2b61c5d56aab2bebed98cd2d9a",
+  "resultSha256": "e68f54aae883b1914f5945dea10ad2e2547a3b00139f15c36feb2a59a5d59f9c",
+  "sourcesUnchangedDuringRun": true,
+  "files": [
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-route-execution.js",
+      "observedSha256": "e027f10e7834ff364f016ca27dbdda81e9d9e6e682ac7aed6ec15c258ac0f27a",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-contract.js",
+      "observedSha256": "d0047768fb1376698a71bcbe35a7e8026dd6c1fea7f96e717878a96d58577f22",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-runner.js",
+      "observedSha256": "9fcd2fd43bba564e22627577ad90d850e021a9cf9da05ee46ea5693be8c702de",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/resident-partition.js",
+      "observedSha256": "7a4c9f4619efab076125732d3b6d76bd849ee365ebda68361940bda341095647",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/resident-route.js",
+      "observedSha256": "6c3fc83f974b6e7cec5a46e1d01b50bcab4d076446d971b6eaa7c58c9522fe42",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-grants.js",
+      "observedSha256": "fac89ffe1466bc700bc9cad3661348894065792dfcf40e803bf692b8834137d1",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-peer.js",
+      "observedSha256": "bfbcd688c178bcfcfec4c1c94a1fe1a8b4e232e3885b14773699638ef6eacb0e",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-ordered-peer.js",
+      "observedSha256": "406b15d7214c83183a4434a2cc03b2c81134bdc7b41e9f3f27a1a86ae95c4d17",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-step-receiver.js",
+      "observedSha256": "2d903153b08b49c3bc88eccb3af2e5d4eaefe957c4c7cc43e32e2ef7bfcc0cce",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/transport/partition-data-channel.js",
+      "observedSha256": "81f1a68711acae446d8e42c4f13728103b6003849892c8abba8279d1fa392fa5",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-entry.js",
+      "observedSha256": "d2b5be5aa3c817d2a5d0a0bdc16354dcaa5f6303b3efd7f7c3d50ae40f2e8035",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-chat.js",
+      "observedSha256": "4d9509fb1b316eb21171429b6f49a7fe71130c0c114198b95d2fdb9c7d75524b",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-ordered-chat.js",
+      "observedSha256": "e2c61966e603d110d11723963f881cdcd5032835bb128a63d1388271f158fd96",
+      "matchesHead": true
+    },
+    {
+      "repository": "reploid",
+      "path": "packages/reploid/src/mesh/partitions/partition-summary.js",
+      "observedSha256": "9809f1321ec9f31310e190ce3b7e9f2e2274e4ec5436bd5a40a1f8ff0b03f516",
+      "matchesHead": true
+    },
+    {
+      "repository": "doppler",
+      "path": "src/inference/pipelines/text/resident-partition.js",
+      "observedSha256": "dcba8f0d54dd14212ae26f26be002bcad9e41197fe37141925b176375af076fa",
+      "matchesHead": true
+    },
+    {
+      "repository": "doppler",
+      "path": "src/inference/pipelines/text/resident-partition-contract.js",
+      "observedSha256": "f4f78dc1a6547ffb110cac9b7de7f7f25035230cc57b75087cb3dfd24f2d3195",
+      "matchesHead": true
+    },
+    {
+      "repository": "doppler",
+      "path": "src/inference/pipelines/text/layer-partition-contract.js",
+      "observedSha256": "b587921a4f67cafaa7782100a287ac10fade818f50179c3d479d22c072144600",
+      "matchesHead": true
+    },
+    {
+      "repository": "doppler",
+      "path": "src/partitions.js",
+      "observedSha256": "23bbe04dfe5df9dff0e6d026c8601e81063b7de4ce7ac01535d8ce4644486dc4",
+      "matchesHead": true
+    },
+    {
+      "repository": "doppler",
+      "path": "src/inference/generation-step.js",
+      "observedSha256": "8c32a8f9c290a8973db65c03792b2e16f91afb3f6c3cf8accec2404b34cae1f4",
+      "matchesHead": true
+    },
+    {
+      "repository": "doppler",
+      "path": "src/inference/token-sampling.js",
+      "observedSha256": "91b365fa423b0fc0f158fac64267d9696d89bcd5a3432bcf778e2cbfa5bfb291",
+      "matchesHead": true
+    },
+    {
+      "repository": "doppler",
+      "path": "src/config/generation-contract.js",
+      "observedSha256": "1c21c5ac2b854c30eede19ec1caa3ef29607d91e90f1076fbc56633e3e082a59",
+      "matchesHead": true
+    },
+    {
+      "repository": "doppler",
+      "path": "src/inference/tokenizers/bundled/incremental-decoder.js",
+      "observedSha256": "119dc3bfe7478ddf5a6dd180b48800863cb8b53302c41d84d1b69a318c6788b4",
+      "matchesHead": true
+    }
+  ]
+}

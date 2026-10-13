@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
 const root = process.cwd(), directory = 'artifacts/ordered-route-integration-20261013';
-const names = ['run.mjs', 'facade.mjs', 'peer.mjs', 'verify-worker.mjs'];
+const names = ['run.mjs', 'facade.mjs', 'peer.mjs', 'entry.mjs', 'verify-worker.mjs'];
 const entries = await Promise.all(names.map(async name => [name, await fs.readFile(path.join(directory, name), 'utf8')]));
 const browser = await chromium.launch({ channel: 'chrome', headless: true, args: ['--disable-gpu'] });
 try {
