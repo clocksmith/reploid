@@ -1,0 +1,62 @@
+{
+  "purpose": "Stop obsolete owned local test controllers, servers and tunnels at user request",
+  "requesterBrowser": {
+    "pid": 17912,
+    "pages": 0,
+    "closedVia": "CDP Browser.close"
+  },
+  "processes": [
+    {
+      "pid": 17591,
+      "expectedCommandPrefix": "node scripts/run-mesh-contributor.js",
+      "result": "SIGTERM sent"
+    },
+    {
+      "pid": 17910,
+      "expectedCommandPrefix": "node --input-type=module",
+      "result": "already exited"
+    },
+    {
+      "pid": 17648,
+      "expectedCommandPrefix": "ssh -N",
+      "result": "SIGTERM sent"
+    },
+    {
+      "pid": 27278,
+      "expectedCommandPrefix": "ssh -N",
+      "result": "SIGTERM sent"
+    },
+    {
+      "pid": 17484,
+      "expectedCommandPrefix": "node server/proxy.js",
+      "result": "SIGTERM sent"
+    },
+    {
+      "pid": 94138,
+      "expectedCommandPrefix": "node server/proxy.js",
+      "result": "SIGTERM sent"
+    },
+    {
+      "pid": 63559,
+      "expectedCommandPrefix": "ssh -N",
+      "result": "SIGTERM sent"
+    },
+    {
+      "pid": 76407,
+      "expectedCommandPrefix": "ssh -N",
+      "result": "SIGTERM sent"
+    },
+    {
+      "pid": 72671,
+      "expectedCommandPrefix": "node delivery-server.js",
+      "result": "SIGTERM sent"
+    },
+    {
+      "pid": 76403,
+      "expectedCommandPrefix": "node delivery-server.js",
+      "result": "SIGTERM sent"
+    }
+  ],
+  "publicContributorsChanged": false,
+  "remainingTargetPids": []
+}
