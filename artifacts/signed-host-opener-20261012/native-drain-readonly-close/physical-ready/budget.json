@@ -1,0 +1,19 @@
+{
+  "observedAt": "2026-10-13T12:02:46.672315+00:00",
+  "records": [
+    {
+      "schema": "reploid.custody-supply-budget/v1",
+      "maxBytes": 4294967296,
+      "reservedBytes": 496220792
+    }
+  ],
+  "recordFields": [
+    [
+      "schema",
+      "maxBytes",
+      "reservedBytes"
+    ]
+  ],
+  "consentSha256": "1db04d6fed8b3861625689f147c5c6d9627f38695988f00dad8a73283e855d54",
+  "identitySha256": "871ad22c05ae95c8780707cf7cf4520d935d6696be6b380082c570e1aff94e30"
+}

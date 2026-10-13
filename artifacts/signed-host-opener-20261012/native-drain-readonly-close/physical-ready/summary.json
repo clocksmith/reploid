@@ -1,0 +1,85 @@
+{
+  "scope": "Isolated native signed opening and bounded read-only supply observations, not completed acquisition or conversation",
+  "nativePid": 2103894,
+  "runtimeSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "rawFirstReady": {
+    "path": "first-ready.json.gz",
+    "uncompressedBytes": 267171,
+    "sha256": "ef560381b82dad36a2576c002e244aac5f14e95a7579b6f6851bec5f4ff8fbea",
+    "gzipSha256": "7fd457abf6f2645c1c8356244742d12947f5703225e4db5096388e03ffd16f30"
+  },
+  "observationAt": "2026-10-13T12:01:30.259003+00:00",
+  "timingLimitation": "Log record has no outer wall timestamp; observation time is an upper bound, not measured preparation duration",
+  "phase": "ready",
+  "error": null,
+  "descriptor": {
+    "schema": "doppler.resident-partition/v1",
+    "ready": true,
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+    "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+    "index": 0,
+    "layerRange": [
+      0,
+      11
+    ],
+    "residentWeightBytes": 650989568,
+    "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+  },
+  "openingMode": "signed-capsule",
+  "reservations": {
+    "closed": false,
+    "active": 0,
+    "availableSlots": 2,
+    "records": []
+  },
+  "attempts": [],
+  "unsettledOwners": 0,
+  "supplyObservation": {
+    "sharing": true,
+    "suppliedBytes": 475853944,
+    "pending": 0,
+    "peers": [
+      "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9"
+    ],
+    "cache": {
+      "quarantined": []
+    },
+    "supplyBudgetError": null,
+    "retainedFiles": 32,
+    "receiptCount": 0
+  },
+  "persistentBudgetObservation": {
+    "observedAt": "2026-10-13T12:02:46.672315+00:00",
+    "records": [
+      {
+        "schema": "reploid.custody-supply-budget/v1",
+        "maxBytes": 4294967296,
+        "reservedBytes": 496220792
+      }
+    ],
+    "recordFields": [
+      [
+        "schema",
+        "maxBytes",
+        "reservedBytes"
+      ]
+    ],
+    "consentSha256": "1db04d6fed8b3861625689f147c5c6d9627f38695988f00dad8a73283e855d54",
+    "identitySha256": "871ad22c05ae95c8780707cf7cf4520d935d6696be6b380082c570e1aff94e30"
+  },
+  "ledgerBeforeRestart": 457745496,
+  "ledgerDeltaAtLaterObservation": 38475296,
+  "limitations": [
+    "Supplier receiptCount zero does not prove receiver verification or complete acquisition",
+    "Native source reused authorized local verified cache; not proof of cold peer acquisition on native",
+    "No restart, inspector mutation, new GPU workload or deadline change performed by this observation task"
+  ],
+  "nativeArtifactSha256": "19dbecf5161853389a96156be45767bb5ad5801e82e9309799d96763330a31ba",
+  "nativeDescriptorSha256": "71051fc6c7e4e383aa3ec4d4f320e7d84ab4c028aec17f0e2dfde743cd915a2a",
+  "installedVerification": {
+    "applicationFiles": 123,
+    "runtimeFiles": 1976,
+    "source": "/var/tmp/reploid-signed-drain-v2-20261013/verification.json"
+  }
+}

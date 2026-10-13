@@ -1,0 +1,40 @@
+{
+  "observedAt": "2026-10-13T12:01:30.259003+00:00",
+  "pid": 2103894,
+  "pidAlive": true,
+  "logBytes": 18527406,
+  "firstReadyFound": true,
+  "firstReadySha256": "ef560381b82dad36a2576c002e244aac5f14e95a7579b6f6851bec5f4ff8fbea",
+  "firstReadyBytes": 267171,
+  "lastPartitionKeys": [
+    "event",
+    "phase",
+    "error",
+    "progress",
+    "offering",
+    "modelId",
+    "placement",
+    "placementDecision",
+    "capabilities",
+    "descriptor",
+    "acquisition",
+    "models",
+    "reservations",
+    "attempts",
+    "unsettledOwners"
+  ],
+  "files": {
+    "sharing": true,
+    "suppliedBytes": 475853944,
+    "pending": 0,
+    "peers": [
+      "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9"
+    ],
+    "cache": {
+      "quarantined": []
+    },
+    "supplyBudgetError": null,
+    "retainedFiles": 32,
+    "receiptCount": 0
+  }
+}
