@@ -1,0 +1,123 @@
+{
+  "scope": "CPU-frozen corrected-graph qualification preparation, no physical result",
+  "root": "/var/tmp/reploid-closure-qualification-20261013",
+  "model": "/var/tmp/reploid-closure-model-20261013",
+  "output": "/var/tmp/reploid-closure-qualification-output-20261013",
+  "deliverySha256": "4b5128faf5008e7c1b206ae244fbd88bc6a7eb22c88dc6cd90c07cf22d38dec3",
+  "manifestSha256": "709894a75b4200c111fb7dbb6c9435c8fd69710949ea8ba486cf93f38582fdd3",
+  "graphSha256": "43a7ce21f1305c8901581bcae5eb15e0ebfcd2d1c4de760624459b65ab4700e6",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "files": 2011,
+  "controls": {
+    "run-native-reference.sh": "4a7e304e964b71e1e35d7f7b706ec770e3470053975bdcdbc29ea8154d13e9ef",
+    "supervise-native.sh": "0ea8a67df497b4b227ada3d856893f4ae3b07228cb6d89a3d81f3353d952deb8",
+    "config.json": "d1e679d3fff94b50a6ea21b29d2c7b7aa04e10007da35dabecac98b7e6ba3694"
+  },
+  "modelFiles": [
+    {
+      "name": "manifest.json",
+      "bytes": 220135,
+      "sha256": "709894a75b4200c111fb7dbb6c9435c8fd69710949ea8ba486cf93f38582fdd3"
+    },
+    {
+      "name": "origin.json",
+      "bytes": 243,
+      "sha256": "f084594d673a8c33c9b5491b5d22bbabbaecf1d01af46d14bf8f00b01939d89a"
+    },
+    {
+      "name": "shard_00000.bin",
+      "bytes": 67108864,
+      "sha256": "96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f"
+    },
+    {
+      "name": "shard_00001.bin",
+      "bytes": 67108864,
+      "sha256": "c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e"
+    },
+    {
+      "name": "shard_00002.bin",
+      "bytes": 67108864,
+      "sha256": "8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec"
+    },
+    {
+      "name": "shard_00003.bin",
+      "bytes": 67108864,
+      "sha256": "735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29"
+    },
+    {
+      "name": "shard_00004.bin",
+      "bytes": 67108864,
+      "sha256": "3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69"
+    },
+    {
+      "name": "shard_00005.bin",
+      "bytes": 67108864,
+      "sha256": "e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4"
+    },
+    {
+      "name": "shard_00006.bin",
+      "bytes": 67108864,
+      "sha256": "70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313"
+    },
+    {
+      "name": "shard_00007.bin",
+      "bytes": 67108864,
+      "sha256": "e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4"
+    },
+    {
+      "name": "shard_00008.bin",
+      "bytes": 67108864,
+      "sha256": "82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55"
+    },
+    {
+      "name": "shard_00009.bin",
+      "bytes": 67108864,
+      "sha256": "294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b"
+    },
+    {
+      "name": "shard_00010.bin",
+      "bytes": 67108864,
+      "sha256": "1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e"
+    },
+    {
+      "name": "shard_00011.bin",
+      "bytes": 67108864,
+      "sha256": "4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387"
+    },
+    {
+      "name": "shard_00012.bin",
+      "bytes": 67108864,
+      "sha256": "93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668"
+    },
+    {
+      "name": "shard_00013.bin",
+      "bytes": 67108864,
+      "sha256": "a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690"
+    },
+    {
+      "name": "shard_00014.bin",
+      "bytes": 67108864,
+      "sha256": "b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8"
+    },
+    {
+      "name": "shard_00015.bin",
+      "bytes": 67108864,
+      "sha256": "8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455"
+    },
+    {
+      "name": "shard_00016.bin",
+      "bytes": 67108864,
+      "sha256": "914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266"
+    },
+    {
+      "name": "shard_00017.bin",
+      "bytes": 5198016,
+      "sha256": "d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78"
+    },
+    {
+      "name": "tokenizer.json",
+      "bytes": 9088480,
+      "sha256": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+    }
+  ]
+}

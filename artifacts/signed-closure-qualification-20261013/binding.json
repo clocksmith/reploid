@@ -1,0 +1,22 @@
+{
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "sourceManifestSha256": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+  "immediateParentManifestSha256": "ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+  "manifestSha256": "709894a75b4200c111fb7dbb6c9435c8fd69710949ea8ba486cf93f38582fdd3",
+  "graphSha256": "43a7ce21f1305c8901581bcae5eb15e0ebfcd2d1c4de760624459b65ab4700e6",
+  "representation": "Explicit session intermediatePrecision=two-f32 and linearRecurrentStatePrecision=two-f32",
+  "weightsTokenizerAndSourceFactsUnchanged": true,
+  "executionGraphChanged": true,
+  "precisionAuthorization": "User-approved interleaved two-F32 intermediate and persistent state chain",
+  "publicLogits": "f32",
+  "kvStorage": "f16",
+  "numericalReference": "unchanged approved independent F64",
+  "tolerance": 0.001,
+  "qualified": false,
+  "sourceConstruction": "Clean5c2b3188 export plus owned readiness0ac64fa2 and signed reader257b9ee2; no other runtime changes",
+  "runtimeOverlay": [
+    "0ac64fa2:six readiness source files",
+    "257b9ee2:src/client/runtime/capsule-piece-reader.js"
+  ],
+  "closureCorrection": "5093283c: declarations only; existing 0fad runtime and shader bytes unchanged"
+}
