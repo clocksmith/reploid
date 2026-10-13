@@ -1,0 +1,2943 @@
+{
+  "scope": "CPU source integration: real ordered Reploid peer ports over synthetic in-process channels, resident facade, WebCrypto v4 grants and runner and Doppler resident state/sampling/decoder; injected numerical kernels and private cache allocation; real grant signatures only; no signed execution publication, GPU, physical capacity or answer-quality claim",
+  "startedAt": "2026-10-13T14:45:15.031Z",
+  "doppler": "/Users/xyz/deco/doppler",
+  "cases": [
+    {
+      "tamperedSignatureRejectedBeforeNumerics": true
+    },
+    {
+      "attemptId": "first",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Synthetic prompt"
+        }
+      ],
+      "deltas": [
+        "3",
+        "4",
+        "5"
+      ],
+      "result": {
+        "content": "345",
+        "tokenIds": [
+          3,
+          4,
+          5
+        ],
+        "logits": null,
+        "stopReason": "eos-token",
+        "execution": {
+          "schema": "reploid.mesh.partition-execution/v3",
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "first",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "activationBytes": 128,
+          "steps": [
+            {
+              "step": 0,
+              "tokenPosition": 0,
+              "inputTokenCount": 2,
+              "maxTokens": 3,
+              "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+              "tokenId": 3,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "metrics": {
+                    "executionMs": 0.06645799999998303,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "metrics": {
+                    "executionMs": 0.010625000000004547,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "metrics": {
+                    "executionMs": 0.013833000000005313,
+                    "logitsReadbackMs": 0.036624999999986585,
+                    "samplingMs": 0.356583999999998,
+                    "memory": null
+                  }
+                }
+              ]
+            },
+            {
+              "step": 1,
+              "tokenPosition": 2,
+              "inputTokenCount": 1,
+              "maxTokens": 3,
+              "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+              "tokenId": 4,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "metrics": {
+                    "executionMs": 0.008417000000008557,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "metrics": {
+                    "executionMs": 0.007125000000002046,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "metrics": {
+                    "executionMs": 0.011750000000006366,
+                    "logitsReadbackMs": 0.0029169999999965057,
+                    "samplingMs": 0.030207999999987578,
+                    "memory": null
+                  }
+                }
+              ]
+            },
+            {
+              "step": 2,
+              "tokenPosition": 3,
+              "inputTokenCount": 1,
+              "maxTokens": 3,
+              "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+              "tokenId": 5,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "metrics": {
+                    "executionMs": 0.011375000000015234,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "metrics": {
+                    "executionMs": 0.007374999999996135,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "metrics": {
+                    "executionMs": 0.010333000000002812,
+                    "logitsReadbackMs": 0.002666000000004942,
+                    "samplingMs": 0.08554200000000378,
+                    "memory": null
+                  }
+                }
+              ]
+            }
+          ],
+          "settlement": {
+            "identity": {
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "conversation",
+              "attemptId": "first",
+              "requesterId": "requester",
+              "placementGeneration": 0,
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "ordered-integration",
+                "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "peer:dc3f03df0a7102b77d22548d",
+                    "transportId": "link-0",
+                    "residentId": "resident-0",
+                    "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "peer:d0c3fa99e863779b31824608",
+                    "transportId": "link-1",
+                    "residentId": "resident-1",
+                    "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                  },
+                  {
+                    "index": 2,
+                    "participantId": "peer:6d575b1b150baa98ed786f10",
+                    "transportId": "link-2",
+                    "residentId": "resident-2",
+                    "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                  }
+                ],
+                "activation": {
+                  "schema": "doppler.activation-tensor/v1",
+                  "dtype": "f32",
+                  "hiddenSize": 4,
+                  "precision": "f32",
+                  "components": 1,
+                  "elementStrideBytes": 4
+                }
+              }
+            },
+            "phase": "completed",
+            "reservations": [
+              {
+                "identity": {
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "conversation",
+                  "attemptId": "first",
+                  "requesterId": "requester",
+                  "placementGeneration": 0,
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "ordered-integration",
+                    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:dc3f03df0a7102b77d22548d",
+                        "transportId": "link-0",
+                        "residentId": "resident-0",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:d0c3fa99e863779b31824608",
+                        "transportId": "link-1",
+                        "residentId": "resident-1",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:6d575b1b150baa98ed786f10",
+                        "transportId": "link-2",
+                        "residentId": "resident-2",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v1",
+                      "dtype": "f32",
+                      "hiddenSize": 4,
+                      "precision": "f32",
+                      "components": 1,
+                      "elementStrideBytes": 4
+                    }
+                  }
+                },
+                "participantId": "peer:dc3f03df0a7102b77d22548d",
+                "index": 0,
+                "phase": "reserved",
+                "reservedAt": 1791902715163,
+                "settlingAt": null,
+                "settledAt": null,
+                "failure": null,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxPromptTokens": 32,
+                  "maxTokens": 3,
+                  "maxActivationBytes": 2048,
+                  "scope": "application-attempt-limits"
+                },
+                "partitionIndex": 0,
+                "status": "reserved"
+              },
+              {
+                "identity": {
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "conversation",
+                  "attemptId": "first",
+                  "requesterId": "requester",
+                  "placementGeneration": 0,
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "ordered-integration",
+                    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:dc3f03df0a7102b77d22548d",
+                        "transportId": "link-0",
+                        "residentId": "resident-0",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:d0c3fa99e863779b31824608",
+                        "transportId": "link-1",
+                        "residentId": "resident-1",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:6d575b1b150baa98ed786f10",
+                        "transportId": "link-2",
+                        "residentId": "resident-2",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v1",
+                      "dtype": "f32",
+                      "hiddenSize": 4,
+                      "precision": "f32",
+                      "components": 1,
+                      "elementStrideBytes": 4
+                    }
+                  }
+                },
+                "participantId": "peer:d0c3fa99e863779b31824608",
+                "index": 1,
+                "phase": "reserved",
+                "reservedAt": 1791902715170,
+                "settlingAt": null,
+                "settledAt": null,
+                "failure": null,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxPromptTokens": 32,
+                  "maxTokens": 3,
+                  "maxActivationBytes": 2048,
+                  "scope": "application-attempt-limits"
+                },
+                "partitionIndex": 1,
+                "status": "reserved"
+              },
+              {
+                "identity": {
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "conversation",
+                  "attemptId": "first",
+                  "requesterId": "requester",
+                  "placementGeneration": 0,
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "ordered-integration",
+                    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:dc3f03df0a7102b77d22548d",
+                        "transportId": "link-0",
+                        "residentId": "resident-0",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:d0c3fa99e863779b31824608",
+                        "transportId": "link-1",
+                        "residentId": "resident-1",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:6d575b1b150baa98ed786f10",
+                        "transportId": "link-2",
+                        "residentId": "resident-2",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v1",
+                      "dtype": "f32",
+                      "hiddenSize": 4,
+                      "precision": "f32",
+                      "components": 1,
+                      "elementStrideBytes": 4
+                    }
+                  }
+                },
+                "participantId": "peer:6d575b1b150baa98ed786f10",
+                "index": 2,
+                "phase": "reserved",
+                "reservedAt": 1791902715175,
+                "settlingAt": null,
+                "settledAt": null,
+                "failure": null,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxPromptTokens": 32,
+                  "maxTokens": 3,
+                  "maxActivationBytes": 2048,
+                  "scope": "application-attempt-limits"
+                },
+                "partitionIndex": 2,
+                "status": "reserved"
+              }
+            ],
+            "cleanup": [
+              {
+                "partitionIndex": 0,
+                "status": "settled",
+                "error": null
+              },
+              {
+                "partitionIndex": 1,
+                "status": "settled",
+                "error": null
+              },
+              {
+                "partitionIndex": 2,
+                "status": "settled",
+                "error": null
+              }
+            ],
+            "cleanupSettledAt": 1791902715264,
+            "failure": null
+          }
+        }
+      }
+    },
+    {
+      "attemptId": "followup",
+      "messages": [
+        {
+          "role": "user",
+          "content": "Synthetic prompt"
+        },
+        {
+          "role": "assistant",
+          "content": "345"
+        },
+        {
+          "role": "user",
+          "content": "Follow up on that output"
+        }
+      ],
+      "deltas": [
+        "3",
+        "4",
+        "5"
+      ],
+      "result": {
+        "content": "345",
+        "tokenIds": [
+          3,
+          4,
+          5
+        ],
+        "logits": null,
+        "stopReason": "eos-token",
+        "execution": {
+          "schema": "reploid.mesh.partition-execution/v3",
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "followup",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "activationBytes": 256,
+          "steps": [
+            {
+              "step": 0,
+              "tokenPosition": 0,
+              "inputTokenCount": 6,
+              "maxTokens": 3,
+              "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+              "tokenId": 3,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "metrics": {
+                    "executionMs": 0.01274999999998272,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "metrics": {
+                    "executionMs": 0.008624999999994998,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "metrics": {
+                    "executionMs": 0.012458000000037828,
+                    "logitsReadbackMs": 0.0019169999999917309,
+                    "samplingMs": 0.08800000000002228,
+                    "memory": null
+                  }
+                }
+              ]
+            },
+            {
+              "step": 1,
+              "tokenPosition": 6,
+              "inputTokenCount": 1,
+              "maxTokens": 3,
+              "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+              "tokenId": 4,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "metrics": {
+                    "executionMs": 0.006583999999975276,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "metrics": {
+                    "executionMs": 0.006458000000009179,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "metrics": {
+                    "executionMs": 0.005958000000021002,
+                    "logitsReadbackMs": 0.0018749999999840838,
+                    "samplingMs": 0.0257090000000062,
+                    "memory": null
+                  }
+                }
+              ]
+            },
+            {
+              "step": 2,
+              "tokenPosition": 7,
+              "inputTokenCount": 1,
+              "maxTokens": 3,
+              "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+              "tokenId": 5,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "metrics": {
+                    "executionMs": 0.0049159999999801585,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "metrics": {
+                    "executionMs": 0.0035419999999817264,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "metrics": {
+                    "executionMs": 0.004250000000013188,
+                    "logitsReadbackMs": 0.0025420000000053733,
+                    "samplingMs": 0.027500000000031832,
+                    "memory": null
+                  }
+                }
+              ]
+            }
+          ],
+          "settlement": {
+            "identity": {
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "conversation",
+              "attemptId": "followup",
+              "requesterId": "requester",
+              "placementGeneration": 0,
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "ordered-integration",
+                "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "peer:dc3f03df0a7102b77d22548d",
+                    "transportId": "link-0",
+                    "residentId": "resident-0",
+                    "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "peer:d0c3fa99e863779b31824608",
+                    "transportId": "link-1",
+                    "residentId": "resident-1",
+                    "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                  },
+                  {
+                    "index": 2,
+                    "participantId": "peer:6d575b1b150baa98ed786f10",
+                    "transportId": "link-2",
+                    "residentId": "resident-2",
+                    "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                  }
+                ],
+                "activation": {
+                  "schema": "doppler.activation-tensor/v1",
+                  "dtype": "f32",
+                  "hiddenSize": 4,
+                  "precision": "f32",
+                  "components": 1,
+                  "elementStrideBytes": 4
+                }
+              }
+            },
+            "phase": "completed",
+            "reservations": [
+              {
+                "identity": {
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "conversation",
+                  "attemptId": "followup",
+                  "requesterId": "requester",
+                  "placementGeneration": 0,
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "ordered-integration",
+                    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:dc3f03df0a7102b77d22548d",
+                        "transportId": "link-0",
+                        "residentId": "resident-0",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:d0c3fa99e863779b31824608",
+                        "transportId": "link-1",
+                        "residentId": "resident-1",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:6d575b1b150baa98ed786f10",
+                        "transportId": "link-2",
+                        "residentId": "resident-2",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v1",
+                      "dtype": "f32",
+                      "hiddenSize": 4,
+                      "precision": "f32",
+                      "components": 1,
+                      "elementStrideBytes": 4
+                    }
+                  }
+                },
+                "participantId": "peer:dc3f03df0a7102b77d22548d",
+                "index": 0,
+                "phase": "reserved",
+                "reservedAt": 1791902715265,
+                "settlingAt": null,
+                "settledAt": null,
+                "failure": null,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxPromptTokens": 32,
+                  "maxTokens": 3,
+                  "maxActivationBytes": 2048,
+                  "scope": "application-attempt-limits"
+                },
+                "partitionIndex": 0,
+                "status": "reserved"
+              },
+              {
+                "identity": {
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "conversation",
+                  "attemptId": "followup",
+                  "requesterId": "requester",
+                  "placementGeneration": 0,
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "ordered-integration",
+                    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:dc3f03df0a7102b77d22548d",
+                        "transportId": "link-0",
+                        "residentId": "resident-0",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:d0c3fa99e863779b31824608",
+                        "transportId": "link-1",
+                        "residentId": "resident-1",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:6d575b1b150baa98ed786f10",
+                        "transportId": "link-2",
+                        "residentId": "resident-2",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v1",
+                      "dtype": "f32",
+                      "hiddenSize": 4,
+                      "precision": "f32",
+                      "components": 1,
+                      "elementStrideBytes": 4
+                    }
+                  }
+                },
+                "participantId": "peer:d0c3fa99e863779b31824608",
+                "index": 1,
+                "phase": "reserved",
+                "reservedAt": 1791902715268,
+                "settlingAt": null,
+                "settledAt": null,
+                "failure": null,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxPromptTokens": 32,
+                  "maxTokens": 3,
+                  "maxActivationBytes": 2048,
+                  "scope": "application-attempt-limits"
+                },
+                "partitionIndex": 1,
+                "status": "reserved"
+              },
+              {
+                "identity": {
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "conversation",
+                  "attemptId": "followup",
+                  "requesterId": "requester",
+                  "placementGeneration": 0,
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "ordered-integration",
+                    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:dc3f03df0a7102b77d22548d",
+                        "transportId": "link-0",
+                        "residentId": "resident-0",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:d0c3fa99e863779b31824608",
+                        "transportId": "link-1",
+                        "residentId": "resident-1",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:6d575b1b150baa98ed786f10",
+                        "transportId": "link-2",
+                        "residentId": "resident-2",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v1",
+                      "dtype": "f32",
+                      "hiddenSize": 4,
+                      "precision": "f32",
+                      "components": 1,
+                      "elementStrideBytes": 4
+                    }
+                  }
+                },
+                "participantId": "peer:6d575b1b150baa98ed786f10",
+                "index": 2,
+                "phase": "reserved",
+                "reservedAt": 1791902715270,
+                "settlingAt": null,
+                "settledAt": null,
+                "failure": null,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxPromptTokens": 32,
+                  "maxTokens": 3,
+                  "maxActivationBytes": 2048,
+                  "scope": "application-attempt-limits"
+                },
+                "partitionIndex": 2,
+                "status": "reserved"
+              }
+            ],
+            "cleanup": [
+              {
+                "partitionIndex": 0,
+                "status": "settled",
+                "error": null
+              },
+              {
+                "partitionIndex": 1,
+                "status": "settled",
+                "error": null
+              },
+              {
+                "partitionIndex": 2,
+                "status": "settled",
+                "error": null
+              }
+            ],
+            "cleanupSettledAt": 1791902715347,
+            "failure": null
+          }
+        }
+      }
+    },
+    {
+      "cancellation": "Partition request cancelled or timed out",
+      "survivor": {
+        "content": "345",
+        "tokenIds": [
+          3,
+          4,
+          5
+        ],
+        "logits": null,
+        "stopReason": "eos-token",
+        "execution": {
+          "schema": "reploid.mesh.partition-execution/v3",
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "other-thread",
+            "attemptId": "survive",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "activationBytes": 128,
+          "steps": [
+            {
+              "step": 0,
+              "tokenPosition": 0,
+              "inputTokenCount": 2,
+              "maxTokens": 3,
+              "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+              "tokenId": 3,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "metrics": {
+                    "executionMs": 0.0031249999999545253,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "metrics": {
+                    "executionMs": 0.0044170000000463006,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "metrics": {
+                    "executionMs": 0.003959000000008928,
+                    "logitsReadbackMs": 0.0027079999999841675,
+                    "samplingMs": 0.03300000000001546,
+                    "memory": null
+                  }
+                }
+              ]
+            },
+            {
+              "step": 1,
+              "tokenPosition": 2,
+              "inputTokenCount": 1,
+              "maxTokens": 3,
+              "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+              "tokenId": 4,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "metrics": {
+                    "executionMs": 0.003916000000003805,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "metrics": {
+                    "executionMs": 0.0037499999999681677,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "metrics": {
+                    "executionMs": 0.004750000000001364,
+                    "logitsReadbackMs": 0.003084000000001197,
+                    "samplingMs": 0.02741699999995717,
+                    "memory": null
+                  }
+                }
+              ]
+            },
+            {
+              "step": 2,
+              "tokenPosition": 3,
+              "inputTokenCount": 1,
+              "maxTokens": 3,
+              "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+              "tokenId": 5,
+              "stages": [
+                {
+                  "partitionIndex": 0,
+                  "metrics": {
+                    "executionMs": 0.0025840000000130203,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 1,
+                  "metrics": {
+                    "executionMs": 0.002916999999968084,
+                    "logitsReadbackMs": 0,
+                    "samplingMs": 0,
+                    "memory": null
+                  }
+                },
+                {
+                  "partitionIndex": 2,
+                  "metrics": {
+                    "executionMs": 0.003917000000001281,
+                    "logitsReadbackMs": 0.004750000000001364,
+                    "samplingMs": 0.16966600000000653,
+                    "memory": null
+                  }
+                }
+              ]
+            }
+          ],
+          "settlement": {
+            "identity": {
+              "schema": "reploid.partition-attempt/v2",
+              "threadId": "other-thread",
+              "attemptId": "survive",
+              "requesterId": "requester",
+              "placementGeneration": 0,
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "ordered-integration",
+                "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "peer:dc3f03df0a7102b77d22548d",
+                    "transportId": "link-0",
+                    "residentId": "resident-0",
+                    "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "peer:d0c3fa99e863779b31824608",
+                    "transportId": "link-1",
+                    "residentId": "resident-1",
+                    "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                  },
+                  {
+                    "index": 2,
+                    "participantId": "peer:6d575b1b150baa98ed786f10",
+                    "transportId": "link-2",
+                    "residentId": "resident-2",
+                    "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                  }
+                ],
+                "activation": {
+                  "schema": "doppler.activation-tensor/v1",
+                  "dtype": "f32",
+                  "hiddenSize": 4,
+                  "precision": "f32",
+                  "components": 1,
+                  "elementStrideBytes": 4
+                }
+              }
+            },
+            "phase": "completed",
+            "reservations": [
+              {
+                "identity": {
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "other-thread",
+                  "attemptId": "survive",
+                  "requesterId": "requester",
+                  "placementGeneration": 0,
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "ordered-integration",
+                    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:dc3f03df0a7102b77d22548d",
+                        "transportId": "link-0",
+                        "residentId": "resident-0",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:d0c3fa99e863779b31824608",
+                        "transportId": "link-1",
+                        "residentId": "resident-1",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:6d575b1b150baa98ed786f10",
+                        "transportId": "link-2",
+                        "residentId": "resident-2",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v1",
+                      "dtype": "f32",
+                      "hiddenSize": 4,
+                      "precision": "f32",
+                      "components": 1,
+                      "elementStrideBytes": 4
+                    }
+                  }
+                },
+                "participantId": "peer:dc3f03df0a7102b77d22548d",
+                "index": 0,
+                "phase": "reserved",
+                "reservedAt": 1791902715367,
+                "settlingAt": null,
+                "settledAt": null,
+                "failure": null,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxPromptTokens": 32,
+                  "maxTokens": 3,
+                  "maxActivationBytes": 2048,
+                  "scope": "application-attempt-limits"
+                },
+                "partitionIndex": 0,
+                "status": "reserved"
+              },
+              {
+                "identity": {
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "other-thread",
+                  "attemptId": "survive",
+                  "requesterId": "requester",
+                  "placementGeneration": 0,
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "ordered-integration",
+                    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:dc3f03df0a7102b77d22548d",
+                        "transportId": "link-0",
+                        "residentId": "resident-0",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:d0c3fa99e863779b31824608",
+                        "transportId": "link-1",
+                        "residentId": "resident-1",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:6d575b1b150baa98ed786f10",
+                        "transportId": "link-2",
+                        "residentId": "resident-2",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v1",
+                      "dtype": "f32",
+                      "hiddenSize": 4,
+                      "precision": "f32",
+                      "components": 1,
+                      "elementStrideBytes": 4
+                    }
+                  }
+                },
+                "participantId": "peer:d0c3fa99e863779b31824608",
+                "index": 1,
+                "phase": "reserved",
+                "reservedAt": 1791902715368,
+                "settlingAt": null,
+                "settledAt": null,
+                "failure": null,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxPromptTokens": 32,
+                  "maxTokens": 3,
+                  "maxActivationBytes": 2048,
+                  "scope": "application-attempt-limits"
+                },
+                "partitionIndex": 1,
+                "status": "reserved"
+              },
+              {
+                "identity": {
+                  "schema": "reploid.partition-attempt/v2",
+                  "threadId": "other-thread",
+                  "attemptId": "survive",
+                  "requesterId": "requester",
+                  "placementGeneration": 0,
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "ordered-integration",
+                    "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:dc3f03df0a7102b77d22548d",
+                        "transportId": "link-0",
+                        "residentId": "resident-0",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:d0c3fa99e863779b31824608",
+                        "transportId": "link-1",
+                        "residentId": "resident-1",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:6d575b1b150baa98ed786f10",
+                        "transportId": "link-2",
+                        "residentId": "resident-2",
+                        "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v1",
+                      "dtype": "f32",
+                      "hiddenSize": 4,
+                      "precision": "f32",
+                      "components": 1,
+                      "elementStrideBytes": 4
+                    }
+                  }
+                },
+                "participantId": "peer:6d575b1b150baa98ed786f10",
+                "index": 2,
+                "phase": "reserved",
+                "reservedAt": 1791902715369,
+                "settlingAt": null,
+                "settledAt": null,
+                "failure": null,
+                "resources": {
+                  "attemptSlots": 1,
+                  "maxPromptTokens": 32,
+                  "maxTokens": 3,
+                  "maxActivationBytes": 2048,
+                  "scope": "application-attempt-limits"
+                },
+                "partitionIndex": 2,
+                "status": "reserved"
+              }
+            ],
+            "cleanup": [
+              {
+                "partitionIndex": 0,
+                "status": "settled",
+                "error": null
+              },
+              {
+                "partitionIndex": 1,
+                "status": "settled",
+                "error": null
+              },
+              {
+                "partitionIndex": 2,
+                "status": "settled",
+                "error": null
+              }
+            ],
+            "cleanupSettledAt": 1791902715444,
+            "failure": null
+          }
+        }
+      }
+    }
+  ],
+  "grants": [
+    {
+      "claim": {
+        "schema": "reploid.partition-grant/v4",
+        "id": "f803e5d7-4dcb-4f27-b4d5-b1cd04a5617a",
+        "meshId": "cpu-ordered-integration",
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "conversation",
+          "attemptId": "tampered",
+          "requesterId": "requester",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "ordered-integration",
+            "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:dc3f03df0a7102b77d22548d",
+                "transportId": "link-0",
+                "residentId": "resident-0",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:d0c3fa99e863779b31824608",
+                "transportId": "link-1",
+                "residentId": "resident-1",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:6d575b1b150baa98ed786f10",
+                "transportId": "link-2",
+                "residentId": "resident-2",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v1",
+              "dtype": "f32",
+              "hiddenSize": 4,
+              "precision": "f32",
+              "components": 1,
+              "elementStrideBytes": 4
+            }
+          }
+        },
+        "coordinatorId": "peer:dc3f03df0a7102b77d22548d",
+        "disclosure": {
+          "kind": "coordinator-mediated-activations-and-tokens",
+          "activationPaths": [
+            [
+              "peer:dc3f03df0a7102b77d22548d",
+              "peer:d0c3fa99e863779b31824608"
+            ],
+            [
+              "peer:d0c3fa99e863779b31824608",
+              "peer:dc3f03df0a7102b77d22548d",
+              "peer:6d575b1b150baa98ed786f10"
+            ]
+          ],
+          "tokenRecipients": [
+            "peer:dc3f03df0a7102b77d22548d",
+            "peer:d0c3fa99e863779b31824608",
+            "peer:6d575b1b150baa98ed786f10"
+          ],
+          "outputRecipients": [
+            "peer:6d575b1b150baa98ed786f10",
+            "peer:dc3f03df0a7102b77d22548d",
+            "requester"
+          ]
+        },
+        "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+        "issuedAt": 1791902715160,
+        "expiresAt": 1791902775160,
+        "limits": {
+          "maxTokens": 3,
+          "maxPromptTokens": 32,
+          "maxActivationBytes": 2048,
+          "maxOutputCharacters": 128
+        }
+      },
+      "publicJwk": {
+        "key_ops": [
+          "verify"
+        ],
+        "ext": true,
+        "kty": "EC",
+        "x": "Hd9ZKpVxfGEmjn62H6j6gDaMO2lfIBCqWbPMxWg2WO0",
+        "y": "h4Hx1T5kLFn9AEiZ-SZjVzbp8EA_erLSsd0YhJ8iVP8",
+        "crv": "P-256"
+      },
+      "signature": "vQoWNeXwetUy_OUnLMaYzW8CR0nPKCLgswBsNkzDKoKDJQWFmsDlD-QOJZSiGuUUohB3wdaA5RORcold8IexOw"
+    },
+    {
+      "claim": {
+        "schema": "reploid.partition-grant/v4",
+        "id": "aba2dd90-d0cb-4a1a-b668-9df6157db34f",
+        "meshId": "cpu-ordered-integration",
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "conversation",
+          "attemptId": "first",
+          "requesterId": "requester",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "ordered-integration",
+            "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:dc3f03df0a7102b77d22548d",
+                "transportId": "link-0",
+                "residentId": "resident-0",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:d0c3fa99e863779b31824608",
+                "transportId": "link-1",
+                "residentId": "resident-1",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:6d575b1b150baa98ed786f10",
+                "transportId": "link-2",
+                "residentId": "resident-2",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v1",
+              "dtype": "f32",
+              "hiddenSize": 4,
+              "precision": "f32",
+              "components": 1,
+              "elementStrideBytes": 4
+            }
+          }
+        },
+        "coordinatorId": "peer:dc3f03df0a7102b77d22548d",
+        "disclosure": {
+          "kind": "coordinator-mediated-activations-and-tokens",
+          "activationPaths": [
+            [
+              "peer:dc3f03df0a7102b77d22548d",
+              "peer:d0c3fa99e863779b31824608"
+            ],
+            [
+              "peer:d0c3fa99e863779b31824608",
+              "peer:dc3f03df0a7102b77d22548d",
+              "peer:6d575b1b150baa98ed786f10"
+            ]
+          ],
+          "tokenRecipients": [
+            "peer:dc3f03df0a7102b77d22548d",
+            "peer:d0c3fa99e863779b31824608",
+            "peer:6d575b1b150baa98ed786f10"
+          ],
+          "outputRecipients": [
+            "peer:6d575b1b150baa98ed786f10",
+            "peer:dc3f03df0a7102b77d22548d",
+            "requester"
+          ]
+        },
+        "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+        "issuedAt": 1791902715163,
+        "expiresAt": 1791902775163,
+        "limits": {
+          "maxTokens": 3,
+          "maxPromptTokens": 32,
+          "maxActivationBytes": 2048,
+          "maxOutputCharacters": 128
+        }
+      },
+      "publicJwk": {
+        "key_ops": [
+          "verify"
+        ],
+        "ext": true,
+        "kty": "EC",
+        "x": "Hd9ZKpVxfGEmjn62H6j6gDaMO2lfIBCqWbPMxWg2WO0",
+        "y": "h4Hx1T5kLFn9AEiZ-SZjVzbp8EA_erLSsd0YhJ8iVP8",
+        "crv": "P-256"
+      },
+      "signature": "LsG_k2XKxwl1MVMAuck7am8JtsxoLPPs_wArFacBblDpV4dkWAAUosELEXn4Rnj22H0D2qOPLCHjFPqFoUiCdw"
+    },
+    {
+      "claim": {
+        "schema": "reploid.partition-grant/v4",
+        "id": "5f8e32a8-853b-4fe7-8c56-ca341f627e69",
+        "meshId": "cpu-ordered-integration",
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "conversation",
+          "attemptId": "followup",
+          "requesterId": "requester",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "ordered-integration",
+            "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:dc3f03df0a7102b77d22548d",
+                "transportId": "link-0",
+                "residentId": "resident-0",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:d0c3fa99e863779b31824608",
+                "transportId": "link-1",
+                "residentId": "resident-1",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:6d575b1b150baa98ed786f10",
+                "transportId": "link-2",
+                "residentId": "resident-2",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v1",
+              "dtype": "f32",
+              "hiddenSize": 4,
+              "precision": "f32",
+              "components": 1,
+              "elementStrideBytes": 4
+            }
+          }
+        },
+        "coordinatorId": "peer:dc3f03df0a7102b77d22548d",
+        "disclosure": {
+          "kind": "coordinator-mediated-activations-and-tokens",
+          "activationPaths": [
+            [
+              "peer:dc3f03df0a7102b77d22548d",
+              "peer:d0c3fa99e863779b31824608"
+            ],
+            [
+              "peer:d0c3fa99e863779b31824608",
+              "peer:dc3f03df0a7102b77d22548d",
+              "peer:6d575b1b150baa98ed786f10"
+            ]
+          ],
+          "tokenRecipients": [
+            "peer:dc3f03df0a7102b77d22548d",
+            "peer:d0c3fa99e863779b31824608",
+            "peer:6d575b1b150baa98ed786f10"
+          ],
+          "outputRecipients": [
+            "peer:6d575b1b150baa98ed786f10",
+            "peer:dc3f03df0a7102b77d22548d",
+            "requester"
+          ]
+        },
+        "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+        "issuedAt": 1791902715264,
+        "expiresAt": 1791902775264,
+        "limits": {
+          "maxTokens": 3,
+          "maxPromptTokens": 32,
+          "maxActivationBytes": 2048,
+          "maxOutputCharacters": 128
+        }
+      },
+      "publicJwk": {
+        "key_ops": [
+          "verify"
+        ],
+        "ext": true,
+        "kty": "EC",
+        "x": "Hd9ZKpVxfGEmjn62H6j6gDaMO2lfIBCqWbPMxWg2WO0",
+        "y": "h4Hx1T5kLFn9AEiZ-SZjVzbp8EA_erLSsd0YhJ8iVP8",
+        "crv": "P-256"
+      },
+      "signature": "qlyUL_kYfNv3fdv-q5OYFcoBHXuJri6kQPzuNGDiqnDm-7ZDt6VfW1P1AHJPIkwT44bKW4oeCo4HPkYnKbg4aw"
+    },
+    {
+      "claim": {
+        "schema": "reploid.partition-grant/v4",
+        "id": "8952ccae-8ca6-4da5-9037-015c78198013",
+        "meshId": "cpu-ordered-integration",
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "cancel-thread",
+          "attemptId": "cancel",
+          "requesterId": "requester",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "ordered-integration",
+            "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:dc3f03df0a7102b77d22548d",
+                "transportId": "link-0",
+                "residentId": "resident-0",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:d0c3fa99e863779b31824608",
+                "transportId": "link-1",
+                "residentId": "resident-1",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:6d575b1b150baa98ed786f10",
+                "transportId": "link-2",
+                "residentId": "resident-2",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v1",
+              "dtype": "f32",
+              "hiddenSize": 4,
+              "precision": "f32",
+              "components": 1,
+              "elementStrideBytes": 4
+            }
+          }
+        },
+        "coordinatorId": "peer:dc3f03df0a7102b77d22548d",
+        "disclosure": {
+          "kind": "coordinator-mediated-activations-and-tokens",
+          "activationPaths": [
+            [
+              "peer:dc3f03df0a7102b77d22548d",
+              "peer:d0c3fa99e863779b31824608"
+            ],
+            [
+              "peer:d0c3fa99e863779b31824608",
+              "peer:dc3f03df0a7102b77d22548d",
+              "peer:6d575b1b150baa98ed786f10"
+            ]
+          ],
+          "tokenRecipients": [
+            "peer:dc3f03df0a7102b77d22548d",
+            "peer:d0c3fa99e863779b31824608",
+            "peer:6d575b1b150baa98ed786f10"
+          ],
+          "outputRecipients": [
+            "peer:6d575b1b150baa98ed786f10",
+            "peer:dc3f03df0a7102b77d22548d",
+            "requester"
+          ]
+        },
+        "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+        "issuedAt": 1791902715347,
+        "expiresAt": 1791902775347,
+        "limits": {
+          "maxTokens": 3,
+          "maxPromptTokens": 32,
+          "maxActivationBytes": 2048,
+          "maxOutputCharacters": 128
+        }
+      },
+      "publicJwk": {
+        "key_ops": [
+          "verify"
+        ],
+        "ext": true,
+        "kty": "EC",
+        "x": "Hd9ZKpVxfGEmjn62H6j6gDaMO2lfIBCqWbPMxWg2WO0",
+        "y": "h4Hx1T5kLFn9AEiZ-SZjVzbp8EA_erLSsd0YhJ8iVP8",
+        "crv": "P-256"
+      },
+      "signature": "70zbyzjovyzt2I3_NK6pwofN28vtNpPfQ-ZQewMVTjk9U2e5BONBb-8oxBI1ooNdQRzWFlUOif58b6RH0lwQ5Q"
+    },
+    {
+      "claim": {
+        "schema": "reploid.partition-grant/v4",
+        "id": "4af43fd1-b1b1-4b2c-8465-da9baa7e535a",
+        "meshId": "cpu-ordered-integration",
+        "identity": {
+          "schema": "reploid.partition-attempt/v2",
+          "threadId": "other-thread",
+          "attemptId": "survive",
+          "requesterId": "requester",
+          "placementGeneration": 0,
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "ordered-integration",
+            "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:dc3f03df0a7102b77d22548d",
+                "transportId": "link-0",
+                "residentId": "resident-0",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:d0c3fa99e863779b31824608",
+                "transportId": "link-1",
+                "residentId": "resident-1",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:6d575b1b150baa98ed786f10",
+                "transportId": "link-2",
+                "residentId": "resident-2",
+                "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v1",
+              "dtype": "f32",
+              "hiddenSize": 4,
+              "precision": "f32",
+              "components": 1,
+              "elementStrideBytes": 4
+            }
+          }
+        },
+        "coordinatorId": "peer:dc3f03df0a7102b77d22548d",
+        "disclosure": {
+          "kind": "coordinator-mediated-activations-and-tokens",
+          "activationPaths": [
+            [
+              "peer:dc3f03df0a7102b77d22548d",
+              "peer:d0c3fa99e863779b31824608"
+            ],
+            [
+              "peer:d0c3fa99e863779b31824608",
+              "peer:dc3f03df0a7102b77d22548d",
+              "peer:6d575b1b150baa98ed786f10"
+            ]
+          ],
+          "tokenRecipients": [
+            "peer:dc3f03df0a7102b77d22548d",
+            "peer:d0c3fa99e863779b31824608",
+            "peer:6d575b1b150baa98ed786f10"
+          ],
+          "outputRecipients": [
+            "peer:6d575b1b150baa98ed786f10",
+            "peer:dc3f03df0a7102b77d22548d",
+            "requester"
+          ]
+        },
+        "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+        "issuedAt": 1791902715361,
+        "expiresAt": 1791902775361,
+        "limits": {
+          "maxTokens": 3,
+          "maxPromptTokens": 32,
+          "maxActivationBytes": 2048,
+          "maxOutputCharacters": 128
+        }
+      },
+      "publicJwk": {
+        "key_ops": [
+          "verify"
+        ],
+        "ext": true,
+        "kty": "EC",
+        "x": "Hd9ZKpVxfGEmjn62H6j6gDaMO2lfIBCqWbPMxWg2WO0",
+        "y": "h4Hx1T5kLFn9AEiZ-SZjVzbp8EA_erLSsd0YhJ8iVP8",
+        "crv": "P-256"
+      },
+      "signature": "V57DZx0gYVkj0LK9O7w369p6ajxOoycrn9zYQAZDR3iuUx1CORBKPePCBkMpvsiVfPo71liAvxX6tYTLGVZVdQ"
+    }
+  ],
+  "sources": {
+    "src/inference/pipelines/text/resident-partition.js": "dcba8f0d54dd14212ae26f26be002bcad9e41197fe37141925b176375af076fa",
+    "src/inference/pipelines/text/resident-partition-contract.js": "f4f78dc1a6547ffb110cac9b7de7f7f25035230cc57b75087cb3dfd24f2d3195",
+    "src/inference/pipelines/text/layer-partition-contract.js": "b587921a4f67cafaa7782100a287ac10fade818f50179c3d479d22c072144600",
+    "src/partitions.js": "23bbe04dfe5df9dff0e6d026c8601e81063b7de4ce7ac01535d8ce4644486dc4",
+    "src/inference/generation-step.js": "8c32a8f9c290a8973db65c03792b2e16f91afb3f6c3cf8accec2404b34cae1f4",
+    "src/inference/token-sampling.js": "91b365fa423b0fc0f158fac64267d9696d89bcd5a3432bcf778e2cbfa5bfb291",
+    "src/config/generation-contract.js": "1c21c5ac2b854c30eede19ec1caa3ef29607d91e90f1076fbc56633e3e082a59",
+    "src/inference/tokenizers/bundled/incremental-decoder.js": "119dc3bfe7478ddf5a6dd180b48800863cb8b53302c41d84d1b69a318c6788b4"
+  },
+  "tokenizations": [
+    [
+      {
+        "role": "user",
+        "content": "Synthetic prompt"
+      }
+    ],
+    [
+      {
+        "role": "user",
+        "content": "Synthetic prompt"
+      },
+      {
+        "role": "assistant",
+        "content": "345"
+      },
+      {
+        "role": "user",
+        "content": "Follow up on that output"
+      }
+    ]
+  ],
+  "states": [
+    {
+      "index": 0,
+      "currentSeqLen": 4,
+      "decodeStepCount": 3
+    },
+    {
+      "index": 1,
+      "currentSeqLen": 4,
+      "decodeStepCount": 3
+    },
+    {
+      "index": 2,
+      "currentSeqLen": 4,
+      "decodeStepCount": 3
+    },
+    {
+      "index": 0,
+      "currentSeqLen": 8,
+      "decodeStepCount": 3
+    },
+    {
+      "index": 1,
+      "currentSeqLen": 8,
+      "decodeStepCount": 3
+    },
+    {
+      "index": 2,
+      "currentSeqLen": 8,
+      "decodeStepCount": 3
+    },
+    {
+      "index": 0,
+      "currentSeqLen": 2,
+      "decodeStepCount": 1
+    },
+    {
+      "index": 1,
+      "currentSeqLen": 2,
+      "decodeStepCount": 1
+    },
+    {
+      "index": 0,
+      "currentSeqLen": 4,
+      "decodeStepCount": 3
+    },
+    {
+      "index": 1,
+      "currentSeqLen": 4,
+      "decodeStepCount": 3
+    },
+    {
+      "index": 2,
+      "currentSeqLen": 4,
+      "decodeStepCount": 3
+    }
+  ],
+  "reploidSources": {
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js": "e027f10e7834ff364f016ca27dbdda81e9d9e6e682ac7aed6ec15c258ac0f27a",
+    "packages/reploid/src/mesh/partitions/partition-contract.js": "d16c9bb548b284692d905f6620e9aeb637e980ba9395ba26dea52e3d2a0e1f2e",
+    "packages/reploid/src/mesh/partitions/partition-runner.js": "9fcd2fd43bba564e22627577ad90d850e021a9cf9da05ee46ea5693be8c702de",
+    "packages/reploid/src/mesh/partitions/resident-partition.js": "7a4c9f4619efab076125732d3b6d76bd849ee365ebda68361940bda341095647",
+    "packages/reploid/src/mesh/partitions/resident-route.js": "6c3fc83f974b6e7cec5a46e1d01b50bcab4d076446d971b6eaa7c58c9522fe42",
+    "packages/reploid/src/mesh/partitions/partition-grants.js": "fac89ffe1466bc700bc9cad3661348894065792dfcf40e803bf692b8834137d1",
+    "packages/reploid/src/mesh/partitions/partition-peer.js": "bfbcd688c178bcfcfec4c1c94a1fe1a8b4e232e3885b14773699638ef6eacb0e",
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.js": "406b15d7214c83183a4434a2cc03b2c81134bdc7b41e9f3f27a1a86ae95c4d17",
+    "packages/reploid/src/mesh/partitions/partition-step-receiver.js": "2d903153b08b49c3bc88eccb3af2e5d4eaefe957c4c7cc43e32e2ef7bfcc0cce",
+    "packages/reploid/src/transport/partition-data-channel.js": "81f1a68711acae446d8e42c4f13728103b6003849892c8abba8279d1fa392fa5"
+  },
+  "toolSha256": "a746c508faf5122667ce4ff5aae70e5bbea3e7997284c6fb8e451f1cb40fee26",
+  "plan": {
+    "schema": "doppler.layer-partition-contract/v3",
+    "modelId": "ordered-integration",
+    "totalLayers": 9,
+    "hiddenSize": 4,
+    "vocabSize": 16,
+    "stageCount": 3,
+    "splitLayers": [
+      2,
+      6
+    ],
+    "activationDtype": "f32",
+    "activationPrecision": "f32",
+    "activationComponents": 1,
+    "activationElementStrideBytes": 4,
+    "partitions": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          1
+        ],
+        "layerCount": 2,
+        "hasEmbedding": true,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "token-ids",
+          "rank": 2,
+          "shapeDescription": "[batchSize, seqLen]",
+          "dtype": "i32"
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 4,
+          "dtype": "f32",
+          "precision": "f32",
+          "components": 1,
+          "elementStrideBytes": 4
+        }
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          2,
+          5
+        ],
+        "layerCount": 4,
+        "hasEmbedding": false,
+        "hasLmHead": false,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 4,
+          "dtype": "f32",
+          "precision": "f32",
+          "components": 1,
+          "elementStrideBytes": 4
+        },
+        "outputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 4,
+          "dtype": "f32",
+          "precision": "f32",
+          "components": 1,
+          "elementStrideBytes": 4
+        }
+      },
+      {
+        "index": 2,
+        "layerRange": [
+          6,
+          8
+        ],
+        "layerCount": 3,
+        "hasEmbedding": false,
+        "hasLmHead": true,
+        "inputContract": {
+          "type": "activation-tensor",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+          "hiddenSize": 4,
+          "dtype": "f32",
+          "precision": "f32",
+          "components": 1,
+          "elementStrideBytes": 4
+        },
+        "outputContract": {
+          "type": "logits",
+          "rank": 3,
+          "shapeDescription": "[batchSize, seqLen, vocabSize]",
+          "vocabSize": 16,
+          "dtype": "f32"
+        }
+      }
+    ]
+  },
+  "generation": {
+    "maxTokens": 3,
+    "maxSeqLen": 64,
+    "temperature": 0,
+    "topP": 1,
+    "topK": 1,
+    "repetitionPenalty": 1,
+    "repetitionPenaltyWindow": 0,
+    "presencePenalty": 0,
+    "useChatTemplate": false,
+    "suppressTokenIds": [],
+    "stopSequences": []
+  },
+  "expectedGenerationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102",
+  "peerStates": [
+    {
+      "client": {
+        "ready": true,
+        "participantId": "peer:d0c3fa99e863779b31824608",
+        "descriptor": {
+          "schema": "doppler.resident-partition/v2",
+          "ready": true,
+          "stageCount": 3,
+          "modelId": "ordered-integration",
+          "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+          "index": 1,
+          "layerRange": [
+            2,
+            5
+          ],
+          "residentWeightBytes": 64,
+          "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102"
+        },
+        "receipt": {
+          "schema": "reploid.partition-channel/v1",
+          "sentFrameBytes": 160162,
+          "receivedFrameBytes": 136331,
+          "sentFrames": 49,
+          "receivedFrames": 56,
+          "completedRequests": 18,
+          "cancelledRequests": 1,
+          "discardedFrames": 0,
+          "pendingRequests": 0,
+          "inboundRequests": 0,
+          "reservedBytes": 0,
+          "closed": false,
+          "wireBytes": null,
+          "relayBytes": null,
+          "lastFailure": null
+        },
+        "retainedOutputBytes": 0,
+        "unsettled": 0
+      },
+      "server": {
+        "ready": false,
+        "participantId": "peer:dc3f03df0a7102b77d22548d",
+        "descriptor": null,
+        "receipt": {
+          "schema": "reploid.partition-channel/v1",
+          "sentFrameBytes": 136331,
+          "receivedFrameBytes": 160162,
+          "sentFrames": 56,
+          "receivedFrames": 49,
+          "completedRequests": 9,
+          "cancelledRequests": 0,
+          "discardedFrames": 0,
+          "pendingRequests": 0,
+          "inboundRequests": 0,
+          "reservedBytes": 0,
+          "closed": false,
+          "wireBytes": null,
+          "relayBytes": null,
+          "lastFailure": {
+            "requestId": 13,
+            "phase": "execution",
+            "code": "EXECUTION_FAILED",
+            "message": "Partition request cancelled or timed out",
+            "failedAt": 1791902715363,
+            "settledAt": 1791902715363
+          }
+        },
+        "retainedOutputBytes": 0,
+        "unsettled": 0
+      }
+    },
+    {
+      "client": {
+        "ready": true,
+        "participantId": "peer:6d575b1b150baa98ed786f10",
+        "descriptor": {
+          "schema": "doppler.resident-partition/v2",
+          "ready": true,
+          "stageCount": 3,
+          "modelId": "ordered-integration",
+          "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+          "index": 2,
+          "layerRange": [
+            6,
+            8
+          ],
+          "residentWeightBytes": 64,
+          "generationDigest": "sha256:facdd6f89d9be33ec1c7debf12608e7c412af3dde86f97b96b54b841b2bdc102"
+        },
+        "receipt": {
+          "schema": "reploid.partition-channel/v1",
+          "sentFrameBytes": 145416,
+          "receivedFrameBytes": 22325,
+          "sentFrames": 28,
+          "receivedFrames": 36,
+          "completedRequests": 18,
+          "cancelledRequests": 0,
+          "discardedFrames": 0,
+          "pendingRequests": 0,
+          "inboundRequests": 0,
+          "reservedBytes": 0,
+          "closed": false,
+          "wireBytes": null,
+          "relayBytes": null,
+          "lastFailure": null
+        },
+        "retainedOutputBytes": 0,
+        "unsettled": 0
+      },
+      "server": {
+        "ready": false,
+        "participantId": "peer:dc3f03df0a7102b77d22548d",
+        "descriptor": null,
+        "receipt": {
+          "schema": "reploid.partition-channel/v1",
+          "sentFrameBytes": 22325,
+          "receivedFrameBytes": 145416,
+          "sentFrames": 36,
+          "receivedFrames": 28,
+          "completedRequests": 0,
+          "cancelledRequests": 0,
+          "discardedFrames": 0,
+          "pendingRequests": 0,
+          "inboundRequests": 0,
+          "reservedBytes": 0,
+          "closed": false,
+          "wireBytes": null,
+          "relayBytes": null,
+          "lastFailure": null
+        },
+        "retainedOutputBytes": 0,
+        "unsettled": 0
+      }
+    }
+  ],
+  "passed": true,
+  "cleanup": [
+    {
+      "status": "fulfilled",
+      "error": null
+    },
+    {
+      "status": "fulfilled",
+      "error": null
+    },
+    {
+      "status": "fulfilled",
+      "error": null
+    },
+    {
+      "status": "fulfilled",
+      "error": null
+    },
+    {
+      "status": "fulfilled",
+      "error": null
+    },
+    {
+      "status": "fulfilled",
+      "error": null
+    },
+    {
+      "status": "fulfilled",
+      "error": null
+    },
+    {
+      "status": "fulfilled",
+      "error": null
+    }
+  ],
+  "dispatched": 29,
+  "privateStatesCreated": 11,
+  "privateStatesClosed": 11,
+  "reservations": [
+    {
+      "closed": true,
+      "active": 0,
+      "availableSlots": 0,
+      "records": [
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "first",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:dc3f03df0a7102b77d22548d",
+          "index": 0,
+          "phase": "settled",
+          "reservedAt": 1791902715163,
+          "settlingAt": 1791902715261,
+          "settledAt": 1791902715261,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        },
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "followup",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:dc3f03df0a7102b77d22548d",
+          "index": 0,
+          "phase": "settled",
+          "reservedAt": 1791902715265,
+          "settlingAt": 1791902715344,
+          "settledAt": 1791902715345,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        },
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "cancel-thread",
+            "attemptId": "cancel",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:dc3f03df0a7102b77d22548d",
+          "index": 0,
+          "phase": "settled",
+          "reservedAt": 1791902715349,
+          "settlingAt": 1791902715362,
+          "settledAt": 1791902715362,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        },
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "other-thread",
+            "attemptId": "survive",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:dc3f03df0a7102b77d22548d",
+          "index": 0,
+          "phase": "settled",
+          "reservedAt": 1791902715367,
+          "settlingAt": 1791902715441,
+          "settledAt": 1791902715441,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        }
+      ]
+    },
+    {
+      "closed": true,
+      "active": 0,
+      "availableSlots": 0,
+      "records": [
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "first",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:d0c3fa99e863779b31824608",
+          "index": 1,
+          "phase": "settled",
+          "reservedAt": 1791902715170,
+          "settlingAt": 1791902715263,
+          "settledAt": 1791902715263,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        },
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "followup",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:d0c3fa99e863779b31824608",
+          "index": 1,
+          "phase": "settled",
+          "reservedAt": 1791902715268,
+          "settlingAt": 1791902715346,
+          "settledAt": 1791902715346,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        },
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "cancel-thread",
+            "attemptId": "cancel",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:d0c3fa99e863779b31824608",
+          "index": 1,
+          "phase": "failed",
+          "reservedAt": 1791902715350,
+          "settlingAt": 1791902715364,
+          "settledAt": 1791902715364,
+          "failure": "Partition request cancelled or timed out",
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        },
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "other-thread",
+            "attemptId": "survive",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:d0c3fa99e863779b31824608",
+          "index": 1,
+          "phase": "settled",
+          "reservedAt": 1791902715368,
+          "settlingAt": 1791902715443,
+          "settledAt": 1791902715443,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        }
+      ]
+    },
+    {
+      "closed": true,
+      "active": 0,
+      "availableSlots": 0,
+      "records": [
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "first",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:6d575b1b150baa98ed786f10",
+          "index": 2,
+          "phase": "settled",
+          "reservedAt": 1791902715175,
+          "settlingAt": 1791902715263,
+          "settledAt": 1791902715263,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        },
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "conversation",
+            "attemptId": "followup",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:6d575b1b150baa98ed786f10",
+          "index": 2,
+          "phase": "settled",
+          "reservedAt": 1791902715270,
+          "settlingAt": 1791902715346,
+          "settledAt": 1791902715346,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        },
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "cancel-thread",
+            "attemptId": "cancel",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:6d575b1b150baa98ed786f10",
+          "index": 2,
+          "phase": "settled",
+          "reservedAt": 1791902715352,
+          "settlingAt": 1791902715364,
+          "settledAt": 1791902715365,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        },
+        {
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "threadId": "other-thread",
+            "attemptId": "survive",
+            "requesterId": "requester",
+            "placementGeneration": 0,
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "ordered-integration",
+              "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+              "planId": "sha256:4254f0351d85fda2f68a9285cad9c96d57cc810e39fea1053553cd0e8604c41b",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:dc3f03df0a7102b77d22548d",
+                  "transportId": "link-0",
+                  "residentId": "resident-0",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:d0c3fa99e863779b31824608",
+                  "transportId": "link-1",
+                  "residentId": "resident-1",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:6d575b1b150baa98ed786f10",
+                  "transportId": "link-2",
+                  "residentId": "resident-2",
+                  "executionId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v1",
+                "dtype": "f32",
+                "hiddenSize": 4,
+                "precision": "f32",
+                "components": 1,
+                "elementStrideBytes": 4
+              }
+            }
+          },
+          "participantId": "peer:6d575b1b150baa98ed786f10",
+          "index": 2,
+          "phase": "settled",
+          "reservedAt": 1791902715369,
+          "settlingAt": 1791902715443,
+          "settledAt": 1791902715443,
+          "failure": null,
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 32,
+            "maxTokens": 3,
+            "maxActivationBytes": 2048,
+            "scope": "application-attempt-limits"
+          }
+        }
+      ]
+    }
+  ],
+  "sourcesUnchanged": true,
+  "finishedAt": "2026-10-13T14:45:15.447Z"
+}
