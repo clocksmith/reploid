@@ -1,0 +1,57 @@
+{
+  "schema": "reploid.syntax-tokenizer-control/v1",
+  "modelExecuted": false,
+  "passed": true,
+  "tests": 5,
+  "tokenizerSha256": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4",
+  "identity": {
+    "decoder": {
+      "type": "ByteLevel",
+      "add_prefix_space": false,
+      "trim_offsets": false,
+      "use_regex": false
+    },
+    "vocabularySize": 151669,
+    "asciiTokenCount": 94382,
+    "vocabularyTextSha256": "0e0249f1cd15876025cd574817b68a6c50cfc0d215d788d51dad9149d04d23a6",
+    "trieConstructionSeconds": 0.5248839659616351
+  },
+  "syntheticPaths": [
+    {
+      "roles": [],
+      "tokens": 27,
+      "maskSeconds": 0.00312159676104784,
+      "officialDecodeWithoutCleanupMatches": true,
+      "allRawWinnersPreserved": true
+    },
+    {
+      "roles": [
+        "red"
+      ],
+      "tokens": 29,
+      "maskSeconds": 0.0026449961587786674,
+      "officialDecodeWithoutCleanupMatches": true,
+      "allRawWinnersPreserved": true
+    },
+    {
+      "roles": [
+        "blue"
+      ],
+      "tokens": 29,
+      "maskSeconds": 0.002553291618824005,
+      "officialDecodeWithoutCleanupMatches": true,
+      "allRawWinnersPreserved": true
+    },
+    {
+      "roles": [
+        "blue",
+        "red"
+      ],
+      "tokens": 31,
+      "maskSeconds": 0.0027151955291628838,
+      "officialDecodeWithoutCleanupMatches": true,
+      "allRawWinnersPreserved": true
+    }
+  ],
+  "scope": "Artificial logits exercise arbitrary enums. They are not source-model behavior, factual evidence or a runtime throughput benchmark."
+}

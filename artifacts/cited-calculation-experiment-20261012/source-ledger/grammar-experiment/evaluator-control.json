@@ -1,0 +1,15 @@
+{
+  "schema": "reploid.syntax-evaluator-hook-control/v1",
+  "modelExecuted": false,
+  "artificialLogits": true,
+  "disabledHookExactReportEquality": true,
+  "validConstrainedTokenSequencePreserved": true,
+  "manualFactualAcceptanceStillPending": true,
+  "patchIdentity": {
+    "baselineFileSha256": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f",
+    "baselineFunctionSha256": "6ba36c39f987a1bd3063199f6235037492b3c13223bab1cecafa0c3e8f2d9364",
+    "candidateFunctionSha256": "6ca8b6f52f2c06a04f4a65eba17b301b6ce6000f10c5161d54c51968ac2ec5ec",
+    "replacementCount": 1,
+    "processorSourceSha256": "e0b62e949a3510cac6d762ce7ac1968f2622ae01edb7a2ef7d555bff9da310cf"
+  }
+}

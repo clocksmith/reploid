@@ -1,0 +1,24 @@
+{
+  "schema": "reploid.syntax-runner-control/v1",
+  "modelExecuted": false,
+  "artificialLogits": true,
+  "passed": true,
+  "controls": [
+    {
+      "failureInjected": false,
+      "promptTokens": 3154,
+      "generatedTokens": 56,
+      "complete": true,
+      "factualAcceptance": false,
+      "unrunCases": 6
+    },
+    {
+      "failureInjected": true,
+      "promptTokens": 2276,
+      "generatedTokens": 2,
+      "complete": false,
+      "factualAcceptance": false,
+      "unrunCases": 6
+    }
+  ]
+}

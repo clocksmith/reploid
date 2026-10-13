@@ -1,0 +1,17 @@
+{
+  "schema": "reploid.syntax-controls-binding/v1",
+  "modelExecuted": false,
+  "files": {
+    "evaluator-control.json": "d900a5a0005222da32de0a66a309457a42af5ff247eb0680260eac45ad67b13b",
+    "runner-control.json": "94eaca427711160bae641c05415863721ac873cece8bc5dda31d39380356f10c",
+    "tokenizer-control.json": "8967e81fc60cc57a9a38c6abe2d4ef73b9e3ff85ff9992f960b609ab7ff62926"
+  },
+  "runnerFreezeSha256": "6ec0fb8f8c100eda60ee4bd7f1859f0c7b1918af2434ce3cd0c84481b28387e4",
+  "controls": {
+    "grammar": 7,
+    "tokenizer": 5,
+    "evaluator": "disabled exact report equality plus allowed constrained sequence",
+    "runner": "unmasked answer and injected failure"
+  },
+  "semanticAcceptance": false
+}
