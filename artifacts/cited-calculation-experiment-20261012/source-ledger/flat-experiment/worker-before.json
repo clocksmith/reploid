@@ -1,0 +1,135 @@
+{
+  "scope": "Actual Verification Worker in isolated VM; candidate source is parsed, not executed",
+  "sources": {
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.js": "015fb6b335bd34c045cb0946e06cececeddb51383513a9f74a9724ff3aa5ea74",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.test.js": "79d9fc7c1112c883272348b413c725c9791053f0b83237e06982565c278f06e5",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/prepare.js": "45f57be4c4ed828c28b1bbef2982e081c39d8d066a7fad4ec3649c8685813d5f",
+    "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/bridge.js": "0a43bbfaa95d218999c82b086251d77ca3132beac0a225f2cd6e038b437c0c05"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.js:41: Dynamic property write detected: [role] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.js:48: Dynamic property write detected: [relation, passage, affected] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.js:74: Dynamic property write detected: [role] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.test.js:40: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/prepare.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/bridge.js: Path traversal pattern detected (../) - potential security risk"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855198822,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855198823,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [role] - verify input sanitization",
+        "line": 41,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855198823,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [relation, passage, affected] - verify input sanitization",
+        "line": 48,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855198823,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [role] - verify input sanitization",
+        "line": 74,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855198827,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855198827,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.test.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 40,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855198829,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/prepare.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791855198829,
+        "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/bridge.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/adapter.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/prepare.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        },
+        {
+          "path": "/artifacts/cited-calculation-experiment-20261012/source-ledger/flat-experiment/bridge.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [],
+      "filesAnalyzed": 4
+    }
+  }
+}
