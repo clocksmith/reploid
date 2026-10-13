@@ -1,0 +1,191 @@
+{
+  "files": {
+    "packages/reploid/src/mesh/partitions/partition-runner.js": "9fcd2fd43bba564e22627577ad90d850e021a9cf9da05ee46ea5693be8c702de",
+    "packages/reploid/src/mesh/partitions/partition-route-execution.js": "5a8d4ed7ff1463d798a04e447b069ed7ce1346a9dbad7e8cb49799b94b358e5e"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/mesh/partitions/partition-runner.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-runner.js:25: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-runner.js:47: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-runner.js:52: Dynamic property write detected: [method] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-runner.js:64: Dynamic property write detected: [method] - verify input sanitization",
+      "File has 25 functions (max 20) - consider modularizing",
+      "Nesting depth of 7 exceeds 5 - refactor nested code",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:35: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:36: Dynamic property write detected: [key] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:65: Dynamic property write detected: [index] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:67: Dynamic property write detected: [index] - verify input sanitization",
+      "Warning in /packages/reploid/src/mesh/partitions/partition-route-execution.js:172: Dynamic property write detected: [stage] - verify input sanitization",
+      "Nesting depth of 8 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900349553,
+        "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900349554,
+        "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 25,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900349554,
+        "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 47,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900349554,
+        "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [method] - verify input sanitization",
+        "line": 52,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900349554,
+        "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [method] - verify input sanitization",
+        "line": 64,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791900349556,
+        "metric": "functions",
+        "value": 25,
+        "threshold": 20,
+        "message": "File has 25 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/partition-runner.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791900349556,
+        "metric": "nesting",
+        "value": 7,
+        "threshold": 5,
+        "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-runner.js"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900349561,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 35,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900349561,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [key] - verify input sanitization",
+        "line": 36,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900349561,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index] - verify input sanitization",
+        "line": 65,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900349561,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [index] - verify input sanitization",
+        "line": 67,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791900349561,
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [stage] - verify input sanitization",
+        "line": 172,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791900349562,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/packages/reploid/src/mesh/partitions/partition-runner.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 25,
+          "threshold": 20,
+          "message": "File has 25 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/partition-runner.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 7,
+          "threshold": 5,
+          "message": "Nesting depth of 7 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-runner.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-route-execution.js"
+        }
+      ],
+      "filesAnalyzed": 2
+    }
+  }
+}
