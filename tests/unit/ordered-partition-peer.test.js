@@ -199,3 +199,136 @@ it('duplicate settlement shares one cleanup and a late reservation cannot reopen
     expect(f.peers[0].server.getState().unsettled).toBe(0);
   } finally { await f.close(); }
 });
+it('graceful serving retirement confirms exact remote settlement before channel closure', async () => {
+  const f = await fixture();
+  try {
+    const request = await directStep(f);
+    await f.peers[0].server.close();
+    expect(f.f.stages[1].closeAttempt).toHaveBeenCalledTimes(1);
+    expect(f.peers[0].client.getState().unsettled).toBe(0);
+    await f.peers[0].client.closeAttempt({identity:request.identity});
+    await f.peers[0].client.close();
+    expect(f.peers[1].client.getState().ready).toBe(true);
+  } finally { await f.close(); }
+});
+it('failed serving retirement keeps its channel and cleanup debt for explicit retry', async () => {
+  const f = await fixture();
+  try {
+    await directStep(f); f.f.stages[1].closeAttempt.mockRejectedValueOnce(Error('unknown cleanup'));
+    await expect(f.peers[0].server.close()).rejects.toThrow();
+    expect(f.pairs[0][1].readyState).toBe('open');
+    expect(f.peers[0].server.getState().unsettled).toBe(1);
+    expect(f.peers[0].client.getState().unsettled).toBe(1);
+    await f.peers[0].server.close();
+    expect(f.peers[0].client.getState().unsettled).toBe(0);
+  } finally { await f.close(); }
+});
+it.each(['attempt', 'generation', 'signature'])('rejects changed %s retirement evidence and retains ownership', async kind => {
+  const f = await fixture();
+  try {
+    await directStep(f); const channel=f.pairs[0][1], send=channel.send;
+    channel.send=function(data) {
+      if(typeof data==='string') { const value=JSON.parse(data);
+        if(value.type==='request' && value.metadata?.operation==='retired') {
+          if(kind==='attempt') value.metadata.identity.attemptId='unrelated';
+          if(kind==='generation') value.metadata.generationDigest='sha256:'+'0'.repeat(64);
+          if(kind==='signature') value.metadata.executionGrant.signature='changed';
+          data=JSON.stringify(value);
+        }
+      }
+      return send.call(this,data);
+    };
+    await expect(f.peers[0].server.close()).rejects.toThrow();
+    expect(f.peers[0].client.getState().unsettled).toBe(1);
+    expect(f.peers[0].server.getState().unsettled).toBe(1);
+  } finally { await f.close(); }
+});
+it('lost retirement acknowledgment remains charged and exact duplicate receipt settles on retry', async () => {
+  const f = await fixture();
+  try {
+    await directStep(f); const channel=f.pairs[0][0], send=channel.send; let dropped=false;
+    channel.send=function(data) {
+      if(typeof data==='string') { const value=JSON.parse(data);
+        if(!dropped && value.type==='result' && value.result?.settled && value.result?.partitionIndex===1) { dropped=true;return; }
+      }
+      return send.call(this,data);
+    };
+    await expect(f.peers[0].server.close()).rejects.toThrow();
+    expect(dropped).toBe(true);
+    expect(f.peers[0].client.getState().unsettled).toBe(0);
+    expect(f.peers[0].server.getState().unsettled).toBe(1);
+    expect(f.pairs[0][1].readyState).toBe('open');
+    await f.peers[0].server.close();
+    expect(f.f.stages[1].closeAttempt).toHaveBeenCalledTimes(1);
+    expect(f.peers[0].server.getState().unsettled).toBe(0);
+  } finally { await f.close(); }
+});
+it('coordinator close waits for the retiring owner to receive its pending acknowledgment', async () => {
+  const f=await fixture(), held=Promise.withResolvers(); let deliver, closing;
+  try {
+    await directStep(f); const channel=f.pairs[0][0], send=channel.send;
+    channel.send=function(data) {
+      if(typeof data==='string') { const value=JSON.parse(data);
+        if(!deliver && value.type==='result' && value.result?.settled && value.result?.partitionIndex===1) {
+          deliver=()=>send.call(this,data); held.resolve(); return;
+        }
+      }
+      return send.call(this,data);
+    };
+    const supplier=f.peers[0].server.close(); await held.promise;
+    closing=f.peers[0].client.close();
+    await Promise.resolve(); expect(channel.readyState).toBe('open');
+    deliver(); await supplier; await closing;
+    expect(f.peers[0].server.getState().unsettled).toBe(0);
+    expect(f.peers[0].client.getState().unsettled).toBe(0);
+  } finally { deliver?.(); await closing?.catch(()=>{}); await f.close(); }
+});
+
+it('retirement covers a locally completed cleanup whose ordinary reply has not reached its coordinator', async () => {
+  const f = await fixture(), held = Promise.withResolvers(); let deliver, cleanup;
+  try {
+    const request = await directStep(f), channel = f.pairs[0][1], send = channel.send;
+    channel.send = function(data) {
+      if (typeof data === 'string') { const value = JSON.parse(data);
+        if (!deliver && value.type === 'result' && value.result?.settled === true && value.result.partitionIndex == null) {
+          deliver = () => send.call(this, data); held.resolve(); return;
+        }
+      }
+      return send.call(this, data);
+    };
+    cleanup = f.peers[0].client.closeAttempt({ identity: request.identity }); cleanup.catch(() => {});
+    await held.promise;
+    await f.peers[0].server.close();
+    await cleanup;
+    expect(f.peers[0].client.getState().unsettled).toBe(0);
+    expect(f.peers[0].server.getState().unsettled).toBe(0);
+    expect(f.f.stages[1].closeAttempt).toHaveBeenCalledTimes(1);
+  } finally { deliver?.(); await cleanup?.catch(() => {}); await f.close(); }
+});
+
+it.each(['lost', 'signature'])('retains unacknowledged ordinary settlement after %s receipt and retries without closing twice', async kind => {
+  const f = await fixture();
+  try {
+    const request = await directStep(f), channel = f.pairs[0][kind === 'lost' ? 1 : 0], send = channel.send;
+    let altered = false;
+    channel.send = function(data) {
+      if (typeof data === 'string') { const value = JSON.parse(data);
+        if (!altered && kind === 'lost' && value.type === 'result' && value.result?.accepted) { altered = true; return; }
+        if (!altered && value.type === 'request' && value.metadata?.operation === 'settle-accepted') {
+          altered = true;
+          value.metadata.executionGrant.signature = 'changed'; data = JSON.stringify(value);
+        }
+      }
+      return send.call(this, data);
+    };
+    await expect(f.peers[0].client.closeAttempt({ identity: request.identity })).rejects.toThrow();
+    expect(altered).toBe(true);
+    expect(f.peers[0].client.getState().unsettled).toBe(1);
+    expect(f.peers[0].server.getState().unsettled).toBe(kind === 'lost' ? 0 : 1);
+    expect(channel.readyState).toBe('open');
+    await f.peers[0].client.closeAttempt({ identity: request.identity });
+    expect(f.peers[0].client.getState().unsettled).toBe(0);
+    expect(f.peers[0].server.getState().unsettled).toBe(0);
+    expect(f.f.stages[1].closeAttempt).toHaveBeenCalledTimes(1);
+  } finally { await f.close(); }
+});

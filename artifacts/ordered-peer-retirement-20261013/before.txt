@@ -1,0 +1,63 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/ordered-partition-peer.test.js > ordered authenticated peer (in-process channels, injected computation) > traverses a remote middle activation and final token via bounded duplex binary requests under genuine grants 95ms
+ ✓ tests/unit/ordered-partition-peer.test.js > replays an identical output without recomputation and rejects different activation bytes 29ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects a changed message version before remote execution 4ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects reverse binary corruption instead of returning a fabricated activation 11ms
+ ✓ tests/unit/ordered-partition-peer.test.js > cancels after reverse output and before final acknowledgment without rerunning computation 13ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retains unknown ownership after channel loss and rejects stale cleanup identities 3ms
+ ✓ tests/unit/ordered-partition-peer.test.js > does not advertise a descriptor without actual stage capability 1ms
+ ✓ tests/unit/ordered-partition-peer.test.js > retries explicit failed remote cleanup without clearing debt or recomputing 16ms
+ ✓ tests/unit/ordered-partition-peer.test.js > a cancelled blocked middle stage preserves an unrelated remote conversation 86ms
+ ✓ tests/unit/ordered-partition-peer.test.js > rejects a reservation whose generation length exceeds its signed admission bound 3ms
+ ✓ tests/unit/ordered-partition-peer.test.js > waits for pending execution before invoking its one resident cleanup owner 20ms
+ ✓ tests/unit/ordered-partition-peer.test.js > duplicate settlement shares one cleanup and a late reservation cannot reopen the retired attempt 6ms
+ × tests/unit/ordered-partition-peer.test.js > graceful serving retirement confirms exact remote settlement before channel closure 5ms
+   → expected 1 to be +0 // Object.is equality
+ × tests/unit/ordered-partition-peer.test.js > failed serving retirement keeps its channel and cleanup debt for explicit retry 4ms
+   → expected 'closed' to be 'open' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-peer.test.js > graceful serving retirement confirms exact remote settlement before channel closure
+AssertionError: expected 1 to be +0 // Object.is equality
+
+- Expected
++ Received
+
+- 0
++ 1
+
+ ❯ tests/unit/ordered-partition-peer.test.js:208:52
+    206|     await f.peers[0].server.close();
+    207|     expect(f.f.stages[1].closeAttempt).toHaveBeenCalledTimes(1);
+    208|     expect(f.peers[0].client.getState().unsettled).toBe(0);
+       |                                                    ^
+    209|     await f.peers[0].client.closeAttempt({identity:request.identity});
+    210|     await f.peers[0].client.close();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/unit/ordered-partition-peer.test.js > failed serving retirement keeps its channel and cleanup debt for explicit retry
+AssertionError: expected 'closed' to be 'open' // Object.is equality
+
+Expected: "open"
+Received: "closed"
+
+ ❯ tests/unit/ordered-partition-peer.test.js:219:38
+    217|     await directStep(f); f.f.stages[1].closeAttempt.mockRejectedValueO…
+    218|     await expect(f.peers[0].server.close()).rejects.toThrow();
+    219|     expect(f.pairs[0][1].readyState).toBe('open');
+       |                                      ^
+    220|     expect(f.peers[0].server.getState().unsettled).toBe(1);
+    221|     expect(f.peers[0].client.getState().unsettled).toBe(1);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 12 passed (14)
+   Start at  12:22:45
+   Duration  518ms (transform 57ms, setup 0ms, import 154ms, tests 297ms, environment 0ms)
+

@@ -1,0 +1,41 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > transmits bounded RESULT_EXPIRED while retaining local cause and callback settlement 11ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > transmits bounded RESOURCE_EXHAUSTED while retaining local cause and callback settlement 1ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > transmits bounded CAPACITY_UNAVAILABLE while retaining local cause and callback settlement 1ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > transmits bounded CLEANUP_FAILED while retaining local cause and callback settlement 1ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > transmits bounded OUTPUT_LIMIT_EXCEEDED while retaining local cause and callback settlement 1ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > transmits bounded GENERATION_OUTPUT_INVALID while retaining local cause and callback settlement 0ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > observes bounded request phases without letting an observer break delivery 1ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > fragments exact binary bytes, snapshots caller input, isolates concurrent replies and counts application bytes 2ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > authorizes both endpoints before any activation bytes are sent 1ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > does not confuse asynchronous authorization order with transport replay 0ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > rechecks result disclosure after permission is revoked during work 1ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > cancels one delivery, retains uncooperative work against budgets, and keeps another thread live 53ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > keeps simultaneous routes to the same participant on distinct channels and retires only the named route 11ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > hands the bound channel to the existing binary transport after authentication 2ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > snapshots route before authentication awaits and passes exact authenticated transport metadata 1ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > rejects host stage mismatch before endpoint creation 1ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > rejects an altered acceptance route and closes the already prepared peer endpoint 1ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > bounds handshake bytes before parsing and refuses extra routes without evicting a healthy one 1ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > checks certificates again after asynchronous route validation 0ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > retains failed cleanup capacity and permits retry without disturbing another route 1ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > does not infer resident cleanup from a lost socket and retries network close explicitly 52ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > bounds a stalled validator and ignores its late completion without creating an endpoint 23ms
+ ✓ tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > times out an absent handshake and never creates an endpoint 23ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > cancels before authorization finishes without sending a stray cancel or releasing its occupied slot 52ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > waits under backpressure and serializes concurrent writes within the buffer limit 13ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > settles waiting callers on peer loss and timeout 31ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > closes on corrupted binary geometry before invoking execution 0ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > bounds payload, metadata, pending memory and connection request identities 1ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > requires reliable transport, identified endpoints, authorization and explicit budgets 0ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > serializes two waiters when only one frame fits after the buffer drains 0ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > rejects replayed wire headers and oversized declared allocations before execution 105ms
+ ✓ tests/unit/partition-data-channel.test.js > partition binary transport (injected host ports) > enforces lifetime application-byte budgets and does not leak host exceptions 1ms
+
+ Test Files  2 passed (2)
+      Tests  32 passed (32)
+   Start at  12:33:35
+   Duration  375ms (transform 74ms, setup 0ms, import 166ms, tests 393ms, environment 0ms)
+
