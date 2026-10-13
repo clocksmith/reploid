@@ -1,0 +1,42 @@
+Debugger listening on ws://127.0.0.1:29829/392e25c6-d909-4014-b346-ba0ab9b40e42
+For help, see: https://nodejs.org/en/docs/inspector
+{"nativeFixtureReady":{"schema":"reploid.native-partition-fixture/v1","nativeDeliverySha256":"0c15e450a9f86d6093b18de629fb6a005c3bc780c9cf8fc2dfebaa3b0b0abce1","testDelivery":{"schema":"reploid.numerical-test-delivery/v1","testDeliveryHash":"sha256:e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a","archiveSha256":"0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd","snapshotFiles":2013,"installedFiles":1976,"scope":"Immutable numerical fixture delivery; not deployed application or signed admission","applicationQualification":false},"runtimeBaseUrl":"file:///var/tmp/reploid-native-readiness-candidate-20261012/reploid/node_modules/doppler-gpu/src/","config":{"DOPPLER_PARTITIONS_MODULE_URL":"file:///var/tmp/reploid-native-readiness-candidate-20261012/reploid/node_modules/doppler-gpu/src/partitions.js","DOPPLER_KERNEL_BASE_URL":"file:///var/tmp/reploid-native-readiness-candidate-20261012/reploid/node_modules/doppler-gpu/src/gpu/kernels/","DOPPLER_PACKAGE_VERSION":"0.6.28"},"provider":{"module":"webgpu","version":"0.4.0","entrySha256":"18a44f1e81cd3697156e7ddd3456e9f0d346a0afabb76588379b5b2f6dca50b4","packageSha256":"808ca40c7fdacd112c4b1935dde1fbbbf4279ae11dbbae5ef5cd50b1c639222a"}}}
+Debugger attached.
+Debugger attached.
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.6ms
+[14182.1ms][Pipeline] Execution v1 enabled (steps=43, kernelPathInline=yes, pipelineInline=no)
+[14182.3ms][Config] Using manifest-first config (source of truth)
+[14185.5ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[14185.6ms][Pipeline] Vision capable: imageTokenId=248056
+[14186.5ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (19 decode steps, 8 kernels, source=execution-v1)
+[14186.7ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[14187.2ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[14326.1ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[14437.6ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[14438.0ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[14440.1ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[14442.2ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[14495.0ms][ShardCache] Custom shard loader configured
+[14495.3ms][Loader] Initializing...
+[14519.8ms][HeapManager] Allocated segment 0: 1024MB
+[14520.0ms][HeapManager] Segmented heap: 1GB per segment
+[14520.0ms][HeapManager] Initialized with strategy: SEGMENTED
+[14520.1ms][Loader] Initialized (f16, subgroups)
+[14520.6ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[14521.5ms][Loader] [0.0s] Memory (start): | RSS=287.20 MB (heap=64.95 MB/102.32 MB, external=1.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[14521.9ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[14533.5ms][Loader] Layers: 12-23
+[16007.9ms][Loader] Layers: 12 complete (1.47s)
+[17374.1ms][Loader] Complete: 270.78 MB in 2.84s (95.31 MB/s)
+[17375.2ms][Loader] [2.9s] Memory (complete): | RSS=384.44 MB (heap=78.51 MB/112.32 MB, external=1.05 GB, arrayBuffers=1.05 GB) | GPU=272.27 MB (173 active, 0 pooled, peak=272.27 MB) | ShardCache=0 B (0 shards) | Layers=12, GPUBuffers=173
+[17391.5ms][Pipeline] Model loaded successfully (3213ms)
+[25410.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1043, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1043
+[40734.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1045, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1045
+[123224.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1208, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1208
+[220701.1ms][ExpertCache] Cache cleared
+[220702.4ms][Pipeline] Unloaded
+[222709.9ms][GPU] Device lost: device was destroyed, Reason: destroyed
+Debugger ending on ws://127.0.0.1:29829/392e25c6-d909-4014-b346-ba0ab9b40e42
+For help, see: https://nodejs.org/en/docs/inspector

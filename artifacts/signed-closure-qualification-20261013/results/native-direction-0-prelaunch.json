@@ -1,0 +1,14 @@
+{
+  "at": "2026-10-13T13:18:18.070017+00:00",
+  "role": "native",
+  "direction": 0,
+  "version": "v22.22.1",
+  "executable": {
+    "path": "/usr/bin/node",
+    "sha256": "d0efb6fcb9d023ba4e2b160ec2384dc28fe4f17732141ef47f676828fa960505"
+  },
+  "deliverySha256": "e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+  "modelFiles": 21,
+  "deliveryFiles": 2013,
+  "verified": true
+}

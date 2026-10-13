@@ -1,0 +1,16 @@
+{
+  "scope": "Task-owned test delivery cleanup; public contributors untouched",
+  "macServer": {
+    "pid": 35382,
+    "exitCode": 0
+  },
+  "amdServer": {
+    "pid": 2958503,
+    "exitCode": 0
+  },
+  "inspectorTunnel": {
+    "pid": 33730,
+    "exitCode": 0
+  },
+  "method": "SIGTERM sent only to verified owned idle delivery processes after native providers/residents and controllers exited; terminal sessions observed exit0"
+}

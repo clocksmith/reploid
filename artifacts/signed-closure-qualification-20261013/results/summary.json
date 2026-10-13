@@ -1,0 +1,101 @@
+{
+  "scope": "Genuine corrected-graph direct resident qualification on Mac browser and AMD Node, both placements; not signed application conversation or public deployment",
+  "archiveSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "manifestSha256": "709894a75b4200c111fb7dbb6c9435c8fd69710949ea8ba486cf93f38582fdd3",
+  "deliverySha256": "e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",
+  "freezeCommit": "801e2d96",
+  "tolerance": 0.001,
+  "timingScope": "Shared public consumers/caches; not isolated performance",
+  "directions": [
+    {
+      "direction": 0,
+      "producerExitCode": 0,
+      "captureSha256": "83c316d4cfc494bd704e9f7d0526d471f782d3d9d288321beb613a5fe9b61eff",
+      "captureBytes": 205857564,
+      "gzipSha256": "fbc7058e074cfafa311ea87fa343a5ec4d4b89a155b69a951bbe24c7679331c6",
+      "prefixes": 55,
+      "allNumericalMatches": true,
+      "maxDifference": 9.520044947919359e-07,
+      "maxObservedStageMs": 74502.280916,
+      "nativeHostSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true,
+        "pid": 2960736
+      },
+      "nativeExit": {
+        "pid": 2960736,
+        "exitCode": 0
+      },
+      "cleanup": [
+        {
+          "barriers": 1,
+          "owners": {
+            "active": 0,
+            "deferredCleanup": 0,
+            "retainedModel": 0
+          },
+          "devicePeakBytes": 765059392,
+          "deviceEvents": [],
+          "observationErrors": []
+        },
+        {
+          "barriers": 1,
+          "owners": {
+            "active": 0,
+            "deferredCleanup": 0,
+            "retainedModel": 0
+          },
+          "devicePeakBytes": 398727376,
+          "deviceEvents": [],
+          "observationErrors": []
+        }
+      ]
+    },
+    {
+      "direction": 1,
+      "producerExitCode": 0,
+      "captureSha256": "f912134b03f2d57b22ce5f7947d7ec85d250d8bd5754938cf3990bd11fd84563",
+      "captureBytes": 205854148,
+      "gzipSha256": "cec12166bcbe3afc1e9803b6da22ad64c85c46687e196a33de5a9f782024685a",
+      "prefixes": 55,
+      "allNumericalMatches": true,
+      "maxDifference": 9.520044947919359e-07,
+      "maxObservedStageMs": 74646.66425,
+      "nativeHostSettlement": {
+        "closed": true,
+        "providerOpened": true,
+        "ownedProviderReleased": true,
+        "pid": 3015512
+      },
+      "nativeExit": {
+        "pid": 3015512,
+        "exitCode": 0
+      },
+      "cleanup": [
+        {
+          "barriers": 1,
+          "owners": {
+            "active": 0,
+            "deferredCleanup": 0,
+            "retainedModel": 0
+          },
+          "devicePeakBytes": 398923984,
+          "deviceEvents": [],
+          "observationErrors": []
+        },
+        {
+          "barriers": 1,
+          "owners": {
+            "active": 0,
+            "deferredCleanup": 0,
+            "retainedModel": 0
+          },
+          "devicePeakBytes": 765059392,
+          "deviceEvents": [],
+          "observationErrors": []
+        }
+      ]
+    }
+  ]
+}
