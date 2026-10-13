@@ -1320,8 +1320,8 @@
     },
     {
       "path": "config/module-inventory.json",
-      "byteLength": 520844,
-      "sha256": "sha256:c3f92ba0bab7bb9cf1899560281b8f6ce9e8a4b20849c91040374bc1d99160ba"
+      "byteLength": 527689,
+      "sha256": "sha256:bf9ebed41b38c1748d9a1febf8aa0958fac5d802a95268da777ef3b7ce00fcce"
     },
     {
       "path": "config/module-registry.json",
@@ -1375,8 +1375,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 112198,
-      "sha256": "sha256:ecd3f2a3b4e65359080d63df495a6ea90384c5d5477e6962ed47384c8018a1be"
+      "byteLength": 113483,
+      "sha256": "sha256:f0ab9dd47ae93155d0d2ed2efe6063eb1c77c93b03e272bdcd46298e292a4b78"
     },
     {
       "path": "config/vfs-policy.js",
@@ -9669,5 +9669,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:f73c3ef1e4a4e7c393a234d5b4ad3052ed5883842b33d2995252ab1025b6c41a"
+  "bundleHash": "sha256:2c41fd5e623163da73df1a31d0b42b094b443438c72b024b4be34b803c2bf4b0"
 }
