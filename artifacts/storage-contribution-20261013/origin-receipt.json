@@ -1,0 +1,79 @@
+{
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+  "allowance": 4442765,
+  "requests": [
+    {
+      "url": "http://localhost:8000/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json",
+      "range": null,
+      "reservedBytes": 214203
+    },
+    {
+      "url": "http://localhost:8000/config/model-pieces/qwen-0-8b-pieces.json",
+      "range": null,
+      "reservedBytes": 248461
+    },
+    {
+      "url": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/shard_00000.bin",
+      "range": "bytes=0-4194303",
+      "reservedBytes": 4442765
+    }
+  ],
+  "inventory": [
+    {
+      "path": "manifest.json",
+      "role": "model-manifest",
+      "sizeBytes": 214203,
+      "hashAlgorithm": "sha256",
+      "hash": "18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+      "url": "http://localhost:8000/config/model-manifests/18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9.json"
+    },
+    {
+      "path": "qwen-0-8b-pieces.json",
+      "role": "model-piece-index",
+      "sizeBytes": 34258,
+      "hashAlgorithm": "sha256",
+      "hash": "18adb1f08f4e694d357a27f7a5d67ea57a7d50c5e82aa7fda099084b445974b7",
+      "url": "http://localhost:8000/config/model-pieces/qwen-0-8b-pieces.json"
+    },
+    {
+      "path": "piece-b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925.bin",
+      "role": "model-weights",
+      "sizeBytes": 4194304,
+      "hashAlgorithm": "sha256",
+      "hash": "b07993d999a914692340789a2d2cd68333985a1decfc1cec9497db4355eea925"
+    }
+  ],
+  "state": {
+    "sharing": true,
+    "suppliedBytes": 0,
+    "pending": 0,
+    "peers": [],
+    "model": {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16",
+      "name": "Qwen 3.5 0.8B"
+    },
+    "mode": "bounded-acquisition",
+    "acquisitionBudget": {
+      "schema": "reploid.custody-acquisition-budget/v1",
+      "maxBytes": 4442765,
+      "reservedBytes": 4442765
+    },
+    "acquisitionBudgetError": null,
+    "supplyBudgetError": null,
+    "preparing": false,
+    "stopping": false,
+    "error": "",
+    "progress": null,
+    "receivedBytes": 0,
+    "verifiedFiles": [],
+    "limits": {
+      "storedBytes": 3221225472,
+      "supplyBytes": 4294967296,
+      "downloadBytes": 67108864,
+      "maxDownloadBytes": 4294967296,
+      "subsetBytes": 67108864
+    }
+  },
+  "stopped": true
+}

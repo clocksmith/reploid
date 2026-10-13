@@ -1,0 +1,130 @@
+{
+  "schema": "reploid.storage-contribution-evidence/v1",
+  "sourceCommit": "e8258bc757e560beb7dac45a4873a1ddf2aa8a0f",
+  "browserStats": {
+    "startTime": "2026-10-13T22:16:04.239Z",
+    "duration": 6325.999,
+    "expected": 16,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "browserCases": [
+    {
+      "title": "strict durable reservations survive reload and cannot be renewed by another tab",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 287
+    },
+    {
+      "title": "corrupt and missing existing browser ledgers fail closed",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 86
+    },
+    {
+      "title": "legacy caches cannot silently initialize allowance and closed persistence rejects reservations",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 63
+    },
+    {
+      "title": "an aborted real IndexedDB reservation is unconfirmed and cannot authorize supply",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 81
+    },
+    {
+      "title": "acquisition allowance is independent, immutable, durable and serialized across tabs",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 128
+    },
+    {
+      "title": "a fresh storage-only requester acquires a verified subset; reload preserves inventory and allowance",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 407
+    },
+    {
+      "title": "fresh cache-only and missing metadata perform zero downloads",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 203
+    },
+    {
+      "title": "evicted supplier bytes withdraw availability without origin fallback",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 203
+    },
+    {
+      "title": "failed metadata attempts remain charged across retries and reload",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 137
+    },
+    {
+      "title": "bounded acquisition rejects an origin ignoring a piece range",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 195
+    },
+    {
+      "title": "a corrupt acquired piece consumes its reservation without becoming shareable",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 197
+    },
+    {
+      "title": "full-model choice retains deliberate full-file acquisition",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 313
+    },
+    {
+      "title": "stopping storage acquisition settles its transfer while a chat continues",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 225
+    },
+    {
+      "title": "competing host tabs cannot overspend one acquisition allowance",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 330
+    },
+    {
+      "title": "storage contribution changes pass the real Verification Worker",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 111
+    },
+    {
+      "title": "actual pinned model origin supplies one bounded verified piece without compute",
+      "project": "chromium",
+      "status": "passed",
+      "durationMs": 1423
+    }
+  ],
+  "playwrightVersion": "1.58.0",
+  "files": {
+    "packages/reploid/src/artifacts/custody/exchange.js": "77f7d95d03e840c75176b0fa00f30cf09dc0b68493db8b043cfd22490b4b2127",
+    "packages/reploid/src/artifacts/custody/supply-budget.js": "9b59ab5aacbf1f55e3188d0c7fdfdd24c752df92f7140e43e675eaecd0f62a64",
+    "self/infrastructure/custody-supply-budget.js": "ef0de15e5f4cf281db3504748405a4a755e1d466815a4834f58e4c7016961c05",
+    "self/host/work-model-files.js": "620003218b89faed7973634092314ac65eb7ca4dbf8227cdfb503ad23a7765dc",
+    "self/host/work-swarm.js": "d334650217098335ef292ab23df22713539e4f3dfc0e9cf295ac5555b9588a40",
+    "self/host/chat-session.js": "a8ed3d385a31985ff52f37e2339748befd0367d9658815d6b01e5cfb4d8ebc93",
+    "self/ui/pool-home/network-controls.js": "3dfffa1b0d31647f5627d41a88d1466c95c9657e7e86866e409d4ac492ffbdf2",
+    "self/config/chat-files.json": "2f23d29da01b2b88e7b09f128b920132148cfedf50fd6b26032da3fe1ee0c4b4",
+    "self/config/doppler-package.json": "8f2f73df2b77ad3047f87640f43844a98b21fd1b8861d09109a5e088feda036f",
+    "self/vendor/reploid/package-assets.json": "4f7be5c382902e4421caaab4e9c8df7453eeef9456841b5768b031b59754a84e",
+    "tests/e2e/custody-budget.spec.js": "95e2c342972ffd2cdb57fa83f1d41347ae6db5247e7fa2db47fa892b81b25f33",
+    "tests/e2e/storage-contribution.spec.js": "c0344014f4e9689f169d9cef7e20bcb823787bdfd1b09afcc850e4e01fb4d095"
+  },
+  "unitTests": {
+    "passed": 116,
+    "skipped": 1,
+    "reasonForSkip": "Optional installed signed-reader package not selected; no GPU inference was executed."
+  }
+}
