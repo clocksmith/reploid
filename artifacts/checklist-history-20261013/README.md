@@ -1,6 +1,6 @@
 # Retained checklist investigations
 
-Component: cross-project qualification evidence. Intent preserved. This is an immutable historical summary moved from Reploid TODO at `2133f631`; it is not an active plan. [TODO](../../TODO.md) owns current sequencing and acceptance. Dates, failures, rejected candidates, explicit approvals and narrower passing results retain their original scope. Historical next-action language records the old checkpoint and does not override the current queue.
+Component: cross-project qualification evidence. Intent preserved. This is an immutable historical summary moved from Reploid TODO at `2133f631`; it is not an active plan. [ROADMAP](../../ROADMAP.md) owns current sequencing and links to the canonical acceptance requirements. Dates, failures, rejected candidates, explicit approvals and narrower passing results retain their original scope. Historical next-action language records the old checkpoint and does not override the current queue.
 
 <a id="history-01"></a>
 

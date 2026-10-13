@@ -230,7 +230,7 @@ Numerical acceptance remains failed against the approved F64 target at 0.001.
 Document usefulness/citations remain unqualified. Opening here uses verified
 pinned manifests, not signed Capsule physical opening. Both-placement release
 acceptance, the exact long-prompt lifecycle sequence on a replacement archive,
-and deployment remain open in the [canonical TODO](../../TODO.md).
+and deployment remain open in the [canonical roadmap](../../ROADMAP.md).
 
 ## Phone-sized attachments and revoked sharing
 
