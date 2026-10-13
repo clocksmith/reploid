@@ -1,0 +1,236 @@
+{
+  "observedAt": "2026-10-13T11:16:29.427Z",
+  "body": "7\n7\n7\n7\n1 peer\nMessage\nAttach files\nRetry connection\nNetwork\n1 peer\nHelp peers connect\n\nForward invitations without sharing conversations, model files, or compute.\n\nQwen 3.5 0.8B \u00b7 partition compute\n\nModel to share \nQwen 3.5 0.8B\nHelp answer requests\nFailed\n\nRun peers\u2019 public prompts on this device.\n\n2 requests at a time \u00b7 4096 output tokens per request\n\nFile offer timed out\n\nStore and share model files\nNot sharing\n\nDownload and send model files to peers. This shares no conversations.\n\nStore up to 3 GiB \u00b7 Send up to 4 GiB\n\nRun on this device\nSpecialized model jobs\n\nFile offer timed out",
+  "buttons": [
+    {
+      "text": "77",
+      "aria": "Toggle threads",
+      "disabled": false
+    },
+    {
+      "text": "\n      No model ready\n    ",
+      "aria": "No model ready. No executor assigned. Execution details",
+      "disabled": false
+    },
+    {
+      "text": "Close",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "New thread",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Threads",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Model",
+      "aria": "Model. Choose a model for a new thread",
+      "disabled": false
+    },
+    {
+      "text": "1 peer",
+      "aria": "Inspect network",
+      "disabled": false
+    },
+    {
+      "text": "Archived threads",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Download conversation",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Send",
+      "disabled": true
+    },
+    {
+      "text": "",
+      "aria": "Stop",
+      "disabled": false
+    },
+    {
+      "text": "Retry connection",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Cancel",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Save",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Cancel",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "New thread with this model",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Close network and settings",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "This conversation",
+      "disabled": false
+    },
+    {
+      "text": "1 peer",
+      "aria": "Participants",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "This device",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Settings",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Connect to network",
+      "disabled": false
+    },
+    {
+      "text": "Copy private invitation",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Help peers connect",
+      "disabled": false
+    },
+    {
+      "text": "Retry stopping",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Help answer requests",
+      "disabled": false
+    },
+    {
+      "text": "",
+      "aria": "Store and share model files",
+      "disabled": false
+    },
+    {
+      "text": "Run on this device",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "System",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Light",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Dark",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Cancel",
+      "aria": null,
+      "disabled": false
+    },
+    {
+      "text": "Download model",
+      "aria": null,
+      "disabled": true
+    }
+  ],
+  "resources": [
+    {
+      "path": "/vendor/reploid/chat/thread-grants.js",
+      "ms": 15.200000047683716
+    },
+    {
+      "path": "/vendor/reploid/chat/publication-policy.json",
+      "ms": 18.90000009536743
+    },
+    {
+      "path": "/vendor/reploid/artifacts/job-journal.js",
+      "ms": 19.59999990463257
+    },
+    {
+      "path": "/vendor/reploid/agent/provider-recovery.js",
+      "ms": 3.3999998569488525
+    },
+    {
+      "path": "/vendor/reploid/agent/engine.js",
+      "ms": 3.700000047683716
+    },
+    {
+      "path": "/vendor/reploid/artifacts/custody/piece-acquisition.js",
+      "ms": 5.299999952316284
+    },
+    {
+      "path": "/vendor/reploid/agent/tool-retry.js",
+      "ms": 2.299999952316284
+    },
+    {
+      "path": "/vendor/reploid/agent/lifecycle.js",
+      "ms": 2.3999998569488525
+    },
+    {
+      "path": "/vendor/reploid/agent/tool-dispatch.js",
+      "ms": 3
+    },
+    {
+      "path": "/vendor/reploid/agent/cancellation.js",
+      "ms": 1.2000000476837158
+    },
+    {
+      "path": "/vendor/doppler/0.6.28/src/partitions.js",
+      "ms": 4.799999952316284
+    },
+    {
+      "path": "/vendor/doppler/0.6.28/src/inference/resident-publication-contract.js",
+      "ms": 2.8999998569488525
+    },
+    {
+      "path": "/vendor/doppler/0.6.28/src/inference/resident-block-contract.js",
+      "ms": 3
+    },
+    {
+      "path": "/vendor/doppler/0.6.28/src/inference/pipelines/text/layer-partition-contract.js",
+      "ms": 2.799999952316284
+    },
+    {
+      "path": "/vendor/doppler/0.6.28/src/inference/resident-state-contract.js",
+      "ms": 3
+    }
+  ],
+  "scope": "Isolated signed candidate Mac output acquisition failed before resident opening; native opener source repair is not end-to-end acceptance.",
+  "browserBundle": "sha256:7f8e435bc3fc1abca4cb6e5090378607d813ba526d67e63787bdf77e441a25f4",
+  "runtimeArchive": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd"
+}
