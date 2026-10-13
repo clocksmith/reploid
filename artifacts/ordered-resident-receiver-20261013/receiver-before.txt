@@ -1,0 +1,64 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/ordered-partition-receiver.test.js (3 tests | 3 failed) 11ms
+     × deduplicates an exact middle stage and refuses replay after disclosure revocation 6ms
+     × rejects stage substitution, changed route, payload collision and out-of-order decode 3ms
+     × retains cancellation tombstones and retries failed cleanup without reexecuting 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-receiver.test.js > ordered receiver reuses authenticated ordering and settlement owner > deduplicates an exact middle stage and refuses replay after disclosure revocation
+Error: Invalid partition identity
+ ❯ assertPartition packages/reploid/src/mesh/partitions/partition-contract.js:5:72
+      3| export const partitionActions = Object.freeze(['mesh.execute_partition…
+      4|   'mesh.transfer_intermediate_activation', 'mesh.transfer_token_contex…
+      5| export const assertPartition = (value, message) => { if (!value) throw…
+       |                                                                        ^
+      6| export const samePartitionIdentity = (actual, expected) => actual && […
+      7| /** Ask the injected provider for tensor layout; retain the accepted v…
+ ❯ validatePartitionIdentity packages/reploid/src/mesh/partitions/partition-contract.js:29:3
+ ❯ canonicalPartitionBinding packages/reploid/src/mesh/partitions/partition-contract.js:40:3
+ ❯ Object.receive packages/reploid/src/mesh/partitions/partition-step-receiver.js:172:49
+ ❯ tests/unit/ordered-partition-receiver.test.js:17:72
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/unit/ordered-partition-receiver.test.js > ordered receiver reuses authenticated ordering and settlement owner > rejects stage substitution, changed route, payload collision and out-of-order decode
+AssertionError: expected [Function] to throw error including 'stage' but got 'Invalid partition identity'
+
+Expected: "stage"
+Received: "Invalid partition identity"
+
+ ❯ tests/unit/ordered-partition-receiver.test.js:24:74
+     22|   it('rejects stage substitution, changed route, payload collision and…
+     23|     const f = fixture();
+     24|     await expect(f.receiver.receive({ ...f.request, partitionIndex: 2 …
+       |                                                                          ^
+     25|     await f.receiver.receive(f.request);
+     26|     const changed = structuredClone(f.request); changed.identity.route…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/unit/ordered-partition-receiver.test.js > ordered receiver reuses authenticated ordering and settlement owner > retains cancellation tombstones and retries failed cleanup without reexecuting
+Error: Invalid partition identity
+ ❯ assertPartition packages/reploid/src/mesh/partitions/partition-contract.js:5:72
+      3| export const partitionActions = Object.freeze(['mesh.execute_partition…
+      4|   'mesh.transfer_intermediate_activation', 'mesh.transfer_token_contex…
+      5| export const assertPartition = (value, message) => { if (!value) throw…
+       |                                                                        ^
+      6| export const samePartitionIdentity = (actual, expected) => actual && […
+      7| /** Ask the injected provider for tensor layout; retain the accepted v…
+ ❯ validatePartitionIdentity packages/reploid/src/mesh/partitions/partition-contract.js:29:3
+ ❯ canonicalPartitionBinding packages/reploid/src/mesh/partitions/partition-contract.js:40:3
+ ❯ Object.receive packages/reploid/src/mesh/partitions/partition-step-receiver.js:172:49
+ ❯ tests/unit/ordered-partition-receiver.test.js:33:43
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+   Start at  10:13:28
+   Duration  307ms (transform 47ms, setup 0ms, import 138ms, tests 11ms, environment 94ms)
+

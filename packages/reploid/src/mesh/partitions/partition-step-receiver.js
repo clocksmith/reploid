@@ -1,8 +1,8 @@
 import canonicalPolicy from './partition-receiver-policy.json' with { type: 'json' };
-import { canonicalPartitionBinding, samePartitionIdentity } from './partition-contract.js';
+import { canonicalPartitionBinding, samePartitionIdentity, canonicalRouteAttemptBinding, sameRouteAttemptIdentity, canonicalPartitionJson } from './partition-contract.js';
 
 /** Receiver-side ordering/idempotency. Execution and verified identity remain host ports. */
-export function createPartitionStepReceiver({ executeStep, authorize, fingerprint, settleAttempt, limits, canonical }) {
+export function createPartitionStepReceiver({ executeStep, authorize, fingerprint, settleAttempt, limits, canonical, ordered }) {
   for (const port of [executeStep, authorize, fingerprint, settleAttempt]) {
     if (typeof port !== 'function') throw new Error('Partition receiver requires execution, authorization, digest and settlement ports');
   }
@@ -10,6 +10,21 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
     || !Number.isSafeInteger(limits?.maxSteps) || limits.maxSteps <= 0) {
     throw new Error('Explicit receiver attempt and step limits required');
   }
+  if (ordered && canonical) throw new Error('Ordered canonical receiver is unsupported');
+  const orderedStage = ordered ? structuredClone(ordered.stage) : null;
+  if (ordered && (!Number.isSafeInteger(orderedStage?.index) || orderedStage.index < 0
+    || !['participantId', 'transportId', 'residentId', 'executionId'].every(key => typeof orderedStage[key] === 'string' && orderedStage[key]))) {
+    throw new Error('Explicit ordered receiver stage required');
+  }
+  const snapshotIdentity = value => {
+    if (!orderedStage) return canonicalPartitionBinding(value);
+    const binding = canonicalRouteAttemptBinding(value);
+    if (canonicalPartitionJson(binding.route.stages[orderedStage.index]) !== canonicalPartitionJson(orderedStage)) {
+      throw new Error('Ordered receiver stage differs from route');
+    }
+    return binding;
+  };
+  const sameIdentity = orderedStage ? sameRouteAttemptIdentity : samePartitionIdentity;
   const { maxAttempts, maxSteps } = limits;
   const attempts = new Map();
   const operations = new Set();
@@ -154,7 +169,7 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
   }
   const registerAttempt = identity => {
     if (canonicalAttempts.has(identity.attemptId) || attempts.size + canonicalAttempts.size >= maxAttempts) throw new Error('Partition receiver attempt budget exhausted');
-    const state = { identity: canonicalPartitionBinding(identity), nextStep: 0, nextPosition: 0, maxTokens: null,
+    const state = { identity: snapshotIdentity(identity), nextStep: 0, nextPosition: 0, maxTokens: null,
       last: null, retired: false, controller: new AbortController(), settlement: null };
     attempts.set(identity.attemptId, state);
     return state;
@@ -169,7 +184,8 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
     if (closed) throw new Error('Partition receiver closed');
     // Host ingress validates payload shape/byte budgets before this copy or hashing.
     const request = structuredClone(input);
-    request.identity = canonicalPartitionBinding(request.identity);
+    request.identity = snapshotIdentity(request.identity);
+    if (orderedStage && request.partitionIndex !== orderedStage.index) throw new Error('Ordered receiver stage mismatch');
     if (!Number.isSafeInteger(request.step) || request.step < 0 || request.step >= maxSteps
       || !Number.isSafeInteger(request.maxTokens) || request.maxTokens <= 0 || request.step >= request.maxTokens
       || !Number.isSafeInteger(request.tokenPosition) || request.tokenPosition < 0
@@ -190,7 +206,7 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
         state = registerAttempt(request.identity);
         state.maxTokens = request.maxTokens;
       }
-      if (!samePartitionIdentity(state.identity, request.identity)) throw new Error('Partition attempt identity collision');
+      if (!sameIdentity(state.identity, request.identity)) throw new Error('Partition attempt identity collision');
       if (state.retired) throw new Error('Partition attempt retired; start a new attempt');
       if (state.maxTokens !== request.maxTokens) throw new Error('Partition request token limit changed');
       if (state.last?.step === request.step) {
@@ -231,7 +247,7 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
   }
 
   function closeAttempt(identity) {
-    try { identity = canonicalPartitionBinding(identity); }
+    try { identity = snapshotIdentity(identity); }
     catch (error) { return Promise.reject(error); }
     const canonicalState = canonicalAttempts.get(identity.attemptId);
     if (canonicalState) {
@@ -249,7 +265,7 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
       state.settlement = Promise.resolve();
       return state.settlement;
     }
-    if (!samePartitionIdentity(state.identity, identity)) {
+    if (!sameIdentity(state.identity, identity)) {
       return Promise.reject(new Error('Partition settlement identity collision'));
     }
     if (state.settlement) return state.settlement;
@@ -259,7 +275,7 @@ export function createPartitionStepReceiver({ executeStep, authorize, fingerprin
       await state.last?.result?.catch(() => {});
       try { await settleAttempt(structuredClone(state.identity)); }
       finally { state.last = null; }
-    })();
+    })().catch(error => { state.settlement = null; throw error; });
     return state.settlement;
   }
 

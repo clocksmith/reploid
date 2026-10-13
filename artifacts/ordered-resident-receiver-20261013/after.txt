@@ -1,0 +1,15 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/partition-step-receiver.test.js (23 tests) 10ms
+ ✓ tests/unit/ordered-resident-facade.test.js (7 tests) 11ms
+ ✓ tests/unit/ordered-partition-receiver.test.js (3 tests) 8ms
+ ✓ tests/unit/partition-api.test.js (42 tests) 3735ms
+     ✓ discovers cooperative executors with replica coverage=false  1689ms
+     ✓ discovers cooperative executors with replica coverage=true  1366ms
+
+ Test Files  4 passed (4)
+      Tests  75 passed (75)
+   Start at  10:15:22
+   Duration  4.27s (transform 287ms, setup 0ms, import 539ms, tests 3.76s, environment 591ms)
+
