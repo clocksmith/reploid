@@ -13,6 +13,7 @@ import { attachmentInput, comparisonInput, comparisonSources, comparisonExport, 
 import { readonlyView } from './readonly-view.js';
 import profile from '../config/work-profile.json' with { type: 'json' };
 import { LOCAL_DOPPLER_MODELS } from '../config/doppler-local-models.js';
+import { openCanonicalChatHistory } from './chat-history.js';
 export { openChatHistory } from './chat-history.js';
 
 const copy = value => structuredClone(value);
@@ -30,13 +31,15 @@ export function createChatSession({
   swarm = null,
   partitions = null,
   scheduler = null,
+  canonicalHistory = null,
+  bindPublicationAuthorization = null,
   participantId = 'local-user',
   meshId = 'reploid-local-mesh',
   models = CANONICAL_CHAT_MODELS,
   now = Date.now,
   id = () => crypto.randomUUID()
 } = {}) {
-  const store = {
+  const store = canonicalHistory || {
     load() {
       try {
         const raw = storage?.getItem ? storage.getItem(STORAGE_KEY) : null;
@@ -73,8 +76,10 @@ export function createChatSession({
     now,
     id
   });
+  bindPublicationAuthorization?.(workspace.authorizePublication);
   const allowances = workspace.getState().limits;
-  const drafts = createChatDrafts({ storage, key: `${STORAGE_KEY}:drafts`, maxThreads: allowances.maxThreads,
+  const drafts = createChatDrafts({ storage: canonicalHistory ? { getItem: () => canonicalHistory.drafts } : storage,
+    persist: canonicalHistory ? raw => canonicalHistory.saveDrafts(raw) : null, key: `${STORAGE_KEY}:drafts`, maxThreads: allowances.maxThreads,
     maxCharacters: allowances.maxMessageCharacters, maxFiles: profile.files.maxInputs,
     maxFileBytes: profile.files.maxFileBytes, maxInputBytes: profile.files.maxInputBytes });
 
@@ -97,6 +102,13 @@ export function createChatSession({
 
   const getSessionState = () => {
     const wsState = workspace.getState();
+    // Only active execution metadata is ephemeral. Text and terminal states
+    // remain the committed workspace projection supplied above.
+    for (const view of wsState.ephemeralExecutions || []) {
+      const attempt = wsState.threads.find(thread => thread.id === view.threadId)?.attempts.find(item => item.id === view.attemptId);
+      if (attempt) Object.assign(attempt, { persistedStatus: attempt.status, ephemeral: true,
+        status: view.status, approval: view.approval, execution: view.execution });
+    }
     const activeThread = wsState.threads.find(t => t.id === wsState.selectedId) || null;
     const catalog = getCatalogModels();
     const preferred = candidates => candidates.find(model => model.id === profile.defaultModelId) || candidates[0];
@@ -139,7 +151,7 @@ export function createChatSession({
       assertOpen();
       const thread = workspace.getState().threads.find(item => item.id === threadId);
       assert(thread, 'Conversation not found');
-      workspace.setSystemContext(threadId, createChatContext(selection, thread.model, models));
+      return workspace.setSystemContext(threadId, createChatContext(selection, thread.model, models));
     },
     async prepareLocalModel(modelId) {
       assertOpen();
@@ -166,7 +178,7 @@ export function createChatSession({
       return { id: model.id, name: model.name, sizeBytes };
     },
     getDraft: drafts.get,
-    saveDraft: drafts.save,
+    saveDraft(threadId, value) { assertOpen(); return drafts.save(threadId, value); },
     getDocumentSources: comparisonSources,
     exportConversation(threadId) {
       assertOpen();
@@ -236,16 +248,17 @@ export function createChatSession({
     },
     approve(threadId, attemptId, previewId, accepted, options) {
       assertOpen();
-      workspace.approve(threadId, attemptId, previewId, accepted, options);
+      return workspace.approve(threadId, attemptId, previewId, accepted, options);
     },
-    revokeGrant(threadId, grantId) { assertOpen(); workspace.revokeGrant(threadId, grantId); },
-    renameThread(threadId, title) { assertOpen(); workspace.renameThread(threadId, title); },
-    archiveThread(threadId) { assertOpen(); workspace.closeThread(threadId); },
-    restoreThread(threadId) { assertOpen(); workspace.reopenThread(threadId); },
+    revokeGrant(threadId, grantId) { assertOpen(); return workspace.revokeGrant(threadId, grantId); },
+    renameThread(threadId, title) { assertOpen(); return workspace.renameThread(threadId, title); },
+    archiveThread(threadId) { assertOpen(); return workspace.closeThread(threadId); },
+    restoreThread(threadId) { assertOpen(); return workspace.reopenThread(threadId); },
     closeThread(threadId) {
       assertOpen();
       comparisons.get(threadId)?.controller.abort();
-      workspace.closeThread(threadId);
+      const saved = workspace.closeThread(threadId);
+      if (canonicalHistory) return Promise.resolve(saved).then(() => drafts.save(threadId, null));
       drafts.save(threadId, null);
     },
     async discoverPeers() {
@@ -312,13 +325,28 @@ export function createChatSession({
       for (const operation of comparisons.values()) operation.controller.abort();
       discovering = false;
       closing = Promise.resolve().then(async () => {
-        try { await workspace.close(); }
-        finally {
-          try { await execution.close(); }
-          finally { unsubscribeWorkspace(); unsubscribePartitions?.(); listeners.clear(); }
+        const failures = [];
+        for (const owner of [workspace, execution, drafts, canonicalHistory]) {
+          try { await owner?.close(); } catch (error) { failures.push(error); }
         }
+        unsubscribeWorkspace(); unsubscribePartitions?.(); listeners.clear();
+        if (failures.length) throw new AggregateError(failures, 'Chat session cleanup failed');
       });
       return closing;
     }
   });
+}
+
+/** Opt-in async composition. Opening history never dispatches a request. */
+export async function openCanonicalChatSession({ canonical, ...options }) {
+  assert(canonical && options.meshId && options.participantId, 'Canonical session requires explicit persistent identity');
+  const storage = options.storage ?? globalThis.localStorage;
+  let authorizeExecution = () => false;
+  const history = await openCanonicalChatHistory({ ...canonical, meshId: options.meshId, participantId: options.participantId,
+    legacy: { workspace: storage?.getItem?.(STORAGE_KEY) ?? null, drafts: storage?.getItem?.(`${STORAGE_KEY}:drafts`) ?? null },
+    authorizeExecution: scope => authorizeExecution(scope) });
+  try {
+    return createChatSession({ ...options, storage, canonicalHistory: history,
+      bindPublicationAuthorization: authorize => { authorizeExecution = authorize; } });
+  } catch (error) { await history.close(); throw error; }
 }

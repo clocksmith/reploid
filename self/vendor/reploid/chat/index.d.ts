@@ -104,6 +104,7 @@ export interface ChatWorkspaceOptions {
   policy?: ChatPolicy; now?: () => number; id?: () => string;
 }
 export interface ChatWorkspace {
+ authorizePublication(scope:{conversationId:string;writerEpoch:string;action:string;attempt: {attemptId:string;requesterId:string;stages?:readonly {participantId:string}[]} | null}):boolean;
   getState(): ChatState;
   subscribe(listener: (state: ChatState) => void): () => void;
   createThread(options: { model: ChatModel; purpose?: string; members?: string[]; permissions?: Record<string, unknown>; systemContext?: ChatSystemContext | null }): string;

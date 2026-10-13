@@ -46,7 +46,7 @@ export async function openCanonicalWorkspaceHistory({ store, key, meshId, partic
     if (prior == null) assert(initialWorkspace.threads.every(thread => thread.attempts.every(attempt => attempt.publicationMode !== 'canonical')),
       'Legacy import cannot assert canonical publication without verified records');
     const state = prior == null ? { schema, meshId, participantId, writerEpoch: null,
-      legacy: imported, workspace: initialWorkspace, publications: {} } : check(prior);
+      legacy: imported, drafts: imported.drafts, workspace: initialWorkspace, publications: {} } : check(prior);
     assert(state.writerEpoch === expectedWriterEpoch && state.writerEpoch !== writerEpoch, 'Workspace writer takeover raced or reused an epoch');
     state.writerEpoch = writerEpoch;
     return { state: bounded(state), result: null };
@@ -118,11 +118,18 @@ export async function openCanonicalWorkspaceHistory({ store, key, meshId, partic
     }
     await read(); return result;
   };
-  const loaded = await hydrate(), retainedLegacy = copy((await read()).legacy);
+  const loaded = await hydrate(), retained = await read(), retainedLegacy = copy(retained.legacy);
   return Object.freeze({
     mode: 'transactional', writerEpoch,
     load: () => copy(loaded),
     legacyDrafts: retainedLegacy.drafts,
+    drafts: Object.hasOwn(retained, 'drafts') ? retained.drafts : retainedLegacy.drafts,
+    async saveDrafts(raw) {
+      assert(typeof raw === 'string', 'Serialized drafts required');
+      const value = JSON.parse(raw);
+      assert(value && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length <= maxThreads + 1, 'Draft conversation allowance reached');
+      return transact(state => { state.drafts = raw; return null; });
+    },
     assertCurrentWriter: async () => { await read(); },
     publication,
     async save(input) {

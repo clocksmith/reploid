@@ -585,7 +585,14 @@ const WebRTCSwarm = {
       const rtcConfig = deps.getRtcConfig ? await deps.getRtcConfig() : deps.rtcConfig || policy.webrtc.rtcConfig;
       if (_manualStop || _generation !== generation || exchange && !exchange.isActive()) return;
       const connection = new RTCPeerConnection(rtcConfig);
-      const dataChannel = connection.createDataChannel('reploid', CONFIG.channelOptions);
+      let dataChannel;
+      try { dataChannel = connection.createDataChannel('reploid', CONFIG.channelOptions); }
+      catch (error) {
+        // Registration has not happened yet: disconnect cannot find this owner.
+        try { connection.close(); }
+        catch (cleanup) { throw new AggregateError([error, cleanup], 'Primary channel creation and cleanup failed'); }
+        throw error;
+      }
 
       const peer = {
         id: remotePeerId,

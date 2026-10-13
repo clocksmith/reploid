@@ -1,4 +1,6 @@
 /** Bounded canonical history over the existing browser storage owner. */
+import { openCanonicalWorkspaceHistory } from '../vendor/reploid/chat/index.js';
+import { verifyPartitionStageCommit } from '../vendor/reploid/mesh/index.js';
 import { createIndexedDbStore } from '../vendor/reploid/adapters/browser.js';
 
 export async function openChatHistory({ name, maxConversations, maxConversationBytes, openTimeoutMs,
@@ -33,4 +35,32 @@ export async function openChatHistory({ name, maxConversations, maxConversationB
       await store.close();
     },
   });
+}
+
+/** Local saved-history verification never renews remote compute/disclosure.
+ * The session supplies the separate live-attempt publication authorization. */
+export async function openCanonicalChatHistory({ name, maxWorkspaceBytes, maxThreads, openTimeoutMs, runtime,
+  meshId, participantId, writerEpoch, expectedWriterEpoch, legacy, authorizeExecution,
+  indexedDB = globalThis.indexedDB }) {
+  if (typeof authorizeExecution !== 'function' || !['metadataDigest', 'validateResidentAttemptIdentity',
+    'canonicalGenerationIdentity', 'validateExecutionPublication', 'validateAdmissionPublication'].every(name => typeof runtime?.[name] === 'function')) {
+    throw Error('Explicit canonical runtime and live publication authorization required.');
+  }
+  const store = await openChatHistory({ name, maxConversations: 1, maxConversationBytes: maxWorkspaceBytes, openTimeoutMs, indexedDB });
+  let history;
+  try {
+    history = await openCanonicalWorkspaceHistory({ store, key: 'workspace', meshId, participantId, writerEpoch,
+      expectedWriterEpoch, legacy, maxWorkspaceBytes, maxThreads,
+      publicationOptions: () => ({ doppler: runtime,
+        authorize: scope => ['writer', 'read', 'replay'].includes(scope.action) || authorizeExecution(scope) === true,
+        authenticateCommit: (acknowledgment, stage, attempt, evidence) =>
+          verifyPartitionStageCommit({ runtime, acknowledgment, stage, attempt, evidence }) }) });
+    let closing;
+    return Object.freeze({ ...history, close() {
+      return closing ??= (async () => { try { await history.close(); } finally { await store.close(); } })();
+    } });
+  } catch (error) {
+    try { await history?.close(); } finally { await store.close(); }
+    throw error;
+  }
 }

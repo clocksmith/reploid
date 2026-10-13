@@ -9,8 +9,7 @@ test.beforeEach(async ({ page }) => {
       return route.fulfill({ contentType: name.endsWith('.json') ? 'application/json' : 'text/javascript',
         body: await readFile(process.env.DOPPLER_SOURCE_ROOT + '/src/' + name.slice('/doppler/'.length)) });
     }
-    if (!['/host/chat-history.js', '/core/verification-worker.js', '/core/vendor/acorn.js'].includes(name)
-      && !name.startsWith('/vendor/reploid/')) return route.abort();
+    if (name.includes('..') || !['/host/', '/core/', '/vendor/', '/config/', '/infrastructure/', '/providers/', '/pool/'].some(prefix => name.startsWith(prefix))) return route.abort();
     return route.fulfill({ contentType: name.endsWith('.json') ? 'application/json' : 'text/javascript', body: await readFile('self' + name) });
   });
   await page.goto('http://127.0.0.1:5199/');
@@ -234,4 +233,36 @@ test('signed canonical evidence survives actual IndexedDB closure and rejects re
   expect(observed.corruptionRejected).toBe(true);
   expect(observed.workspace).toEqual({ reopenedText: observed.expectedText, revokedNewPublish: true,
     corruptedWorkspaceRejected: true, legacyUnchanged: true, metadataText: '' });
+});
+
+
+test('opt-in host opens async history and drafts while legacy storage stays byte exact', async ({ page }) => {
+  test.skip(!process.env.DOPPLER_SOURCE_ROOT, 'Explicit source contracts required');
+  const result = await page.evaluate(async () => {
+    const [{ createChatSession, openCanonicalChatSession }, runtime] = await Promise.all([
+      import('/host/chat-session.js'), import('/doppler/partitions.js')]);
+    let dispatches = 0;
+    const service = { async open() { dispatches++; throw Error('unexpected GPU execution'); }, async close() {} };
+    const options = { service, meshId: 'mesh', participantId: 'requester', storage: localStorage };
+    const old = createChatSession(options), thread = old.createThread();
+    old.saveDraft(thread, { text: 'unsent legacy draft', files: [] }); await old.close();
+    const legacy = localStorage.getItem('reploid.chat-workspace:v1'), drafts = localStorage.getItem('reploid.chat-workspace:v1:drafts');
+    const canonical = { runtime, name: 'host-session-' + crypto.randomUUID(), maxWorkspaceBytes: 2000000,
+      maxThreads: 64, openTimeoutMs: 1000, writerEpoch: '0'.repeat(32), expectedWriterEpoch: null };
+    const session = await openCanonicalChatSession({ ...options, canonical });
+    const imported = session.getDraft(thread).text;
+    await session.saveDraft(thread, { text: 'durable new draft', files: [] });
+    const outcome = await session.send(thread, 'Must not use unsupported legacy route');
+    await session.close();
+    const reopened = await openCanonicalChatSession({ ...options, canonical: { ...canonical,
+      writerEpoch: '1'.repeat(32), expectedWriterEpoch: canonical.writerEpoch } });
+    const restored = reopened.getDraft(thread).text;
+    const status = reopened.getState().threads[0].attempts[0].status;
+    await reopened.close();
+    return { imported, restored, status, dispatches, failure: outcome.error,
+      oldWorkspaceUntouched: legacy === localStorage.getItem('reploid.chat-workspace:v1'),
+      oldDraftsUntouched: drafts === localStorage.getItem('reploid.chat-workspace:v1:drafts') };
+  });
+  expect(result).toEqual({ imported: 'unsent legacy draft', restored: 'durable new draft', status: 'failed', dispatches: 0,
+    failure: 'Canonical history requires a prepared canonical partition route', oldWorkspaceUntouched: true, oldDraftsUntouched: true });
 });

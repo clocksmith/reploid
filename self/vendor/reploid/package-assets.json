@@ -326,8 +326,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 7911,
-      "sha256": "1e911d1f6b242b69bea7c97ae138b9d7ca1b91bcbb04e6bced5e32be8aaa0709"
+      "bytes": 8102,
+      "sha256": "0d1070014c62165470241a004e8fcc5ab2524f10b3900de26a06cf809aae1acc"
     },
     {
       "path": "chat/index.js",
@@ -356,13 +356,13 @@
     },
     {
       "path": "chat/workspace-history.d.ts",
-      "bytes": 1482,
-      "sha256": "7b8783233efbd22c2fec2aa60f371008871107a9fbb62b16eaae33679191b3e4"
+      "bytes": 1552,
+      "sha256": "c41e9e4eae338e7dd477dea01037342421cd47d18be46217ad7b187dbc054e1c"
     },
     {
       "path": "chat/workspace-history.js",
-      "bytes": 10925,
-      "sha256": "17fadc291124ea2db35a983073f89f28ab6a0c4f5ab88b48f8535321177bab93"
+      "bytes": 11431,
+      "sha256": "050f571642abd1f604768c4a4f5566977c8cd462b4dbbdea0e005e2e8f6de328"
     },
     {
       "path": "chat/workspace-publication.d.ts",
@@ -376,8 +376,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 23255,
-      "sha256": "4d40361b45ac2f8dcf957129d7da3516c73e6e20505b35c0d0b84489132412a4"
+      "bytes": 25010,
+      "sha256": "ffd7316fab21b4958d60a65ed8492d07b10fb3bf44ee3dc17ceb8885e90755b0"
     },
     {
       "path": "config/defaults.json",
@@ -1016,8 +1016,8 @@
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 46273,
-      "sha256": "a435e3fa5c736ecc5c09da0b21fe3c38010c0b0e19ede5fdb3be5584a1d134b1"
+      "bytes": 46585,
+      "sha256": "407d453582b837099f34c07788892d88a1b1af49db2625ea2799ad59e3d2da6e"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",
