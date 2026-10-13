@@ -20,9 +20,8 @@ Subtree.
 
 Inputs: Doppler plans/codecs, authenticated executors, grants and bounded resources.
 Outputs: tokens, costs and settlement.
-Legacy two-stage plans traverse both partitions; B returns one selected token.
-Ordered routes traverse every declared stage; only the final stage selects tokens.
-Model geometry determines stage count. Existing attempts retain replica bindings.
+Legacy plans traverse A/B. Ordered routes traverse all stages; only the last samples.
+Model geometry determines stage count; attempts retain replicas.
 Session: [resident integration contract](../../../../../docs/chat-mvp.md#resident-integration-contract).
 
 ## Invariants
@@ -36,7 +35,9 @@ Session: [resident integration contract](../../../../../docs/chat-mvp.md#residen
 - Busy replicas never move existing conversations. Recovery requires fresh identities
   unless Doppler supports continuation. Duplicates never advance state twice.
 - Cancellation settles the named attempts, preserving shared weights and independent threads.
-- FIFO token leases share weights. Weightless requesters bind requester identity and placement generation.
+- FIFO execution leases share weights: legacy routes lease a token traversal;
+  ordered routes lease each stage independently. Weightless requesters bind
+  requester identity and placement generation.
 - No import-time connections, downloads or Doppler imports.
 
 ## Acceptance
