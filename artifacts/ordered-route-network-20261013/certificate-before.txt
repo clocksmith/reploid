@@ -1,0 +1,102 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ❯ tests/unit/ordered-partition-network.test.js (9 tests | 1 failed | 8 skipped) 9ms
+     ↓ keeps simultaneous routes to the same participant on distinct channels and retires only the named route
+     ↓ snapshots route before authentication awaits and passes exact authenticated transport metadata
+     ↓ rejects host stage mismatch before endpoint creation
+     ↓ rejects an altered acceptance route and closes the already prepared peer endpoint
+     ↓ bounds handshake bytes before parsing and refuses extra routes without evicting a healthy one
+     × checks certificates again after asynchronous route validation 9ms
+     ↓ retains failed cleanup capacity and permits retry without disturbing another route
+     ↓ does not infer resident cleanup from a lost socket and retries network close explicitly
+     ↓ times out an absent handshake and never creates an endpoint
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/ordered-partition-network.test.js > authenticated immutable route-keyed network (injected certificate verifier) > checks certificates again after asynchronous route validation
+AssertionError: promise resolved "{ …(5) }" instead of rejecting
+
+- Expected
++ Received
+
+- Error {
+-   "message": "rejected promise",
++ {
++   "channel": EventTarget {
++     "close": [Function close],
++     "readyState": "closed",
++     "send": [Function send],
++     Symbol(listeners): {
++       "bubbling": Map {
++         "close" => [],
++         "message" => [],
++       },
++       "capturing": Map {},
++     },
++     Symbol(listenerOptions): {
++       "bubbling": Map {
++         "close" => [],
++         "message" => [],
++       },
++       "capturing": Map {},
++     },
++   },
++   "close": [Function Mock],
++   "remoteParticipantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
++   "remoteTransportId": "transport-1",
++   "route": {
++     "activation": {
++       "components": 1,
++       "dtype": "f32",
++       "elementStrideBytes": 4,
++       "hiddenSize": 8,
++       "precision": "f32",
++       "schema": "doppler.activation-tensor/v1",
++     },
++     "modelId": "model",
++     "modelIdentity": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
++     "planId": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
++     "schema": "reploid.partition-route/v1",
++     "stages": [
++       {
++         "executionId": "execution-0",
++         "index": 0,
++         "participantId": "peer:aaaaaaaaaaaaaaaaaaaaaaaa",
++         "residentId": "resident-0",
++         "transportId": "transport-0",
++       },
++       {
++         "executionId": "execution-1",
++         "index": 1,
++         "participantId": "peer:bbbbbbbbbbbbbbbbbbbbbbbb",
++         "residentId": "resident-1",
++         "transportId": "transport-1",
++       },
++       {
++         "executionId": "execution-2",
++         "index": 2,
++         "participantId": "node-2",
++         "residentId": "resident-2",
++         "transportId": "transport-2",
++       },
++     ],
++   },
+  }
+
+ ❯ tests/unit/ordered-partition-network.test.js:74:109
+     72|   it('checks certificates again after asynchronous route validation',a…
+     73|     const entered=Promise.withResolvers(), release=Promise.withResolve…
+     74|     try{const operation=f.networks[0].connect('transport-1',{route:f.r…
+       |                                                                                                             ^
+     75|       await entered.promise;f.bindings[1].remote='replacement';release…
+     76|       expect(f.owners).toEqual([[],[]]);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 8 skipped (9)
+   Start at  11:01:51
+   Duration  294ms (transform 43ms, setup 0ms, import 121ms, tests 9ms, environment 97ms)
+

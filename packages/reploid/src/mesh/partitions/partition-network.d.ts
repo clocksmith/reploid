@@ -1,6 +1,9 @@
+import type { RoutePartitionNetworkOptions, RoutePartitionNetwork } from './partition-route-network.js';
+export type { RoutePartitionNetworkOptions, RoutePartitionNetwork } from './partition-route-network.js';
 import type { SwarmTransport } from '../../transport/swarm.js';
 import type { PartitionPeer } from './partition-peer.js';
 export interface PartitionNetwork<T = PartitionPeer> { connect(peerId: string): Promise<T>; close(): Promise<void> }
+export function createPartitionNetwork<T extends {close():void|Promise<void>}>(options:RoutePartitionNetworkOptions<T>):RoutePartitionNetwork<T>;
 export function createPartitionNetwork<T extends { close(): void | Promise<void> }>(options: {
   transport: SwarmTransport;
   /** Existing mesh challenge verifier authenticating signatures against current RTC certificates. */

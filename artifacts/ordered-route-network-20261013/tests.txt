@@ -1,0 +1,13 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/ordered-partition-network.test.js (11 tests) 110ms
+ ✓ tests/unit/partition-api.test.js (42 tests) 3751ms
+     ✓ discovers cooperative executors with replica coverage=false  1698ms
+     ✓ discovers cooperative executors with replica coverage=true  1328ms
+
+ Test Files  2 passed (2)
+      Tests  53 passed (53)
+   Start at  11:04:48
+   Duration  4.31s (transform 258ms, setup 0ms, import 511ms, tests 3.86s, environment 247ms)
+

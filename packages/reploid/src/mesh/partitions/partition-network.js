@@ -1,10 +1,12 @@
+import { createRoutePartitionNetwork } from './partition-route-network.js';
 import { assertPartition as assert } from './partition-contract.js';
 
 const LABEL = 'reploid-partitions';
 const READY = 'reploid.partition-channel-ready/v1';
 
 /** Uses the existing mesh certificate/signature verifier; never trusts an advertised peer ID. */
-export function createPartitionNetwork({ transport, verifyPeer, createEndpoint, maxPeers, timeoutMs, onPeer = () => {}, label = LABEL }) {
+export function createPartitionNetwork({ transport, verifyPeer, createEndpoint, maxPeers, timeoutMs, onPeer = () => {}, label = LABEL, ordered = null }) {
+  if (ordered !== null) return createRoutePartitionNetwork({ transport, verifyPeer, createEndpoint, maxPeers, timeoutMs, onPeer, label, ordered });
   assert(/^reploid-partitions(?:-[a-z-]+)?$/.test(label) && label.length <= 80, 'Invalid partition channel label');
   assert(typeof transport?.onDataChannel === 'function' && typeof transport.getPeerBinding === 'function'
     && typeof verifyPeer === 'function' && typeof createEndpoint === 'function'

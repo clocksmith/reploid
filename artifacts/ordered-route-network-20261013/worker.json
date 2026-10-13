@@ -1,0 +1,17 @@
+{
+  "files": {
+    "packages/reploid/src/mesh/partitions/partition-network.js": "2ebf730527ffe2f2907b008a0f69eef20cf4d2ecee30cf933d6dcc4280dbc708",
+    "packages/reploid/src/mesh/partitions/partition-route-network.js": "20fb8045b8f85e9d5e6ce29f6454d43c1d0d9c39a245e96797e83adc26a0a7ea"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [],
+    "events": [],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 2
+    }
+  }
+}
