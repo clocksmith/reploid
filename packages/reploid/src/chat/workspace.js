@@ -14,6 +14,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     assert(Number.isSafeInteger(policy[name]) && policy[name] > 0, `Invalid ${name}`);
   }
   assert(policy.attemptTimeoutMs <= 2147483647, 'Attempt timeout exceeds timer range');
+  const transactional = store.mode === 'transactional';
+  if (transactional) assert(['assertCurrentWriter', 'publication', 'project'].every(name => typeof store[name] === 'function'),
+    'Transactional workspace publication ports required');
+  const pendingSaves = new Set();
   const limits = copy(policy);
   const validateSystemContext = value => {
     if (value == null) return null;
@@ -45,7 +49,12 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     }
   }
   const snapshot = () => copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId,
-    selectedId, threads: storageError ? durableThreads : threads, runningIds: [...runs.keys()], storageError,
+    selectedId, threads: transactional || storageError ? durableThreads : threads, runningIds: [...runs.keys()], storageError,
+    ...(transactional ? { ephemeralExecutions: [...runs.keys()].flatMap(threadId => {
+      const attempt = threads.find(thread => thread.id === threadId)?.attempts.at(-1);
+      return attempt && activeStatuses.has(attempt.status) ? [{ threadId, attemptId: attempt.id, status: attempt.status,
+        approval: attempt.approval, execution: attempt.execution }] : [];
+    }) } : {}),
     limits: { maxThreads: limits.maxThreads, maxMessageCharacters: limits.maxMessageCharacters } });
   const notify = () => { for (const listener of listeners) {
     try { listener(snapshot()); } catch (error) { console.error('[ChatWorkspace] listener failed', error); }
@@ -55,6 +64,18 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     try {
       const saved = copy({ schema: 'reploid.chat-workspace/v1', meshId, participantId, threads });
       const result = store.save(saved);
+      if (transactional) {
+        const operation = Promise.resolve(result).then(() => {
+          durableThreads = copy(saved.threads); notify();
+        }, error => {
+          storageError = String(error.message || error);
+          for (const run of runs.values()) run.controller.abort(error);
+          notify(); throw error;
+        });
+        pendingSaves.add(operation);
+        operation.then(() => pendingSaves.delete(operation), () => pendingSaves.delete(operation));
+        return operation;
+      }
       if (result && typeof result.then === 'function') {
         Promise.resolve(result).catch(() => {});
         throw new Error('Legacy history store must complete synchronously');
@@ -68,7 +89,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       for (const run of runs.values()) run.controller.abort(error);
       throw error;
     }
-    finally { notify(); }
+    finally { if (!transactional || storageError) notify(); }
   };
   const current = () => { assert(!closed, 'Workspace is closed'); assert(!storageError, `History storage failed: ${storageError}`); };
   const find = threadId => { const thread = threads.find(item => item.id === threadId); assert(thread, 'Conversation not found'); return thread; };
@@ -92,14 +113,15 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     const controller = new AbortController();
     const attempt = { id: id(), threadId: thread.id, userMessageId, responseId: id(), retryOf,
       status: 'queued', createdAt: now(), finishedAt: null, error: null, approval: null,
-      execution: null, authorization: null, request: copy(request),
+      execution: null, authorization: null, ...(transactional ? { publicationMode: 'canonical' } : {}), request: copy(request),
       systemContext: copy(retryOf ? thread.attempts.find(item => item.id === retryOf)?.systemContext ?? null : thread.systemContext) };
     const response = { id: attempt.responseId, attemptId: attempt.id, role: 'assistant', content: '', status: 'queued' };
     thread.attempts.push(attempt); thread.messages.push(response);
     const run = { controller, approval: null, completion: null, nextSequence: 0 };
     runs.set(thread.id, run);
     if (select) selectedId = thread.id;
-    try { persist(); }
+    let admitted;
+    try { admitted = persist(); }
     catch (error) { runs.delete(thread.id); thread.attempts.pop(); thread.messages.pop(); throw error; }
     const matches = envelope => envelope?.threadId === thread.id && envelope?.attemptId === attempt.id;
     const live = () => !controller.signal.aborted && runs.get(thread.id) === run;
@@ -110,12 +132,30 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
     };
     controller.signal.addEventListener('abort', aborted, { once: true });
     run.completion = (async () => {
+      let publication = null;
       try {
+        if (transactional) await admitted;
+        controller.signal.throwIfAborted();
+        if (transactional) await store.assertCurrentWriter();
+        publication = transactional ? await store.publication(thread.id) : undefined;
         const result = await execute(copy({ ...request, threadId: thread.id, attemptId: attempt.id,
           meshId, participantId }), {
           signal: controller.signal,
+          ...(transactional ? { publication, publisherEpoch: store.writerEpoch,
+            async onPublished(record) {
+              controller.signal.throwIfAborted();
+              const projection = await store.project(thread.id, attempt.id, record);
+              controller.signal.throwIfAborted();
+              assert(live() && matches(projection), 'Publication projection is no longer current');
+              assert(projection.content.length <= limits.maxResponseCharacters, 'Published response exceeds conversation limit');
+              response.content = projection.content; response.publicationDigests = copy(projection.publicationDigests);
+              response.status = 'streaming'; attempt.status = 'executing';
+              run.publicationTerminal = projection.terminal;
+              await persist(); controller.signal.throwIfAborted();
+            } } : {}),
           onDelta(envelope) {
             if (!live() || !matches(envelope)) return;
+            assert(!transactional, 'Canonical response requires its saved publication');
             assert(Number.isSafeInteger(envelope.sequence) && envelope.sequence >= 0, 'Invalid response sequence');
             if (envelope.sequence < run.nextSequence) return;
             assert(envelope.sequence === run.nextSequence, 'Response stream has a gap');
@@ -148,12 +188,12 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
               if (accepted !== true || !live() || preview.expiresAt <= now()) return false;
               attempt.authorization = { kind: 'once', grantId: null, peerId: preview.peerId,
                 ...copy(scope), source: 'send', expiresAt: preview.expiresAt };
-              persist(); controller.signal.throwIfAborted();
+              await persist(); controller.signal.throwIfAborted();
               return true;
             }
             if (grant) {
               attempt.authorization = { kind: 'thread-grant', grantId: grant.id, peerId: preview.peerId, ...copy(scope) };
-              persist(); controller.signal.throwIfAborted();
+              await persist(); controller.signal.throwIfAborted();
               return true;
             }
             attempt.status = 'approval'; attempt.approval = { ...copy(preview), reusable: !!scope };
@@ -173,27 +213,37 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
           && JSON.stringify(result.adapterIdentities) === JSON.stringify((request.model.adapters || []).map(adapter => adapter.identity)), 'Response identity mismatch');
         assert(typeof result.content === 'string'
           && result.content.length <= limits.maxResponseCharacters, 'Invalid completed response');
-        assert(!response.content || result.content === response.content, 'Completed response differs from its stream');
+        assert(transactional ? run.publicationTerminal === true && result.content === response.content
+          : !response.content || result.content === response.content, 'Completed response differs from its stream');
+        if (transactional) await store.assertCurrentWriter();
         response.content = result.content;
         attempt.execution = copy(result.execution || attempt.execution);
         assert(attempt.execution?.stopReason !== 'max-tokens',
           'The answer reached its token limit and is incomplete. Its partial text is preserved; retry starts a new attempt.');
-        assert(result.content.trim(), 'Invalid completed response');
+        assert(transactional || result.content.trim(), 'Invalid completed response');
         response.status = 'completed'; attempt.status = 'completed';
       } catch (error) {
-        attempt.status = controller.signal.aborted ? 'cancelled' : 'failed';
+        let cancelled = controller.signal.aborted;
+        if (transactional && cancelled && publication) {
+          try {
+            const saved = await publication.reconcile();
+            const durableAttempt = saved.attempts.find(item => item.identity.attemptId === attempt.id);
+            cancelled = !durableAttempt || durableAttempt.status === 'cancelled';
+          } catch { cancelled = false; } // Unknown storage is not confirmed cancellation.
+        }
+        attempt.status = cancelled ? 'cancelled' : 'failed';
         attempt.error = String((controller.signal.reason || error)?.message || error);
         response.status = attempt.status;
       } finally {
         clearTimeout(timer); controller.signal.removeEventListener('abort', aborted);
         run.approval?.(false); attempt.approval = null; attempt.finishedAt = now();
-        runs.delete(thread.id); persist();
+        runs.delete(thread.id); await persist();
       }
       return copy(attempt);
     })();
     return run.completion;
   };
-  if (loaded) persist();
+  if (loaded) { const initialSave = persist(); initialSave?.catch(() => {}); }
   return Object.freeze({
     getState: snapshot,
     subscribe(listener) { listeners.add(listener); listener(snapshot()); return () => listeners.delete(listener); },
@@ -203,7 +253,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       assert(Array.isArray(members) && members.every(member => typeof member === 'string' && member), 'Invalid conversation members');
       const thread = { id: id(), model: modelIdentity(model), purpose, systemContext: validateSystemContext(systemContext), members: [...new Set([participantId, ...members])],
         permissions: copy(permissions), grants: [], messages: [], attempts: [], closed: false, createdAt: now() };
-      threads.push(thread); selectedId = thread.id; persist(); return thread.id;
+      threads.push(thread); selectedId = thread.id; const saved = persist();
+      return transactional ? saved.then(() => thread.id) : thread.id;
     },
     select(threadId) { current(); if (threadId !== null) find(threadId); selectedId = threadId; notify(); },
     setSystemContext(threadId, value) {
@@ -211,11 +262,11 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       assert(!thread.closed && !runs.has(threadId), 'Change context only in an open idle conversation');
       const previous = thread.systemContext;
       thread.systemContext = validateSystemContext(value);
-      try { persist(); } catch (error) { thread.systemContext = previous; notify(); throw error; }
+      try { return persist(); } catch (error) { thread.systemContext = previous; notify(); throw error; }
     },
-    renameThread(threadId, title) { current(); assert(typeof title === 'string' && title.trim() && title.length <= limits.maxMessageCharacters, 'Invalid conversation title'); find(threadId).title = title.trim(); persist(); },
-    closeThread(threadId) { current(); find(threadId).closed = true; if (selectedId === threadId) selectedId = null; persist(); },
-    reopenThread(threadId) { current(); find(threadId).closed = false; selectedId = threadId; persist(); },
+    renameThread(threadId, title) { current(); assert(typeof title === 'string' && title.trim() && title.length <= limits.maxMessageCharacters, 'Invalid conversation title'); find(threadId).title = title.trim(); return persist(); },
+    closeThread(threadId) { current(); find(threadId).closed = true; if (selectedId === threadId) selectedId = null; return persist(); },
+    reopenThread(threadId) { current(); find(threadId).closed = false; selectedId = threadId; return persist(); },
     send(threadId, content, { select = true, authorizeDisclosure = null } = {}) {
       current(); const thread = find(threadId);
       assert(!thread.closed && !runs.has(threadId), 'Open an idle conversation before sending');
@@ -254,9 +305,15 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
         attempt.authorization = { kind: remember ? 'thread-grant' : 'once', grantId: grant?.id || null,
           peerId: attempt.approval.peerId, recipientIdentity: attempt.approval.recipientIdentity || null };
         run.deciding = true;
-        try { persist(); }
-        catch (error) { if (grant) thread.grants.pop(); attempt.authorization = null; run.approval?.(false); throw error; }
-        finally { run.deciding = false; }
+        const fail = error => { if (grant) thread.grants.pop(); attempt.authorization = null; run.approval?.(false); run.deciding = false; throw error; };
+        try {
+          const saved = persist();
+          if (transactional) return saved.then(() => {
+            run.deciding = false;
+            run.approval?.(allowed && !run.controller.signal.aborted && attempt.approval?.expiresAt > now());
+          }, fail);
+          run.deciding = false;
+        } catch (error) { return fail(error); }
       }
       if (!run.approval) return; // A state observer may have revoked the grant or cancelled.
       run.approval(allowed && !run.controller.signal.aborted);
@@ -269,14 +326,16 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       grant.revokedAt = now();
       const attempt = thread.attempts.at(-1), run = runs.get(threadId);
       if (attempt?.authorization?.grantId === grantId) run?.controller.abort(new Error('Conversation grant revoked'));
-      persist();
+      return persist();
     },
     cancel(threadId) { const run = runs.get(threadId); run?.controller.abort(new Error('Response stopped')); return run?.completion || Promise.resolve(); },
     async close() {
       closed = true;
       const pending = [...runs.values()];
       for (const run of pending) run.controller.abort(new Error('Workspace closed'));
-      await Promise.allSettled(pending.map(run => run.completion)); listeners.clear();
+      await Promise.allSettled(pending.map(run => run.completion));
+      const saved = await Promise.allSettled([...pendingSaves]); listeners.clear();
+      if (transactional && (saved.some(row => row.status === 'rejected') || storageError)) throw new Error(`History storage failed: ${storageError}`);
     }
   });
 }

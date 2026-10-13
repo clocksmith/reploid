@@ -188,11 +188,50 @@ test('signed canonical evidence survives actual IndexedDB closure and rejects re
     });
     const corruptionRejected = await restarted.readPublished(-1).then(() => false, () => true);
     await store.close();
+    // The real workspace owner uses the same IndexedDB transaction boundary for
+    // admission and publication, preserving legacy bytes without a text copy.
+    const { openCanonicalWorkspaceHistory } = await import('/vendor/reploid/chat/workspace-history.js');
+    const database = { ...options, name: options.name + '-workspace' };
+    let rootStore = await openChatHistory(database), disclosure = true;
+    const legacy = { workspace: JSON.stringify({ schema: 'reploid.chat-workspace/v1', meshId: 'mesh', participantId: 'q',
+      threads: [{ id: 'old', messages: [{ id: 'old-answer', role: 'assistant', content: 'saved legacy answer' }], attempts: [] }] }),
+      drafts: '{ "old": { "text": "never sent", "files": [] } }' };
+    const rootOptions = { store: rootStore, key: 'workspace', meshId: 'mesh', participantId: 'q', writerEpoch: epoch,
+      expectedWriterEpoch: null, legacy, maxWorkspaceBytes: 1000000, maxThreads: 8,
+      publicationOptions: () => ({ ...ownerOptions,
+        authorize: ({ action }) => ['read', 'replay', 'writer'].includes(action) || disclosure }) };
+    const workspace = await openCanonicalWorkspaceHistory(rootOptions), metadata = workspace.load();
+    metadata.threads.push({ id: 'thread', messages: [{ id: 'answer', role: 'assistant', content: '' }],
+      attempts: [{ id: 'a', responseId: 'answer', publicationMode: 'canonical', status: 'queued' }] });
+    await workspace.save(metadata);
+    const publisher = await workspace.publication('thread');
+    await publisher.admitAttempt({ identity: attempt, generationPolicy: policy,
+      executionIdentity: hash, vocabSize: 100, deadlineAt: Date.now() + 60000 });
+    const committed = await publisher.publish(publication, { evidence });
+    const projected = await workspace.project('thread', 'a', { publication, receipt: committed });
+    metadata.threads[1].messages[0].content = projected.content; await workspace.save(metadata);
+    const stored = await rootStore.read('workspace');
+    await workspace.close(); await rootStore.close(); disclosure = false;
+    rootStore = await openChatHistory(database);
+    const reloaded = await openCanonicalWorkspaceHistory({ ...rootOptions, store: rootStore, writerEpoch: '1'.repeat(32), expectedWriterEpoch: epoch });
+    const reopenedText = reloaded.load().threads[1].messages[0].content;
+    const revokedNewPublish = await (await reloaded.publication('thread')).publish(publication, { evidence }).then(() => false, () => true);
+    await reloaded.close();
+    await rootStore.transact('workspace', state => {
+      state.publications.thread.records[0].evidence[0].signature = 'bad'; return { state, result: null };
+    });
+    const corruptedWorkspaceRejected = await openCanonicalWorkspaceHistory({ ...rootOptions, store: rootStore,
+      writerEpoch: '2'.repeat(32), expectedWriterEpoch: '1'.repeat(32) }).then(() => false, () => true);
+    await rootStore.close();
     return { receipt, duplicate, savedEvidence: saved.evidence, evidence,
-      text: saved.publication.delta.text, expectedText: transition.delta, corruptionRejected };
+      text: saved.publication.delta.text, expectedText: transition.delta, corruptionRejected,
+      workspace: { reopenedText, revokedNewPublish, corruptedWorkspaceRejected, legacyUnchanged: stored.legacy.workspace === legacy.workspace,
+        metadataText: stored.workspace.threads[1].messages[0].content } };
   }, policy);
   expect(observed.duplicate).toEqual(observed.receipt);
   expect(observed.savedEvidence).toEqual(observed.evidence);
   expect(observed.text).toBe(observed.expectedText);
   expect(observed.corruptionRejected).toBe(true);
+  expect(observed.workspace).toEqual({ reopenedText: observed.expectedText, revokedNewPublish: true,
+    corruptedWorkspaceRejected: true, legacyUnchanged: true, metadataText: '' });
 });
