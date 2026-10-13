@@ -1,0 +1,83 @@
+{
+  "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
+  "files": {
+    "final/stage-catalog.js": "4b8a183ff69c0c0d6b7be2a49972538e18f31c29e7ed205a385d2f1fb51ba3d9",
+    "final/stage-catalog.test.js": "5201c12d42774a1922c1704fc3b47a6975e3c17753f454f42bef9c44026e5cf6",
+    "final/verify-native.js": "e3166bc588eb99b601e27db6517587f042c1ecd5c8d96bb51be5b231661620cc"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/final/stage-catalog.js:48: Dynamic property write detected: [applicationRoot, capsuleRoot, catalogPath, catalogSha256, output] - verify input sanitization",
+      "Warning in /testing/final/stage-catalog.test.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/final/verify-native.js:9: Dynamic property write detected: [directory, archive, output, catalogSha256] - verify input sanitization",
+      "Warning in /testing/final/verify-native.js:43: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/final/verify-native.js:12: Suspicious variable name: exec - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791899185361,
+        "path": "/testing/final/stage-catalog.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [applicationRoot, capsuleRoot, catalogPath, catalogSha256, output] - verify input sanitization",
+        "line": 48,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791899185364,
+        "path": "/testing/final/stage-catalog.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791899185366,
+        "path": "/testing/final/verify-native.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [directory, archive, output, catalogSha256] - verify input sanitization",
+        "line": 9,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791899185366,
+        "path": "/testing/final/verify-native.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 43,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791899185366,
+        "path": "/testing/final/verify-native.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 12,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/final/stage-catalog.test.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [],
+      "filesAnalyzed": 3
+    }
+  }
+}

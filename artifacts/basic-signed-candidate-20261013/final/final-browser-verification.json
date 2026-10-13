@@ -1,0 +1,14 @@
+{
+  "sourceRevision": "7a49a7eabf2415163d36c08c0dfc62859a098834",
+  "root": "/private/var/tmp/reploid-basic-signed-candidate-20261013/app",
+  "browserFiles": 2020,
+  "bundleHash": "sha256:6ab27132598fea70c62dcef71fe491ba0f7a70e46c73cd6caf2f74db5c3e19f2",
+  "browserManifestSha256": "31aa2c80b9d7db8993983037edbc3f373af1b27e66333ccba9fc0f5bf3412fd0",
+  "catalogSha256": "c4a2d9db0d474e81711ed01af5f47341cbf73a1eff70c28767f3099e96465a96",
+  "metadataFiles": 39,
+  "artifactMappings": 57,
+  "onlyCatalogMetadataUrlsChanged": true,
+  "canonicalDefaultOff": true,
+  "GPUOpened": false,
+  "signedApplicationJourneyPassed": false
+}
