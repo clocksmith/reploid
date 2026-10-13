@@ -1,0 +1,14 @@
+
+ RUN  v4.1.10 /private/var/tmp/reploid-output-route-fix-20261012
+
+ ✓ tests/unit/automatic-partition-discovery-lifetime.test.js (4 tests) 18ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js (6 tests) 122ms
+ ✓ tests/unit/partition-api.test.js (41 tests) 3725ms
+     ✓ discovers cooperative executors with replica coverage=false  1696ms
+     ✓ discovers cooperative executors with replica coverage=true  1350ms
+
+ Test Files  3 passed (3)
+      Tests  51 passed (51)
+   Start at  22:01:51
+   Duration  4.16s (transform 226ms, setup 0ms, import 408ms, tests 3.87s, environment 388ms)
+

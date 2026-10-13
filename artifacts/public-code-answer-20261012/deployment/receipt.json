@@ -12,5 +12,11 @@
     "browserFixtureChecks": 7,
     "physicalCompletion": "pending rolling contributor update"
   },
-  "recordedAt": "2026-10-13T01:58:05.843158+00:00"
+  "recordedAt": "2026-10-13T01:58:05.843158+00:00",
+  "supersededBy": {
+    "revision": "38c04a5f",
+    "bundleHash": "sha256:88b4f6bbf3ce9b8deb43a9393178783dbe1528653748f1cfd091c6317ae1725c",
+    "verifiedFiles": 1921,
+    "change": "also retain output-stage reservations through discovery role changes"
+  }
 }
