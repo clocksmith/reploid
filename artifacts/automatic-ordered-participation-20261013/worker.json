@@ -1,6 +1,6 @@
 {
   "scope": "Actual Verification Worker AST analysis of ordered automatic source and controls; no model execution",
-  "at": "2026-10-13T15:17:16.025Z",
+  "at": "2026-10-13T15:22:44.222Z",
   "sources": [
     {
       "name": "packages/reploid/src/mesh/partitions/automatic-partitions.js",
@@ -16,7 +16,7 @@
     },
     {
       "name": "tests/unit/automatic-ordered-network.test.js",
-      "sha256": "8f2ce7f7332e370e638ae1958c4c874075cc86b27e35e6b782c0447d88630dee"
+      "sha256": "f88c54d4644dbfbbc70ff50596a9bf5c93c35d1e5b9e1fb5c3bb605a1a11092f"
     }
   ],
   "result": {
@@ -33,13 +33,13 @@
       "Warning in /tests/unit/automatic-ordered-partitions.test.js: Path traversal pattern detected (../) - potential security risk",
       "Warning in /tests/unit/automatic-ordered-partitions.test.js:170: Suspicious variable name: execute - may indicate code execution",
       "Warning in /tests/unit/automatic-ordered-network.test.js: Path traversal pattern detected (../) - potential security risk",
-      "Warning in /tests/unit/automatic-ordered-network.test.js:50: Dynamic property write detected: [remote,local] - verify input sanitization",
+      "Warning in /tests/unit/automatic-ordered-network.test.js:51: Dynamic property write detected: [remote,local] - verify input sanitization",
       "Nesting depth of 6 exceeds 5 - refactor nested code"
     ],
     "events": [
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791904636012,
+        "timestamp": 1791904964211,
         "path": "/packages/reploid/src/mesh/partitions/automatic-partitions.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -49,7 +49,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791904636013,
+        "timestamp": 1791904964211,
         "metric": "functions",
         "value": 30,
         "threshold": 20,
@@ -58,7 +58,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791904636013,
+        "timestamp": 1791904964211,
         "metric": "nesting",
         "value": 6,
         "threshold": 5,
@@ -67,7 +67,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791904636016,
+        "timestamp": 1791904964214,
         "path": "/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -77,7 +77,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791904636016,
+        "timestamp": 1791904964214,
         "path": "/packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -87,7 +87,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791904636016,
+        "timestamp": 1791904964215,
         "metric": "functions",
         "value": 33,
         "threshold": 20,
@@ -96,7 +96,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791904636016,
+        "timestamp": 1791904964215,
         "metric": "nesting",
         "value": 7,
         "threshold": 5,
@@ -105,7 +105,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791904636018,
+        "timestamp": 1791904964217,
         "path": "/tests/unit/automatic-ordered-partitions.test.js",
         "patternId": "path_traversal",
         "category": "filesystem",
@@ -114,7 +114,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791904636018,
+        "timestamp": 1791904964217,
         "path": "/tests/unit/automatic-ordered-partitions.test.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -124,7 +124,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791904636021,
+        "timestamp": 1791904964219,
         "path": "/tests/unit/automatic-ordered-network.test.js",
         "patternId": "path_traversal",
         "category": "filesystem",
@@ -133,17 +133,17 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791904636021,
+        "timestamp": 1791904964219,
         "path": "/tests/unit/automatic-ordered-network.test.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
         "message": "Dynamic property write detected: [remote,local] - verify input sanitization",
-        "line": 50,
+        "line": 51,
         "severity": "warning"
       },
       {
         "type": "complexity",
-        "timestamp": 1791904636021,
+        "timestamp": 1791904964219,
         "metric": "nesting",
         "value": 6,
         "threshold": 5,

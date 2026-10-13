@@ -26,3 +26,5 @@ node artifacts/automatic-ordered-participation-20261013/verify-worker.mjs
 npm run verify:library-types
 npm run verify:catscan
 ```
+
+The follow-on `cross-size-tests.json` and `cross-size-binding.json` retain the same automatic network composition for **2, 3, 4, 5, 6 and 7 stages**. Each case uses N contributors and one additional weightless requester; stage zero also requests concurrently. Both streams complete, all stages execute six synthetic numerical steps and close exactly two attempts, and there are N−1 execution-route channels. Peer enumeration is disabled before the requests while existing channels remain live. All six cases pass without production changes; named production hashes match the original source checkpoint. These are 3–8 logical participants in one process, not 3–8 physical devices. This closes a bounded cross-size composition control, not the broader overload, replacement, fairness, hardware-budget or physical qualification matrix.
