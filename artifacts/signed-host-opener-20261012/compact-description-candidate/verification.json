@@ -1,0 +1,14 @@
+{
+  "at": 1791895067.515641,
+  "archiveSha256": "7a485fe7701980ea331551f62e7ac91025477a13cc624fed39106af2bfaef195",
+  "descriptorSha256": "c2b95c742bea5ea6441faa899523ff0457f2825259a3a5075f8f0dcb8f62ff2c",
+  "appFiles": 123,
+  "runtimeFiles": 1976,
+  "runtimeSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "changedSourceFiles": [
+    "packages/reploid/src/mesh/partitions/partition-chat.js"
+  ],
+  "installed": true,
+  "started": false,
+  "checks": "All listed application bytes and all archive runtime members exact; prior19db delta only compact selection."
+}

@@ -1,0 +1,20 @@
+--- prior19db/partition-chat.js
++++ compact7a485/partition-chat.js
+@@ -6,8 +6,15 @@
+   assert(local.index === 0 && local.id === authority.participantId && remote.id !== local.id,
+     'Partition chat requires the input owner at A and a distinct authenticated B');
+   assert(Number.isSafeInteger(grantTtlMs) && grantTtlMs > 0, 'Explicit partition grant lifetime required');
+-  const selection = structuredClone({ ...model, adapters: [], selectionId: model.id + '/partition/' + planId,
+-    partition: { planId, participantA: local.id, participantB: remote.id } });
++  // Requesters select a prepared route; opening artifacts and execution policy
++  // remain with its contributor. Signed Capsule evidence can exceed the control
++  // frame budget and must not be copied into capability advertisements/history.
++  const selection = { id: model.id, name: model.name, identity: model.identity,
++    adapters: [], selectionId: model.id + '/partition/' + planId,
++    partition: { planId, participantA: local.id, participantB: remote.id } };
++  for (const key of ['provider', 'contextLength', 'quantization', 'size', 'recommended']) {
++    if (model[key] !== undefined) selection[key] = structuredClone(model[key]);
++  }
+   const policy = structuredClone(limits);
+   const listeners = new Set();
+   let closed = false;

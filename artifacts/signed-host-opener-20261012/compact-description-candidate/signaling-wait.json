@@ -1,0 +1,19 @@
+{
+  "observedAt": "2026-10-13T12:39:22.565352+00:00",
+  "pid": 2525851,
+  "lines": [
+    "  [Symbol(kError)]: Error: connect ECONNREFUSED 127.0.0.1:29670",
+    "    code: 'ECONNREFUSED',",
+    "  [Symbol(kMessage)]: 'connect ECONNREFUSED 127.0.0.1:29670'",
+    "[WebRTCSwarm] Reconnecting in 16000ms (attempt 5)",
+    "  [Symbol(kError)]: Error: connect ECONNREFUSED 127.0.0.1:29670",
+    "    code: 'ECONNREFUSED',",
+    "  [Symbol(kMessage)]: 'connect ECONNREFUSED 127.0.0.1:29670'",
+    "[WebRTCSwarm] Reconnecting in 30000ms (attempt 6)",
+    "  [Symbol(kError)]: Error: connect ECONNREFUSED 127.0.0.1:29670",
+    "    code: 'ECONNREFUSED',",
+    "  [Symbol(kMessage)]: 'connect ECONNREFUSED 127.0.0.1:29670'",
+    "[WebRTCSwarm] Reconnecting in 30000ms (attempt 7)"
+  ],
+  "scope": "Raw bounded signaling error rows; no private namespace token or payload."
+}
