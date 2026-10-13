@@ -1,0 +1,156 @@
+{
+  "schema": "reploid.source-row-proposal-diagnosis/v1",
+  "modelExecuted": false,
+  "sourceFiles": {
+    "freeze.json": "a6568fee06775b5793b85a438f2e41bed4d681c562a55946682b5a457a498f01",
+    "source.json.gz": "787e40c29c55dc45f37151cbe8c3cf7c5963d6caa5d113ac60253ee3e3dfb23e",
+    "inputs.json": "dc34d4a682c34cfe7f4d984eb86bbfd6cfa70d3210dabdb3a6912fa425682bc8",
+    "token-preflight.json": "049b1491b40ecf0c28171603423469ce5c9a8a1db4329965d2c6cd9801207c1d",
+    "review.json": "6cf51d90d06c3c3d7f9e37b6bada20a5ecf684985bd34f45cfa1dacdb66772bb"
+  },
+  "cases": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "exactExecutedInputIdsMatch": true,
+      "promptTokens": 2414,
+      "catalogFields": [
+        "id",
+        "kind",
+        "source",
+        "value"
+      ],
+      "catalogIncludesQuote": false,
+      "fullOriginalPassagesStillPresent": true,
+      "documentRoleSelections": 0,
+      "violations": [],
+      "structurallyComplete": true,
+      "fullFactualAcceptance": false
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "exactExecutedInputIdsMatch": true,
+      "promptTokens": 2529,
+      "catalogFields": [
+        "id",
+        "kind",
+        "source",
+        "value"
+      ],
+      "catalogIncludesQuote": false,
+      "fullOriginalPassagesStillPresent": true,
+      "documentRoleSelections": 31,
+      "violations": [
+        {
+          "kind": "multiple-base-in-document",
+          "document": "D1",
+          "facts": [
+            {
+              "id": "f002",
+              "source": "D1:P1",
+              "kind": "money",
+              "value": "$8,400"
+            },
+            {
+              "id": "f005",
+              "source": "D1:P3",
+              "kind": "money",
+              "value": "$8,400"
+            }
+          ]
+        },
+        {
+          "kind": "wrong-deposit-base-unit",
+          "fact": {
+            "id": "f004",
+            "source": "D1:P3",
+            "kind": "percent",
+            "value": "25%"
+          }
+        },
+        {
+          "kind": "fact-passage-mismatch",
+          "selection": "included|D1:P3|f002",
+          "actualFact": {
+            "id": "f002",
+            "source": "D1:P1",
+            "kind": "money",
+            "value": "$8,400"
+          }
+        },
+        {
+          "kind": "fact-passage-mismatch",
+          "selection": "included|D2:P1|f005",
+          "actualFact": {
+            "id": "f005",
+            "source": "D1:P3",
+            "kind": "money",
+            "value": "$8,400"
+          }
+        },
+        {
+          "kind": "fact-passage-mismatch",
+          "selection": "excluded|D1:P3|f002",
+          "actualFact": {
+            "id": "f002",
+            "source": "D1:P1",
+            "kind": "money",
+            "value": "$8,400"
+          }
+        },
+        {
+          "kind": "fact-passage-mismatch",
+          "selection": "excluded|D3:P3|f013",
+          "actualFact": {
+            "id": "f013",
+            "source": "D3:P1",
+            "kind": "money",
+            "value": "$450"
+          }
+        },
+        {
+          "kind": "fact-passage-mismatch",
+          "selection": "conflict|D1:P3|f002",
+          "actualFact": {
+            "id": "f002",
+            "source": "D1:P1",
+            "kind": "money",
+            "value": "$8,400"
+          }
+        },
+        {
+          "kind": "fact-passage-mismatch",
+          "selection": "conflict|D2:P3|f005",
+          "actualFact": {
+            "id": "f005",
+            "source": "D1:P3",
+            "kind": "money",
+            "value": "$8,400"
+          }
+        },
+        {
+          "kind": "fact-passage-mismatch",
+          "selection": "unknown|D1:P3|f002",
+          "actualFact": {
+            "id": "f002",
+            "source": "D1:P1",
+            "kind": "money",
+            "value": "$8,400"
+          }
+        },
+        {
+          "kind": "fact-passage-mismatch",
+          "selection": "unknown|D2:P3|f005",
+          "actualFact": {
+            "id": "f005",
+            "source": "D1:P3",
+            "kind": "money",
+            "value": "$8,400"
+          }
+        }
+      ],
+      "structurallyComplete": false,
+      "fullFactualAcceptance": false
+    }
+  ],
+  "finding": "Observed semantic/alias selection failures with correctly delivered inputs. No tokenizer, template, truncation or serialization defect established. Inline source rows are a hypothesis, not a proven cause."
+}
