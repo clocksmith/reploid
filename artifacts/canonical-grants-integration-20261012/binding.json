@@ -1,0 +1,8 @@
+{
+  "scope": "CPU source contract only; explicit canonical v3 opt-in, legacy v2 unchanged",
+  "sources": {
+    "packages/reploid/src/mesh/partitions/partition-grants.js": "7817137327f57db6905601520ad0fde1e330da7ac50ba96b155449c975ac81e1",
+    "packages/reploid/src/mesh/partitions/partition-grants.d.ts": "d12132a31dd490e98b87991aa8218f93a769931a6f2c2e3115f88989182e701b",
+    "tests/canonical-grants-source.js": "ee8ae9f2c640e52c0af9f39e52e6627c663f2f07a3c8fd5fd7143cb155a6bd93"
+  }
+}

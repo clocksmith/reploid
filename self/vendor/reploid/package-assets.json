@@ -686,13 +686,13 @@
     },
     {
       "path": "mesh/partitions/partition-grants.d.ts",
-      "bytes": 1632,
-      "sha256": "16ee7b259d3ae337d2a2257923b9e9fca8e4a37178c120aa08144bcf72e81c12"
+      "bytes": 3319,
+      "sha256": "d12132a31dd490e98b87991aa8218f93a769931a6f2c2e3115f88989182e701b"
     },
     {
       "path": "mesh/partitions/partition-grants.js",
-      "bytes": 5543,
-      "sha256": "30bf7124648f9b6f61489cafcced80b266375c1573c386c73185375ca7641318"
+      "bytes": 13110,
+      "sha256": "7817137327f57db6905601520ad0fde1e330da7ac50ba96b155449c975ac81e1"
     },
     {
       "path": "mesh/partitions/partition-link.d.ts",
