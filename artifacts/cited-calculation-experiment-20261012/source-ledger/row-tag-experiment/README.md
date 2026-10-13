@@ -11,3 +11,5 @@ Aggregate caps stay4096generated tokens,8192prompt-plus-generated tokens and1600
 Eight adapter controls and five strict protocol/accounting controls pass; actual Verification Worker passes four files with15warnings/noerrors. Exact original seven histories/criteria/policy and two previously frozen new holdouts are retained. The first invocation runs only the first original case and exits for independent factual review. Later cases/holdouts remain unrun until factual acceptance and a bound continuation. No retries or seed selection.
 
 CPU4–7, fourthreads, nice10 on x128; cached original Qwen3-1.7B and retained independent evaluator only. No GPU/download. A passing source workflow would still require converted-model and installed-runtime qualification before product adoption.
+
+Completed result: **rejected at the first protocol boundary**, one model call, no calculator/final answer, six original cases and two holdouts unrun. See [RESULTS.md](RESULTS.md) and [review.json](review.json).
