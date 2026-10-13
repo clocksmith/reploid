@@ -79,7 +79,7 @@ describe('Execution ribbon interactions', () => {
     const inspect = vi.fn(); mount(inspect); binding.update(snapshot(split));
     const trigger = root.querySelector('[data-ribbon-trigger]');
     expect(root.querySelector('[data-ribbon-status]').textContent).toBe('Executing');
-    expect(trigger.getAttribute('aria-label')).toContain('Test model on Peer A and Peer B');
+    expect(trigger.getAttribute('aria-label')).toContain('Test model on Computer 1 and Computer 2');
     expect(root.querySelectorAll('.execution-ribbon-node')).toHaveLength(0);
     trigger.focus(); expect(inspect).not.toHaveBeenCalled();
     trigger.click(); expect(inspect).toHaveBeenCalledWith('conversation', trigger);

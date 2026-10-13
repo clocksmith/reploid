@@ -1,3 +1,4 @@
+import { computerLabel, withComputerLabels } from './computer-labels.js';
 /** Selected-attempt presentation only. Discovery never establishes an execution path. */
 const escape = value => String(value ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 const measured = value => Number.isFinite(value) && value >= 0;
@@ -14,7 +15,7 @@ export function projectExecutionRibbon(state) {
   const ids = local ? [requester] : split ? [execution.participantA, execution.participantB].filter(Boolean)
     : execution?.peerId ? [execution.peerId] : [];
   const layer = Number.isSafeInteger(execution?.splitLayer) ? execution.splitLayer : null;
-  const executors = ids.map((id, i) => ({ id, label: id === requester ? 'This device' : split ? `Peer ${i === 0 ? 'A' : 'B'}` : `Peer ${id.slice(0, 6)}`,
+  const executors = ids.map((id, i) => ({ id, label: id === requester ? 'This device' : computerLabel(state, id),
     layers: split ? layer === null ? 'Not reported' : i === 0 ? `0–${layer - 1}` : `${layer} onward` : 'Whole model',
     contribution: split ? i === 0 ? 'Initial layers; relays output' : 'Final layers; produces output' : 'Whole-model execution',
     duration: split ? sum(execution.steps, i === 0 ? 'localStepMs' : 'remoteStepMs') : null }));
@@ -75,7 +76,7 @@ export function detailMarkup(view) {
     ${execution?.planId ? `<p>Plan <code>${escape(execution.planId)}</code></p>` : ''}`;
 }
 
-export function bindExecutionRibbon(root, { onInspect = () => {} } = {}) {
+export function bindExecutionRibbon(root, { onInspect = () => {}, labelSession = root } = {}) {
   const ribbon = root.querySelector('[data-execution-ribbon]');
   const find = selector => ribbon.querySelector(selector);
   const trigger = find('[data-ribbon-trigger]');
@@ -94,7 +95,7 @@ export function bindExecutionRibbon(root, { onInspect = () => {} } = {}) {
   };
   return {
     update(state) {
-      const view = projectExecutionRibbon(state), changed = view.key !== key;
+      const view = projectExecutionRibbon(withComputerLabels(state, labelSession)), changed = view.key !== key;
       if (changed) { key = view.key; lastResponse = view.response; stopPulse(); }
       find('[data-ribbon-status]').textContent = view.statusLabel;
       trigger.setAttribute('aria-label', `${view.statusLabel}. ${view.model ? view.model + ' on ' + view.executors.map(node => node.label).join(' and ') : 'No executor assigned'}. Execution details`);

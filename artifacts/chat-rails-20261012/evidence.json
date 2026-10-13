@@ -1,0 +1,45 @@
+{
+  "component": "Reploid conversation interface",
+  "intent": "Preserved conversation authority; changed rail layout and shared computer labels as requested.",
+  "boundaryEffects": "Presentation only. Runtime package pin and deployment unchanged.",
+  "baseCommit": "b3e1607eddf2dd7705d77e7230149f6182aca567",
+  "sourceSha256": {
+    "self/styles/poolday/components/conversation.css": "012f1e6a49d7565610c71722e10d0332b5a99955a08cbc0aca062dac9af4bd04",
+    "self/styles/poolday/components/interaction.css": "733d8132fc2eee857e9b550ce04138687e1002217ebbaf34f252f9dba12ddf3d",
+    "self/ui/components/interface-icons.js": "c1a38b03e571ebb6bebc3646cd87a4205b205b3bd766ff801ab0678a302a39e3",
+    "self/ui/pool-home/computer-labels.js": "ec7430b82b5d4f40e8819c7bb667021d2b1a273d16083c93c77283401f81c70c",
+    "self/ui/pool-home/conversation-workspace.js": "4e45ce20c934ae2dd9c20b6ed9da723af30f697c2b324fcfed8155e63e62341c",
+    "self/ui/pool-home/execution-activity.js": "60e1034b76a624c8289a625b53a64341fca63e0b9fff3a888bfa979b70d87a10",
+    "self/ui/pool-home/execution-ribbon.js": "e1c5f5d7d1d1c1b0e90ca507a091be425a2fb1220685960534f97eefe5b3d9be",
+    "self/ui/pool-home/index.js": "11813f737db93f082ae4d75f1d0baef2c1d25cbe3f100e543946fdff4dab9b24",
+    "self/ui/pool-home/network-controls.js": "fff3ca22e98338ed651578298ac87431bdf6feede38f77e66ddd8bd4ea03e099",
+    "self/ui/pool-home/network-inspector.js": "7210939f1752cf6763da7a71a1386a96b6136e6b43e94ce313840584b0f8c082"
+  },
+  "evidence": [
+    {
+      "command": "npx vitest run --config tests/vitest.config.js tests/unit/computer-labels.test.js tests/unit/execution-ribbon.test.js tests/unit/network-controls.test.js tests/unit/conversation-workspace.test.js tests/unit/message-list.test.js tests/unit/pool-home-nav.test.js",
+      "result": "68 passed"
+    },
+    {
+      "command": "npx playwright test --config tests/playwright.config.js tests/e2e/chat-rails.spec.js tests/e2e/chat-rail-layout.spec.js tests/e2e/chat-material.spec.js --project=chromium-swiftshader --timeout=30000",
+      "result": "30 passed; host/workspace fixtures and presentation only; no model inference"
+    },
+    {
+      "command": "REPLOID_E2E_SKIP_LOCAL_SERVER=1 npx playwright test --config tests/playwright.config.js tests/e2e/chat-rail-layout.spec.js --project=chromium-swiftshader --timeout=30000",
+      "result": "7 passed after final copy and hover changes, including Verification Worker for all changed JS modules"
+    },
+    {
+      "command": "npm run verify:pool:css",
+      "result": "passed"
+    },
+    {
+      "command": "node scripts/build-browser-bundle-manifest.js --check",
+      "result": "passed"
+    }
+  ],
+  "limitations": [
+    "UI fixtures do not qualify model inference or distributed execution.",
+    "Computer numbering is session-local and follows known participant/transport aliases; it is not hardware attestation.",
+    "Source changes have not been deployed."
+  ]
+}

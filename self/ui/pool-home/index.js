@@ -62,7 +62,7 @@ export function initPoolHome(mount, { operationNetwork = null } = {}) {
         return operations.bindOperationSharing(target, host.operationSharing);
       }
     });
-    const ribbon = bindExecutionRibbon(mount.querySelector('.pool-primary-nav'), { onInspect: (section, opener) => inspector.open(section, opener) });
+    const ribbon = bindExecutionRibbon(mount.querySelector('.pool-primary-nav'), { onInspect: (section, opener) => inspector.open(section, opener), labelSession: host.chat });
     const networkAction = mount.querySelector('[data-open-network]');
     if (networkAction) networkAction.onclick = event => {
       const settings = event.currentTarget.closest('details'); if (settings) settings.open = false;

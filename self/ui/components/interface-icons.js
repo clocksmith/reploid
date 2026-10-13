@@ -1,6 +1,7 @@
 /** Small shared line icons. Buttons retain their own accessible names. */
 export function interfaceIcon(name) {
   const paths = {
+    newThread: '<path d="M12 5v14M5 12h14"/>',
     attach: '<path d="m8 13 7-7a3 3 0 0 1 4 4L9 20a5 5 0 0 1-7-7L13 2m-7 13 8-8"/>',
     send: '<path d="M12 20V4m-6 6 6-6 6 6"/>',
     stop: '<rect x="6" y="6" width="12" height="12" rx="2"/>',

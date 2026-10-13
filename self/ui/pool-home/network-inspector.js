@@ -1,3 +1,4 @@
+import { withComputerLabels } from './computer-labels.js';
 import { interfaceIcon } from '../components/interface-icons.js';
 /** One projection of conversation execution, participant availability, and device contribution. */
 import { renderSharingControls, renderConnectionControl, bindNetworkControls } from './network-controls.js';
@@ -7,11 +8,14 @@ import { escapeHtml as escape } from '../components/attachments.js';
 import { projectExecutionRibbon, routeMarkup, detailMarkup } from './execution-ribbon.js';
 
 export function renderNetworkInspector() {
-  return `<dialog class="network-inspector pool-surface" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
+  return `<aside class="chat-network-rail pool-surface" data-network-rail aria-label="Network and settings">
+    <div class="chat-rail-heading" data-settings-rail-slot></div>
+    <button class="pool-button chat-network-toggle" type="button" data-toggle-inspector aria-haspopup="dialog" aria-expanded="false" aria-label="Inspect network" title="Network">${interfaceIcon('peers')}<span class="chat-rail-label" data-mesh-peers>0 computers</span></button>
+    <dialog class="network-inspector pool-surface" data-contextual-inspector data-network-workspace aria-labelledby="network-inspector-title">
     <header class="chat-network-heading"><h2 id="network-inspector-title">Network</h2><button class="pool-button" type="button" data-close-inspector aria-label="Close network and settings">${interfaceIcon('close')}</button></header>
     <nav class="network-inspector-tabs" aria-label="Network sections">
       <button class="pool-button" type="button" data-inspector-section="conversation" aria-label="This conversation" title="This conversation">${interfaceIcon('activity')}</button>
-      <button class="pool-button" type="button" data-inspector-section="participants" aria-label="Participants" title="Participants">${interfaceIcon('peers')}<span data-mesh-peers class="chat-visually-hidden"></span></button>
+      <button class="pool-button" type="button" data-inspector-section="participants" aria-label="Computers" title="Computers">${interfaceIcon('peers')}<span data-mesh-peers class="chat-visually-hidden"></span></button>
       <button class="pool-button" type="button" data-inspector-section="device" aria-label="This device" title="This device">${interfaceIcon('device')}</button>
       <button class="pool-button" type="button" data-inspector-section="settings" aria-label="Settings" title="Settings">${interfaceIcon('settings')}</button>
     </nav>
@@ -22,7 +26,7 @@ export function renderNetworkInspector() {
       <section data-thread-permissions hidden><h4>Current permissions</h4>
         <p>Revoking stops this thread’s sharing. It cannot recall data already sent.</p><ul data-thread-grants></ul></section>
     </section>
-    <section data-inspector-pane="participants" aria-label="Available participants" hidden>
+    <section data-inspector-pane="participants" aria-label="Available computers" hidden>
       ${renderConnectionControl()}<p class="network-readiness" data-peer-readiness></p><ul class="network-peer-list" data-insp-device-list></ul>
       <button class="pool-button" type="button" data-mesh-invite hidden>Copy private invitation</button>
     </section>
@@ -33,7 +37,7 @@ export function renderNetworkInspector() {
     </section>
     <section data-inspector-pane="settings" aria-label="Settings" hidden></section>
     <p data-network-message role="status" hidden></p><p data-inspector-error role="alert" hidden></p>
-  </dialog>
+  </dialog></aside>
   <dialog class="chat-model-setup pool-surface" data-model-dialog aria-labelledby="model-setup-title">
     <h2 id="model-setup-title">Run on this device</h2>
     <label>Model<select class="pool-input" data-download-model aria-label="Model to download"></select></label>
@@ -46,11 +50,19 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
   const find = selector => root.querySelector(selector);
   const panel = find('[data-contextual-inspector]');
   const surface = root.closest('.pool-home');
+  const rail = find('[data-network-rail]');
+  const usesRails = ['home', 'network'].includes(surface?.dataset.poolRouteId);
+  const settings = usesRails ? surface.querySelector('.pool-primary-actions') : null;
+  const settingsParent = settings?.parentElement;
+  if (settings) {
+    find('[data-settings-rail-slot]').append(settings);
+    settings.querySelector('summary').insertAdjacentHTML('beforeend', '<span class="chat-rail-label" data-rail-settings-label>Settings</span>');
+  }
   let opener;
   const dialog = {
-    open(focus, trigger) { opener = trigger; opener?.setAttribute?.('aria-expanded', 'true'); if (!panel.open) panel.show(); surface?.setAttribute('data-right-rail-open', ''); focus?.focus(); },
-    close() { opener?.setAttribute?.('aria-expanded', 'false'); panel.close(); surface?.removeAttribute('data-right-rail-open'); opener?.focus?.({ preventScroll: true }); },
-    dispose() { if (panel.open) panel.close(); surface?.removeAttribute('data-right-rail-open'); }
+    open(focus, trigger) { opener = trigger; opener?.setAttribute?.('aria-expanded', 'true'); if (!panel.open) panel.show(); surface?.setAttribute('data-right-rail-open', ''); rail.dataset.expanded = ''; find('[data-toggle-inspector]').setAttribute('aria-expanded', 'true'); focus?.focus(); },
+    close() { opener?.setAttribute?.('aria-expanded', 'false'); panel.close(); surface?.removeAttribute('data-right-rail-open'); delete rail.dataset.expanded; find('[data-toggle-inspector]').setAttribute('aria-expanded', 'false'); opener?.focus?.({ preventScroll: true }); },
+    dispose() { if (panel.open) panel.close(); surface?.removeAttribute('data-right-rail-open'); settings?.querySelector('[data-rail-settings-label]')?.remove(); if (settings && settingsParent) settingsParent.append(settings); }
   };
   const controller = new AbortController(), options = { signal: controller.signal };
   const network = bindNetworkControls(panel, session, { getInviteUrl });
@@ -68,10 +80,12 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const grant = event.target.closest('[data-revoke-grant]');
     if (grant) void act(() => session.revokeGrant(session.getState().selectedId, grant.dataset.revokeGrant));
   }, options);
-  panel.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); dialog.close(); } }, options);
+  rail.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); dialog.close(); } }, options);
+  on('[data-toggle-inspector]', 'click', event => { if (panel.open) dialog.close(); else { select('participants'); dialog.open(null, event.currentTarget); } });
   on('[data-close-inspector]', 'click', () => dialog.close());
-  const unsubscribe = session.subscribe(state => {
-    const view = projectExecutionRibbon(state), key = JSON.stringify([view.execution, view.status, view.model, view.attempt?.id, view.attempt?.createdAt, view.attempt?.error, view.totalMs]);
+  const unsubscribe = session.subscribe(snapshot => {
+    const state = withComputerLabels(snapshot, session);
+    const view = projectExecutionRibbon(state), key = JSON.stringify([view.execution, view.status, view.model, view.attempt?.id, view.attempt?.createdAt, view.attempt?.error, view.totalMs, view.executors.map(node => node.label)]);
     if (key !== executionKey) {
       executionKey = key; find('[data-inspector-route]').innerHTML = routeMarkup(view);
       find('[data-ribbon-facts]').innerHTML = detailMarkup(view);
@@ -123,7 +137,10 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     }
   });
   return {
-    toggle(section = 'settings', opener) { if (panel.open) dialog.close(); else { select(section); dialog.open(null, opener); } },
+    toggle(section = 'settings', opener) {
+      if (panel.open && !panel.querySelector(`[data-inspector-pane="${section}"]`).hidden) dialog.close();
+      else { select(section); dialog.open(null, opener); }
+    },
     open(section = 'participants', opener) { select(section); dialog.open(panel.querySelector(`[data-inspector-section="${section}"]`), opener); },
     close: () => dialog.close(),
     dispose() { disposed = true; metadataController?.abort(); controller.abort(); unsubscribe(); network(); modelDialog.dispose(); dialog.dispose(); if (typeof specialized === 'function') specialized(); }

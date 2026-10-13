@@ -62,7 +62,7 @@ for (const width of [1440, 390, 320]) for (const theme of ['light', 'dark']) {
     await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
     await installChat(page);
     const rail = await page.locator('[data-toggle-thread-rail]').boundingBox();
-    const settings = await page.locator('[data-pool-settings] > summary').boundingBox();
+    const settings = await page.locator('[data-toggle-inspector]').boundingBox();
     expect(rail.x).toBeGreaterThanOrEqual(16); expect(rail.y).toBeGreaterThanOrEqual(16);
     expect(width - settings.x - settings.width).toBeGreaterThanOrEqual(16);
     await checkComposer(page, '[data-composer-send]');
@@ -90,67 +90,49 @@ for (const width of [1440, 390, 320]) for (const theme of ['light', 'dark']) {
 }
 
 for (const width of [1440, 320]) for (const theme of ['light', 'dark']) {
-  test(`${theme} stationary rail controls and raised panels at ${width}px`, async ({ page }, info) => {
+  test(`${theme} rail settings, keyboard access and navigation at ${width}px`, async ({ page }, info) => {
     await page.setViewportSize({ width, height: 844 });
     await page.goto('/'); await expect(page.locator('[data-chat-workspace]')).toBeVisible();
     await page.evaluate(theme => { document.querySelector('.pool-home').dataset.poolTheme = theme; }, theme);
     const left = page.locator('[data-toggle-thread-rail]');
-    const right = page.locator('[data-pool-settings] > summary');
-    const shadow = node => node.evaluate(element => getComputedStyle(element).boxShadow);
-    const material = (node, kind) => node.evaluate((element, kind) => {
-      const probe = document.createElement('span');
-      probe.style.boxShadow = `var(--pool-surface-shadow-${kind})`;
-      element.append(probe); const value = getComputedStyle(probe).boxShadow; probe.remove(); return value;
-    }, kind);
-    const glyphs = node => node.locator('.pool-seven-main, .pool-seven-small').evaluateAll(elements => elements.map(element => {
-      const rect = element.getBoundingClientRect();
-      return [rect.x, rect.y, getComputedStyle(element).transform];
-    }));
-    const initial = [await glyphs(left), await glyphs(right)];
-    await page.mouse.move(width / 2, 400);
-    for (const [index, control] of [left, right].entries()) {
-      await expect.poll(() => shadow(control)).toBe('none');
-      await control.hover();
-      await expect.poll(() => shadow(control)).toBe(await material(control, 'raised'));
-      expect(await glyphs(control)).toEqual(initial[index]);
-      await page.screenshot({ path: info.outputPath(`hover-${index}.png`), fullPage: true });
-      await page.mouse.down();
-      await expect.poll(() => shadow(control)).toBe(await material(control, 'inset'));
-      await page.mouse.up();
-      await expect(control).toHaveAttribute('aria-expanded', 'true');
-      await page.mouse.move(width / 2, 400);
-      expect(await shadow(control)).toBe(await material(control, 'inset'));
-      expect(await glyphs(control)).toEqual(initial[index]);
-    }
-    const sidebar = page.locator('[data-chat-workspace] > [data-thread-sidebar]');
-    const inspector = page.locator('.network-inspector[open]');
-    for (const panel of [sidebar, inspector]) {
-      await expect(panel).toBeVisible();
-      await panel.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished.catch(() => {}))));
-      expect(await shadow(panel)).toBe(await material(panel, 'raised'));
-      const geometry = await panel.evaluate(node => ({ padding: parseFloat(getComputedStyle(node).paddingLeft), box: node.getBoundingClientRect().toJSON() }));
-      expect(geometry.padding).toBeGreaterThanOrEqual(16);
-      expect(geometry.box.x).toBeGreaterThanOrEqual(16);
-      expect(geometry.box.x + geometry.box.width).toBeLessThanOrEqual(width - 16);
-    }
-    await page.screenshot({ path: info.outputPath('both-open.png'), fullPage: true });
+    const right = page.locator('[data-toggle-inspector]');
+    const sidebar = page.locator('[data-thread-sidebar]');
+    const rail = page.locator('[data-network-rail]');
+    const collapsedWidth = (await sidebar.boundingBox()).width;
     await left.click();
+    await expect(left).toHaveAttribute('aria-expanded', 'true');
+    expect((await sidebar.boundingBox()).width).toBeGreaterThan(collapsedWidth);
+    await expect(page.locator('[data-new-thread]')).toBeVisible();
+    await page.keyboard.press('Escape');
     await expect(left).toHaveAttribute('aria-expanded', 'false');
-    await expect(right).toHaveAttribute('aria-expanded', 'true');
     await right.click();
-    await expect(right).toHaveAttribute('aria-expanded', 'false');
-    await page.mouse.move(width / 2, 400);
+    await expect(right).toHaveAttribute('aria-expanded', 'true');
+    await expect(rail.locator('[data-mesh-connect]')).toBeVisible();
+    const settings = rail.locator('[data-pool-settings] > summary');
+    await expect(settings).toBeVisible();
+    await settings.click();
+    await expect(page.locator('[data-inspector-pane="settings"]')).toBeVisible();
+    await page.screenshot({ path: info.outputPath('settings.png'), fullPage: true });
+    for (const panel of [sidebar, rail]) {
+      const box = await panel.boundingBox();
+      expect(box.x).toBeGreaterThanOrEqual(16);
+      expect(box.x + box.width).toBeLessThanOrEqual(width - 16);
+      expect(box.y + box.height).toBeLessThanOrEqual(844 - 16);
+    }
+    await page.locator('[data-inspector-pane="settings"] a[href="/examples"]').click();
+    await expect(page.locator('.pool-home')).toHaveAttribute('data-pool-route-id', 'examples');
+    await expect(page.locator('.pool-primary-nav .pool-primary-actions')).toBeVisible();
+    await expect(page.locator('[data-toggle-inspector]')).toBeHidden();
+    await page.locator('.pool-primary-brand').click();
+    await expect(page.locator('[data-chat-workspace]')).toBeVisible();
     await page.keyboard.press('Tab'); await left.focus();
     expect(await left.evaluate(node => node.matches(':focus-visible'))).toBe(true);
     expect(await left.evaluate(node => getComputedStyle(node).outlineStyle)).toBe('solid');
-    expect(await glyphs(left)).toEqual(initial[0]);
-    await page.screenshot({ path: info.outputPath('keyboard-focus.png'), fullPage: true });
     await page.emulateMedia({ reducedMotion: 'reduce' });
-    await left.click(); await right.click();
+    await left.click();
     expect(await left.evaluate(node => getComputedStyle(node).transitionDuration)).toBe('0s');
-    expect(await inspector.evaluate(node => getComputedStyle(node).animationName)).toBe('none');
-    expect(await glyphs(left)).toEqual(initial[0]);
-    expect(await glyphs(right)).toEqual(initial[1]);
+    await page.keyboard.press('Escape'); await right.click();
+    expect(await page.locator('[data-contextual-inspector]').evaluate(node => getComputedStyle(node).animationName)).toBe('none');
     expect(await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)).toBeLessThanOrEqual(1);
   });
 }

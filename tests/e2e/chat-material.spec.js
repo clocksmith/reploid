@@ -9,7 +9,8 @@ async function installConversation(page, theme) {
     const root = document.querySelector('.pool-home');
     const fixture = root.cloneNode(false);
     fixture.dataset.poolTheme = theme;
-    fixture.innerHTML = root.querySelector('.pool-primary-nav').outerHTML
+    const { renderNav } = await import('/ui/pool-home/shell-view.js');
+    fixture.innerHTML = renderNav('home')
       + '<div class="pool-route-content">' + renderConversationWorkspace() + '</div>';
     document.body.replaceChildren(fixture);
     const model = { id: 'fixture-model', name: 'Presentation model', identity: 'sha256:' + 'a'.repeat(64), availability: 'ready' };
@@ -54,7 +55,7 @@ async function installConversation(page, theme) {
     };
     window.setVisualState('empty');
     window.disposeVisual = bindConversationWorkspace(fixture, session);
-    const ribbon = bindExecutionRibbon(fixture); session.subscribe(state => ribbon.update(state));
+    const ribbon = bindExecutionRibbon(fixture, { labelSession: session }); session.subscribe(state => ribbon.update(state));
   }, theme);
 }
 
@@ -147,7 +148,9 @@ for (const theme of ['light', 'dark']) for (const width of [1440, 390, 320]) {
     // Focus has a stronger edge; compare the two unfocused glass surfaces.
     await textarea.blur();
     expect(await field.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
+    await page.locator('[data-open-model]').click();
     await page.locator('[data-current-model]').hover();
+    await page.locator('[data-toggle-thread-rail]').click();
     expect(await field.evaluate(node => getComputedStyle(node).backgroundImage)).toBe(glassFill);
     await openParticipantControls(page);
     await expect(page.locator('[data-contextual-inspector]')).toBeVisible();
@@ -204,7 +207,8 @@ test('reading and phone controls retain long answers, code, sources and a saved 
   await page.screenshot({ path: info.outputPath('desktop-reading.png'), fullPage: true });
   await page.setViewportSize({ width: 390, height: 460 });
   await expect(page.locator('[data-composer-input]')).toBeInViewport();
-  await expect(page.locator('[data-thread-sidebar]')).not.toBeVisible();
+  await expect(page.locator('[data-thread-sidebar]')).toBeVisible();
+  await expect(page.locator('[data-thread-list]')).toBeHidden();
   await page.locator('[data-toggle-thread-rail]').click();
   await expect(page.locator('[data-thread-sidebar]')).toBeVisible();
   await page.locator('[data-toggle-thread-rail]').click();
@@ -233,7 +237,7 @@ test('bounded inspector and reduced viewport preserve a long conversation and co
   for (let i = 0; i < 3; i++) {
     await page.locator('[data-toggle-inspector]').click();
     await page.locator('[data-inspector-section=conversation]').click();
-    await expect(page.locator('[data-inspector-route]')).toContainText('Peer A');
+    await expect(page.locator('[data-inspector-route]')).toContainText('Computer 1');
     await page.keyboard.press('Escape'); await expect(page.locator('[data-toggle-inspector]')).toBeFocused();
   }
   expect(await page.locator('[data-composer-area]').boundingBox()).toEqual(before);
@@ -301,7 +305,7 @@ test('answer activity shows observed shares and preserves its disclosure during 
   await expect(activity.locator('.chat-distribution')).toHaveCount(0);
   await page.evaluate(() => window.setVisualMetrics({ localStepMs: { count: 4, total: 1000 }, remoteStepMs: { count: 4, total: 3000 } }));
   await expect(activity).toHaveAttribute('open', '');
-  await expect(activity.getByRole('img')).toHaveAttribute('aria-label', 'Recorded step time share: Peer A 25%, Peer B 75%');
+  await expect(activity.getByRole('img')).toHaveAttribute('aria-label', 'Recorded step time share: Computer 1 25%, Computer 2 75%');
   await expect(activity).toContainText('25% · 4.0 tok/s');
   await expect(activity).toContainText('75% · 1.3 tok/s');
   await page.screenshot({ path: info.outputPath('activity.png'), fullPage: true });
