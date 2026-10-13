@@ -8,8 +8,8 @@ const STABLE_IDS = `CHAT-01 CHAT-02 CHAT-03 CHAT-04 CHAT-05
 KEEP-01 KEEP-02 KEEP-03 KEEP-04 KEEP-05
 CONTRIB-01 CONTRIB-02 CONTRIB-03 CONTRIB-04 CONTRIB-05
 MESH-01 MESH-02 MESH-03 MESH-04 MESH-05
-JOB-01 JOB-02 JOB-03 JOB-04 JOB-05
-TRUST-01 TRUST-02 TRUST-03 TRUST-04 TRUST-05 DEV-01`.split(/\s+/);
+JOB-01 JOB-02 JOB-03 JOB-04 JOB-05 JOB-06
+TRUST-01 TRUST-02 TRUST-03 TRUST-04 TRUST-05 DEV-01 DEV-02`.split(/\s+/);
 const FIELDS = ['Actor and trigger', 'Starting conditions', 'Main flow',
   'Successful outcome', 'Interruption and recovery', 'Variants', 'Acceptance evidence'];
 const links = (text) => [...text.matchAll(/\[[^\]\n]+\]\(([^)\n]+)\)/g)].map(match => match[1]);
