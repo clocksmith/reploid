@@ -1,0 +1,48 @@
+
+Running 6 tests using 1 worker
+
+[1A[2K(node:73484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K(node:73484) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+
+[1A[2K[1/6] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 1440px
+[1A[2K[2/6] [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 390px
+[1A[2K  1) [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 390px 
+
+    Test was interrupted.
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeHidden[2m([22m[2m)[22m failed
+
+    Locator:  locator('[data-thread-sidebar]').locator('[data-new-thread]')
+    Expected: hidden
+    Received: visible
+
+    Call log:
+    [2m  - Expect "toBeHidden" with timeout 30000ms[22m
+    [2m  - waiting for locator('[data-thread-sidebar]').locator('[data-new-thread]')[22m
+    [2m    14 × locator resolved to <button type="button" data-new-thread="" title="New thread" aria-label="New thread" class="pool-button chat-new-thread">…</button>[22m
+    [2m       - unexpected value "visible"[22m
+
+
+      54 |     await expect(right.locator('[data-toggle-inspector]')).toBeVisible();
+      55 |     await expect(page.locator('[data-thread-list]')).toBeHidden();
+    > 56 |     if (width <= 760) await expect(left.locator('[data-new-thread]')).toBeHidden();
+         |                                                                       ^
+      57 |     const controls = await page.evaluate(() => {
+      58 |       const selectors = ['[data-toggle-thread-rail]', '[data-new-thread]', '[data-open-model]', '[data-conversation-actions] > summary', '[data-pool-settings] > summary', '[data-toggle-inspector]'];
+      59 |       return selectors.map(selector => document.querySelector(selector)).filter(node => node.checkVisibility()).map(node => ({
+        at /private/var/tmp/reploid-ui-column-l24k9g5a/tests/e2e/chat-rail-layout.spec.js:56:71
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/chat-rail-layout-light-rai-a8eb9-ll-expanded-widths-at-390px-chromium-swiftshader/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+[1A[2K  1 interrupted
+    [chromium-swiftshader] › tests/e2e/chat-rail-layout.spec.js:49:3 › light rails contain controls and fill expanded widths at 390px 
+  4 did not run
+  1 passed (18.9s)
