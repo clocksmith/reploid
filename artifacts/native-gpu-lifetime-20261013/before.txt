@@ -1,0 +1,96 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+(node:52784) PromiseRejectionHandledWarning: Promise rejection was handled asynchronously (rejection id: 3)
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ❯ tests/unit/native-gpu-lifetime.test.js (3 tests | 3 failed) 59ms
+   × keeps the provider reachable until the exact owned device lost event settles 56ms
+   × times out without removing provider reachability and explicitly retries after later settlement 2ms
+   × retains provider after queue rejection and retries that boundary before destroying device 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 3 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/unit/native-gpu-lifetime.test.js > keeps the provider reachable until the exact owned device lost event settles
+AssertionError: expected true to be false // Object.is equality
+
+- Expected
++ Received
+
+- false
++ true
+
+ ❯ tests/unit/native-gpu-lifetime.test.js:25:21
+     23|   await vi.waitFor(()=>expect(f.device.destroy).toHaveBeenCalledOnce()…
+     24|   state.device = null; // Runtime invalidation cannot replace the alre…
+     25|   expect(completed).toBe(false); expect(navigator.gpu).toBe(f.provider…
+       |                     ^
+     26|   f.lost.resolve({reason:'destroyed'}); await first;
+     27|   expect(navigator.hostMarker).toBe(true); expect(navigator.gpu).toBeU…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/3]⎯
+
+ FAIL  tests/unit/native-gpu-lifetime.test.js > times out without removing provider reachability and explicitly retries after later settlement
+AssertionError: promise resolved "undefined" instead of rejecting
+
+- Expected:
+Error {
+  "message": "rejected promise",
+}
+
++ Received:
+undefined
+
+ ❯ tests/unit/native-gpu-lifetime.test.js:31:55
+     29| it('times out without removing provider reachability and explicitly re…
+     30|   vi.useFakeTimers(); const f = await fixture();
+     31|   const first = f.host.close(), failed = expect(first).rejects.toThrow…
+       |                                                       ^
+     32|   await vi.advanceTimersByTimeAsync(10001); await failed;
+     33|   expect(navigator.gpu).toBe(f.provider); expect(f.device.destroy).toH…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/3]⎯
+
+ FAIL  tests/unit/native-gpu-lifetime.test.js > retains provider after queue rejection and retries that boundary before destroying device
+Error: queue unknown
+ ❯ tests/unit/native-gpu-lifetime.test.js:41:87
+     39| });
+     40| it('retains provider after queue rejection and retries that boundary b…
+     41|   const f = await fixture(); f.device.queue.onSubmittedWorkDone.mockRe…
+       |                                                                                       ^
+     42|   await expect(f.host.close()).rejects.toThrow('queue unknown');
+     43|   expect(navigator.gpu).toBe(f.provider); expect(f.device.destroy).not…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/3]⎯
+
+⎯⎯⎯⎯⎯⎯ Unhandled Errors ⎯⎯⎯⎯⎯⎯
+
+Vitest caught 1 unhandled error during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.
+
+⎯⎯⎯⎯ Unhandled Rejection ⎯⎯⎯⎯⎯
+AssertionError: promise resolved "undefined" instead of rejecting
+ ❯ _Assertion.__VITEST_REJECTS__ node_modules/vitest/node_modules/@vitest/expect/dist/index.js:1747:17
+ ❯ _Assertion.propertyGetter node_modules/vitest/node_modules/chai/index.js:1570:27
+ ❯ Object.proxyGetter [as get] node_modules/vitest/node_modules/chai/index.js:1659:22
+ ❯ tests/unit/native-gpu-lifetime.test.js:31:55
+     29| it('times out without removing provider reachability and explicitly re…
+     30|   vi.useFakeTimers(); const f = await fixture();
+     31|   const first = f.host.close(), failed = expect(first).rejects.toThrow…
+       |                                                       ^
+     32|   await vi.advanceTimersByTimeAsync(10001); await failed;
+     33|   expect(navigator.gpu).toBe(f.provider); expect(f.device.destroy).toH…
+ ❯ node_modules/vitest/node_modules/@vitest/runner/dist/chunk-artifact.js:1903:20
+
+This error originated in "tests/unit/native-gpu-lifetime.test.js" test file. It doesn't mean the error was thrown inside the file itself, but while it was running.
+The latest test that might've caused the error is "times out without removing provider reachability and explicitly retries after later settlement". It might mean one of the following:
+- The error was thrown, while Vitest was running this test.
+- If the error occurred after the test had been completed, this was the last documented test before it was thrown.
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯
+
+
+ Test Files  1 failed (1)
+      Tests  3 failed (3)
+     Errors  1 error
+   Start at  11:25:16
+   Duration  352ms (transform 174ms, setup 0ms, import 232ms, tests 59ms, environment 0ms)
+

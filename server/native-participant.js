@@ -190,10 +190,36 @@ export async function openNativeModelSource({ model, modelDirectory, signal, run
  * process. Final close follows resident settlement; stopping contribution alone
  * keeps the provider reusable. No private Doppler imports are needed. */
 export function createNativeGpuHost(loadProvider) {
-  let opening = null, closing = null, restore = null;
+  let opening = null, closing = null, restore = null, retirement = null, stopped = false;
+  let ownedDevice = null, lost = null, queueSettled = false, queueRejected = false, lossResolved = false, poolDestroyed = false, deviceDestroyed = false;
+  const retire = () => retirement ||= (async () => {
+    await opening?.catch(() => {});
+    if (!restore) return;
+    const { getDevice, destroyBufferPool } = await import('doppler-gpu/tooling');
+    ownedDevice ||= getDevice();
+    if (!ownedDevice) return;
+    // Capture this device's loss completion before destruction can clear the runtime handle.
+    if (!lost) {
+      requireValue(typeof ownedDevice.lost?.then === 'function', 'Native device loss settlement promise is unavailable');
+      lost = Promise.resolve(ownedDevice.lost).then(value => { lossResolved = true; return { value }; }, error => ({ error }));
+    }
+    if (!queueSettled) {
+      // The first queue failure remains observable. An explicit retry may settle
+      // an actually lost device even if its queue barrier permanently rejects.
+      if (queueRejected && lossResolved) queueSettled = true;
+      else {
+        try { await ownedDevice.queue.onSubmittedWorkDone(); queueSettled = true; }
+        catch (error) { queueRejected = true; throw error; }
+      }
+    }
+    if (!poolDestroyed) { destroyBufferPool(ownedDevice); poolDestroyed = true; }
+    if (!deviceDestroyed) { ownedDevice.destroy(); deviceDestroyed = true; }
+    const completion = await lost;
+    if ('error' in completion) throw completion.error;
+  })().catch(error => { retirement = null; throw error; });
   return Object.freeze({
     open() {
-      if (closing) throw new Error('Native GPU host is closing');
+      if (stopped) throw new Error('Native GPU host is closing');
       if (!opening) opening = (async () => {
         requireValue(!globalThis.navigator?.gpu, 'Native GPU host cannot replace a borrowed provider');
         const provider = await loadProvider();
@@ -210,16 +236,18 @@ export function createNativeGpuHost(loadProvider) {
       return opening;
     },
     close() {
-      return closing ||= (async () => {
-        await opening?.catch(() => {});
-        if (!restore) return;
-        const { getDevice, destroyBufferPool } = await import('doppler-gpu/tooling');
-        const device = getDevice();
-        // All owned residents must already be settled. Destroying this process's
-        // device is never used as cancellation of another participant.
-        if (device) { await device.queue.onSubmittedWorkDone(); destroyBufferPool(device); device.destroy(); }
-        restore(); restore = null;
-      })();
+      if (closing) return closing;
+      stopped = true;
+      let timer;
+      const deadline = new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('Native GPU ownership settlement exceeded 10000ms; provider retained')), 10000);
+      });
+      // No forced GC or sleep: navigator.gpu keeps the Dawn instance reachable
+      // through queue completion, pool/device destruction and the exact lost promise.
+      closing = Promise.race([retire(), deadline]).then(() => {
+        restore?.(); restore = null;
+      }).catch(error => { closing = null; throw error; }).finally(() => clearTimeout(timer));
+      return closing;
     }
   });
 }

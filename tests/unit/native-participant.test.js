@@ -49,7 +49,7 @@ describe('native host boundary', () => {
     const navigator = Object.getOwnPropertyDescriptor(globalThis, 'navigator');
     const marker = Object.getOwnPropertyDescriptor(globalThis, '__nativeGpuTestBinding');
     gpu.order = [];
-    gpu.device = { queue: { onSubmittedWorkDone: async () => { gpu.order.push('settled'); } }, destroy: () => gpu.order.push('device') };
+    gpu.device = { lost: Promise.resolve({ reason: 'destroyed' }), queue: { onSubmittedWorkDone: async () => { gpu.order.push('settled'); } }, destroy: () => gpu.order.push('device') };
     let attempts = 0;
     const host = createNativeGpuHost(async () => {
       if (++attempts === 1) throw new Error('provider temporarily unavailable');
