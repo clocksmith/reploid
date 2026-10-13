@@ -1,0 +1,37 @@
+{
+  "schema": "reploid.signed-first-generation-failure/v1",
+  "observedAt": "2026-10-13T12:42:00.323Z",
+  "processId": 2525851,
+  "nativeArchiveSha256": "7a485fe7701980ea331551f62e7ac91025477a13cc624fed39106af2bfaef195",
+  "runtimeSha256": "0fadac5113d2cc154f65d9d40de50722a16454995e927c7d22bedc5f1a4925cd",
+  "rawSha256": "731d29111c0b9227a51bbf7b4c10774b9641b59560591f81208be211f3e3530d",
+  "attemptIdentity": {
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+    "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+    "threadId": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+    "attemptId": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+    "participantA": "peer:9af15d884eba51b0c0540e2a",
+    "participantB": "peer:f33d3a68b0f0c0a5af9d0a58",
+    "requesterId": "peer:6953685f511fc21cdf43348a",
+    "placementGeneration": 0
+  },
+  "failure": "Shader gather_f16_vec4.wgsl is outside the verified Capsule source closure.",
+  "cleanup": [
+    {
+      "participantId": "peer:9af15d884eba51b0c0540e2a",
+      "status": "settled",
+      "settledAt": 1791895233098,
+      "error": null
+    },
+    {
+      "participantId": "peer:f33d3a68b0f0c0a5af9d0a58",
+      "status": "settled",
+      "settledAt": 1791895233107,
+      "error": null
+    }
+  ],
+  "activeReservations": 0,
+  "unsettledOwners": 0,
+  "scope": "Actual signed application first generation rejected by verified source closure before embedding gather. This is separate from fixed oversized discovery descriptor. Read-only non-pausing inspector; no restart, shader change, or injected request."
+}

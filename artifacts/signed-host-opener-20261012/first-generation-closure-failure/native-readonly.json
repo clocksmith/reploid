@@ -1,0 +1,275 @@
+{
+  "at": "2026-10-13T12:42:00.323Z",
+  "pid": 2525851,
+  "public": {
+    "phase": "ready",
+    "error": null,
+    "reservations": {
+      "closed": false,
+      "active": 0,
+      "availableSlots": 2,
+      "records": [
+        {
+          "identity": {
+            "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+            "participantA": "peer:9af15d884eba51b0c0540e2a",
+            "participantB": "peer:f33d3a68b0f0c0a5af9d0a58",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+            "threadId": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+            "attemptId": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+            "requesterId": "peer:6953685f511fc21cdf43348a",
+            "placementGeneration": 0
+          },
+          "participantId": "peer:9af15d884eba51b0c0540e2a",
+          "index": 0,
+          "phase": "failed",
+          "reservedAt": 1791895232896,
+          "settlingAt": 1791895233097,
+          "settledAt": 1791895233097,
+          "failure": "Shader gather_f16_vec4.wgsl is outside the verified Capsule source closure.",
+          "resources": {
+            "attemptSlots": 1,
+            "maxPromptTokens": 4096,
+            "maxTokens": 4096,
+            "maxActivationBytes": 33554432,
+            "scope": "application-attempt-limits"
+          }
+        }
+      ]
+    },
+    "attempts": [
+      {
+        "identity": {
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+          "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+          "threadId": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+          "attemptId": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+          "participantA": "peer:9af15d884eba51b0c0540e2a",
+          "participantB": "peer:f33d3a68b0f0c0a5af9d0a58",
+          "requesterId": "peer:6953685f511fc21cdf43348a",
+          "placementGeneration": 0
+        },
+        "phase": "failed",
+        "startedAt": 1791895233070,
+        "failure": "Shader gather_f16_vec4.wgsl is outside the verified Capsule source closure.",
+        "reservations": [
+          {
+            "identity": {
+              "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+              "participantA": "peer:9af15d884eba51b0c0540e2a",
+              "participantB": "peer:f33d3a68b0f0c0a5af9d0a58",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+              "threadId": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+              "attemptId": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+              "requesterId": "peer:6953685f511fc21cdf43348a",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "index": 0,
+            "phase": "reserved",
+            "reservedAt": 1791895232896,
+            "settlingAt": null,
+            "settledAt": null,
+            "failure": null,
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          },
+          {
+            "identity": {
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+              "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+              "threadId": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+              "attemptId": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+              "participantA": "peer:9af15d884eba51b0c0540e2a",
+              "participantB": "peer:f33d3a68b0f0c0a5af9d0a58",
+              "requesterId": "peer:6953685f511fc21cdf43348a",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:f33d3a68b0f0c0a5af9d0a58",
+            "index": 1,
+            "phase": "reserved",
+            "reservedAt": 1791895233063,
+            "settlingAt": null,
+            "settledAt": null,
+            "failure": null,
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ],
+        "cleanupStartedAt": 1791895233097,
+        "cleanupSettledAt": 1791895233107,
+        "cleanup": [
+          {
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "status": "settled",
+            "settledAt": 1791895233098,
+            "error": null
+          },
+          {
+            "participantId": "peer:f33d3a68b0f0c0a5af9d0a58",
+            "status": "settled",
+            "settledAt": 1791895233107,
+            "error": null
+          }
+        ]
+      }
+    ],
+    "unsettledOwners": 0
+  },
+  "networks": {
+    "entries": [],
+    "execution": [
+      {
+        "id": "12c2dbc8-6b80-4fe3-97e8-e03cd0f39ee9",
+        "channel": {
+          "label": "reploid-partitions",
+          "readyState": "open",
+          "bufferedAmount": 0
+        },
+        "state": {
+          "ready": true,
+          "descriptor": {
+            "schema": "doppler.resident-partition/v1",
+            "ready": true,
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+            "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+            "index": 1,
+            "layerRange": [
+              12,
+              23
+            ],
+            "residentWeightBytes": 285497344,
+            "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f"
+          },
+          "participantId": "peer:f33d3a68b0f0c0a5af9d0a58",
+          "receipt": {
+            "schema": "reploid.partition-channel/v1",
+            "sentFrameBytes": 4339,
+            "receivedFrameBytes": 3395,
+            "sentFrames": 6,
+            "receivedFrames": 12,
+            "completedRequests": 6,
+            "cancelledRequests": 0,
+            "discardedFrames": 0,
+            "pendingRequests": 0,
+            "inboundRequests": 0,
+            "reservedBytes": 0,
+            "closed": false,
+            "wireBytes": null,
+            "relayBytes": null,
+            "lastFailure": null
+          }
+        }
+      }
+    ]
+  },
+  "chat": {
+    "closed": false,
+    "active": 0,
+    "attempts": [
+      {
+        "identity": {
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+          "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+          "threadId": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+          "attemptId": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+          "participantA": "peer:9af15d884eba51b0c0540e2a",
+          "participantB": "peer:f33d3a68b0f0c0a5af9d0a58",
+          "requesterId": "peer:6953685f511fc21cdf43348a",
+          "placementGeneration": 0
+        },
+        "phase": "failed",
+        "startedAt": 1791895233070,
+        "failure": "Shader gather_f16_vec4.wgsl is outside the verified Capsule source closure.",
+        "reservations": [
+          {
+            "identity": {
+              "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+              "participantA": "peer:9af15d884eba51b0c0540e2a",
+              "participantB": "peer:f33d3a68b0f0c0a5af9d0a58",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+              "threadId": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+              "attemptId": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+              "requesterId": "peer:6953685f511fc21cdf43348a",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "index": 0,
+            "phase": "reserved",
+            "reservedAt": 1791895232896,
+            "settlingAt": null,
+            "settledAt": null,
+            "failure": null,
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          },
+          {
+            "identity": {
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:ef4543d3f909c5c8324bbfe69e8df9665fe3702deabb6b8fbdfca10dcd4fc32e",
+              "planId": "sha256:60024873abb36bd210b615a736eac75e079e81a3f0bc6071cdba72ee013a4872",
+              "threadId": "0a990f4f-0ebc-48ea-8123-14e58da1ab3c",
+              "attemptId": "341869f7-b8ec-4b86-b47e-1d33e2b5b1b7",
+              "participantA": "peer:9af15d884eba51b0c0540e2a",
+              "participantB": "peer:f33d3a68b0f0c0a5af9d0a58",
+              "requesterId": "peer:6953685f511fc21cdf43348a",
+              "placementGeneration": 0
+            },
+            "participantId": "peer:f33d3a68b0f0c0a5af9d0a58",
+            "index": 1,
+            "phase": "reserved",
+            "reservedAt": 1791895233063,
+            "settlingAt": null,
+            "settledAt": null,
+            "failure": null,
+            "resources": {
+              "attemptSlots": 1,
+              "maxPromptTokens": 4096,
+              "maxTokens": 4096,
+              "maxActivationBytes": 33554432,
+              "scope": "application-attempt-limits"
+            }
+          }
+        ],
+        "cleanupStartedAt": 1791895233097,
+        "cleanupSettledAt": 1791895233107,
+        "cleanup": [
+          {
+            "participantId": "peer:9af15d884eba51b0c0540e2a",
+            "status": "settled",
+            "settledAt": 1791895233098,
+            "error": null
+          },
+          {
+            "participantId": "peer:f33d3a68b0f0c0a5af9d0a58",
+            "status": "settled",
+            "settledAt": 1791895233107,
+            "error": null
+          }
+        ]
+      }
+    ]
+  }
+}
