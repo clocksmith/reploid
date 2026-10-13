@@ -1,0 +1,206 @@
+{
+  "schema": "reploid.price-context-token-preflight/v1",
+  "sourceModelExecuted": false,
+  "suiteSha256": "c88d34a6c2db4a89110bceadea4fe16492189c5b37deb632abda691223f924bc",
+  "templateSha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+  "rows": [
+    {
+      "id": "fresh-1-control",
+      "promptTokens": 377,
+      "maximumGenerated": 64,
+      "maximumCharged": 441,
+      "inputIdsSha256": "643a9ce4ca31fc24d7972843f937d3e7ed37a978dd8e5857bb19276e0ee66927"
+    },
+    {
+      "id": "fresh-1-without_global_question",
+      "promptTokens": 350,
+      "maximumGenerated": 64,
+      "maximumCharged": 414,
+      "inputIdsSha256": "00157aedf6de85b777fa8ee7c872a2b4c03dd8171e6b964e8b6ec6b64947efb8"
+    },
+    {
+      "id": "fresh-2-control",
+      "promptTokens": 371,
+      "maximumGenerated": 64,
+      "maximumCharged": 435,
+      "inputIdsSha256": "e1904022f1260038ef306a608a2b868b401d0339a8e44cb0a6c02d3b9692ce32"
+    },
+    {
+      "id": "fresh-2-without_global_question",
+      "promptTokens": 344,
+      "maximumGenerated": 64,
+      "maximumCharged": 408,
+      "inputIdsSha256": "b7bf4234598a5a212098d731bb2df5daa4da45ddbb613f0ea76c5ad09cfd1164"
+    },
+    {
+      "id": "fresh-3-control",
+      "promptTokens": 373,
+      "maximumGenerated": 64,
+      "maximumCharged": 437,
+      "inputIdsSha256": "47df86bc0720b9fc780d675d46bee07b124e7b8095aa8f45c0c8406a783f2bef"
+    },
+    {
+      "id": "fresh-3-without_global_question",
+      "promptTokens": 346,
+      "maximumGenerated": 64,
+      "maximumCharged": 410,
+      "inputIdsSha256": "45ebb7798f39495ee2f32ac561b9671c8e10b6e2a2480dd7947cda98c26889d3"
+    },
+    {
+      "id": "fresh-4-control",
+      "promptTokens": 375,
+      "maximumGenerated": 64,
+      "maximumCharged": 439,
+      "inputIdsSha256": "eeae630515d47d70d52c1e980ba56d37ac827b67989066992c0c17635bafd0f3"
+    },
+    {
+      "id": "fresh-4-without_global_question",
+      "promptTokens": 348,
+      "maximumGenerated": 64,
+      "maximumCharged": 412,
+      "inputIdsSha256": "28fe3437c139c30c733a0c1741b6c68092e92fc5ab2104be06d5c72819f63056"
+    },
+    {
+      "id": "fresh-5-control",
+      "promptTokens": 372,
+      "maximumGenerated": 64,
+      "maximumCharged": 436,
+      "inputIdsSha256": "0fc0f85fe152a585e62c43778b1cedf63ace379be8388daa5b95d71f65d2cef0"
+    },
+    {
+      "id": "fresh-5-without_global_question",
+      "promptTokens": 345,
+      "maximumGenerated": 64,
+      "maximumCharged": 409,
+      "inputIdsSha256": "4c2a356f8c32e270a7737672c135fc828accd526bf942a21f2c88bb143f4a3e2"
+    },
+    {
+      "id": "fresh-6-control",
+      "promptTokens": 374,
+      "maximumGenerated": 64,
+      "maximumCharged": 438,
+      "inputIdsSha256": "3b4c116988100d6b6f61fccd929cd716f747aaf9fc3e997a61bc3f82d13bcfe1"
+    },
+    {
+      "id": "fresh-6-without_global_question",
+      "promptTokens": 347,
+      "maximumGenerated": 64,
+      "maximumCharged": 411,
+      "inputIdsSha256": "d935b3dd1e4a0deffe220083152444e16ad1a8b50e48c2490d5711fc370835ab"
+    },
+    {
+      "id": "fresh-7-control",
+      "promptTokens": 376,
+      "maximumGenerated": 64,
+      "maximumCharged": 440,
+      "inputIdsSha256": "43f78bfcc397595723d8ee6078daa139701a8112870ecf8ceae0b17b64fca9c9"
+    },
+    {
+      "id": "fresh-7-without_global_question",
+      "promptTokens": 349,
+      "maximumGenerated": 64,
+      "maximumCharged": 413,
+      "inputIdsSha256": "749c2c7b5c3e5032a4ddcee4a5eeb9fd9926daa75c21492e8936b7f6f9793bb6"
+    },
+    {
+      "id": "fresh-8-control",
+      "promptTokens": 377,
+      "maximumGenerated": 64,
+      "maximumCharged": 441,
+      "inputIdsSha256": "7f0c23586f38bd8176dbc3d7c01de25389c1b976d03cd60813eb0f2f9c1e4cd5"
+    },
+    {
+      "id": "fresh-8-without_global_question",
+      "promptTokens": 350,
+      "maximumGenerated": 64,
+      "maximumCharged": 414,
+      "inputIdsSha256": "1b5d3e4c4e14d8362494d41988237564b1f053972e9d077b6715d631690db9cc"
+    },
+    {
+      "id": "fresh-9-control",
+      "promptTokens": 378,
+      "maximumGenerated": 64,
+      "maximumCharged": 442,
+      "inputIdsSha256": "26f8f102e44582fd27db3bdac3223a78aea87a4e43550910fad338f3f2a46da9"
+    },
+    {
+      "id": "fresh-9-without_global_question",
+      "promptTokens": 351,
+      "maximumGenerated": 64,
+      "maximumCharged": 415,
+      "inputIdsSha256": "c22e69431c181fc39371fcdd40eb52a27ac4b7cf0c920f51f986a7c76277bc72"
+    }
+  ],
+  "aggregate": {
+    "promptTokens": 6503,
+    "maximumGenerated": 1152,
+    "maximumCharged": 7655,
+    "limit": 8192
+  },
+  "fullTaskMoneyStageProjections": [
+    {
+      "id": "fresh-bathroom-comparison",
+      "moneyCalls": 7,
+      "moneyPromptTokens": 2503,
+      "moneyMaximumGenerated": 448,
+      "moneyMaximumCharged": 2951,
+      "remainingForEveryOtherCallAndFinalAnswer": 5241,
+      "fullyAdmitted": false
+    },
+    {
+      "id": "fresh-bathroom-correction",
+      "moneyCalls": 7,
+      "moneyPromptTokens": 2503,
+      "moneyMaximumGenerated": 448,
+      "moneyMaximumCharged": 2951,
+      "remainingForEveryOtherCallAndFinalAnswer": 5241,
+      "fullyAdmitted": false
+    },
+    {
+      "id": "contractor-comparison",
+      "moneyCalls": 5,
+      "moneyPromptTokens": 1800,
+      "moneyMaximumGenerated": 320,
+      "moneyMaximumCharged": 2120,
+      "remainingForEveryOtherCallAndFinalAnswer": 6072,
+      "fullyAdmitted": false
+    },
+    {
+      "id": "contractor-retained-correction",
+      "moneyCalls": 5,
+      "moneyPromptTokens": 1800,
+      "moneyMaximumGenerated": 320,
+      "moneyMaximumCharged": 2120,
+      "remainingForEveryOtherCallAndFinalAnswer": 6072,
+      "fullyAdmitted": false
+    },
+    {
+      "id": "fresh-printing-balance",
+      "moneyCalls": 3,
+      "moneyPromptTokens": 1061,
+      "moneyMaximumGenerated": 192,
+      "moneyMaximumCharged": 1253,
+      "remainingForEveryOtherCallAndFinalAnswer": 6939,
+      "fullyAdmitted": false
+    },
+    {
+      "id": "fresh-schedule-condition",
+      "moneyCalls": 0,
+      "moneyPromptTokens": 0,
+      "moneyMaximumGenerated": 0,
+      "moneyMaximumCharged": 0,
+      "remainingForEveryOtherCallAndFinalAnswer": 8192,
+      "fullyAdmitted": false
+    },
+    {
+      "id": "fresh-included-credit-conflict",
+      "moneyCalls": 3,
+      "moneyPromptTokens": 1085,
+      "moneyMaximumGenerated": 192,
+      "moneyMaximumCharged": 1277,
+      "remainingForEveryOtherCallAndFinalAnswer": 6915,
+      "fullyAdmitted": false
+    }
+  ],
+  "limitation": "Fresh matched diagnostic calls are not production overhead. A selected format would replace previous money-stage calls, not accumulate experiments inside a conversation. Exact condition/date/deposit calls, actual tool-result growth and original-history final response must fit the stated residual. Full workflow not yet admitted."
+}

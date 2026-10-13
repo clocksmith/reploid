@@ -1,0 +1,13 @@
+# Fresh matched source-context control — prepared, not run
+
+Hypothesis: the full comparison question may bias a local source-occurrence role toward the overall quoted price. The preceding seven-occurrence treatment remains rejected (3/7). This is a matched test of that causal hypothesis, not a claim it will repair the model.
+
+Nine fresh passages cover all seven relation labels, two deposit phrasings, and unconditional/conditional additional charges. Each control includes the same global question; its treatment has an empty question-context array. Exact passage, occurrence, system definitions, seven legal labels, model, official template, sampling and grammar remain identical. Order is frozen control then treatment for each passage. Review expectations are separate from the suite sent to the source model.
+
+Exact preflight: 6,503 prompt tokens plus at most 1,152 generated = 7,655 charged, under the original 8,192 cap. All prompts and generated outputs are charged; no retries. Stop on structural/budget failure; otherwise retain all18 outcomes, including every semantic failure. Complete local acceptance requires all9 treatment relations, not a favorable subset.
+
+A selected format would replace the money stage, not append the18 diagnostic calls to a real conversation. Tokenizer-only full-task projections are retained for all seven original tasks. The first task reserves at most2,951 for money plus878 for the old empty-result final prompt, leaving4,363 for all remaining interpretation, actual tool growth and final generation. The longer retained correction leaves4,115. These residuals do not prove that a complete workflow fits: condition/deposit/date links and final answer must undergo exact admission and unchanged factual/citation review. A conditional extra charge remains conditional; its label alone never authorizes addition.
+
+Reproduction: `prepare.py`, then `preflight.py` with the frozen original tokenizer, then `bind_preflight.py`, `fixture_test.py`, and `freeze.py`. None loads model weights. `runner-control.json` replays all18 calls with artificial logits selecting unknown, then injects a third-call failure and verifies partial tokens, aggregate charging and remaining15 unrun; no source weights are loaded. The prepared runner reuses the exact reviewed source evaluator and grammar; only this artifact owns its bounded orchestration. The parent reviewed this preflight and authorized one batch after synthetic controls and a frozen checkpoint. No model run has occurred at preparation.
+
+Component: application quality experiment. Intent preserved. Acceptance: input identity and tokenizer admission only; semantic/full-task gates open. Boundary effects: none.

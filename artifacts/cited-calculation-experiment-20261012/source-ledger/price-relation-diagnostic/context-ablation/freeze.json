@@ -1,0 +1,73 @@
+{
+  "model": "Qwen/Qwen3-1.7B",
+  "sourceRevision": "70d244cc86ccca08cf5af4e1e306ecf908b1ad5e",
+  "sourceIdentity": {
+    "tokenizer_config.json": "d5d09f07b48c3086c508b30d1c9114bd1189145b74e982a265350c923acd8101",
+    "download-receipt.json": "eaf732de3eb6a2d4c754b3959269c2ef6aab0014e3becda960e08dd78b148c8a",
+    "tokenizer.json": "aeb13307a71acd8fe81861d94ad54ab689df773318809eed3cbe794b4492dae4"
+  },
+  "dopplerSources": {
+    "tools/source-model-task-quality.py": "3e1dd96f7e338a48a0c778e7d9b2b20f0c9c2982ff9a59194d03774ed42da483",
+    "tools/lib/source_task_quality.py": "37586f498f393570e499859deb0bcaba520e86bb85a03365c176a4981079127f"
+  },
+  "libraries": {
+    "transformers": "5.6.2",
+    "tokenizers": "0.22.2",
+    "torch": "2.11.0"
+  },
+  "processorSourceSha256": "e0b62e949a3510cac6d762ce7ac1968f2622ae01edb7a2ef7d555bff9da310cf",
+  "sourceReceiptValidation": "Frozen loader verifies every download receipt file size and SHA256, exact revision URL, and expected LFS SHA256 before model loading; retained source-weight-binding.json lists config and both weight shards.",
+  "schema": "reploid.price-context-ablation-freeze/v1",
+  "status": "frozen; parent reviewed exact preflight and authorized one matched CPU batch after checkpoint",
+  "templateSha256": "a55ee1b1660128b7098723e0abcd92caa0788061051c62d51cbe87d9cf1974d8",
+  "files": {
+    "bind_preflight.py": "12e707303b88929125a757f78e5431a011e9bc433138500263f03e5097286e9a",
+    "fixture_test.py": "cce9c727d3631ff2cf4fd6059b1db4ac45066120f6fa01d8cf5dee78281cd231",
+    "freeze.py": "8685a597f154fd4f7e27217694a9ca1b6ddf8603b43873acd6f03d1db4a8ce95",
+    "input.json": "004a53d453df321ab28fe37ae0b67393752baa629e989b77c35f6322da12e8c9",
+    "preflight.py": "e531081cfa771dc263e18a6ec7f3051078f7e88386fa94a2f7147597c36c223d",
+    "prepare.py": "a90f56aed94d151553203f2a6a75896e36fe62428bd7c06c4ae422a2102c79d4",
+    "review-criteria.json": "dcb6278aea064d8d04edca0a0bb3a3e36a4c4d955e847c00e119596be1091d0e",
+    "run.py": "ac324e928330ad8cf43aa3e4d203cbc10f9fc7079c4c4cbbd746fd81811e9e00",
+    "runner_test.py": "7ca70c1ad995af9f3da6d15ad9b144669c90271b83022dac8c27647f2b33b40b",
+    "suite.json": "c88d34a6c2db4a89110bceadea4fe16492189c5b37deb632abda691223f924bc",
+    "token-preflight.json": "e0f98054f5f2aea01ee741a99e5767fd015623e02cae1cb881eb847e96ccbfdd"
+  },
+  "reusedSources": {
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/grammar-experiment/constraint.py": "0717f1305e888429455093e6a79d2aafda7589875eb97167de588d7cba919d75",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/grammar-experiment/grammar.py": "610984b06ed137ccb2e0bcaad4d9ef529ece4a3943d31a990e3d95e787808434",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/grammar-experiment/freeze.json": "6ec0fb8f8c100eda60ee4bd7f1859f0c7b1918af2434ce3cd0c84481b28387e4",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/inputs.json": "4c7a68a0545d46fbdfa9695f9ed80080d0b910c94b1d286fe5504e30acd1d6a2",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/suite.json": "5c6c50868097f62b35980e95ee005a0b7f7819df604700e483b08f0faab04e8e",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/template-binding.json": "9b6c2ff0af91e28169d50f705ba3a9f96e5a20225aeafaff30084a5f8d2af92e",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/token-preflight.json": "a7f1885b6170b7e732861e4a452be9c40f26100d8e4196507792df37f4500985",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/source-weight-binding.json": "dd01d12e3aa39173ece81f4054ded6797eb147cf14f901125d9a93de60b73216",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-experiment/freeze.json": "e84785d1030e057d69db16f0b50c48ecc9a779d08db070a7b117a057a4e59141",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/row-tag-proposal/locked-holdouts.json": "863d2e49dcf6387d65b5f70943ad8f27be8e812441e644606be105d07c01fad3",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/contract.py": "6f4ce09c8cfcd73e6eb12e09ff7c4fabbfb24af04308e433112c76fdb33c3c5d",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/constraint_adapter.py": "b32101ec0794bf5d4cfe955532c469cd429338d6a2693082ddf8158b707cffe9",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/freeze.json": "0ca4300b333a7f0a48944bd458ae20e4e43a1b31a21aa4f2a022c440b2a5b622",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/composition-inputs.json": "2b0938a3887d85c74ae4d8e610b7706b6562a9f5b0eb274af375a3e48a80011f",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/token-preflight.json": "0ce62438fc2d1a6218132ae675d79c6a0c2cbe7d989efeefa6e7a64b2b5d480c",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/first-result/review.json": "a768baf2340957a5bb12d76f2a7f0fcf714e75efcd773788c8b7f6b95f25dd0b",
+    "artifacts/cited-calculation-experiment-20261012/source-ledger/price-relation-diagnostic/first-result/source.json.gz": "4235329bb88bdc40f07139f17786b0d71af1039bdcf5c930a9e86b74994a8862"
+  },
+  "hypothesis": "Global task-wide comparison context may distract from the explicit local role of a monetary occurrence. Test removal of that context only. Previous semantic failure remains rejected; this mechanism is unproven.",
+  "selectionRule": "Exactly nine fresh occurrences, original declared order, control then treatment for each. Includes all seven labels, two deposit wordings, and both unconditional/conditional additional charges. No output-based selection.",
+  "mechanism": "Only questionContext array changes from the frozen global comparison question to empty. Same seven global labels, definitions, source passages/offsets, model, official template, greedy nonthinking repetition1.0 and grammar. All labels remain available. No arithmetic, output repair, retry or final answer.",
+  "preflight": {
+    "calls": 18,
+    "promptTokens": 6503,
+    "maximumGenerated": 1152,
+    "maximumCharged": 7655,
+    "aggregateLimits": {
+      "generated": 4096,
+      "charged": 8192,
+      "rawUtf16": 16000
+    }
+  },
+  "stop": "Stop on first structural or aggregate budget failure. Otherwise complete all18 calls, retain every matched semantic outcome, and obtain independent review. No favorable subset or retry.",
+  "acceptance": "Treatment must satisfy all9 frozen local semantic criteria. Even9/9 does not qualify complete tasks, any converted model, or production. Every original factual/citation/followup/condition criterion and two locked holdouts remains unchanged.",
+  "composition": "This is diagnostic comparison cost, not overhead to append inside a conversation. A selected local format replaces the money stage. Original first-case money max2951 plus empty final prompt878 leaves4363 for missing condition/date/deposit work, actual tool growth and final generation; retained contractor correction money2120 plus empty final1957 leaves4115. Actual full composition still requires preflight and full task evaluation.",
+  "launch": "Parent reviewed concrete preflight and residual full-task limitation, authorizing one batch after synthetic controls and commit. CPU4-7 fourthreads nice10, coexecution with numerical correctness; no GPU/download/performance claim."
+}

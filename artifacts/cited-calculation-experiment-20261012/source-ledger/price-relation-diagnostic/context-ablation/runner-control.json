@@ -1,0 +1,31 @@
+{
+  "schema": "reploid.price-context-runner-control/v1",
+  "passed": true,
+  "sourceModelExecuted": false,
+  "controls": [
+    {
+      "artificialLabel": "unknown",
+      "injectedFailure": false,
+      "tokens": {
+        "promptTokens": 6503,
+        "generatedTokens": 108,
+        "totalChargedTokens": 6611,
+        "rawUtf16": 576
+      },
+      "modelExecuted": false,
+      "semanticAcceptance": false
+    },
+    {
+      "artificialLabel": "unit_price",
+      "injectedFailure": true,
+      "tokens": {
+        "promptTokens": 1098,
+        "generatedTokens": 16,
+        "totalChargedTokens": 1114,
+        "rawUtf16": 80
+      },
+      "modelExecuted": false,
+      "semanticAcceptance": false
+    }
+  ]
+}
