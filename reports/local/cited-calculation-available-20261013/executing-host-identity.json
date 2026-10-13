@@ -1,0 +1,12 @@
+{
+  "allFrozenFilesMatch": true,
+  "freezeSha256": "2245d08c88139aa665f95440ea4bce4aabfacca2dec1020de0b2825d5b17235e",
+  "reploidRevision": "99ca0456d01e8f08e070ec998de8834e4b6008f7",
+  "dopplerRevision": "ad81ccf339eb39e2b0e2c2edb45a30ef5b28f15e",
+  "allowedCpuAffinity": [
+    4,
+    5,
+    6,
+    7
+  ]
+}
