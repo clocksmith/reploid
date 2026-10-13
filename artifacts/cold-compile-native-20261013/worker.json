@@ -1,6 +1,7 @@
 {
   "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
   "files": {
+    "load-preflight/prepare-mac.js": "afd4cc1b19ccc575ca42a50a405b9fb0bc949f5e1a681f419e7cc47523ce0859",
     "verify-native.js": "1a887dc06d6363975bf411f5c0539175ac495a3975cf87e9a43d7942c49d23ce",
     "load-preflight/load-preflight.js": "a48e435a0f1e104b2178cf49b858bf7046b06f56f870924fdb64fb59e7358f3a",
     "load-preflight/native-partition-process.js": "d59c3c2f841dc20f01dd3598357d8457d551e2ce2a22f7adbcae19a2cb4abd02",
@@ -27,7 +28,7 @@
     "events": [
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923209541,
+        "timestamp": 1791923303286,
         "path": "/testing/verify-native.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -37,7 +38,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923209541,
+        "timestamp": 1791923303286,
         "path": "/testing/verify-native.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -47,7 +48,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923209541,
+        "timestamp": 1791923303286,
         "path": "/testing/verify-native.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -57,7 +58,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923209546,
+        "timestamp": 1791923303290,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -67,7 +68,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923209546,
+        "timestamp": 1791923303290,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -77,7 +78,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923209546,
+        "timestamp": 1791923303290,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -87,7 +88,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923209546,
+        "timestamp": 1791923303290,
         "path": "/testing/load-preflight/load-preflight.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -97,7 +98,7 @@
       },
       {
         "type": "complexity",
-        "timestamp": 1791923209546,
+        "timestamp": 1791923303291,
         "metric": "line_length",
         "value": 8,
         "threshold": 5,
@@ -106,7 +107,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923209550,
+        "timestamp": 1791923303296,
         "path": "/testing/load-preflight/numerical-test-delivery.js",
         "patternId": "suspicious_variable_name",
         "category": "structural",
@@ -116,7 +117,7 @@
       },
       {
         "type": "verification:pattern_detected",
-        "timestamp": 1791923209551,
+        "timestamp": 1791923303297,
         "path": "/testing/load-preflight/observe-native.js",
         "patternId": "dynamic_property_write",
         "category": "structural",
@@ -137,7 +138,7 @@
           "path": "/testing/load-preflight/load-preflight.js"
         }
       ],
-      "filesAnalyzed": 7
+      "filesAnalyzed": 8
     }
   }
 }
