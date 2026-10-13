@@ -1,0 +1,39 @@
+{
+  "schema": "reploid-stateless-responses-independent-review/v1",
+  "reviewer": "document_quality",
+  "disposition": "No remaining blocker in declared stateless text protocol scope",
+  "reviewedFiles": {
+    "artifacts/stateless-responses-20261013/installed-consumer.mjs": "6851aaf8415760efa9cd2069b6374baf3a33434f1658c120d09ce9e44102e8b3",
+    "artifacts/stateless-responses-20261013/installed-result.json": "42052f4c0d2ded72b5b6c93eae9f4d24d1e68ebbe1fe5765e998a28d8699451c",
+    "artifacts/stateless-responses-20261013/source-freeze.json": "f87f1d51c60c12b6ca323259963265fb81883831bb4aca4e36d47e6c3da7269d",
+    "artifacts/stateless-responses-20261013/native-package.json": "b8c8b145d3c3b6dc9bb568cd4877bdc8f83188251606c3a7068b4be1a650a0f4",
+    "artifacts/stateless-responses-20261013/binding.json": "b3657b2515699a211a58f1ea6c3955b5ea3c98a0732a639466e00990adcb8d03"
+  },
+  "independentChecks": {
+    "sourceHttpSuites": "68 Responses + Chat Completions controls passed in independent rerun",
+    "additionalHttpControl": "Injected requester; unsupported fields, four terminal modes, ordered SSE, system input, omitted usage, preserved Chat DONE",
+    "nativeFilesVerifiedAgainstDirectoryAndArchive": 111,
+    "sourceOverlaysVerified": true,
+    "runtimeFilesVerifiedAgainstInstalledTree": 1897,
+    "runtimeArchiveSha256": "9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc",
+    "sdkLockVerified": true
+  },
+  "reviewFindings": [
+    "Authentication and per-request actual recipient disclosure remain separate.",
+    "Exact system instructions and ordered messages reach immutable request authorization.",
+    "Unknown parameters/state/tools/unsupported input shapes fail before generation.",
+    "Stable response/item identities and contiguous typed events preserve completion versus incomplete/error.",
+    "Both protocols share same-participant HTTP admission; closing one only cancels own requests.",
+    "Disconnect keeps unresolved HTTP work charged; underlying participant retains physical cleanup authority.",
+    "No response persistence, hidden continuation, sampling overrides, token usage or physical inference claims."
+  ],
+  "repairsReviewed": [
+    "Shared HTTP admission across the two borrowed protocol adapters",
+    "completed_at null for incomplete output; completed timestamp only for completed status"
+  ],
+  "limitations": [
+    "SDK run receipt reviewed, not rerun by independent reviewer.",
+    "Numerical text is injected; provider/model not initialized.",
+    "No GPU, model-quality, durable canonical publication or full OpenAI API compatibility qualification."
+  ]
+}
