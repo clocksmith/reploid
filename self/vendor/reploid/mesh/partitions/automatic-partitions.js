@@ -82,7 +82,12 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
     // Discovery expires independently of the execution channel. Existing signed
     // attempts own this route until settlement; a missing advertisement or a new
     // replica must not cancel them or change their authorized recipients.
-    if (chat?.getState().active > 0 && !executionPeer.getState().receipt.closed) {
+    const reserved = program?.resident.getState().reservations.active > 0;
+    const activeInput = chat && (chat.getState().active > 0 || reserved)
+      && !executionPeer.getState().receipt.closed;
+    // Output stages have no chat runner. Their channel/receiver owns settlement;
+    // discovery cannot retire their shared resident while any state is charged.
+    if (activeInput || program?.resident.index === 1 && reserved) {
       placementDecision = { ...placementDecision, participants: [...placement], reason: 'retain-active-execution' };
       return;
     }
