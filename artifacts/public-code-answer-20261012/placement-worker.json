@@ -1,0 +1,31 @@
+{
+  "passed": true,
+  "errors": [],
+  "warnings": [
+    "Warning in /tests/unit/partition-placement.test.js: Path traversal pattern detected (../) - potential security risk"
+  ],
+  "events": [
+    {
+      "type": "verification:pattern_detected",
+      "timestamp": 1791857175877,
+      "path": "/tests/unit/partition-placement.test.js",
+      "patternId": "path_traversal",
+      "category": "filesystem",
+      "message": "Path traversal pattern detected (../) - potential security risk",
+      "severity": "warning"
+    }
+  ],
+  "details": {
+    "patternViolations": [
+      {
+        "path": "/tests/unit/partition-placement.test.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      }
+    ],
+    "complexityWarnings": [],
+    "filesAnalyzed": 2
+  }
+}

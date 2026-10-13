@@ -1,0 +1,15 @@
+
+ RUN  v4.1.10 /Users/xyz/deco/reploid
+
+ ✓ tests/unit/partition-placement.test.js (5 tests) 9ms
+ ✓ tests/unit/automatic-partition-discovery-lifetime.test.js (4 tests) 15ms
+ ✓ tests/unit/automatic-partition-lifecycle.test.js (6 tests) 120ms
+ ✓ tests/unit/partition-api.test.js (41 tests) 3707ms
+     ✓ discovers cooperative executors with replica coverage=false  1675ms
+     ✓ discovers cooperative executors with replica coverage=true  1354ms
+
+ Test Files  4 passed (4)
+      Tests  56 passed (56)
+   Start at  22:04:17
+   Duration  4.13s (transform 249ms, setup 0ms, import 419ms, tests 3.85s, environment 589ms)
+
