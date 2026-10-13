@@ -1,0 +1,10 @@
+{
+  "directory": "/private/var/tmp/reploid-recurrent-repair-native-20261013/source/output/reploid-native-c1A3dB/reploid",
+  "archive": "/private/var/tmp/reploid-recurrent-repair-native-20261013/source/output/reploid-native-c1A3dB/reploid-native-0.1.0.tgz",
+  "fileCount": 113,
+  "manifestSha256": "4f928c86b726be4b8d6803fdd65642c65da98f26c28933370393c218614a8e22",
+  "archiveSha256": "aeedac7116714599e8f47545cc644445a035908c38814613552657fbe4a32dd8",
+  "sourceCommit": "2cb6ceca0e8d68dd62d060f7153520ec4b09f734",
+  "runtimeArchiveSha256": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4",
+  "scope": "Isolated numerical candidate, unsigned catalog; public configuration unchanged"
+}

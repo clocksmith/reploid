@@ -1,0 +1,24 @@
+{
+  "schema": "reploid.native-base-verification/v1",
+  "directory": "/var/tmp/reploid-recurrent-memory-20261013/installed-repair/reploid",
+  "nativeArchiveSha256": "aeedac7116714599e8f47545cc644445a035908c38814613552657fbe4a32dd8",
+  "descriptorSha256": "4f928c86b726be4b8d6803fdd65642c65da98f26c28933370393c218614a8e22",
+  "nativeFiles": 113,
+  "runtimeFiles": 1984,
+  "runtimeArchiveSha256": "5032a459d256ba6a0028803a370ca97ea74cf93859f73682620a6548caf463e4",
+  "catalogSha256": "1d5e76f1a2259ef8641b325f6422c9ab48a83dd28528dae45abdddb708aa97d5",
+  "catalogStage": "committed unsigned base; no ordered signed eligibility",
+  "dependencyVersions": {
+    "doppler-gpu": "0.6.28",
+    "@roamhq/wrtc": "0.10.0",
+    "ws": "8.21.0",
+    "webgpu": "0.4.0"
+  },
+  "node": "v22.21.0",
+  "platform": "linux",
+  "architecture": "x64",
+  "GPUOpened": false,
+  "publicContributorChanged": false,
+  "ledgerOpened": false,
+  "physicalQualified": false
+}
