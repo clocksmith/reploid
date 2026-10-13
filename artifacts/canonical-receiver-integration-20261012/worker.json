@@ -1,0 +1,67 @@
+{
+  "scope": "Actual Verification Worker production source parse",
+  "sources": {
+    "packages/reploid/src/mesh/partitions/partition-step-receiver.js": "9df3d3ed15ad580f63c223a466dea124993fc74116a6064f3d90c5561aff8013"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /packages/reploid/src/mesh/partitions/partition-step-receiver.js:21: Dynamic property write detected: [name] - verify input sanitization",
+      "File has 23 functions (max 20) - consider modularizing",
+      "Nesting depth of 8 exceeds 5 - refactor nested code"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791856355476,
+        "path": "/packages/reploid/src/mesh/partitions/partition-step-receiver.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 21,
+        "severity": "warning"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791856355477,
+        "metric": "functions",
+        "value": 23,
+        "threshold": 20,
+        "message": "File has 23 functions (max 20) - consider modularizing",
+        "path": "/packages/reploid/src/mesh/partitions/partition-step-receiver.js"
+      },
+      {
+        "type": "complexity",
+        "timestamp": 1791856355477,
+        "metric": "nesting",
+        "value": 8,
+        "threshold": 5,
+        "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+        "path": "/packages/reploid/src/mesh/partitions/partition-step-receiver.js"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [
+        {
+          "type": "complexity",
+          "metric": "functions",
+          "value": 23,
+          "threshold": 20,
+          "message": "File has 23 functions (max 20) - consider modularizing",
+          "path": "/packages/reploid/src/mesh/partitions/partition-step-receiver.js"
+        },
+        {
+          "type": "complexity",
+          "metric": "nesting",
+          "value": 8,
+          "threshold": 5,
+          "message": "Nesting depth of 8 exceeds 5 - refactor nested code",
+          "path": "/packages/reploid/src/mesh/partitions/partition-step-receiver.js"
+        }
+      ],
+      "filesAnalyzed": 1
+    }
+  }
+}

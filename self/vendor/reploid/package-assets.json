@@ -730,6 +730,11 @@
       "sha256": "12e3357916f96a9ca620aebd1e471c38776fe1d08d1d09ac5fb654354d9fe58e"
     },
     {
+      "path": "mesh/partitions/partition-receiver-policy.json",
+      "bytes": 119,
+      "sha256": "03c8dbcd0badd7bf0bd27398e79f1a2d7d45693e5eb28b0d95879ec68964eac9"
+    },
+    {
       "path": "mesh/partitions/partition-reservations.js",
       "bytes": 3749,
       "sha256": "b7e57178ea7922aa1aca6ed8fc17ab3fedac9ee089106838a76abb35a45432c0"
@@ -756,13 +761,13 @@
     },
     {
       "path": "mesh/partitions/partition-step-receiver.d.ts",
-      "bytes": 1113,
-      "sha256": "42dc220ccc2bb61326c6f3170e9564582e9079f86daecee163d7052666071a00"
+      "bytes": 2319,
+      "sha256": "2c3f4b139384aadc11c745c47c6582fff70720f9ac97490ee339b43662d371fe"
     },
     {
       "path": "mesh/partitions/partition-step-receiver.js",
-      "bytes": 6688,
-      "sha256": "fe479af646ca08302df77f3bd5d00320517d24971c53143c954104d8b7ce1d12"
+      "bytes": 16007,
+      "sha256": "9df3d3ed15ad580f63c223a466dea124993fc74116a6064f3d90c5561aff8013"
     },
     {
       "path": "mesh/partitions/partition-summary.d.ts",

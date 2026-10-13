@@ -1,0 +1,9 @@
+{
+  "scope": "CPU source receiver contract; numerical execution and durable-publication validation are injected",
+  "sources": {
+    "packages/reploid/src/mesh/partitions/partition-step-receiver.js": "9df3d3ed15ad580f63c223a466dea124993fc74116a6064f3d90c5561aff8013",
+    "packages/reploid/src/mesh/partitions/partition-step-receiver.d.ts": "2c3f4b139384aadc11c745c47c6582fff70720f9ac97490ee339b43662d371fe",
+    "packages/reploid/src/mesh/partitions/partition-receiver-policy.json": "03c8dbcd0badd7bf0bd27398e79f1a2d7d45693e5eb28b0d95879ec68964eac9",
+    "tests/canonical-receiver-source.js": "8d239669e6367cd293605a377928c8fae2400e4c2dbcc3ca4ee83e6f561cdcd7"
+  }
+}

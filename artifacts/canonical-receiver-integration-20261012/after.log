@@ -1,0 +1,2 @@
+canonical receiver: real signed transitions; pending join, replay, epoch/payload collision, expiry and cleanup retry pass
+canonical receiver bounds: control sizes, tombstones, close-over-hash, post-execution permission and pending settlement pass
