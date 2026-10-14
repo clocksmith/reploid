@@ -6,6 +6,7 @@ Active implementation: [canonical Doppler–Reploid roadmap](../ROADMAP.md).
 Full task entries and acceptance: [canonical requirements](roadmap/requirements.md).
 Historical narrative: [roadmap history](roadmap/history.md).
 Topology requirements and inherited fixtures: [RD-CANON/1](roadmap/rd-canon-1.md).
+Launch 3 source design (off by default): [orchestration](launch-3-orchestration.md).
 
 Typed model operations: [Doppler decisions in Reploid](doppler-choice-scoring.md).
 
