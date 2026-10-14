@@ -3,8 +3,8 @@
    Layer 2 of 3: tokens -> primitives -> components
 
    Semantic custom properties and shared motion patterns. Every
-   declaration consumes only token-layer vars (--pool-<token>) or rd
-   base tokens. No component selectors, no raw color literals; alpha
+   declaration consumes only token-layer vars (--pool-<token>), never
+   rd.css variables. No component selectors, no raw color literals; alpha
    tints compose token rgb triplets via rgb(var(--*-rgb) / N%).
 
    Categories: --pool-surface-*, --pool-frame-*, --pool-border-*,
@@ -16,7 +16,6 @@
   --pool-surface-raised: var(--pool-color-raised);
   --pool-surface-inset: var(--pool-color-inset);
   --pool-surface-line: var(--pool-color-line);
-  --pool-surface-control-line: var(--pool-color-control-line);
   --pool-surface-pattern: var(--pool-gradient-hex-grid);
   --pool-surface-muted: var(--pool-color-muted);
   --pool-surface-focus: var(--pool-color-focus);
@@ -52,56 +51,56 @@
   /* === SPACING PASSTHROUGH === */
   /* Components never touch rd tokens directly; the rd space scale is
      re-exported here. */
-  --pool-space-xxs: var(--space-xxs);
-  --pool-space-xs: var(--space-xs);
-  --pool-space-sm: var(--space-sm);
-  --pool-space-md: var(--space-md);
-  --pool-space-lg: var(--space-lg);
-  --pool-space-xl: var(--space-xl);
-  --pool-space-page-gutter: var(--space-xl);
-  --pool-space-page-gap: var(--space-lg);
+  --pool-space-xxs: var(--pool-size-space-xxs);
+  --pool-space-xs: var(--pool-size-space-xs);
+  --pool-space-sm: var(--pool-size-space-sm);
+  --pool-space-md: var(--pool-size-space-md);
+  --pool-space-lg: var(--pool-size-space-lg);
+  --pool-space-xl: var(--pool-size-space-xl);
+  --pool-space-page-gutter: var(--pool-size-space-xl);
+  --pool-space-page-gap: var(--pool-size-space-lg);
 
   /* === TYPE SCALE PASSTHROUGH === */
   --pool-text-xs: var(--pool-dim-12);
   --pool-text-sm: var(--pool-dim-14);
-  --pool-text-base: var(--font-size-base);
-  --pool-text-lg: var(--font-size-lg);
-  --pool-text-xl: var(--font-size-xl);
-  --pool-text-2xl: var(--font-size-2xl);
-  --pool-text-display: var(--font-size-display);
+  --pool-text-base: var(--pool-size-text-base);
+  --pool-text-lg: var(--pool-size-text-lg);
+  --pool-text-xl: var(--pool-size-text-xl);
+  --pool-text-2xl: var(--pool-size-text-2xl);
+  --pool-text-display: var(--pool-size-text-display);
 
   /* === TYPOGRAPHY === */
   --pool-type-ui-family: var(--pool-font-sans);
   --pool-type-display-family: var(--pool-font-display);
   --pool-type-mono-family: var(--pool-font-mono);
-  --pool-type-weight-regular: var(--font-read-weight);
-  --pool-type-weight-medium: var(--font-set-weight);
+  --pool-type-weight-regular: var(--pool-font-weight-regular);
+  --pool-type-weight-medium: var(--pool-font-weight-medium);
   --pool-type-weight-emphasis: var(--pool-font-weight-semibold);
-  --pool-type-weight-bold: var(--font-weight-bold);
-  --pool-type-tracking-label: var(--font-tracking-label);
-  --pool-type-leading-tight: var(--font-leading-tight);
-  --pool-type-leading-snug: var(--font-leading-snug);
+  --pool-type-weight-bold: var(--pool-font-weight-bold);
+  --pool-type-tracking-label: var(--pool-font-tracking-label);
+  --pool-type-leading-tight: var(--pool-font-leading-tight);
+  --pool-type-leading-snug: var(--pool-font-leading-snug);
 
   /* === BORDERS === */
-  --pool-border-hairline: var(--border-sm);
-  --pool-border-thin: var(--border-md);
-  --pool-border-thick: var(--border-lg);
+  --pool-border-hairline: var(--pool-size-border-hairline);
+  --pool-border-thin: var(--pool-size-border-thin);
+  --pool-border-thick: var(--pool-size-border-thick);
 
   /* === Z-INDEX PASSTHROUGH === */
-  --pool-z-dropdown: var(--z-dropdown);
-  --pool-z-toast: var(--z-toast);
-  --pool-z-modal: var(--z-modal);
+  --pool-z-dropdown: var(--pool-layer-dropdown);
+  --pool-z-toast: var(--pool-layer-toast);
+  --pool-z-modal: var(--pool-layer-modal);
 
   /* === MOTION === */
-  --pool-transition-fast: var(--transition-fast);
-  --pool-transition-normal: var(--transition-normal);
+  --pool-transition-fast: var(--pool-motion-duration-fast);
+  --pool-transition-normal: var(--pool-motion-duration-normal);
   --pool-motion-nav-duration: var(--pool-motion-duration-nav);
   --pool-motion-nav-easing: var(--pool-motion-easing-nav);
   --pool-motion-nav: var(--pool-motion-duration-nav) var(--pool-motion-easing-nav);
 
   /* === STATE === */
-  --pool-opacity-soft: var(--opacity-soft);
-  --pool-opacity-disabled: var(--opacity-disabled);
+  --pool-opacity-soft: var(--pool-alpha-soft);
+  --pool-opacity-disabled: var(--pool-alpha-disabled);
 
   /* === METRIC PASSTHROUGH === */
   /* Size tokens re-exported for component consumption. */
@@ -114,7 +113,15 @@
   --pool-metric-work-column: var(--pool-dim-760);
 
   /* === TYPOGRAPHY (EXTENDED) === */
-  --pool-type-tracking-set: var(--font-set-tracking);
+  --pool-type-tracking-set: var(--pool-font-tracking-set);
+  --pool-type-tracking-heading: var(--pool-font-tracking-heading);
+  --pool-type-tracking-code: var(--pool-font-tracking-code);
+  --pool-type-tracking-read: var(--pool-font-tracking-read);
+  --pool-type-leading-set: var(--pool-font-leading-set);
+  --pool-type-leading-read: var(--pool-font-leading-read);
+  --pool-text-micro: var(--pool-dim-10);
+  --pool-px-80: var(--pool-dim-80);
+  --pool-metric-op-cell: var(--pool-dim-op-cell);
 
   /* === HUES === */
   /* Solid color aliases for component consumption. */
@@ -408,7 +415,6 @@
   --pool-surface-raised: var(--pool-color-light-raised);
   --pool-surface-inset: var(--pool-color-light-inset);
   --pool-surface-line: var(--pool-color-light-line);
-  --pool-surface-control-line: var(--pool-color-light-control-line);
   --pool-surface-muted: var(--pool-color-light-muted);
   --pool-surface-focus: var(--pool-color-light-focus);
   --pool-surface-shadow-raised: var(--pool-dim-light-shadow-raised);
@@ -444,10 +450,8 @@
   --pool-surface-optical-fill: var(--pool-gradient-optical-dark-fill);
   --pool-surface-optical-edge: var(--pool-gradient-optical-dark-edge);
   --pool-surface-optical-focus: var(--pool-gradient-optical-dark-focus);
-  --pool-surface-optical-glint: var(--pool-gradient-optical-glint);
   --pool-surface-optical-signal: var(--pool-gradient-optical-dark-signal);
   --pool-px-optical-blur: var(--pool-dim-optical-blur);
-  --pool-motion-optical-settle: var(--pool-motion-duration-optical-settle);
   --pool-motion-optical-ready: var(--pool-motion-duration-optical-ready);
   --pool-motion-optical-active: var(--pool-motion-duration-optical-active);
 }
@@ -460,8 +464,8 @@
 
 @media (max-width: 760px) {
   .pool-home {
-    --pool-space-page-gutter: var(--space-md);
-    --pool-space-page-gap: var(--space-md);
+    --pool-space-page-gutter: var(--pool-size-space-md);
+    --pool-space-page-gap: var(--pool-size-space-md);
   }
 }
 

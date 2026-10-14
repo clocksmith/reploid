@@ -24,7 +24,7 @@
   inherits: true;
 }
 
-:root {
+:root:where(:not(.pool-home, .pool-home *)) {
   /* === COLORS === */
   /* Warm neutral surfaces. Product accents extend this shared palette. */
   --fg: #292d30;
@@ -156,7 +156,7 @@
    ============================================ */
 
 /* === RESET === */
-*, *::before, *::after {
+*:where(:not(.pool-home, .pool-home *)), *:where(:not(.pool-home, .pool-home *))::before, *:where(:not(.pool-home, .pool-home *))::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -167,7 +167,7 @@
   tap-highlight-color: transparent;
 }
 
-button {
+button:where(:not(.pool-home, .pool-home *)) {
   border: none;
   background: none;
   cursor: pointer;
@@ -175,14 +175,14 @@ button {
   -webkit-appearance: none;
 }
 
-input,
-textarea,
-select {
+input:where(:not(.pool-home, .pool-home *)),
+textarea:where(:not(.pool-home, .pool-home *)),
+select:where(:not(.pool-home, .pool-home *)) {
   appearance: none;
   -webkit-appearance: none;
 }
 
-html {
+html:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-base);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -191,24 +191,24 @@ html {
   color-scheme: light;
 }
 
-input:-webkit-autofill,
-textarea:-webkit-autofill,
-select:-webkit-autofill {
+input:-webkit-autofill:where(:not(.pool-home, .pool-home *)),
+textarea:-webkit-autofill:where(:not(.pool-home, .pool-home *)),
+select:-webkit-autofill:where(:not(.pool-home, .pool-home *)) {
   -webkit-text-fill-color: var(--fg) !important;
   -webkit-box-shadow: 0 0 0 1000px var(--bg) inset !important;
   box-shadow: 0 0 0 1000px var(--bg) inset !important;
   transition: background-color 9999s ease-out 0s;
 }
 
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill:focus,
-select:-webkit-autofill:focus {
+input:-webkit-autofill:focus:where(:not(.pool-home, .pool-home *)),
+textarea:-webkit-autofill:focus:where(:not(.pool-home, .pool-home *)),
+select:-webkit-autofill:focus:where(:not(.pool-home, .pool-home *)) {
   -webkit-text-fill-color: var(--fg) !important;
   -webkit-box-shadow: 0 0 0 1000px var(--bg) inset !important;
   box-shadow: 0 0 0 1000px var(--bg) inset !important;
 }
 
-body {
+body:where(:not(.pool-home, .pool-home *)) {
   background: var(--bg);
   color: var(--fg);
   font-family: var(--font);
@@ -218,22 +218,22 @@ body {
 }
 
 /* === LINKS === */
-a {
+a:where(:not(.pool-home, .pool-home *)) {
   color: var(--fg);
   text-decoration: none;
   border-bottom: var(--border-sm) dotted var(--fg);
 }
 
-a:hover {
+a:hover:where(:not(.pool-home, .pool-home *)) {
   border-bottom-style: solid;
 }
 
-a.link-secondary {
+a.link-secondary:where(:not(.pool-home, .pool-home *)) {
   opacity: var(--opacity-soft);
   cursor: pointer;
 }
 
-a.link-secondary:hover {
+a.link-secondary:hover:where(:not(.pool-home, .pool-home *)) {
   opacity: 1;
   border-bottom-style: solid;
 }
@@ -244,14 +244,14 @@ a.link-secondary:hover {
    "read" voice → content (body, inputs, captions): untracked, open, light.
    font-family is inherited from body — not redeclared. */
 
-.type-display {
+.type-display:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-display);
   font-weight: var(--font-weight-light);
   line-height: var(--font-leading-tight);
   letter-spacing: var(--font-tracking-display);
 }
 
-.type-h1 {
+.type-h1:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-set-weight);
   line-height: var(--font-set-leading);
@@ -259,21 +259,21 @@ a.link-secondary:hover {
   margin-bottom: var(--space-md);
 }
 
-.type-h2 {
+.type-h2:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-lg);
   font-weight: var(--font-set-weight);
   line-height: var(--font-leading-snug);
   letter-spacing: var(--font-tracking-heading);
 }
 
-.type-body {
+.type-body:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-lg);
   font-weight: var(--font-read-weight);
   line-height: var(--font-read-leading);
   letter-spacing: var(--font-read-tracking);
 }
 
-.type-label {
+.type-label:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   line-height: var(--font-leading-tight);
@@ -281,7 +281,7 @@ a.link-secondary:hover {
   text-transform: uppercase;
 }
 
-.type-ui {
+.type-ui:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-base);
   font-weight: var(--font-set-weight);
   line-height: var(--font-set-leading);
@@ -289,7 +289,7 @@ a.link-secondary:hover {
   text-transform: uppercase;
 }
 
-.type-caption {
+.type-caption:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-sm);
   font-weight: var(--font-read-weight);
   line-height: var(--font-leading-snug);
@@ -302,14 +302,14 @@ a.link-secondary:hover {
    font-family is inherited from body via the * { font: inherit } reset. */
 
 /* Restore semantic inline elements nuked by * { font: inherit } */
-strong, b { font-weight: var(--font-weight-bold); }
-em, i { font-style: italic; }
-small { font-size: var(--font-size-sm); }
+strong:where(:not(.pool-home, .pool-home *)), b:where(:not(.pool-home, .pool-home *)) { font-weight: var(--font-weight-bold); }
+em:where(:not(.pool-home, .pool-home *)), i:where(:not(.pool-home, .pool-home *)) { font-style: italic; }
+small:where(:not(.pool-home, .pool-home *)) { font-size: var(--font-size-sm); }
 
-input,
-textarea,
-select {
-  border: var(--border-md) solid var(--surface-line);
+input:where(:not(.pool-home, .pool-home *)),
+textarea:where(:not(.pool-home, .pool-home *)),
+select:where(:not(.pool-home, .pool-home *)) {
+  border: var(--border-md) solid transparent;
   border-radius: var(--radius-control);
   padding: 12px;
   width: 100%;
@@ -320,38 +320,38 @@ select {
   color: var(--fg);
 }
 
-select {
+select:where(:not(.pool-home, .pool-home *)) {
   cursor: pointer;
 }
 
-input:disabled,
-textarea:disabled,
-select:disabled {
+input:disabled:where(:not(.pool-home, .pool-home *)),
+textarea:disabled:where(:not(.pool-home, .pool-home *)),
+select:disabled:where(:not(.pool-home, .pool-home *)) {
   opacity: var(--opacity-disabled);
   cursor: not-allowed;
 }
 
-table {
+table:where(:not(.pool-home, .pool-home *)) {
   width: 100%;
   border-collapse: collapse;
   font-size: var(--font-size-base);
 }
 
-th,
-td {
+th:where(:not(.pool-home, .pool-home *)),
+td:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-sm) solid var(--fg);
   padding: var(--space-sm);
   text-align: left;
 }
 
-th {
+th:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: var(--font-set-tracking);
 }
 
-pre {
+pre:where(:not(.pool-home, .pool-home *)) {
   font-family: var(--font-mono);
   border: var(--border-sm) solid var(--fg);
   padding: var(--space-md);
@@ -361,7 +361,7 @@ pre {
   white-space: pre;
 }
 
-code {
+code:where(:not(.pool-home, .pool-home *)) {
   font-family: var(--font-mono);
   border: var(--border-sm) solid var(--fg);
   padding: var(--space-xxs) var(--space-xs);
@@ -369,7 +369,7 @@ code {
   letter-spacing: var(--font-tracking-code);
 }
 
-pre code {
+pre code:where(:not(.pool-home, .pool-home *)) {
   padding: 0;
   border: none;
 }
@@ -383,40 +383,40 @@ pre code {
    Width adds weight: sm(0.5px) subtle, md(1px) standard, lg(2px) elevated/error.
    Color is always --fg — no color-coded borders. */
 
-.border-default {
+.border-default:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-md) solid var(--fg);
 }
 
-.border-subtle {
+.border-subtle:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-sm) solid var(--fg);
 }
 
-.border-ghost {
+.border-ghost:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-md) dotted var(--fg);
 }
 
-.border-info {
+.border-info:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-sm) dotted var(--fg);
 }
 
-.border-warning {
+.border-warning:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-md) dashed var(--fg);
 }
 
-.border-error {
+.border-error:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-lg) double var(--fg);
 }
 
-.border-elevated {
+.border-elevated:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-lg) solid var(--fg);
 }
 
-.border-disabled {
+.border-disabled:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-md) solid var(--fg);
   opacity: var(--opacity-disabled);
 }
 
-.border-prism {
+.border-prism:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-lg) solid transparent;
   background:
     linear-gradient(var(--bg), var(--bg)) padding-box,
@@ -425,61 +425,61 @@ pre code {
 
 /* === STATES === */
 
-.inverted,
-::selection {
+.inverted:where(:not(.pool-home, .pool-home *)),
+:where(:not(.pool-home, .pool-home *))::selection {
   background: var(--fg);
   color: var(--bg);
 }
 
 /* === UTILITIES === */
 
-.soft { opacity: var(--opacity-soft); }
-.flex-col { display: flex; flex-direction: column; }
-.hidden { display: none; }
+.soft:where(:not(.pool-home, .pool-home *)) { opacity: var(--opacity-soft); }
+.flex-col:where(:not(.pool-home, .pool-home *)) { display: flex; flex-direction: column; }
+.hidden:where(:not(.pool-home, .pool-home *)) { display: none; }
 
 /* === FOCUS === */
-a:focus-visible,
-button:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
+a:focus-visible:where(:not(.pool-home, .pool-home *)),
+button:focus-visible:where(:not(.pool-home, .pool-home *)),
+input:focus-visible:where(:not(.pool-home, .pool-home *)),
+textarea:focus-visible:where(:not(.pool-home, .pool-home *)),
+select:focus-visible:where(:not(.pool-home, .pool-home *)) {
   outline: var(--border-md) solid var(--fg);
   outline-offset: var(--border-sm);
 }
 
 /* === SIZING === */
-.w-full { width: 100%; }
-.h-full { height: 100%; }
-.overflow-auto { overflow: auto; }
-.overflow-hidden { overflow: hidden; }
+.w-full:where(:not(.pool-home, .pool-home *)) { width: 100%; }
+.h-full:where(:not(.pool-home, .pool-home *)) { height: 100%; }
+.overflow-auto:where(:not(.pool-home, .pool-home *)) { overflow: auto; }
+.overflow-hidden:where(:not(.pool-home, .pool-home *)) { overflow: hidden; }
 
 /* === UTILITY STATES === */
-.cursor-pointer { cursor: pointer; }
-.cursor-not-allowed { cursor: not-allowed; }
-.select-none { user-select: none; }
-.pointer-events-none { pointer-events: none; }
+.cursor-pointer:where(:not(.pool-home, .pool-home *)) { cursor: pointer; }
+.cursor-not-allowed:where(:not(.pool-home, .pool-home *)) { cursor: not-allowed; }
+.select-none:where(:not(.pool-home, .pool-home *)) { user-select: none; }
+.pointer-events-none:where(:not(.pool-home, .pool-home *)) { pointer-events: none; }
 
 /* Visibility */
-[hidden] { display: none !important; }
+[hidden]:where(:not(.pool-home, .pool-home *)) { display: none !important; }
 
 /* === SCROLLBAR === */
-::-webkit-scrollbar {
+:where(:not(.pool-home, .pool-home *))::-webkit-scrollbar {
   width: var(--space-sm);
   height: var(--space-sm);
 }
 
-::-webkit-scrollbar-track {
+:where(:not(.pool-home, .pool-home *))::-webkit-scrollbar-track {
   background: var(--bg);
   border-left: var(--border-sm) solid var(--fg);
 }
 
-::-webkit-scrollbar-thumb {
+:where(:not(.pool-home, .pool-home *))::-webkit-scrollbar-thumb {
   background: var(--fg);
 }
 
 /* === MOTION === */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *:where(:not(.pool-home, .pool-home *)), *:where(:not(.pool-home, .pool-home *))::before, *:where(:not(.pool-home, .pool-home *))::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -503,18 +503,18 @@ select:focus-visible {
 
 /* === PANELS === */
 
-.panel {
+.panel:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-md) solid var(--surface-line);
   border-radius: var(--radius-panel);
   background: var(--surface-raised);
   padding: var(--space-lg);
 }
 
-.panel-soft {
+.panel-soft:where(:not(.pool-home, .pool-home *)) {
   opacity: var(--opacity-soft);
 }
 
-.panel-header {
+.panel-header:where(:not(.pool-home, .pool-home *)) {
   padding: var(--space-sm) var(--space-md);
   border-bottom: var(--border-sm) solid var(--fg);
   font-size: var(--font-size-sm);
@@ -523,7 +523,7 @@ select:focus-visible {
   text-transform: uppercase;
 }
 
-.panel-body {
+.panel-body:where(:not(.pool-home, .pool-home *)) {
   padding: var(--space-md);
 }
 
@@ -535,14 +535,14 @@ select:focus-visible {
  * - Variants: secondary (default), primary, ghost, prism
  */
 
-.btn {
+.btn:where(:not(.pool-home, .pool-home *)) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: var(--space-sm);
   min-height: 44px;
   padding: 10px 18px;
-  border: var(--border-md) solid var(--surface-line);
+  border: var(--border-md) solid transparent;
   border-radius: var(--radius-control);
   background: var(--surface-raised);
   color: var(--fg);
@@ -557,42 +557,39 @@ select:focus-visible {
   transition: background var(--transition-fast), box-shadow var(--transition-fast), transform var(--transition-fast);
 }
 
-.btn:hover {
+.btn:hover:where(:not(.pool-home, .pool-home *)) {
   background: #fbfaf8;
   color: var(--fg);
-  border-color: #c5cbc6;
 }
 
-.btn:active {
+.btn:active:where(:not(.pool-home, .pool-home *)) {
   transform: translateY(1px);
   box-shadow: var(--shadow-inset);
 }
 
-.btn:focus-visible {
+.btn:focus-visible:where(:not(.pool-home, .pool-home *)) {
   outline: 2px solid var(--surface-focus);
   outline-offset: 4px;
 }
 
-.btn-primary {
+.btn-primary:where(:not(.pool-home, .pool-home *)) {
   background: linear-gradient(155deg, #424b49, #293130);
   color: #ffffff;
-  border-color: #343e3b;
   box-shadow: inset 0 1px 0 #64736c, 4px 5px 12px #c6cbc5;
 }
 
-.btn-primary:hover {
+.btn-primary:hover:where(:not(.pool-home, .pool-home *)) {
   background: linear-gradient(155deg, #4b5853, #343e3a);
   color: #ffffff;
-  border-color: #343e3b;
 }
 
-.btn-primary:active {
+.btn-primary:active:where(:not(.pool-home, .pool-home *)) {
   box-shadow: inset 2px 3px 6px #1f2826;
 }
 
 /* Operation button.
    For commands that cross a runtime or trust boundary. */
-.btn-op {
+.btn-op:where(:not(.pool-home, .pool-home *)) {
   --op-cell: 2.05em;
   --op-progress: 0;
   position: relative;
@@ -607,7 +604,7 @@ select:focus-visible {
     transform var(--transition-fast);
 }
 
-.btn-op::before {
+.btn-op:where(:not(.pool-home, .pool-home *))::before {
   content: attr(data-op);
   position: absolute;
   inset-block: 0;
@@ -625,7 +622,7 @@ select:focus-visible {
   letter-spacing: 0;
 }
 
-.btn-op::after {
+.btn-op:where(:not(.pool-home, .pool-home *))::after {
   content: '';
   position: absolute;
   left: 0;
@@ -639,16 +636,16 @@ select:focus-visible {
   transition: transform var(--transition-normal);
 }
 
-.btn-op:hover {
+.btn-op:hover:where(:not(.pool-home, .pool-home *)) {
   --op-progress: 1;
   transform: translateY(-1px);
 }
 
-.btn-op:hover::after {
+.btn-op:hover:where(:not(.pool-home, .pool-home *))::after {
   transform: scaleX(1);
 }
 
-.btn-op:active {
+.btn-op:active:where(:not(.pool-home, .pool-home *)) {
   transform: translateY(0);
   box-shadow:
     inset 0 0 0 var(--border-sm) color-mix(in srgb, var(--fg) 64%, #aac6bc 36%),
@@ -657,7 +654,7 @@ select:focus-visible {
     0 0 20px color-mix(in srgb, #aac6bc 7%, transparent);
 }
 
-.btn-primary.btn-op {
+.btn-primary.btn-op:where(:not(.pool-home, .pool-home *)) {
   background: var(--btn-air-bg);
   color: var(--fg);
   box-shadow:
@@ -666,13 +663,13 @@ select:focus-visible {
     0 0 28px color-mix(in srgb, #b9acc7 5%, transparent);
 }
 
-.btn-primary.btn-op:hover,
-.btn-primary.btn-op:active {
+.btn-primary.btn-op:hover:where(:not(.pool-home, .pool-home *)),
+.btn-primary.btn-op:active:where(:not(.pool-home, .pool-home *)) {
   background: var(--btn-air-bg-hover);
   color: var(--fg);
 }
 
-.btn-primary.btn-op:active {
+.btn-primary.btn-op:active:where(:not(.pool-home, .pool-home *)) {
   background: linear-gradient(
     122deg,
     color-mix(in srgb, #b9acc7 8%, var(--bg)) 0%,
@@ -686,7 +683,7 @@ select:focus-visible {
     0 0 22px color-mix(in srgb, #aac6bc 8%, transparent);
 }
 
-.btn-primary.btn-op::before {
+.btn-primary.btn-op:where(:not(.pool-home, .pool-home *))::before {
   border-right-color: color-mix(in srgb, var(--fg) 60%, #aac6bc 40%);
   background: linear-gradient(
     145deg,
@@ -696,8 +693,8 @@ select:focus-visible {
   color: var(--fg);
 }
 
-.btn-primary.btn-op:hover::before,
-.btn-primary.btn-op:active::before {
+.btn-primary.btn-op:hover:where(:not(.pool-home, .pool-home *))::before,
+.btn-primary.btn-op:active:where(:not(.pool-home, .pool-home *))::before {
   border-right-color: color-mix(in srgb, var(--fg) 72%, #aac6bc 28%);
   background: linear-gradient(
     145deg,
@@ -707,7 +704,7 @@ select:focus-visible {
   color: var(--fg);
 }
 
-.btn-primary.btn-op:active::before {
+.btn-primary.btn-op:active:where(:not(.pool-home, .pool-home *))::before {
   border-right-color: color-mix(in srgb, var(--fg) 64%, #facc15 36%);
   background: linear-gradient(
     145deg,
@@ -716,14 +713,14 @@ select:focus-visible {
   );
 }
 
-.btn-op.loading,
-.btn-op[aria-busy="true"] {
+.btn-op.loading:where(:not(.pool-home, .pool-home *)),
+.btn-op[aria-busy="true"]:where(:not(.pool-home, .pool-home *)) {
   --op-progress: 1;
   pointer-events: none;
 }
 
-.btn-op.loading::after,
-.btn-op[aria-busy="true"]::after {
+.btn-op.loading:where(:not(.pool-home, .pool-home *))::after,
+.btn-op[aria-busy="true"]:where(:not(.pool-home, .pool-home *))::after {
   background: repeating-linear-gradient(
     90deg,
     currentColor 0,
@@ -735,7 +732,7 @@ select:focus-visible {
   animation: op-rail 0.9s linear infinite;
 }
 
-.btn-op:disabled::after {
+.btn-op:disabled:where(:not(.pool-home, .pool-home *))::after {
   transform: scaleX(0);
 }
 
@@ -744,8 +741,8 @@ select:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .btn-op,
-  .btn-op::after {
+  .btn-op:where(:not(.pool-home, .pool-home *)),
+  .btn-op:where(:not(.pool-home, .pool-home *))::after {
     transition: none;
     animation: none;
   }
@@ -754,38 +751,37 @@ select:focus-visible {
 /* Rainbow button (special — max 1 per page).
    Uses layered pseudo-elements: ::before for prism border, ::after for bg mask.
    z-index values are local stacking context, not global --z-* tokens. */
-.btn-prism {
-  border-color: #c8ccc6;
+.btn-prism:where(:not(.pool-home, .pool-home *)) {
   background: linear-gradient(135deg, #f2f6f1, #f2edf5 60%, #f7f0e8);
 }
 
-.btn-prism:hover {
+.btn-prism:hover:where(:not(.pool-home, .pool-home *)) {
   background: linear-gradient(135deg, #e8f0e8, #ebe4f0 60%, #f3eade);
 }
 
-.btn-ghost {
+.btn-ghost:where(:not(.pool-home, .pool-home *)) {
   border-style: dotted;
   opacity: var(--opacity-soft);
 }
 
-.btn-ghost:hover {
+.btn-ghost:hover:where(:not(.pool-home, .pool-home *)) {
   border-style: solid;
   opacity: 1;
 }
 
-.btn-ghost:active {
+.btn-ghost:active:where(:not(.pool-home, .pool-home *)) {
   box-shadow: inset 0 0 0 var(--border-md) var(--bg);
 }
 
 /* Disabled state */
-.btn:disabled {
+.btn:disabled:where(:not(.pool-home, .pool-home *)) {
   opacity: var(--opacity-disabled);
   cursor: not-allowed;
   border-style: solid;
 }
 
-.btn:disabled:hover,
-.btn:disabled:active {
+.btn:disabled:hover:where(:not(.pool-home, .pool-home *)),
+.btn:disabled:active:where(:not(.pool-home, .pool-home *)) {
   background: var(--bg);
   color: var(--fg);
   box-shadow: none;
@@ -796,7 +792,7 @@ select:focus-visible {
 
 /* --chip-bg and --chip-fg are consumer-set overrides (not in rd-tokens).
    Defaults to inverted (fg on bg). Set per-element or via a parent scope. */
-.chip {
+.chip:where(:not(.pool-home, .pool-home *)) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -817,40 +813,41 @@ select:focus-visible {
  */
 
 /* Keep input boundaries stable while typing. */
-input:placeholder-shown,
-textarea:placeholder-shown {
+input:placeholder-shown:where(:not(.pool-home, .pool-home *)),
+textarea:placeholder-shown:where(:not(.pool-home, .pool-home *)) {
   border-style: solid;
 }
 
 /* Focus: solid border (cursor is enough feedback) */
-input:focus,
-textarea:focus,
-select:focus {
+input:focus:where(:not(.pool-home, .pool-home *)),
+textarea:focus:where(:not(.pool-home, .pool-home *)),
+select:focus:where(:not(.pool-home, .pool-home *)) {
   outline: 2px solid var(--surface-focus);
   outline-offset: 3px;
   border-style: solid;
 }
 
 /* Disabled — primitives handles opacity/cursor, this adds border style */
-input:disabled,
-textarea:disabled,
-select:disabled {
+input:disabled:where(:not(.pool-home, .pool-home *)),
+textarea:disabled:where(:not(.pool-home, .pool-home *)),
+select:disabled:where(:not(.pool-home, .pool-home *)) {
   border-style: solid;
 }
 
 /* Error state */
-input.error,
-textarea.error,
-select.error {
+input.error:where(:not(.pool-home, .pool-home *)),
+textarea.error:where(:not(.pool-home, .pool-home *)),
+select.error:where(:not(.pool-home, .pool-home *)) {
   border-style: double;
+  border-color: var(--surface-line);
 }
 
 /* Error with symbol (use wrapper) */
-.input-error {
+.input-error:where(:not(.pool-home, .pool-home *)) {
   position: relative;
 }
 
-.input-error::before {
+.input-error:where(:not(.pool-home, .pool-home *))::before {
   content: '\2612';
   position: absolute;
   left: var(--space-sm);
@@ -859,25 +856,25 @@ select.error {
   pointer-events: none;
 }
 
-.input-error input,
-.input-error textarea {
+.input-error input:where(:not(.pool-home, .pool-home *)),
+.input-error textarea:where(:not(.pool-home, .pool-home *)) {
   padding-left: calc(var(--space-sm) + 1.5em);
 }
 
-input::placeholder,
-textarea::placeholder {
+input:where(:not(.pool-home, .pool-home *))::placeholder,
+textarea:where(:not(.pool-home, .pool-home *))::placeholder {
   color: var(--fg);
   opacity: var(--opacity-soft);
 }
 
-textarea {
+textarea:where(:not(.pool-home, .pool-home *)) {
   resize: vertical;
   min-height: 80px;
 }
 
 /* Native select arrow — hardcoded black SVG fill.
    For theme-safe dropdowns, use .select-custom instead. */
-select {
+select:where(:not(.pool-home, .pool-home *)) {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -889,17 +886,18 @@ select {
 
 /* Theme-safe dropdown — arrow uses CSS currentColor, not an SVG. */
 
-.select-custom {
+.select-custom:where(:not(.pool-home, .pool-home *)) {
   position: relative;
   display: inline-block;
   width: 100%;
 }
 
-.select-trigger {
+.select-trigger:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: var(--border-md) solid var(--fg);
+  border: var(--border-md) solid transparent;
+  box-shadow: var(--shadow-inset);
   padding: var(--space-sm);
   width: 100%;
   font-size: var(--font-size-lg);
@@ -909,18 +907,18 @@ select {
   cursor: pointer;
 }
 
-.select-trigger:hover {
+.select-trigger:hover:where(:not(.pool-home, .pool-home *)) {
   background: var(--fg);
   color: var(--bg);
 }
 
-.select-trigger:focus-visible {
+.select-trigger:focus-visible:where(:not(.pool-home, .pool-home *)) {
   outline: var(--border-md) solid var(--fg);
   outline-offset: var(--border-sm);
 }
 
 /* Arrow indicator — CSS triangle via borders, inherits currentColor */
-.select-trigger::after {
+.select-trigger:where(:not(.pool-home, .pool-home *))::after {
   content: '';
   width: 0;
   height: 0;
@@ -929,12 +927,12 @@ select {
   border-top: 5px solid currentColor;
 }
 
-.select-custom.open .select-trigger::after {
+.select-custom.open .select-trigger:where(:not(.pool-home, .pool-home *))::after {
   border-top: none;
   border-bottom: 5px solid currentColor;
 }
 
-.select-options {
+.select-options:where(:not(.pool-home, .pool-home *)) {
   display: none;
   position: absolute;
   top: 100%;
@@ -948,11 +946,11 @@ select {
   background: var(--bg);
 }
 
-.select-custom.open .select-options {
+.select-custom.open .select-options:where(:not(.pool-home, .pool-home *)) {
   display: block;
 }
 
-.select-option {
+.select-option:where(:not(.pool-home, .pool-home *)) {
   padding: var(--space-sm);
   font-size: var(--font-size-lg);
   letter-spacing: var(--font-read-tracking);
@@ -960,20 +958,20 @@ select {
   cursor: pointer;
 }
 
-.select-option:hover,
-.select-option.selected {
+.select-option:hover:where(:not(.pool-home, .pool-home *)),
+.select-option.selected:where(:not(.pool-home, .pool-home *)) {
   background: var(--fg);
   color: var(--bg);
 }
 
-.select-option:last-child {
+.select-option:last-child:where(:not(.pool-home, .pool-home *)) {
   border-bottom: none;
 }
 
 /* === CHECKBOX & RADIO === */
 
-input[type="checkbox"],
-input[type="radio"] {
+input[type="checkbox"]:where(:not(.pool-home, .pool-home *)),
+input[type="radio"]:where(:not(.pool-home, .pool-home *)) {
   appearance: auto;
   -webkit-appearance: auto;
   width: var(--space-md);
@@ -983,23 +981,23 @@ input[type="radio"] {
   accent-color: var(--fg);
 }
 
-.checkbox-label,
-.radio-label {
+.checkbox-label:where(:not(.pool-home, .pool-home *)),
+.radio-label:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   align-items: flex-start;
   gap: var(--space-sm);
   cursor: pointer;
 }
 
-.checkbox-label input[type="checkbox"] {
-  border: var(--border-sm) solid var(--fg);
+.checkbox-label input[type="checkbox"]:where(:not(.pool-home, .pool-home *)) {
+  border: var(--border-sm) solid transparent;
   background: var(--bg);
   cursor: pointer;
 }
 
 /* === PROGRESS BAR === */
 
-.progress {
+.progress:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-sm) solid var(--fg);
   width: 100%;
   height: var(--space-sm);
@@ -1007,13 +1005,13 @@ input[type="radio"] {
   background: var(--bg);
 }
 
-.progress-fill {
+.progress-fill:where(:not(.pool-home, .pool-home *)) {
   height: 100%;
   background: var(--fg);
   transition: width var(--transition-fast) ease;
 }
 
-.progress-indeterminate .progress-fill {
+.progress-indeterminate .progress-fill:where(:not(.pool-home, .pool-home *)) {
   width: 30%;
   animation: progress-slide 1.5s ease-in-out infinite;
 }
@@ -1024,71 +1022,71 @@ input[type="radio"] {
 }
 
 /* Progress phase rows — differentiate source types via border-left */
-.progress-phase-row {
+.progress-phase-row:where(:not(.pool-home, .pool-home *)) {
   padding-left: var(--space-sm);
 }
 
-.progress-phase-network {
+.progress-phase-network:where(:not(.pool-home, .pool-home *)) {
   border-left: var(--border-md) dotted var(--fg);
 }
 
-.progress-phase-disk {
+.progress-phase-disk:where(:not(.pool-home, .pool-home *)) {
   border-left: var(--border-md) dashed var(--fg);
 }
 
-.progress-phase-cache {
+.progress-phase-cache:where(:not(.pool-home, .pool-home *)) {
   border-left: var(--border-lg) solid var(--fg);
 }
 
 /* === CARDS === */
 
-.card {
+.card:where(:not(.pool-home, .pool-home *)) {
   border: var(--border-sm) solid var(--fg);
 }
 
-.card-header {
+.card-header:where(:not(.pool-home, .pool-home *)) {
   padding: var(--space-sm) var(--space-md);
   border-bottom: var(--border-sm) solid var(--fg);
 }
 
-.card-body {
+.card-body:where(:not(.pool-home, .pool-home *)) {
   padding: var(--space-md);
 }
 
-.card-footer {
+.card-footer:where(:not(.pool-home, .pool-home *)) {
   padding: var(--space-sm) var(--space-md);
   border-top: var(--border-sm) solid var(--fg);
 }
 
 /* === LISTS === */
 
-.list {
+.list:where(:not(.pool-home, .pool-home *)) {
   list-style: none;
 }
 
-.list-item {
+.list-item:where(:not(.pool-home, .pool-home *)) {
   padding: var(--space-sm) var(--space-md);
   border-bottom: var(--border-sm) solid var(--fg);
 }
 
-.list-item:hover {
+.list-item:hover:where(:not(.pool-home, .pool-home *)) {
   background: var(--fg);
   color: var(--bg);
 }
 
-.list-item:last-child {
+.list-item:last-child:where(:not(.pool-home, .pool-home *)) {
   border-bottom: none;
 }
 
 /* === STATUS LIST === */
 
-.status-list {
+.status-list:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
 }
 
-.status-row {
+.status-row:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1097,26 +1095,26 @@ input[type="radio"] {
   border: var(--border-sm) solid var(--fg);
 }
 
-.status-meta {
+.status-meta:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   flex-direction: column;
   gap: var(--space-xxs);
   min-width: 0;
 }
 
-.status-label {
+.status-label:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-bold);
   text-transform: uppercase;
   letter-spacing: var(--font-tracking-label);
 }
 
-.status-detail {
+.status-detail:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-sm);
   opacity: var(--opacity-soft);
 }
 
-.status-badge {
+.status-badge:where(:not(.pool-home, .pool-home *)) {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1127,30 +1125,30 @@ input[type="radio"] {
   border: var(--border-sm) solid var(--fg);
 }
 
-.status-row.ready,
-.status-badge.ready {
+.status-row.ready:where(:not(.pool-home, .pool-home *)),
+.status-badge.ready:where(:not(.pool-home, .pool-home *)) {
   border-width: var(--border-md);
 }
 
-.status-row.pending,
-.status-badge.pending {
+.status-row.pending:where(:not(.pool-home, .pool-home *)),
+.status-badge.pending:where(:not(.pool-home, .pool-home *)) {
   border-style: dotted;
 }
 
-.status-row.warn,
-.status-badge.warn {
+.status-row.warn:where(:not(.pool-home, .pool-home *)),
+.status-badge.warn:where(:not(.pool-home, .pool-home *)) {
   border-style: dashed;
 }
 
-.status-row.error,
-.status-badge.error {
+.status-row.error:where(:not(.pool-home, .pool-home *)),
+.status-badge.error:where(:not(.pool-home, .pool-home *)) {
   border-style: double;
   border-width: var(--border-lg);
 }
 
 /* === BADGES === */
 
-.badge {
+.badge:where(:not(.pool-home, .pool-home *)) {
   display: inline-block;
   padding: var(--space-xxs) var(--space-sm);
   border: var(--border-sm) solid currentColor;
@@ -1160,14 +1158,14 @@ input[type="radio"] {
   letter-spacing: var(--font-set-tracking);
 }
 
-.badge-filled {
+.badge-filled:where(:not(.pool-home, .pool-home *)) {
   background: var(--fg);
   color: var(--bg);
 }
 
 /* === TAGS === */
 
-.tag {
+.tag:where(:not(.pool-home, .pool-home *)) {
   display: inline-block;
   padding: var(--space-xxs) var(--space-xs);
   border: var(--border-sm) solid currentColor;
@@ -1176,14 +1174,14 @@ input[type="radio"] {
 
 /* === CRITERIA LIST === */
 
-.criteria-list {
+.criteria-list:where(:not(.pool-home, .pool-home *)) {
   list-style: none;
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
 }
 
-.criteria-item {
+.criteria-item:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   align-items: flex-start;
   gap: var(--space-sm);
@@ -1192,40 +1190,40 @@ input[type="radio"] {
   font-size: var(--font-size-sm);
 }
 
-.criteria-item.criteria-empty {
+.criteria-item.criteria-empty:where(:not(.pool-home, .pool-home *)) {
   border-style: dotted;
 }
 
-.criteria-index {
+.criteria-index:where(:not(.pool-home, .pool-home *)) {
   min-width: var(--space-md);
   font-size: var(--font-size-xs);
   text-transform: uppercase;
   opacity: var(--opacity-soft);
 }
 
-.criteria-text {
+.criteria-text:where(:not(.pool-home, .pool-home *)) {
   flex: 1;
 }
 
 /* === DIVIDERS === */
 
-.divider {
+.divider:where(:not(.pool-home, .pool-home *)) {
   border: none;
   border-top: var(--border-sm) solid var(--fg);
   margin: var(--space-md) 0;
 }
 
-.divider-dashed {
+.divider-dashed:where(:not(.pool-home, .pool-home *)) {
   border-top-style: dashed;
 }
 
-.divider-dotted {
+.divider-dotted:where(:not(.pool-home, .pool-home *)) {
   border-top-style: dotted;
 }
 
 /* === MODAL === */
 
-.modal-overlay {
+.modal-overlay:where(:not(.pool-home, .pool-home *)) {
   position: fixed;
   inset: 0;
   background: var(--bg);
@@ -1235,12 +1233,12 @@ input[type="radio"] {
   z-index: var(--z-modal);
 }
 
-.modal-overlay.hidden {
+.modal-overlay.hidden:where(:not(.pool-home, .pool-home *)) {
   display: none;
 }
 
-.modal,
-.modal-content {
+.modal:where(:not(.pool-home, .pool-home *)),
+.modal-content:where(:not(.pool-home, .pool-home *)) {
   background: var(--bg);
   border: var(--border-md) solid var(--fg);
   width: 100%;
@@ -1250,13 +1248,13 @@ input[type="radio"] {
   overflow: auto;
 }
 
-.modal-danger,
-.modal-content.modal-danger {
+.modal-danger:where(:not(.pool-home, .pool-home *)),
+.modal-content.modal-danger:where(:not(.pool-home, .pool-home *)) {
   border-style: double;
   border-width: var(--border-lg);
 }
 
-.modal-header {
+.modal-header:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1264,13 +1262,13 @@ input[type="radio"] {
   border-bottom: var(--border-sm) solid var(--fg);
 }
 
-.modal-title {
+.modal-title:where(:not(.pool-home, .pool-home *)) {
   margin: 0;
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-bold);
 }
 
-.modal-close {
+.modal-close:where(:not(.pool-home, .pool-home *)) {
   background: transparent;
   border: none;
   color: var(--fg);
@@ -1279,26 +1277,26 @@ input[type="radio"] {
   opacity: var(--opacity-soft);
 }
 
-.modal-close:hover {
+.modal-close:hover:where(:not(.pool-home, .pool-home *)) {
   opacity: 1;
 }
 
-.modal-body {
+.modal-body:where(:not(.pool-home, .pool-home *)) {
   padding: var(--space-md);
 }
 
-.modal-message {
+.modal-message:where(:not(.pool-home, .pool-home *)) {
   margin: 0;
 }
 
-.modal-details {
+.modal-details:where(:not(.pool-home, .pool-home *)) {
   margin-top: var(--space-sm);
   font-size: var(--font-size-sm);
   letter-spacing: var(--font-read-tracking);
 }
 
-.modal-footer,
-.modal-actions {
+.modal-footer:where(:not(.pool-home, .pool-home *)),
+.modal-actions:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   justify-content: flex-end;
   gap: var(--space-sm);
@@ -1308,7 +1306,7 @@ input[type="radio"] {
 
 /* === TOAST === */
 
-.toast-container {
+.toast-container:where(:not(.pool-home, .pool-home *)) {
   position: fixed;
   top: var(--space-md);
   right: var(--space-md);
@@ -1319,7 +1317,7 @@ input[type="radio"] {
   max-width: 400px;
 }
 
-.toast {
+.toast:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -1335,52 +1333,52 @@ input[type="radio"] {
   cursor: pointer;
 }
 
-.toast.visible {
+.toast.visible:where(:not(.pool-home, .pool-home *)) {
   opacity: 1;
   transform: translateX(0);
 }
 
-.toast-icon {
+.toast-icon:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
 }
 
-.toast-message {
+.toast-message:where(:not(.pool-home, .pool-home *)) {
   flex: 1;
 }
 
-.toast-close {
+.toast-close:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-sm);
   opacity: var(--opacity-soft);
   cursor: pointer;
 }
 
-.toast-success {
+.toast-success:where(:not(.pool-home, .pool-home *)) {
   border-left: var(--border-lg) solid var(--fg);
 }
 
-.toast-error {
+.toast-error:where(:not(.pool-home, .pool-home *)) {
   border-style: double;
   border-width: var(--border-lg);
 }
 
-.toast-warning {
+.toast-warning:where(:not(.pool-home, .pool-home *)) {
   border-style: dashed;
 }
 
-.toast-info {
+.toast-info:where(:not(.pool-home, .pool-home *)) {
   border-style: dotted;
 }
 
 /* === ERROR UI (boot failure) === */
 
-.error-ui {
+.error-ui:where(:not(.pool-home, .pool-home *)) {
   max-width: 600px;
   margin: var(--space-xl) auto;
   padding: var(--space-lg);
 }
 
-.error-ui-header {
+.error-ui-header:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
@@ -1389,18 +1387,18 @@ input[type="radio"] {
   font-weight: var(--font-weight-bold);
 }
 
-.error-ui-header::before {
+.error-ui-header:where(:not(.pool-home, .pool-home *))::before {
   content: '\26A0';
   font-size: 1.5em;
 }
 
-.error-ui-description {
+.error-ui-description:where(:not(.pool-home, .pool-home *)) {
   opacity: var(--opacity-soft);
   line-height: var(--font-read-leading);
   margin-bottom: var(--space-md);
 }
 
-.error-ui-message {
+.error-ui-message:where(:not(.pool-home, .pool-home *)) {
   padding: var(--space-md);
   margin: var(--space-md) 0;
   font-size: var(--font-size-base);
@@ -1409,13 +1407,13 @@ input[type="radio"] {
   border: var(--border-lg) double var(--fg);
 }
 
-.error-ui-details summary {
+.error-ui-details summary:where(:not(.pool-home, .pool-home *)) {
   cursor: pointer;
   opacity: var(--opacity-soft);
   padding: var(--space-sm) 0;
 }
 
-.error-ui-stack {
+.error-ui-stack:where(:not(.pool-home, .pool-home *)) {
   padding: var(--space-md);
   font-size: var(--font-size-sm);
   overflow-x: auto;
@@ -1423,14 +1421,14 @@ input[type="radio"] {
   border: var(--border-sm) dotted var(--fg);
 }
 
-.error-ui-actions {
+.error-ui-actions:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   gap: var(--space-sm);
   flex-wrap: wrap;
   margin-top: var(--space-md);
 }
 
-.error-ui-hint {
+.error-ui-hint:where(:not(.pool-home, .pool-home *)) {
   font-size: var(--font-size-sm);
   opacity: var(--opacity-soft);
   margin-top: var(--space-lg);
@@ -1438,21 +1436,21 @@ input[type="radio"] {
 
 /* === ACCORDION === */
 
-.accordion {
+.accordion:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   flex-direction: column;
   border: var(--border-sm) solid var(--fg);
 }
 
-.accordion-item {
+.accordion-item:where(:not(.pool-home, .pool-home *)) {
   border-bottom: var(--border-sm) solid var(--fg);
 }
 
-.accordion-item:last-child {
+.accordion-item:last-child:where(:not(.pool-home, .pool-home *)) {
   border-bottom: none;
 }
 
-.accordion-header {
+.accordion-header:where(:not(.pool-home, .pool-home *)) {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -1469,46 +1467,46 @@ input[type="radio"] {
   text-align: left;
 }
 
-.accordion-header:hover {
+.accordion-header:hover:where(:not(.pool-home, .pool-home *)) {
   background: var(--fg);
   color: var(--bg);
 }
 
-.accordion-header[aria-expanded="true"] {
+.accordion-header[aria-expanded="true"]:where(:not(.pool-home, .pool-home *)) {
   background: var(--fg);
   color: var(--bg);
   border-bottom: var(--border-sm) solid var(--fg);
 }
 
-.accordion-header::after {
+.accordion-header:where(:not(.pool-home, .pool-home *))::after {
   content: '+';
   font-size: var(--font-size-base);
   font-weight: var(--font-read-weight);
 }
 
-.accordion-header[aria-expanded="true"]::after {
+.accordion-header[aria-expanded="true"]:where(:not(.pool-home, .pool-home *))::after {
   content: '-';
 }
 
-.accordion-content {
+.accordion-content:where(:not(.pool-home, .pool-home *)) {
   display: none;
   padding: var(--space-md);
 }
 
-.accordion-content[aria-hidden="false"] {
+.accordion-content[aria-hidden="false"]:where(:not(.pool-home, .pool-home *)) {
   display: block;
 }
 
 /* Accordion variants */
-.accordion-ghost {
+.accordion-ghost:where(:not(.pool-home, .pool-home *)) {
   border-style: dotted;
 }
 
-.accordion-ghost .accordion-item {
+.accordion-ghost .accordion-item:where(:not(.pool-home, .pool-home *)) {
   border-bottom-style: dotted;
 }
 
-.accordion-ghost .accordion-header[aria-expanded="true"] {
+.accordion-ghost .accordion-header[aria-expanded="true"]:where(:not(.pool-home, .pool-home *)) {
   border-bottom-style: dotted;
 }
 
@@ -1518,20 +1516,20 @@ input[type="radio"] {
  * For single-select button groups (tabs/toggles).
  * Mark the active item with `.is-active` or `aria-pressed="true"`.
  */
-.segmented-control {
+.segmented-control:where(:not(.pool-home, .pool-home *)) {
   display: inline-flex;
   align-items: center;
   gap: var(--space-xs);
   flex-wrap: wrap;
 }
 
-.segmented-btn {
+.segmented-btn:where(:not(.pool-home, .pool-home *)) {
   border-style: dotted;
 }
 
-.segmented-btn.is-active,
-.segmented-btn[aria-pressed="true"],
-.segmented-control [aria-pressed="true"] {
+.segmented-btn.is-active:where(:not(.pool-home, .pool-home *)),
+.segmented-btn[aria-pressed="true"]:where(:not(.pool-home, .pool-home *)),
+.segmented-control [aria-pressed="true"]:where(:not(.pool-home, .pool-home *)) {
   border-style: solid;
   border-color: currentColor;
   background: var(--fg);

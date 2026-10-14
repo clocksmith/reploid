@@ -2,13 +2,13 @@
    Poolday Design System - Tokens
    Layer 1 of 3: tokens -> primitives -> components
 
-   Raw values only, scoped to .pool-home (Poolday is a route
-   extension of the rd.css base system). Tokens may alias rd base
-   tokens; they never reference primitive- or component-layer names.
+   Raw values only, scoped to .pool-home. Tokens reference only other
+   tokens; never rd.css variables, primitive- or component-layer names.
+   rd.css does not style anything inside .pool-home.
 
    Categories: --pool-color-*, --pool-gradient-*, --pool-dim-*,
    --pool-size-*, --pool-motion-duration-*, --pool-motion-easing-*,
-   --pool-font-*
+   --pool-font-*, --pool-layer-*, --pool-alpha-*
    ============================================ */
 
 .pool-home {
@@ -17,7 +17,6 @@
   --pool-color-raised: #242424;
   --pool-color-inset: #1b1b1b;
   --pool-color-line: #303030;
-  --pool-color-control-line: #454545;
   --pool-color-muted: #b4b4b4;
   --pool-color-focus: #ffffff;
   /* 1 restores the original material depth; scale offsets, blur and opacity together. */
@@ -25,8 +24,8 @@
   --pool-dim-light-depth: 0.6;
   --pool-dim-shadow-raised: calc(10px * var(--pool-dim-depth)) calc(10px * var(--pool-dim-depth)) calc(24px * var(--pool-dim-depth)) rgb(0 0 0 / calc(48% * var(--pool-dim-depth))), calc(-8px * var(--pool-dim-depth)) calc(-8px * var(--pool-dim-depth)) calc(20px * var(--pool-dim-depth)) rgb(80 80 80 / calc(26% * var(--pool-dim-depth))), inset calc(1px * var(--pool-dim-depth)) calc(1px * var(--pool-dim-depth)) 0 rgb(255 255 255 / calc(5% * var(--pool-dim-depth)));
   --pool-dim-shadow-inset: inset calc(5px * var(--pool-dim-depth)) calc(5px * var(--pool-dim-depth)) calc(12px * var(--pool-dim-depth)) rgb(0 0 0 / calc(55% * var(--pool-dim-depth))), inset calc(-4px * var(--pool-dim-depth)) calc(-4px * var(--pool-dim-depth)) calc(10px * var(--pool-dim-depth)) rgb(75 75 75 / calc(22% * var(--pool-dim-depth)));
-  --pool-dim-radius-control: var(--radius-control);
-  --pool-dim-radius-panel: var(--radius-panel);
+  --pool-dim-radius-control: 14px;
+  --pool-dim-radius-panel: 28px;
   --pool-dim-wordmark: 64px;
   --pool-dim-prism-width: 300px;
   --pool-dim-hero-gap: 48px;
@@ -98,10 +97,46 @@
 
   /* === TYPE === */
   --pool-font-sans: Inter, 'Avenir Next', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  --pool-font-display: var(--font);
-  /* Mirrors the rd mono stack; poolday code/output surfaces use it. */
-  --pool-font-mono: var(--font-mono);
+  --pool-font-display: 'Avenir Next', Inter, 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --pool-font-mono: 'SF Mono', Menlo, Consolas, 'DejaVu Sans Mono', monospace;
+  --pool-font-weight-regular: 400;
+  --pool-font-weight-medium: 500;
   --pool-font-weight-semibold: 600;
+  --pool-font-weight-bold: 700;
+  --pool-font-tracking-label: 0.1em;
+  --pool-font-tracking-set: 0;
+  --pool-font-tracking-heading: -0.025em;
+  --pool-font-tracking-code: -0.02em;
+  --pool-font-tracking-read: 0;
+  --pool-font-leading-tight: 1.2;
+  --pool-font-leading-set: 1.3;
+  --pool-font-leading-snug: 1.4;
+  --pool-font-leading-read: 1.6;
+
+  /* === BASE SCALE === */
+  --pool-size-space-xxs: 2px;
+  --pool-size-space-xs: 4px;
+  --pool-size-space-sm: 8px;
+  --pool-size-space-md: 16px;
+  --pool-size-space-lg: 24px;
+  --pool-size-space-xl: 32px;
+  --pool-size-text-base: 15px;
+  --pool-size-text-lg: 18px;
+  --pool-size-text-xl: 22px;
+  --pool-size-text-2xl: 26px;
+  --pool-size-text-display: 32px;
+  --pool-size-border-hairline: 0.5px;
+  --pool-size-border-thin: 1px;
+  --pool-size-border-thick: 2px;
+  --pool-dim-80: 80px;
+  --pool-dim-op-cell: 2.05em;
+  --pool-motion-duration-fast: 0.15s;
+  --pool-motion-duration-normal: 0.3s;
+  --pool-layer-dropdown: 100;
+  --pool-layer-toast: 200;
+  --pool-layer-modal: 10000;
+  --pool-alpha-soft: 0.777;
+  --pool-alpha-disabled: 0.444;
 
   /* === BRAND RGB TRIPLETS === */
   --pool-color-cyan-rgb: 113 113 113;
@@ -286,7 +321,6 @@
   --pool-color-light-raised: #e7e7e7;
   --pool-color-light-inset: #e1e1e1;
   --pool-color-light-line: #dedede;
-  --pool-color-light-control-line: #bdbdbd;
   --pool-color-light-muted: #5e5e5e;
   --pool-color-light-focus: #242424;
   --pool-dim-light-shadow-raised: calc(10px * var(--pool-dim-light-depth)) calc(10px * var(--pool-dim-light-depth)) calc(24px * var(--pool-dim-light-depth)) rgb(120 120 120 / calc(27% * var(--pool-dim-light-depth))), calc(-10px * var(--pool-dim-light-depth)) calc(-10px * var(--pool-dim-light-depth)) calc(24px * var(--pool-dim-light-depth)) rgb(255 255 255 / calc(88% * var(--pool-dim-light-depth))), inset calc(1px * var(--pool-dim-light-depth)) calc(1px * var(--pool-dim-light-depth)) 0 rgb(255 255 255 / calc(45% * var(--pool-dim-light-depth)));
@@ -319,11 +353,9 @@
   --pool-gradient-optical-light-edge: linear-gradient(125deg, rgb(112 165 177 / 28%), rgb(155 135 179 / 22%) 28%, rgb(185 143 159 / 18%) 46%, rgb(120 120 120 / 10%) 62%);
   --pool-gradient-optical-dark-focus: linear-gradient(125deg, rgb(167 217 227 / 55%), rgb(194 171 225 / 40%) 30%, rgb(222 173 194 / 32%) 48%, rgb(255 255 255 / 16%) 70%);
   --pool-gradient-optical-light-focus: linear-gradient(125deg, rgb(97 160 178 / 52%), rgb(145 123 178 / 40%) 30%, rgb(181 128 148 / 32%) 48%, rgb(120 120 120 / 16%) 70%);
-  --pool-gradient-optical-glint: linear-gradient(110deg, transparent 25%, rgb(255 255 255 / 22%) 50%, transparent 75%);
   --pool-gradient-optical-dark-signal: linear-gradient(90deg, transparent, rgb(164 213 223 / 64%), rgb(196 175 223 / 58%), rgb(221 183 199 / 44%), transparent);
   --pool-gradient-optical-light-signal: linear-gradient(90deg, transparent, rgb(87 147 163 / 58%), rgb(143 121 176 / 52%), rgb(173 120 145 / 42%), transparent);
   --pool-dim-optical-blur: 12px;
-  --pool-motion-duration-optical-settle: 200ms;
   --pool-motion-duration-optical-ready: 900ms;
   --pool-motion-duration-optical-active: 2400ms;
 }

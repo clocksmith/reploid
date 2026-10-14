@@ -3,15 +3,16 @@
  * Verifies the Poolday design-system layering contract:
  *   tokens -> primitives -> components
  *
- * - styles/poolday/tokens.css      raw values only; may alias rd base tokens;
- *                                  never references primitive-category names.
+ * - styles/poolday/tokens.css      raw values only; references only other tokens.
  * - styles/poolday/primitives.css  semantic vars consuming only token-category
- *                                  vars or rd tokens; alpha composition via
+ *                                  vars; alpha composition via
  *                                  rgb(var(--pool-color-*-rgb) / N%) is legal;
  *                                  @keyframes bodies are exempt.
  * - styles/poolday/components*.css pool-* rules consuming only primitive vars;
- *                                  no color literals, no token-category vars,
- *                                  no bare rd tokens.
+ *                                  no color literals (hex, functional, named or
+ *                                  URL-encoded), no token-category vars, no rd vars.
+ * - Every other stylesheet the Poolday entry loads excludes .pool-home from each
+ *   selector, so nothing outside these layers styles Poolday markup.
  *
  * Exemptions (documented in components.css header): media-query conditions,
  * @keyframes internals, transform/clip-path/grid-track numerics, percentages,
@@ -29,13 +30,37 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STYLES = path.join(ROOT, 'self', 'styles');
 const WARN_ONLY = process.argv.includes('--warn');
 
-const TOKEN_CATEGORY = /^--pool-(color|gradient|dim|size|motion-duration|motion-easing|font)(-|$)/;
+const TOKEN_CATEGORY = /^--pool-(color|gradient|dim|size|motion-duration|motion-easing|font|layer|alpha)(-|$)/;
 const PRIMITIVE_CATEGORY = /^--pool-(surface|frame|border|space|px|radius|z|transition|motion|text|type|opacity|metric|hue|tint)(-|$)/;
 const JS_CONTRACT_VARS = new Set(['--tooltip-x', '--tooltip-y', '--pool-label-x', '--pool-label-y']);
 /* Component parameter vars: set by component rules (incl. media overrides),
    consumed by descendants. Values obey component-layer rules. */
 const PARAMETER_VAR = /^--pool-param-[\w-]+$/;
-const COLOR_LITERAL = /#[0-9a-fA-F]{3,8}\b|(?:rgba?|hsla?|hsl)\(\s*\d/;
+const COLOR_LITERAL = /#[0-9a-fA-F]{3,8}\b|%23[0-9a-fA-F]{3,8}\b|(?:rgba?|hsla?|hsl|oklch|oklab|lab|lch)\(\s*\d/;
+const NAMED_COLORS = new Set(('aliceblue antiquewhite aqua aquamarine azure beige bisque black blanchedalmond blue blueviolet brown '
+  + 'burlywood cadetblue chartreuse chocolate coral cornflowerblue cornsilk crimson cyan darkblue darkcyan darkgoldenrod darkgray '
+  + 'darkgreen darkgrey darkkhaki darkmagenta darkolivegreen darkorange darkorchid darkred darksalmon darkseagreen darkslateblue '
+  + 'darkslategray darkslategrey darkturquoise darkviolet deeppink deepskyblue dimgray dimgrey dodgerblue firebrick floralwhite '
+  + 'forestgreen fuchsia gainsboro ghostwhite gold goldenrod gray green greenyellow grey honeydew hotpink indianred indigo ivory '
+  + 'khaki lavender lavenderblush lawngreen lemonchiffon lightblue lightcoral lightcyan lightgoldenrodyellow lightgray lightgreen '
+  + 'lightgrey lightpink lightsalmon lightseagreen lightskyblue lightslategray lightslategrey lightsteelblue lightyellow lime '
+  + 'limegreen linen magenta maroon mediumaquamarine mediumblue mediumorchid mediumpurple mediumseagreen mediumslateblue '
+  + 'mediumspringgreen mediumturquoise mediumvioletred midnightblue mintcream mistyrose moccasin navajowhite navy oldlace olive '
+  + 'olivedrab orange orangered orchid palegoldenrod palegreen paleturquoise palevioletred papayawhip peachpuff peru pink plum '
+  + 'powderblue purple rebeccapurple red rosybrown royalblue saddlebrown salmon sandybrown seagreen seashell sienna silver skyblue '
+  + 'slateblue slategray slategrey snow springgreen steelblue tan teal thistle tomato turquoise violet wheat white whitesmoke '
+  + 'yellow yellowgreen').split(' '));
+const SYSTEM_COLORS = new Set(('accentcolor accentcolortext activetext buttonborder buttonface buttontext canvas canvastext field '
+  + 'fieldtext graytext highlight highlighttext linktext mark marktext selecteditem selecteditemtext visitedtext').split(' '));
+/* Named and system colors in a value, ignoring var() names, strings and url() payloads.
+   System colors are legitimate only where forced colors replace the palette. */
+const namedColors = (value, context) => {
+  const bare = value.replace(/var\([^)]*\)/g, ' ').replace(/url\([^)]*\)/g, ' ').replace(/(["'])(?:\\.|(?!\1).)*\1/g, ' ');
+  const forced = context.some((c) => /forced-colors\s*:\s*active/.test(c));
+  return [...bare.matchAll(/(?<![\w-])([a-zA-Z]+)(?![\w-])/g)].map((m) => m[1].toLowerCase())
+    .filter((word) => NAMED_COLORS.has(word) || (SYSTEM_COLORS.has(word) && !forced));
+};
+const POOL_EXCLUSION = ':where(:not(.pool-home, .pool-home *))';
 const LENGTH_LITERAL = /(?<![\w.-])(?!0(?![.\d]))[\d.]+(?:px|rem|em|ms|s)\b/;
 const LENGTH_EXEMPT_PROPERTIES = new Set([
   'transform', 'translate', 'rotate', 'scale', 'clip-path',
@@ -84,11 +109,38 @@ const walkDeclarations = (clean, visit) => {
 
 const inKeyframes = (context) => context.some((c) => c.startsWith('@keyframes'));
 
-const rdTokenAllowlist = () => {
-  const rd = stripComments(readFileSync(path.join(STYLES, 'rd.css'), 'utf8'));
-  const names = new Set();
-  for (const match of rd.matchAll(/(--[a-z][\w-]*)\s*:/g)) names.add(match[1]);
-  return names;
+/* Split a selector list on top-level commas. */
+const splitSelectors = (text) => {
+  const parts = []; let depth = 0, start = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === '(' || ch === '[') depth += 1;
+    else if (ch === ')' || ch === ']') depth -= 1;
+    else if (ch === ',' && depth === 0) { parts.push(text.slice(start, i)); start = i + 1; }
+  }
+  parts.push(text.slice(start));
+  return parts.map((part) => part.trim()).filter(Boolean);
+};
+
+/* Every style rule in a non-Poolday stylesheet must exclude the Poolday subtree. */
+const checkIsolated = (file) => {
+  const clean = stripComments(readFileSync(path.join(ROOT, 'self', file), 'utf8'));
+  const stack = []; let buffer = '', line = 1;
+  for (const ch of clean) {
+    if (ch === '\n') line += 1;
+    if (ch === '{') {
+      const prelude = buffer.trim(); buffer = '';
+      const inKeyframes = stack.some((entry) => /^@(-[a-z]+-)?keyframes/.test(entry));
+      if (prelude && !prelude.startsWith('@') && !inKeyframes) {
+        for (const selector of splitSelectors(prelude)) {
+          if (!selector.includes(POOL_EXCLUSION)) report(file, line, `selector can style Poolday markup: ${selector}`);
+        }
+      }
+      stack.push(prelude);
+    } else if (ch === '}') { stack.pop(); buffer = ''; }
+    else if (ch === ';') buffer = '';
+    else buffer += ch;
+  }
 };
 
 const violations = [];
@@ -97,7 +149,6 @@ const report = (layer, line, message) => violations.push(`${layer}:${line} ${mes
 const varRefs = (value) => [...value.matchAll(/var\(\s*(--[\w-]+)/g)].map((m) => m[1]);
 
 const main = () => {
-  const rdTokens = rdTokenAllowlist();
   const manifest = JSON.parse(readFileSync(path.join(STYLES, 'poolday/layers.json'), 'utf8'));
   const files = [manifest.tokens, manifest.primitives, ...manifest.components];
   if (new Set(files).size !== files.length || files.some(file => !/^[a-z][a-z/-]*\.css$/.test(file))) {
@@ -115,6 +166,9 @@ const main = () => {
   for (const [name, actual] of [['pool-entry.html', linked], ['index.html', fallbackFiles]]) {
     if (JSON.stringify(actual) !== JSON.stringify(files)) report(name, 1, 'stylesheet load order differs from layers.json');
   }
+  const outside = [...entry.matchAll(/href=["']\/(styles\/[^"'?]+\.css)(?:\?[^"']*)?["']/g)].map(match => match[1])
+    .filter(file => !file.startsWith('styles/poolday/'));
+  for (const file of outside) checkIsolated(file);
   const tokens = readLayer(manifest.tokens);
   const primitives = readLayer(manifest.primitives);
   const componentLayers = manifest.components.map(readLayer);
@@ -133,8 +187,8 @@ const main = () => {
     for (const ref of varRefs(value)) {
       if (ref.startsWith('--pool-') && !isTokenName(ref)) {
         report(tokens.file, line, `token ${property} references non-token pool var ${ref}`);
-      } else if (!ref.startsWith('--pool-') && !rdTokens.has(ref)) {
-        report(tokens.file, line, `token ${property} references unknown var ${ref}`);
+      } else if (!ref.startsWith('--pool-')) {
+        report(tokens.file, line, `token ${property} references non-Poolday var ${ref}`);
       }
     }
   });
@@ -150,14 +204,14 @@ const main = () => {
     if (!isPrimitiveName(property)) {
       report(primitives.file, line, `primitive name outside primitive categories: ${property}`);
     }
-    if (COLOR_LITERAL.test(value)) {
+    if (COLOR_LITERAL.test(value) || namedColors(value, context).length) {
       report(primitives.file, line, `color literal in primitive ${property}: ${value}`);
     }
     for (const ref of varRefs(value)) {
       if (ref.startsWith('--pool-') && !isTokenName(ref)) {
         report(primitives.file, line, `primitive ${property} references non-token pool var ${ref}`);
-      } else if (!ref.startsWith('--pool-') && !rdTokens.has(ref)) {
-        report(primitives.file, line, `primitive ${property} references unknown var ${ref}`);
+      } else if (!ref.startsWith('--pool-')) {
+        report(primitives.file, line, `primitive ${property} references non-Poolday var ${ref}`);
       }
     }
   });
@@ -167,7 +221,7 @@ const main = () => {
     if (property.startsWith('--') && !JS_CONTRACT_VARS.has(property) && !PARAMETER_VAR.test(property)) {
       report(components.file, line, `custom property defined in component layer: ${property}`);
     }
-    if (COLOR_LITERAL.test(value)) {
+    if (COLOR_LITERAL.test(value) || namedColors(value, context).length) {
       report(components.file, line, `color literal in component rule (${property}): ${value}`);
     }
     for (const ref of varRefs(value)) {

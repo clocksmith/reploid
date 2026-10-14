@@ -121,7 +121,10 @@ Modules loaded via VFS blob imports must be single-file or use absolute URLs. Re
 
 ## Poolday design system
 
-Poolday extends `self/styles/rd.css`. Keep Zero and X independent. The ordered
+Poolday is self-contained: tokens feed primitives, primitives feed components, and
+nothing else styles `.pool-home`. `rd.css` and `boot.css` exclude the Poolday subtree
+from every selector, and `npm run verify:pool:css` enforces both rules. Keep Zero and X
+independent. Controls carry no outline borders; depth comes from shadows. The ordered
 manifest in `self/styles/poolday/layers.json` owns the stylesheet list. Both
 `self/pool-entry.html` and the synchronous fallback loader in `self/index.html`
 mirror it so browsers fetch styles in parallel without CSS imports.
@@ -130,9 +133,10 @@ mirror it so browsers fetch styles in parallel without CSS imports.
 |-------|-----------|
 | `tokens.css` | Raw colors, dimensions, shadows, gradients and motion values |
 | `primitives.css` | Semantic surface, spacing, typography and motion variables; light/dark mapping |
+| `components/base.css` | Element defaults inside `.pool-home`: resets, inherited type, fields, buttons |
 | `components/materials.css` | Shared surfaces, buttons, inputs and interaction states |
 | `components/conversation.css` | Conversation layout and local component states |
-| `components/optical.css` | Composable glass and state-driven light effects |
+| `components/optical.css` | Glass edges on model choice and the composer; activity line |
 | `components.css` | Existing navigation, work, network and other route layouts |
 
 Compose material classes with local layout classes. Do not copy border, shadow,
@@ -149,7 +153,6 @@ the explicit classes. Keep component values semantic (`--pool-surface-*`,
 | `pool-input` | Inset field material and keyboard focus; component owns dimensions |
 | `pool-glass` | Restrained prismatic fill and edge |
 | `pool-glass-focus` | Applies glass only while focused |
-| `pool-glass-selected` | Applies glass when `aria-current="page"` or `aria-pressed="true"` |
 | `pool-activity-edge` | Noninteractive light on a positioned wrapper; `data-activity` selects its state |
 
 ```html
@@ -161,8 +164,8 @@ the explicit classes. Keep component values semantic (`--pool-surface-*`,
 </section>
 ```
 
-Large reading surfaces stay opaque. Glass accents belong on selected navigation,
-model choice and composer focus. `ready` gives one brief glint; `executing` moves
+Large reading surfaces stay opaque. Glass accents belong on model choice and
+composer focus. `ready` gives one brief glint; `executing` moves
 only while the selected thread is actually executing. Queuing, loading, approval,
 cancellation and completion are idle. These attributes project host state; they
 never start execution or grant permission. Text remains the authoritative status.

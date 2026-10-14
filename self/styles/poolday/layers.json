@@ -2,6 +2,7 @@
   "tokens": "tokens.css",
   "primitives": "primitives.css",
   "components": [
+    "components/base.css",
     "components.css",
     "components/materials.css",
     "components/conversation.css",

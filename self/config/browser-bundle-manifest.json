@@ -1380,8 +1380,8 @@
     },
     {
       "path": "config/vfs-manifest.json",
-      "byteLength": 114027,
-      "sha256": "sha256:336e490f15e052a045c8c2bcb0f40de340090849916713ac8be8eb17750a6384"
+      "byteLength": 114069,
+      "sha256": "sha256:d768e74d7ea34653d45624272d7f5823429c86d52a61014c6a51ce7d3a591f08"
     },
     {
       "path": "config/vfs-policy.js",
@@ -1865,8 +1865,8 @@
     },
     {
       "path": "index.html",
-      "byteLength": 6904,
-      "sha256": "sha256:1bfe4f7bc5d355664ce1766574767ae3ae821a9685e853c0b1db40b0bb99f386"
+      "byteLength": 6927,
+      "sha256": "sha256:5a0d30047b4df101a2306da12659c8a8ca267e884d3c3aa378fd5c3e3e343363"
     },
     {
       "path": "infrastructure/audit-logger.js",
@@ -2050,8 +2050,8 @@
     },
     {
       "path": "pool-entry.html",
-      "byteLength": 4780,
-      "sha256": "sha256:87f048f37e2c9b8616c063b158a8348103f0a2004f02a45178671425248bfee6"
+      "byteLength": 4853,
+      "sha256": "sha256:dccccf2fb6c3549e5518e45207bfbab162394ab547b2c21bf056b9ed846590b6"
     },
     {
       "path": "pool/adapter-canary-publication.js",
@@ -2670,8 +2670,8 @@
     },
     {
       "path": "styles/boot.css",
-      "byteLength": 33956,
-      "sha256": "sha256:0e77bc528b8b2c08bb180b172ad94c5d711d7df7b03484f1bccc3d6582f38099"
+      "byteLength": 46838,
+      "sha256": "sha256:853d434c630836528fdf8523f8a167bb26cde53e51dd69658535262f32c738ca"
     },
     {
       "path": "styles/capsule.css",
@@ -2680,43 +2680,48 @@
     },
     {
       "path": "styles/poolday/components.css",
-      "byteLength": 159106,
-      "sha256": "sha256:9d6b72cbe9a405ccc13c55bcb6e2b85c6b98880d6555426d7704072ed2ad2c91"
+      "byteLength": 158508,
+      "sha256": "sha256:d50e8276815c36b474d68e97f1e5a19278090a19f8848ef753b13a98f856fa76"
+    },
+    {
+      "path": "styles/poolday/components/base.css",
+      "byteLength": 8258,
+      "sha256": "sha256:239b71d498086006b5a85069bbc37160659f9febbc7973e7267630d23efd5319"
     },
     {
       "path": "styles/poolday/components/conversation.css",
-      "byteLength": 25119,
-      "sha256": "sha256:f6b6be0fa71bf0ae7bb52d454bbf0d69fdcd0f75e3e0688bf8f1093abb29b9fb"
+      "byteLength": 25106,
+      "sha256": "sha256:67150b81e98de425c137d3c33c4f5ba84c62cde37bc23bc7a7e732e39fd01907"
     },
     {
       "path": "styles/poolday/components/interaction.css",
-      "byteLength": 16532,
-      "sha256": "sha256:a2bb12d342c7e40352cff14b13554477c282c43cbc6ce16ad155202e20238162"
+      "byteLength": 16512,
+      "sha256": "sha256:7c8131f4415d9707f46efe4ba65016e9bb9440fa1d9e567ca9d2f497e85d5b0b"
     },
     {
       "path": "styles/poolday/components/materials.css",
-      "byteLength": 2516,
-      "sha256": "sha256:658e9ea2aa6e2c5cce14738700eda637a34ab34dae0bd2d45a2fdf05d1533e3a"
+      "byteLength": 2530,
+      "sha256": "sha256:052094ec25caa4d4d1b38a4cc17c119d0a2cd3b3b7885049f39556acde25b91d"
     },
     {
       "path": "styles/poolday/components/optical.css",
-      "byteLength": 2797,
-      "sha256": "sha256:aeb6dc7961387e72d2bef2179d71768b67bcf89d610ee7c3d3ef321e39de3b6f"
+      "byteLength": 1856,
+      "sha256": "sha256:b5363ee09d43cc1397561b5e10bdd4acbf17d6810a8b4f663053f4ff7a67a7ee"
     },
     {
       "path": "styles/poolday/layers.json",
-      "byteLength": 238,
-      "sha256": "sha256:d0a62cc179499eabdf6c7fd965daf8c4cfb833b8f53b5e9b9c523d74ca5d5e81"
+      "byteLength": 265,
+      "sha256": "sha256:d9041048b2fa72db19d4841b0d16b44d7821004943952bcc76c1ac30ca8d183d"
     },
     {
       "path": "styles/poolday/primitives.css",
-      "byteLength": 22131,
-      "sha256": "sha256:3c9b80fdba62ab36c1907752ac1538dfe7387d316cc7738d33cf0973616a96ce"
+      "byteLength": 22553,
+      "sha256": "sha256:d082887967fecbf430e823ab1e6c495b93dcfcf0906cbc2ccc8c940e0e4a8338"
     },
     {
       "path": "styles/poolday/tokens.css",
-      "byteLength": 15982,
-      "sha256": "sha256:010a1cf8fdad696122c2164eff2ef1095701718a128458a197cdbd02e245e801"
+      "byteLength": 16910,
+      "sha256": "sha256:a7e401114698d3d2aba1c76c1c48cd7db19ac07a18bf4d2d8180ed7575e3897f"
     },
     {
       "path": "styles/proto/components.css",
@@ -2765,8 +2770,8 @@
     },
     {
       "path": "styles/rd.css",
-      "byteLength": 34489,
-      "sha256": "sha256:024e666fbb8cf51056daf057e455beb926742774ce2b81601ceb53ce769638ff"
+      "byteLength": 43911,
+      "sha256": "sha256:a870c45e86b3cbae5666c91100bec14eb6f581b1eed33f4d55b10800d53610d0"
     },
     {
       "path": "styles/zero.css",
@@ -9714,5 +9719,5 @@
       "sha256": "sha256:ca1208dd2f96d1b7ffb5464c7676a22aa849ec31936abde0809fc208bbd971c9"
     }
   ],
-  "bundleHash": "sha256:f72cf2e4f0e860fad3a7c907d4a6a263e8b6fe7c0df8865174b84e3448da9a29"
+  "bundleHash": "sha256:816df80515af9ecff106cd823c966b2d346faa408185b0f6aaa2d3091a227e12"
 }
