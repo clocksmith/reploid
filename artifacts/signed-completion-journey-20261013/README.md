@@ -19,7 +19,7 @@ Run 4 found the contributor-loss defects that `95641fe7` fixes (loss reported as
 - Concurrency: 2 simultaneous independent requesters.
 - Longest completed answer: 171 decode steps, in 608 s.
 - Decode time per step: Intel stage 2.65 to 3.56 s; Mac and AMD stages 0.44 to 0.66 s each. About 3.5 s per generated token end to end. The Intel stage is the bottleneck. The one follow-up answer, which includes prefill of the earlier exchange, averaged 4.3 / 1.9 / 18.2 s per step over 12 steps.
-- Context: only short conversations are established (a follow-up after one exchange). Prompt token counts are not recorded in this evidence. DR-5's long-prompt workload (1,627 decode steps in the earlier two-stage control) would take about 95 minutes per answer at this rate, so it is not qualified here.
+- Context: only short conversations are established (a follow-up after one exchange). Runs 1 to 6 recorded neither prompt token counts nor prefill separately from decode, so no prompt-length bound is measured. DR-5's long workload has 1,588 prompt tokens; its earlier two-stage Qwen 2B control generated 1,627 tokens. An earlier version of this section estimated about 95 minutes per answer from 1,627 generated tokens at 3.5 s each. That figure ignored prefill and borrowed another model's output length, so it is not a measured context limit. From Reploid `b0cb3b83` the timing record carries prompt tokens, prefill and decode per stage.
 
 **Not established by these runs:**
 - Answer usefulness. `manualReview` is open, and two answers state wrong example outputs: `[2,4,6,8]` for `[4,8]`, and `[-6,12,18]` for `[-4,12]`. The three-host capture passed all 55 prefixes within 0.001 of the reference, so these look like the model's own errors, not distribution errors.
