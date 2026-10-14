@@ -1,0 +1,10 @@
+active=active
+ActiveEnterTimestamp=Wed 2026-10-14 08:14:20 EDT
+RuntimeMaxUSec=1h 15min
+MemoryHigh=10737418240
+MemoryMax=12884901888
+MemorySwapMax=0
+pids=848534 
+pid 848534 argv-token-hits 0
+{"event":"partition-state","phase":"ready","error":null,"offering":true,"modelId":"qwen-3-
+journal-token-hits 0

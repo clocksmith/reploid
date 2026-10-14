@@ -1,0 +1,6 @@
+Oct 14 08:25:10 intel-host kernel: Fence expiration time out i915-0000:00:02.0:node[1377463]:410!
+Oct 14 08:25:10 intel-host kernel: Fence expiration time out i915-0000:00:02.0:node[1377463]:40e!
+Oct 14 08:25:29 intel-host kernel: i915 0000:00:02.0: [drm] Resetting rcs0 for preemption time out
+Oct 14 08:25:29 intel-host kernel: i915 0000:00:02.0: [drm] node[1377463] context reset due to GPU hang
+Oct 14 08:25:29 intel-host kernel: workqueue: execlists_capture_work [i915] hogged CPU for >10000us 16 times, consider switching to WQ_UNBOUND
+Oct 14 08:25:30 intel-host kernel: i915 0000:00:02.0: [drm] GPU HANG: ecode 12:1:85dcfffb, in node [1377463]
