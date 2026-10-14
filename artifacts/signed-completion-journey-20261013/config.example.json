@@ -37,9 +37,9 @@
     "restoreExport": "restoreContributor",
     "lossTarget": "amd-host"
   },
-  "timeouts": { "readyMs": 300000, "answerMs": 600000, "lossReportMs": 360000, "capacityReturnMs": 600000, "transferMs": 300000, "settlementMs": 120000 },
+  "timeouts": { "readyMs": 300000, "answerMs": 600000, "lossReportMs": 360000, "capacityReturnMs": 600000, "transferMs": 300000, "settlementMs": 120000, "seedingMs": 1800000 },
   "observation": { "pollMs": 100 },
   "concurrency": { "tabs": 2 },
   "modelFiles": { "pathPatterns": ["REPLACE: path-only regular expression for model manifests, piece indexes and shards"] },
-  "storage": { "sharingAllowanceMiB": 5, "stopAllowanceMiB": 64, "contentionAllowanceMiB": 5, "interruptionAllowanceMiB": 13 }
+  "storage": { "sharingAllowanceMiB": 5, "stopAllowanceMiB": 64, "contentionAllowanceMiB": 5, "interruptionAllowanceMiB": 13, "seedingAllowanceMiB": 1200, "seedingRefusalAllowanceMiB": 64 }
 }
