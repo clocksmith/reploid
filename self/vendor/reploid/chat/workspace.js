@@ -25,7 +25,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
   const covering = need => need && (remotePermissions?.() || []).find(permission => remotePermissionCovers(permission, need)) || null;
   // The authorization cites the permission and names the verified route this attempt is dispatched to.
   const permitted = (scope, preview, permission) => ({ kind: 'permission', grantId: null, permissionId: permission.id,
-    peerId: preview.peerId, ...copy(scope), source: 'permission', recipients: disclosureRecipients(scope, preview), expiresAt: preview.expiresAt });
+    peerId: preview.peerId, ...copy(scope), source: 'permission', recipients: disclosureRecipients(scope, preview),
+    expiresAt: preview.executionTimeoutMs === undefined ? preview.expiresAt : now() + preview.executionTimeoutMs });
   const requester = () => {
     const value = requesterIdentity();
     assert(value === null || typeof value === 'string' && value, 'Invalid requester identity');
@@ -150,7 +151,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     catch (error) { runs.delete(thread.id); thread.attempts.pop(); thread.messages.pop(); throw error; }
     const matches = envelope => envelope?.threadId === thread.id && envelope?.attemptId === attempt.id;
     const live = () => !controller.signal.aborted && runs.get(thread.id) === run;
-    const timer = setTimeout(() => controller.abort(new Error('Response timed out. Retry starts a new attempt.')), limits.attemptTimeoutMs);
+    const startTimer = () => setTimeout(() => controller.abort(new Error('Response timed out. Retry starts a new attempt.')), limits.attemptTimeoutMs);
+    let timer = startTimer();
     const aborted = () => {
       attempt.status = 'cancelling'; response.status = 'cancelling'; attempt.approval = null;
       run.approval?.(false); run.approval = null; notify();
@@ -166,6 +168,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         const result = await execute(copy({ ...request, threadId: thread.id, attemptId: attempt.id,
           meshId, participantId }), {
           signal: controller.signal,
+          authorizationExpiresAt: () => live() ? attempt.authorization?.expiresAt ?? null : null,
           ...(transactional ? { publication, publisherEpoch: store.writerEpoch,
             async onPublished(record) {
               controller.signal.throwIfAborted();
@@ -207,9 +210,18 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             assert(matches(preview) && typeof preview.id === 'string' && preview.id
               && typeof preview.peerId === 'string' && preview.peerId && Number.isFinite(preview.expiresAt)
               && preview.expiresAt > now(), 'Invalid conversation disclosure');
+            assert(preview.executionTimeoutMs === undefined || Number.isSafeInteger(preview.executionTimeoutMs)
+              && preview.executionTimeoutMs > 0 && preview.executionTimeoutMs <= limits.attemptTimeoutMs,
+            'Invalid execution authorization window');
             assert(!run.approval, 'An approval is already pending');
             const scope = disclosureScope(request, preview, requester()), grant = matchingThreadGrant(thread.grants, scope);
             if (transactional) assert(publishedDisclosures.has(scope?.disclosure), 'Canonical disclosure requires exact verified partition recipients');
+            if (attempt.authorization?.kind === 'permission') {
+              assert(scope && attempt.authorization.peerId === preview.peerId && Object.keys(scope).every(key =>
+                JSON.stringify(attempt.authorization[key]) === JSON.stringify(scope[key])),
+              'Execution recipients changed. Retry starts a new authorized attempt.');
+              return live() && attempt.authorization.expiresAt > now();
+            }
             if (authorizeDisclosure) {
               assert(scope, 'Peer disclosure does not match the selected model and verified recipients');
               if (attempt.authorization?.source === 'send') {
@@ -242,10 +254,12 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             // Outside every stored permission: nothing is sent until one covers it (resumePermitted) or it is declined.
             attempt.status = 'approval';
             attempt.approval = { ...copy(preview), reusable: !!scope, ...(need ? { permissionNeed: need } : {}) };
+            clearTimeout(timer);
             return new Promise(resolve => {
               const expiry = setTimeout(() => finish(false), Math.min(limits.attemptTimeoutMs, preview.expiresAt - now()));
               const finish = accepted => {
                 clearTimeout(expiry); run.approval = null; attempt.approval = null;
+                if (live()) timer = startTimer();
                 if (live()) attempt.status = 'queued'; notify(); resolve(accepted);
               };
               run.approval = finish; notify();

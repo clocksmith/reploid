@@ -2,6 +2,7 @@
 // workspace applies it before every remote disclosure. Injected execution; no inference.
 import { describe, expect, it, vi } from 'vitest';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
+import policy from '../../packages/reploid/src/chat/policy.json';
 import { createRemotePermission, remoteDisclosureKind, remotePermissionCovers, remotePermissionNeed,
   validateRemotePermission } from '../../packages/reploid/src/chat/remote-permission.js';
 
@@ -79,6 +80,44 @@ describe('workspace under a remote permission', () => {
       recipients: [PEER], recipientIdentity: PEER, disclosure: 'public', modelIdentity: modelA.identity, sharingScope: 'mesh' });
     expect(f.disclosed).toEqual(['First']);
   });
+  it('pins the recipients within an admitted attempt even when permission covers both computers', async () => {
+    const app = createChatWorkspace({ meshId: 'mesh', participantId: 'requester', remotePermissions: () => [granted()],
+      store: { load: () => null, save() {} }, execute: async (request, controls) => {
+        for (const peer of [PEER, 'peer:' + 'c'.repeat(24)]) {
+          await controls.requestApproval({ id: peer, threadId: request.threadId, attemptId: request.attemptId,
+            peerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
+            modelId: modelA.id, modelIdentity: modelA.identity, adapterIdentities: [], expiresAt: Date.now() + 10000 });
+        }
+        throw Error('Must not reach a replacement recipient');
+      } });
+    try {
+      const thread = app.createThread({ model: modelA, permissions: {sharingScope:'mesh'} });
+      expect(await app.send(thread, 'Hello')).toMatchObject({status:'failed', error:'Execution recipients changed. Retry starts a new authorized attempt.'});
+    } finally { await app.close(); }
+  });
+
+  it('gives a dispatch-held first-use permission a fresh bounded execution window', async () => {
+    vi.useFakeTimers();
+    const stored = []; let signal, deadline, release;
+    const gate = new Promise(resolve => { release = resolve; });
+    const app = createChatWorkspace({ meshId:'mesh', participantId:'requester', remotePermissions:()=>stored,
+      policy:{...policy,attemptTimeoutMs:1000}, store:{load:()=>null,save(){}}, execute:async(request,controls)=>{
+        signal = controls.signal;
+        if (!await controls.requestApproval({id:'preview',threadId:request.threadId,attemptId:request.attemptId,
+          peerId:PEER,recipientIdentity:PEER,operation:'generate',disclosure:'public',modelId:modelA.id,
+          modelIdentity:modelA.identity,adapterIdentities:[],expiresAt:Date.now()+10000,executionTimeoutMs:1000})) throw Error('Expired');
+        deadline=controls.authorizationExpiresAt(); await gate;
+        return {threadId:request.threadId,attemptId:request.attemptId,modelId:modelA.id,modelIdentity:modelA.identity,adapterIdentities:[],content:'Answer'};
+      }});
+    try {
+      const thread=app.createThread({model:modelA,permissions:{sharingScope:'mesh'}}), pending=app.send(thread,'Hello');
+      await vi.advanceTimersByTimeAsync(900); stored.push(granted()); app.resumePermitted();
+      await vi.advanceTimersByTimeAsync(900); expect(signal.aborted).toBe(false); expect(deadline).toBeGreaterThan(Date.now());
+      await vi.advanceTimersByTimeAsync(101); expect(signal.aborted).toBe(true); release();
+      expect((await pending).status).toBe('cancelled');
+    } finally { release(); await app.close(); vi.useRealTimers(); }
+  });
+
   it('a covered request is sent with no approval state; the record names its recipients', async () => {
     const f = fixture(), thread = f.app.createThread({ model: modelA, permissions: { sharingScope: 'mesh' } });
     f.stored.push(granted());

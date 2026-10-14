@@ -233,14 +233,16 @@ export function createAutomaticPartitions({ identity, meshId, models, policy, pe
       assert(refreshed.ready && model, 'No prepared cooperative partition path is available');
       assert(!!model.canonical === !!canonical, 'Prepared route has a different publication capability');
       requireGenerationCapability(model, requested, !!canonical);
-      const messages = structuredClone(request.messages), expiresAt = Date.now() + config.grantMs;
+      const messages = structuredClone(request.messages);
+      let expiresAt = Date.now() + config.grantMs;
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId,
         attemptId: request.attemptId, operation: 'generate-partition',
         peerId: model.partition.participantA, recipientIdentity: model.partition.participantA,
         ...model.partition, modelId: model.id, modelIdentity: model.identity,
-        disclosure: 'partition-activations-and-tokens', adapterIdentities: [], expiresAt,
+        disclosure: 'partition-activations-and-tokens', adapterIdentities: [], expiresAt, executionTimeoutMs: config.grantMs,
         input: { messages: structuredClone(messages), ...(requested ? {generationRequest: requested} : {}), recipients: [model.partition.participantA, model.partition.participantB] } });
       assert(approved === true, 'Partition input disclosure declined'); controls.signal.throwIfAborted();
+      expiresAt = Math.min(controls.authorizationExpiresAt?.() ?? expiresAt, Date.now() + config.grantMs);
       assert(Date.now() < expiresAt, 'Partition input disclosure expired');
       // Human review can outlive an availability descriptor. Refresh liveness,
       // but never transfer reviewed input to a newly selected recipient or plan.
