@@ -1,0 +1,1242 @@
+{
+ "schema": "reploid.useful-answer-set.whole-answer-summary/v1",
+ "answerSetSha256": "ac174063024054b9ea048b2dd4c532119bea96ae4d330dab89dd2c3ea62dced5",
+ "reviewer": {
+  "name": "Claude Opus 5.5",
+  "modelId": "claude-opus-5-5",
+  "kind": "model reviewer",
+  "humanPanel": false,
+  "note": "Graded by one model reviewer, the agent that wrote the set; no human panel."
+ },
+ "itemStatus": {
+  "byCategory": {
+   "factual": {
+    "q4k": {
+     "whole-answer correct": 1,
+     "has incorrect element": 5,
+     "unverified, no incorrect element": 0,
+     "items": 6,
+     "mechanicalPass": 6,
+     "mechanicalItems": 6
+    },
+    "bf16": {
+     "whole-answer correct": 0,
+     "has incorrect element": 6,
+     "unverified, no incorrect element": 0,
+     "items": 6,
+     "mechanicalPass": 6,
+     "mechanicalItems": 6
+    }
+   },
+   "explanation": {
+    "q4k": {
+     "whole-answer correct": 1,
+     "has incorrect element": 4,
+     "unverified, no incorrect element": 0,
+     "items": 5,
+     "mechanicalPass": 3,
+     "mechanicalItems": 3
+    },
+    "bf16": {
+     "whole-answer correct": 0,
+     "has incorrect element": 5,
+     "unverified, no incorrect element": 0,
+     "items": 5,
+     "mechanicalPass": 3,
+     "mechanicalItems": 3
+    }
+   },
+   "code": {
+    "q4k": {
+     "whole-answer correct": 1,
+     "has incorrect element": 5,
+     "unverified, no incorrect element": 0,
+     "items": 6,
+     "mechanicalPass": 2,
+     "mechanicalItems": 6
+    },
+    "bf16": {
+     "whole-answer correct": 3,
+     "has incorrect element": 3,
+     "unverified, no incorrect element": 0,
+     "items": 6,
+     "mechanicalPass": 4,
+     "mechanicalItems": 6
+    }
+   },
+   "arithmetic": {
+    "q4k": {
+     "whole-answer correct": 5,
+     "has incorrect element": 1,
+     "unverified, no incorrect element": 0,
+     "items": 6,
+     "mechanicalPass": 6,
+     "mechanicalItems": 6
+    },
+    "bf16": {
+     "whole-answer correct": 4,
+     "has incorrect element": 2,
+     "unverified, no incorrect element": 0,
+     "items": 6,
+     "mechanicalPass": 6,
+     "mechanicalItems": 6
+    }
+   },
+   "follow-up": {
+    "q4k": {
+     "whole-answer correct": 2,
+     "has incorrect element": 4,
+     "unverified, no incorrect element": 0,
+     "items": 6,
+     "mechanicalPass": 4,
+     "mechanicalItems": 6
+    },
+    "bf16": {
+     "whole-answer correct": 2,
+     "has incorrect element": 4,
+     "unverified, no incorrect element": 0,
+     "items": 6,
+     "mechanicalPass": 5,
+     "mechanicalItems": 6
+    }
+   },
+   "rewrite": {
+    "q4k": {
+     "whole-answer correct": 3,
+     "has incorrect element": 2,
+     "unverified, no incorrect element": 0,
+     "items": 5,
+     "mechanicalPass": 5,
+     "mechanicalItems": 5
+    },
+    "bf16": {
+     "whole-answer correct": 4,
+     "has incorrect element": 0,
+     "unverified, no incorrect element": 1,
+     "items": 5,
+     "mechanicalPass": 5,
+     "mechanicalItems": 5
+    }
+   },
+   "format": {
+    "q4k": {
+     "whole-answer correct": 4,
+     "has incorrect element": 1,
+     "unverified, no incorrect element": 1,
+     "items": 6,
+     "mechanicalPass": 6,
+     "mechanicalItems": 6
+    },
+    "bf16": {
+     "whole-answer correct": 4,
+     "has incorrect element": 1,
+     "unverified, no incorrect element": 1,
+     "items": 6,
+     "mechanicalPass": 6,
+     "mechanicalItems": 6
+    }
+   }
+  },
+  "overall": {
+   "q4k": {
+    "whole-answer correct": 17,
+    "has incorrect element": 22,
+    "unverified, no incorrect element": 1,
+    "items": 40,
+    "mechanicalPass": 32,
+    "mechanicalItems": 38
+   },
+   "bf16": {
+    "whole-answer correct": 17,
+    "has incorrect element": 21,
+    "unverified, no incorrect element": 2,
+    "items": 40,
+    "mechanicalPass": 35,
+    "mechanicalItems": 38
+   }
+  }
+ },
+ "answerLevel": {
+  "q4k": {
+   "overall": {
+    "answers": 46,
+    "wholeAnswerCorrect": 20,
+    "anyIncorrect": 24,
+    "anyUnverified": 5,
+    "anyInstructionViolation": 2,
+    "elements": 278,
+    "incorrectElements": 70,
+    "unverifiedElements": 10
+   },
+   "byCategory": {
+    "factual": {
+     "answers": 6,
+     "wholeAnswerCorrect": 1,
+     "anyIncorrect": 5,
+     "anyUnverified": 0,
+     "anyInstructionViolation": 0,
+     "elements": 37,
+     "incorrectElements": 15,
+     "unverifiedElements": 0
+    },
+    "explanation": {
+     "answers": 5,
+     "wholeAnswerCorrect": 1,
+     "anyIncorrect": 4,
+     "anyUnverified": 2,
+     "anyInstructionViolation": 0,
+     "elements": 75,
+     "incorrectElements": 32,
+     "unverifiedElements": 5
+    },
+    "code": {
+     "answers": 6,
+     "wholeAnswerCorrect": 1,
+     "anyIncorrect": 5,
+     "anyUnverified": 1,
+     "anyInstructionViolation": 1,
+     "elements": 40,
+     "incorrectElements": 11,
+     "unverifiedElements": 1
+    },
+    "arithmetic": {
+     "answers": 6,
+     "wholeAnswerCorrect": 5,
+     "anyIncorrect": 1,
+     "anyUnverified": 0,
+     "anyInstructionViolation": 0,
+     "elements": 22,
+     "incorrectElements": 1,
+     "unverifiedElements": 0
+    },
+    "follow-up": {
+     "answers": 12,
+     "wholeAnswerCorrect": 5,
+     "anyIncorrect": 6,
+     "anyUnverified": 1,
+     "anyInstructionViolation": 0,
+     "elements": 55,
+     "incorrectElements": 8,
+     "unverifiedElements": 2
+    },
+    "rewrite": {
+     "answers": 5,
+     "wholeAnswerCorrect": 3,
+     "anyIncorrect": 2,
+     "anyUnverified": 0,
+     "anyInstructionViolation": 0,
+     "elements": 29,
+     "incorrectElements": 2,
+     "unverifiedElements": 0
+    },
+    "format": {
+     "answers": 6,
+     "wholeAnswerCorrect": 4,
+     "anyIncorrect": 1,
+     "anyUnverified": 1,
+     "anyInstructionViolation": 1,
+     "elements": 20,
+     "incorrectElements": 1,
+     "unverifiedElements": 2
+    }
+   }
+  },
+  "bf16": {
+   "overall": {
+    "answers": 46,
+    "wholeAnswerCorrect": 21,
+    "anyIncorrect": 23,
+    "anyUnverified": 5,
+    "anyInstructionViolation": 3,
+    "elements": 269,
+    "incorrectElements": 55,
+    "unverifiedElements": 7
+   },
+   "byCategory": {
+    "factual": {
+     "answers": 6,
+     "wholeAnswerCorrect": 0,
+     "anyIncorrect": 6,
+     "anyUnverified": 1,
+     "anyInstructionViolation": 0,
+     "elements": 39,
+     "incorrectElements": 10,
+     "unverifiedElements": 1
+    },
+    "explanation": {
+     "answers": 5,
+     "wholeAnswerCorrect": 0,
+     "anyIncorrect": 5,
+     "anyUnverified": 1,
+     "anyInstructionViolation": 0,
+     "elements": 64,
+     "incorrectElements": 21,
+     "unverifiedElements": 3
+    },
+    "code": {
+     "answers": 6,
+     "wholeAnswerCorrect": 3,
+     "anyIncorrect": 3,
+     "anyUnverified": 0,
+     "anyInstructionViolation": 1,
+     "elements": 36,
+     "incorrectElements": 7,
+     "unverifiedElements": 0
+    },
+    "arithmetic": {
+     "answers": 6,
+     "wholeAnswerCorrect": 4,
+     "anyIncorrect": 2,
+     "anyUnverified": 0,
+     "anyInstructionViolation": 0,
+     "elements": 27,
+     "incorrectElements": 3,
+     "unverifiedElements": 0
+    },
+    "follow-up": {
+     "answers": 12,
+     "wholeAnswerCorrect": 6,
+     "anyIncorrect": 6,
+     "anyUnverified": 0,
+     "anyInstructionViolation": 1,
+     "elements": 55,
+     "incorrectElements": 13,
+     "unverifiedElements": 0
+    },
+    "rewrite": {
+     "answers": 5,
+     "wholeAnswerCorrect": 4,
+     "anyIncorrect": 0,
+     "anyUnverified": 1,
+     "anyInstructionViolation": 0,
+     "elements": 27,
+     "incorrectElements": 0,
+     "unverifiedElements": 1
+    },
+    "format": {
+     "answers": 6,
+     "wholeAnswerCorrect": 4,
+     "anyIncorrect": 1,
+     "anyUnverified": 2,
+     "anyInstructionViolation": 1,
+     "elements": 21,
+     "incorrectElements": 1,
+     "unverifiedElements": 2
+    }
+   }
+  }
+ },
+ "mechanicalPassButNotWholeAnswerCorrect": {
+  "q4k": [
+   "fact-capital-australia",
+   "fact-pride-prejudice-author",
+   "fact-apollo11-year",
+   "fact-http-expansion",
+   "fact-adult-bones",
+   "expl-leap-year",
+   "expl-http-404",
+   "code-sum-squares",
+   "arith-multiply",
+   "fu-translate",
+   "fu-primary-colors",
+   "rw-polite",
+   "rw-summary-library",
+   "fmt-three-bullets",
+   "fmt-haiku-lines"
+  ],
+  "bf16": [
+   "fact-capital-australia",
+   "fact-pride-prejudice-author",
+   "fact-gold-symbol",
+   "fact-apollo11-year",
+   "fact-http-expansion",
+   "fact-adult-bones",
+   "expl-sky-blue",
+   "expl-leap-year",
+   "expl-http-404",
+   "code-count-vowels",
+   "arith-multiply",
+   "arith-f-to-c",
+   "fu-translate",
+   "fu-palindrome",
+   "fu-primary-colors",
+   "rw-polite",
+   "fmt-three-bullets",
+   "fmt-haiku-lines"
+  ]
+ },
+ "wholeAnswerCorrectButMechanicalFail": {
+  "q4k": [],
+  "bf16": []
+ },
+ "items": [
+  {
+   "id": "fact-capital-australia",
+   "category": "factual",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Canberra is located in the outback / overlooks the Great Australian Outback",
+      "turn 1: incorrect: Canberra was the site of the 1919 general election",
+      "turn 1: incorrect: Canberra was the first capital of the Australian colonies",
+      "turn 1: incorrect: Canberra is situated on the banks of the Murray River"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Canberra is located in the outback",
+      "turn 1: incorrect: Canberra is the second-largest city in Australia",
+      "turn 1: incorrect: Canberra is the second-largest city in the world"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fact-pride-prejudice-author",
+   "category": "factual",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: The novel's title is 'Pride and Prejudance' (written twice)",
+      "turn 1: incorrect: Austen died in 1840",
+      "turn 1: incorrect: She was an essayist"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Austen was a playwright",
+      "turn 1: incorrect: Emma (1805)"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fact-gold-symbol",
+   "category": "factual",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Au is 'A for aurum followed by U for gold'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fact-apollo11-year",
+   "category": "factual",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: The mission was led by Neil Armstrong and Buzz Aldrin",
+      "turn 1: incorrect: The landing occurred at the Cape Canoe Basin in the Pacific Ocean"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: The mission was led by Neil Armstrong and Buzz Aldrin",
+      "turn 1: unverified: They 'successfully set up the lunar module'",
+      "turn 1: incorrect: They landed on the Moon's south pole"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fact-http-expansion",
+   "category": "factual",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: It is the standard protocol for transmitting data over the internet"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: It is the standard protocol for transferring data over the internet"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fact-adult-bones",
+   "category": "factual",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: The number derives from the 'International Classification of Osmia (ICOS)', the standard for bone classification",
+      "turn 1: incorrect: The count varies with classification systems such as 'ICS 2018 or ICS 2020'",
+      "turn 1: incorrect: There are 11 femoral bones, which form the hip bones",
+      "turn 1: incorrect: There are 106 bones in the fetus, later replaced by the 206 adult bones (bullet repeated three times)",
+      "turn 1: incorrect: The number 206 is used to distinguish fetal from adult bones, since adult bones are the majority of the body's bones"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: 206 bones are in the skull and spine, plus 186 bones in the rest of the body"
+     ]
+    }
+   }
+  },
+  {
+   "id": "expl-sky-blue",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: The scattering is most pronounced at the upper levels of the atmosphere, where the path length for blue light is greatest"
+     ]
+    }
+   }
+  },
+  {
+   "id": "expl-list-tuple",
+   "category": "explanation",
+   "judgment": "human",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 1: incorrect: The primary difference is also type safety",
+      "turn 1: incorrect: my_tuple = (1, 2, 3, 4) is impossible because tuples are immutable",
+      "turn 1: incorrect: Lists are type-safe; Python converts list elements to the correct types (e.g. strings to numbers)",
+      "turn 1: incorrect: Tuples are type-safe by design and Python ensures element types match exactly",
+      "turn 1: incorrect: Python enforces that (1, \"two\", 3) is a tuple of mixed types",
+      "turn 1: incorrect: Tuples do not support index access; my_tuple[0] raises TypeError",
+      "turn 1: incorrect: Tuples do not support iteration; for item in my_tuple raises TypeError",
+      "turn 1: incorrect: Use a tuple to enforce a fixed order and make sure the types match exactly",
+      "turn 1: incorrect: Summary table: tuples have no index access and no iteration; both are type-safe"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 1: incorrect: Tuples can only be accessed or modified by copying them (tuple_copy = tuple(original))",
+      "turn 1: incorrect: Presents indexing and comparison as key differences between the two",
+      "turn 1: incorrect: my_tuple_copy = tuple(my_tuple) is [1, 2, 3]"
+     ]
+    }
+   }
+  },
+  {
+   "id": "expl-leap-year",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Difficulty predicting the Sun's position against the stars led to the Julian calendar",
+      "turn 1: incorrect: The Julian calendar had a 12-year cycle and was too slow for navigation",
+      "turn 1: incorrect: Ptolemy and \"Ptolemy II Philoponus\" independently developed the Gregorian calendar around 150-160 AD",
+      "turn 1: incorrect: The Earth's orbit is not exactly 365.2425 days; instead it is approximately 365.2425 days",
+      "turn 1: incorrect: A 365-day calendar makes the Earth drift about 1 degree of longitude every 12 years, moving the Sun about 15 degrees every 100 years",
+      "turn 1: incorrect: Adding 1 day every 100 years completes the orbit at 365.2425 days",
+      "turn 1: incorrect: The Gregorian calendar had a 12-year cycle; 365 days were added every 4 years and 1 day every 8 years",
+      "turn 1: incorrect: The extra day accounts for 1 degree of longitude moved in 12 years",
+      "turn 1: incorrect: Without leap years the calendar would drift, making navigation impossible",
+      "turn 1: incorrect: Summary: this keeps the Sun in the same position relative to the stars"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: The reason we have leap years lies in the Gregorian calendar",
+      "turn 1: incorrect: The year is 365.2422 days because the elliptical orbit makes Earth travel different distances at different speeds",
+      "turn 1: incorrect: The calendar must account for an extra 0.0422 days per year",
+      "turn 1: incorrect: 365 days is the average year",
+      "turn 1: incorrect: Adding a day every four years adds 0.0422 days to the average year",
+      "turn 1: incorrect: Adding a day only every 4 years would drift about 10 minutes every 400 years",
+      "turn 1: incorrect: Adding a day every 400 years corrects this drift",
+      "turn 1: incorrect: The Julian calendar (365.25 days) was a bit shorter than the solar year",
+      "turn 1: incorrect: The Julian calendar drifted about 11 minutes every 128 years",
+      "turn 1: incorrect: Conclusion: adding a day every four years accounts for the extra 0.0422 days, and adding a day every 400 years keeps it accurate"
+     ]
+    }
+   }
+  },
+  {
+   "id": "expl-weather-climate",
+   "category": "explanation",
+   "judgment": "human",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Weather's timeframe is 'daily to seasonal'",
+      "turn 1: incorrect: The average temperature in London is 8 degrees C",
+      "turn 1: unverified: The average rainfall in the Pacific Northwest is 1000 mm",
+      "turn 1: unverified: The average temperature in the Pacific Northwest is 10 degrees C (50 degrees F)",
+      "turn 1: unverified: Weather is the 'what and how' of the immediate environment; climate the 'how much and how long'",
+      "turn 1: incorrect: Weather is measured daily or weekly",
+      "turn 1: incorrect: Local weather is the result of local climate and geography",
+      "turn 1: unverified: Climate is the result of global climate patterns and local weather patterns"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Climate is static",
+      "turn 1: incorrect: London's average rainfall is 400 mm per year",
+      "turn 1: incorrect: Table: weather is short-term, 'hours to years'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "expl-http-404",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: It means the website you are trying to access does not exist",
+      "turn 1: incorrect: The page content is not hosted anywhere",
+      "turn 1: incorrect: It can mean the server is down or the site is offline",
+      "turn 1: incorrect: Cause: the site was shut down",
+      "turn 1: incorrect: 404 is a temporary state that usually disappears after a few seconds",
+      "turn 1: incorrect: Advice: do not try to access the site again",
+      "turn 1: incorrect: Advice: check your internet connection, try another browser or device",
+      "turn 1: unverified: A different domain from the original host may be inaccessible",
+      "turn 1: incorrect: Advice: check the site's status page or contact support if the site is down",
+      "turn 1: incorrect: Summary: the website is not accessible, a problem with the website itself and not your computer"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: The browser has successfully loaded the page you are trying to access",
+      "turn 1: incorrect: Cause: the browser cached an old version and the new version is not available",
+      "turn 1: incorrect: A domain rename example: example.com became example.com/new-site",
+      "turn 1: unverified: Advice: on a local machine refresh or open developer tools (F12) to see if the page is loading",
+      "turn 1: incorrect: Advice for a personal site: delete the page, use a different URL, register a new domain",
+      "turn 1: unverified: Contacting the website owner is the most likely solution (repeated section)",
+      "turn 1: unverified: Summary: you should contact the website owner to restore the page"
+     ]
+    }
+   }
+  },
+  {
+   "id": "code-double-evens",
+   "category": "code",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 1: incorrect: Stated result for [1, 2, 3, 4]: [2, 4, 6, 8]"
+     ]
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "code-sum-squares",
+   "category": "code",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Docstring: returns a float"
+     ]
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "code-reverse-string",
+   "category": "code",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 1: unverified: JSDoc: @returns the reversed string (for any string)",
+      "turn 1: incorrect: Stated result for 'stressed': \"edresst\""
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 1: incorrect: Stated result for 'stressed': \"edreessst\""
+     ]
+    }
+   }
+  },
+  {
+   "id": "code-python-slice",
+   "category": "code",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "code-js-default-sort",
+   "category": "code",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 1: incorrect: The code logs [1, 5, 10]"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 1: incorrect: The code logs [1, 5, 10]"
+     ]
+    }
+   }
+  },
+  {
+   "id": "code-count-vowels",
+   "category": "code",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 1: incorrect: Counts the vowels a, e, i, o, u in a string",
+      "turn 1: incorrect: count_vowels('education') raises AttributeError when run",
+      "turn 1: incorrect: Docstring: counts the vowels and returns the count as an int",
+      "turn 1: incorrect: Explanation: the function lowercases the string and checks whether each character is a vowel",
+      "turn 1: incorrect: print(count_vowels('education')) outputs 4; the function returns 4",
+      "turn 1: incorrect: The vowels in 'education' are e (index 1), e (index 3), d (index 6), e (index 7)",
+      "turn 1: incorrect: Counting these gives 4 vowels"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Counts the vowels a, e, i, o, u in a string",
+      "turn 1: incorrect: count_vowels('education') raises TypeError when run",
+      "turn 1: incorrect: Docstring: counts the vowels and returns the total count as an int",
+      "turn 1: incorrect: Vowels present: e, u, d, i, o, n",
+      "turn 1: incorrect: count_vowels('education') returns 5"
+     ]
+    }
+   }
+  },
+  {
+   "id": "arith-multiply",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Calls splitting 24 into 20 + 4 'breaking it down into factors' and labels it 'direct multiplication', while the item labelled 'Breakdown' is the plain product"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Tens column: 7 x 2 = 14 + 2 = 16, write 6 carry 1; hundreds: 1 x 2 + 1 = 3",
+      "turn 1: incorrect: Combined result: 368"
+     ]
+    }
+   }
+  },
+  {
+   "id": "arith-percent",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "arith-miles-km",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "arith-f-to-c",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Note: 'If you need an integer, 37.78 C is the precise answer'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "arith-discount",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "arith-hours-seconds",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "fu-double-evens",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 1: incorrect: Stated result for [1, 2, 3, 4]: [2, 4, 6, 8]",
+      "turn 2: incorrect: Result: [-6, 12, 18]"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 2: incorrect: Result: [-4, 6]"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fu-rectangle",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "fu-translate",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: 'Dejame gracias' means 'I'm sorry'",
+      "turn 2: incorrect: 'Merci beaucoup' glossed as '(Very much)'"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: 'Gracias por' is a bit more formal than 'Gracias' (listed twice)",
+      "turn 1: incorrect: Glosses: '¡Gracias!' = 'Hello, thank you!'; '¡Muchas gracias!' = 'Hello, thank you very much!'",
+      "turn 2: incorrect: 'Merci' is a bit more formal than 'Merci'",
+      "turn 2: incorrect: Glosses: 'Merci !' = 'Hello, thank you!'; 'Merci beaucoup !' = 'Hello, thank you very much!'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fu-cookies",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "fu-palindrome",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": false,
+     "failingElements": [
+      "turn 1: unverified: is_palindrome('ab!a') -> True when run (non-alphanumerics dropped)",
+      "turn 1: unverified: Comment: removes non-alphanumeric characters 'to handle spaces and punctuation'",
+      "turn 2: incorrect: is_palindrome('Racecar') returns False",
+      "turn 2: incorrect: The reversed string is 'carrecra'; 'racecar' != 'carrecra', so it returns False"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Checks whether a string reads the same forwards and backwards, ignoring case",
+      "turn 1: incorrect: is_palindrome('Racecar') -> False when run (should be True ignoring case); ('racecar') -> True; ('hello') -> False",
+      "turn 1: incorrect: Docstring: checks the string reads the same forwards and backwards, ignoring case",
+      "turn 2: incorrect: is_palindrome('Racecar') returns True"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fu-primary-colors",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: They are the basic pigments",
+      "turn 1: incorrect: Combined, they create the full spectrum of colors seen in the rainbow"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: They can be combined to create all other colors of light",
+      "turn 1: incorrect: This happens when viewed through a prism or through a colored filter",
+      "turn 1: incorrect: Mixed together they create a spectrum ranging from red to violet",
+      "turn 1: incorrect: Green has the shortest wavelength"
+     ]
+    }
+   }
+  },
+  {
+   "id": "rw-grammar",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "rw-polite",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: 'Could you' was used instead of 'I need it'"
+     ]
+    },
+    "bf16": {
+     "status": "unverified, no incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: unverified: The same phrases 'show respect for the recipient's time'"
+     ]
+    }
+   }
+  },
+  {
+   "id": "rw-summary-library",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: New hours: 'from 9 am to 11 pm and 8 pm to 10 pm'"
+     ]
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "rw-recall-bullets",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "rw-shorten-email",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "fmt-one-word-banana",
+   "category": "format",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "fmt-three-bullets",
+   "category": "format",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "unverified, no incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: unverified: Water maintains healthy skin and hair by preventing dehydration",
+      "turn 1: unverified: Water is crucial for regulating blood pressure and heart health by flushing out excess sodium and water"
+     ]
+    },
+    "bf16": {
+     "status": "unverified, no incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: unverified: Drinking water helps maintain healthy blood pressure and lowers the risk of heart disease"
+     ]
+    }
+   }
+  },
+  {
+   "id": "fmt-json-eiffel",
+   "category": "format",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "fmt-yes-no-prime",
+   "category": "format",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "fmt-numbered-countries",
+   "category": "format",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    },
+    "bf16": {
+     "status": "whole-answer correct",
+     "mechanicalPass": true,
+     "failingElements": []
+    }
+   }
+  },
+  {
+   "id": "fmt-haiku-lines",
+   "category": "format",
+   "judgment": "mechanical",
+   "arms": {
+    "q4k": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Haiku form: three lines of 5, 7 and 5 syllables"
+     ]
+    },
+    "bf16": {
+     "status": "has incorrect element",
+     "mechanicalPass": true,
+     "failingElements": [
+      "turn 1: incorrect: Haiku form: three lines of 5, 7 and 5 syllables",
+      "turn 1: unverified: About autumn leaves"
+     ]
+    }
+   }
+  }
+ ]
+}
