@@ -2,101 +2,210 @@
 
 ## Product specification
 
-The latest seven-section product definition is embedded here as the authoritative
-intent. Implementation status and qualification evidence follow separately.
+**Reploid Product Economics Contract v1.0.** Adopted product requirements, merged
+into the seven-section definition below. MUST denotes a requirement, not a claim
+of implementation. Installed behavior and physical qualification remain separately
+recorded. Unresolved policies and their interim behavior are explicit.
 
 **Earn on your computer. Use AI anywhere.**
 
 ### 1. Product
 
-Reploid is a network where people contribute useful computing resources, earn inference credits, and redeem them for AI services from any device.
+Reploid lets people contribute useful computer resources, accumulate nonexpiring
+credits, and redeem AI services from any device. Requesting and contributing are
+independent activities available to the same person. Users may contribute storage,
+computation or both, purchase top-ups, or use Community Access. No subscription is
+required. The network is the product; requesters should eventually access models
+larger than their devices can store or execute.
 
-Users can contribute, purchase credits, or use Community Access independently and at any time. No subscription is required.
+Reploid owns discovery, acquisition, placement, permissions, reservations,
+accounting and conversations. Doppler owns computation, sampling and inference
+state. Compute reservations and resource settlement are not financial accounting.
 
-The network is the product. A participant can contribute storage, computation, or both. Requesters should eventually access models larger than their own devices can store or execute.
+Every inference quote and receipt MUST identify the model, checkpoint, deployed
+representation, runtime, operation, context allowance, output limits and
+quality-policy version; permitted recipient policy and disclosure scope; queue
+class, deadline, execution limits and accounting version. Receipts additionally
+record actual execution recipients and the accepted quote/attempt identity.
+
+Acceptance: [REP-7](docs/roadmap/requirements.md#rep-7),
+[REP-10](docs/roadmap/requirements.md#rep-10),
+[DR-1](docs/roadmap/requirements.md#dr-1), [DR-3](docs/roadmap/requirements.md#dr-3).
 
 ### 2. Community Access
 
-Community Access provides ongoing free AI usage funded by donors, participating operators, and reserved community resources.
+Community Access is an ongoing free service funded by donors, participating
+operators and reserved community resources, not a signup trial or promotional
+credit allocation. It MUST have fair queues, usage limits, abuse controls and
+visible availability. Registration MUST NOT automatically issue transferable credits.
 
-It is a permanent service category, not an introductory trial or promotional credit allocation.
+An operator-funded guaranteed basic-service minimum remains an open decision.
+Until funding and supply are committed, disclose queuing or explicit retry without
+a guaranteed completion time. A positive credit balance likewise does not guarantee
+immediate capacity. Requesting, earning and purchasing remain independently available.
 
-Available capacity is distributed through fair queues, usage limits, and abuse controls. If capacity is exhausted, users can queue or retry. A guaranteed minimum requires committed funding and supply.
-
-Community Access does not create transferable credits merely for registering.
+Acceptance: [REP-9](docs/roadmap/requirements.md#rep-9).
 
 ### 3. Credits and marketplace
 
-Earned and purchased credits never expire.
+Earned and purchased credits MUST NOT expire. Track issuance provenance separately
+from donated funding. Credit quantity, acquisition price, contribution reward,
+inference price and marketplace exchange value are distinct. Neither fixed
+purchasing power nor cash redemption is promised.
 
-Credits represent redeemable service value, with transparent execution quotes and settlement. Credit balances, acquisition prices, redemption prices, and eventual marketplace exchange rates are independent quantities.
+Before acceptance, an inference quote MUST disclose pricing basis, maximum charge,
+validity window, reservation period, expected queue behavior, execution limits and
+cancellation/refund terms. Accepted terms bind the attempt. Reserve the authorized
+maximum before execution. Every billable event MUST have exactly one economic
+effect across delivery retries, reloads and crashes; release unused reservations.
+A separately authorized replacement attempt may incur its own charge, but MUST NOT
+silently exceed authorized spending or duplicate an earlier event's charge.
 
-The ledger must prevent double spending, duplicate rewards, fabricated contributions, and incorrect settlement. Failed or canceled requests receive appropriate refunds.
+Before enabling charges, define full/reduced settlement, cancellation, timeout,
+partial delivery, provider failure, failed-quality outcomes, refunds, compensation
+and disputes. Quality-refund eligibility MUST have an operational review procedure;
+experimental grading is not automatic production adjudication. Prevent fabricated
+work, replay, duplicate rewards, collusion, double spending and incorrect settlement.
 
-Design for transferable balances from the beginning. Introduce account transfers and eventually an optional marketplace where participants buy, sell, and exchange credits at market-determined rates, subject to necessary legal and financial controls.
+Design transferable balances from the start. Initial account transfers and
+marketplace trading are disabled. Direct transfers may precede a marketplace once
+their controls qualify and activation is approved. Marketplace activation requires
+credible supply, demand, settlement evidence, fraud controls and applicable legal
+review; it is not required for the first product.
+
+Track outstanding balances, expected redemption demand, admitted supply,
+reliability reserves, Community Access funding and operator subsidy. Reward
+issuance MUST account for future service demand and available capacity. Issuing
+credits does not create capacity.
+
+Acceptance: [REP-10](docs/roadmap/requirements.md#rep-10),
+[REP-11](docs/roadmap/requirements.md#rep-11), [REP-14](docs/roadmap/requirements.md#rep-14).
 
 ### 4. Consumer utility
 
-Launch with everyday questions, explanations, summaries, and search-backed answers.
+The complete initial consumer product MUST provide everyday questions,
+explanations, summaries and retrieval-backed answers with supporting citations,
+plus persistent conversations and follow-ups. Consumer chat leads; developer APIs
+later use the same capacity and accounting. Coding and specialized vertical
+workflows follow proven general utility. The current dependable-chat technical
+foundation may qualify independently before the complete consumer launch.
 
-Search-backed answers must use retrieval and cite supporting sources. Consumer chat is the primary interface; developer APIs eventually redeem capacity through the same execution and accounting infrastructure.
+Questions, summaries and retrieval-backed answers MUST have distinct frozen
+quality policies. Assess factual correctness and completeness, summary fidelity
+to supplied material, and search claims supported by valid citations. Independent
+whole-answer review MUST include false additions and identify its review method.
+In economic experiments, only answers that pass the applicable quality policy
+and arrive within their declared deadline count as successful. Failed attempts,
+retries and duplicate work stay in total costs. Numerical parity alone does not
+establish satisfactory answers.
 
-Coding workflows and specialized vertical applications follow proven general utility.
-
-A positive credit balance does not guarantee immediate execution. Users receive clear capacity, queue, and failure information.
+Acceptance: [REP-8](docs/roadmap/requirements.md#rep-8),
+[REP-13](docs/roadmap/requirements.md#rep-13), [REP-7](docs/roadmap/requirements.md#rep-7).
 
 ### 5. Contribution and execution
 
-Reploid coordinates participation, admission, scheduling, accounting, and settlement. Doppler verifies and executes prepared model capabilities.
+Reward demanded, validated computation, useful verified delivery, or explicitly
+contracted storage or prepared availability. Each reward category needs its own
+qualification. A contribution offer MUST state requested work, reward basis,
+validation conditions, resource bounds, duration and failure compensation.
+Contracted readiness requires evidence that promised capacity was maintained;
+contracted storage requires evidence of agreed custody and service obligations.
+Mere online presence earns nothing. Small useful contributions remain welcome;
+unnecessary machines should sleep.
 
-Contributors control schedules, power consumption, GPU memory, bandwidth, and foreground responsiveness. Small useful contributions remain welcome.
+Native contribution targets macOS, Windows and Linux; releases MUST list only
+qualified combinations. Enforce schedules, memory, bandwidth, supported power and
+temperature controls, and foreground responsiveness. Reduce admission when the
+owner needs the machine and settle active work safely. Disclose unsupported
+controls. Require equipment and network authorization, including workplace use.
 
-Reward validated, demanded computation or explicitly contracted readiness. Idle machines should sleep when continued availability offers no useful service.
+Reuse prepared weights, batch compatible requests and minimize unnecessary
+transfers. Support both whole-model execution on a participant and qualified
+partitioned execution. Whole-model remote inference is a useful service and
+control, but does not prove the distributed-model objective. That demonstration
+requires complementary model partitions across physical execution participants,
+none retaining the complete weight set, and a requester without weights. Verify
+per-executor inventories and selective acquisition. Separately authorized storage
+suppliers may retain a complete model; preserve full-model seeding under REP-5.
 
-Reuse prepared model weights, batch compatible requests, and minimize unnecessary transfers. Support distributed model storage and progressively qualify inference across participating machines.
+Remote executors are disclosure recipients; P2P does not provide automatic
+confidentiality. Recipient authorization MUST be explicit and revocable through
+the explained, one-time permission. Renew approval only outside the granted
+recipient policy/disclosure scope or when other authorized terms are exceeded,
+not whenever an eligible computer changes between requests. Record actual
+recipients and never silently switch an active attempt's route. Revocation stops
+new disclosures; it cannot erase information already delivered.
 
-Remote executors must be treated as recipients of whatever request information is disclosed to them. Require authorization for workplace computers and networks.
+Arbitrary-peer eligibility versus approved operators for sensitive work remains
+an open policy decision. Until resolved, reject execution without an explicitly
+authorized recipient policy; this does not silently select either policy.
+Stopping contribution MUST preserve history and MUST NOT directly cancel
+unrelated requests. Loss of indispensable capacity may require waiting or explicit
+retry. Saved history MUST NOT be represented as recovered inference state.
+
+Acceptance: [REP-11](docs/roadmap/requirements.md#rep-11),
+[REP-12](docs/roadmap/requirements.md#rep-12), [REP-4](docs/roadmap/requirements.md#rep-4),
+[REP-5](docs/roadmap/requirements.md#rep-5), [DR-3](docs/roadmap/requirements.md#dr-3),
+[DR-5](docs/roadmap/requirements.md#dr-5), [DR-6](docs/roadmap/requirements.md#dr-6).
 
 ### 6. Required economic advantage
 
-Reploid must demonstrate lower complete cost per satisfactory answer, lower energy per satisfactory answer, or both, against feasible alternatives at comparable quality, latency, availability, and permissions.
+Demonstrate lower complete dollars and/or joules per satisfactory, on-time answer
+against feasible alternatives at comparable quality, latency, availability and
+permissions. Investigate achievable efficiency before selecting thresholds, then
+freeze the confirmatory evaluation and regression limits.
 
-Investigate achievable efficiency before selecting performance thresholds.
+Include acquisition, preparation, idle residency, execution, transfers, validation,
+failures, cooling, hardware allocation/depreciation and operating costs. Show
+requester charges, contributor costs/rewards and operator accounts separately.
+Consolidated costs MUST NOT double-count payments between those parties.
 
-Measure separately:
+Measure whole-system gross energy and incremental energy against a stated
+no-Reploid baseline. Record tariffs, subsidies, delays, quality decisions and
+failed work. API prices do not establish provider energy consumption. Subsidies
+can improve user prices but do not establish underlying economic efficiency.
+Report quality, reliability, latency and successful completion alongside costs.
 
-- Total cost, including hardware, depreciation, energy, cooling, networking, failures, and contributor compensation.
-- Total energy, including preparation, idle residency, execution, and transfers.
-- Answer quality, reliability, latency, and successful completion.
-
-Subsidies can improve user prices but cannot establish underlying economic efficiency.
+Acceptance: [REP-14](docs/roadmap/requirements.md#rep-14),
+[DR-6](docs/roadmap/requirements.md#dr-6).
 
 ### 7. Bootstrap and proof
 
-Begin with a modest fleet of AMD and Apple Silicon machines. Record actual operating costs and treat the fleet as one failure domain.
+First investigate representative AMD and Apple Silicon machines. Record exact
+hardware, connections and operating costs; this is not a purchasing commitment.
+Founder-operated machines at one location count as one failure domain. Expand
+participation against measured demand and economics; independently situated
+providers and measured failover must precede resilience claims.
 
-Expand participation only when measured demand and service economics justify it.
+**First proof:** contribute overnight under declared limits, receive settled
+credits for useful service, then redeem them for satisfactory, on-time inference
+from another device the next day. Measure the complete transaction against a
+comparable alternative, including energy, costs and failures.
 
-**First proof:** A contributor offers resources overnight, receives settled credits for useful service, and redeems them for satisfactory inference from another device the following day.
+Canonical receipt: "A device contributed under declared limits for one night,
+consumed X incremental kWh costing $Y, completed Z accepted work or reserved
+readiness, earned C credits, and redeemed them for N satisfactory, on-time answers."
+Bind the receipt to measurement, work/availability, ledger, redemption and quality
+evidence; quantify each accepted work category in declared units.
 
-Measure the complete transaction, including cost and energy, against a comparable alternative.
+After reliability, pursue independent adoption and possible OpenRouter distribution.
+Neither marketplace launch nor external platform listing is required for this loop.
 
-After proving reliability, pursue independent adoption and possible OpenRouter distribution. Neither marketplace launch nor external platform listing is required for the first product.
+Acceptance: [REP-13](docs/roadmap/requirements.md#rep-13),
+[REP-14](docs/roadmap/requirements.md#rep-14), [REP-7](docs/roadmap/requirements.md#rep-7).
 
 ### Decisions and execution boundary
 
 | Decision | State and owner |
 | --- | --- |
-| Community Access guarantee | Open, user: queue/retry when donated capacity is exhausted, or reserve operator-funded basic capacity. No guaranteed answer without committed funding and supply. REP-9 owns implementation after the choice. |
-| Initial reward eligibility | Open, user: compensate explicitly contracted verified storage/readiness even without inference, or initially pay only for completed inference. REP-11 must not silently enable a reward category. Ordinary unrequested storage/online presence earns nothing. |
-| Account transfers | Open, user: direct account transfers at launch or later with the marketplace. REP-10 designs transferable balances and provenance now; activation awaits the choice and applicable controls. Nonexpiration is settled. |
-| Recipient eligibility | Open, user: participating computers under informed disclosure, or approved operators for sensitive conversations until stronger protections qualify. DR-3 owns eligibility; existing revocable permission is not a decision on this policy. |
-| First distributed proof | Earlier adopted direction requires one model partitioned across multiple machines, not only a complete model on a remote host. DR-5/DR-6 preserve the current three-stage qualification. Each executor serves its assigned portion; the requester downloads no weights. A demonstration that no executor holds the entire model additionally requires inventory/selective-acquisition evidence. Separately authorized full-model storage seeds remain supported under REP-5. |
+| Community Access guarantee | Open, user: whether to commit operator-funded basic capacity. Interim behavior is disclosed queue/retry without a guaranteed completion time. REP-9 owns the gate. |
+| Reward eligibility | Adopted: demanded computation, useful verified delivery, explicitly contracted storage and prepared readiness. REP-11 qualifies each category; no reward for unrequested presence. |
+| Account transfers | Adopted: design transferability now; transfers and marketplace are off initially. REP-10 qualifies later activation; direct transfers need not wait for marketplace launch. |
+| Recipient eligibility | Open, user: arbitrary participating computers versus approved operators for sensitive work. DR-3 rejects execution without an explicitly authorized policy; existing revocable permission is preserved. |
+| First distributed proof | Partitioned execution with no execution participant retaining the complete weights and no requester weights. DR-5/DR-6 require exact-run inventory and execution evidence. Separate REP-5 storage seeds may hold the complete model. |
 
-A complete remote-model request remains a useful control and eligible service path;
-it does not establish partitioned inference. Existing receipts retain their exact
-model/runtime/package/placement scope. This specification starts no replacement
-numerical campaign and declares no new acceptance.
+Existing receipts retain their exact model/runtime/package/placement scope. This
+specification starts no replacement numerical campaign and declares no new acceptance.
 
 ## Delivery priorities
 
