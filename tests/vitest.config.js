@@ -30,7 +30,7 @@ export default defineConfig({
     ]
   },
   test: {
-    reporters: process.env.CI ? ['default', ['json', { outputFile: 'test-results/vitest-results.json' }]] : ['default'],
+    reporters: process.env.CI ? ['default', 'github-actions', ['json', { outputFile: 'test-results/vitest-results.json' }]] : ['default'],
     include: ['tests/**/*.test.js'],
     exclude: [...configDefaults.exclude, ...heavyTests],
     environment: 'happy-dom',
