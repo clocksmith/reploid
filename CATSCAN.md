@@ -7,7 +7,7 @@ Parent: none
 Coordinate/evolve distributed intelligence expanding capability or improving
 results, reliability or total resource cost.
 The initial product enables useful contributed capacity to earn everyday AI
-access, as specified in [the product specification](ROADMAP.md#product-specification).
+access, as specified in [the product specification](docs/product-specification.md).
 
 ## Authority
 

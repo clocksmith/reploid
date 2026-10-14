@@ -3,7 +3,7 @@
 Guide to all documentation in the REPLOID project.
 
 Active implementation: [canonical Doppler–Reploid roadmap](../ROADMAP.md).
-Adopted product: [Reploid product specification](../ROADMAP.md#product-specification).
+Adopted product: [Reploid product specification](product-specification.md).
 Full task entries and acceptance: [canonical requirements](roadmap/requirements.md).
 Historical narrative: [roadmap history](roadmap/history.md).
 Topology requirements and inherited fixtures: [RD-CANON/1](roadmap/rd-canon-1.md).
@@ -218,4 +218,4 @@ does not create Markdown blueprints unless a module introduces an architectural 
 
 ---
 
-*Last updated: September 2026*
+*Last updated: October 2026*
