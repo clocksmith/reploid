@@ -57,7 +57,7 @@ const documentWorkload = memoryDiagnostic || numericalDiagnostic || capacityDiag
 const frozenWorkloads = modelId === 'qwen-3-5-0-8b-q4k-ehaf16' && !capacityDiagnostic && !recoveryDiagnostic && !memoryDiagnostic && !signalingDiagnostic;
 const standaloneControls = !capacityDiagnostic && !numericalDiagnostic && !memoryDiagnostic && !signalingDiagnostic
   && (recoveryDiagnostic ? process.env.REPLOID_E2E_CAPACITY === '1' : !frozenWorkloads);
-const peer = process.env.REPLOID_TEST_PEER || 'x@128.tail995236.ts.net';
+const peer = process.env.REPLOID_TEST_PEER || 'amd-host';
 const peerRoot = process.env.REPLOID_TEST_PEER_ROOT || '/home/x/deco/reploid';
 const peerBrowserOptions = physicalWebGpuBrowserOptions('linux', process.env.REPLOID_TEST_PEER_CHROMIUM_CHANNEL || 'chrome');
 // Exercise the hosted conversation's normal authentication and renewable RTC

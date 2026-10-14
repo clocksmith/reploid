@@ -7,11 +7,11 @@ const browser = await chromium.launch({ channel: 'chrome', headless: true,
   args: ['--enable-unsafe-webgpu', '--use-angle=metal'] });
 const report = { scope: 'Physical public network with two local host-source overrides; accepted runtime pin unchanged', startedAt: new Date().toISOString(), url: process.env.REPLOID_TEST_URL || 'https://replo.id/', phases: [], requests: [] };
 let page, restoreSupply = false;
-const remote = async operation => (await exec('ssh', ['-o', 'BatchMode=yes', 'x@128.tail995236.ts.net',
+const remote = async operation => (await exec('ssh', ['-o', 'BatchMode=yes', 'amd-host',
   `node /tmp/reploid-native-control.js ${operation} /tmp/reploid-preparation-${operation}.json`])).stdout;
 
 try {
-  await exec('ssh', ['-o', 'BatchMode=yes', 'x@128.tail995236.ts.net', 'kill -USR1 1535668']);
+  await exec('ssh', ['-o', 'BatchMode=yes', 'amd-host', 'kill -USR1 1535668']);
   report.supplierBefore = JSON.parse(await remote('inspect'));
   restoreSupply = true;
   report.supplierOff = JSON.parse(await remote('files-off'));

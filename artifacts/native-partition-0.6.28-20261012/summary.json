@@ -13,7 +13,7 @@
         },
         {
           "index": 1,
-          "host": "x@128.tail995236.ts.net:node-dawn"
+          "host": "amd-host:node-dawn"
         }
       ],
       "captureSha256": "01e28507711b1f1ea12b931b248ca951c445c39bef5d7fe75177bb1cfb7d5154",
@@ -67,7 +67,7 @@
         },
         {
           "index": 0,
-          "host": "x@128.tail995236.ts.net:node-dawn"
+          "host": "amd-host:node-dawn"
         }
       ],
       "captureSha256": "d0f00cd4ec7b43231e63931cc76b38d450963c63dea71569d07f779e12dc4609",

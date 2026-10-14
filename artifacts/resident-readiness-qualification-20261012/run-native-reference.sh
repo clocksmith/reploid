@@ -13,7 +13,7 @@ export REPLOID_TEST_DELIVERY_BINDING=$PWD/snapshot-binding.json
 export REPLOID_TEST_DELIVERY_SHA256=397f4efbf47a8300660fa2e8b11761a3586c0d537044037d904aef255097ed3e
 REPLOID_NATIVE_EXECUTOR_WS=$(node -e 'fetch("http://127.0.0.1:29429/json/list").then(r=>r.json()).then(x=>console.log(x[0].webSocketDebuggerUrl))')
 export REPLOID_NATIVE_EXECUTOR_WS
-export REPLOID_TEST_PEER=x@128.tail995236.ts.net:node-dawn
+export REPLOID_TEST_PEER=amd-host:node-dawn
 export REPLOID_E2E_BASE_URL=http://127.0.0.1:29450
 export REPLOID_MODEL_BASE_URL=http://127.0.0.1:29451/
 export REPLOID_PEER_MODEL_BASE_URL=http://127.0.0.1:29451/

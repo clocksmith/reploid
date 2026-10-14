@@ -1,7 +1,7 @@
 {
   "schema": "reploid.qwen3-17b-typed-run/v1",
   "frozenRevision": "28cb7985",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "sourcePid": 500286,
   "wrapperPid": 500284,
   "status": "completed",

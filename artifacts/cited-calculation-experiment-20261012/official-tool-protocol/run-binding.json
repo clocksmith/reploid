@@ -1,6 +1,6 @@
 {
   "schema": "reploid.official-tool-calculation-run/v1",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "revision": "3d8a73624097ddb3cb7458170ea7eb306c0f0f28",
   "frozenRevision": "3d8a7362",
   "command": [

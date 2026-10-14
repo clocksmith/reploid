@@ -1,7 +1,7 @@
 {
   "schema": "reploid.lexical-catalog-run/v1",
   "frozenRevision": "d2ee4d54",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "command": [
     "nice",
     "-n",

@@ -27,7 +27,7 @@
       }
     },
     {
-      "platform": "x@128.tail995236.ts.net:node-dawn",
+      "platform": "amd-host:node-dawn",
       "browser": null,
       "expectedBrowser": null,
       "observedProvider": {

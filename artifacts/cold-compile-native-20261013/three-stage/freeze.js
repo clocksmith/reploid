@@ -14,7 +14,7 @@ const { validateOrderedCaptureConfiguration }=await import(root+'/tests/fixtures
 const config=await load(root+'/config-preparation.json');
 const prior=await load(new URL('../../signed-closure-qualification-20261013/fresh-preflight/direction-0-expectations.json',evidence));
 const observations=await Promise.all(['load-preflight/mac-input-stage.json','load-preflight/amd-middle-stage.json','load-preflight/suby-output-stage.json'].map(p=>load(new URL('../'+p,evidence))));
-const platforms=['mac.lan','x@128.tail995236.ts.net:node-dawn','clocksmith@suby.tail995236.ts.net:node-dawn'];
+const platforms=['mac.lan','amd-host:node-dawn','intel-host:node-dawn'];
 const endpoints=['http://127.0.0.1:29993',...process.argv.slice(2)];assert.equal(endpoints.length,3);
 config.gpuReservation=await load(new URL('./reservation.json',evidence));
 const expected={...prior,schema:'doppler.physical-resident-producer-input/v2',logicalStageCount:3,physicalHostCount:3,

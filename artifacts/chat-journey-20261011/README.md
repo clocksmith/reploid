@@ -36,7 +36,7 @@ long-document quality were not exercised by this focused run. No public deployme
 or arbitrary-network discovery claim follows from the isolated local setup.
 
 The raw fixture used the stale label `linux-128`; the outer runner and SSH endpoint
-bind that label to `clocksmith@suby.tail995236.ts.net` here. Subsequent runs record
+bind that label to `intel-host` here. Subsequent runs record
 the actual peer label. Package: `doppler-gpu` 0.6.27, archive SHA-256
 `9280ead598b098f9f3ad49574a001e88c3ad4b1a433d58349e79ee0e9c01fccc`.
 Browser bundle: `sha256:f99260044a90f747e7211732bc581c0c4e37cdef48eaee8c4b7b60062e72a1bc`.

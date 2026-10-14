@@ -164,7 +164,7 @@
     },
     {
       "partitionIndex": 1,
-      "platform": "x@128.tail995236.ts.net:node-dawn",
+      "platform": "amd-host:node-dawn",
       "executorId": "amd-stage-1",
       "participantId": "ordered-stage-1",
       "transportId": "ordered-transport-1",
@@ -173,7 +173,7 @@
     },
     {
       "partitionIndex": 2,
-      "platform": "clocksmith@suby.tail995236.ts.net:node-dawn",
+      "platform": "intel-host:node-dawn",
       "executorId": "suby-stage-2",
       "participantId": "ordered-stage-2",
       "transportId": "ordered-transport-2",

@@ -98,7 +98,7 @@
         "description": ""
       }
     },
-    "x@128.tail995236.ts.net:node-dawn": {
+    "amd-host:node-dawn": {
       "adapter": {
         "vendor": "amd",
         "architecture": "rdna-3",
@@ -123,15 +123,15 @@
     },
     {
       "partitionIndex": 0,
-      "platform": "x@128.tail995236.ts.net:node-dawn"
+      "platform": "amd-host:node-dawn"
     }
   ],
   "surfaces": {
     "mac.lan": "browser-webgpu",
-    "x@128.tail995236.ts.net:node-dawn": "node-webgpu"
+    "amd-host:node-dawn": "node-webgpu"
   },
   "nativeHosts": {
-    "x@128.tail995236.ts.net:node-dawn": {
+    "amd-host:node-dawn": {
       "node": "22.22.1",
       "nativeDeliverySha256": "0c15e450a9f86d6093b18de629fb6a005c3bc780c9cf8fc2dfebaa3b0b0abce1",
       "testDeliveryHash": "sha256:e9f3b8f266382d0aa36980fea657004a286fb66ff58e7d8e56e14d6acb4a6a3a",

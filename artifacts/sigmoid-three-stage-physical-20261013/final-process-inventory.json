@@ -16,7 +16,7 @@
     "amd": {
       "command": [
         "ssh",
-        "x@128.tail995236.ts.net",
+        "amd-host",
         "ps -p 851434,851435,4103868,4121371 -o pid,ppid,etime,args"
       ],
       "code": 0,
@@ -26,7 +26,7 @@
     "suby": {
       "command": [
         "ssh",
-        "clocksmith@suby.tail995236.ts.net",
+        "intel-host",
         "ps -p 824408,824417,297260,299769 -o pid,ppid,etime,args"
       ],
       "code": 0,

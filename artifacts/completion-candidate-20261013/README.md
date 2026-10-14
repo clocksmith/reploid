@@ -21,8 +21,8 @@ it is not an extra numerical case in this campaign.
 
 ## Reproduction and ownership
 
-From the Mac, SSH destinations are `x@128.tail995236.ts.net` (AMD) and
-`clocksmith@suby.tail995236.ts.net` (Intel). Reinspect processes and systemd
+From the Mac, SSH destinations are `amd-host` (AMD) and
+`intel-host` (Intel). Reinspect processes and systemd
 scopes before any GPU launch; preserve public native/browser contributors.
 Each numerical fixture root is `/var/tmp/reploid-completion-candidate-20261013`.
 Its native `startup-config.json` binds `installed/reploid` and verified delivery.

@@ -1305,7 +1305,7 @@
         {
           "group": 1,
           "surface": "node-webgpu",
-          "platform": "x@128.tail995236.ts.net:node-dawn",
+          "platform": "amd-host:node-dawn",
           "nativePid": 2152012,
           "provider": {
             "adapter": {
@@ -2702,7 +2702,7 @@
         {
           "group": 1,
           "surface": "node-webgpu",
-          "platform": "x@128.tail995236.ts.net:node-dawn",
+          "platform": "amd-host:node-dawn",
           "nativePid": 2371726,
           "provider": {
             "adapter": {
