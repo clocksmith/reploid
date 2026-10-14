@@ -1,0 +1,4182 @@
+{
+ "schema": "reploid.useful-answer-set.results/v1",
+ "answerSetSha256": "ac174063024054b9ea048b2dd4c532119bea96ae4d330dab89dd2c3ea62dced5",
+ "settings": {
+  "chatTemplate": "Application template: Doppler formatChatMessages type qwen, thinking off (non-thinking prefill), no system message",
+  "decoding": "greedy (catalog temperature 0, topK 1, topP 1, repetitionPenalty 1, presencePenalty 0)",
+  "maxTokens": 1024,
+  "maxTokensSource": "installed catalog self/config/chat-models.json generation.maxTokens",
+  "promptTokenLimit": 250,
+  "promptTokenLimitReason": "The installed route currently cannot take much more than about 270 prompt tokens."
+ },
+ "arms": {
+  "q4k": {
+   "model": {
+    "catalogId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "kind": "deployed Q4_K bytes decoded by gguf to float32",
+    "gguf": "/private/tmp/claude-501/-Users-xyz-deco/22e82490-1b9a-4712-a891-83c7a29fe6ca/scratchpad/pylib-gguf/gguf/__init__.py",
+    "catalogIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "tensorDtypeCounts": {
+     "F32": 36,
+     "F16": 134,
+     "Q4_K_M": 151
+    },
+    "lmHeadDtype": "Q4_K_M",
+    "embedDtype": "F16",
+    "kvStorage": "float16",
+    "arithmetic": "float32"
+   },
+   "versions": {
+    "torch": "2.11.0",
+    "transformers": "5.3.0",
+    "numpy": "2.4.3",
+    "python": "3.14.2",
+    "doppler": "0.6.28"
+   },
+   "threads": 4,
+   "maxTokensUsed": 1024,
+   "convReplacementCheck": {
+    "decodeStepsCompared": 8,
+    "layersReplaced": 18,
+    "logitsBitIdentical": true,
+    "maxAbsDifference": 0.0,
+    "secondsOriginal": 9.94,
+    "secondsReplaced": 1.71
+   }
+  },
+  "bf16": {
+   "model": {
+    "catalogId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "kind": "Qwen/Qwen3.5-0.8B bf16 safetensors upcast to float32",
+    "arithmetic": "float32",
+    "kvStorage": "float32"
+   },
+   "versions": {
+    "torch": "2.11.0",
+    "transformers": "5.3.0",
+    "numpy": "2.4.3",
+    "python": "3.14.2",
+    "doppler": "0.6.28"
+   },
+   "threads": 4,
+   "maxTokensUsed": 1024,
+   "convReplacementCheck": {
+    "decodeStepsCompared": 8,
+    "layersReplaced": 18,
+    "logitsBitIdentical": true,
+    "maxAbsDifference": 0.0,
+    "secondsOriginal": 10.98,
+    "secondsReplaced": 1.76
+   }
+  }
+ },
+ "reproduction": {
+  "q4kCodeDoubleEvensEqualsAnswerCauseControlTurn1": true,
+  "q4kCodeDoubleEvensEqualsDeliveredRun5Turn1": true,
+  "q4kFollowUpTurn2PromptEqualsDelivered": true,
+  "q4kFollowUpTurn2EqualsAnswerCauseControlTurn2": true,
+  "q4kFollowUpTurn2EqualsDeliveredRun5Turn2": true,
+  "bf16CodeDoubleEvensEqualsAnswerCauseReferenceFloat32Turn1": true
+ },
+ "promptChecks": {
+  "q4k": {
+   "turns": 46,
+   "maxPromptTokens": 189,
+   "overPromptLimit": [],
+   "officialTemplateEqualsApplication": 46,
+   "hfTokenIdsEqualApplication": 46,
+   "hfDecodeEqualsApplication": 46,
+   "padArgmaxSteps": 0,
+   "stopReasons": {
+    "eos-token": 45
+   }
+  },
+  "bf16": {
+   "turns": 46,
+   "maxPromptTokens": 227,
+   "overPromptLimit": [],
+   "officialTemplateEqualsApplication": 46,
+   "hfTokenIdsEqualApplication": 46,
+   "hfDecodeEqualsApplication": 46,
+   "padArgmaxSteps": 0,
+   "stopReasons": {
+    "eos-token": 45
+   }
+  }
+ },
+ "timing": {
+  "q4k": {
+   "generations": 45,
+   "decodeSteps": 5997,
+   "generationSeconds": 433.8,
+   "medianTokensPerSecond": 12.7,
+   "runSecondsIncludingLoadAndCheck": 451.2,
+   "loadSeconds": 4.6
+  },
+  "bf16": {
+   "generations": 45,
+   "decodeSteps": 5656,
+   "generationSeconds": 436.4,
+   "medianTokensPerSecond": 12.06,
+   "runSecondsIncludingLoadAndCheck": 451.4,
+   "loadSeconds": 1.2
+  }
+ },
+ "rates": {
+  "mechanicalItems": {
+   "overall": {
+    "q4k": {
+     "pass": 32,
+     "total": 38,
+     "rate": 0.8421
+    },
+    "bf16": {
+     "pass": 35,
+     "total": 38,
+     "rate": 0.9211
+    }
+   },
+   "byCategory": {
+    "factual": {
+     "q4k": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     },
+     "bf16": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     }
+    },
+    "explanation": {
+     "q4k": {
+      "pass": 3,
+      "total": 3,
+      "rate": 1.0
+     },
+     "bf16": {
+      "pass": 3,
+      "total": 3,
+      "rate": 1.0
+     }
+    },
+    "code": {
+     "q4k": {
+      "pass": 2,
+      "total": 6,
+      "rate": 0.3333
+     },
+     "bf16": {
+      "pass": 4,
+      "total": 6,
+      "rate": 0.6667
+     }
+    },
+    "arithmetic": {
+     "q4k": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     },
+     "bf16": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     }
+    },
+    "follow-up": {
+     "q4k": {
+      "pass": 4,
+      "total": 6,
+      "rate": 0.6667
+     },
+     "bf16": {
+      "pass": 5,
+      "total": 6,
+      "rate": 0.8333
+     }
+    },
+    "rewrite": {
+     "q4k": {
+      "pass": 5,
+      "total": 5,
+      "rate": 1.0
+     },
+     "bf16": {
+      "pass": 5,
+      "total": 5,
+      "rate": 1.0
+     }
+    },
+    "format": {
+     "q4k": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     },
+     "bf16": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     }
+    }
+   }
+  },
+  "allItemsWithProvisionalRubric": {
+   "overall": {
+    "q4k": {
+     "pass": 33,
+     "total": 40,
+     "rate": 0.825
+    },
+    "bf16": {
+     "pass": 36,
+     "total": 40,
+     "rate": 0.9
+    }
+   },
+   "byCategory": {
+    "factual": {
+     "q4k": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     },
+     "bf16": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     }
+    },
+    "explanation": {
+     "q4k": {
+      "pass": 4,
+      "total": 5,
+      "rate": 0.8
+     },
+     "bf16": {
+      "pass": 4,
+      "total": 5,
+      "rate": 0.8
+     }
+    },
+    "code": {
+     "q4k": {
+      "pass": 2,
+      "total": 6,
+      "rate": 0.3333
+     },
+     "bf16": {
+      "pass": 4,
+      "total": 6,
+      "rate": 0.6667
+     }
+    },
+    "arithmetic": {
+     "q4k": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     },
+     "bf16": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     }
+    },
+    "follow-up": {
+     "q4k": {
+      "pass": 4,
+      "total": 6,
+      "rate": 0.6667
+     },
+     "bf16": {
+      "pass": 5,
+      "total": 6,
+      "rate": 0.8333
+     }
+    },
+    "rewrite": {
+     "q4k": {
+      "pass": 5,
+      "total": 5,
+      "rate": 1.0
+     },
+     "bf16": {
+      "pass": 5,
+      "total": 5,
+      "rate": 1.0
+     }
+    },
+    "format": {
+     "q4k": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     },
+     "bf16": {
+      "pass": 6,
+      "total": 6,
+      "rate": 1.0
+     }
+    }
+   }
+  }
+ },
+ "classification": {
+  "mechanicalItems": {
+   "both pass": [
+    "fact-capital-australia",
+    "fact-pride-prejudice-author",
+    "fact-gold-symbol",
+    "fact-apollo11-year",
+    "fact-http-expansion",
+    "fact-adult-bones",
+    "expl-sky-blue",
+    "expl-leap-year",
+    "expl-http-404",
+    "code-sum-squares",
+    "code-python-slice",
+    "arith-multiply",
+    "arith-percent",
+    "arith-miles-km",
+    "arith-f-to-c",
+    "arith-discount",
+    "arith-hours-seconds",
+    "fu-rectangle",
+    "fu-translate",
+    "fu-cookies",
+    "fu-primary-colors",
+    "rw-grammar",
+    "rw-polite",
+    "rw-summary-library",
+    "rw-recall-bullets",
+    "rw-shorten-email",
+    "fmt-one-word-banana",
+    "fmt-three-bullets",
+    "fmt-json-eiffel",
+    "fmt-yes-no-prime",
+    "fmt-numbered-countries",
+    "fmt-haiku-lines"
+   ],
+   "source-model failure": [
+    "code-reverse-string",
+    "code-js-default-sort",
+    "fu-double-evens"
+   ],
+   "quantization-caused": [
+    "code-double-evens",
+    "code-count-vowels",
+    "fu-palindrome"
+   ],
+   "Q4_K-only pass": []
+  },
+  "allItemsWithProvisionalRubric": {
+   "both pass": [
+    "fact-capital-australia",
+    "fact-pride-prejudice-author",
+    "fact-gold-symbol",
+    "fact-apollo11-year",
+    "fact-http-expansion",
+    "fact-adult-bones",
+    "expl-sky-blue",
+    "expl-leap-year",
+    "expl-weather-climate",
+    "expl-http-404",
+    "code-sum-squares",
+    "code-python-slice",
+    "arith-multiply",
+    "arith-percent",
+    "arith-miles-km",
+    "arith-f-to-c",
+    "arith-discount",
+    "arith-hours-seconds",
+    "fu-rectangle",
+    "fu-translate",
+    "fu-cookies",
+    "fu-primary-colors",
+    "rw-grammar",
+    "rw-polite",
+    "rw-summary-library",
+    "rw-recall-bullets",
+    "rw-shorten-email",
+    "fmt-one-word-banana",
+    "fmt-three-bullets",
+    "fmt-json-eiffel",
+    "fmt-yes-no-prime",
+    "fmt-numbered-countries",
+    "fmt-haiku-lines"
+   ],
+   "source-model failure": [
+    "expl-list-tuple",
+    "code-reverse-string",
+    "code-js-default-sort",
+    "fu-double-evens"
+   ],
+   "quantization-caused": [
+    "code-double-evens",
+    "code-count-vowels",
+    "fu-palindrome"
+   ],
+   "Q4_K-only pass": []
+  }
+ },
+ "q4kNearTies": {
+  "threshold": 0.0015,
+  "turns": [
+   {
+    "id": "fact-capital-australia",
+    "turn": 1,
+    "minMargin": 0.0025,
+    "step": 30,
+    "belowThreshold": false,
+    "stepsBelowThreshold": 0,
+    "stepsBelowTwiceThreshold": 1
+   },
+   {
+    "id": "fact-http-expansion",
+    "turn": 1,
+    "minMargin": 0.0015,
+    "step": 51,
+    "belowThreshold": false,
+    "stepsBelowThreshold": 0,
+    "stepsBelowTwiceThreshold": 1
+   },
+   {
+    "id": "expl-list-tuple",
+    "turn": 1,
+    "minMargin": 0.0003,
+    "step": 60,
+    "belowThreshold": true,
+    "stepsBelowThreshold": 1,
+    "stepsBelowTwiceThreshold": 1
+   },
+   {
+    "id": "expl-http-404",
+    "turn": 1,
+    "minMargin": 0.0016,
+    "step": 404,
+    "belowThreshold": false,
+    "stepsBelowThreshold": 0,
+    "stepsBelowTwiceThreshold": 1
+   },
+   {
+    "id": "arith-percent",
+    "turn": 1,
+    "minMargin": 0.0014,
+    "step": 48,
+    "belowThreshold": true,
+    "stepsBelowThreshold": 1,
+    "stepsBelowTwiceThreshold": 1
+   },
+   {
+    "id": "arith-miles-km",
+    "turn": 1,
+    "minMargin": 0.0025,
+    "step": 48,
+    "belowThreshold": false,
+    "stepsBelowThreshold": 0,
+    "stepsBelowTwiceThreshold": 1
+   },
+   {
+    "id": "fu-primary-colors",
+    "turn": 1,
+    "minMargin": 0.001,
+    "step": 22,
+    "belowThreshold": true,
+    "stepsBelowThreshold": 1,
+    "stepsBelowTwiceThreshold": 1
+   }
+  ]
+ },
+ "review": {
+  "grader": "Claude Opus 5.5, the agent that wrote the set, after reading every output of both arms. Provisional; not a human judgment.",
+  "mechanicalVerdictReview": [
+   {
+    "id": "rw-summary-library",
+    "arm": "q4k",
+    "mechanicalVerdict": "pass",
+    "kind": "false pass",
+    "note": "The summary states the new hours as 'from 9 am to 11 pm and 8 pm to 10 pm'. The paragraph says opening moves from 9 am to 8 am and closing from 8 pm to 9 pm. The checks (one sentence, under 45 words, mentions the library and an extension) do not test the stated times."
+   },
+   {
+    "id": "code-count-vowels",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "false pass",
+    "note": "States the right count, 5, but the function is broken: len(s.lower().isalpha() and s.lower() in vowels) evaluates len(False) and raises TypeError. Its listed vowels 'e, u, d, i, o, n' are also wrong. The check tests only the stated count."
+   },
+   {
+    "id": "fu-palindrome",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "false pass",
+    "note": "Turn 1's function is return s == s[::-1], which does not ignore case as asked, so it returns False for 'Racecar'. Turn 2 answers True, which matches the requested behaviour but not its own code. The turn-1 check tests only that an is_palindrome function is defined."
+   },
+   {
+    "id": "arith-multiply",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "The column working ends at 368; the final line then states 17 x 24 = 408. The final answer is right and the working contradicts it."
+   },
+   {
+    "id": "fact-capital-australia",
+    "arm": "q4k",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "Canberra is right. It then says Canberra is in the outback, on the Murray River, and was the site of a 1919 general election and the first capital of the colonies."
+   },
+   {
+    "id": "fact-capital-australia",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "Canberra is right. It then says Canberra is in the outback and is the second-largest city in Australia and in the world."
+   },
+   {
+    "id": "fact-pride-prejudice-author",
+    "arm": "q4k",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "Jane Austen is right. The title is misspelt 'Pride and Prejudance' twice and Austen is said to have died in 1840 (she died in 1817)."
+   },
+   {
+    "id": "fact-gold-symbol",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "Au is right. It then says the symbol is 'A for aurum followed by U for gold'."
+   },
+   {
+    "id": "fact-apollo11-year",
+    "arm": "q4k",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "1969 is right. It says the landing occurred 'at the Cape Canoe Basin in the Pacific Ocean'."
+   },
+   {
+    "id": "fact-apollo11-year",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "1969 is right. It says the module landed at the Moon's south pole (Apollo 11 landed in the Sea of Tranquility)."
+   },
+   {
+    "id": "fact-adult-bones",
+    "arm": "q4k",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "206 is right. It cites an invented 'International Classification of Osmia', claims 11 femoral bones and 106 fetal bones, and repeats one bullet three times."
+   },
+   {
+    "id": "fact-adult-bones",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "206 is right. It then splits them as '206 bones in the skull, spine, and the 186 bones of the rest of the body'."
+   },
+   {
+    "id": "expl-leap-year",
+    "arm": "q4k",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "States the year is about 365.2425 days and the summary is right. Most of the explanation is invented: Ptolemy developing the Gregorian calendar, drift measured in degrees of longitude, '365 days added every 4 years'."
+   },
+   {
+    "id": "expl-leap-year",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "States 365.2422 days and the 4/100/400 rule correctly. It also says the extra is 0.0422 days per year and that the Julian year of 365.25 days is shorter than the solar year."
+   },
+   {
+    "id": "expl-http-404",
+    "arm": "q4k",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "Says 'Not Found', but also lists 'the server is down' as a meaning, calls 404 a transient state that disappears after a few seconds, and advises checking the internet connection."
+   },
+   {
+    "id": "expl-http-404",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "Says the requested URL does not exist, but opens with 'the browser has successfully loaded the page', suggests registering a new domain, and repeats a section."
+   },
+   {
+    "id": "fu-translate",
+    "arm": "q4k",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "Gracias and Merci are right. Turn 1 also offers 'Dejame gracias' as meaning 'I'm sorry'."
+   },
+   {
+    "id": "fu-translate",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "Gracias and Merci are right. The example glosses read 'Hello, thank you!', and turn 2 calls 'Merci' 'a bit more formal than Merci'."
+   },
+   {
+    "id": "fu-primary-colors",
+    "arm": "bf16",
+    "mechanicalVerdict": "pass",
+    "kind": "pass with false side claims",
+    "note": "Red, green and blue are right, and turn 2 answers Red. Turn 1 also says green and blue are both 'the shortest wavelength'."
+   }
+  ],
+  "reviewerAdjusted": {
+   "note": "Mechanical items with the reviewer's false-pass / false-fail readings applied. Not the declared verdicts.",
+   "rates": {
+    "overall": {
+     "q4k": {
+      "pass": 31,
+      "total": 38,
+      "rate": 0.8158
+     },
+     "bf16": {
+      "pass": 33,
+      "total": 38,
+      "rate": 0.8684
+     }
+    },
+    "byCategory": {
+     "factual": {
+      "q4k": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      },
+      "bf16": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      }
+     },
+     "explanation": {
+      "q4k": {
+       "pass": 3,
+       "total": 3,
+       "rate": 1.0
+      },
+      "bf16": {
+       "pass": 3,
+       "total": 3,
+       "rate": 1.0
+      }
+     },
+     "code": {
+      "q4k": {
+       "pass": 2,
+       "total": 6,
+       "rate": 0.3333
+      },
+      "bf16": {
+       "pass": 3,
+       "total": 6,
+       "rate": 0.5
+      }
+     },
+     "arithmetic": {
+      "q4k": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      },
+      "bf16": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      }
+     },
+     "follow-up": {
+      "q4k": {
+       "pass": 4,
+       "total": 6,
+       "rate": 0.6667
+      },
+      "bf16": {
+       "pass": 4,
+       "total": 6,
+       "rate": 0.6667
+      }
+     },
+     "rewrite": {
+      "q4k": {
+       "pass": 4,
+       "total": 5,
+       "rate": 0.8
+      },
+      "bf16": {
+       "pass": 5,
+       "total": 5,
+       "rate": 1.0
+      }
+     },
+     "format": {
+      "q4k": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      },
+      "bf16": {
+       "pass": 6,
+       "total": 6,
+       "rate": 1.0
+      }
+     }
+    }
+   },
+   "classification": {
+    "both pass": [
+     "fact-capital-australia",
+     "fact-pride-prejudice-author",
+     "fact-gold-symbol",
+     "fact-apollo11-year",
+     "fact-http-expansion",
+     "fact-adult-bones",
+     "expl-sky-blue",
+     "expl-leap-year",
+     "expl-http-404",
+     "code-sum-squares",
+     "code-python-slice",
+     "arith-multiply",
+     "arith-percent",
+     "arith-miles-km",
+     "arith-f-to-c",
+     "arith-discount",
+     "arith-hours-seconds",
+     "fu-rectangle",
+     "fu-translate",
+     "fu-cookies",
+     "fu-primary-colors",
+     "rw-grammar",
+     "rw-polite",
+     "rw-recall-bullets",
+     "rw-shorten-email",
+     "fmt-one-word-banana",
+     "fmt-three-bullets",
+     "fmt-json-eiffel",
+     "fmt-yes-no-prime",
+     "fmt-numbered-countries",
+     "fmt-haiku-lines"
+    ],
+    "source-model failure": [
+     "code-reverse-string",
+     "code-js-default-sort",
+     "code-count-vowels",
+     "fu-double-evens",
+     "fu-palindrome"
+    ],
+    "quantization-caused": [
+     "code-double-evens",
+     "rw-summary-library"
+    ],
+    "Q4_K-only pass": []
+   },
+   "flipped": [
+    {
+     "id": "rw-summary-library",
+     "arm": "q4k",
+     "kind": "false pass"
+    },
+    {
+     "id": "code-count-vowels",
+     "arm": "bf16",
+     "kind": "false pass"
+    },
+    {
+     "id": "fu-palindrome",
+     "arm": "bf16",
+     "kind": "false pass"
+    }
+   ]
+  }
+ },
+ "items": [
+  {
+   "id": "fact-capital-australia",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "Canberra",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 19,
+       "overPromptLimit": false,
+       "output": "The capital of Australia is **Canberra**.\n\nLocated in the outback of the Australian outback, Canberra was the site of the 1919 general election and was the first capital of the Australian colonies. It is situated on the banks of the Murray River, overlooking the Great Australian Outback.",
+       "stopReason": "eos-token",
+       "decodeSteps": 63,
+       "seconds": 5.02,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0025,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['Canberra']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 19,
+       "overPromptLimit": false,
+       "output": "The capital of Australia is **Canberra**.\n\nLocated in the outback of the Australian outback, it is the second-largest city in Australia and the second-largest city in the world. It is also the capital of the Australian Capital Territory (ACT), which is a territory within the Australian federal government.",
+       "stopReason": "eos-token",
+       "decodeSteps": 62,
+       "seconds": 5.65,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0376,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['Canberra']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 21
+    }
+   ]
+  },
+  {
+   "id": "fact-pride-prejudice-author",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "Jane Austen",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 20,
+       "overPromptLimit": false,
+       "output": "**Jane Austen** wrote *Pride and Prejudance*.\n\nShe is the author of the famous novel *Pride and Prejudance*, which was first published in 1813. Austen was born in 1775 and died in 1840. She was a prominent English novelist and essayist, and her work is considered one of the most influential novels in the English language.",
+       "stopReason": "eos-token",
+       "decodeSteps": 88,
+       "seconds": 6.59,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0348,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['Austen']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 20,
+       "overPromptLimit": false,
+       "output": "*Pride and Prejudice* was written by **Jane Austen**.\n\nShe is a renowned English novelist and playwright who is best known for her novels, most notably *Pride and Prejudice* (1813), *Sense and Sensibility* (1811), and *Emma* (1805). Austen is considered one of the most influential writers of the 19th century, known for her witty dialogue, sharp social commentary, and intricate character development.",
+       "stopReason": "eos-token",
+       "decodeSteps": 105,
+       "seconds": 8.39,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.005,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['Austen']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 0
+    }
+   ]
+  },
+  {
+   "id": "fact-gold-symbol",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "Au",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 20,
+       "overPromptLimit": false,
+       "output": "The chemical symbol for gold is **Au**.\n\nThis symbol is derived from the Latin word *aurum*, which means \"gold.\" It is the standard abbreviation used in chemistry, metallurgy, and industry.",
+       "stopReason": "eos-token",
+       "decodeSteps": 43,
+       "seconds": 3.82,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0809,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'Au'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 20,
+       "overPromptLimit": false,
+       "output": "The chemical symbol for gold is **Au**.\n\nThis symbol is derived from the Latin word *aurum*, which means \"gold.\" In the periodic table, gold is located in the transition metals group (Group 11) and is represented by the letter **A** (for aurum) followed by the letter **U** (for gold).",
+       "stopReason": "eos-token",
+       "decodeSteps": 72,
+       "seconds": 5.97,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0938,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'Au'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 27
+    }
+   ]
+  },
+  {
+   "id": "fact-apollo11-year",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "1969",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 24,
+       "overPromptLimit": false,
+       "output": "Apollo 11 landed on the Moon on **July 20, 1969**.\n\nThe mission was led by Neil Armstrong and Buzz Aldrin, and the historic first lunar landing occurred at the Cape Canoe Basin in the Pacific Ocean.",
+       "stopReason": "eos-token",
+       "decodeSteps": 53,
+       "seconds": 4.42,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0047,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [11.0, 20.0, 1969.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 24,
+       "overPromptLimit": false,
+       "output": "Apollo 11 landed on the Moon on **July 20, 1969**.\n\nThe mission was led by Neil Armstrong and Buzz Aldrin, who became the first humans to walk on the lunar surface. They successfully set up the lunar module and landed on the Moon's south pole, marking a historic milestone in human spaceflight.",
+       "stopReason": "eos-token",
+       "decodeSteps": 72,
+       "seconds": 6.3,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0006,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [11.0, 20.0, 1969.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 34
+    }
+   ]
+  },
+  {
+   "id": "fact-http-expansion",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "Hypertext Transfer Protocol",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 18,
+       "overPromptLimit": false,
+       "output": "**HTTP** stands for **HyperText Transfer Protocol**.\n\nIt is the standard protocol used for transmitting data over the internet. Think of it as the \"language\" that computers use to talk to each other, much like the English language. It defines how data is structured, formatted, and sent between web servers, web browsers, and other applications.",
+       "stopReason": "eos-token",
+       "decodeSteps": 71,
+       "seconds": 5.59,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0015,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'HyperText Transfer Protocol'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 18,
+       "overPromptLimit": false,
+       "output": "**HTTP** stands for **HyperText Transfer Protocol**.\n\nIt is the standard protocol used for transferring data over the internet. Developed by Tim Berners-Lee in 1989, it is the foundation of the World Wide Web. HTTP defines how web pages are sent and received, including methods like GET (to retrieve data) and POST (to send data).",
+       "stopReason": "eos-token",
+       "decodeSteps": 76,
+       "seconds": 6.59,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0068,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'HyperText Transfer Protocol'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 19
+    }
+   ]
+  },
+  {
+   "id": "fact-adult-bones",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "206",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 22,
+       "overPromptLimit": false,
+       "output": "The adult human body contains approximately **206 bones**.\n\nThis number is derived from the International Classification of Osmia (ICOS), which is the standard for bone classification. While the exact count can vary slightly depending on the specific classification system used (such as the ICS 2018 or ICS 2020), the consensus in modern medical and anatomical literature is that there are **206 bones** in the adult human body.\n\nHere is a breakdown of the key facts:\n*   **Total Count**: 206 bones.\n*   **Femoral Bones**: There are 11 femoral bones (the ones that form the hip bones).\n*   **Fetal Bones**: There are 106 bones in the fetus, which are later replaced by the 206 adult bones.\n*   **Fetal Bones**: There are 106 bones in the fetus, which are later replaced by the 206 adult bones.\n*   **Fetal Bones**: There are 106 bones in the fetus, which are later replaced by the 206 adult bones.\n\nThis number is used to help distinguish between the bones of the fetus and the bones of the adult, as the adult bones are generally considered to be the majority of the body's bones.",
+       "stopReason": "eos-token",
+       "decodeSteps": 280,
+       "seconds": 18.59,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0098,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [206.0, 2018.0, 2020.0, 206.0, 206.0, 11.0, 106.0, 206.0, 106.0, 206.0, 106.0, 206.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 22,
+       "overPromptLimit": false,
+       "output": "The adult human body contains approximately **206 bones**.\n\nThis number is derived from the standard anatomical classification of the skeleton, which includes the 206 bones found in the skull, spine, and the 186 bones of the rest of the body. While the exact count can vary slightly depending on the specific anatomical system (such as the number of vertebrae in the spine), the widely accepted figure for the total count of bones in an adult human is **206**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 104,
+       "seconds": 7.77,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0231,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [206.0, 206.0, 186.0, 206.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 19
+    }
+   ]
+  },
+  {
+   "id": "expl-sky-blue",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "expected": "Sunlight is scattered by air molecules, and shorter (blue) wavelengths scatter more (Rayleigh scattering); at most about three sentences.",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 25,
+       "overPromptLimit": false,
+       "output": "The sky appears blue because the scattering of sunlight by air molecules is a result of the wavelength of light. Shorter wavelengths, such as blue, are scattered more effectively by the particles in the atmosphere than longer wavelengths like red or orange. This phenomenon is known as Rayleigh scattering, which explains why the sky is blue while the sun is red at sunrise or sunset.",
+       "stopReason": "eos-token",
+       "decodeSteps": 74,
+       "seconds": 5.92,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0178,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'scatter'"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['wavelength', 'shorter', 'short']"
+        },
+        {
+         "type": "words",
+         "pass": true,
+         "detail": "65 words"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 25,
+       "overPromptLimit": false,
+       "output": "The sky appears blue because sunlight hits the Earth's atmosphere, where the shorter wavelengths of blue light scatter more efficiently than longer wavelengths like red and orange. This scattering effect is most pronounced at the upper levels of the atmosphere, where the path length for blue light is greatest, giving us the familiar blue hue we see.",
+       "stopReason": "eos-token",
+       "decodeSteps": 64,
+       "seconds": 5.17,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0001,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'scatter'"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['wavelength', 'shorter', 'short']"
+        },
+        {
+         "type": "words",
+         "pass": true,
+         "detail": "57 words"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 5
+    }
+   ]
+  },
+  {
+   "id": "expl-list-tuple",
+   "category": "explanation",
+   "judgment": "human",
+   "expected": "Lists are mutable, tuples are immutable.",
+   "origin": null,
+   "classification": "source-model failure",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 25,
+       "overPromptLimit": false,
+       "output": "In Python, the primary difference between a **list** and a **tuple** lies in **immutability** and **type safety**.\n\nHere is the breakdown of the key differences:\n\n### 1. Immutability\n*   **List**: Lists are **mutable** (mutable means they can change their contents). You can add, remove, or modify elements to a list, and the list itself will still be a list.\n    *   *Example:* `my_list = [1, 2, 3]`\n    *   *Example:* `my_list.append(4)` makes it `[1, 2, 3, 4]`.\n*   **Tuple**: Tuples are **immutable** (immutable means they cannot be changed once created). You cannot add, remove, or modify elements to a tuple.\n    *   *Example:* `my_tuple = (1, 2, 3)`\n    *   *Example:* `my_tuple = (1, 2, 3, 4)` (This is impossible because tuples are immutable).\n\n### 2. Type Safety\n*   **List**: Lists are **type-safe**. Python will automatically convert the elements of a list to the correct types (e.g., converting a list of strings to a list of numbers).\n    *   *Example:* `my_list = [1, \"two\", 3]` (Python knows this is a list of mixed types).\n*   **Tuple**: Tuples are **type-safe** by design. Python enforces that the order of elements in a tuple is fixed, and it ensures the types match exactly.\n    *   *Example:* `my_tuple = (1, \"two\", 3)` (Python enforces this is a tuple of mixed types).\n\n### 3. Access and Iteration\n*   **List**: Lists allow you to access elements by index (e.g., `my_list[0]`, `my_list[1]`). They also support iteration (e.g., `for item in my_list`).\n*   **Tuple**: Tuples do not support index access (e.g., `my_tuple[0]` raises a `TypeError`). They also do not support iteration (e.g., `for item in my_tuple` raises a `TypeError`).\n\n### 4. Comparison\n*   **List** is the standard data structure for storing collections of data where you expect the order to be important and you want to be able to add or modify elements later.\n*   **Tuple** is the standard data structure for storing data where you want to enforce a fixed order and you want to ensure the types match exactly.\n\n### Summary Table\n\n| Feature | List | Tuple |\n| :--- | :--- | :--- |\n| **Mutable?** | Yes | No |\n| **Immutability** | No | Yes |\n| **Type Safety** | Yes | Yes |\n| **Index Access** | Yes | No |\n| **Iteration** | Yes | No |\n| **Use Case** | Collections, dynamic data | Fixed order, specific types |\n\n**Conclusion:** Use a **list** when you need to add or remove elements, or when the order of elements matters. Use a **tuple** when you need a fixed order and specific types.",
+       "stopReason": "eos-token",
+       "decodeSteps": 694,
+       "seconds": 44.23,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0003,
+       "empty": false,
+       "checks": [],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "rubric, provisional",
+     "pass": false,
+     "rubricGrade": {
+      "pass": false,
+      "reason": "States lists are mutable and tuples immutable, but also claims tuples do not support index access (my_tuple[0] raises TypeError) or iteration, and that lists are 'type-safe' and convert element types. These are false claims about basic syntax, which the rubric fails."
+     }
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 25,
+       "overPromptLimit": false,
+       "output": "In Python, a **list** and a **tuple** are both ordered collections of items, but they differ in several key ways:\n\n### 1. **Mutability**\n- **Lists** are **mutable**: You can modify them after creation (e.g., `list.append(x)`, `list.pop()`).\n- **Tuples** are **immutable**: Once created, you cannot change their contents. You can only access or modify them by copying them (e.g., `tuple_copy = tuple(original)`).\n\n### 2. **Indexing**\n- **Lists** use 0-based indexing: `list[0]`, `list[1]`, etc.\n- **Tuples** use 0-based indexing: `tuple[0]`, `tuple[1]`, etc.\n\n### 3. **Comparison**\n- **Lists** are compared using the `==` operator (element-by-element equality).\n- **Tuples** are compared using the `==` operator (element-by-element equality).\n\n### 4. **Use Cases**\n- Use **lists** when you need to:\n  - Store mutable data (e.g., user inputs, arrays).\n  - Perform operations like appending, removing, or searching.\n  - Create dynamic collections.\n- Use **tuples** when you need:\n  - Immutable data (e.g., configuration settings, function arguments).\n  - Fixed-size collections.\n  - Avoid modifying the original data.\n\n### Example\n```python\n# List\nmy_list = [1, 2, 3]\nmy_list.append(4)  # my_list becomes [1, 2, 3, 4]\nmy_list.pop(1)    # my_list becomes [1, 3, 4]\n\n# Tuple\nmy_tuple = (1, 2, 3)\nmy_tuple_copy = tuple(my_tuple)  # my_tuple_copy is [1, 2, 3], but my_tuple is unchanged\n```\n\n### Summary\n- **Lists**: Mutable, dynamic, indexed.\n- **Tuples**: Immutable, fixed, indexed.\n\nChoose based on whether you need to modify data or need to preserve the original state.",
+       "stopReason": "eos-token",
+       "decodeSteps": 470,
+       "seconds": 31.65,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0052,
+       "empty": false,
+       "checks": [],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "rubric, provisional",
+     "pass": false,
+     "rubricGrade": {
+      "pass": false,
+      "reason": "States lists are mutable and tuples immutable, but also says tuples can 'only be accessed or modified by copying them' and comments that tuple(my_tuple) 'is [1, 2, 3]'. Both are false claims about mutability and syntax, which the rubric fails. The main distinction is stated correctly; a less strict reader could pass it."
+     }
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 3
+    }
+   ]
+  },
+  {
+   "id": "expl-leap-year",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "expected": "Earth's orbit takes about 365.25 days (365 days and about 6 hours), so an extra day is added about every four years.",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 19,
+       "overPromptLimit": false,
+       "output": "The reason for having leap years lies in the astronomical cycle of the Earth's orbit around the Sun.\n\nFor centuries, astronomers and mathematicians have struggled to find a way to predict the exact position of the Sun relative to the stars. This difficulty led to the invention of the **Julian calendar** (used in the Middle Ages and Renaissance), which had a 12-year cycle. However, this system was too slow for accurate navigation.\n\nTo solve this, **Ptolemy** (c. 150–160 AD) and **Ptolemy II Philoponus** (c. 150–158 AD) independently developed the **Gregorian calendar**. They realized that the Earth's orbit around the Sun is not exactly 365.2425 days. Instead, it is approximately **365.2425 days**.\n\nIf the calendar were to run for exactly 365 days, the Earth would drift forward by about 1 degree of longitude every 12 years. This drift caused the Sun to move across the sky by roughly 1 degree every 100 years. Since the Earth rotates 360 degrees in 24 hours, this means the Sun would appear to move across the sky by about 15 degrees every 100 years.\n\nTo keep the Sun in the same position relative to the stars, astronomers needed to add a small amount of extra time every 100 years. They calculated that adding **1 day** to the calendar would make the Earth's orbit complete (365.2425 days), and the Sun would return to its correct position.\n\nHowever, the Gregorian calendar was not perfect. It had a 12-year cycle, but it was too slow. To fix this, they added **365 days** to the calendar every 4 years. This caused the Earth to drift forward by about 1 degree of longitude every 12 years. To correct this, they added **1 day** to the calendar every 8 years.\n\nThe result is the **leap year**: a year that has 366 days. This extra day accounts for the extra 1 degree of longitude the Earth moves in 12 years, bringing the total to the correct 365.2425 days. Without this leap year, the calendar would drift too far, making navigation impossible.\n\n**In summary:** Leap years exist because the Earth's orbit around the Sun is slightly longer than 365 days. By adjusting the calendar every 4 years, we account for the extra 1 degree of longitude the Earth moves in 12 years, ensuring the Sun stays in the same position relative to the stars.",
+       "stopReason": "eos-token",
+       "decodeSteps": 575,
+       "seconds": 36.78,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0031,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match '365.2425'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 19,
+       "overPromptLimit": false,
+       "output": "The reason we have leap years lies in the **Gregorian calendar**, which was adopted in 1582 to solve a specific astronomical problem.\n\n### The Problem: The Inaccurate Solar Year\nFor centuries, astronomers and astronomers have been trying to find the \"solar year\" (the time it takes for the Earth to complete one orbit around the Sun). However, the Earth's orbit is not perfectly circular; it is slightly elliptical.\n\n*   **Perihelion**: The Earth is closest to the Sun (about 147.1 million km).\n*   **Aphelion**: The Earth is farthest from the Sun (about 152.1 million km).\n\nBecause the Earth travels a different distance in its orbit at different speeds, it takes **365.2422 days** to complete one solar year.\n\n### The Solution: The Leap Year\nTo make the calendar align with the actual solar year, we need to account for the extra 0.0422 days.\n\n*   **365 days** is the average year.\n*   **366 days** is the leap year.\n\nBy adding a day to the calendar every four years, we effectively add 0.0422 days to the average year. This ensures that the calendar aligns with the Earth's actual orbital period.\n\n### The Rule for Leap Years\nThe Gregorian calendar rules for leap years are:\n\n1.  **Every 4 years**: A year is a leap year.\n2.  **Every 100 years**: A year is **not** a leap year.\n3.  **Every 400 years**: A year **is** a leap year.\n\n### Why the 400-year rule?\nThe 400-year rule was introduced to fix the calendar's alignment with the Earth's orbit. If we only added a day every 4 years, the calendar would drift by about 10 minutes every 400 years. By adding a day every 400 years, we correct this drift.\n\n### Historical Context\nBefore the Gregorian calendar, the Julian calendar was used. The Julian calendar was designed to be a bit shorter than the solar year (365.25 days), which caused the calendar to drift by about 11 minutes every 128 years. The Gregorian calendar was adopted in 1582 to correct this drift.\n\n### Conclusion\nWe have leap years because the **Gregorian calendar** was created to align with the **solar year** (365.2422 days). By adding a day to the calendar every four years, we account for the extra 0.0422 days required to complete a solar year, and the specific rule of adding a day every 400 years ensures the calendar remains accurate over long periods.",
+       "stopReason": "eos-token",
+       "decodeSteps": 611,
+       "seconds": 42.56,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0036,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match '365.2422'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 2
+    }
+   ]
+  },
+  {
+   "id": "expl-weather-climate",
+   "category": "explanation",
+   "judgment": "human",
+   "expected": "Weather is short-term conditions; climate is the long-term average or pattern.",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 21,
+       "overPromptLimit": false,
+       "output": "The difference between **weather** and **climate** lies in the scale of observation and the time period over which they are measured. Here is a breakdown of the distinctions:\n\n### 1. Weather vs. Climate\n\n| Feature | Weather | Climate |\n| :--- | :--- | :--- |\n| **Definition** | The short-term atmospheric conditions (temperature, precipitation, wind, etc.) at a specific location. | The statistical average of weather conditions over a long period. |\n| **Timeframe** | **Daily to seasonal** (e.g., \"It's raining now,\" \"It's hot today\"). | **Long-term** (e.g., \"The average temperature in London is 8°C,\" \"The average rainfall in the Pacific Northwest is 1000mm\"). |\n| **Frequency** | Changes rapidly; can vary from day to day or even from week to week. | Changes slowly; reflects the average over many years. |\n| **Examples** | \"It's 72°F (22°C) and windy today.\" | \"The average temperature in the Pacific Northwest is 10°C (50°F).\" |\n| **Key Characteristics** | Varies widely due to local geography, human activity, and weather systems. | Consistent and relatively stable over decades. |\n\n### 2. Key Differences in Detail\n\n*   **Scale**: Weather is the \"what\" and \"how\" of the immediate environment. Climate is the \"how much\" and \"how long\" of the environment.\n*   **Variability**: Weather is highly variable. It is influenced by local factors (topography, vegetation) and human actions (pollution, industry). Climate is more stable but still influenced by global factors like latitude, altitude, and ocean currents.\n*   **Measurement**: Weather is measured daily or weekly. Climate is measured over decades or centuries.\n*   **Impact**: Weather affects daily life, recreation, and immediate survival. Climate affects agriculture, tourism, and long-term planning.\n\n### 3. The Relationship Between Them\n\nWhile they are distinct, they are closely linked:\n*   **Local Weather** is the result of local climate and geography.\n*   **Climate** is the result of global climate patterns (like the greenhouse effect) and local weather patterns.\n*   **Climate Change** refers to the long-term shift in climate patterns, which can have immediate effects on weather (e.g., more extreme weather events) but also long-term impacts on agriculture and ecosystems.\n\n**In summary**: Weather is the **current** state of the atmosphere, while climate is the **average** state over many years.",
+       "stopReason": "eos-token",
+       "decodeSteps": 552,
+       "seconds": 35.0,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0047,
+       "empty": false,
+       "checks": [],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "rubric, provisional",
+     "pass": true,
+     "rubricGrade": {
+      "pass": true,
+      "reason": "Weather is short-term atmospheric conditions; climate is the statistical average over a long period, measured over decades. No swapped or contradictory definition."
+     }
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 21,
+       "overPromptLimit": false,
+       "output": "The primary difference between **weather** and **climate** lies in the **time scale** and the **scope** of the observations involved.\n\nHere is a breakdown of the distinctions:\n\n### 1. Time Scale\n*   **Weather** refers to the **short-term** state of the atmosphere. It describes what is happening *right now* or in the next few hours, days, or weeks. It is dynamic and changes rapidly.\n*   **Climate** refers to the **long-term** average conditions that a region experiences over a long period, typically **30 years or more**. It is static and represents the typical conditions over many years.\n\n### 2. Scope of Observation\n*   **Weather** is observed at a **specific location** at a specific moment in time. For example, \"It is raining in the city center right now.\"\n*   **Climate** is observed at a **specific location** over a **long period** (usually 30 years). For example, \"The average temperature in this region is 7°C.\"\n\n### 3. Examples\nTo make the difference clearer, consider these scenarios:\n*   **Weather:** \"The weather in London is changing rapidly today; it is getting hotter and the wind is stronger.\"\n*   **Climate:** \"London's average temperature is 12°C, and its average rainfall is 400mm per year.\"\n\n### Summary Table\n\n| Feature | Weather | Climate |\n| :--- | :--- | :--- |\n| **Time Scale** | Short-term (hours to years) | Long-term (30+ years) |\n| **Focus** | Current conditions | Average conditions |\n| **Observation** | At a specific point in time | Over a long period |\n| **Example** | \"It is raining in the rainforest.\" | \"The rainforest has a humid climate.\" |\n\nIn short, **weather** is the \"what is happening right now,\" while **climate** is the \"what the region is generally like over time.\"",
+       "stopReason": "eos-token",
+       "decodeSteps": 429,
+       "seconds": 28.86,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0004,
+       "empty": false,
+       "checks": [],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "rubric, provisional",
+     "pass": true,
+     "rubricGrade": {
+      "pass": true,
+      "reason": "Weather is the short-term state; climate is the long-term average, typically 30 years or more. Its table gives weather as 'hours to years', which stretches the term but does not swap or contradict the definitions."
+     }
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 1
+    }
+   ]
+  },
+  {
+   "id": "expl-http-404",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "expected": "The server could not find the requested page or resource.",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 27,
+       "overPromptLimit": false,
+       "output": "A **404 error** (also known as a \"Not Found\" or \"Not Found\" error) means that the website you are trying to access does not exist.\n\nHere is a breakdown of what this indicates and how to handle it:\n\n### What it means\nWhen a browser or web server encounters a 404 error, it means:\n1.  **The URL is incorrect:** You are likely trying to access a page that doesn't exist on the internet.\n2.  **The page is missing:** The content (HTML, CSS, JavaScript, images, etc.) is not hosted anywhere.\n3.  **The server is down:** The server responsible for hosting the site is currently unavailable.\n\n### Common Causes\n*   **The page is deleted:** The website was moved, deleted, or shut down.\n*   **The page is offline:** The site is currently down.\n*   **The page is behind a login:** If the site requires authentication to access, the user might be logged out.\n*   **The site is in a \"404 Not Found\" state:** This is a temporary state where the server is trying to load the page but cannot find it. It is usually transient and disappears after a few seconds.\n\n### How to Handle It\n*   **Don't try to \"fix\" it:** Simply do not try to access the site again. It is not a bug in your browser or internet connection.\n*   **Check your internet connection:** Ensure your computer or phone has a working internet connection.\n*   **Check the URL:** Verify that the URL you are entering is correct. If you are using a different domain than the one the site was originally hosted on, the site might not be accessible.\n*   **Check the site's status:** If the site is currently down, check the site's status page or contact support.\n\n### What to do next\nIf you are experiencing this:\n1.  **Check your internet connection.**\n2.  **Try a different browser.**\n3.  **Try a different device.**\n4.  **Check the site's status page** (if it has one).\n5.  **Contact the site's support team** if you are certain the site is down.\n\n**Summary:** A 404 error indicates that the website you are trying to visit is not accessible. It is not a problem with your computer or internet; it is a problem with the website itself.",
+       "stopReason": "eos-token",
+       "decodeSteps": 518,
+       "seconds": 33.64,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0016,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['not found', 'cannot find', \"doesn't exist\", 'does not exist']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 27,
+       "overPromptLimit": false,
+       "output": "A **404 error** (often called a \"Not Found\" error) means that the browser has successfully loaded the page you are trying to access, but the server has determined that the requested URL does not exist.\n\nHere is a breakdown of what this typically indicates and how to handle it:\n\n### What it means\n*   **The URL is invalid:** The address bar shows a URL that points to a page that isn't on the website.\n*   **The page is gone:** The content of the page has been deleted, moved, or is simply not hosted on the server.\n*   **The page is cached:** The browser has cached the old version of the page, and the new version is not available.\n\n### Common Causes\n1.  **The page was deleted:** The website owner removed the page entirely.\n2.  **The page was moved:** The website moved its content to a different domain or location.\n3.  **The page was archived:** The website moved the content to a \"draft\" or \"archive\" version that is no longer live.\n4.  **The page was renamed:** The website changed its domain name (e.g., `example.com` became `example.com/new-site`).\n5.  **The page was moved to a different server:** The content was moved to a new server but the old URL is still pointing to the old server.\n\n### How to Fix It\nYou have a few options depending on your situation:\n\n*   **If you are on a website:**\n    *   **Check the URL:** Ensure the address bar shows the correct, current URL.\n    *   **Check the Domain:** Verify that the website hasn't been renamed or moved.\n    *   **Check the Server:** If you are on a local machine, try refreshing the page or checking the browser's developer tools (F12) to see if the page is actually loading.\n    *   **Contact the Website Owner:** If the page is deleted or moved, you may need to contact the website's support team to restore it.\n\n*   **If you are on a personal website:**\n    *   **Delete the Page:** You can delete the entire page from your website's content management system (CMS) or file manager.\n    *   **Use a Different URL:** If you are on a personal site, you can create a new URL for the page.\n    *   **Use a Different Domain:** If you are on a personal site, you can register a new domain name for the page.\n\n*   **If you are on a website:**\n    *   **Contact the Website Owner:** This is the most likely solution. They may have deleted the page or moved it.\n    *   **Check the URL:** Ensure the address bar shows the correct URL.\n    *   **Check the Domain:** Verify the website hasn't been renamed or moved.\n    *   **Check the Server:** If you are on a local machine, try refreshing the page or checking the browser's developer tools.\n\n### Summary\nA 404 error is a standard error code used by web servers to indicate that the requested resource is unavailable. It is generally a sign that the content has been removed, moved, or archived, and you should contact the website owner to restore the page.",
+       "stopReason": "eos-token",
+       "decodeSteps": 692,
+       "seconds": 48.72,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0002,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['not found', 'does not exist']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 8
+    }
+   ]
+  },
+  {
+   "id": "code-double-evens",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "States the result [4, 8]",
+   "origin": "answer-cause-20261014 turn 1; delivered Q4_K answer stated [2, 4, 6, 8]",
+   "classification": "quantization-caused",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 56,
+       "overPromptLimit": false,
+       "output": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+       "stopReason": "eos-token",
+       "decodeSteps": 100,
+       "seconds": 7.98,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.2075,
+       "empty": false,
+       "checks": [
+        {
+         "type": "finalArray",
+         "pass": false,
+         "detail": "final [2.0, 4.0, 6.0, 8.0]"
+        }
+       ],
+       "pass": false
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": false,
+     "checksPass": false
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 56,
+       "overPromptLimit": false,
+       "output": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```",
+       "stopReason": "eos-token",
+       "decodeSteps": 69,
+       "seconds": 6.7,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.3642,
+       "empty": false,
+       "checks": [
+        {
+         "type": "finalArray",
+         "pass": true,
+         "detail": "final [4.0, 8.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 1
+    }
+   ]
+  },
+  {
+   "id": "code-sum-squares",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "States the result 14",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 49,
+       "overPromptLimit": false,
+       "output": "```python\ndef sum_of_squares(nums):\n    \"\"\"\n    Returns the sum of the squares of the numbers in the input list.\n    \n    Parameters:\n        nums (list): A list of numbers (integers or floats).\n    \n    Returns:\n        float: The sum of the squares of the numbers.\n    \"\"\"\n    return sum(x ** 2 for x in nums)\n```\n\nFor the list `[1, 2, 3]`, the function will return:\n\n```text\n1 + 4 + 9 = 14\n```",
+       "stopReason": "eos-token",
+       "decodeSteps": 123,
+       "seconds": 9.87,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0579,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [2.0, 1.0, 2.0, 3.0, 1.0, 4.0, 9.0, 14.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 49,
+       "overPromptLimit": false,
+       "output": "```python\ndef sum_of_squares(nums):\n    \"\"\"\n    Returns the sum of the squares of the elements in the list.\n\n    Example:\n        sum_of_squares([1, 2, 3])  # returns 14\n    \"\"\"\n    return sum(x ** 2 for x in nums)\n\n\n# Example usage:\nprint(sum_of_squares([1, 2, 3]))  # Output: 14\n```",
+       "stopReason": "eos-token",
+       "decodeSteps": 99,
+       "seconds": 7.95,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0044,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [1.0, 2.0, 3.0, 14.0, 2.0, 1.0, 2.0, 3.0, 14.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 23
+    }
+   ]
+  },
+  {
+   "id": "code-reverse-string",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "States the result \"desserts\"",
+   "origin": null,
+   "classification": "source-model failure",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 32,
+       "overPromptLimit": false,
+       "output": "```javascript\n/**\n * Reverses a string.\n * \n * @param {string} str - The string to reverse.\n * @returns {string} The reversed string.\n */\nfunction reverseString(str) {\n  return str.split('').reverse().join('');\n}\n\n// Example usage\nconsole.log(reverseString(\"stressed\")); \n// Output: \"edresst\"\n```",
+       "stopReason": "eos-token",
+       "decodeSteps": 86,
+       "seconds": 6.54,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0604,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": false,
+         "detail": "found []"
+        }
+       ],
+       "pass": false
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": false,
+     "checksPass": false
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 32,
+       "overPromptLimit": false,
+       "output": "```js\nfunction reverseString(str) {\n  return str.split('').reverse().join('');\n}\n\nconsole.log(reverseString(\"stressed\"));\n// Output: \"edreessst\"\n```",
+       "stopReason": "eos-token",
+       "decodeSteps": 44,
+       "seconds": 4.28,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0562,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": false,
+         "detail": "found []"
+        }
+       ],
+       "pass": false
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": false,
+     "checksPass": false
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 1
+    }
+   ]
+  },
+  {
+   "id": "code-python-slice",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "[2, 3, 4]",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 51,
+       "overPromptLimit": false,
+       "output": "[2, 3, 4]",
+       "stopReason": "eos-token",
+       "decodeSteps": 10,
+       "seconds": 2.01,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.1508,
+       "empty": false,
+       "checks": [
+        {
+         "type": "finalArray",
+         "pass": true,
+         "detail": "final [2.0, 3.0, 4.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 51,
+       "overPromptLimit": false,
+       "output": "[2, 3, 4]",
+       "stopReason": "eos-token",
+       "decodeSteps": 10,
+       "seconds": 1.88,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 1.1514,
+       "empty": false,
+       "checks": [
+        {
+         "type": "finalArray",
+         "pass": true,
+         "detail": "final [2.0, 3.0, 4.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": true,
+     "firstTokenDivergence": null
+    }
+   ]
+  },
+  {
+   "id": "code-js-default-sort",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "[1, 10, 5] (default sort compares strings)",
+   "origin": null,
+   "classification": "source-model failure",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 48,
+       "overPromptLimit": false,
+       "output": "[1, 5, 10]",
+       "stopReason": "eos-token",
+       "decodeSteps": 11,
+       "seconds": 1.99,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 1.7945,
+       "empty": false,
+       "checks": [
+        {
+         "type": "finalArray",
+         "pass": false,
+         "detail": "final [1.0, 5.0, 10.0]"
+        }
+       ],
+       "pass": false
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": false,
+     "checksPass": false
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 48,
+       "overPromptLimit": false,
+       "output": "[1, 5, 10]",
+       "stopReason": "eos-token",
+       "decodeSteps": 11,
+       "seconds": 1.99,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.7124,
+       "empty": false,
+       "checks": [
+        {
+         "type": "finalArray",
+         "pass": false,
+         "detail": "final [1.0, 5.0, 10.0]"
+        }
+       ],
+       "pass": false
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": false,
+     "checksPass": false
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": true,
+     "firstTokenDivergence": null
+    }
+   ]
+  },
+  {
+   "id": "code-count-vowels",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "States the result 5",
+   "origin": null,
+   "classification": "quantization-caused",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 47,
+       "overPromptLimit": false,
+       "output": "```python\ndef count_vowels(s):\n    \"\"\"\n    Counts the vowels 'a', 'e', 'i', 'o', 'u' in a string.\n    \n    Parameters:\n        s (str): The input string to analyze.\n    \n    Returns:\n        int: The count of vowels found in the string.\n    \"\"\"\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    return len(s.lower().is_vowel())\n\n# Example usage:\nprint(count_vowels(\"education\"))  # Output: 4\n```\n\nFor the string `\"education\"`, the function returns **4**.\n\n### Explanation:\nThe function converts the string to lowercase and checks if each character is a vowel. The vowels in `\"education\"` are:\n- **e** (at index 1)\n- **e** (at index 3)\n- **d** (at index 6)\n- **e** (at index 7)\n\nCounting these gives us **4** vowels.",
+       "stopReason": "eos-token",
+       "decodeSteps": 226,
+       "seconds": 15.59,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0174,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": false,
+         "detail": "numbers [4.0, 4.0, 1.0, 3.0, 6.0, 7.0, 4.0]"
+        }
+       ],
+       "pass": false
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": false,
+     "checksPass": false
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 47,
+       "overPromptLimit": false,
+       "output": "```python\ndef count_vowels(s):\n    \"\"\"\n    Count the number of vowels (a, e, i, o, u) in a string.\n    \n    Parameters:\n        s (str): The input string to count vowels in.\n    \n    Returns:\n        int: The total count of vowels.\n    \"\"\"\n    vowels = set(\"aeiouAEIOU\")\n    return len(s.lower().isalpha() and s.lower() in vowels)\n```\n\nFor the string `\"education\"`:\n\n- Lowercased: `\"education\"`\n- Vowels present: `e, u, d, i, o, n`\n- Count: 5\n\nSo `count_vowels(\"education\")` returns **5**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 161,
+       "seconds": 11.73,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0058,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [5.0, 5.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 15
+    }
+   ]
+  },
+  {
+   "id": "arith-multiply",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "408",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 22,
+       "overPromptLimit": false,
+       "output": "To find the product of 17 and 24, you can multiply them directly or break it down into factors:\n\n1.  **Direct multiplication**:\n    $$17 \\times 24 = 17 \\times (20 + 4)$$\n    $$= 17 \\times 20 + 17 \\times 4$$\n    $$= 340 + 68$$\n    $$= 408$$\n\n2.  **Breakdown**:\n    $$17 \\times 24 = 17 \\times 24$$\n    $$= 408$$\n\n**Answer:** 17 times 24 equals **408**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 155,
+       "seconds": 10.92,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0119,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [17.0, 24.0, 1.0, 17.0, 24.0, 17.0, 20.0, 4.0, 17.0, 20.0, 17.0, 4.0, 340.0, 68.0, 408.0, 2.0, 17.0, 24.0, 17.0, 24.0, 408.0, 17.0, 24.0, 408.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 22,
+       "overPromptLimit": false,
+       "output": "To find the product of 17 and 24, we can use the standard multiplication algorithm:\n\n1.  **Set up the multiplication**:\n    $$17 \\times 24$$\n\n2.  **Multiply the ones column**:\n    $$7 \\times 4 = 28$$\n    Write down the **8** and carry the **2** to the tens column.\n\n3.  **Multiply the tens column**:\n    $$7 \\times 2 = 14$$\n    Add the carried 2: $14 + 2 = 16$\n    Write down the **6** and carry the **1** to the hundreds column.\n\n4.  **Multiply the hundreds column**:\n    $$1 \\times 2 = 2$$\n    Add the carried 1: $2 + 1 = 3$\n    Write down the **3** in the hundreds place.\n\n5.  **Combine the results**:\n    $$368$$\n\n**Answer:**\n$$17 \\times 24 = 408$$",
+       "stopReason": "eos-token",
+       "decodeSteps": 233,
+       "seconds": 16.16,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.053,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [17.0, 24.0, 1.0, 17.0, 24.0, 2.0, 7.0, 4.0, 28.0, 8.0, 2.0, 3.0, 7.0, 2.0, 14.0, 2.0, 14.0, 2.0, 16.0, 6.0, 1.0, 4.0, 1.0, 2.0, 2.0, 1.0, 2.0, 1.0, 3.0, 3.0, 5.0, 368.0, 17.0, 24.0, 408.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 13
+    }
+   ]
+  },
+  {
+   "id": "arith-percent",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "12",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 23,
+       "overPromptLimit": false,
+       "output": "To find 15% of 80, you can follow these steps:\n\n1.  **Convert the percentage to a fraction or decimal:**\n    $15\\% = \\frac{15}{100} = 0.15$\n\n2.  **Multiply the number by the decimal:**\n    $80 \\times 0.15 = 80 \\times \\frac{15}{100} = \\frac{80 \\times 15}{100}$\n\n    First, multiply the numerator: $80 \\times 15 = 1200$\n    Then divide by 100: $\\frac{1200}{100} = 12$\n\n**Answer:**\n15% of 80 is **12**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 180,
+       "seconds": 12.83,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0014,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [15.0, 80.0, 1.0, 15.0, 15.0, 100.0, 0.15, 2.0, 80.0, 0.15, 80.0, 15.0, 100.0, 80.0, 15.0, 100.0, 80.0, 15.0, 1200.0, 100.0, 1200.0, 100.0, 12.0, 15.0, 80.0, 12.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 23,
+       "overPromptLimit": false,
+       "output": "To find 15% of 80, you can follow these simple steps:\n\n1.  **Convert the percentage to a decimal**: Divide 15 by 100.\n    $$15\\% = \\frac{15}{100} = 0.15$$\n\n2.  **Multiply the decimal by the number**:\n    $$0.15 \\times 80 = 12$$\n\nAlternatively, you can think of it as finding 15 parts out of 100, where 80 represents 100.\n$$80 \\times 0.15 = 12$$\n\n**Answer:**\n15% of 80 is **12**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 159,
+       "seconds": 12.41,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0058,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [15.0, 80.0, 1.0, 15.0, 100.0, 15.0, 15.0, 100.0, 0.15, 2.0, 0.15, 80.0, 12.0, 15.0, 100.0, 80.0, 100.0, 80.0, 0.15, 12.0, 15.0, 80.0, 12.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 15
+    }
+   ]
+  },
+  {
+   "id": "arith-miles-km",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "About 8.05 km (8.0 to 8.1 accepted)",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 20,
+       "overPromptLimit": false,
+       "output": "To convert miles to kilometers, you can use the standard conversion factor: **1 mile is approximately equal to 1.60934 kilometers**.\n\nHere is the step-by-step calculation:\n\n1.  Start with the given value: **5 miles**.\n2.  Multiply by the conversion factor: $5 \\times 1.60934$.\n3.  The result is approximately **8.0467 kilometers**.\n\nDepending on the required precision (e.g., 2 decimal places), this would be **8.05 km**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 120,
+       "seconds": 8.7,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0025,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [1.0, 1.60934, 1.0, 5.0, 2.0, 5.0, 1.60934, 3.0, 8.0467, 2.0, 8.05]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 20,
+       "overPromptLimit": false,
+       "output": "To convert miles to kilometers, we use the standard conversion factor:\n$$1 \\text{ mile} \\approx 1.60934 \\text{ kilometers}$$\n\nFor a quick estimate, you can multiply the number of miles by **1.6**.\n\n$$5 \\times 1.6 = 8.0$$\n\nTherefore, **5 miles is approximately 8 kilometers**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 84,
+       "seconds": 7.14,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0462,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [1.0, 1.60934, 1.6, 5.0, 1.6, 8.0, 5.0, 8.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 6
+    }
+   ]
+  },
+  {
+   "id": "arith-f-to-c",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "About 37.8 degrees C (37.53 to 38.03 accepted)",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 22,
+       "overPromptLimit": false,
+       "output": "To convert 100 degrees Fahrenheit to Celsius, you can use the standard formula:\n\n$$C = (F - 32) \\times \\frac{5}{9}$$\n\nSubstituting the given value:\n\n$$C = (100 - 32) \\times \\frac{5}{9}$$\n$$C = 68 \\times \\frac{5}{9}$$\n$$C = \\frac{340}{9}$$\n$$C \\approx 37.777...$$\n\nRounded to two decimal places, the result is **37.78°C**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 135,
+       "seconds": 9.56,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0105,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [100.0, 32.0, 5.0, 9.0, 100.0, 32.0, 5.0, 9.0, 68.0, 5.0, 9.0, 340.0, 9.0, 37.777, 37.78]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 22,
+       "overPromptLimit": false,
+       "output": "To convert 100 degrees Fahrenheit to Celsius, we use the standard conversion formula:\n\n$$C = (F - 32) \\times \\frac{5}{9}$$\n\n**Step-by-Step Calculation:**\n\n1.  **Subtract 32 from the Fahrenheit temperature:**\n    $$100 - 32 = 68$$\n\n2.  **Multiply the result by 5:**\n    $$68 \\times 5 = 340$$\n\n3.  **Divide by 9:**\n    $$340 \\div 9 \\approx 37.777...$$\n\nRounding to two decimal places, we get approximately **37.78°C**.\n\n*(Note: If you need an integer, 37.78°C is the precise answer.)*\n\n**Answer:**\n100°F is approximately **37.78°C**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 198,
+       "seconds": 14.51,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0041,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [100.0, 32.0, 5.0, 9.0, 1.0, 32.0, 100.0, 32.0, 68.0, 2.0, 5.0, 68.0, 5.0, 340.0, 3.0, 9.0, 340.0, 9.0, 37.777, 37.78, 37.78, 100.0, 37.78]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 11
+    }
+   ]
+  },
+  {
+   "id": "arith-discount",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "$60",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 32,
+       "overPromptLimit": false,
+       "output": "To find the sale price, we need to calculate the amount that is being subtracted from the original price.\n\n1.  **Identify the original price:** The jacket costs **$80**.\n2.  **Identify the discount:** The jacket is **25% off**.\n3.  **Calculate the discount amount:** To find 25% of $80, you can multiply the price by 0.25 or divide by 4.\n    $$80 \\times 0.25 = 20$$\n    So, the discount is **$20**.\n4.  **Calculate the sale price:** Subtract the discount from the original price.\n    $$80 - 20 = 60$$\n\nThe sale price is **$60**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 170,
+       "seconds": 12.18,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.011,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [1.0, 80.0, 2.0, 25.0, 3.0, 25.0, 80.0, 0.25, 4.0, 80.0, 0.25, 20.0, 20.0, 4.0, 80.0, 20.0, 60.0, 60.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 32,
+       "overPromptLimit": false,
+       "output": "To find the sale price, we need to calculate the amount that is **not** off the original price.\n\n1.  **Identify the original price:** $80.\n2.  **Identify the discount percentage:** 25%.\n3.  **Calculate the discount amount:**\n    $$80 \\times 0.25 = 20$$\n    So, the jacket is $20 off.\n4.  **Calculate the sale price:**\n    $$80 - 20 = 60$$\n\nThe sale price is **$60**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 126,
+       "seconds": 9.24,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0883,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [1.0, 80.0, 2.0, 25.0, 3.0, 80.0, 0.25, 20.0, 20.0, 4.0, 80.0, 20.0, 60.0, 60.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 14
+    }
+   ]
+  },
+  {
+   "id": "arith-hours-seconds",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "9000",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 23,
+       "overPromptLimit": false,
+       "output": "To convert hours to seconds, we use the standard conversion factor: there are 60 seconds in one minute, and there are 60 minutes in one hour.\n\nTherefore, the conversion factor is:\n$$1 \\text{ hour} = 60 \\times 60 = 3,600 \\text{ seconds}$$\n\nTo find the number of seconds in 2.5 hours, multiply 2.5 by 3,600:\n$$2.5 \\times 3,600 = 9,000$$\n\nThere are **9,000** seconds in 2.5 hours.",
+       "stopReason": "eos-token",
+       "decodeSteps": 139,
+       "seconds": 10.09,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.1515,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [60.0, 60.0, 1.0, 60.0, 60.0, 3600.0, 2.5, 2.5, 3600.0, 2.5, 3600.0, 9000.0, 9000.0, 2.5]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 23,
+       "overPromptLimit": false,
+       "output": "To convert hours into seconds, we use the standard conversion factor:\n$$1 \\text{ hour} = 3600 \\text{ seconds}$$\n\nHere is the step-by-step calculation:\n\n1.  Multiply the number of hours by the number of seconds in an hour:\n    $$2.5 \\times 3600$$\n\n2.  Perform the multiplication:\n    $$2.5 \\times 3600 = 9000$$\n\n**Answer:**\nThere are **9,000** seconds in 2.5 hours.",
+       "stopReason": "eos-token",
+       "decodeSteps": 125,
+       "seconds": 9.35,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0786,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [1.0, 3600.0, 1.0, 2.5, 3600.0, 2.0, 2.5, 3600.0, 9000.0, 9000.0, 2.5]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 3
+    }
+   ]
+  },
+  {
+   "id": "fu-double-evens",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 2 states [-4, 12]",
+   "origin": "answer-cause-20261014 turn 2; delivered Q4_K answer was [-6, 12, 18]. Turn 1 is the code-double-evens prompt and is scored there, not here.",
+   "classification": "source-model failure",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 56,
+       "overPromptLimit": false,
+       "output": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+       "stopReason": "eos-token",
+       "decodeSteps": 100,
+       "seconds": 7.98,
+       "reusedFrom": "code-double-evens",
+       "minMarginTop1Top2": 0.2075,
+       "empty": false,
+       "checks": [],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 189,
+       "overPromptLimit": false,
+       "output": "[-6, 12, 18]",
+       "stopReason": "eos-token",
+       "decodeSteps": 12,
+       "seconds": 2.23,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.2148,
+       "empty": false,
+       "checks": [
+        {
+         "type": "finalArray",
+         "pass": false,
+         "detail": "final [-6.0, 12.0, 18.0]"
+        }
+       ],
+       "pass": false
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": false,
+     "checksPass": false
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 56,
+       "overPromptLimit": false,
+       "output": "```js\nfunction doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n```",
+       "stopReason": "eos-token",
+       "decodeSteps": 69,
+       "seconds": 6.7,
+       "reusedFrom": "code-double-evens",
+       "minMarginTop1Top2": 0.3642,
+       "empty": false,
+       "checks": [],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 158,
+       "overPromptLimit": false,
+       "output": "[-4, 6]",
+       "stopReason": "eos-token",
+       "decodeSteps": 7,
+       "seconds": 2.23,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.2931,
+       "empty": false,
+       "checks": [
+        {
+         "type": "finalArray",
+         "pass": false,
+         "detail": "final [-4.0, 6.0]"
+        }
+       ],
+       "pass": false
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": false,
+     "checksPass": false
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 1
+    },
+    {
+     "turn": 2,
+     "samePrompt": false,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 1
+    }
+   ]
+  },
+  {
+   "id": "fu-rectangle",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 1: 40 (square cm); turn 2: 26 (cm)",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 30,
+       "overPromptLimit": false,
+       "output": "To find the area of a rectangle, you multiply its length by its width.\n\nGiven:\n*   Length ($L$) = 8 cm\n*   Width ($W$) = 5 cm\n\nThe formula for the area is:\n$$ \\text{Area} = L \\times W $$\n\nSubstituting the given values:\n$$ \\text{Area} = 8 \\text{ cm} \\times 5 \\text{ cm} $$\n$$ \\text{Area} = 40 \\text{ cm}^2 $$\n\nThe area of the rectangle is **40 square centimeters**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 131,
+       "seconds": 9.34,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0217,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [8.0, 5.0, 8.0, 5.0, 40.0, 2.0, 40.0]"
+        }
+       ],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 176,
+       "overPromptLimit": false,
+       "output": "To find the perimeter of a rectangle, you add the lengths of all four sides. Since opposite sides are equal in length, you can add the two lengths together and multiply by 2.\n\nGiven:\n*   Length ($L$) = 8 cm\n*   Width ($W$) = 5 cm\n\nThe formula for the perimeter is:\n$$ \\text{Perimeter} = 2 \\times (\\text{Length} + \\text{Width}) $$\n\nSubstituting the given values:\n$$ \\text{Perimeter} = 2 \\times (8 \\text{ cm} + 5 \\text{ cm}) $$\n$$ \\text{Perimeter} = 2 \\times (13 \\text{ cm}) $$\n$$ \\text{Perimeter} = 26 \\text{ cm} $$\n\nThe perimeter of the rectangle is **26 centimeters**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 189,
+       "seconds": 13.31,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0503,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [2.0, 8.0, 5.0, 2.0, 2.0, 8.0, 5.0, 2.0, 13.0, 26.0, 26.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 30,
+       "overPromptLimit": false,
+       "output": "To find the area of the rectangle, we use the formula:\n\n$$ \\text{Area} = \\text{Length} \\times \\text{Width} $$\n\nGiven:\n*   Length = $8 \\text{ cm}$\n*   Width = $5 \\text{ cm}$\n\nSubstitute these values into the formula:\n\n$$ \\text{Area} = 8 \\times 5 = 40 \\text{ cm}^2 $$\n\n**Answer:**\nThe area of the rectangle is **40 cm²**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 114,
+       "seconds": 8.86,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0945,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [8.0, 5.0, 8.0, 5.0, 40.0, 2.0, 40.0]"
+        }
+       ],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 159,
+       "overPromptLimit": false,
+       "output": "To find the perimeter of the rectangle, we use the formula:\n\n$$ \\text{Perimeter} = 2 \\times (\\text{Length} + \\text{Width}) $$\n\nGiven:\n*   Length = $8 \\text{ cm}$\n*   Width = $5 \\text{ cm}$\n\nSubstitute these values into the formula:\n\n$$ \\text{Perimeter} = 2 \\times (8 + 5) $$\n$$ \\text{Perimeter} = 2 \\times 13 $$\n$$ \\text{Perimeter} = 26 \\text{ cm} $$\n\n**Answer:**\nThe perimeter of the rectangle is **26 cm**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 146,
+       "seconds": 11.88,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.6034,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [2.0, 8.0, 5.0, 2.0, 8.0, 5.0, 2.0, 13.0, 26.0, 26.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 5
+    },
+    {
+     "turn": 2,
+     "samePrompt": false,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 5
+    }
+   ]
+  },
+  {
+   "id": "fu-translate",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 1: gracias; turn 2: merci",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 23,
+       "overPromptLimit": false,
+       "output": "In Spanish, the word for \"thank you\" is **\"Gracias\"**.\n\nDepending on the context, you can also say:\n*   **\"Dejame gracias\"** (I'm sorry)\n*   **\"Gracias por el servicio\"** (Thank you for the service)\n*   **\"Gracias por la ayuda\"** (Thank you for the help)\n\nIf you are referring to the specific word \"thank you\" in the context of the sentence \"Thank you for the service,\" the answer is simply **\"Gracias\"**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 111,
+       "seconds": 8.17,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0166,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['gracias']"
+        }
+       ],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 147,
+       "overPromptLimit": false,
+       "output": "In French, the word for \"thank you\" is **\"Merci\"**.\n\nDepending on the context, you can also say:\n*   **\"Merci beaucoup\"** (Very much)\n*   **\"Merci pour le service\"** (Thank you for the service)\n*   **\"Merci pour l'aide\"** (Thank you for the help)\n\nIf you are referring to the specific word \"thank you\" in the context of the sentence \"Thank you for the service,\" the answer is simply **\"Merci\"**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 110,
+       "seconds": 8.32,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0155,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['merci']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 23,
+       "overPromptLimit": false,
+       "output": "The most common and natural way to say \"thank you\" in Spanish is **\"¡Gracias!\"**\n\nHere is a breakdown of the nuances:\n\n*   **¡Gracias!** (The standard, polite, and universal form)\n    *   **Gracias** is the direct translation of \"thank you.\"\n    *   Adding the exclamation mark indicates that you are expressing gratitude with enthusiasm.\n    *   This is the most widely understood and accepted phrase in everyday conversation.\n\n**Other variations:**\n*   **Muchas gracias** (More formal or polite)\n*   **Gracias por** (A bit more formal than \"Gracias\")\n*   **Gracias por** (A bit more formal than \"Gracias\")\n\n**Example usage:**\n*   \"¡Gracias!\" (Hello, thank you!)\n*   \"¡Muchas gracias!\" (Hello, thank you very much!)",
+       "stopReason": "eos-token",
+       "decodeSteps": 192,
+       "seconds": 15.02,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0013,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['gracias']"
+        }
+       ],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 227,
+       "overPromptLimit": false,
+       "output": "In French, the most common and natural way to say \"thank you\" is **\"Merci !\"**\n\nHere is a breakdown of the nuances:\n\n*   **Merci** is the direct translation of \"thank you.\"\n*   Adding the exclamation mark indicates that you are expressing gratitude with enthusiasm.\n*   This is the standard, polite, and universal form used in everyday conversation.\n\n**Other variations:**\n*   **Merci beaucoup** (More formal or polite)\n*   **Merci** (A bit more formal than \"Merci\")\n\n**Example usage:**\n*   \"Merci !\" (Hello, thank you!)\n*   \"Merci beaucoup !\" (Hello, thank you very much!)\n\n**Note on \"Gratitude\" vs. \"Thank you\":**\nWhile \"Merci\" is the direct translation, in French, the word **\"Gratitude\"** (meaning deep appreciation or thanks) is often used when you want to express a deeper feeling of gratitude, especially in a more formal or literary context.\n\n*   \"Merci\" = Thank you\n*   \"Gratitude\" = Gratitude / Appreciation",
+       "stopReason": "eos-token",
+       "decodeSteps": 240,
+       "seconds": 16.79,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0081,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['merci']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 0
+    },
+    {
+     "turn": 2,
+     "samePrompt": false,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 4
+    }
+   ]
+  },
+  {
+   "id": "fu-cookies",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 1: 16; turn 2: 2",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 28,
+       "overPromptLimit": false,
+       "output": "If you start with 20 cookies and eat 4, you can subtract the amount eaten from the total count.\n\n$20 - 4 = 16$\n\nSo, there are **16** cookies left.",
+       "stopReason": "eos-token",
+       "decodeSteps": 49,
+       "seconds": 4.3,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0214,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [20.0, 4.0, 20.0, 4.0, 16.0, 16.0]"
+        }
+       ],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 104,
+       "overPromptLimit": false,
+       "output": "To find out how many each friend gets, we first need to determine how many cookies are left after eating.\n\n1.  **Calculate the remaining cookies:**\n    $20 - 4 = 16$ cookies.\n\n2.  **Divide the remaining cookies among the friends:**\n    There are 16 cookies and 8 friends. To find the amount each friend gets, we divide 16 by 8.\n\n    $16 \\div 8 = 2$\n\nEach friend gets **2** cookies.",
+       "stopReason": "eos-token",
+       "decodeSteps": 114,
+       "seconds": 8.47,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0625,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [1.0, 20.0, 4.0, 16.0, 2.0, 16.0, 8.0, 16.0, 8.0, 16.0, 8.0, 2.0, 2.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 28,
+       "overPromptLimit": false,
+       "output": "To find out how many cookies are left, we can subtract the number eaten from the total number of cookies.\n\nYou started with **20** cookies. You ate **4**.\n\n$$20 - 4 = 16$$\n\nThere are **16** cookies left.",
+       "stopReason": "eos-token",
+       "decodeSteps": 60,
+       "seconds": 5.26,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0623,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [20.0, 4.0, 20.0, 4.0, 16.0, 16.0]"
+        }
+       ],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 115,
+       "overPromptLimit": false,
+       "output": "To find out how many each friend gets, we first need to determine how many cookies are left after eating.\n\n1.  **Calculate the remaining cookies**:\n    You started with 20 cookies and ate 4.\n    $$20 - 4 = 16 \\text{ cookies left}$$\n\n2.  **Divide the remaining cookies among the friends**:\n    You have 16 cookies to share equally with 8 friends.\n    $$16 \\div 8 = 2$$\n\nEach friend gets **2** cookies.",
+       "stopReason": "eos-token",
+       "decodeSteps": 118,
+       "seconds": 9.64,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0355,
+       "empty": false,
+       "checks": [
+        {
+         "type": "number",
+         "pass": true,
+         "detail": "numbers [1.0, 20.0, 4.0, 20.0, 4.0, 16.0, 2.0, 16.0, 8.0, 16.0, 8.0, 2.0, 2.0]"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 0
+    },
+    {
+     "turn": 2,
+     "samePrompt": false,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 31
+    }
+   ]
+  },
+  {
+   "id": "fu-palindrome",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 1: an is_palindrome function; turn 2: True",
+   "origin": null,
+   "classification": "quantization-caused",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 41,
+       "overPromptLimit": false,
+       "output": "def is_palindrome(s):\n    \"\"\"\n    Checks if a string reads the same forwards and backwards, ignoring case.\n    Returns True if the string is a palindrome, False otherwise.\n    \"\"\"\n    # Convert to lowercase and remove non-alphanumeric characters to handle spaces and punctuation\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    \n    # Check if the cleaned string is the same forwards and backwards\n    return cleaned == cleaned[::-1]",
+       "stopReason": "eos-token",
+       "decodeSteps": 102,
+       "seconds": 7.63,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0273,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'def is_palindrome('"
+        }
+       ],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 161,
+       "overPromptLimit": false,
+       "output": "`is_palindrome(\"Racecar\")` returns **False**.\n\nHere is the breakdown:\n1.  **Lowercase**: The string is converted to \"racecar\".\n2.  **Remove non-alphanumeric**: The string remains \"racecar\" (no spaces or punctuation to remove).\n3.  **Reverse**: The reversed string is \"carrecra\".\n4.  **Comparison**: \"racecar\" != \"carrecra\".\n\nTherefore, the function returns **False**.",
+       "stopReason": "eos-token",
+       "decodeSteps": 104,
+       "seconds": 8.03,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0236,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": false,
+         "detail": "no match"
+        },
+        {
+         "type": "notRegex",
+         "pass": false,
+         "detail": "match 'False'"
+        }
+       ],
+       "pass": false
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": false,
+     "checksPass": false
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 41,
+       "overPromptLimit": false,
+       "output": "def is_palindrome(s):\n    \"\"\"\n    Checks if a string reads the same forwards and backwards, ignoring case.\n    \n    Parameters:\n        s (str): The input string to check.\n    \n    Returns:\n        bool: True if the string is a palindrome, False otherwise.\n    \"\"\"\n    return s == s[::-1]",
+       "stopReason": "eos-token",
+       "decodeSteps": 75,
+       "seconds": 6.02,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0268,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'def is_palindrome('"
+        }
+       ],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 134,
+       "overPromptLimit": false,
+       "output": "`True`",
+       "stopReason": "eos-token",
+       "decodeSteps": 4,
+       "seconds": 1.85,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.6409,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'True'"
+        },
+        {
+         "type": "notRegex",
+         "pass": true,
+         "detail": "no match"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 26
+    },
+    {
+     "turn": 2,
+     "samePrompt": false,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 1
+    }
+   ]
+  },
+  {
+   "id": "fu-primary-colors",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 1: red, green, blue; turn 2: red",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 21,
+       "overPromptLimit": false,
+       "output": "The three primary colors of light are **Red, Green, and Blue**.\n\nThese are the basic pigments or wavelengths of light that, when combined, create the full spectrum of colors we see in the rainbow. When these three colors are mixed in equal proportions, they produce white light. This principle is known as **additive color mixing**, which is used in technologies like screens and video games.",
+       "stopReason": "eos-token",
+       "decodeSteps": 81,
+       "seconds": 6.63,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.001,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['red', 'green', 'blue']"
+        }
+       ],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 124,
+       "overPromptLimit": false,
+       "output": " Red",
+       "stopReason": "eos-token",
+       "decodeSteps": 2,
+       "seconds": 1.5,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0945,
+       "empty": false,
+       "checks": [
+        {
+         "type": "onlyAnswer",
+         "pass": true,
+         "detail": "answer 'Red'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 21,
+       "overPromptLimit": false,
+       "output": "The three primary colors of light are **Red**, **Green**, and **Blue**.\n\nThese are the colors that can be combined to create all other colors of light when viewed through a prism or when light passes through a colored filter. When these three primary colors are mixed together, they create a spectrum of colors ranging from red to violet.\n\n*   **Red** is the longest wavelength of light.\n*   **Green** is the shortest wavelength of light.\n*   **Blue** is the shortest wavelength of light.\n\nWhen these three are mixed, they produce a wide range of colors, including white light (which is the result of mixing all three).",
+       "stopReason": "eos-token",
+       "decodeSteps": 136,
+       "seconds": 9.79,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0057,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['red', 'green', 'blue']"
+        }
+       ],
+       "pass": true
+      },
+      {
+       "turn": 2,
+       "promptTokenCount": 179,
+       "overPromptLimit": false,
+       "output": " Red",
+       "stopReason": "eos-token",
+       "decodeSteps": 2,
+       "seconds": 1.84,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.7779,
+       "empty": false,
+       "checks": [
+        {
+         "type": "onlyAnswer",
+         "pass": true,
+         "detail": "answer 'Red'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 9
+    },
+    {
+     "turn": 2,
+     "samePrompt": false,
+     "sameOutputTokens": true,
+     "firstTokenDivergence": null
+    }
+   ]
+  },
+  {
+   "id": "rw-grammar",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "expected": "They're going to the store tomorrow to buy some apples.",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 43,
+       "overPromptLimit": false,
+       "output": "They are going to the store tomorrow to buy some apples.",
+       "stopReason": "eos-token",
+       "decodeSteps": 13,
+       "seconds": 2.07,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.6901,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'They are going'"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'tomorrow'"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'to buy'"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'apples'"
+        },
+        {
+         "type": "excludes",
+         "pass": true,
+         "detail": "none found"
+        },
+        {
+         "type": "notRegex",
+         "pass": true,
+         "detail": "no match"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 43,
+       "overPromptLimit": false,
+       "output": "They are going to the store tomorrow to buy some apples.",
+       "stopReason": "eos-token",
+       "decodeSteps": 13,
+       "seconds": 2.37,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.5582,
+       "empty": false,
+       "checks": [
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'They are going'"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'tomorrow'"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'to buy'"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'apples'"
+        },
+        {
+         "type": "excludes",
+         "pass": true,
+         "detail": "none found"
+        },
+        {
+         "type": "notRegex",
+         "pass": true,
+         "detail": "no match"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": true,
+     "firstTokenDivergence": null
+    }
+   ]
+  },
+  {
+   "id": "rw-polite",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "expected": "A polite request for the report by Friday",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 34,
+       "overPromptLimit": false,
+       "output": "Here are a few ways to phrase this more politely, depending on the level of formality you need:\n\n**Option 1: Standard & Professional (Best for most situations)**\n> \"Could you please send me the report by Friday? I would appreciate it.\"\n\n**Option 2: Slightly more formal (Best if you are a colleague or boss)**\n> \"I would greatly appreciate it if you could send me the report by Friday. Thank you.\"\n\n**Option 3: Soft & Collaborative (Best for a friend or close colleague)**\n> \"Could you send me the report by Friday? I'm really looking forward to seeing it.\"\n\n**Option 4: Short & Direct (If you want to keep it brief but polite)**\n> \"Please send the report by Friday. Thanks.\"\n\n**Key improvements made:**\n*   Changed \"Send me the report\" to \"Could you please send me the report\" (which softens the request).\n*   Added \"I would appreciate it\" or \"I would greatly appreciate it\" to acknowledge the effort involved in getting the report done.\n*   Used \"Could you\" instead of \"I need it\" to make the request sound less demanding.",
+       "stopReason": "eos-token",
+       "decodeSteps": 253,
+       "seconds": 17.11,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0263,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['please', 'could you', 'appreciate']"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['Friday', 'report']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 34,
+       "overPromptLimit": false,
+       "output": "Here are a few ways to rewrite that message to sound more polite, depending on the level of formality you need:\n\n**Option 1: Professional & Direct (Best for most situations)**\n> \"Could you please send me the report by Friday? I would appreciate it if you could do so.\"\n\n**Option 2: Slightly softer & more polite**\n> \"I'm writing to request the report by Friday. Could you please send it to me?\"\n\n**Option 3: Short and clear**\n> \"Please send the report by Friday. Thanks!\"\n\n**Option 4: If you want to emphasize urgency politely**\n> \"I need the report by Friday. Could you please send it to me?\"\n\n**Key improvements made:**\n*   Changed \"Send me\" to \"Could you please send me\" or \"I'm writing to request,\" which frames the request as a polite inquiry rather than a command.\n*   Added \"I would appreciate it if\" or \"Could you please\" to soften the tone.\n*   Used \"I would appreciate it if\" or \"Could you please\" to show respect for the recipient's time.",
+       "stopReason": "eos-token",
+       "decodeSteps": 242,
+       "seconds": 17.74,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0005,
+       "empty": false,
+       "checks": [
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['please', 'could you', 'appreciate']"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['Friday', 'report']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 6
+    }
+   ]
+  },
+  {
+   "id": "rw-summary-library",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "expected": "One sentence saying the library is extending its weekday hours",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 98,
+       "overPromptLimit": false,
+       "output": "The Oakridge Public Library will extend its weekday hours by two hours (from 9 am to 11 pm and 8 pm to 10 pm) to accommodate residents' requests for earlier mornings and later evenings.",
+       "stopReason": "eos-token",
+       "decodeSteps": 46,
+       "seconds": 4.23,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0188,
+       "empty": false,
+       "checks": [
+        {
+         "type": "sentences",
+         "pass": true,
+         "detail": "1 sentences"
+        },
+        {
+         "type": "words",
+         "pass": true,
+         "detail": "34 words"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['library']"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'extend'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 98,
+       "overPromptLimit": false,
+       "output": "The Oakridge Public Library will adjust its weekday hours to open earlier and close later to accommodate resident requests for earlier mornings and later evenings.",
+       "stopReason": "eos-token",
+       "decodeSteps": 28,
+       "seconds": 3.15,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0598,
+       "empty": false,
+       "checks": [
+        {
+         "type": "sentences",
+         "pass": true,
+         "detail": "1 sentences"
+        },
+        {
+         "type": "words",
+         "pass": true,
+         "detail": "25 words"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['library']"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'earlier'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 6
+    }
+   ]
+  },
+  {
+   "id": "rw-recall-bullets",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "expected": "Two bullets: the heaters can overheat (fire risk); stop using them and get a free replacement",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 83,
+       "overPromptLimit": false,
+       "output": "- BrightHome recalls 12,000 SmoothHeat space heaters sold between June and August due to overheating on the highest setting, which poses a fire risk; however, no injuries have been reported.\n- Owners should immediately stop using the heaters and contact BrightHome for a free replacement.",
+       "stopReason": "eos-token",
+       "decodeSteps": 62,
+       "seconds": 5.2,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0245,
+       "empty": false,
+       "checks": [
+        {
+         "type": "bullets",
+         "pass": true,
+         "detail": "2 marked of 2 lines"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['overheat', 'fire']"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['stop using', 'replacement', 'replace']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 83,
+       "overPromptLimit": false,
+       "output": "- BrightHome is recalling 12,000 SmoothHeat space heaters sold between June and August due to overheating on the highest setting, which poses a fire risk.\n- No injuries have been reported, but owners should stop using the heaters immediately and contact BrightHome for a free replacement.",
+       "stopReason": "eos-token",
+       "decodeSteps": 62,
+       "seconds": 5.21,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0926,
+       "empty": false,
+       "checks": [
+        {
+         "type": "bullets",
+         "pass": true,
+         "detail": "2 marked of 2 lines"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['overheat', 'fire']"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['stop using', 'replacement', 'replace']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 3
+    }
+   ]
+  },
+  {
+   "id": "rw-shorten-email",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "expected": "Under 30 words, keeping Thursday, 2 pm and Conference Room B",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 90,
+       "overPromptLimit": false,
+       "output": "Hi team, hope you had a great weekend. Our weekly meeting has moved to Thursday at 2 pm in Conference Room B. Please update your calendars. Thanks, Dana.",
+       "stopReason": "eos-token",
+       "decodeSteps": 36,
+       "seconds": 3.65,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0464,
+       "empty": false,
+       "checks": [
+        {
+         "type": "words",
+         "pass": true,
+         "detail": "28 words"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['Thursday']"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match '2 pm'"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'Room B'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 90,
+       "overPromptLimit": false,
+       "output": "Hi team, hope you had a great weekend. Our weekly meeting has moved to Thursday at 2 PM in Conference Room B. Please update your calendars. Thanks, Dana.",
+       "stopReason": "eos-token",
+       "decodeSteps": 36,
+       "seconds": 3.56,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.058,
+       "empty": false,
+       "checks": [
+        {
+         "type": "words",
+         "pass": true,
+         "detail": "28 words"
+        },
+        {
+         "type": "contains",
+         "pass": true,
+         "detail": "found ['Thursday']"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match '2 PM'"
+        },
+        {
+         "type": "regex",
+         "pass": true,
+         "detail": "match 'Room B'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 20
+    }
+   ]
+  },
+  {
+   "id": "fmt-one-word-banana",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "Yellow (one word)",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 24,
+       "overPromptLimit": false,
+       "output": "Yellow",
+       "stopReason": "eos-token",
+       "decodeSteps": 2,
+       "seconds": 1.88,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 2.2822,
+       "empty": false,
+       "checks": [
+        {
+         "type": "onlyAnswer",
+         "pass": true,
+         "detail": "answer 'Yellow'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 24,
+       "overPromptLimit": false,
+       "output": "Yellow",
+       "stopReason": "eos-token",
+       "decodeSteps": 2,
+       "seconds": 1.39,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 1.6679,
+       "empty": false,
+       "checks": [
+        {
+         "type": "onlyAnswer",
+         "pass": true,
+         "detail": "answer 'Yellow'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": true,
+     "firstTokenDivergence": null
+    }
+   ]
+  },
+  {
+   "id": "fmt-three-bullets",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "Exactly three bullet lines and nothing else",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 31,
+       "overPromptLimit": false,
+       "output": "*   Essential for maintaining healthy skin and hair by preventing dehydration and maintaining optimal hydration levels.\n*   Crucial for regulating blood pressure and heart health by helping the body flush out excess sodium and excess water.\n*   Vital for energy production and brain function by providing the necessary water to support cellular processes and nerve transmission.",
+       "stopReason": "eos-token",
+       "decodeSteps": 66,
+       "seconds": 5.38,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0415,
+       "empty": false,
+       "checks": [
+        {
+         "type": "bullets",
+         "pass": true,
+         "detail": "3 marked of 3 lines"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 31,
+       "overPromptLimit": false,
+       "output": "- Reduces the risk of kidney stones and urinary tract infections.\n- Helps maintain healthy blood pressure and lowers the risk of heart disease.\n- Supports overall health by helping to flush out toxins and waste products from the body.",
+       "stopReason": "eos-token",
+       "decodeSteps": 47,
+       "seconds": 4.21,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0157,
+       "empty": false,
+       "checks": [
+        {
+         "type": "bullets",
+         "pass": true,
+         "detail": "3 marked of 3 lines"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 0
+    }
+   ]
+  },
+  {
+   "id": "fmt-json-eiffel",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "{\"city\": \"Paris\", \"country\": \"France\"}",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 36,
+       "overPromptLimit": false,
+       "output": "{\"city\": \"Paris\", \"country\": \"France\"}",
+       "stopReason": "eos-token",
+       "decodeSteps": 13,
+       "seconds": 2.1,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 1.313,
+       "empty": false,
+       "checks": [
+        {
+         "type": "json",
+         "pass": true,
+         "detail": "value {'city': 'Paris', 'country': 'France'}"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 36,
+       "overPromptLimit": false,
+       "output": "{\n  \"city\": \"Paris\",\n  \"country\": \"France\"\n}",
+       "stopReason": "eos-token",
+       "decodeSteps": 20,
+       "seconds": 2.55,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.366,
+       "empty": false,
+       "checks": [
+        {
+         "type": "json",
+         "pass": true,
+         "detail": "value {'city': 'Paris', 'country': 'France'}"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 0
+    }
+   ]
+  },
+  {
+   "id": "fmt-yes-no-prime",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "Yes (only)",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 27,
+       "overPromptLimit": false,
+       "output": "Yes",
+       "stopReason": "eos-token",
+       "decodeSteps": 2,
+       "seconds": 1.39,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.2857,
+       "empty": false,
+       "checks": [
+        {
+         "type": "onlyAnswer",
+         "pass": true,
+         "detail": "answer 'Yes'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 27,
+       "overPromptLimit": false,
+       "output": "yes",
+       "stopReason": "eos-token",
+       "decodeSteps": 2,
+       "seconds": 1.37,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 1.0246,
+       "empty": false,
+       "checks": [
+        {
+         "type": "onlyAnswer",
+         "pass": true,
+         "detail": "answer 'yes'"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 0
+    }
+   ]
+  },
+  {
+   "id": "fmt-numbered-countries",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "Four distinct South American countries as a numbered list, nothing else",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 28,
+       "overPromptLimit": false,
+       "output": "1. Brazil\n2. Argentina\n3. Chile\n4. Peru",
+       "stopReason": "eos-token",
+       "decodeSteps": 16,
+       "seconds": 2.67,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.286,
+       "empty": false,
+       "checks": [
+        {
+         "type": "numberedList",
+         "pass": true,
+         "detail": "4 marked of 4 lines; items ['brazil', 'argentina', 'chile', 'peru']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 28,
+       "overPromptLimit": false,
+       "output": "1. Brazil\n2. Argentina\n3. Chile\n4. Uruguay",
+       "stopReason": "eos-token",
+       "decodeSteps": 16,
+       "seconds": 2.27,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.3363,
+       "empty": false,
+       "checks": [
+        {
+         "type": "numberedList",
+         "pass": true,
+         "detail": "4 marked of 4 lines; items ['brazil', 'argentina', 'chile', 'uruguay']"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 14
+    }
+   ]
+  },
+  {
+   "id": "fmt-haiku-lines",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "Exactly three lines (syllables are not checked)",
+   "origin": null,
+   "classification": "both pass",
+   "arms": {
+    "q4k": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 27,
+       "overPromptLimit": false,
+       "output": "Golden yellow falls,\nSoft and crisp,\nAutumn's quiet sigh.",
+       "stopReason": "eos-token",
+       "decodeSteps": 17,
+       "seconds": 2.3,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.0243,
+       "empty": false,
+       "checks": [
+        {
+         "type": "lines",
+         "pass": true,
+         "detail": "3 lines"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    },
+    "bf16": {
+     "turns": [
+      {
+       "turn": 1,
+       "promptTokenCount": 27,
+       "overPromptLimit": false,
+       "output": "Golden drops fall,\nSoft wind blows away,\nAutumn's quiet end.",
+       "stopReason": "eos-token",
+       "decodeSteps": 18,
+       "seconds": 2.41,
+       "reusedFrom": null,
+       "minMarginTop1Top2": 0.1834,
+       "empty": false,
+       "checks": [
+        {
+         "type": "lines",
+         "pass": true,
+         "detail": "3 lines"
+        }
+       ],
+       "pass": true
+      }
+     ],
+     "overPromptLimit": false,
+     "grading": "mechanical",
+     "pass": true,
+     "checksPass": true
+    }
+   },
+   "q4kVsBf16": [
+    {
+     "turn": 1,
+     "samePrompt": true,
+     "sameOutputTokens": false,
+     "firstTokenDivergence": 1
+    }
+   ]
+  }
+ ]
+}

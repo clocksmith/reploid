@@ -1,0 +1,476 @@
+{
+ "schema": "reploid.useful-answer-set/v1",
+ "name": "Reploid Launch 1 useful-answer set",
+ "frozenOn": "2026-10-14",
+ "model": {
+  "id": "qwen-3-5-0-8b-q4k-ehaf16",
+  "source": "Qwen/Qwen3.5-0.8B",
+  "sourceRevision": "2fc06364",
+  "deployedWeights": "Q4_K_M body and LM head, f16 embedding"
+ },
+ "settings": {
+  "chatTemplate": "Application template: Doppler formatChatMessages type qwen, thinking off (non-thinking prefill), no system message",
+  "decoding": "greedy (catalog temperature 0, topK 1, topP 1, repetitionPenalty 1, presencePenalty 0)",
+  "maxTokens": 1024,
+  "maxTokensSource": "installed catalog self/config/chat-models.json generation.maxTokens",
+  "promptTokenLimit": 250,
+  "promptTokenLimitReason": "The installed route currently cannot take much more than about 270 prompt tokens."
+ },
+ "rules": {
+  "itemPass": "An item passes for an arm when every check on every turn passes for that arm. Items with judgment 'human' have no mechanical checks; they are graded against their rubric and reported separately.",
+  "twoTurn": "Turn 2 is sent with the history [turn-1 user, the same arm's own turn-1 answer verbatim, turn-2 user], as the application builds it from completed messages.",
+  "promptLimit": "Every turn-1 prompt is at most 250 tokens by construction. If an arm's own turn-1 answer makes its turn-2 prompt exceed 250 tokens, turn 2 is still generated and checked for information, but the item is recorded as promptLimitExceeded and does not pass for that arm, because the installed route could not serve that prompt.",
+  "emptyAnswer": "An answer that is empty after trimming is a failed response, as the application rejects it. If turn 1 of a two-turn item is empty, turn 2 is not run and the item does not pass.",
+  "maxTokens": "An answer stopped at maxTokens is checked as delivered (truncated).",
+  "textNormalization": "Text checks see the delivered answer with Markdown emphasis markers (** and __) and backticks removed, curly quotes and apostrophes straightened, non-breaking spaces made plain and runs of spaces and tabs collapsed. Matching is case-insensitive unless caseSensitive is true."
+ },
+ "checkTypes": {
+  "contains": "The answer contains at least one ('any') or every ('all') listed string.",
+  "excludes": "The answer contains none of the listed strings.",
+  "regex": "Python re.search of the pattern finds a match.",
+  "notRegex": "Python re.search of the pattern finds no match.",
+  "number": "Some number written in the answer equals value within tolerance. Thousands separators and currency symbols are ignored; a minus sign counts only when it is not joined to a preceding letter or digit.",
+  "onlyAnswer": "After removing one surrounding code fence, backticks, emphasis markers, surrounding quotes and whitespace, and one trailing period or exclamation mark, the whole answer matches the pattern.",
+  "finalArray": "The last bracketed list of numbers in the answer, skipping any list equal to an 'ignore' entry (echoes of the input), equals 'equals'.",
+  "bullets": "Lines starting with -, *, + or a bullet character and a space are bullets. Their number equals 'count'. With 'only', every non-empty line is a bullet.",
+  "numberedList": "Lines starting with a number followed by '.' or ')' are items. Their number equals 'count'. With 'only', every non-empty line is an item. With 'itemsFrom', each item's text (emphasis and trailing punctuation removed) is one of the listed names, case-insensitive; with 'distinct', no name repeats.",
+  "lines": "After removing one surrounding code fence, the number of non-empty lines equals 'count'.",
+  "words": "Whitespace-separated tokens containing a letter or digit; their number is within 'min' and 'max'. With 'skipLeadIn', a first line ending in a colon (such as 'Here is a shorter version:') is not counted.",
+  "sentences": "Sentence-ending punctuation (., !, ?) followed by whitespace or the end, plus one if the last text lacks it; the count is within 'min' and 'max'. The abbreviations a.m., p.m., e.g., i.e., vs., Mr., Mrs., Ms. and Dr. do not end sentences. With 'skipLeadIn', a first line ending in a colon is not counted.",
+  "json": "After removing one surrounding code fence, the whole answer parses as a JSON object with exactly the listed keys; string values compare case-insensitively after trimming."
+ },
+ "items": [
+  {
+   "id": "fact-capital-australia",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "Canberra",
+   "turns": [
+    {"user": "What is the capital of Australia?",
+     "checks": [{"type": "contains", "any": ["Canberra"]}]}
+   ]
+  },
+  {
+   "id": "fact-pride-prejudice-author",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "Jane Austen",
+   "turns": [
+    {"user": "Who wrote Pride and Prejudice?",
+     "checks": [{"type": "contains", "any": ["Austen"]}]}
+   ]
+  },
+  {
+   "id": "fact-gold-symbol",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "Au",
+   "turns": [
+    {"user": "What is the chemical symbol for gold?",
+     "checks": [{"type": "regex", "pattern": "\\bAu\\b", "caseSensitive": true}]}
+   ]
+  },
+  {
+   "id": "fact-apollo11-year",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "1969",
+   "turns": [
+    {"user": "What year did Apollo 11 land on the Moon?",
+     "checks": [{"type": "number", "value": 1969, "tolerance": 0}]}
+   ]
+  },
+  {
+   "id": "fact-http-expansion",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "Hypertext Transfer Protocol",
+   "turns": [
+    {"user": "What does HTTP stand for?",
+     "checks": [{"type": "regex", "pattern": "hyper\\s*-?\\s*text\\s+transfer\\s+protocol"}]}
+   ]
+  },
+  {
+   "id": "fact-adult-bones",
+   "category": "factual",
+   "judgment": "mechanical",
+   "expected": "206",
+   "turns": [
+    {"user": "How many bones are in the adult human body?",
+     "checks": [{"type": "number", "value": 206, "tolerance": 0}]}
+   ]
+  },
+  {
+   "id": "expl-sky-blue",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "expected": "Sunlight is scattered by air molecules, and shorter (blue) wavelengths scatter more (Rayleigh scattering); at most about three sentences.",
+   "turns": [
+    {"user": "Why is the sky blue? Explain in two or three sentences.",
+     "checks": [{"type": "regex", "pattern": "scatter"},
+                {"type": "contains", "any": ["wavelength", "shorter", "short"]},
+                {"type": "words", "max": 120}]}
+   ]
+  },
+  {
+   "id": "expl-list-tuple",
+   "category": "explanation",
+   "judgment": "human",
+   "expected": "Lists are mutable, tuples are immutable.",
+   "rubric": "Pass if the answer says a tuple cannot be changed after creation (immutable) and a list can (mutable), and makes no false claim about mutability or basic syntax (lists use [], tuples use ()). Extra correct details are fine. Fail if mutability is swapped, missing, or contradicted anywhere in the answer.",
+   "turns": [
+    {"user": "What's the difference between a list and a tuple in Python?", "checks": []}
+   ]
+  },
+  {
+   "id": "expl-leap-year",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "expected": "Earth's orbit takes about 365.25 days (365 days and about 6 hours), so an extra day is added about every four years.",
+   "turns": [
+    {"user": "Why do we have leap years?",
+     "checks": [{"type": "regex", "pattern": "365\\s*[.,]\\s*2\\d*|365\\s+and\\s+(a|one)\\s+quarter|365\\s*(¼|1/4)|quarter(\\s+of\\s+a)?\\s+day|(5|6|five|six)\\s+hours|0\\.2[45]\\d*\\s+(of\\s+a\\s+)?days?|1/4\\s+(of\\s+a\\s+)?day"}]}
+   ]
+  },
+  {
+   "id": "expl-weather-climate",
+   "category": "explanation",
+   "judgment": "human",
+   "expected": "Weather is short-term conditions; climate is the long-term average or pattern.",
+   "rubric": "Pass if the answer says weather is the short-term state of the atmosphere (hours to days) and climate is the long-term average or typical pattern for a region (years to decades, often 30 years), with no swapped or contradictory definitions. Fail if they are described as the same thing, swapped, or if either definition is missing.",
+   "turns": [
+    {"user": "What is the difference between weather and climate?", "checks": []}
+   ]
+  },
+  {
+   "id": "expl-http-404",
+   "category": "explanation",
+   "judgment": "mechanical",
+   "expected": "The server could not find the requested page or resource.",
+   "turns": [
+    {"user": "What does a 404 error mean when I open a website?",
+     "checks": [{"type": "contains", "any": ["not found", "could not be found", "couldn't be found", "cannot be found", "can't be found", "can not be found", "could not find", "couldn't find", "cannot find", "can't find", "doesn't exist", "does not exist", "no longer exists"]}]}
+   ]
+  },
+  {
+   "id": "code-double-evens",
+   "category": "code",
+   "judgment": "mechanical",
+   "origin": "answer-cause-20261014 turn 1; delivered Q4_K answer stated [2, 4, 6, 8]",
+   "expected": "States the result [4, 8]",
+   "turns": [
+    {"user": "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].",
+     "checks": [{"type": "finalArray", "equals": [4, 8], "ignore": [[1, 2, 3, 4]]}]}
+   ]
+  },
+  {
+   "id": "code-sum-squares",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "States the result 14",
+   "turns": [
+    {"user": "Write a Python function sum_of_squares(nums) that returns the sum of the squares of a list of numbers. What does it return for [1, 2, 3]?",
+     "checks": [{"type": "number", "value": 14, "tolerance": 0}]}
+   ]
+  },
+  {
+   "id": "code-reverse-string",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "States the result \"desserts\"",
+   "turns": [
+    {"user": "Write a JavaScript function that reverses a string, and show what it returns for \"stressed\".",
+     "checks": [{"type": "contains", "any": ["desserts"]}]}
+   ]
+  },
+  {
+   "id": "code-python-slice",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "[2, 3, 4]",
+   "turns": [
+    {"user": "What does this Python code print? Answer with just the output.\n\nx = [1, 2, 3, 4, 5]\nprint(x[1:4])",
+     "checks": [{"type": "finalArray", "equals": [2, 3, 4], "ignore": [[1, 2, 3, 4, 5]]}]}
+   ]
+  },
+  {
+   "id": "code-js-default-sort",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "[1, 10, 5] (default sort compares strings)",
+   "turns": [
+    {"user": "What does this JavaScript code log? Answer with just the output.\n\nconst nums = [5, 1, 10];\nnums.sort();\nconsole.log(nums);",
+     "checks": [{"type": "finalArray", "equals": [1, 10, 5], "ignore": [[5, 1, 10]]}]}
+   ]
+  },
+  {
+   "id": "code-count-vowels",
+   "category": "code",
+   "judgment": "mechanical",
+   "expected": "States the result 5",
+   "turns": [
+    {"user": "Write a Python function count_vowels(s) that counts the vowels a, e, i, o, u in a string. What does it return for \"education\"?",
+     "checks": [{"type": "number", "value": 5, "tolerance": 0}]}
+   ]
+  },
+  {
+   "id": "arith-multiply",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "408",
+   "turns": [
+    {"user": "What is 17 times 24?",
+     "checks": [{"type": "number", "value": 408, "tolerance": 0}]}
+   ]
+  },
+  {
+   "id": "arith-percent",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "12",
+   "turns": [
+    {"user": "What is 15% of 80?",
+     "checks": [{"type": "number", "value": 12, "tolerance": 0}]}
+   ]
+  },
+  {
+   "id": "arith-miles-km",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "About 8.05 km (8.0 to 8.1 accepted)",
+   "turns": [
+    {"user": "How many kilometers is 5 miles?",
+     "checks": [{"type": "number", "value": 8.05, "tolerance": 0.05}]}
+   ]
+  },
+  {
+   "id": "arith-f-to-c",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "About 37.8 degrees C (37.53 to 38.03 accepted)",
+   "turns": [
+    {"user": "Convert 100 degrees Fahrenheit to Celsius.",
+     "checks": [{"type": "number", "value": 37.78, "tolerance": 0.25}]}
+   ]
+  },
+  {
+   "id": "arith-discount",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "$60",
+   "turns": [
+    {"user": "A jacket costs $80 and is 25% off. What is the sale price?",
+     "checks": [{"type": "number", "value": 60, "tolerance": 0}]}
+   ]
+  },
+  {
+   "id": "arith-hours-seconds",
+   "category": "arithmetic",
+   "judgment": "mechanical",
+   "expected": "9000",
+   "turns": [
+    {"user": "How many seconds are in 2.5 hours?",
+     "checks": [{"type": "number", "value": 9000, "tolerance": 0}]}
+   ]
+  },
+  {
+   "id": "fu-double-evens",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "origin": "answer-cause-20261014 turn 2; delivered Q4_K answer was [-6, 12, 18]. Turn 1 is the code-double-evens prompt and is scored there, not here.",
+   "expected": "Turn 2 states [-4, 12]",
+   "turns": [
+    {"user": "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].",
+     "checks": []},
+    {"user": "Using that same function, what is returned for [-2, 3, 6]? Answer only with the array.",
+     "checks": [{"type": "finalArray", "equals": [-4, 12], "ignore": [[-2, 3, 6]]}]}
+   ]
+  },
+  {
+   "id": "fu-rectangle",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 1: 40 (square cm); turn 2: 26 (cm)",
+   "turns": [
+    {"user": "A rectangle is 8 cm long and 5 cm wide. What is its area?",
+     "checks": [{"type": "number", "value": 40, "tolerance": 0}]},
+    {"user": "And what is its perimeter?",
+     "checks": [{"type": "number", "value": 26, "tolerance": 0}]}
+   ]
+  },
+  {
+   "id": "fu-translate",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 1: gracias; turn 2: merci",
+   "turns": [
+    {"user": "How do you say \"thank you\" in Spanish?",
+     "checks": [{"type": "contains", "any": ["gracias"]}]},
+    {"user": "And in French?",
+     "checks": [{"type": "contains", "any": ["merci"]}]}
+   ]
+  },
+  {
+   "id": "fu-cookies",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 1: 16; turn 2: 2",
+   "turns": [
+    {"user": "I have 20 cookies and eat 4. How many are left?",
+     "checks": [{"type": "number", "value": 16, "tolerance": 0}]},
+    {"user": "If I share the rest equally among 8 friends, how many does each friend get?",
+     "checks": [{"type": "number", "value": 2, "tolerance": 0}]}
+   ]
+  },
+  {
+   "id": "fu-palindrome",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 1: an is_palindrome function; turn 2: True",
+   "turns": [
+    {"user": "Write a short Python function is_palindrome(s) that checks if a string reads the same forwards and backwards, ignoring case. Just the code.",
+     "checks": [{"type": "regex", "pattern": "def\\s+is_palindrome\\s*\\(", "caseSensitive": true}]},
+    {"user": "What does it return for \"Racecar\"?",
+     "checks": [{"type": "regex", "pattern": "\\bTrue\\b", "caseSensitive": true},
+                {"type": "notRegex", "pattern": "\\bFalse\\b", "caseSensitive": true}]}
+   ]
+  },
+  {
+   "id": "fu-primary-colors",
+   "category": "follow-up",
+   "judgment": "mechanical",
+   "expected": "Turn 1: red, green, blue; turn 2: red",
+   "turns": [
+    {"user": "What are the three primary colors of light?",
+     "checks": [{"type": "contains", "all": ["red", "green", "blue"]}]},
+    {"user": "Which of them has the longest wavelength? Answer in one word.",
+     "checks": [{"type": "onlyAnswer", "pattern": "red"}]}
+   ]
+  },
+  {
+   "id": "rw-grammar",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "expected": "They're going to the store tomorrow to buy some apples.",
+   "turns": [
+    {"user": "Fix the spelling and grammar in this sentence and reply with only the corrected sentence:\n\nTheir going to the store tomorow to by some apple's.",
+     "checks": [{"type": "regex", "pattern": "\\b(they're|they are)\\s+going\\b"},
+                {"type": "regex", "pattern": "\\btomorrow\\b"},
+                {"type": "regex", "pattern": "\\bto\\s+buy\\b"},
+                {"type": "regex", "pattern": "\\bapples\\b"},
+                {"type": "excludes", "any": ["tomorow", "apple's", "their going"]},
+                {"type": "notRegex", "pattern": "\\bto\\s+by\\b"}]}
+   ]
+  },
+  {
+   "id": "rw-polite",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "expected": "A polite request for the report by Friday",
+   "turns": [
+    {"user": "Rewrite this message so it sounds more polite: \"Send me the report by Friday. I need it.\"",
+     "checks": [{"type": "contains", "any": ["please", "could you", "would you", "would it be possible", "kindly", "appreciate", "grateful"]},
+                {"type": "contains", "all": ["Friday", "report"]}]}
+   ]
+  },
+  {
+   "id": "rw-summary-library",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "expected": "One sentence saying the library is extending its weekday hours",
+   "turns": [
+    {"user": "Summarize this paragraph in one sentence:\n\nStarting March 3, the Oakridge Public Library will change its weekday hours. It will open at 8 am instead of 9 am and close at 9 pm instead of 8 pm, giving visitors two extra hours each day. Weekend hours will stay the same. The library says the change responds to a survey in which most residents asked for earlier mornings and later evenings.",
+     "checks": [{"type": "sentences", "max": 1, "skipLeadIn": true},
+                {"type": "words", "max": 45, "skipLeadIn": true},
+                {"type": "contains", "any": ["library"]},
+                {"type": "regex", "pattern": "extend|longer|earlier|later|extra|more hours|additional"}]}
+   ]
+  },
+  {
+   "id": "rw-recall-bullets",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "expected": "Two bullets: the heaters can overheat (fire risk); stop using them and get a free replacement",
+   "turns": [
+    {"user": "Summarize this in exactly two bullet points:\n\nBrightHome is recalling about 12,000 SmoothHeat space heaters sold between June and August. The heaters can overheat on the highest setting, creating a fire risk. No injuries have been reported. Owners should stop using the heaters right away and contact BrightHome for a free replacement.",
+     "checks": [{"type": "bullets", "count": 2, "only": false},
+                {"type": "contains", "any": ["overheat", "fire"]},
+                {"type": "contains", "any": ["stop using", "replacement", "replace"]}]}
+   ]
+  },
+  {
+   "id": "rw-shorten-email",
+   "category": "rewrite",
+   "judgment": "mechanical",
+   "expected": "Under 30 words, keeping Thursday, 2 pm and Conference Room B",
+   "turns": [
+    {"user": "Shorten this email to under 30 words. Keep the meeting day, time and room.\n\nHi team, I hope everyone had a great weekend. I wanted to let you all know that our weekly planning meeting has been moved from its usual time. It will now take place on Thursday at 2 pm in Conference Room B. Please update your calendars. Thanks so much, Dana",
+     "checks": [{"type": "words", "max": 29, "skipLeadIn": true},
+                {"type": "contains", "any": ["Thursday"]},
+                {"type": "regex", "pattern": "\\b2(:00)?\\s*(pm|p\\.m\\.)|\\b14:00\\b"},
+                {"type": "regex", "pattern": "room\\s+b\\b"}]}
+   ]
+  },
+  {
+   "id": "fmt-one-word-banana",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "Yellow (one word)",
+   "turns": [
+    {"user": "What color is a ripe banana? Answer in one word.",
+     "checks": [{"type": "onlyAnswer", "pattern": "yellow"}]}
+   ]
+  },
+  {
+   "id": "fmt-three-bullets",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "Exactly three bullet lines and nothing else",
+   "turns": [
+    {"user": "Give me exactly 3 bullet points on the benefits of drinking water, with no other text.",
+     "checks": [{"type": "bullets", "count": 3, "only": true}]}
+   ]
+  },
+  {
+   "id": "fmt-json-eiffel",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "{\"city\": \"Paris\", \"country\": \"France\"}",
+   "turns": [
+    {"user": "Return only a JSON object with the keys \"city\" and \"country\" for the location of the Eiffel Tower.",
+     "checks": [{"type": "json", "equals": {"city": "Paris", "country": "France"}}]}
+   ]
+  },
+  {
+   "id": "fmt-yes-no-prime",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "Yes (only)",
+   "turns": [
+    {"user": "Is 17 a prime number? Reply with only yes or no.",
+     "checks": [{"type": "onlyAnswer", "pattern": "yes"}]}
+   ]
+  },
+  {
+   "id": "fmt-numbered-countries",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "Four distinct South American countries as a numbered list, nothing else",
+   "turns": [
+    {"user": "List four countries in South America as a numbered list, with no other text.",
+     "checks": [{"type": "numberedList", "count": 4, "only": true, "distinct": true,
+                 "itemsFrom": ["Argentina", "Bolivia", "Brazil", "Chile", "Colombia", "Ecuador", "Guyana", "Paraguay", "Peru", "Suriname", "Uruguay", "Venezuela"]}]}
+   ]
+  },
+  {
+   "id": "fmt-haiku-lines",
+   "category": "format",
+   "judgment": "mechanical",
+   "expected": "Exactly three lines (syllables are not checked)",
+   "turns": [
+    {"user": "Write a haiku about autumn leaves. Reply with only the haiku.",
+     "checks": [{"type": "lines", "count": 3}]}
+   ]
+  }
+ ]
+}
