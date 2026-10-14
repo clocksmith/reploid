@@ -51,6 +51,8 @@ export interface ChatRequest {
 export interface ChatEnvelope { threadId: string; attemptId: string }
 export interface ChatApproval extends ChatEnvelope {
   id: string; peerId: string; expiresAt: number; recipientIdentity?: string | null; reusable?: boolean;
+  /** Optional bounded execution window beginning when first-use permission is granted. */
+  executionTimeoutMs?: number;
   /** Set by the workspace when no stored remote permission covers this disclosure; nothing is sent meanwhile. */
   permissionNeed?: RemotePermissionNeed;
   [key: string]: unknown;
@@ -108,6 +110,7 @@ export interface ChatControls {
   onDelta(envelope: ChatEnvelope & { text: string; sequence: number }): void;
   onState(envelope: ChatEnvelope & { status: string; execution?: Record<string, unknown> }): void;
   requestApproval(preview: ChatApproval): Promise<boolean>;
+  authorizationExpiresAt?(): number | null;
 }
 /** Live host authorization for this Send/Retry only. Never persisted or reused. */
 export interface ChatSendOptions {

@@ -326,8 +326,8 @@
     },
     {
       "path": "chat/index.d.ts",
-      "bytes": 10714,
-      "sha256": "70b282baf80b7740d2f0d9ccbb02e8cd79c7ce332a8cccb27a8d4e570d93f517"
+      "bytes": 10880,
+      "sha256": "1d09bffb3dbf5db04ca07db4916a4850ed47f99f2b1fafc0679d2aaf70b59b0d"
     },
     {
       "path": "chat/index.js",
@@ -386,8 +386,8 @@
     },
     {
       "path": "chat/workspace.js",
-      "bytes": 31758,
-      "sha256": "0035167ce50340993941e0d63d6b43fa07383d92d99aa05cb6eec409e7a5c8fd"
+      "bytes": 32779,
+      "sha256": "3e090c95fef10bbb657531d9e2ad5ff5ab41550ca51bce5954d3a5e5f448d1a2"
     },
     {
       "path": "config/defaults.json",
@@ -666,8 +666,8 @@
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.js",
-      "bytes": 36321,
-      "sha256": "6d3b62e5397d0cb33becd5e0c63a1bda396fd4f2f2ab8c0cd0b0e330bdced546"
+      "bytes": 36474,
+      "sha256": "3204350fcbfc943dc045f25296f3b65faceade75efda443e7e8a0fafdf6ebb61"
     },
     {
       "path": "mesh/partitions/automatic-partitions.d.ts",
@@ -676,8 +676,8 @@
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
-      "bytes": 19674,
-      "sha256": "497a8b38592b98f2873fabb4f4c3c7534e96faa7d276259741c72e7e6381925a"
+      "bytes": 19827,
+      "sha256": "f9b19e3f34f9b41914115e9970f8070d51d76c81f53a4051ba7dd8a8b78e1ed1"
     },
     {
       "path": "mesh/partitions/partition-canonical-contract.d.ts",

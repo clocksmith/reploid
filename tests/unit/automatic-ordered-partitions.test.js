@@ -160,6 +160,22 @@ describe('explicit ordered automatic participation (injected discovery and numer
     expect(f.entry.generate.mock.calls[0][0]).toMatchObject({ schema: 'reploid.partition-input/v3', route: f.route, disclosureExpiresAt: approval.mock.calls[0][0].expiresAt });
     expect(deltas[0]).toMatchObject({ threadId: 'thread', attemptId: 'attempt', text: 'ok' });
   });
+  it('starts the admitted execution deadline after first-use permission, retaining a bounded window', async () => {
+    const f = await fixture(null); f.discovery.capabilities = f.capabilities(true);
+    const clock = vi.spyOn(Date, 'now'), start = Date.now();
+    clock.mockReturnValue(start);
+    let preview, deadline;
+    try {
+      await f.mesh.generate({ model: f.fullModel(), messages: [{role:'user',content:'Hello'}], threadId:'thread', attemptId:'attempt' }, {
+        requestApproval: async value => { preview = value; clock.mockReturnValue(start + 1000); deadline = Date.now() + value.executionTimeoutMs; return true; },
+        authorizationExpiresAt: () => deadline
+      });
+      const sent = f.entry.generate.mock.calls[0][0];
+      expect(sent.disclosureExpiresAt).toBe(preview.expiresAt + 1000);
+      expect(sent.disclosureExpiresAt - Date.now()).toBe(preview.executionTimeoutMs);
+    } finally { clock.mockRestore(); await f.mesh.close(); }
+  });
+
   it('rejects route replacement after approval rather than disclosing to new recipients', async () => {
     const f = await fixture(null); f.discovery.capabilities = f.capabilities(true);
     const changed = f.fullModel(); changed.partition.route.stages[1].residentId = 'other';

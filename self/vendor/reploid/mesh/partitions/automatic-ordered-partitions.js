@@ -411,12 +411,14 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       requireGenerationCapability(model, requested);
       const route = canonicalPartitionRoute(model.partition.route), identityBinding = { schema: 'reploid.partition-attempt/v2', route,
         requesterId: identity.peerId, threadId: request.threadId, attemptId: request.attemptId, placementGeneration: request.placementGeneration ?? 0 };
-      const disclosure = orderedPartitionDisclosure(identityBinding), expiresAt = Date.now() + config.grantMs;
+      const disclosure = orderedPartitionDisclosure(identityBinding);
+      let expiresAt = Date.now() + config.grantMs;
       const approved = await controls.requestApproval({ id: crypto.randomUUID(), threadId: request.threadId, attemptId: request.attemptId,
         operation: 'generate-partition', peerId: route.stages[0].participantId, recipientIdentity: route.stages[0].participantId,
-        ...structuredClone(model.partition), modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], disclosure, expiresAt,
+        ...structuredClone(model.partition), modelId: model.id, modelIdentity: model.identity, adapterIdentities: [], disclosure, expiresAt, executionTimeoutMs: config.grantMs,
         input: { messages: structuredClone(request.messages), ...(requested ? {generationRequest: requested} : {}), recipients: [...new Set([...disclosure.tokenRecipients, ...disclosure.outputRecipients])] } });
       signal.throwIfAborted(); assert(approved === true && Date.now() < expiresAt, 'Ordered disclosure declined or expired');
+      expiresAt = Math.min(controls.authorizationExpiresAt?.() ?? expiresAt, Date.now() + config.grantMs);
       const checked = await refreshed(entry, selected.transportId, model, signal);
       assert(checked.state.ready && checked.model && equal(checked.model.partition, model.partition), 'Approved ordered route changed; review a new attempt');
       signal.throwIfAborted(); assert(Date.now() < expiresAt, 'Ordered disclosure expired');
