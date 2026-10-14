@@ -10,17 +10,26 @@ import { loadConfig, loadRoom, redactPrivateAddresses } from './config.mjs';
 import { classifyRequest, rangeBytes, observeChat } from './observe.mjs';
 
 export const SELECTORS = Object.freeze({
-  composerInput: '[data-composer-input]',            // conversation-workspace.js:50
-  send: '[data-composer-send]',                      // conversation-workspace.js:53, submit at :305-333
-  stop: '[data-composer-stop]',                      // conversation-workspace.js:54, session.cancel(selectedId) at :337
-  openModel: '[data-open-model]',                    // "Choose model", conversation-workspace.js:21; opens the thread rail at :104
-  modelSelect: '[data-active-model-select]',         // in the thread rail, conversation-workspace.js:17-27; change at :270
-  modelReady: '[data-model-control][data-activity="ready"]', // conversation-workspace.js:217
+  composerInput: '[data-composer-input]',            // conversation-workspace.js:52
+  send: '[data-composer-send]',                      // conversation-workspace.js:55, submit at :310-344 (creates the attempt only)
+  stop: '[data-composer-stop]',                      // conversation-workspace.js:56, hidden during review :238, session.cancel(selectedId) at :348
+  // Review shown before any remote disclosure: request-approval.js:7-10, rendered at conversation-workspace.js:47.
+  // Its dataset (request-approval.js:46-47) is what Approve submits (conversation-workspace.js:361-374).
+  review: '[data-chat-approval]',
+  approve: '[data-chat-approval] [data-approval-approve]',
+  decline: '[data-chat-approval] [data-approval-decline]',
+  reviewRecipients: '[data-permission-recipient]',  // permission-card.js:4, text from request-approval.js projectRequestApproval
+  reviewScope: '[data-permission-scope]',           // permission-card.js:4
+  reviewLabel: '[data-permission-review-label]',    // permission-card.js:5, "Review N messages"
+  reviewContent: '[data-permission-content]',       // permission-card.js:5, every message sent
+  openModel: '[data-open-model]',                    // "Choose model", conversation-workspace.js:22; opens the thread rail at :106
+  modelSelect: '[data-active-model-select]',         // in the thread rail, conversation-workspace.js:18-28; change at :275
+  modelReady: '[data-model-control][data-activity="ready"]', // conversation-workspace.js:220
   threadRail: '[data-toggle-thread-rail]',           // shell-view.js:41
-  threadItem: id => `[data-thread-item-id="${id}"]`, // conversation-list.js:12, select at conversation-workspace.js:304
+  threadItem: id => `[data-thread-item-id="${id}"]`, // conversation-list.js:12, select at conversation-workspace.js:309
   messageBody: id => `[data-message-id="${id}"] .chat-message-content`, // message-list.js:36-38
-  copy: id => `[data-message-id="${id}"] [data-copy-message]`,         // message-list.js:66, clipboard at conversation-workspace.js:338-345
-  retry: id => `[data-retry-attempt="${id}"]:not([disabled])`,          // message-list.js:65, session.retry at conversation-workspace.js:346-347
+  copy: id => `[data-message-id="${id}"] [data-copy-message]`,         // message-list.js:66, clipboard at conversation-workspace.js:350-356
+  retry: id => `[data-retry-attempt="${id}"]:not([disabled])`,          // message-list.js:65, session.retry at conversation-workspace.js:357-358 (review follows)
   failureStatus: id => `[data-message-id="${id}"] .chat-message-actions [role="status"]`, // message-list.js:63
   failureTechnical: id => `[data-message-id="${id}"] .chat-message-actions details pre`, // message-list.js:63
   inspectorToggle: '[data-toggle-inspector]',        // network-inspector.js:12, opens at :95
@@ -189,8 +198,8 @@ export async function openApp(page, url, timeout) {
 }
 
 /** The requester chooses the frozen ordered selection; it never assigns a stage. The model select
- * lives in the thread rail, which starts closed (conversation-workspace.js:103), so the rail is
- * opened through the application's own "Choose model" control (:104) first. */
+ * lives in the thread rail, which starts closed (conversation-workspace.js:105), so the rail is
+ * opened through the application's own "Choose model" control (:106) first. */
 export async function chooseOrderedModel(page, selectionId, timeout) {
   const control = page.locator(SELECTORS.openModel), select = page.locator(SELECTORS.modelSelect);
   const controls = await control.count();
@@ -207,10 +216,32 @@ export async function chooseOrderedModel(page, selectionId, timeout) {
   return select.inputValue();
 }
 
+/** Waits for the application's review of the pending remote request, records exactly what it shows
+ * (readable recipients and scope, the content label and text, and the recipient ids and attempt the
+ * view submits), then clicks Approve. The record is the informed-consent evidence checked against
+ * the stored authorization (checks.mjs approvalFailures). */
+export async function approveReview(page, timeout) {
+  const review = page.locator(SELECTORS.review);
+  await review.waitFor({ state: 'visible', timeout });
+  const shown = await review.evaluate((node, selectors) => {
+    const text = selector => node.querySelector(selector)?.textContent ?? null;
+    let recipientIds = null;
+    try { recipientIds = JSON.parse(node.dataset.recipients); } catch { recipientIds = null; }
+    return { threadId: node.dataset.threadId ?? null, attemptId: node.dataset.attemptId ?? null, previewId: node.dataset.previewId ?? null,
+      recipientIds, recipientsText: text(selectors.reviewRecipients), scopeText: text(selectors.reviewScope),
+      contentLabel: text(selectors.reviewLabel), contentText: text(selectors.reviewContent) };
+  }, SELECTORS);
+  const shownAt = now();
+  await page.locator(SELECTORS.approve).click({ timeout });
+  return { ...shown, shownAt, approvedAt: now() };
+}
+
+/** Send creates the attempt; nothing leaves the device until the review is approved. Returns the review record. */
 export async function send(page, text, timeout) {
   await page.locator(SELECTORS.composerInput).fill(text);
   await page.locator(`${SELECTORS.send}:not([disabled])`).waitFor({ timeout });
   await page.locator(SELECTORS.send).click();
+  return approveReview(page, timeout);
 }
 
 export async function selectThread(page, threadId) {

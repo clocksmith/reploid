@@ -3,11 +3,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
-import { SELECTORS, chooseOrderedModel, trackRequests, classifyInterruption, closeOtherTabs, transferBytes, withDeadline } from './harness.mjs';
+import { SELECTORS, chooseOrderedModel, send, trackRequests, classifyInterruption, closeOtherTabs, transferBytes, withDeadline } from './harness.mjs';
 import { interruptedResumeFailures, MIN_INTERRUPTED_PIECE_BYTES } from './contribution-checks.mjs';
 import { selectionId } from './test-fixtures.mjs';
 
-/** The rail starts closed (conversation-workspace.js:103); only the Choose model control opens it (:104). */
+/** The rail starts closed (conversation-workspace.js:105); only the Choose model control opens it (:106). */
 function fakePage({ controls = 1, opensRail = true } = {}) {
   const calls = []; let railOpen = false, value = '';
   const locator = selector => ({
@@ -45,6 +45,37 @@ test('model choice fails clearly when the control is ambiguous or the select sta
   const { page, calls } = fakePage({ opensRail: false });
   await assert.rejects(chooseOrderedModel(page, selectionId, 1000), /stayed hidden after Choose model opened the thread rail/);
   assert.ok(!calls.some(([kind]) => kind === 'selectOption'));
+});
+
+/** Send creates the attempt; the review (request-approval.js) must be read before Approve is clicked. */
+function fakeReviewPage({ reviewShown = true } = {}) {
+  const calls = [], shown = { threadId: 't1', attemptId: 'a1', previewId: 'p1', recipientIds: ['peer:a', 'peer:b', 'peer:c'],
+    recipientsText: 'Recipients: Computer 1 (stage 1 of 3), Computer 2 (stage 2 of 3), Computer 3 (stage 3 of 3)',
+    scopeText: 'Sends this message. Computer 1 receives the text; Computer 2 and Computer 3 receive it as model tokens and intermediate results.',
+    contentLabel: 'Review 1 message', contentText: 'user:\nquestion' };
+  const locator = selector => ({
+    fill: async text => calls.push(['fill', selector, text]),
+    click: async () => calls.push(['click', selector]),
+    waitFor: async ({ state } = {}) => {
+      calls.push(['waitFor', selector, state ?? 'visible']);
+      if (selector === SELECTORS.review && !reviewShown) throw Error('Timeout 1000ms exceeded');
+    },
+    evaluate: async (fn, selectors) => { calls.push(['read', selector]); assert.equal(selectors, SELECTORS); return structuredClone(shown); }
+  });
+  return { page: { locator }, calls, shown };
+}
+test('send records the displayed review, then clicks Approve; it never approves an unseen review', async () => {
+  const { page, calls, shown } = fakeReviewPage();
+  const record = await send(page, 'question', 1000);
+  assert.deepEqual(Object.fromEntries(Object.keys(shown).map(key => [key, record[key]])), shown);
+  assert.ok(record.shownAt <= record.approvedAt);
+  const read = calls.findIndex(([kind]) => kind === 'read'), approve = calls.findIndex(([kind, selector]) => kind === 'click' && selector === SELECTORS.approve);
+  const sent = calls.findIndex(([kind, selector]) => kind === 'click' && selector === SELECTORS.send);
+  assert.ok(sent >= 0 && read > sent && approve > read, 'Send, then read the review, then Approve');
+  assert.equal(SELECTORS.approve, '[data-chat-approval] [data-approval-approve]');
+  const hidden = fakeReviewPage({ reviewShown: false });
+  await assert.rejects(send(hidden.page, 'question', 1000), /Timeout/);
+  assert.ok(!hidden.calls.some(([kind, selector]) => kind === 'click' && selector === SELECTORS.approve));
 });
 
 const MiB = 1048576, ORIGIN = 'http://127.0.0.1:29670';

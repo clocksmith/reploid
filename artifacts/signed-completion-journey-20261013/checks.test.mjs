@@ -71,7 +71,23 @@ rejects('another model chosen', 'modelChoice', report => { report.modelChoice.se
 rejects('approved recipients that differ from the frozen route', 'recipientApproval', report => {
   last(report).authorization.route = routeOf([PEERS.mac, PEERS.amd, PEERS.tabA]);
 });
-rejects('an attempt not approved by Send', 'recipientApproval', report => { report.turns[0].attempts[0].authorization.source = 'thread-grant'; });
+rejects('an attempt not approved in its review', 'recipientApproval', report => { report.turns[0].attempts[0].authorization.source = 'send'; });
+// Informed consent: the stored authorization must equal what the person was shown before Approve.
+rejects('an approval with no recorded review', 'recipientApproval', report => { report.reviews = report.reviews.filter(row => row.attemptId !== 'a1'); },
+  /Turn1 has no recorded review/);
+rejects('approved recipients that differ from the displayed review', 'recipientApproval', report => {
+  report.turns[0].attempts[0].authorization.recipients = [PEERS.mac, PEERS.intel, PEERS.amd];
+}, /differ from the displayed review/);
+rejects('a displayed route that differs from the frozen route', 'recipientApproval', report => {
+  report.reviews[0].recipientIds = [PEERS.mac, PEERS.amd, PEERS.tabA]; report.turns[0].attempts[0].authorization.recipients = [PEERS.mac, PEERS.amd, PEERS.tabA];
+}, /displayed recipients differ from the frozen route/);
+rejects('a review showing raw peer identities', 'recipientApproval', report => { report.reviews[0].recipientsText += ` ${PEERS.amd}`; }, /raw identities/);
+rejects('a review without stage roles', 'recipientApproval', report => { report.reviews[0].recipientsText = 'Recipients: 3 computers'; }, /role/);
+rejects('a follow-up review that hides the earlier messages', 'recipientApproval', report => {
+  report.reviews[1].scopeText = report.reviews[0].scopeText;
+}, /earlier messages/);
+rejects('a retry approved without its own review', 'explicitRetry', report => { report.reviews = report.reviews.filter(row => row.attemptId !== 'ar'); },
+  /Retry has no recorded review/);
 rejects('tabs that never executed simultaneously', 'concurrency', report => { report.concurrency.pairedSamples = [{ statuses: ['executing', 'queued'] }]; });
 // Independence was asserted through REPLOID_INSTANCE_ID, which the product route never sets (only
 // self/kernel/boot.js:160 does), so it could not pass for real independent requesters. One connected

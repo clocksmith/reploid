@@ -78,12 +78,30 @@ export function completedAttemptFailures(thread, attempt, freeze, label) {
   return failures;
 }
 
-/** Send authorizes the exact recipients (self/ui/pool-home/CATSCAN.md:28-30); the
- * stored authorization must name the frozen route the attempt then executed. */
-export function approvalFailures(attempt, freeze, label) {
+/** Send/Retry only creates the attempt; the application then shows a review (self/ui/pool-home/request-approval.js)
+ * and Approve records the displayed recipients (packages/reploid/src/chat/workspace.js approve). The harness
+ * recorded that review (harness.mjs approveReview). The stored authorization must name exactly the displayed
+ * recipients, which must be the frozen route the attempt then executed, shown by name and role, never raw ids,
+ * with the scope stating the earlier messages sent. */
+export function approvalFailures(attempt, freeze, label, reviews = []) {
   const { failures, require } = checker();
   const auth = attempt?.authorization, stages = Array.isArray(auth?.route?.stages) ? auth.route.stages : [];
-  require(auth?.source === 'send' && auth.kind === 'once', `${label} recipients were not approved by this attempt's Send or Retry`);
+  const frozen = freeze.route.map(stage => stage.participantId), review = (reviews || []).find(row => row?.attemptId === attempt?.id);
+  require(auth?.source === 'approval' && auth.kind === 'once', `${label} recipients were not approved in this attempt's review`);
+  require(!!review, `${label} has no recorded review before Approve`);
+  require(isDeepStrictEqual(review?.recipientIds, frozen), `${label} displayed recipients differ from the frozen route`);
+  require(isDeepStrictEqual(auth?.recipients, review?.recipientIds), `${label} approved recipients differ from the displayed review`);
+  const shown = `${review?.recipientsText ?? ''}\n${review?.scopeText ?? ''}`;
+  require(frozen.every((_, index) => shown.includes(`stage ${index + 1} of ${frozen.length}`)), `${label} review does not name every stage's role`);
+  require(!/peer:|transport-|\b\d{1,3}(\.\d{1,3}){3}\b/.test(shown), `${label} review shows raw identities or network addresses`);
+  require(/receives the text|text stays on this device/.test(review?.scopeText ?? ''), `${label} review does not state the disclosure scope`);
+  const sent = attempt?.request?.messages;
+  if (Array.isArray(sent)) {
+    const earlier = sent.filter(message => message.role !== 'system').length - 1;
+    require(review?.contentLabel?.startsWith(`Review ${sent.length} message`), `${label} review did not offer every message sent`);
+    require(earlier < 1 || review?.scopeText?.includes(`${earlier} earlier message`), `${label} review did not state the earlier messages sent`);
+    require(sent.every(message => review?.contentText?.includes(message.content)), `${label} review content differs from the messages sent`);
+  }
   require(auth?.disclosure === ORDERED_DISCLOSURE, `${label} approval does not cover ordered activations and tokens`);
   require(stages.length === freeze.route.length && freeze.route.every((frozen, index) => stages[index]?.participantId === frozen.participantId),
     `${label} approved recipients differ from the frozen route`);
@@ -225,7 +243,7 @@ function retryFailures(report, freeze) {
   require(last && last.id !== retry?.failedAttemptId && last.retryOf === retry?.failedAttemptId && final.attempts.length === retry.failed.attempts.length + 1,
     'Explicit retry did not start exactly one new attempt linked to the failure');
   require(isDeepStrictEqual(final?.messages?.slice(0, retry?.failed?.messages?.length), retry?.failed?.messages), 'Retry changed earlier messages or the preserved partial answer');
-  failures.push(...completedAttemptFailures(final, last, freeze, 'Retry'), ...approvalFailures(last, freeze, 'Retry'));
+  failures.push(...completedAttemptFailures(final, last, freeze, 'Retry'), ...approvalFailures(last, freeze, 'Retry', report.reviews));
   const receipt = (report.coordinator?.receipts || []).find(row => row?.identity?.attemptId === retry?.failedAttemptId);
   require(receipt && ['cancelled', 'failed'].includes(receipt.phase) && receipt.cleanup?.length === freeze.route.length
     && receipt.cleanup.every(row => row?.status === 'settled'), 'Coordinator did not settle every stage of the failed attempt');
@@ -266,8 +284,8 @@ export function assessJourney(report, fixture, freeze, { selectionId, concurrenc
   const results = {
     open: run(() => openFailures(report, freeze)),
     modelChoice: run(() => modelChoiceFailures(report, freeze, selectionId)),
-    recipientApproval: run(() => [...(report.turns || []).map((thread, index) => approvalFailures(thread.attempts.at(-1), freeze, `Turn${index + 1}`)).flat(),
-      ...(report.concurrency?.tabs || []).filter(tab => tab.role === 'survivor').flatMap((tab, index) => approvalFailures(tab.final?.attempts?.at(-1), freeze, `Neighbour${index + 1}`)),
+    recipientApproval: run(() => [...(report.turns || []).map((thread, index) => approvalFailures(thread.attempts.at(-1), freeze, `Turn${index + 1}`, report.reviews)).flat(),
+      ...(report.concurrency?.tabs || []).filter(tab => tab.role === 'survivor').flatMap((tab, index) => approvalFailures(tab.final?.attempts?.at(-1), freeze, `Neighbour${index + 1}`, report.reviews)),
       ...((report.turns || []).length ? [] : ['No approved attempt observed'])]),
     selectiveAcquisition: run(() => selectiveAcquisitionFailures(report)),
     streaming: pick('streaming'),
@@ -286,8 +304,8 @@ export function assessJourney(report, fixture, freeze, { selectionId, concurrenc
   return { automatedPass: failures.length === 0, lifecycleAndInteractionPass: failures.length === 0, failures, checks,
     semanticAcceptance: null, overallAcceptance: false, usefulConversationQualified: false,
     manualReview: { answerUsefulness: null, criteria: fixture.reviewCriteria.slice(0, 4), reviewer: null,
-      // Send is the authorization (self/ui/pool-home/CATSCAN.md:28-30); no recipient list is shown before it.
-      // REP-7 docs/roadmap/requirements.md:145 asks for readable recipients with Approve/Decline. Not decided here.
+      // recipientApproval checks the recorded review (report.reviews) against the stored authorization.
+      // Whether its wording reads as informed consent (REP-7 docs/roadmap/requirements.md:145) is a person's call.
       recipientDisclosureContract: null },
     redispatchScope: 'No changed attempt/history or running attempt during the recorded return interval; not proof about all future execution.' };
 }
