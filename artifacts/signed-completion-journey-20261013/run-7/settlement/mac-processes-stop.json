@@ -1,0 +1,1 @@
+{"schema":"reploid.run-7-mac-settlement/v1","machine":"mac-host","at":"2026-10-14T19:05:09Z","sigterm":"supplier-chrome:61866 app-server:10561 console:10937 tunnel-amd:55067 tunnel-intel:55068 tunnel-acquirer:11098 health:55069","stillRunning":"","listenersOn29670to29674":0,"stage0Chrome":"closed by stage0-stop.mjs (settlement/stage0-stop-e.json)"}

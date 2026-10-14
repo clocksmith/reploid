@@ -1,0 +1,1 @@
+{"ok":false,"checks":{"refusedWithoutAllowance":true,"scopeVisibleBeforeApproval":true,"seededWhole":false,"peerAcquiresWholeModel":false,"reloadRebuildsWhole":false,"boundedDoesNotImplySeeding":true,"stopSettlesSeeding":false}}

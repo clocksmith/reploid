@@ -1,0 +1,497 @@
+
+DevTools listening on ws://127.0.0.1:29671/devtools/browser/77f4278f-7ac6-40eb-bc60-375fd13a9ac6
+Trying to load the allocator multiple times. This is *not* supported.
+[10637:31276029:1014/122010.271467:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[10637:31276107:1014/122010.271729:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[10637:31276029:1014/122010.273699:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[10637:31276107:1014/122010.273762:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[10637:31276029:1014/122010.274658:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[10637:31276107:1014/122010.274716:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[10637:31276029:1014/122010.274848:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[10637:31276107:1014/122010.274894:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[10637:31276029:1014/122010.274985:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[10637:31276107:1014/122010.275028:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+Created TensorFlow Lite XNNPACK delegate for CPU.
+[10630:31276013:1014/122012.789665:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+Created TensorFlow Lite XNNPACK delegate for CPU.
+[10729:31276771:1014/122029.304882:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake-all --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[10729:31276771:1014/122029.305284:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1304375, parent pid: 10630
+[10729:31276771:1014/122029.306627:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 5742788608B (5.348GiB) / 494384795648B (460.432GiB)
+[10729:31276771:1014/122029.306646:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 5742788608B (5.348GiB) / 494384795648B (460.432GiB)
+[10729:31276771:1014/122029.306694:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[10731:31276776:1014/122029.318123:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=157.0.8089.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[10731:31276776:1014/122029.318538:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1304375, parent pid: 1
+[10731:31276776:1014/122029.320207:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 5742784512B (5.348GiB) / 494384795648B (460.432GiB)
+[10731:31276776:1014/122029.320236:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 5742784512B (5.348GiB) / 494384795648B (460.432GiB)
+[10731:31276776:1014/122029.320338:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[10729:31276771:1014/122029.320757:VERBOSE1:chrome/updater/crash_reporter.cc:123] Crash handler launched and ready.
+[10729:31276771:1014/122029.321229:VERBOSE1:chrome/updater/crash_client.cc:109] Found 0 completed crash reports
+[10729:31276771:1014/122029.321287:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports
+[10729:31276771:1014/122029.321356:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)
+[10729:31276771:1014/122029.321367:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)
+[10729:31276771:1014/122029.321391:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)
+[10729:31276771:1014/122029.321419:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)
+[10729:31276771:1014/122029.321461:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/Chrome-headless/Crashpad/settings.dat: No such file or directory (2)
+[10729:31276771:1014/122029.321472:VERBOSE1:chrome/updater/updater.cc:107] Crash reporting initialized.
+[10729:31276784:1014/122029.321724:VERBOSE1:chrome/updater/app/app_wakeall.cc:58] Launching `/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake`
+[10732:31276790:1014/122029.336152:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[10732:31276790:1014/122029.336672:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1304375, parent pid: 10729
+[10732:31276790:1014/122029.338359:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 5742776320B (5.348GiB) / 494384795648B (460.432GiB)
+[10732:31276790:1014/122029.338390:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 5742776320B (5.348GiB) / 494384795648B (460.432GiB)
+[10732:31276790:1014/122029.338474:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[10734:31276796:1014/122029.349014:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=157.0.8089.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[10734:31276796:1014/122029.349420:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1304375, parent pid: 1
+[10734:31276796:1014/122029.350740:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 5742772224B (5.348GiB) / 494384795648B (460.432GiB)
+[10734:31276796:1014/122029.350763:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 5742772224B (5.348GiB) / 494384795648B (460.432GiB)
+[10734:31276796:1014/122029.350834:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[10732:31276790:1014/122029.351165:VERBOSE1:chrome/updater/crash_reporter.cc:123] Crash handler launched and ready.
+[10732:31276790:1014/122029.351652:VERBOSE1:chrome/updater/crash_client.cc:109] Found 0 completed crash reports
+[10732:31276790:1014/122029.351704:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports
+[10732:31276790:1014/122029.351766:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)
+[10732:31276790:1014/122029.351776:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)
+[10732:31276790:1014/122029.351804:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)
+[10732:31276790:1014/122029.351827:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)
+[10732:31276790:1014/122029.351865:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/Chrome-headless/Crashpad/settings.dat: No such file or directory (2)
+[10732:31276790:1014/122029.351875:VERBOSE1:chrome/updater/updater.cc:107] Crash reporting initialized.
+[10732:31276790:1014/122029.352004:VERBOSE1:chrome/updater/ipc/update_service_internal_proxy_mojo.cc:61] Run
+[10630:31276013:1014/122039.418354:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[10732:31276790:1014/122046.505286:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0
+[10732:31276790:1014/122046.505578:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[10732:31276790:1014/122046.505592:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--wake) returned 0.
+[10729:31276784:1014/122046.760474:VERBOSE1:chrome/updater/app/app_wakeall.cc:68] `/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake` exited 0
+[10729:31276771:1014/122046.760551:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0
+[10729:31276771:1014/122046.760865:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[10729:31276771:1014/122046.760879:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--wake-all) returned 0.
+[10734:31276796:1014/122056.517158:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[10734:31276796:1014/122056.517178:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--crash-handler) returned 0.
+[10731:31276776:1014/122056.517874:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[10731:31276776:1014/122056.518102:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--crash-handler) returned 0.
+[10630:31276013:1014/122132.210482:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: QUOTA_EXCEEDED
+[10643:31278889:1014/122236.409408:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:64478 (any)
+[10643:31278889:1014/122245.361310:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:57152 (any)
+[10643:31278889:1014/122333.034539:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:53588 (any)
+[10643:31278889:1014/122333.814371:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:57788 (any)
+[10643:31278889:1014/122619.363108:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:55930 (any)
+[10643:31278889:1014/122637.573886:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/122637.615334:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/122711.574948:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/122711.603735:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/122813.563920:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/122813.594822:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/122933.538751:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/122933.553168:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/123121.571768:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/123121.598080:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/123223.540111:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/123223.564692:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/123407.658732:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/123407.679729:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/123459.577297:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/123459.601242:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/123925.538610:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/123925.559731:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/124017.554531:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/124017.579255:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/124043.575703:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/124043.593621:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/124138.395233:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport3->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/124138.398791:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/124138.410436:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/124138.420974:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/124157.630306:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/124157.688012:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/124218.667039:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:58692 (any)
+[10643:31278889:1014/124231.024925:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:63164 (any)
+[10643:31278889:1014/124234.198748:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:59372 (any)
+[10643:31278889:1014/124403.544624:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/124403.562052:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/124409.552299:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/124409.575140:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/124442.979199:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport2->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/124442.981949:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/124442.995028:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/124443.054416:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport5->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/124443.057461:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/124443.064025:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/124443.244575:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport4->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/124443.249585:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/124443.312003:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport6->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/124443.315905:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/124443.322159:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/124443.360567:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport7->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/124443.364367:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/124443.370560:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/124443.381600:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/124621.446265:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport0->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/124621.470495:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/124621.486096:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/124621.498431:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/124623.080625:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport1->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/124623.116734:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/124623.144455:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/124705.480861:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:49525 (any)
+[10643:31278889:1014/124714.371069:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:49195 (any)
+[10643:31278889:1014/124730.809370:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:49615 (any)
+[10643:31278889:1014/124731.980594:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:58898 (any)
+[10643:31278889:1014/125027.965526:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62957 (any)
+[10643:31278889:1014/125258.129374:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/125258.559332:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/125332.126831:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/125332.141125:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/125450.127595:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/125450.154617:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/125714.152319:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/125714.165448:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/125716.143586:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/125716.571801:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/125720.125530:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/125720.142036:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/125840.202483:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/125840.368926:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/130040.156638:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/130040.173446:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/130108.167123:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/130108.200371:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/130216.128937:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/130216.143580:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/130525.554227:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport11->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/130525.557971:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/130525.569917:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/130525.579904:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/130605.792175:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:54361 (any)
+[10643:31278889:1014/130618.166681:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62013 (any)
+[10643:31278889:1014/130621.198315:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:59131 (any)
+[10643:31278889:1014/130724.127473:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/130724.138557:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/130806.128198:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/130806.155257:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/130833.876129:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport10->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/130833.879765:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/130833.892516:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/130833.954702:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport13->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/130833.958225:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/130833.965207:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/130834.069476:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport12->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/130834.075023:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/130834.113017:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport14->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/130834.117428:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/130834.123813:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/130834.160121:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport15->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/130834.164132:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/130834.170298:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/130834.180557:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/130853.159083:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport8->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/130853.189571:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/130853.205761:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/130853.217420:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/130854.980123:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport9->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/130855.024219:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/130855.048518:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/130938.323671:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:58176 (any)
+[10643:31278889:1014/130947.245737:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:58868 (any)
+[10643:31278889:1014/131003.355318:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:65055 (any)
+[10643:31278889:1014/131004.151921:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:60933 (any)
+[10643:31278889:1014/131247.293267:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:56983 (any)
+[10643:31278889:1014/131259.450570:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/131259.475950:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/131413.452129:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/131413.474476:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/131449.460976:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/131449.498656:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/132317.504880:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/132317.579311:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/133143.418869:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/133143.439396:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/133159.481649:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport19->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/133159.485502:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133159.499397:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133159.510646:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/133239.753431:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:55484 (any)
+[10643:31278889:1014/133252.411334:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:57907 (any)
+[10643:31278889:1014/133255.583743:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:64279 (any)
+[10643:31278889:1014/133453.603852:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport18->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/133453.606920:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133453.619921:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/133453.669319:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport21->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/133453.673227:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133453.680641:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/133453.801099:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport20->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/133453.806084:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/133453.860581:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport22->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/133453.864744:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133453.872283:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/133453.910717:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport23->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/133453.913287:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133453.919802:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133453.931844:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/133526.961564:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport16->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/133526.982649:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133526.997670:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133527.008902:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/133528.401476:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport17->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/133528.432892:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133528.455026:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/133610.878677:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:50421 (any)
+[10643:31278889:1014/133621.722108:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:63158 (any)
+[10643:31278889:1014/133638.161201:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62653 (any)
+[10643:31278889:1014/133910.806955:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport26->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/133910.811367:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133910.824171:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133910.834807:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/133915.214914:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport28->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/133915.219692:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/133915.233059:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/133922.971841:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:56395 (any)
+[10643:31278889:1014/133955.379995:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62879 (any)
+[10643:31278889:1014/133958.160866:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:59841 (any)
+[10643:31278889:1014/134031.080815:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/134031.095837:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/134251.074785:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/134251.087075:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/134453.079405:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/134453.092972:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/134524.363773:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport29->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/134524.367383:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/134524.380572:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/134524.683132:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport27->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/134524.691867:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/134524.737431:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport30->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/134524.741680:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/134524.748436:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/134524.759548:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/134524.792068:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport31->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/134524.796583:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/134524.803479:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/134528.959009:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport32->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/134528.963941:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/134528.976477:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/134609.081877:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:49480 (any)
+[10643:31278889:1014/134730.897052:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport33->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/134730.901091:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/134730.913590:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/134913.096771:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport24->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/134913.113342:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/134913.127203:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/134913.138656:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/134957.095074:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:54377 (any)
+[10643:31278889:1014/135007.956552:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:51461 (any)
+[10643:31278889:1014/135026.518403:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:54447 (any)
+[10643:31278889:1014/135227.796364:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/135227.809907:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/135256.415709:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport36->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/135256.420148:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135256.433694:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135256.445369:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/135258.203142:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/135258.235203:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/135300.724016:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport38->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/135300.727993:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135300.740826:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/135305.676670:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62351 (any)
+[10643:31278889:1014/135340.864706:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:59598 (any)
+[10643:31278889:1014/135344.081393:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:49385 (any)
+[10643:31278889:1014/135559.032497:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport39->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/135559.036467:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135559.048807:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/135559.418599:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport37->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/135559.423752:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/135559.483327:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport40->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/135559.485663:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135559.493456:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135559.505452:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/135559.551462:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport41->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/135559.556162:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135559.563123:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/135603.780171:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport42->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/135603.785112:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135603.797608:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/135643.895939:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:52654 (any)
+[10643:31278889:1014/135805.525247:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport43->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/135805.529860:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135805.542413:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/135927.090431:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport34->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/135927.106982:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135927.119883:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135927.130675:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/135928.712628:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport35->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/135928.746609:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/135928.769586:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/140011.180130:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:53201 (any)
+[10643:31278889:1014/140022.102631:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:50948 (any)
+[10643:31278889:1014/140033.632676:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:52714 (any)
+[10643:31278889:1014/140306.491268:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport46->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/140306.495586:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140306.509214:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140306.521327:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/140310.805763:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport48->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/140310.810881:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140310.824326:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/140317.477651:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:53875 (any)
+[10643:31278889:1014/140350.994111:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:49187 (any)
+[10643:31278889:1014/140353.900155:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:53865 (any)
+[10643:31278889:1014/140537.637920:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/140537.662592:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/140547.633540:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/140547.651920:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/140615.718376:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport49->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/140615.718846:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140615.731660:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/140616.060553:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport47->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/140616.060699:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/140616.116684:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport50->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/140616.119978:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140616.127920:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140616.140368:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/140616.175356:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport51->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/140616.179776:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140616.187167:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/140620.382650:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport52->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/140620.387023:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140620.399062:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/140700.511368:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:52728 (any)
+[10643:31278889:1014/140822.238805:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport53->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/140822.252336:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140822.264186:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/140917.244544:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport44->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/140917.262836:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140917.278255:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140917.290758:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/140918.946555:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport45->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/140918.971477:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/140918.994677:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/141001.340929:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62203 (any)
+[10643:31278889:1014/141010.247428:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:53917 (any)
+[10643:31278889:1014/141021.762665:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:56650 (any)
+[10643:31278889:1014/141241.223301:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/141241.252441:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/141246.841052:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport56->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/141246.845937:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/141246.859950:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/141246.872025:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/141251.170679:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport58->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/141251.176091:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/141251.189655:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/141301.061063:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:64941 (any)
+[10643:31278889:1014/141331.342768:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62245 (any)
+[10643:31278889:1014/141334.606725:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:55407 (any)
+[10643:31278889:1014/141503.241742:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[10643:31276133:1014/141503.256464:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[10643:31278889:1014/141541.711592:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport59->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/141541.718821:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/141541.743024:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/141541.985257:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport57->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/141542.000956:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/141542.041608:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport60->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/141542.051449:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/141542.063760:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/141542.085588:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/141542.103273:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport61->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/141542.112617:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/141542.125324:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/141546.744926:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport62->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/141546.755223:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/141546.778155:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/141626.874031:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:59985 (any)
+[10643:31278889:1014/141749.204578:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport63->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/141749.214918:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/141749.237918:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/141938.132818:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport54->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/141938.168514:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/141938.193296:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142102.646787:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport66->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/142102.652237:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142102.665036:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142102.676419:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142115.554307:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:57149 (any)
+[10643:31278889:1014/142124.586073:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:65406 (any)
+[10643:31278889:1014/142125.842160:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport64->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/142125.852906:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142125.867387:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142125.878982:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142127.727851:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport65->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/142127.761381:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142127.786023:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142210.165234:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:60015 (any)
+[10643:31278889:1014/142221.100940:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:51366 (any)
+[10643:31278889:1014/142238.024478:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:57179 (any)
+[10643:31278889:1014/142523.164630:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport69->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/142523.169415:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142523.183880:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142523.196623:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142527.522964:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport71->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/142527.528293:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142527.542348:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142535.696907:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:58441 (any)
+[10643:31278889:1014/142607.712814:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:49207 (any)
+[10643:31278889:1014/142610.510832:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:54343 (any)
+[10643:31278889:1014/142812.777602:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport72->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/142812.782149:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142812.795816:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142813.131407:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport70->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/142813.141174:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142813.196811:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport73->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/142813.201783:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142813.209478:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142813.222738:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142813.263987:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport74->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/142813.268048:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142813.275644:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142817.534592:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport75->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/142817.540328:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/142817.553520:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/142857.669188:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:54155 (any)
+[10643:31278889:1014/143019.421355:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport76->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/143019.426596:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/143019.439744:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/143038.640964:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport67->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/143038.664736:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/143038.680932:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/143038.693731:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/143040.405568:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport68->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/143040.476440:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/143040.497396:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/143040.518169:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/143122.920304:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:63151 (any)
+[10643:31278889:1014/143133.998204:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:63469 (any)
+[10643:31278889:1014/143153.013260:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:55993 (any)
+[10643:31278889:1014/143351.874702:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:63709 (any)
+[10643:31278889:1014/143831.611530:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport79->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/143831.617378:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/143831.632504:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/143831.646206:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/143849.040836:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport80->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/143849.062556:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/143849.078654:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/143849.091481:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/143850.883706:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport78->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/143850.913093:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/143850.937713:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/143934.079533:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62769 (any)
+[10643:31278889:1014/143943.721837:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:63840 (any)
+[10643:31278889:1014/144000.877196:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:49339 (any)
+[10643:31278889:1014/144941.117761:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport83->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/144941.124374:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/144941.140207:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/144941.155390:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/145021.382472:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:60457 (any)
+[10643:31278889:1014/145027.962070:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:60500 (any)
+[10643:31278889:1014/145031.086155:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:56225 (any)
+[10643:31278889:1014/145350.797974:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:61969 (any)
+[10643:31278889:1014/145448.099959:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport87->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/145448.102406:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/145448.118894:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/145448.132612:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/145528.423340:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62833 (any)
+[10643:31278889:1014/150313.162228:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport89->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/150313.169180:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/150313.184887:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/150313.200758:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/150453.576201:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport81->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/150453.600168:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/150453.619055:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/150453.634743:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31278889:1014/150455.108704:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport82->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[10643:31276133:1014/150455.133895:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10643:31276133:1014/150455.160662:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[10630:31276027:1014/150457.722531:ERROR:base/process/process_mac.cc:45] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)
+[10630:31276027:1014/150457.722886:ERROR:base/process/process_mac.cc:90] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)

@@ -1,0 +1,1534 @@
+{
+ "schema": "reploid.signed-completion-journey-run-7-results/v1",
+ "placement": "B: mac-host browser stage 0 (layers 0-7), intel-host native stage 1 (8-15), amd-host native stage 2 (16-23, output head)",
+ "capsule": "Doppler a40f02a1 chunked-prefill Capsule (prefillTokenChunkSize 16), test signing; release sequence 4 7f62c19a... for final-6 to final-8, sequence 5 70f24c97... (Doppler 71a3daf6, expires 2026-10-15T16:14:00Z) for final-9",
+ "deliveries": {
+  "final-6": "Reploid cec3ff6b, bundle sha256:dcd54bcb..., native descriptor 0d9536c9... (install-6)",
+  "final-7": "Reploid c44ec852, bundle sha256:ce082b11..., native descriptor 5b9db6a6... (install-7)",
+  "final-8": "Reploid 76296a53, bundle sha256:c2550a92..., native descriptor 725f1be3... (install-8)",
+  "final-9": "Reploid 1473eda7, bundle sha256:32eb747d..., native descriptor d18d96ba... (install-9)"
+ },
+ "harnesses": [
+  {
+   "harness": "requester",
+   "delivery": "final-6",
+   "attempt": "a",
+   "report": "reports/requester-journey-2026-10-14T13-59-34-436Z.json",
+   "browserBundle": "sha256:dcd54bcbf6074af14dc4d2c2e7464f7f76651f94b7f71c686496f8d5204a7723",
+   "ok": false,
+   "status": "automated acceptance failed",
+   "startedAt": "2026-10-14T13:59:34.436Z",
+   "finishedAt": "2026-10-14T14:08:18.937Z",
+   "stepErrors": [],
+   "checks": {
+    "open": {
+     "pass": true,
+     "failures": []
+    },
+    "modelChoice": {
+     "pass": true,
+     "failures": []
+    },
+    "recipientApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "selectiveAcquisition": {
+     "pass": false,
+     "failures": [
+      "Requester received or retained weights, or custody evidence is missing",
+      "A concurrent requester tab received weights or lacks custody evidence",
+      "Retry requester tab received weights or lacks custody evidence"
+     ]
+    },
+    "streaming": {
+     "pass": true,
+     "failures": []
+    },
+    "completion": {
+     "pass": false,
+     "failures": [
+      "Turn2 not complete",
+      "Turn2 natural EOS unobserved",
+      "Turn2 ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Turn2 cleanup rows do not cover every stage exactly once",
+      "Turn2 cleanup not confirmed: a cleanup row is unsettled",
+      "Turn2 settlement phase not completed",
+      "Turn2 not every stage was admitted",
+      "Turn2 not every stage executed every step"
+     ]
+    },
+    "followUp": {
+     "pass": true,
+     "failures": []
+    },
+    "copy": {
+     "pass": true,
+     "failures": []
+    },
+    "reload": {
+     "pass": false,
+     "failures": [
+      "Reload changed messages or attempts",
+      "Reload lost unsent draft",
+      "New/changed attempt observed after reload, or return observations missing",
+      "Bounded redispatch observation incomplete"
+     ]
+    },
+    "concurrency": {
+     "pass": false,
+     "failures": [
+      "Expected 2 concurrent independent requesters",
+      "Concurrent requests exceed the served route admission limit",
+      "Concurrent requests were never executing simultaneously",
+      "Exactly one cancelled tab and the rest surviving tabs required"
+     ]
+    },
+    "isolatedCancellation": {
+     "pass": false,
+     "failures": [
+      "Stopped request did not settle as a requester cancellation",
+      "Stopped request did not preserve its visible partial answer",
+      "Coordinator did not settle every stage of the cancelled attempt",
+      "No surviving neighbour observed"
+     ]
+    },
+    "explicitRetry": {
+     "pass": false,
+     "failures": [
+      "No unsuccessful attempt (other than a user stop) preceded the retry",
+      "Failed attempt did not retain its partial answer",
+      "An attempt was redispatched before the explicit retry",
+      "Explicit retry did not start exactly one new attempt linked to the failure",
+      "Retry not complete",
+      "Retry natural EOS unobserved",
+      "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Retry ordered route identity unobserved",
+      "Retry route binds a different model or plan than the freeze",
+      "Retry distinct route contributors (0) differ from the frozen route (3)",
+      "Retry route stages differ from the frozen stage order",
+      "Retry requester was assigned a stage",
+      "Retry cleanup rows do not cover every stage exactly once",
+      "Retry cleanup not confirmed: a cleanup row is unsettled",
+      "Retry settlement phase not completed",
+      "Retry not every stage was admitted",
+      "Retry not every stage executed every step",
+      "Retry was not sent under the stored contributor permission",
+      "Retry cites no recorded contributor permission",
+      "Retry permission does not cover this ordered disclosure, sharing scope and model",
+      "Retry permission screen did not say the conversation, earlier messages and context prompt are sent to this network",
+      "Retry permission screen did not say who receives the text, tokens and intermediate results",
+      "Retry recorded recipients differ from the frozen route",
+      "Retry recorded recipients differ from the route it was dispatched to",
+      "Retry approval does not cover ordered activations and tokens",
+      "Retry approved recipients differ from the frozen route",
+      "Retry approval is not addressed to the stage 0 coordinator",
+      "Retry approval binds another model or plan",
+      "Retry executed route differs from the approved route",
+      "Retry requester approved itself as a stage",
+      "Coordinator did not settle every stage of the failed attempt"
+     ]
+    },
+    "timing": {
+     "pass": false,
+     "failures": [
+      "A completed answer lacks an attempt identity for timing",
+      "timing 63e95f34-52bc-44b3-abb6-709528f556e9: requester.firstVisibleTextMs observable boundary missing",
+      "timing 63e95f34-52bc-44b3-abb6-709528f556e9: coordinator.stages.0.stepMsTotal observable boundary missing",
+      "timing 63e95f34-52bc-44b3-abb6-709528f556e9: coordinator.stages.1.stepMsTotal observable boundary missing",
+      "timing 63e95f34-52bc-44b3-abb6-709528f556e9: coordinator.stages.2.stepMsTotal observable boundary missing",
+      "timing 63e95f34-52bc-44b3-abb6-709528f556e9: coordinator.activationBytes observable boundary missing",
+      "timing 63e95f34-52bc-44b3-abb6-709528f556e9: generated token count missing"
+     ]
+    }
+   },
+   "note": "Route never re-formed after a stage lost its coordinator channel; fixed in c44ec852"
+  },
+  {
+   "harness": "requester",
+   "delivery": "final-7",
+   "attempt": "b",
+   "report": "reports/requester-journey-2026-10-14T14-20-52-221Z.json",
+   "browserBundle": "sha256:ce082b1135b14c161f46f801604aa22988deb22e8177f2d7692964dafb217653",
+   "ok": true,
+   "status": "automated checks passed; answer usefulness awaits independent manual review",
+   "startedAt": "2026-10-14T14:20:52.221Z",
+   "finishedAt": "2026-10-14T14:49:34.709Z",
+   "stepErrors": [],
+   "checks": {
+    "open": {
+     "pass": true,
+     "failures": []
+    },
+    "modelChoice": {
+     "pass": true,
+     "failures": []
+    },
+    "recipientApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "selectiveAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "streaming": {
+     "pass": true,
+     "failures": []
+    },
+    "completion": {
+     "pass": true,
+     "failures": []
+    },
+    "followUp": {
+     "pass": true,
+     "failures": []
+    },
+    "copy": {
+     "pass": true,
+     "failures": []
+    },
+    "reload": {
+     "pass": true,
+     "failures": []
+    },
+    "concurrency": {
+     "pass": true,
+     "failures": []
+    },
+    "isolatedCancellation": {
+     "pass": true,
+     "failures": []
+    },
+    "explicitRetry": {
+     "pass": true,
+     "failures": []
+    },
+    "timing": {
+     "pass": true,
+     "failures": []
+    }
+   },
+   "note": null
+  },
+  {
+   "harness": "contributor-loss",
+   "delivery": "final-7",
+   "attempt": "b",
+   "report": "reports/contributor-loss-2026-10-14T14-52-58-710Z.json",
+   "browserBundle": "sha256:ce082b1135b14c161f46f801604aa22988deb22e8177f2d7692964dafb217653",
+   "ok": true,
+   "status": "automated checks passed; retried answer awaits manual review",
+   "startedAt": "2026-10-14T14:52:58.710Z",
+   "finishedAt": "2026-10-14T15:00:27.460Z",
+   "stepErrors": [],
+   "checks": {
+    "lossInjected": {
+     "pass": true,
+     "failures": []
+    },
+    "lossReported": {
+     "pass": true,
+     "failures": []
+    },
+    "ownershipExplicit": {
+     "pass": true,
+     "failures": []
+    },
+    "noSilentContinuation": {
+     "pass": true,
+     "failures": []
+    },
+    "explicitRetry": {
+     "pass": true,
+     "failures": []
+    },
+    "selectiveAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "timing": {
+     "pass": true,
+     "failures": []
+    }
+   },
+   "note": null
+  },
+  {
+   "harness": "contribution",
+   "delivery": "final-7",
+   "attempt": "b",
+   "report": "reports/storage-contribution-2026-10-14T15-01-37-354Z.json",
+   "browserBundle": "sha256:ce082b1135b14c161f46f801604aa22988deb22e8177f2d7692964dafb217653",
+   "ok": true,
+   "status": "automated contribution checks passed",
+   "startedAt": "2026-10-14T15:01:37.354Z",
+   "finishedAt": "2026-10-14T15:09:42.173Z",
+   "stepErrors": [],
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "reloadPreserved": {
+     "pass": true,
+     "failures": []
+    },
+    "competingTabs": {
+     "pass": true,
+     "failures": []
+    },
+    "interruptedResume": {
+     "pass": true,
+     "failures": []
+    },
+    "cachedOnly": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettles": {
+     "pass": true,
+     "failures": []
+    }
+   },
+   "note": null
+  },
+  {
+   "harness": "seeding",
+   "delivery": "final-7",
+   "attempt": "b",
+   "report": "reports/full-seeding-2026-10-14T15-10-43-291Z.json",
+   "browserBundle": "sha256:ce082b1135b14c161f46f801604aa22988deb22e8177f2d7692964dafb217653",
+   "ok": false,
+   "status": "automated full-seeding acceptance failed",
+   "startedAt": "2026-10-14T15:10:43.291Z",
+   "finishedAt": "2026-10-14T15:13:42.978Z",
+   "stepErrors": [
+    "peerAcquiresWholeModel",
+    "reloadRebuildsWhole",
+    "stopSettlesSeeding"
+   ],
+   "checks": {
+    "refusedWithoutAllowance": {
+     "pass": true,
+     "failures": []
+    },
+    "scopeVisibleBeforeApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "seededWhole": {
+     "pass": false,
+     "failures": [
+      "Full-model seeding is not sharing",
+      "Seed does not offer every catalog file",
+      "Weights are not retained as whole verified files"
+     ]
+    },
+    "peerAcquiresWholeModel": {
+     "pass": false,
+     "failures": [
+      "Acquirer is not another computer",
+      "Acquirer did not complete the full model",
+      "Acquirer does not hold every catalog file",
+      "Some weights did not arrive through peer custody",
+      "Seeder did not supply the weight bytes"
+     ]
+    },
+    "reloadRebuildsWhole": {
+     "pass": false,
+     "failures": [
+      "Cached-only sharing did not resume after reload",
+      "Reload did not rebuild the whole inventory",
+      "Reload changed the seeding ledger"
+     ]
+    },
+    "boundedDoesNotImplySeeding": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettlesSeeding": {
+     "pass": false,
+     "failures": [
+      "No whole-file transfer was in flight at the stop",
+      "Seeding did not settle after Stop",
+      "Model-file requests continued after the stop settled",
+      "Stopping renewed or refunded the seeding allowance",
+      "Conversation during seeding stop not complete",
+      "Conversation during seeding stop natural EOS unobserved",
+      "Conversation during seeding stop ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Conversation during seeding stop ordered route identity unobserved",
+      "Conversation during seeding stop route binds a different model or plan than the freeze",
+      "Conversation during seeding stop distinct route contributors (0) differ from the frozen route (3)",
+      "Conversation during seeding stop route stages differ from the frozen stage order",
+      "Conversation during seeding stop requester was assigned a stage",
+      "Conversation during seeding stop cleanup rows do not cover every stage exactly once",
+      "Conversation during seeding stop cleanup not confirmed: a cleanup row is unsettled",
+      "Conversation during seeding stop settlement phase not completed",
+      "Conversation during seeding stop not every stage was admitted",
+      "Conversation during seeding stop not every stage executed every step"
+     ]
+    }
+   },
+   "note": "Custody rejected relative catalog paths; fixed in 76296a53"
+  },
+  {
+   "harness": "contribution",
+   "delivery": "final-8",
+   "attempt": "c",
+   "report": "reports/storage-contribution-2026-10-14T15-19-37-251Z.json",
+   "browserBundle": "sha256:c2550a929d4449df6fe28953e1751c2e6f117fc21d5befd86a96c3763d415d5a",
+   "ok": true,
+   "status": "automated contribution checks passed",
+   "startedAt": "2026-10-14T15:19:37.251Z",
+   "finishedAt": "2026-10-14T15:27:19.736Z",
+   "stepErrors": [],
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "reloadPreserved": {
+     "pass": true,
+     "failures": []
+    },
+    "competingTabs": {
+     "pass": true,
+     "failures": []
+    },
+    "interruptedResume": {
+     "pass": true,
+     "failures": []
+    },
+    "cachedOnly": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettles": {
+     "pass": true,
+     "failures": []
+    }
+   },
+   "note": null
+  },
+  {
+   "harness": "seeding",
+   "delivery": "final-8",
+   "attempt": "c",
+   "report": "reports/full-seeding-2026-10-14T15-28-09-939Z.json",
+   "browserBundle": "sha256:c2550a929d4449df6fe28953e1751c2e6f117fc21d5befd86a96c3763d415d5a",
+   "ok": false,
+   "status": "automated full-seeding acceptance failed",
+   "startedAt": "2026-10-14T15:28:09.939Z",
+   "finishedAt": "2026-10-14T15:41:11.635Z",
+   "stepErrors": [
+    "stopSettlesSeeding"
+   ],
+   "checks": {
+    "refusedWithoutAllowance": {
+     "pass": true,
+     "failures": []
+    },
+    "scopeVisibleBeforeApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "seededWhole": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquiresWholeModel": {
+     "pass": false,
+     "failures": [
+      "Acquirer did not complete the full model",
+      "Acquirer does not hold every catalog file",
+      "Some weights did not arrive through peer custody",
+      "Seeder did not supply the weight bytes"
+     ]
+    },
+    "reloadRebuildsWhole": {
+     "pass": false,
+     "failures": [
+      "Reload did not rebuild the whole inventory"
+     ]
+    },
+    "boundedDoesNotImplySeeding": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettlesSeeding": {
+     "pass": false,
+     "failures": [
+      "No whole-file transfer was in flight at the stop",
+      "Seeding did not settle after Stop",
+      "Model-file requests continued after the stop settled",
+      "Stopping renewed or refunded the seeding allowance",
+      "Conversation during seeding stop not complete",
+      "Conversation during seeding stop natural EOS unobserved",
+      "Conversation during seeding stop ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Conversation during seeding stop ordered route identity unobserved",
+      "Conversation during seeding stop route binds a different model or plan than the freeze",
+      "Conversation during seeding stop distinct route contributors (0) differ from the frozen route (3)",
+      "Conversation during seeding stop route stages differ from the frozen stage order",
+      "Conversation during seeding stop requester was assigned a stage",
+      "Conversation during seeding stop cleanup rows do not cover every stage exactly once",
+      "Conversation during seeding stop cleanup not confirmed: a cleanup row is unsettled",
+      "Conversation during seeding stop settlement phase not completed",
+      "Conversation during seeding stop not every stage was admitted",
+      "Conversation during seeding stop not every stage executed every step"
+     ]
+    }
+   },
+   "note": "Acquirer stopped on one chunk (application, fixed in 1473eda7); reload and stop: harness H5, H6"
+  },
+  {
+   "harness": "seeding",
+   "delivery": "final-8",
+   "attempt": "d",
+   "report": "reports/full-seeding-2026-10-14T15-50-43-902Z.json",
+   "browserBundle": "sha256:c2550a929d4449df6fe28953e1751c2e6f117fc21d5befd86a96c3763d415d5a",
+   "ok": false,
+   "status": "automated full-seeding acceptance failed",
+   "startedAt": "2026-10-14T15:50:43.902Z",
+   "finishedAt": "2026-10-14T16:07:24.497Z",
+   "stepErrors": [],
+   "checks": {
+    "refusedWithoutAllowance": {
+     "pass": true,
+     "failures": []
+    },
+    "scopeVisibleBeforeApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "seededWhole": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquiresWholeModel": {
+     "pass": false,
+     "failures": [
+      "Acquirer did not complete the full model",
+      "Acquirer does not hold every catalog file",
+      "Some weights did not arrive through peer custody",
+      "Seeder did not supply the weight bytes"
+     ]
+    },
+    "reloadRebuildsWhole": {
+     "pass": true,
+     "failures": []
+    },
+    "boundedDoesNotImplySeeding": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettlesSeeding": {
+     "pass": false,
+     "failures": [
+      "No whole-file transfer was in flight at the stop"
+     ]
+    }
+   },
+   "note": "Acquirer stopped on one chunk, supplier timeout (application, fixed in 1473eda7); stop: harness H6"
+  },
+  {
+   "harness": "seeding",
+   "delivery": "final-9",
+   "attempt": "e",
+   "report": "reports/full-seeding-2026-10-14T16-22-52-583Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": false,
+   "status": "automated full-seeding acceptance failed",
+   "startedAt": "2026-10-14T16:22:52.583Z",
+   "finishedAt": "2026-10-14T16:44:42.941Z",
+   "stepErrors": [],
+   "checks": {
+    "refusedWithoutAllowance": {
+     "pass": true,
+     "failures": []
+    },
+    "scopeVisibleBeforeApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "seededWhole": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquiresWholeModel": {
+     "pass": false,
+     "failures": [
+      "Some weights did not arrive through peer custody"
+     ]
+    },
+    "reloadRebuildsWhole": {
+     "pass": true,
+     "failures": []
+    },
+    "boundedDoesNotImplySeeding": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettlesSeeding": {
+     "pass": false,
+     "failures": [
+      "No whole-file transfer was in flight at the stop"
+     ]
+    }
+   },
+   "note": "Weight check compared hashes of different algorithms (harness H10; see the .weight-receipts.json sidecar); stop: H6"
+  },
+  {
+   "harness": "contribution",
+   "delivery": "final-9",
+   "attempt": "e",
+   "report": "reports/storage-contribution-2026-10-14T17-35-57-708Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": false,
+   "status": "automated contribution acceptance failed",
+   "startedAt": "2026-10-14T17:35:57.709Z",
+   "finishedAt": "2026-10-14T17:47:30.831Z",
+   "stepErrors": [
+    "stopSettles"
+   ],
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "reloadPreserved": {
+     "pass": true,
+     "failures": []
+    },
+    "competingTabs": {
+     "pass": false,
+     "failures": [
+      "Ledger charged more than the observed transfers (a charge was made twice or without a transfer)"
+     ]
+    },
+    "interruptedResume": {
+     "pass": true,
+     "failures": []
+    },
+    "cachedOnly": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettles": {
+     "pass": false,
+     "failures": [
+      "No acquisition was in flight when contribution stopped",
+      "Stopped contribution did not settle its transfers",
+      "Stopping refunded, renewed or lost incurred charges",
+      "Acquisition continued after contribution settled",
+      "Conversation was not active when contribution stopped",
+      "Conversation after stop not complete",
+      "Conversation after stop natural EOS unobserved",
+      "Conversation after stop ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Conversation after stop ordered route identity unobserved",
+      "Conversation after stop route binds a different model or plan than the freeze",
+      "Conversation after stop distinct route contributors (0) differ from the frozen route (3)",
+      "Conversation after stop route stages differ from the frozen stage order",
+      "Conversation after stop requester was assigned a stage",
+      "Conversation after stop cleanup rows do not cover every stage exactly once",
+      "Conversation after stop cleanup not confirmed: a cleanup row is unsettled",
+      "Conversation after stop settlement phase not completed",
+      "Conversation after stop not every stage was admitted",
+      "Conversation after stop not every stage executed every step"
+     ]
+    }
+   },
+   "note": "Stop step missed the transfer and left its tab offering (harness H11), cascading into competingTabs"
+  },
+  {
+   "harness": "seeding",
+   "delivery": "final-9",
+   "attempt": "f",
+   "report": "reports/full-seeding-2026-10-14T16-46-50-054Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": false,
+   "status": "automated full-seeding acceptance failed",
+   "startedAt": "2026-10-14T16:46:50.054Z",
+   "finishedAt": "2026-10-14T17:08:33.844Z",
+   "stepErrors": [],
+   "checks": {
+    "refusedWithoutAllowance": {
+     "pass": true,
+     "failures": []
+    },
+    "scopeVisibleBeforeApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "seededWhole": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquiresWholeModel": {
+     "pass": true,
+     "failures": []
+    },
+    "reloadRebuildsWhole": {
+     "pass": true,
+     "failures": []
+    },
+    "boundedDoesNotImplySeeding": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettlesSeeding": {
+     "pass": false,
+     "failures": [
+      "No whole-file transfer was in flight at the stop"
+     ]
+    }
+   },
+   "note": "Stop: harness H6 (click waited for the moving controls)"
+  },
+  {
+   "harness": "seeding",
+   "delivery": "final-9",
+   "attempt": "g",
+   "report": "reports/full-seeding-2026-10-14T17-09-22-964Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": true,
+   "status": "automated full-seeding checks passed",
+   "startedAt": "2026-10-14T17:09:22.965Z",
+   "finishedAt": "2026-10-14T17:34:53.570Z",
+   "stepErrors": [],
+   "checks": {
+    "refusedWithoutAllowance": {
+     "pass": true,
+     "failures": []
+    },
+    "scopeVisibleBeforeApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "seededWhole": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquiresWholeModel": {
+     "pass": true,
+     "failures": []
+    },
+    "reloadRebuildsWhole": {
+     "pass": true,
+     "failures": []
+    },
+    "boundedDoesNotImplySeeding": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettlesSeeding": {
+     "pass": true,
+     "failures": []
+    }
+   },
+   "note": null
+  },
+  {
+   "harness": "contribution",
+   "delivery": "final-9",
+   "attempt": "h",
+   "report": "reports/storage-contribution-2026-10-14T17-49-46-092Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": false,
+   "status": "automated contribution acceptance failed",
+   "startedAt": "2026-10-14T17:49:46.092Z",
+   "finishedAt": "2026-10-14T17:58:05.460Z",
+   "stepErrors": [],
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "reloadPreserved": {
+     "pass": true,
+     "failures": []
+    },
+    "competingTabs": {
+     "pass": true,
+     "failures": []
+    },
+    "interruptedResume": {
+     "pass": true,
+     "failures": []
+    },
+    "cachedOnly": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettles": {
+     "pass": false,
+     "failures": [
+      "No acquisition was in flight when contribution stopped"
+     ]
+    }
+   },
+   "note": "Stop: harness H11 (throttled; forced click waited 15 s)"
+  },
+  {
+   "harness": "contribution",
+   "delivery": "final-9",
+   "attempt": "i",
+   "report": "reports/storage-contribution-2026-10-14T17-59-53-192Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": false,
+   "status": "automated contribution acceptance failed",
+   "startedAt": "2026-10-14T17:59:53.192Z",
+   "finishedAt": "2026-10-14T18:08:22.160Z",
+   "stepErrors": [],
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "reloadPreserved": {
+     "pass": true,
+     "failures": []
+    },
+    "competingTabs": {
+     "pass": true,
+     "failures": []
+    },
+    "interruptedResume": {
+     "pass": true,
+     "failures": []
+    },
+    "cachedOnly": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettles": {
+     "pass": false,
+     "failures": [
+      "No acquisition was in flight when contribution stopped"
+     ]
+    }
+   },
+   "note": "Stop: harness H11 (ledger read waited 16 s behind the throttled piece)"
+  },
+  {
+   "harness": "contribution",
+   "delivery": "final-9",
+   "attempt": "j",
+   "report": "reports/storage-contribution-2026-10-14T18-09-41-292Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": false,
+   "status": "automated contribution acceptance failed",
+   "startedAt": "2026-10-14T18:09:41.292Z",
+   "finishedAt": "2026-10-14T18:17:49.068Z",
+   "stepErrors": [],
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "reloadPreserved": {
+     "pass": true,
+     "failures": []
+    },
+    "competingTabs": {
+     "pass": true,
+     "failures": []
+    },
+    "interruptedResume": {
+     "pass": true,
+     "failures": []
+    },
+    "cachedOnly": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettles": {
+     "pass": false,
+     "failures": [
+      "No acquisition was in flight when contribution stopped",
+      "Conversation after stop not complete",
+      "Conversation after stop natural EOS unobserved",
+      "Conversation after stop ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Conversation after stop cleanup rows do not cover every stage exactly once",
+      "Conversation after stop cleanup not confirmed: a cleanup row is unsettled",
+      "Conversation after stop settlement phase not completed",
+      "Conversation after stop not every stage was admitted",
+      "Conversation after stop not every stage executed every step"
+     ]
+    }
+   },
+   "note": "Stop: harness H11; intel-host native 16 exited by itself mid-answer (settlement/scj-run7-intel-native-16-exit.json)"
+  },
+  {
+   "harness": "contribution",
+   "delivery": "final-9",
+   "attempt": "k",
+   "report": "reports/storage-contribution-2026-10-14T18-20-55-574Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": false,
+   "status": null,
+   "startedAt": "2026-10-14T18:20:55.574Z",
+   "finishedAt": null,
+   "stepErrors": [],
+   "checks": {},
+   "note": "Aborted by the operator after one minute: the acquirer browser scope was about to reach its cap"
+  },
+  {
+   "harness": "contribution",
+   "delivery": "final-9",
+   "attempt": "l",
+   "report": "reports/storage-contribution-2026-10-14T18-21-57-557Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": true,
+   "status": "automated contribution checks passed",
+   "startedAt": "2026-10-14T18:21:57.557Z",
+   "finishedAt": "2026-10-14T18:30:19.356Z",
+   "stepErrors": [],
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": true,
+     "failures": []
+    },
+    "peerAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "reloadPreserved": {
+     "pass": true,
+     "failures": []
+    },
+    "competingTabs": {
+     "pass": true,
+     "failures": []
+    },
+    "interruptedResume": {
+     "pass": true,
+     "failures": []
+    },
+    "cachedOnly": {
+     "pass": true,
+     "failures": []
+    },
+    "stopSettles": {
+     "pass": true,
+     "failures": []
+    }
+   },
+   "note": null
+  },
+  {
+   "harness": "contributor-loss",
+   "delivery": "final-9",
+   "attempt": "m",
+   "report": "reports/contributor-loss-2026-10-14T18-31-12-238Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": true,
+   "status": "automated checks passed; retried answer awaits manual review",
+   "startedAt": "2026-10-14T18:31:12.238Z",
+   "finishedAt": "2026-10-14T18:38:31.586Z",
+   "stepErrors": [],
+   "checks": {
+    "lossInjected": {
+     "pass": true,
+     "failures": []
+    },
+    "lossReported": {
+     "pass": true,
+     "failures": []
+    },
+    "ownershipExplicit": {
+     "pass": true,
+     "failures": []
+    },
+    "noSilentContinuation": {
+     "pass": true,
+     "failures": []
+    },
+    "explicitRetry": {
+     "pass": true,
+     "failures": []
+    },
+    "selectiveAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "timing": {
+     "pass": true,
+     "failures": []
+    }
+   },
+   "note": null
+  },
+  {
+   "harness": "requester",
+   "delivery": "final-9",
+   "attempt": "n",
+   "report": "reports/requester-journey-2026-10-14T18-39-20-111Z.json",
+   "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+   "ok": true,
+   "status": "automated checks passed; answer usefulness awaits independent manual review",
+   "startedAt": "2026-10-14T18:39:20.111Z",
+   "finishedAt": "2026-10-14T19:02:15.237Z",
+   "stepErrors": [],
+   "checks": {
+    "open": {
+     "pass": true,
+     "failures": []
+    },
+    "modelChoice": {
+     "pass": true,
+     "failures": []
+    },
+    "recipientApproval": {
+     "pass": true,
+     "failures": []
+    },
+    "selectiveAcquisition": {
+     "pass": true,
+     "failures": []
+    },
+    "streaming": {
+     "pass": true,
+     "failures": []
+    },
+    "completion": {
+     "pass": true,
+     "failures": []
+    },
+    "followUp": {
+     "pass": true,
+     "failures": []
+    },
+    "copy": {
+     "pass": true,
+     "failures": []
+    },
+    "reload": {
+     "pass": true,
+     "failures": []
+    },
+    "concurrency": {
+     "pass": true,
+     "failures": []
+    },
+    "isolatedCancellation": {
+     "pass": true,
+     "failures": []
+    },
+    "explicitRetry": {
+     "pass": true,
+     "failures": []
+    },
+    "timing": {
+     "pass": true,
+     "failures": []
+    }
+   },
+   "note": null
+  }
+ ],
+ "passing": {
+  "requester": [
+   "final-7 (b)",
+   "final-9 (n)"
+  ],
+  "contributor-loss": [
+   "final-7 (b)",
+   "final-9 (m)"
+  ],
+  "contribution": [
+   "final-7 (b)",
+   "final-8 (c)",
+   "final-9 (l)"
+  ],
+  "seeding": [
+   "final-9 (g)"
+  ]
+ },
+ "permissionScreens": [
+  {
+   "title": "Answer with contributors' computers?",
+   "what": "To answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.",
+   "who": "The first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.",
+   "scope": "You are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.",
+   "shownAt": "2026-10-14T18:39:23.444Z",
+   "allowedAt": "2026-10-14T18:39:23.481Z",
+   "storedSchema": "reploid.remote-permission/v2"
+  },
+  {
+   "title": "Answer with contributors' computers?",
+   "what": "To answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.",
+   "who": "The first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.",
+   "scope": "You are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.",
+   "shownAt": "2026-10-14T18:49:53.700Z",
+   "allowedAt": "2026-10-14T18:49:53.735Z",
+   "storedSchema": "reploid.remote-permission/v2"
+  },
+  {
+   "title": "Answer with contributors' computers?",
+   "what": "To answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.",
+   "who": "The first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.",
+   "scope": "You are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.",
+   "shownAt": "2026-10-14T18:49:53.796Z",
+   "allowedAt": "2026-10-14T18:49:53.834Z",
+   "storedSchema": "reploid.remote-permission/v2"
+  },
+  {
+   "title": "Answer with contributors' computers?",
+   "what": "To answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.",
+   "who": "The first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.",
+   "scope": "You are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.",
+   "shownAt": "2026-10-14T18:53:13.824Z",
+   "allowedAt": "2026-10-14T18:53:13.859Z",
+   "storedSchema": "reploid.remote-permission/v2"
+  }
+ ],
+ "transactionalHistory": [
+  "reports/history-check-2.json",
+  "reports/history-check-3.json"
+ ],
+ "timingPlacementB": {
+  "final7": [
+   {
+    "attemptId": "f378ecab-036e-4beb-bdd8-b7433cd62d5d",
+    "status": "completed",
+    "promptTokens": 56,
+    "generatedTokens": 100,
+    "attemptMs": 333197,
+    "prefill": [
+     {
+      "stage": 0,
+      "elapsedMs": 14060,
+      "executionMs": 14049
+     },
+     {
+      "stage": 1,
+      "elapsedMs": 56212,
+      "executionMs": 53903
+     },
+     {
+      "stage": 2,
+      "elapsedMs": 6988,
+      "executionMs": 6040
+     }
+    ],
+    "decodeSteps": 99,
+    "decodePerStepMs": [
+     {
+      "stage": 0,
+      "elapsed": 403,
+      "execution": 387,
+      "submitWait": 383,
+      "logits": 0
+     },
+     {
+      "stage": 1,
+      "elapsed": 1682,
+      "execution": 1187,
+      "submitWait": 1159,
+      "logits": 0
+     },
+     {
+      "stage": 2,
+      "elapsed": 449,
+      "execution": 264,
+      "submitWait": 183,
+      "logits": 72
+     }
+    ]
+   },
+   {
+    "attemptId": "0f0f8a81-2050-475b-a1ee-b9602c1238de",
+    "status": "completed",
+    "promptTokens": 189,
+    "generatedTokens": 12,
+    "attemptMs": 342775,
+    "prefill": [
+     {
+      "stage": 0,
+      "elapsedMs": 49251,
+      "executionMs": 49227
+     },
+     {
+      "stage": 1,
+      "elapsedMs": 207637,
+      "executionMs": 188038
+     },
+     {
+      "stage": 2,
+      "elapsedMs": 23879,
+      "executionMs": 20027
+     }
+    ],
+    "decodeSteps": 11,
+    "decodePerStepMs": [
+     {
+      "stage": 0,
+      "elapsed": 473,
+      "execution": 457,
+      "submitWait": 453,
+      "logits": 0
+     },
+     {
+      "stage": 1,
+      "elapsed": 3745,
+      "execution": 1336,
+      "submitWait": 1311,
+      "logits": 0
+     },
+     {
+      "stage": 2,
+      "elapsed": 1248,
+      "execution": 325,
+      "submitWait": 252,
+      "logits": 66
+     }
+    ]
+   },
+   {
+    "attemptId": "709e94ef-e6bf-4792-b368-0d209f04ba00",
+    "status": "cancelled"
+   },
+   {
+    "attemptId": "bb9ac778-98e1-4a75-b22f-fb1ca07fad29",
+    "status": "completed",
+    "promptTokens": 31,
+    "generatedTokens": 51,
+    "attemptMs": 423415,
+    "prefill": [
+     {
+      "stage": 0,
+      "elapsedMs": 7611,
+      "executionMs": 7596
+     },
+     {
+      "stage": 1,
+      "elapsedMs": 51301,
+      "executionMs": 29237
+     },
+     {
+      "stage": 2,
+      "elapsedMs": 14867,
+      "executionMs": 3178
+     }
+    ],
+    "decodeSteps": 50,
+    "decodePerStepMs": [
+     {
+      "stage": 0,
+      "elapsed": 359,
+      "execution": 345,
+      "submitWait": 341,
+      "logits": 0
+     },
+     {
+      "stage": 1,
+      "elapsed": 3566,
+      "execution": 1107,
+      "submitWait": 1080,
+      "logits": 0
+     },
+     {
+      "stage": 2,
+      "elapsed": 1321,
+      "execution": 244,
+      "submitWait": 164,
+      "logits": 72
+     }
+    ]
+   },
+   {
+    "attemptId": "5914e025-5098-4ce2-9576-24ef17064883",
+    "status": "completed",
+    "promptTokens": 31,
+    "generatedTokens": 171,
+    "attemptMs": 497016,
+    "prefill": [
+     {
+      "stage": 0,
+      "elapsedMs": 7694,
+      "executionMs": 7677
+     },
+     {
+      "stage": 1,
+      "elapsedMs": 34331,
+      "executionMs": 29031
+     },
+     {
+      "stage": 2,
+      "elapsedMs": 5579,
+      "executionMs": 3173
+     }
+    ],
+    "decodeSteps": 170,
+    "decodePerStepMs": [
+     {
+      "stage": 0,
+      "elapsed": 408,
+      "execution": 394,
+      "submitWait": 391,
+      "logits": 0
+     },
+     {
+      "stage": 1,
+      "elapsed": 1720,
+      "execution": 1197,
+      "submitWait": 1174,
+      "logits": 0
+     },
+     {
+      "stage": 2,
+      "elapsed": 459,
+      "execution": 267,
+      "submitWait": 184,
+      "logits": 74
+     }
+    ]
+   }
+  ],
+  "final9": [
+   {
+    "attemptId": "e32f7fc2-1675-46f5-b63d-8c5d24335baf",
+    "status": "completed",
+    "promptTokens": 56,
+    "generatedTokens": 100,
+    "attemptMs": 326054,
+    "prefill": [
+     {
+      "stage": 0,
+      "elapsedMs": 13895,
+      "executionMs": 13879
+     },
+     {
+      "stage": 1,
+      "elapsedMs": 55174,
+      "executionMs": 53104
+     },
+     {
+      "stage": 2,
+      "elapsedMs": 6236,
+      "executionMs": 5906
+     }
+    ],
+    "decodeSteps": 99,
+    "decodePerStepMs": [
+     {
+      "stage": 0,
+      "elapsed": 404,
+      "execution": 391,
+      "submitWait": 387,
+      "logits": 0
+     },
+     {
+      "stage": 1,
+      "elapsed": 1659,
+      "execution": 1174,
+      "submitWait": 1146,
+      "logits": 0
+     },
+     {
+      "stage": 2,
+      "elapsed": 430,
+      "execution": 267,
+      "submitWait": 185,
+      "logits": 73
+     }
+    ]
+   },
+   {
+    "attemptId": "4e15a765-409b-47e8-8176-253927f3dda8",
+    "status": "completed",
+    "promptTokens": 189,
+    "generatedTokens": 12,
+    "attemptMs": 291298,
+    "prefill": [
+     {
+      "stage": 0,
+      "elapsedMs": 48898,
+      "executionMs": 48882
+     },
+     {
+      "stage": 1,
+      "elapsedMs": 192297,
+      "executionMs": 187796
+     },
+     {
+      "stage": 2,
+      "elapsedMs": 20584,
+      "executionMs": 19631
+     }
+    ],
+    "decodeSteps": 11,
+    "decodePerStepMs": [
+     {
+      "stage": 0,
+      "elapsed": 475,
+      "execution": 462,
+      "submitWait": 459,
+      "logits": 0
+     },
+     {
+      "stage": 1,
+      "elapsed": 1623,
+      "execution": 1307,
+      "submitWait": 1285,
+      "logits": 0
+     },
+     {
+      "stage": 2,
+      "elapsed": 483,
+      "execution": 286,
+      "submitWait": 217,
+      "logits": 61
+     }
+    ]
+   },
+   {
+    "attemptId": "2a29b48c-c38c-4415-9e82-5c1e54a863b5",
+    "status": "cancelled"
+   },
+   {
+    "attemptId": "96a5fd96-70b0-49fa-949c-8f6f232e09c9",
+    "status": "completed",
+    "promptTokens": 31,
+    "generatedTokens": 51,
+    "attemptMs": 195992,
+    "prefill": [
+     {
+      "stage": 0,
+      "elapsedMs": 7604,
+      "executionMs": 7591
+     },
+     {
+      "stage": 1,
+      "elapsedMs": 30268,
+      "executionMs": 29201
+     },
+     {
+      "stage": 2,
+      "elapsedMs": 3573,
+      "executionMs": 3307
+     }
+    ],
+    "decodeSteps": 50,
+    "decodePerStepMs": [
+     {
+      "stage": 0,
+      "elapsed": 359,
+      "execution": 346,
+      "submitWait": 342,
+      "logits": 0
+     },
+     {
+      "stage": 1,
+      "elapsed": 1425,
+      "execution": 1102,
+      "submitWait": 1069,
+      "logits": 0
+     },
+     {
+      "stage": 2,
+      "elapsed": 379,
+      "execution": 243,
+      "submitWait": 166,
+      "logits": 70
+     }
+    ]
+   },
+   {
+    "attemptId": "dd64c1b1-4457-455f-8a8e-14bd7874a16e",
+    "status": "completed",
+    "promptTokens": 31,
+    "generatedTokens": 171,
+    "attemptMs": 440887,
+    "prefill": [
+     {
+      "stage": 0,
+      "elapsedMs": 7862,
+      "executionMs": 7851
+     },
+     {
+      "stage": 1,
+      "elapsedMs": 30202,
+      "executionMs": 29260
+     },
+     {
+      "stage": 2,
+      "elapsedMs": 3352,
+      "executionMs": 3109
+     }
+    ],
+    "decodeSteps": 170,
+    "decodePerStepMs": [
+     {
+      "stage": 0,
+      "elapsed": 413,
+      "execution": 402,
+      "submitWait": 399,
+      "logits": 0
+     },
+     {
+      "stage": 1,
+      "elapsed": 1520,
+      "execution": 1197,
+      "submitWait": 1170,
+      "logits": 0
+     },
+     {
+      "stage": 2,
+      "elapsed": 372,
+      "execution": 261,
+      "submitWait": 185,
+      "logits": 68
+     }
+    ]
+   }
+  ],
+  "placementAEarlierSecondsPerToken": 3.3
+ },
+ "signedRelease": {
+  "heldBefore": "final-9/held-checkpoints.json (sequence 4 on amd-host, intel-host and the mac-host stage 0 profile)",
+  "afterOpening": "bringup/e-amd-host-signed-state-after-open.json, bringup/e-intel-host-signed-state-after-open.json, bringup/e-mac-stage0-checkpoint-after-open.json (sequence 5)"
+ },
+ "i915": {
+  "baselineLines": 54,
+  "newLines": 0,
+  "logs": "logs/*-i915-guard-*.log"
+ },
+ "publicContributors": {
+  "amd-host": [
+   4103868,
+   4121371
+  ],
+  "intel-host": [
+   297260,
+   299769
+  ],
+  "presentBeforeEveryHarness": true,
+  "touched": false
+ }
+}

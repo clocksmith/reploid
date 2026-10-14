@@ -6,6 +6,7 @@
   "refusalText": "Full-model seeding requires a sufficient cumulative download allowance",
   "renewalRefusalText": "Download allowance cannot be renewed by changing modes",
   "cachedOnlyObservationMs": 3000,
+  "stopDownloadBytesPerSecond": 4194304,
   "codeReferences": {
     "modes": "self/ui/pool-home/network-controls.js:26-33,119-133; self/host/work-model-files.js:339-438",
     "fullModel": "self/host/work-model-files.js:372-383 (storage and remaining-download preflight, whole-file acquisition)",

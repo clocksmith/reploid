@@ -29,9 +29,10 @@ function passing() {
       samples: [{ attemptStatus: 'executing', preparing: true, sharing: false }], chat: { attemptId: 'seed', final: done('seed') } },
     peer: { seeder: { machine: 'mac-host', suppliedBefore: 0, suppliedAfter: total },
       acquirer: { machine: 'intel-host', files: { sharing: true, error: '' }, offered: offer(catalog), requests: httpRows(catalog.slice(0, 2)),
-        receipts: [{ finished: true, bytes: total, hashes: weights.map(file => file.hash) }] } },
+        receipts: [{ finished: true, bytes: total, hashes: [],
+          artifacts: weights.map(file => ({ artifactId: file.path, sizeBytes: file.sizeBytes })) }] } },
     reload: { before: { ledger: { maxBytes: 1200 * MiB, reservedBytes: total } },
-      after: { files: { sharing: true, mode: 'cached-only' }, offered: offer(catalog), requests: [], ledger: { maxBytes: 1200 * MiB, reservedBytes: total } } },
+      after: { files: { sharing: true, mode: 'full-model', error: '' }, offered: offer(catalog), requests: [], ledger: { maxBytes: 1200 * MiB, reservedBytes: total } } },
     bounded: { allowanceBytes: 5 * MiB, bounded: { sharing: true }, boundedOffer: [{ path: `piece-${h(9)}.bin`, hash: h(9), sizeBytes: 4 * MiB }],
       seeding: { sharing: false, error: fixture.refusalText }, seedingOffer: [], requests: [], ledger: { maxBytes: 5 * MiB, reservedBytes: 5000000 } },
     stop: { inFlight: { pendingWeightRequests: 1 }, filesAfter: settled, requestsAfterSettled: 0,
@@ -64,16 +65,29 @@ test('a seed charged more than it transferred fails', () =>
   failing(report => { report.seed.ledger.reservedBytes += 1; }, 'seededWhole', /differs from the observed transfers/));
 test('an acquirer that pulled weights from the origin fails', () =>
   failing(report => { report.peer.acquirer.requests.push({ weight: true, responseBytes: 67108864 }); }, 'peerAcquiresWholeModel', /from the origin/));
+test('a weight without a finished custody receipt for its path and size fails', () => {
+  failing(report => { report.peer.acquirer.receipts[0].artifacts.pop(); }, 'peerAcquiresWholeModel', /did not arrive through peer custody/);
+  failing(report => { report.peer.acquirer.receipts[0].finished = false; }, 'peerAcquiresWholeModel', /did not arrive through peer custody/);
+});
 test('an acquirer on the seeder machine fails', () =>
   failing(report => { report.peer.acquirer.machine = 'mac-host'; }, 'peerAcquiresWholeModel', /another computer/));
 test('a reload that requested files or changed the ledger fails', () => {
   failing(report => { report.reload.after.requests.push({ weight: false }); }, 'reloadRebuildsWhole', /requested model files/);
   failing(report => { report.reload.after.ledger.reservedBytes += 1; }, 'reloadRebuildsWhole', /changed the seeding ledger/);
 });
+test('a reload that rebuilt only cached-only pieces fails', () => {
+  failing(report => { report.reload.after.files.mode = 'cached-only'; }, 'reloadRebuildsWhole', /did not resume after reload/);
+  failing(report => {
+    report.reload.after.offered = [...offer(catalog.filter(file => file.role !== 'model-weights')),
+      { path: `piece-${h(5)}.bin`, hash: h(5), sizeBytes: 64 }];
+  }, 'reloadRebuildsWhole', /whole inventory/);
+});
 test('a bounded grant that turned into seeding fails', () => {
   failing(report => { report.bounded.seeding = { sharing: true, error: '' }; }, 'boundedDoesNotImplySeeding', /was not refused/);
   failing(report => { report.bounded.boundedOffer.push(offer(weights)[0]); }, 'boundedDoesNotImplySeeding', /whole weight files/);
 });
+test('a stop after every weight file finished fails', () =>
+  failing(report => { report.stop.inFlight.pendingWeightRequests = 0; }, 'stopSettlesSeeding', /No whole-file transfer/));
 test('a stop that refunded charges or cancelled the conversation fails', () => {
   failing(report => { report.stop.ledgerAfter.reservedBytes = 0; }, 'stopSettlesSeeding', /refunded/);
   failing(report => { report.stop.chat.samples.push({ attemptStatus: 'cancelled' }); }, 'stopSettlesSeeding', /cancelled the conversation/);

@@ -1,0 +1,46 @@
+{
+ "schema": "reploid.run-7-stage0-stop/v1",
+ "machine": "mac-host",
+ "samples": [
+  {
+   "at": "2026-10-14T14:16:49.534Z",
+   "phase": "ready",
+   "error": "Ordered channel closed during authentication",
+   "offering": true,
+   "unsettledOwners": 0,
+   "descriptor": "present",
+   "attempts": []
+  },
+  {
+   "at": "2026-10-14T14:16:50.704Z",
+   "phase": "idle",
+   "error": null,
+   "offering": false,
+   "unsettledOwners": 0,
+   "descriptor": null,
+   "attempts": []
+  }
+ ],
+ "before": {
+  "at": "2026-10-14T14:16:49.534Z",
+  "phase": "ready",
+  "error": "Ordered channel closed during authentication",
+  "offering": true,
+  "unsettledOwners": 0,
+  "descriptor": "present",
+  "attempts": []
+ },
+ "toggleBefore": "true",
+ "clickedAt": "2026-10-14T14:16:49.586Z",
+ "after": {
+  "at": "2026-10-14T14:16:50.704Z",
+  "phase": "idle",
+  "error": null,
+  "offering": false,
+  "unsettledOwners": 0,
+  "descriptor": null,
+  "attempts": []
+ },
+ "settled": true,
+ "browserCloseAt": "2026-10-14T14:16:50.705Z"
+}

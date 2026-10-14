@@ -93,21 +93,28 @@ export function peerWholeFailures(report) {
   const offered = hashesOf(peer?.acquirer?.offered);
   require(catalog.length > 0 && catalog.every(file => offered.has(hex(file.hash))), 'Acquirer does not hold every catalog file');
   require((peer?.acquirer?.requests || []).every(row => !row.weight), 'Acquirer downloaded weights from the origin');
-  const received = new Set((peer?.acquirer?.receipts || []).filter(item => item.finished).flatMap(item => item.hashes.map(hex)));
+  // Receipts carry SHA-256 of the bytes moved; weights are named by the manifest's algorithm (BLAKE3),
+  // so each weight must match a finished receipt's completed artifact by path and size. Its identity
+  // under the catalog hash is the acquirer's own verified offer, checked above.
+  const received = new Set((peer?.acquirer?.receipts || []).filter(item => item.finished)
+    .flatMap(item => (item.artifacts || []).map(artifact => `${artifact.artifactId}#${artifact.sizeBytes}`)));
   const weights = catalog.filter(file => file.role === 'model-weights');
-  require(weights.length > 0 && weights.every(file => received.has(hex(file.hash))), 'Some weights did not arrive through peer custody');
+  require(weights.length > 0 && weights.every(file => received.has(`${file.path}#${file.sizeBytes}`)), 'Some weights did not arrive through peer custody');
   require(peer?.seeder?.suppliedAfter - peer?.seeder?.suppliedBefore >= sum(weights.map(file => file.sizeBytes)),
     'Seeder did not supply the weight bytes');
   return failures;
 }
 
-/** (c) After reload, cached-only rebuilds the whole inventory from verified bytes with no request and no new charge. */
+/** (c) After reload, the same full-model grant rebuilds the whole inventory from verified cached bytes with no request and no new charge. */
 export function reloadFailures(report) {
   const { failures, require } = checker(), reload = report?.reload, catalog = report?.catalog || [];
-  require(reload?.after?.files?.sharing === true && reload.after.files.mode === 'cached-only', 'Cached-only sharing did not resume after reload');
+  require(reload?.after?.files?.sharing === true && !reload.after.files.error && reload.after.files.mode === 'full-model',
+    'Full-model seeding did not resume after reload');
   const offered = hashesOf(reload?.after?.offered);
   require(catalog.length > 0 && catalog.every(file => offered.has(hex(file.hash))), 'Reload did not rebuild the whole inventory');
-  require((reload?.after?.requests || []).length === 0, 'Cached-only seeding requested model files after reload');
+  require(wholeWeights(reload?.after?.offered, catalog).length === catalog.filter(file => file.role === 'model-weights').length,
+    'Reload did not rebuild whole weight files');
+  require((reload?.after?.requests || []).length === 0, 'Resumed seeding requested model files after reload');
   require(validBudget(reload?.before?.ledger) && JSON.stringify(reload.before.ledger) === JSON.stringify(reload?.after?.ledger),
     'Reload changed the seeding ledger');
   return failures;

@@ -1,0 +1,119 @@
+{
+  "schema": "reploid.signed-completion-journey-config/v1",
+  "reportDirectory": "/Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-7/reports",
+  "application": {
+    "roomFile": "/var/tmp/reploid-signed-completion-journey-run7-20261014/private-room.json",
+    "descriptorPath": "/config/browser-bundle-manifest.json",
+    "partitionPolicyPath": "/config/partition-policy.json",
+    "signalingUrl": null
+  },
+  "freeze": {
+    "browserBundle": "sha256:c2550a929d4449df6fe28953e1751c2e6f117fc21d5befd86a96c3763d415d5a",
+    "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [
+      8,
+      16
+    ],
+    "nativeArtifacts": {
+      "amd-host": "sha256:d8db7f08073b69cdcbeb54128f459183cfa24104851b2aa8c3a6852de0c48c4b",
+      "intel-host": "sha256:d8db7f08073b69cdcbeb54128f459183cfa24104851b2aa8c3a6852de0c48c4b"
+    },
+    "route": [
+      {
+        "index": 0,
+        "machine": "mac-host",
+        "host": "browser",
+        "participantId": "peer:70863e5345ae93133d70ec6d"
+      },
+      {
+        "index": 1,
+        "machine": "intel-host",
+        "host": "native",
+        "participantId": "peer:09610aefbd15a133d7af2b57",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run7-20261014/intel-host-stage-1.json"
+      },
+      {
+        "index": 2,
+        "machine": "amd-host",
+        "host": "native",
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run7-20261014/amd-host-stage-2.json"
+      }
+    ]
+  },
+  "browsers": {
+    "requester": {
+      "machine": "mac-host",
+      "origin": "http://127.0.0.1:29670/",
+      "connect": {
+        "kind": "launch",
+        "channel": "chrome",
+        "headless": true,
+        "remoteDebuggingPort": 29672
+      }
+    },
+    "coordinator": {
+      "machine": "mac-host",
+      "origin": "http://127.0.0.1:29670/",
+      "connect": {
+        "kind": "cdp",
+        "endpoint": "http://127.0.0.1:29671"
+      }
+    },
+    "storageSupplier": {
+      "machine": "mac-host",
+      "origin": "http://127.0.0.1:29670/",
+      "connect": {
+        "kind": "cdp",
+        "endpoint": "http://127.0.0.1:29673"
+      }
+    },
+    "storageAcquirer": {
+      "machine": "intel-host",
+      "origin": "http://127.0.0.1:29670/",
+      "connect": {
+        "kind": "cdp",
+        "endpoint": "http://127.0.0.1:29674"
+      }
+    }
+  },
+  "contributorControl": {
+    "module": "/Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-7/tools/contributor-control.mjs",
+    "stopExport": "stopContributor",
+    "restoreExport": "restoreContributor",
+    "lossTarget": "amd-host"
+  },
+  "timeouts": {
+    "readyMs": 300000,
+    "answerMs": 900000,
+    "lossReportMs": 360000,
+    "capacityReturnMs": 600000,
+    "transferMs": 300000,
+    "settlementMs": 120000,
+    "seedingMs": 3600000
+  },
+  "observation": {
+    "pollMs": 100
+  },
+  "concurrency": {
+    "tabs": 2
+  },
+  "modelFiles": {
+    "pathPatterns": [
+      "^/config/model-(manifests|pieces|artifacts)/[0-9a-f]{64}\\.[a-z]+$",
+      "^/qualification/capsule/artifacts/model/"
+    ]
+  },
+  "storage": {
+    "sharingAllowanceMiB": 5,
+    "stopAllowanceMiB": 64,
+    "contentionAllowanceMiB": 5,
+    "interruptionAllowanceMiB": 13,
+    "seedingAllowanceMiB": 1200,
+    "seedingRefusalAllowanceMiB": 64
+  }
+}

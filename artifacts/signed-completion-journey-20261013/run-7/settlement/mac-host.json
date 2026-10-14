@@ -1,0 +1,112 @@
+{
+ "schema": "reploid.run-1-host-snapshot/v1",
+ "machine": "mac-host",
+ "at": "2026-10-14T19:05:32.858476+00:00",
+ "loadavg": "{ 4.97 4.36 3.65 }",
+ "memoryBytes": 25769803776,
+ "memoryPressure": [
+  "System-wide memory free percentage: 62%"
+ ],
+ "processes": [
+  {
+   "pid": 33755,
+   "ppid": 33752,
+   "elapsed": "18:21:25",
+   "owned": false,
+   "args": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-"
+  },
+  {
+   "pid": 41169,
+   "ppid": 41167,
+   "elapsed": "01:26:18",
+   "owned": false,
+   "args": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-"
+  },
+  {
+   "pid": 61251,
+   "ppid": 11046,
+   "elapsed": "00:08",
+   "owned": true,
+   "args": "/bin/zsh -c source /Users/xyz/.claude/shell-snapshots/snapshot-zsh-1791934535549-9pcnts.sh 2>/dev/null || true && setopt NO_EXTENDED_GLOB NO_BARE_GLOB_QUAL 2>/dev/null || true && { \\builtin unalias -- 'unsetenv'; \\builtin unset -f -- 'unsetenv'; } >/dev/null 2>&1 || true && eval 'J=/Users/xyz/deco/r"
+  },
+  {
+   "pid": 78844,
+   "ppid": 18519,
+   "elapsed": "01-00:24:38",
+   "owned": false,
+   "args": "ssh [login-redacted]"
+  },
+  {
+   "pid": 29039,
+   "ppid": 53390,
+   "elapsed": "03-16:34:45",
+   "owned": false,
+   "args": "ssh [login-redacted]"
+  },
+  {
+   "pid": 29113,
+   "ppid": 26990,
+   "elapsed": "03-16:34:32",
+   "owned": false,
+   "args": "ssh [login-redacted]"
+  },
+  {
+   "pid": 35273,
+   "ppid": 34586,
+   "elapsed": "09-03:45:47",
+   "owned": false,
+   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+  },
+  {
+   "pid": 46688,
+   "ppid": 46363,
+   "elapsed": "01-22:59:56",
+   "owned": false,
+   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+  },
+  {
+   "pid": 13551,
+   "ppid": 13228,
+   "elapsed": "19:23:55",
+   "owned": false,
+   "args": "ssh [login-redacted]"
+  },
+  {
+   "pid": 33752,
+   "ppid": 35010,
+   "elapsed": "18:21:27",
+   "owned": false,
+   "args": "node /var/tmp/nyc_applications_driver_20261013.mjs"
+  },
+  {
+   "pid": 41167,
+   "ppid": 35010,
+   "elapsed": "01:26:19",
+   "owned": false,
+   "args": "node /var/tmp/nyc_applications_background_driver_20261013.mjs"
+  }
+ ],
+ "ports": {
+  "29670": {
+   "listening": false,
+   "rows": []
+  },
+  "29671": {
+   "listening": false,
+   "rows": []
+  },
+  "29672": {
+   "listening": false,
+   "rows": []
+  },
+  "29673": {
+   "listening": false,
+   "rows": []
+  },
+  "29674": {
+   "listening": false,
+   "rows": []
+  }
+ },
+ "scope": "Read-only snapshot; hostnames not recorded; processes not owned by this run are listed for comparison only"
+}

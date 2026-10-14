@@ -1,0 +1,96 @@
+{
+  "schema": "reploid.run-7-history-check/v1",
+  "startedAt": "2026-10-14T14:50:28.366Z",
+  "send": {
+    "sentAt": "2026-10-14T14:50:31.585Z",
+    "permission": {
+      "need": {
+        "networkId": "reploid-swarm-scj-run7-75331ac8f3b0",
+        "sharingScope": "mesh",
+        "disclosure": "ordered-partition-activations-and-tokens",
+        "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+        "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+        "adapterIdentities": []
+      },
+      "title": "Answer with contributors' computers?",
+      "what": "To answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.",
+      "who": "The first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.",
+      "scope": "You are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.",
+      "shownAt": "2026-10-14T14:50:31.626Z",
+      "allowedAt": "2026-10-14T14:50:31.662Z",
+      "stored": {
+        "schema": "reploid.remote-permission/v2",
+        "id": "c22397d1-0aed-42a3-be39-42b7dfd63667",
+        "networkId": "reploid-swarm-scj-run7-75331ac8f3b0",
+        "sharingScope": "mesh",
+        "disclosure": "ordered-partition-activations-and-tokens",
+        "modelIdentities": [
+          "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934"
+        ],
+        "adapterIdentities": [],
+        "grantedAt": 1791989431657,
+        "revokedAt": null
+      }
+    }
+  },
+  "attempt": {
+    "id": "40163d01-08d1-4e46-89ce-7c6b855e779d",
+    "status": "completed",
+    "publicationMode": "canonical",
+    "authorization": {
+      "kind": "permission",
+      "source": "permission",
+      "permissionId": "c22397d1-0aed-42a3-be39-42b7dfd63667",
+      "recipients": [
+        "peer:e225dcd389e612b14b77527f",
+        "peer:09610aefbd15a133d7af2b57",
+        "peer:9af15d884eba51b0c0540e2a"
+      ]
+    },
+    "answer": "OK",
+    "generatedTokens": 2
+  },
+  "indexedDB": {
+    "databases": [
+      "reploid-requester-history"
+    ],
+    "stores": [
+      {
+        "store": "conversations",
+        "rows": 1
+      }
+    ],
+    "schemas": {
+      "reploid.canonical-workspace-history/v1": 1,
+      "reploid.publication-history/v1": 1,
+      "reploid.ordered-cursor/v1": 3,
+      "reploid.ordered-generation-bounds/v1": 1,
+      "reploid.ordered-publication-attempt/v1": 1,
+      "reploid.partition-route/v1": 9,
+      "doppler.activation-tensor/v2": 8,
+      "reploid.ordered-publication/v1": 2,
+      "reploid.publication-receipt/v1": 2,
+      "reploid.chat-workspace/v1": 1,
+      "reploid.mesh.partition-summary/v2": 1,
+      "reploid.partition-attempt/v2": 5,
+      "reploid.partition-selection/v2": 2,
+      "reploid.text-generation/v1": 2
+    },
+    "orderedRecords": 2,
+    "sequences": [
+      0,
+      1
+    ],
+    "chained": true,
+    "terminal": {
+      "terminal": true,
+      "stopReason": "eos-token"
+    },
+    "text": "OK",
+    "acknowledgments": [
+      0
+    ]
+  },
+  "failure": "Error: Host session observation unavailable\n    at withHost (file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/observe.mjs:57:25)\n    at runNextTicks (node:internal/process/task_queues:65:5)\n    at process.processImmediate (node:internal/timers:453:9)\n    at process.callbackTrampoline (node:internal/async_hooks:130:17)\n    at async file:///Users/xyz/deco/reploid-wt-final6/artifacts/signed-completion-journey-20261013/run-7/tools/history-check.mjs:54:21",
+  "finishedAt": "2026-10-14T14:51:03.513Z"
+}
