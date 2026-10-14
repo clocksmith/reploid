@@ -97,7 +97,8 @@ it('prepares the assigned middle stage and awaits actual readiness', async () =>
     { ...controls, ordered: { stage } }).then(value => { returned = true; return value; });
   await entered.promise;
   expect(returned).toBe(false);
-  expect(ports.validateOrderedPlan).toHaveBeenCalledWith(plan);
+  // Doppler declares validateOrderedLayerPartitionPlan(manifest, plan); a plan-only call is rejected by the provider.
+  expect(ports.validateOrderedPlan.mock.calls).toEqual([[source.manifest, plan]]);
   expect(ports.validatePlan).toHaveBeenCalledWith(source.manifest, { plan, index: 1 });
   const allocation = ports.resident.mock.calls[0][0];
   expect(allocation.index).toBe(1);

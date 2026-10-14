@@ -1,0 +1,11 @@
+{
+  "schema": "reploid.ordered-participation/v1",
+  "stageStorageKey": "reploid.ordered-stage.v1",
+  "limits": {
+    "maxStages": 7,
+    "maxStageOffersPerPeer": 4,
+    "maxRouteBytes": 8192,
+    "maxSelectionSteps": 2000,
+    "maxRoutes": 4
+  }
+}
