@@ -80,9 +80,15 @@ try {
     const row = document.querySelector(`[data-message-id="${CSS.escape(id)}"] .chat-message-actions`);
     return { status: row?.querySelector('[role="status"]')?.textContent ?? null, technical: row?.querySelector('details pre')?.textContent ?? null };
   }, responseId);
+  // A live route lists its attempts; once the coordinator retires the broken route, a receipt whose
+  // cleanup stayed unknown moves to unknownAttempts (automatic-ordered-partitions.js, closeChat).
   report.coordinatorReceipt = await waitFor(async () => {
-    const receipt = ((await observeNetwork(coordinator)).contribution?.attempts || []).find(row => row?.identity?.attemptId === report.failedAttemptId);
-    return receipt && !['admitting', 'executing', 'settling'].includes(receipt.phase) ? receipt : null;
+    const contribution = (await observeNetwork(coordinator)).contribution;
+    for (const source of ['attempts', 'unknownAttempts']) {
+      const receipt = (contribution?.[source] || []).find(row => row?.identity?.attemptId === report.failedAttemptId);
+      if (receipt && !['admitting', 'executing', 'settling'].includes(receipt.phase)) { report.coordinatorReceiptSource = source; return receipt; }
+    }
+    return null;
   }, { timeout: timeouts.settlementMs, poll, label: 'Coordinator failure receipt' });
   await save();
 
