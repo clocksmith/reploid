@@ -9,14 +9,14 @@ import { compilePatterns, observeChat, observeCustody, observeNetwork, observeOr
 import { assessJourney, projectHistory } from './checks.mjs';
 import { buildTimingRecord } from './timing.mjs';
 import { SELECTORS, startRun, openBrowser, openRequesterProfile, findPage, appUrl, servedDescriptor, trackRequests, waitFor, openApp,
-  chooseOrderedModel, send, selectThread, followAttempt, waitForAttempt, attemptIds, sleep, now } from './harness.mjs';
+  chooseOrderedModel, send, approveReview, selectThread, followAttempt, waitForAttempt, attemptIds, sleep, now } from './harness.mjs';
 
 const { config, room, fixture, report, save } = await startRun('requester-journey', './journey.json');
 const { freeze, timeouts } = config, poll = config.observation.pollMs, selectionId = orderedSelectionId(freeze);
 const origin = config.browsers.requester.origin, url = appUrl(origin, room, config.application.signalingUrl);
 const patterns = compilePatterns(config.modelFiles.pathPatterns);
 Object.assign(report, { scope: fixture.scope, questions: fixture.questions, weights: [], modelFileRequests: [], turns: [],
-  streamSamples: [], returnSamples: [], timing: [], sends: [], profiles: [] });
+  streamSamples: [], returnSamples: [], timing: [], sends: [], profiles: [], reviews: [] });
 const coordinatorBrowser = await openBrowser(config.browsers.coordinator);
 const profiles = [], pages = [];
 const answerTiming = (thread, attemptId, samples) => {
@@ -25,7 +25,8 @@ const answerTiming = (thread, attemptId, samples) => {
 };
 async function sendTracked(page, text) {
   const oldIds = attemptIds(await observeChat(page)), sentAt = now();
-  await send(page, text, timeouts.readyMs);
+  // Send shows the review; the displayed recipients and scope are recorded before Approve.
+  report.reviews.push(await send(page, text, timeouts.readyMs));
   return { oldIds, sentAt };
 }
 /** A new independent requester: its own profile, request tracking for every page of that profile, one tab. */
@@ -165,6 +166,7 @@ try {
   await retryPage.locator(SELECTORS.retry(streaming.attempt.id)).waitFor({ timeout: timeouts.capacityReturnMs });
   const retryOldIds = new Set(report.retry.failed.attempts.map(attempt => attempt.id)), retrySentAt = now();
   await retryPage.locator(SELECTORS.retry(streaming.attempt.id)).click();
+  report.reviews.push(await approveReview(retryPage, timeouts.readyMs));
   const retried = await followAttempt(retryPage, { oldIds: retryOldIds, timeout: timeouts.answerMs, poll, samples: report.streamSamples, modelIdentity: freeze.modelIdentity });
   report.retry.final = retried.thread; report.sends.push({ attemptId: retried.attempt.id, sentAt: retrySentAt });
   report.retry.custodyAfter = await observeCustody(retryPage);

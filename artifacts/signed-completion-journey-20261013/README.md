@@ -12,6 +12,8 @@ Candidate: signed delivery `final-5` (Reploid `95641fe7`, browser bundle `3c1fab
 | Contributor loss (Launch 1) | 6 | 7/7: SIGKILL of the stage-1 native while streaming; the person sees "A computer disconnected. Retry this answer." (`CONNECTION_LOST`) 15.7 s later; the lost stage stays unknown in the coordinator's `unknownAttempts`; capacity returns 1.9 s after the restore call returns (about 6 s after the restored native starts); the explicit Retry completes the count with natural EOS | `run-6/harness-results.json` |
 | Contribution (Launch 2) | 5 | 7/7: sharing a 4.93 MB verified subset within a 5 MiB allowance while chatting; another computer acquiring 32 of those pieces from the sharer; cached-only and reload with 0 requests and an unchanged ledger; competing tabs refused with exact charges; interrupted resume with exact charges; stop settling an in-flight transfer without cancelling the conversation | `run-5/harness-results.json` |
 
+Runs 1 to 6 predate the recipient review (below): their `recipientApproval` passes checked Send authorization (`source: 'send'`), which the current check rejects. The review-based harness has unit tests only; no physical run has used it.
+
 Run 4 found the contributor-loss defects that `95641fe7` fixes (loss reported as `CLEANUP_FAILED`; capacity never returned). Run 5's loss checks failed only on a harness defect, fixed in `e82bbe8f`. Every run settled cleanly; public contributors were never touched; run files contain aliases only.
 
 **Measured limits on this route (published for Launch 1):**
@@ -25,7 +27,7 @@ Run 4 found the contributor-loss defects that `95641fe7` fixes (loss reported as
 - Answer usefulness. `manualReview` is open, and two answers state wrong example outputs: `[2,4,6,8]` for `[4,8]`, and `[-6,12,18]` for `[-4,12]`. The three-host capture passed all 55 prefixes within 0.001 of the reference, so these look like the model's own errors, not distribution errors.
 - Production signing and public promotion. Only the test authority signed this candidate; the public pin stays Doppler 0.6.27.
 
-Component: acceptance tooling. Intent: preserved, with one recorded contract decision (below). Acceptance evidence: `node --test` over this folder ([unit-tests.txt](unit-tests.txt)). Boundary effects: `server/native-participant.js` gained `--room-token-file` (see "Native contributor launch"); no other application source and no `run-1/` or `run-2/` evidence was modified.
+Component: acceptance tooling. Intent: preserved, with one recorded contract decision (below). Acceptance evidence: `node --test` over this folder ([unit-tests.txt](unit-tests.txt)). Boundary effects: `server/native-participant.js` gained `--room-token-file` (see "Native contributor launch"); no other application source and no `run-1/` or `run-2/` evidence was modified. After run 6 the application added the recipient review ("Recipient review", below); `send()` now records and approves it.
 
 ---
 
@@ -94,11 +96,11 @@ Consequences for this harness:
 
 1. **Open.** Verifies the served `bundleHash` equals the frozen browser bundle, opens the loopback origin with the private room, and records the app's own `getOrderedParticipation` result for this instance (must be ordered mode with `stage: null`). "Install" is the operator's installation of the signed export; the product route has no in-app install control (`self/index.html:125-147` releases service workers).
 2. **Model choice.** Opens the thread rail with the application's "Choose model" control, selects the frozen ordered selection `<modelId>/partition/<planId>` in the model control and waits for the ready activity. An absent control fails with a named message.
-3. **Recipient approval.** Send is the authorization (`self/ui/pool-home/CATSCAN.md:28-30`, `self/host/chat-session.js:227-229`). Each attempt's stored `authorization` must be `source: 'send'`, disclose `ordered-partition-activations-and-tokens`, name exactly the frozen route, and equal the route the attempt executed.
+3. **Recipient approval.** Send and Retry only create the attempt. The application then shows a review (`self/ui/pool-home/request-approval.js`): the messages to be sent, the route's computers by name and stage, and the scope. Nothing from the conversation leaves the device until Approve (`packages/reploid/src/chat/workspace.js:217-220,328-350`; `automatic-ordered-partitions.js:265-276`). `send()` and `approveReview()` (`harness.mjs`) record what the review shows in `report.reviews` (the recipient ids the view submits, recipient and scope text, content label and text, shown and approved times), then click Approve. Each attempt's stored `authorization` must be `source: 'approval'`, with `recipients` equal to the recorded review's. Those must be the frozen route, each named with its stage and never as a raw id or address. The scope must state the earlier messages sent, and the content must include every message sent. The authorization must disclose `ordered-partition-activations-and-tokens` and equal the route the attempt executed.
 4. **Two turns.** Streams the first answer (visible incomplete prefix required), copies it with the real Copy control, sends the history-aware follow-up in the same thread (actual first answer verbatim in the second request).
 5. **Reload.** Saves an unsent draft, reloads, selects the thread, and observes for the fixture window that history, draft and running attempts are unchanged.
 6. **Concurrent independent requesters.** Launches `concurrency.tabs` separate browser profiles (each a new user data directory, so its own storage and peer identity; see "Contract decision"), sends in all at the same time against the same route, requires a sample where all execute simultaneously, then presses Stop in one. The stopped attempt must be a requester cancellation with its partial text, settled on every stage by the coordinator; every neighbour must complete its exact count with EOS and settled cleanup.
-7. **Explicit retry after a failure.** In its own profile, reloads the tab mid-answer (the workspace marks it interrupted, `packages/reploid/src/chat/workspace.js:45-49`), observes no redispatch, clicks Retry, and requires exactly one new attempt with `retryOf`, fresh Send authorization, completion, and unchanged earlier messages.
+7. **Explicit retry after a failure.** In its own profile, reloads the tab mid-answer (the workspace marks it interrupted, `packages/reploid/src/chat/workspace.js:45-49`), observes no redispatch, clicks Retry, approves the new attempt's own review, and requires exactly one new attempt with `retryOf`, its own approval of the displayed recipients, completion, and unchanged earlier messages.
 8. **Selective acquisition.** Every requester profile is tracked context-wide: zero weight HTTP requests and empty custody before, after, after reload, in every concurrent requester and in the retry requester. Profile directories are removed when the run closes.
 
 ### Contributor loss (`run-contributor-loss.mjs`)
@@ -125,7 +127,7 @@ One record per attempt (schema `reploid.signed-completion-answer-timing/v2`; run
 
 | Boundary | Status | Clock / source |
 |----------|--------|----------------|
-| `requester.attemptMs` | measured | requester app, `workspace.js:116` and `:248` |
+| `requester.attemptMs` | measured | requester app, `workspace.js:125` and `:260`; includes the time the review is shown (`report.reviews` `shownAt`, `approvedAt`) |
 | `requester.firstVisibleTextMs` | measured | harness poll, resolution `observation.pollMs` |
 | `coordinator.stages[].stepMsTotal`, `stepCount`, `generatedTokens` | measured | coordinator, `partition-route-execution.js:167-175`, aggregated by `partition-summary.js`; includes remote transport for stages 1 and 2. Every route step samples one token, so `generatedTokens` counts the token sampled after prefill too (v1 called it `decodeSteps`) |
 | `coordinator.promptTokens` | measured from candidates whose summary carries phases; otherwise not-observable | step 0 `inputTokenCount`, `partition-summary.js` `summarizeOrderedPhases` |
@@ -200,16 +202,19 @@ Control module contract: `stop(stage)` and `restore(stage)` receive `{machine, s
 
 | Use | Selector or hook | Source |
 |-----|------------------|--------|
-| Composer, Send | `[data-composer-input]`, `[data-composer-send]` | `self/ui/pool-home/conversation-workspace.js:50,53,305-333` |
-| Stop (selected thread) | `[data-composer-stop]` | `conversation-workspace.js:54,337` |
-| Choose model (opens the thread rail) | `[data-open-model]` | `conversation-workspace.js:21,103-104` |
-| Model choice and readiness | `[data-active-model-select]`, `[data-model-control][data-activity="ready"]` | `conversation-workspace.js:17-27,217,270` |
-| Thread rail and items | `[data-toggle-thread-rail]`, `[data-thread-item-id]` | `shell-view.js:41`, `conversation-list.js:12`, `conversation-workspace.js:304` |
-| Message body, Copy, Retry, failure status | `.chat-message-content`, `[data-copy-message]`, `[data-retry-attempt]`, `.chat-message-actions [role=status]` / `details pre` | `message-list.js:10,36-38,63-66`; `conversation-workspace.js:338-347` |
+| Composer, Send (creates the attempt only) | `[data-composer-input]`, `[data-composer-send]` | `self/ui/pool-home/conversation-workspace.js:52,55,310-344` |
+| Review before remote disclosure | `[data-chat-approval]`; its `data-thread-id`, `data-attempt-id`, `data-preview-id`, `data-recipients` | `request-approval.js:7-10,46-47`; rendered at `conversation-workspace.js:47` |
+| Review content, recipients, scope | `[data-permission-review-label]`, `[data-permission-content]`, `[data-permission-recipient]`, `[data-permission-scope]` | `self/ui/components/permission-card.js:4-5`; text from `request-approval.js` `projectRequestApproval` |
+| Approve, Decline | `[data-chat-approval] [data-approval-approve]`, `[data-approval-decline]` | `request-approval.js:9-10`; `session.approve` with the displayed recipients at `conversation-workspace.js:361-374` |
+| Stop (selected thread; hidden during review) | `[data-composer-stop]` | `conversation-workspace.js:56,238,348` |
+| Choose model (opens the thread rail) | `[data-open-model]` | `conversation-workspace.js:22,105-106` |
+| Model choice and readiness | `[data-active-model-select]`, `[data-model-control][data-activity="ready"]` | `conversation-workspace.js:18-28,220,275` |
+| Thread rail and items | `[data-toggle-thread-rail]`, `[data-thread-item-id]` | `shell-view.js:41`, `conversation-list.js:12`, `conversation-workspace.js:309` |
+| Message body, Copy, Retry, failure status | `.chat-message-content`, `[data-copy-message]`, `[data-retry-attempt]`, `.chat-message-actions [role=status]` / `details pre` | `message-list.js:10,36-38,63-66`; `conversation-workspace.js:350-358` |
 | Device pane | `[data-toggle-inspector]`, `[data-contextual-inspector]`, `[data-inspector-section="device"]` | `network-inspector.js:12-18,95` |
 | File controls | `[data-contribution-model]`, `[data-file-mode]`, `[data-file-download]`, `[data-toggle-file-contribution]` | `network-controls.js:15,26-33,172-180` |
 | Host session | listener on `[data-toggle-contribution]` closes over `session` | `network-controls.js:163` |
-| Chat state, drafts | `session.getState()`, `getDraft()` | `self/host/chat-session.js:139,180` |
+| Chat state, drafts | `session.getState()`, `getDraft()` | `self/host/chat-session.js:143,184` |
 | Network, contribution, coordinator receipts | `getState().network.contribution.attempts` | `chat-session.js:125`, `work-swarm.js:193`, `automatic-ordered-partitions.js:39` |
 | Profile connection owner, refusal | `getState().network.consumer.peerId`, `network.error`, custody owner presence | `work-swarm.js:162-165,210`, `work-peer-offers.js:16-21` |
 | Custody state, receipts | `swarm` then `modelFiles.getState()/getReceipts()` | `work-swarm.js:317`, `work-model-files.js:70-76,447` |
@@ -217,7 +222,7 @@ Control module contract: `stop(stage)` and `restore(stage)` receive `{machine, s
 | Ordered participation | `getOrderedParticipation(getCurrentReploidStorage())` | `self/host/product-context.js:11-22`, `self/instance.js:268` |
 | Acquisition ledger | `openBrowserAcquisitionBudget({existingOnly:true})` | `self/infrastructure/custody-supply-budget.js:4-49` |
 
-The precedent controllers' `[data-approval-consent]`/`[data-approval-send]` no longer exist in `self/ui` and are not used.
+The precedent controllers' `[data-approval-consent]`/`[data-approval-send]` no longer exist in `self/ui`. The review has no consent checkbox; `[data-approval-approve]` replaces them.
 
 ---
 
@@ -258,7 +263,7 @@ From `artifacts/signed-host-opener-20261012/requester-return-control/`:
 - `checks.mjs:28-30` two-device fields become `identity.route.stages`: schema `reploid.mesh.partition-summary/v2`, frozen model and plan, distinct contributors equal to the frozen count, frozen stage order, requester outside the route. Cleanup rows `{partitionIndex,status,error}` must cover each stage once, all `settled` with `error: null`, phase `completed`; every stage reserved and timed every step.
 - `plain-chat.json` criterion 5 now names the frozen ordered route instead of "two distinct contributors".
 - Retained unchanged: two turns, same thread, one new follow-up attempt, natural EOS, verbatim history, visible incomplete prefix, real clipboard, zero weights with non-empty custody evidence, reload history/draft/redispatch window. The READY control mode was not ported. Weight tracking is context-wide instead of first-page only.
-- Unsigned harnesses: the capacity-failover single-tab, localStorage, public-site flow is replaced by host-owner observation of independent loopback requester profiles; the live-conversation hard-coded ports and approval clicks are replaced by config endpoints and Send authorization.
+- Unsigned harnesses: the capacity-failover single-tab, localStorage, public-site flow is replaced by host-owner observation of independent loopback requester profiles; the live-conversation hard-coded ports are replaced by config endpoints. Approval is again a click, now on the review, with what it displayed recorded.
 
 ---
 
@@ -271,9 +276,17 @@ These are source readings, not run observations. Each affected check fails close
 3. **No public accessor for offered inventory or custody identity.** `work-model-files.js:70-76` exposes neither; the harness reads exchange closure variables (`exchange.js:2,22`). A changed closure layout makes `sharedWhileChatting`, `peerAcquisition`, `reloadPreserved` and `interruptedResume` fail closed.
 4. **Doppler per-stage metrics, scheduler, transport and persistence timings are not exposed** for ordered routes (table above). They are recorded `not-observable`.
 
-## Contract question for review
+## Recipient review (after run 6)
 
-Send authorizes the actual recipients without a separate review step (`self/ui/pool-home/CATSCAN.md:28-30`; `conversation-workspace.js:320,347`; `chat-session.js:228,247`), and no route is shown before admission (`execution-ribbon.js:72`). REP-7 `requirements.md:145` asks for readable recipients with Approve/Decline; `session.approve` (`chat-session.js:249-252`) has no UI caller. `recipientApproval` therefore checks the stored Send authorization against the frozen route; it cannot show the person saw the recipients first. `manualReview.recipientDisclosureContract` stays `null` until someone decides which contract governs.
+Runs 1 to 6 used Send as the authorization. No route was shown before admission, and `session.approve` had no UI caller. REP-7 `requirements.md:145` asks for readable recipients with Approve/Decline, so the application now shows a review before any remote disclosure:
+
+- Send and Retry create the attempt without authorizing it (`self/host/chat-session.js:219,246`). The workspace offers a review only for verified recipients (`workspace.js:217-220`, `thread-grants.js` `disclosureRecipients`). An unverified partition preview fails without a review.
+- The review shows the messages sent (this message, earlier turns, any context prompt), the route's computers by session name and stage, and the scope: who receives the text and who receives model tokens and intermediate results. The execution ribbon and inspector show the same computers as a proposed route.
+- Approve sends the displayed recipient ids. The workspace records them as `authorization.recipients` with `source: 'approval'` and rejects a list that differs (`workspace.js:328-350`). After Approve, the requester re-reads the route and refuses to dispatch if it changed (`automatic-ordered-partitions.js:270-271`). A Retry then needs a new review.
+- Decline cancels only that attempt ("Not sent. You declined sharing this request."), returns its text to an empty composer, and leaves other conversations alone. Local-only execution shows no review.
+- What leaves before Approve: the requester opens the coordinator's input channel and sends one `describe` request. Periodic discovery (`describe` requests and capability descriptions) continues regardless. No message, token context, activation, reservation or grant is sent (`tests/unit/ordered-review-disclosure.test.js`).
+
+`manualReview.recipientDisclosureContract` stays `null`: whether the recorded review wording reads as informed consent is a person's judgement.
 
 ## Predicted risks (source-inferred, unverified)
 
@@ -287,6 +300,7 @@ Answer usefulness or correctness beyond the frozen counts; numerical accuracy; s
 ## Verification performed
 
 - `node --test` over the seven test files: see [unit-tests.txt](unit-tests.txt).
+- Recipient review: application unit tests (Vitest, `--config tests/vitest.config.js`): `request-approval.test.js`, `ordered-review-disclosure.test.js`, `product-session-requester-identity.test.js`, `chat-workspace.test.js`, `automatic-ordered-partitions.test.js`, `execution-ribbon.test.js`, `conversation-permission.test.js`. Playwright `tests/e2e/chat-rails.spec.js` "direct chat" at 1440, 390 and 320 px in both themes on a local server. No runner, contributor or physical route.
 - `node --check` on every module.
 - `--room-token-file`: `tests/unit/native-room-token-file.test.js` (Vitest, `--config tests/vitest.config.js`).
 - Not run: any runner, browser, server, GPU, contributor, SSH, or the Verification Worker on these files. The run-2 fixes are unproven on a physical run.
