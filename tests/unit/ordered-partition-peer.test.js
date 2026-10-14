@@ -335,3 +335,13 @@ it.each(['lost', 'signature'])('retains unacknowledged ordinary settlement after
     expect(f.f.stages[1].closeAttempt).toHaveBeenCalledTimes(1);
   } finally { await f.close(); }
 });
+
+it('carries a contributor CAPACITY_UNAVAILABLE refusal to the coordinator as that code and settles the route', async () => {
+  const f = await fixture();
+  try {
+    f.f.stages[2].reserve.mockRejectedValueOnce(Object.assign(Error('device queue bound reached'), { code: 'CAPACITY_UNAVAILABLE' }));
+    await expect(f.runner.execute(f.request)).rejects.toMatchObject({ code: 'CAPACITY_UNAVAILABLE' });
+    expect(f.f.stages[1].executeStage).not.toHaveBeenCalled();
+    expect(f.runner.getState()).toMatchObject({ active: 0, unsettled: 0 });
+  } finally { await f.close(); }
+});

@@ -21,7 +21,8 @@ const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
  * `autoStage`, the operator's auto choice lets this contributor's own policy pick
  * its stage from observed offers and move only while idle; with `routeRanking`,
  * a coordinator ranks complete routes by measured phases for new attempts only;
- * with `admission`, every resident this owner prepares charges one device budget. */
+ * with `admission`, every resident this owner prepares charges one device budget,
+ * optionally behind a fair bounded queue. */
 export function createAutomaticOrderedPartitions({ identity, meshId, models, policy, peers, createNetwork,
   loadProgram, ordered, onChange = () => {} }) {
   const config = structuredClone(policy), catalog = structuredClone(models), options = structuredClone(ordered);
@@ -71,7 +72,9 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     unknownAttempts: structuredClone(unknownAttempts), ...(auto ? { assignment: structuredClone(assignment) } : {}),
     ...(ranking ? { routeObservations: observations.snapshot() } : {}) });
   const notify = () => { onChange(getState()); for (const listener of listeners) listener(getModels()); };
-  const residentCapacity = () => program ? (({ active, availableSlots, closed }) => ({ active, availableSlots, closed }))(
+  // A bounded device queue is advertised with capacity; it is present only when configured.
+  const residentCapacity = () => program ? (({ active, availableSlots, closed, device: shared }) => ({ active, availableSlots, closed,
+    ...(shared?.maxQueued === undefined ? {} : { queued: shared.queued, maxQueued: shared.maxQueued }) }))(
     program.resident.getState().reservations) : { active: 0, availableSlots: 0, closed: true };
   function describe() {
     const state = program?.resident.getState(), descriptor = state?.descriptor;

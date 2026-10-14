@@ -153,8 +153,10 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       if (device && !attempts.has(request.identity?.attemptId)) {
         assert(phase === 'ready' && !lifetime.signal.aborted, 'Partition contributor is not ready');
         const binding = routeBinding.identity(request.identity);
+        // A bounded wait in the device queue ends when this resident closes or the caller cancels.
         await device.admit({ owner: deviceOwner, attemptId: binding.attemptId, bytes: attemptBytes,
-          requesterId: binding.requesterId, routeKey: binding.route.stages[0].participantId, signal: request.signal });
+          requesterId: binding.requesterId, routeKey: binding.route.stages[0].participantId,
+          signal: request.signal ? AbortSignal.any([request.signal, lifetime.signal]) : lifetime.signal });
         try { return { ...reserve(request.identity), partitionIndex: index, status: 'reserved' }; }
         catch (cause) { if (!attempts.has(binding.attemptId)) device.release(deviceOwner, binding.attemptId); throw cause; }
       }

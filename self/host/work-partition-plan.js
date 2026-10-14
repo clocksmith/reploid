@@ -75,9 +75,13 @@ const ORCHESTRATION_POLICIES = Object.freeze({
     && exactKeys(value.workload, ['promptTokens', 'expectedTokens']) && positiveInteger(value.workload.promptTokens)
     && positiveInteger(value.workload.expectedTokens),
   // Never above the existing per-executor allocation ceiling.
-  admission: value => exactKeys(value, ['maxBytes', 'maxConcurrentAttempts', 'attemptBytes'])
+  admission: value => exactKeys(value, ['maxBytes', 'maxConcurrentAttempts', 'attemptBytes', ...(value?.queue === undefined ? [] : ['queue'])])
     && positiveInteger(value.maxBytes) && value.maxBytes <= partitionPolicy.maxGpuBufferBytes
     && positiveInteger(value.maxConcurrentAttempts) && positiveInteger(value.attemptBytes) && value.attemptBytes <= value.maxBytes
+    // A queued reservation must be answered before the execution channel's request timeout.
+    && (value.queue === undefined || exactKeys(value.queue, ['maxQueued', 'maxQueuedPerRequester', 'maxWaitMs'])
+      && positiveInteger(value.queue.maxQueued) && positiveInteger(value.queue.maxQueuedPerRequester)
+      && positiveInteger(value.queue.maxWaitMs) && value.queue.maxWaitMs < partitionPolicy.executionChannel.timeoutMs)
 });
 const isAutoStage = stage => stage?.assignment === 'auto';
 
