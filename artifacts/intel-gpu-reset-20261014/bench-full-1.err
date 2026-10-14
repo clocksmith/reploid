@@ -1,0 +1,11 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
+[540.8ms][Harness] Suite model init: loadMode=file, modelId=qwen-3-5-0-8b-q4k-ehaf16, hasModelUrl=yes
+[544.5ms][TestHarness] Initializing WebGPU...
+[547.3ms][Platform] No specific platform matched for adapter (vendor=intel, arch=gen-12lp), falling back to generic
+[GPU] intel gen-12lp, f16/subgroups, 4.0GB, submit probe: 2.2ms
+[563.1ms][TestHarness] GPU: hasF16=true, hasSubgroups=true
+[563.1ms][TestHarness] Fetching manifest...
+[572.1ms][TestHarness] Model: transformer
+[572.9ms][TestHarness] Creating pipeline...
+[583.0ms][Pipeline] Unloaded

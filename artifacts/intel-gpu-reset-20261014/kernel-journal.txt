@@ -1,0 +1,29 @@
+2026-10-14T08:03:08-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:11e!
+2026-10-14T08:03:09-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:120!
+2026-10-14T08:03:09-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:122!
+2026-10-14T08:03:09-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:124!
+2026-10-14T08:03:10-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:126!
+2026-10-14T08:03:10-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:128!
+2026-10-14T08:03:10-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:12a!
+2026-10-14T08:03:31-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:12e!
+2026-10-14T08:03:31-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:130!
+2026-10-14T08:03:32-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:132!
+2026-10-14T08:03:32-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:134!
+2026-10-14T08:03:32-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:136!
+2026-10-14T08:03:32-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:138!
+2026-10-14T08:03:33-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:13a!
+2026-10-14T08:03:53-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:13e!
+2026-10-14T08:03:54-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:140!
+2026-10-14T08:03:54-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:142!
+2026-10-14T08:03:55-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:144!
+2026-10-14T08:03:55-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:146!
+2026-10-14T08:03:55-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:148!
+2026-10-14T08:03:56-04:00 suby kernel: Fence expiration time out i915-0000:00:02.0:node[1368195]:14a!
+2026-10-14T08:03:56-04:00 suby kernel: i915 0000:00:02.0: [drm] Resetting rcs0 for preemption time out
+2026-10-14T08:03:56-04:00 suby kernel: i915 0000:00:02.0: [drm] node[1368195] context reset due to GPU hang
+2026-10-14T08:03:59-04:00 suby kernel: i915 0000:00:02.0: [drm] GPU HANG: ecode 12:1:85dcfffb, in node [1368195]
+---
+7500
+2500
+6.8.0-90-generic
+00:02.0 VGA compatible controller [0300]: Intel Corporation Tiger Lake-LP GT2 [UHD Graphics G4] [8086:9a78] (rev 01)
