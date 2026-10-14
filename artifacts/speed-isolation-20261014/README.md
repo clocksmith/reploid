@@ -102,7 +102,18 @@ its applicable qualification.
   profile exists for agreement with the frozen reference.
 - **Placement (Reploid, Launch 3 ranking):** routes without the Intel stage. On this
   measurement, an AMD-only paired route is about 4x faster per token than placement B.
-- **The roughly 120 ms per step outside GPU kernels** in the paired path.
+- **The roughly 120 ms per step outside GPU kernels** in the paired path. One part is measured.
+  Doppler 0.6.28 declares `immediateCompletion: "settled"` for 27 paired kernel variants, so
+  the host waits for GPU completion after each of their immediate dispatches. A scratch copy
+  of the installed package with all 27 set to `"submitted"` (diagnostic only; the setting
+  repairs a long-prefill failure on Intel and is part of execution identity) gave:
+  - 14.4-14.7 s for the 56-token prompt, against 17.3 s;
+  - 626-636 ms median per decode token, against 600 ms, within run-to-run noise;
+  - 546 ms profiled wall per step, against 577 ms, with GPU kernel time unchanged at 454 ms
+    (`amd-host/out/*-submitted*`).
+
+  The completion waits therefore cost about 15% of prompt time and at most about 5% of
+  decode.
 
 **Not shown:**
 - browser-surface numbers (all runs here are Node/Dawn);
