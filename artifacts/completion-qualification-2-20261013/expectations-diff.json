@@ -1,0 +1,25 @@
+{
+  "schema": "reploid.expectations-diff/v2",
+  "freshExpectations": {
+    "path": "artifacts/completion-qualification-2-20261013/expectations.json",
+    "hash": "sha256:2a0bdaea2f54e02bf43c75ae6b02adc37f4ba0016b93c93c038332e23e76f0b7"
+  },
+  "originalExpectationsHash": "sha256:286755b16c9111ff4461b17068255a6c30aed880c0abb6ef1137a323f894d679",
+  "redactedOriginal": {
+    "path": "artifacts/completion-candidate-20261013/expectations.json",
+    "hash": "sha256:937061949b1014ba136d4d76cd38284b6a742764784ae2a66ad04403fe4c1d0a"
+  },
+  "changedVersusOriginal": [
+    ".orderedContract.executionGraphHash",
+    ".placements[1].platform",
+    ".placements[2].platform"
+  ],
+  "changedVersusRedactedOriginal": [
+    {
+      "path": ".orderedContract.executionGraphHash",
+      "redactedOriginal": "sha256:8e33eb44bdf90e96eb6c3072796107cb0f28e28f6c59ab76a0d2055dc009fcbb",
+      "fresh": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf"
+    }
+  ],
+  "note": "Versus the original frozen bytes the fresh expectations change the execution-graph digest and the two native machine labels, which are now aliases. Versus the alias-only redacted copy in this repository only the digest changes."
+}

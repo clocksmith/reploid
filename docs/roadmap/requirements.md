@@ -327,9 +327,9 @@ Required storage acceptance, attached to REP-5:
 
 ### DR-6
 
-Owner: Reploid placement / reservations; Doppler execution. Status: Configured source composition passes; repaired archive `2df37d88…` passes the 55-prefix physical capture and cleanup; a correctly bound rerun was interrupted by the supervisor deadline after 39 prefixes, so qualification-report binding remains open.
+Owner: Reploid placement / reservations; Doppler execution. Status: Configured source composition passes; repaired archive `2df37d88…` passes the 55-prefix physical capture and cleanup; a first correctly bound rerun was interrupted by the supervisor deadline after 39 prefixes; a second completed all 55 prefixes and its three partition reports were accepted by the unchanged producer and the archive's validators.
 
-Next action: Establish a coordinated device window and separate timing boundaries, then repeat the repaired graph-identity freeze for `2df37d88…` and validate genuine reports; then qualify signed installed chat on configured prepared routes. Dependencies: Unchanged independent reference/tolerance, complete route admission and automatic requester selection; autonomous cold preparation is Launch 3.
+Next action: Bind the genuine `2df37d88…` reports into signed delivery, then qualify signed installed chat on configured prepared routes. Dependencies: Unchanged independent reference/tolerance, complete route admission and automatic requester selection; autonomous cold preparation is Launch 3.
 
 Acceptance and source/installed/physical evidence: the scoped entry below is authoritative; absent evidence is not a pass.
 

@@ -1,0 +1,34 @@
+{
+  "schema": "reploid.functional-gpu-reservation/v1",
+  "approved": true,
+  "authority": "Operator instruction in session to finish the qualification campaign for candidate 2df37d88 after the first rerun was interrupted",
+  "id": "completion-candidate-three-stage-qualification-2-20261013",
+  "observedAt": "2026-10-14T01:22:07.359092+00:00",
+  "sharedMachineNotes": "Public co-tenants remain on amd-host and intel-host and are not addressed. No competing test run was present at reservation; another session's long-running python process remains on intel-host. Functional numerical route with retained driver caches; not cold-start, isolation or throughput acceptance. GPU settlement from the interrupted first rerun is unknown on amd-host and intel-host and is neither inherited nor erased.",
+  "scope": "Three physical hosts, 55 unchanged independent F64 prefixes; stop on first numerical failure. Same archive, reference, tolerance, deadlines and limits as completion-candidate-20261013; the frozen execution-graph digest domain is corrected and machine labels are aliases. Public contributors unchanged.",
+  "order": [
+    "Mac-stage0",
+    "AMD-stage1",
+    "Suby-stage2"
+  ],
+  "maxGpuBufferBytes": 1420000000,
+  "deadlines": {
+    "stageMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000
+  },
+  "nativeHostLimits": {
+    "memoryHighBytes": 10737418240,
+    "memoryMaxBytes": 12884901888,
+    "swapBytes": 0,
+    "supervisorDeadlineMs": 1740000,
+    "scopeDeadlineSeconds": 1800
+  },
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "preparation": "Expected identities come from the retained load-only observations in completion-candidate-20261013/load-preflight; no additional load-only GPU run. Process preflights, endpoints and output are fresh, and the harness re-verifies live execution identities, providers and plan before token execution.",
+  "ownershipCheck": {
+    "mac-host": "campaign ports free, no owned campaign processes",
+    "amd-host": "public contributors running unchanged; no campaign scopes or ports; load1 1.29; 66 GiB available; no test run",
+    "intel-host": "public contributors running unchanged; no campaign scopes or ports; load1 1.30; 26 GiB available; no test run; package 53 C, GPU idle"
+  }
+}
