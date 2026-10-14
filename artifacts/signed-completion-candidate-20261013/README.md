@@ -4,14 +4,57 @@ Component: browser/native application delivery (preparation). Intent preserved.
 Acceptance evidence: `final-5/preflight.json`, `final-5/metadata-staging.json`,
 `final-5/delivery-verification.json`, `final-5/swarm-label.json`,
 `final-5/room-token-file.json`, `final-5/changed-files.json`, `final-5/worker.json`,
-`final-5/binding.json`.
+`final-5/binding.json`; for the current delivery the same files under `final-6/`.
 Boundary effects: new isolated exports, catalogs and packages under `/var/tmp/`
 only. The public Doppler 0.6.27 pin, public catalogs, deployment files,
 identities, release checkpoints and contribution ledgers are unchanged. No
 native participant or browser was started and no GPU was opened. The local
 `--help` checks are the only processes run from installed packages.
 
-## Current: `final-5/` (Reploid `95641fe7`) supersedes `final-4/`
+## Current: `final-6/` (Reploid `cec3ff6b`) supersedes `final-5/`
+
+Reploid `cec3ff6b` carries everything since `95641fe7` (100 changed application files):
+per-stage prompt, prefill and decode timing; the one-time remote contributor permission in place of
+per-request disclosure by Send, with recipients pinned per attempt and the permission bound to the
+network; requester-owned transactional history for ordered routes; the full-model seeding size in
+the file controls; and the Launch 3 mechanisms, all off by default. The Capsule changes too: Doppler
+`a40f02a1` signs candidate `2df37d88` with `prefillTokenChunkSize` 16 (the 256-token chunk hung
+intel-host's GPU), bound to campaign 3 placement B (mac-host browser stage 0, intel-host native
+stage 1, amd-host native stage 2 with the output head), release sequence 4 `7f62c19a…`
+(expires 2026-10-15T13:21:16Z), minimum sequence 4.
+
+| Item | `final-6/` value |
+| --- | --- |
+| Export | `/var/tmp/reploid-signed-completion-app-6-20261014/app`, source `cec3ff6bbf7fdcd40ccddc06b9a0028f8889a033`, tar `42c9cd8c…` |
+| Prepared catalog | `e2d149039b66c0b4718c371cd2b82c0cf5afd35809779c5401e237e0984024a8`, release history 1-4 |
+| Staged catalog | `c96a3d193eff1e89ac4853849ea8ad8c9a4ce098ec8847ee3aa8ef143570ba26`; 42 metadata files; only the ordered model |
+| Browser payload | 2,051 files, bundle `sha256:dcd54bcbf6074af14dc4d2c2e7464f7f76651f94b7f71c686496f8d5204a7723` |
+| Native tarball | `a2f5a7d0e7954af323b4bd97872029f5f1a7f04a9f504f1a13bdc6f01d87d054` |
+| Native descriptor | `0d9536c946c4627376e3cf0ae2737fd9a93573c2e57bf8e0ae1a872da1793bb8`, 155 files |
+
+The final-5 method was repeated into fresh directories. `node_modules` was an APFS clone of the
+final-5 export's (dependencies are unchanged; only scripts changed in `package.json`), followed by
+the recorded npm install of the runtime archive. Every step passed:
+
+- **Preflight** (`final-6/preflight.js`, a copy with recorded differences): runtime 1,984/1,984 in
+  both copies; plan admission for stages 0-2; zero address matches; 11 of 11 release-history cases.
+  Added cases: holders at sequence 2 (`923ac7e6…`, the final-5 installs) and sequence 3 (`74ab985f…`,
+  its renewal) accept the sequence-4 history, and the stale sequence 1-3 history is rejected below
+  the minimum.
+- **Delivery verification:** 155 native files, 1,984 installed runtime files, 2,051 browser files,
+  42 metadata files.
+- **Swarm label and `--room-token-file`:** served and packaged copies equal `cec3ff6b`.
+- **Changed files** (`final-6/check-changed-files.js`): all 100 changed files are served or packaged
+  as committed. `module-inventory.json` and `vfs-manifest.json` are rebuilt by the pipeline and equal
+  the export's own copies; the product session passes the requester identity on every ordinary and
+  ordered opening (the two-stage canonical configuration's opening is exempt, unchanged).
+- **Ordered history activation:** the served and vendored Doppler `partitions.js` export `metadataDigest`.
+- **Verification Worker:** passed all eight scripts, warnings retained.
+
+Installed on both hosts (`install-6/`) at `/var/tmp/reploid-signed-completion-6-20261014/reploid`.
+The final-5 installs remain in place.
+
+## `final-5/` (Reploid `95641fe7`) supersedes `final-4/`
 
 Reploid `95641fe7` reports a lost ordered contributor as `CONNECTION_LOST` and
 lets capacity return. It changes three files in
