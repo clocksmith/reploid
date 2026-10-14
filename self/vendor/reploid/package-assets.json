@@ -865,6 +865,16 @@
       "sha256": "d8e80f1c5c7d0e9675ff7775c4fe3669cc7dc8f6d5a1dfc95387ee536953b585"
     },
     {
+      "path": "mesh/partitions/partition-route-ranking.d.ts",
+      "bytes": 1819,
+      "sha256": "f724e9ef445361eeaffb624787fe51d6b844a3add34348687bcc4f846ed91a98"
+    },
+    {
+      "path": "mesh/partitions/partition-route-ranking.js",
+      "bytes": 7752,
+      "sha256": "330f75d0ab3cba42dde4660276417911286b874c9c983c560c9e8fe9259b99f2"
+    },
+    {
       "path": "mesh/partitions/partition-runner.d.ts",
       "bytes": 7077,
       "sha256": "00ec46a319f5cb5d6efd97b148fed788ffcf053f3c74eb94c7e678ae2a4afb8d"
