@@ -27,7 +27,7 @@ describe('Doppler termination through ordinary chat owners (injected execution)'
     const thread = workspace.createThread({ model, permissions: { sharingScope: placement === 'local' ? 'local' : 'mesh' } });
     const truncated = await workspace.send(thread, 'Question');
     expect(truncated.status).toBe('failed');
-    expect(truncated.error).toContain('token limit');
+    expect(truncated.error).toContain('generation limit');
     expect(truncated.execution).toMatchObject({ stopReason: 'max-tokens', completion: complete('max-tokens') });
     expect(workspace.getState().threads[0].messages.at(-1)).toMatchObject({ content: 'Visible answer', status: 'failed' });
     stopReason = 'eos-token';
