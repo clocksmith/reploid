@@ -1,0 +1,96 @@
+{
+  "schema": "reploid.signed-completion-delivery-verification/v1",
+  "applicationRoot": "/var/tmp/reploid-signed-completion-app-7-20261014/app",
+  "native": {
+    "archive": "/var/tmp/reploid-signed-completion-app-7-20261014/app/output/reploid-native-TQ4Qqa/reploid-native-0.1.0.tgz",
+    "nativeArchiveSha256": "6acd639d3740dd161f89c2e89dd566f9b311299d0ece2eb533d5217352a19ddb",
+    "descriptorSha256": "5b9db6a6396d0847a91b09e5ef5879316685271f1f689797df67c956f179ff70",
+    "nativeFiles": 155,
+    "installDirectory": "/var/tmp/reploid-signed-completion-app-7-20261014/native-verify/reploid",
+    "install": "npm ci --ignore-scripts --no-audit --no-fund",
+    "installLog": "added 12 packages in 540ms\nnpm warn deprecated domexception@4.0.0: Use your platform's native DOMException instead",
+    "runtimeFiles": 1984,
+    "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "dependencyVersions": {
+      "doppler-gpu": "0.6.28",
+      "@roamhq/wrtc": "0.10.0",
+      "ws": "8.21.0",
+      "webgpu": "0.4.0"
+    }
+  },
+  "browser": {
+    "payload": "/var/tmp/reploid-signed-completion-app-7-20261014/app/.firebase-hosting/reploid",
+    "browserFiles": 2051,
+    "bundleHash": "sha256:ce082b1135b14c161f46f801604aa22988deb22e8177f2d7692964dafb217653",
+    "browserManifestSha256": "13a2a73b94f02abd343563036119ea0d2ea2d043f1866c97583a8c97d169c9df",
+    "vendoredRuntimeFiles": 1206
+  },
+  "catalog": {
+    "preparedSha256": "e2d149039b66c0b4718c371cd2b82c0cf5afd35809779c5401e237e0984024a8",
+    "stagedSha256": "c96a3d193eff1e89ac4853849ea8ad8c9a4ce098ec8847ee3aa8ef143570ba26",
+    "onlyMetadataUrlsChanged": true,
+    "sourceFiles": 46,
+    "distinctMetadataFiles": 42,
+    "artifactMappings": 64,
+    "releaseHistory": [
+      {
+        "sequence": 1,
+        "digest": "sha256:d47ddb8d6f45b23230fbf2cf1731122ccc6160c51a968e616ff6cf366bf8c9d2"
+      },
+      {
+        "sequence": 2,
+        "digest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f"
+      },
+      {
+        "sequence": 3,
+        "digest": "sha256:74ab985fb86baa7fe0c283bd9dabfb536b4a077e7942e9419eeca661500dea6a"
+      },
+      {
+        "sequence": 4,
+        "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+      }
+    ],
+    "minimumSequence": 4,
+    "maxAcquisitionChunkBytes": 16777216
+  },
+  "orderedPlanAdmission": [
+    {
+      "index": 0,
+      "layerRange": [
+        0,
+        7
+      ],
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+    },
+    {
+      "index": 1,
+      "layerRange": [
+        8,
+        15
+      ],
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+    },
+    {
+      "index": 2,
+      "layerRange": [
+        16,
+        23
+      ],
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+    }
+  ],
+  "addresses": {
+    "filesSearched": 129,
+    "tailnetDomains": 0,
+    "loginShaped": 0,
+    "ownMachineNames": 0
+  },
+  "node": "v22.20.0",
+  "platform": "darwin",
+  "architecture": "arm64",
+  "GPUOpened": false,
+  "applicationStarted": false,
+  "publicContributorChanged": false,
+  "ledgerOpened": false,
+  "physicalQualified": false
+}

@@ -1,0 +1,66 @@
+{
+  "schema": "reploid.delivery-changed-file-check/v1",
+  "base": "c44ec8525f23b3bc566b7f25f0a0702dac6aedac",
+  "commit": "76296a53d24f0c5a7df59508510883533961c43c",
+  "changedFiles": [
+    "packages/reploid/src/artifacts/custody/exchange.js",
+    "self/vendor/reploid/artifacts/custody/exchange.js",
+    "self/vendor/reploid/package-assets.json"
+  ],
+  "files": {
+    "packages/reploid/src/artifacts/custody/exchange.js": {
+      "commitSha256": "297885ccd665364ff0b528d230fee5666796d18c3ca10ec2132f4b7848dfcce8",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "297885ccd665364ff0b528d230fee5666796d18c3ca10ec2132f4b7848dfcce8",
+        "equalsCommit": true
+      }
+    },
+    "self/vendor/reploid/artifacts/custody/exchange.js": {
+      "commitSha256": "297885ccd665364ff0b528d230fee5666796d18c3ca10ec2132f4b7848dfcce8",
+      "served": {
+        "path": "vendor/reploid/artifacts/custody/exchange.js",
+        "sha256": "297885ccd665364ff0b528d230fee5666796d18c3ca10ec2132f4b7848dfcce8",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/package-assets.json": {
+      "commitSha256": "2ec3a02875e6de8c7d97bfa63ed130ebcc32e519be5a4a4acb642ff805ad8437",
+      "served": {
+        "path": "vendor/reploid/package-assets.json",
+        "sha256": "090f6452429b475476c06507f33fd73815c0f753b84f858d22932056bd50e7df",
+        "equalsCommit": false,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    }
+  },
+  "packageAssets": {
+    "changedVendoredEntries": {
+      "artifacts/custody/exchange.js": {
+        "listedSha256": "297885ccd665364ff0b528d230fee5666796d18c3ca10ec2132f4b7848dfcce8",
+        "equalsCommit": true
+      }
+    },
+    "entriesDifferingFromCommit": [
+      "contracts/config/doppler-generation-contract.d.ts",
+      "contracts/doppler-partitions.d.ts",
+      "contracts/doppler-partitions.provenance.json"
+    ]
+  },
+  "servedProductSessionPassesRequesterIdentity": true,
+  "requesterIdentityCall": "const requesterIdentity = () => swarm.partitions.requesterIdentity();",
+  "chatOpeningCalls": 5,
+  "canonicalConfigurationOpeningsExempt": 1,
+  "previousServedProductSessionPassedIt": false
+}

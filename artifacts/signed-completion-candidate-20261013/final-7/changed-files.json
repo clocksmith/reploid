@@ -1,0 +1,88 @@
+{
+  "schema": "reploid.delivery-changed-file-check/v1",
+  "base": "cec3ff6bbf7fdcd40ccddc06b9a0028f8889a033",
+  "commit": "c44ec8525f23b3bc566b7f25f0a0702dac6aedac",
+  "changedFiles": [
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.d.ts",
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.js",
+    "self/vendor/reploid/mesh/partitions/partition-ordered-peer.d.ts",
+    "self/vendor/reploid/mesh/partitions/partition-ordered-peer.js",
+    "self/vendor/reploid/package-assets.json"
+  ],
+  "files": {
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.d.ts": {
+      "commitSha256": "2a81ceb3afb18777de71761a6307a505795c462707197885dec1cbee3ba49a43",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/mesh/partitions/partition-ordered-peer.js": {
+      "commitSha256": "7227b0b64ea69a1b2e905a3adbac37983607aedfc3c95944ad59aeefb8a99793",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "7227b0b64ea69a1b2e905a3adbac37983607aedfc3c95944ad59aeefb8a99793",
+        "equalsCommit": true
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-ordered-peer.d.ts": {
+      "commitSha256": "2a81ceb3afb18777de71761a6307a505795c462707197885dec1cbee3ba49a43",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/mesh/partitions/partition-ordered-peer.js": {
+      "commitSha256": "7227b0b64ea69a1b2e905a3adbac37983607aedfc3c95944ad59aeefb8a99793",
+      "served": {
+        "path": "vendor/reploid/mesh/partitions/partition-ordered-peer.js",
+        "sha256": "7227b0b64ea69a1b2e905a3adbac37983607aedfc3c95944ad59aeefb8a99793",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/package-assets.json": {
+      "commitSha256": "98e218c560565d70d259f648e75b464e20a765af4b59fd43552350bc12d1b95b",
+      "served": {
+        "path": "vendor/reploid/package-assets.json",
+        "sha256": "88081660d7fdfcb06cb44805fd37e8a7c3125e7fb9dedb31a54b4245f5b7db23",
+        "equalsCommit": false,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    }
+  },
+  "packageAssets": {
+    "changedVendoredEntries": {
+      "mesh/partitions/partition-ordered-peer.d.ts": {
+        "listedSha256": "2a81ceb3afb18777de71761a6307a505795c462707197885dec1cbee3ba49a43",
+        "equalsCommit": true
+      },
+      "mesh/partitions/partition-ordered-peer.js": {
+        "listedSha256": "7227b0b64ea69a1b2e905a3adbac37983607aedfc3c95944ad59aeefb8a99793",
+        "equalsCommit": true
+      }
+    },
+    "entriesDifferingFromCommit": [
+      "contracts/config/doppler-generation-contract.d.ts",
+      "contracts/doppler-partitions.d.ts",
+      "contracts/doppler-partitions.provenance.json"
+    ]
+  },
+  "servedProductSessionPassesRequesterIdentity": true,
+  "requesterIdentityCall": "const requesterIdentity = () => swarm.partitions.requesterIdentity();",
+  "chatOpeningCalls": 5,
+  "canonicalConfigurationOpeningsExempt": 1,
+  "previousServedProductSessionPassedIt": false
+}

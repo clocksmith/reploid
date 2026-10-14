@@ -1,0 +1,1 @@
+[module-inventory] Wrote /private/var/tmp/reploid-signed-completion-app-7-20261014/app/self/config/module-inventory.json with 2444 modules

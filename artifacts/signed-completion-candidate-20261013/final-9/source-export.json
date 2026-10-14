@@ -1,0 +1,13 @@
+{
+  "schema": "reploid.completion-chat-source-export/v1",
+  "sourceCommit": "1473eda7ecfa48ebdbf2cc8a5c13ebc0f8d5a8c4",
+  "command": "git archive --format=tar 1473eda7 -- . :(exclude)artifacts :(exclude)reports :(exclude)doppler",
+  "sourceTarPath": "/var/tmp/reploid-signed-completion-app-9-20261014/source.tar",
+  "sourceTarSha256": "b8a193b580ffc3ccb11f14a14b843e52c0b68d58d07c15594e5c85ae42a60ef5",
+  "sameMethodAs": "../final-6/source-export.json",
+  "nodeModules": "APFS clone of the final-8 export node_modules (dependencies unchanged since final-5), then the recorded npm install of the runtime archive",
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "applicationDirectory": "/var/tmp/reploid-signed-completion-app-9-20261014/app",
+  "applicationQualified": false,
+  "publicPinChanged": false
+}

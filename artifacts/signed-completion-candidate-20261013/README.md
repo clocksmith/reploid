@@ -4,14 +4,121 @@ Component: browser/native application delivery (preparation). Intent preserved.
 Acceptance evidence: `final-5/preflight.json`, `final-5/metadata-staging.json`,
 `final-5/delivery-verification.json`, `final-5/swarm-label.json`,
 `final-5/room-token-file.json`, `final-5/changed-files.json`, `final-5/worker.json`,
-`final-5/binding.json`; for the current delivery the same files under `final-6/`.
+`final-5/binding.json`; for the current delivery the same files under `final-9/`.
 Boundary effects: new isolated exports, catalogs and packages under `/var/tmp/`
 only. The public Doppler 0.6.27 pin, public catalogs, deployment files,
 identities, release checkpoints and contribution ledgers are unchanged. No
 native participant or browser was started and no GPU was opened. The local
 `--help` checks are the only processes run from installed packages.
 
-## Current: `final-6/` (Reploid `cec3ff6b`) supersedes `final-5/`
+## Current: `final-9/` (Reploid `1473eda7`) supersedes `final-8/`
+
+Two inputs changed. Reploid `1473eda7` asks a stalled file supplier again under a fresh grant (eight
+files: the library and vendored `artifacts/custody/exchange.js`, `exchange.d.ts` and `runtime.js`,
+`package-assets.json`, and `tests/unit/custody-exchange.test.js`). In run 7 attempts c and d on
+final-8, full-model seeding from the `mac-host` browser to the `intel-host` browser stopped on one
+chunk after 104,831,852 and 345 MB: the only supplier stayed silent past the 30 s chunk deadline while
+`mac-host` round trips timed out, and custody asked each supplier once per file. Custody now separates a
+supplier that delivered nothing (stall, disconnect, unanswered grant or channel request) from one that
+delivered invalid data or refused; the first may be asked again, within `maxAcquisitionAttempts` fresh
+grants in total, after waiting at most one channel timeout for its offer to return; verified chunks
+resume from checkpoints and every requested chunk stays charged. Three new regressions fail on the old
+source; the invalid-bytes case is unchanged behaviour. The export also carries `b8dd3fad` (lint-only
+global declarations, not from this run; of its files only `server/cloudflare/room.js` is checked, and it
+is neither served nor packaged).
+
+The Capsule's test release was renewed at sequence 5 (Doppler `71a3daf6`,
+`artifacts/chunked-prefill-capsule-20261014/release-renewal-5`, history `7be31ba9…`: sequences 1-4
+byte-identical to the earlier history, sequence 5 `70f24c97…` expires 2026-10-15T16:14:00Z). The
+catalog carries that history in `packOpenOptions.releaseEvents` with minimum sequence 5; nothing else in
+the model row changed. A first catalog pass with the sequence-4 history was set aside when the renewal
+arrived (`final-9/seq4-pass/`).
+
+| Item | `final-9/` value |
+| --- | --- |
+| Export | `/var/tmp/reploid-signed-completion-app-9-20261014/app`, source `1473eda7ecfa48ebdbf2cc8a5c13ebc0f8d5a8c4`, tar `b8a193b5…` |
+| Prepared catalog | `c6da46b8f510e317b6d28a70901cea866a65bd0f568f091a9d348cfb86fe6196`, release history 1-5, minimum sequence 5 |
+| Staged catalog | `89ac4bfef47444e51de5218313b0c6dd45dc28b1c0c9a73f813886e927d301af`; 42 metadata files; only the ordered model |
+| Browser payload | 2,051 files, bundle `sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764` |
+| Native tarball | `430d26f85993756c59909c57fc25512b00a583262acd16a0d722f7e3c76a0917` |
+| Native descriptor | `d18d96ba636f596c2cfbcfe0ff572bc5a08a0ed39a02efb3d3d52fac46081a93`, 155 files |
+
+Every step passed:
+
+- **Held checkpoints** (`final-9/held-checkpoints.json`), read read-only before packaging: `amd-host`
+  and `intel-host` (their native state stores) and the `mac-host` stage 0 browser profile each held
+  sequence 4 `7f62c19a…` in namespace `ce08ba3f…`.
+- **Preflight** (`final-9/preflight.js`, a copy of `final-6/preflight.js` with recorded differences):
+  runtime 1,984/1,984 in both copies, plan admission for stages 0-2, zero address matches, and 15 of 15
+  release-history cases as expected. Added: holders at sequences 2, 3 and 4 accept the sequence-5
+  history; the stale sequence 1-4 history is rejected below the minimum; and each held checkpoint above
+  is in the application's namespace and verifies to sequence 5 `70f24c97…`.
+- **Delivery verification:** 155 native, 1,984 runtime, 2,051 browser and 42 metadata files.
+- **Swarm label and `--room-token-file`:** served and packaged copies equal `1473eda7`.
+- **Changed files** against `76296a53`: the packaged library `exchange.js` and `runtime.js` and the
+  served vendored copies equal the commit, and `package-assets.json` lists the new hashes.
+- **Verification Worker:** passed, warnings retained.
+- **Physical opening:** on run 7's bring-up the installed hosts opened the Capsule from their held
+  sequence-4 checkpoints and advanced to sequence 5 (`run-7/bringup/e-*`).
+
+Installed on both hosts (`install-9/`) at `/var/tmp/reploid-signed-completion-9-20261014/reploid`.
+
+## `final-8/` (Reploid `76296a53`) supersedes `final-7/`
+
+Reploid `76296a53` changes only custody path validation (three files: the library and vendored
+`artifacts/custody/exchange.js` and `package-assets.json`). In run 7 attempt b on final-7, full-model
+seeding downloaded every model file within its allowance (1,156,194,546 bytes) and then failed with
+"Invalid file inventory", offering nothing: the signed Capsule names its program files by relative
+paths under `artifacts/`, and custody accepted only single-segment names. Custody now accepts
+relative paths of plain segments and still rejects absolute paths and empty, `.` or `..` segments;
+storage stays keyed by hash. Regression: `tests/unit/custody-exchange.test.js`. On final-8 the seed
+offered all 64 catalog files.
+
+| Item | `final-8/` value |
+| --- | --- |
+| Export | `/var/tmp/reploid-signed-completion-app-8-20261014/app`, source `76296a53d24f0c5a7df59508510883533961c43c`, tar `217c40ad…` |
+| Prepared catalog | `e2d14903…`, byte-identical to final-6 and final-7 |
+| Staged catalog | `c96a3d19…`, unchanged; only the ordered model |
+| Browser payload | 2,051 files, bundle `sha256:c2550a929d4449df6fe28953e1751c2e6f117fc21d5befd86a96c3763d415d5a` |
+| Native tarball | `d8db7f08073b69cdcbeb54128f459183cfa24104851b2aa8c3a6852de0c48c4b` |
+| Native descriptor | `725f1be376d886a3b94d914821884255d0acfb2d86eb593b0157c13ef0b7c513`, 155 files |
+
+The final-6 method was repeated into a fresh export with the same scripts (`final-6/preflight.js`
+and `final-6/check-changed-files.js` unchanged; `final-8/prepare-catalog.sh` and
+`final-8/verify-worker.js` differ only in the export path and receipt name). Every step passed:
+preflight (runtime 1,984/1,984 in both copies, plan admission for stages 0-2, zero address matches,
+11 of 11 release-history cases as expected); delivery verification (155 native, 1,984 runtime,
+2,051 browser and 42 metadata files); swarm label and `--room-token-file` equal to `76296a53`;
+changed files against `c44ec852` (the packaged library `exchange.js` and the served vendored copy
+equal the commit, and `package-assets.json` lists the new hash); served and vendored `partitions.js`
+export `metadataDigest`; and the Verification Worker (eight scripts, warnings retained). Installed
+on both hosts (`install-8/`) at `/var/tmp/reploid-signed-completion-8-20261014/reploid`.
+
+## `final-7/` (Reploid `c44ec852`) supersedes `final-6/`
+
+Reploid `c44ec852` changes only the ordered peer (five files: the library and vendored
+`mesh/partitions/partition-ordered-peer.js` and `.d.ts`, and `package-assets.json`). In run 7
+attempt a on final-6, a follow-up ended `CONNECTION_LOST` after a roughly 10 s mac-host network
+stall, and the coordinator never re-formed the route: the serving stage could not retire its route
+channel once its coordinator channel was lost, so every new channel for the route was refused
+("Ordered channel closed during authentication"). After a local settle with the channel closed and
+`CONNECTION_LOST`, the serving side now drops the undeliverable retirement receipt and counts it in
+`undeliveredRetirements`. Regressions: `tests/unit/ordered-partition-peer.test.js` and the new
+`tests/unit/ordered-route-channel-loss.test.js`.
+
+| Item | `final-7/` value |
+| --- | --- |
+| Export | `/var/tmp/reploid-signed-completion-app-7-20261014/app`, source `c44ec8525f23b3bc566b7f25f0a0702dac6aedac`, tar `439d3d6f…` |
+| Prepared catalog | `e2d14903…`, byte-identical to final-6 |
+| Staged catalog | `c96a3d19…`, unchanged; only the ordered model |
+| Browser payload | 2,051 files, bundle `sha256:ce082b1135b14c161f46f801604aa22988deb22e8177f2d7692964dafb217653` |
+| Native tarball | `6acd639d3740dd161f89c2e89dd566f9b311299d0ece2eb533d5217352a19ddb` |
+| Native descriptor | `5b9db6a6396d0847a91b09e5ef5879316685271f1f689797df67c956f179ff70`, 155 files |
+
+The same checks passed as for final-8, with five changed files checked against `cec3ff6b`.
+Installed on both hosts (`install-7/`) at `/var/tmp/reploid-signed-completion-7-20261014/reploid`.
+
+## `final-6/` (Reploid `cec3ff6b`) supersedes `final-5/`
 
 Reploid `cec3ff6b` carries everything since `95641fe7` (100 changed application files):
 per-stage prompt, prefill and decode timing; the one-time remote contributor permission in place of

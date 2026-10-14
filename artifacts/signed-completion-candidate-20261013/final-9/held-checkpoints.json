@@ -1,0 +1,30 @@
+{
+  "schema": "reploid.held-release-checkpoints/v1",
+  "source": "Read-only: native hosts through run-7/tools/signed-state.py (node:sqlite readOnly, release-checkpoints.sqlite); mac-host stage 0 browser through run-7/tools/stage0-checkpoint.mjs (IndexedDB reploid-pack-releases-v1, readonly transaction). Nothing was advanced.",
+  "checkpoints": [
+    {
+      "machine": "amd-host",
+      "host": "native (state directory)",
+      "readAt": "2026-10-14T16:15:49.349132+00:00",
+      "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+      "sequence": 4,
+      "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+    },
+    {
+      "machine": "intel-host",
+      "host": "native (state directory)",
+      "readAt": "2026-10-14T16:15:49.979041+00:00",
+      "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+      "sequence": 4,
+      "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+    },
+    {
+      "machine": "mac-host",
+      "host": "browser (stage 0 profile)",
+      "readAt": "2026-10-14T16:16:18.156Z",
+      "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+      "sequence": 4,
+      "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+    }
+  ]
+}

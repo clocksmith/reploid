@@ -1,0 +1,126 @@
+{
+  "schema": "reploid.delivery-changed-file-check/v1",
+  "base": "76296a53",
+  "commit": "1473eda7",
+  "changedFiles": [
+    "packages/reploid/src/artifacts/custody/exchange.d.ts",
+    "packages/reploid/src/artifacts/custody/exchange.js",
+    "packages/reploid/src/artifacts/custody/runtime.js",
+    "self/vendor/reploid/artifacts/custody/exchange.d.ts",
+    "self/vendor/reploid/artifacts/custody/exchange.js",
+    "self/vendor/reploid/artifacts/custody/runtime.js",
+    "self/vendor/reploid/package-assets.json",
+    "server/cloudflare/room.js"
+  ],
+  "files": {
+    "packages/reploid/src/artifacts/custody/exchange.d.ts": {
+      "commitSha256": "57eb99c82e5dfab66c7bb96cc55b8ef3cacaa13e04f044ac4cf28568ec2a0900",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "packages/reploid/src/artifacts/custody/exchange.js": {
+      "commitSha256": "96d39aba3a40130c4c1dad6b95a8261127e11b75fa816495a9e40677bff7f91c",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "96d39aba3a40130c4c1dad6b95a8261127e11b75fa816495a9e40677bff7f91c",
+        "equalsCommit": true
+      }
+    },
+    "packages/reploid/src/artifacts/custody/runtime.js": {
+      "commitSha256": "98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e",
+      "served": "not a served path",
+      "packaged": {
+        "present": true,
+        "inDescriptor": true,
+        "sha256": "98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e",
+        "equalsCommit": true
+      }
+    },
+    "self/vendor/reploid/artifacts/custody/exchange.d.ts": {
+      "commitSha256": "57eb99c82e5dfab66c7bb96cc55b8ef3cacaa13e04f044ac4cf28568ec2a0900",
+      "served": "not in the served set",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/artifacts/custody/exchange.js": {
+      "commitSha256": "96d39aba3a40130c4c1dad6b95a8261127e11b75fa816495a9e40677bff7f91c",
+      "served": {
+        "path": "vendor/reploid/artifacts/custody/exchange.js",
+        "sha256": "96d39aba3a40130c4c1dad6b95a8261127e11b75fa816495a9e40677bff7f91c",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/artifacts/custody/runtime.js": {
+      "commitSha256": "98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e",
+      "served": {
+        "path": "vendor/reploid/artifacts/custody/runtime.js",
+        "sha256": "98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e",
+        "equalsCommit": true,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "self/vendor/reploid/package-assets.json": {
+      "commitSha256": "d3f70d1eb2b1817d4c7503ee03567ebcd1b2dc820fd7bee9c6d5ac72c202f53a",
+      "served": {
+        "path": "vendor/reploid/package-assets.json",
+        "sha256": "aa6d95c603f0526f948436bce177c87c705154e25cd586ee88a54614df51880c",
+        "equalsCommit": false,
+        "changedFromPreviousPayload": true
+      },
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    },
+    "server/cloudflare/room.js": {
+      "commitSha256": "4fed58f1f9a756205855b725e033e56be3cda682c34c7edcab5d1f9a056e395c",
+      "served": "not a served path",
+      "packaged": {
+        "present": false,
+        "inDescriptor": false
+      }
+    }
+  },
+  "packageAssets": {
+    "changedVendoredEntries": {
+      "artifacts/custody/exchange.d.ts": {
+        "listedSha256": "57eb99c82e5dfab66c7bb96cc55b8ef3cacaa13e04f044ac4cf28568ec2a0900",
+        "equalsCommit": true
+      },
+      "artifacts/custody/exchange.js": {
+        "listedSha256": "96d39aba3a40130c4c1dad6b95a8261127e11b75fa816495a9e40677bff7f91c",
+        "equalsCommit": true
+      },
+      "artifacts/custody/runtime.js": {
+        "listedSha256": "98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e",
+        "equalsCommit": true
+      }
+    },
+    "entriesDifferingFromCommit": [
+      "contracts/config/doppler-generation-contract.d.ts",
+      "contracts/doppler-partitions.d.ts",
+      "contracts/doppler-partitions.provenance.json"
+    ]
+  },
+  "servedProductSessionPassesRequesterIdentity": true,
+  "requesterIdentityCall": "const requesterIdentity = () => swarm.partitions.requesterIdentity();",
+  "chatOpeningCalls": 5,
+  "canonicalConfigurationOpeningsExempt": 1,
+  "previousServedProductSessionPassedIt": false
+}

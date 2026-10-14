@@ -1,0 +1,14 @@
+
+> reploid@0.1.0 prepare:hosting
+> npm run verify:browser-bundle:local && npm run package:hosting
+
+
+> reploid@0.1.0 verify:browser-bundle:local
+> node scripts/build-browser-bundle-manifest.js --check
+
+[browser-bundle] 2050 served files match sha256:c2550a929d4449df6fe28953e1751c2e6f117fc21d5befd86a96c3763d415d5a
+
+> reploid@0.1.0 package:hosting
+> node scripts/package-hosting.js
+
+[hosting] packaged 2051 files as sha256:c2550a929d4449df6fe28953e1751c2e6f117fc21d5befd86a96c3763d415d5a
