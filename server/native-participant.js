@@ -257,7 +257,7 @@ export function createNativeGpuHost(loadProvider) {
 }
 
 export async function openNativePartition({ model: selected, modelDirectory, nativeGpu, index, signal, participantId,
-  files, releaseDirectory, registerCleanup, canonical = null, ordered = null, onProgress = () => {} }) {
+  files, releaseDirectory, registerCleanup, canonical = null, ordered = null, device = null, attemptBytes, onProgress = () => {} }) {
   selected = snapshotWorkPartitionSelection(selected);
   const stageBinding = snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical);
   if (selected.capsule !== undefined) requireValue(files && selected.packOpenOptions && selected.executablePack && releaseDirectory,
@@ -342,7 +342,7 @@ export async function openNativePartition({ model: selected, modelDirectory, nat
           prefillChunkLayers: policy.prefillChunkLayers, prefillTokenChunkSize: policy.prefillTokenChunkSize } } },
       createStorage: async () => tokenizer.storage });
     resident = createResidentPartition({ runtime: factory, model: configured, plan, planId, index, participantId,
-      limits: policy.limits, ...canonicalOptions, ...orderedOptions });
+      limits: policy.limits, ...canonicalOptions, ...orderedOptions, ...(device ? { device, attemptBytes } : {}) });
     onProgress({ stage: 'opening', message: 'Opening native assigned partition' });
     if (canonical) { canonical.epochs.begin(ownerId); ownershipRecorded = true; }
     await resident.prepare({ approved: true, signal });

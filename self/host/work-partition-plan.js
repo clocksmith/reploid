@@ -1,6 +1,7 @@
 /** Hosts carry an explicit Doppler plan; Doppler validates its geometry and storage. */
 import { freezeJson } from '../vendor/reploid/config/index.js';
 import { partitionActivationContract } from '../vendor/reploid/mesh/partitions/partition-contract.js';
+import partitionPolicy from '../config/partition-policy.json' with { type: 'json' };
 
 export function snapshotWorkPartitionSelection(selected) {
   if (selected.partitionPlan === undefined) return selected;
@@ -72,7 +73,11 @@ const ORCHESTRATION_POLICIES = Object.freeze({
     && typeof value.margin === 'number' && value.margin >= 0 && value.margin < 1
     && typeof value.smoothing === 'number' && value.smoothing > 0 && value.smoothing <= 1 && positiveInteger(value.maxObservations)
     && exactKeys(value.workload, ['promptTokens', 'expectedTokens']) && positiveInteger(value.workload.promptTokens)
-    && positiveInteger(value.workload.expectedTokens)
+    && positiveInteger(value.workload.expectedTokens),
+  // Never above the existing per-executor allocation ceiling.
+  admission: value => exactKeys(value, ['maxBytes', 'maxConcurrentAttempts', 'attemptBytes'])
+    && positiveInteger(value.maxBytes) && value.maxBytes <= partitionPolicy.maxGpuBufferBytes
+    && positiveInteger(value.maxConcurrentAttempts) && positiveInteger(value.attemptBytes) && value.attemptBytes <= value.maxBytes
 });
 const isAutoStage = stage => stage?.assignment === 'auto';
 
