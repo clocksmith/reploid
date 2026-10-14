@@ -108,12 +108,16 @@ export interface OrderedResidentPartition extends Omit<import('./partition-route
 export interface OrderedResidentState extends Omit<ResidentPartitionState, 'index' | 'descriptor' | 'reservations'> {
   index: number; descriptor: ReturnType<OrderedDopplerResidentSession['getDescriptor']> | null;
   reservations: Omit<PartitionReservationsState, 'records'> & { records: Array<Omit<PartitionReservation, 'identity' | 'index'> & {
-    identity: import('./partition-contract.js').RouteAttemptBinding; index: number }> };
+    identity: import('./partition-contract.js').RouteAttemptBinding; index: number }>;
+    /** Present only with a shared device admission; `availableSlots` is then the device-limited value. */
+    device?: import('./partition-device-admission.js').DeviceAdmissionState };
 }
 export function createResidentPartition(options: Omit<OrderedResidentAllocation, 'signal'> & {
   runtime: { openResidentPartition(options: OrderedResidentAllocation): Promise<OrderedDopplerResidentSession> };
   ordered: { runtime: Pick<import('./partition-route-execution.js').OrderedExecutionRuntime,
     'hashLayerPartitionPlan' | 'hashPartitionGeneration' | 'getPartitionActivationContract'>;
     stage: import('./partition-contract.js').PartitionRouteStage };
+  /** Launch 3, opt-in: one budget shared by every resident on this device. */
+  device?: import('./partition-device-admission.js').DeviceAdmission | null; attemptBytes?: number;
   onChange?(state: OrderedResidentState): void;
 }): OrderedResidentPartition;

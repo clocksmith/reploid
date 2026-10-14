@@ -5,9 +5,11 @@ import { createPartitionReservations } from './partition-reservations.js';
 import { assertPartition as assert, canonicalPartitionJson } from './partition-contract.js';
 import { verifyPartitionStageCommit } from './partition-stage-commit.js';
 
-/** Owns an explicitly contributed runtime session; never implements model computation. */
+/** Owns an explicitly contributed runtime session; never implements model computation. An optional
+ * shared `device` admission (Launch 3, ordered only) charges this resident's weights once and every
+ * admitted attempt's `attemptBytes` and slot against one budget for the whole device. */
 export function createResidentPartition({ runtime, model, plan, planId, index, participantId, limits,
-  canonicalGeneration, canonicalRuntime, canonicalCommitAuthority, ordered = null, onChange = () => {} }) {
+  canonicalGeneration, canonicalRuntime, canonicalCommitAuthority, ordered = null, device = null, attemptBytes, onChange = () => {} }) {
   assert(typeof runtime?.openResidentPartition === 'function', 'Doppler resident partition API is unavailable');
   assert((ordered ? Number.isSafeInteger(index) && index >= 0 && index < plan?.stageCount : [0, 1].includes(index)) && plan?.partitions?.[index] && model?.id === plan.modelId
     && /^sha256:[a-f0-9]{64}$/.test(model.identity) && typeof planId === 'string' && planId
@@ -20,6 +22,10 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     ...(canonicalGeneration === undefined ? {} : { canonicalGeneration }) });
   assert(!ordered || canonicalGeneration === undefined && canonicalCommitAuthority === undefined, 'Ordered canonical execution is not supported');
   const routeBinding = ordered ? createResidentRouteBinding({ ordered, allocation }) : null;
+  assert(device === null || ordered && ['admitResident', 'admit', 'release', 'releaseResident', 'available', 'getState']
+    .every(method => typeof device[method] === 'function') && Number.isSafeInteger(attemptBytes) && attemptBytes > 0,
+  'Shared device admission requires an ordered resident and an explicit attempt allocation');
+  const deviceOwner = Object.freeze({ participantId, index });
   const canonicalStage = canonicalCommitAuthority?.getStage();
   if (canonicalCommitAuthority !== undefined) {
     assert(canonical && typeof canonicalCommitAuthority?.sign === 'function'
@@ -34,13 +40,18 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
   let draining = null, finishDrain = null;
   let phase = 'idle', error = null, session = null, preparing = null, closing = null, disposal = null, descriptor = null;
   let tail = Promise.resolve(), generationDigest = null, recovery = null;
+  // With a shared device, advertised slots are what both this resident and the device can admit.
+  const reservationState = () => {
+    const local = reservations.getState();
+    return device ? { ...local, availableSlots: Math.min(local.availableSlots, device.available(attemptBytes)), device: device.getState() } : local;
+  };
   const state = () => ({ phase, ready: phase === 'ready' && !lifetime.signal.aborted,
-    activeAttempts: attempts.size, reservations: reservations.getState(),
+    activeAttempts: attempts.size, reservations: reservationState(),
     error, descriptor: structuredClone(descriptor), recovery: structuredClone(recovery), index, participantId,
     modelId: allocation.model.id, modelIdentity: allocation.model.identity, planId });
   const notify = () => { for (const listener of listeners) { try { listener(state()); } catch {} } };
   const dispose = () => disposal ||= Promise.resolve().then(() => session?.close()).then(() => {
-    reservations.close(); reservations.settleAll(); attempts.clear(); finishDrain?.();
+    reservations.close(); reservations.settleAll(); attempts.clear(); device?.releaseResident(deviceOwner); finishDrain?.();
   }).catch(cause => {
     // A rejection is not settlement. Retain the session and charged attempts,
     // but allow the owner to explicitly retry a transient cleanup failure.
@@ -86,7 +97,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
           reservations.settling(snapshot.identity);
           await session.closeAttempt({ identity: snapshot.identity });
           reservations.settled(snapshot.identity);
-          attempts.delete(snapshot.identity.attemptId);
+          attempts.delete(snapshot.identity.attemptId); device?.release(deviceOwner, snapshot.identity.attemptId);
           if (!attempts.size) finishDrain?.();
         } catch {
           phase = 'failed'; error = String(cause.message || cause);
@@ -139,13 +150,21 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
     reserve: routeBinding ? async request => {
       request.signal?.throwIfAborted();
       assert(request.partitionIndex === index, 'Ordered reservation stage mismatch');
+      if (device && !attempts.has(request.identity?.attemptId)) {
+        assert(phase === 'ready' && !lifetime.signal.aborted, 'Partition contributor is not ready');
+        const binding = routeBinding.identity(request.identity);
+        await device.admit({ owner: deviceOwner, attemptId: binding.attemptId, bytes: attemptBytes,
+          requesterId: binding.requesterId, routeKey: binding.route.stages[0].participantId, signal: request.signal });
+        try { return { ...reserve(request.identity), partitionIndex: index, status: 'reserved' }; }
+        catch (cause) { if (!attempts.has(binding.attemptId)) device.release(deviceOwner, binding.attemptId); throw cause; }
+      }
       const record = reserve(request.identity);
       return { ...record, partitionIndex: index, status: 'reserved' };
     } : reserve,
     getCanonicalGeneration: () => structuredClone(canonical),
     getCanonicalStage: () => structuredClone(canonicalStage ?? null),
     canAccept(identity) { return !lifetime.signal.aborted && ((phase === 'ready' || phase === 'draining')
-      && attempts.has(identity?.attemptId) || phase === 'ready' && reservations.getState().availableSlots > 0); },
+      && attempts.has(identity?.attemptId) || phase === 'ready' && reservationState().availableSlots > 0); },
     subscribe(listener) { listeners.add(listener); listener(state()); return () => listeners.delete(listener); },
     prepare({ approved, signal } = {}) {
       assert(approved === true, 'Explicit partition contribution approval required');
@@ -184,7 +203,10 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
             && ['inputReplay', 'checkpointExport', 'checkpointImport'].every(key => capabilities[key] === false),
           'Unsupported Doppler resident recovery contract');
           recovery = structuredClone(capabilities);
-          combined.throwIfAborted(); descriptor = check(); phase = 'ready'; notify(); return state();
+          combined.throwIfAborted(); descriptor = check();
+          // Weights are charged once to the shared device before this stage can be offered.
+          device?.admitResident(deviceOwner, descriptor.residentWeightBytes);
+          phase = 'ready'; notify(); return state();
         } catch (cause) {
           phase = 'failed'; error = String(cause.message || cause);
           await dispose(); notify(); throw cause;
@@ -218,7 +240,7 @@ export function createResidentPartition({ runtime, model, plan, planId, index, p
       reservations.settling(identity);
       try {
         if (session) await session.closeAttempt({ identity: structuredClone(identity) });
-        reservations.settled(identity); attempts.delete(identity.attemptId);
+        reservations.settled(identity); attempts.delete(identity.attemptId); device?.release(deviceOwner, identity.attemptId);
         if (!attempts.size) finishDrain?.(); notify();
       } catch (cause) {
         reservations.fail(identity, cause);

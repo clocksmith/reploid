@@ -12,6 +12,7 @@ import { createPartitionChat } from './partition-chat.js';
 import { createPartitionGrantAuthority, orderedPartitionDisclosure } from './partition-grants.js';
 import { assertPartition as assert, canonicalPartitionJson, canonicalPartitionRoute, validatePartitionRoute, PARTITION_ROUTE_SCHEMA } from './partition-contract.js';
 import { planStageAssignment, STAGE_ASSIGNMENT_SCHEMA } from './partition-stage-assignment.js';
+import { createDeviceAdmission } from './partition-device-admission.js';
 
 const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 /** Explicit prepared-stage mode of automatic participation. Geometry and local
@@ -19,13 +20,14 @@ const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
  * mechanisms run only under an explicit `ordered.orchestration` member: with
  * `autoStage`, the operator's auto choice lets this contributor's own policy pick
  * its stage from observed offers and move only while idle; with `routeRanking`,
- * a coordinator ranks complete routes by measured phases for new attempts only. */
+ * a coordinator ranks complete routes by measured phases for new attempts only;
+ * with `admission`, every resident this owner prepares charges one device budget. */
 export function createAutomaticOrderedPartitions({ identity, meshId, models, policy, peers, createNetwork,
   loadProgram, ordered, onChange = () => {} }) {
   const config = structuredClone(policy), catalog = structuredClone(models), options = structuredClone(ordered);
   let stage = options.stage ?? null;
   const orchestration = options.orchestration ?? null, auto = orchestration?.autoStage ?? null;
-  const ranking = orchestration?.routeRanking ?? null;
+  const ranking = orchestration?.routeRanking ?? null, admission = orchestration?.admission ?? null;
   assert(identity?.peerId && typeof peers === 'function' && typeof createNetwork === 'function' && typeof loadProgram === 'function'
     && ['pollMs', 'maxPeers', 'connectTimeoutMs', 'grantMs', 'maxStageOffersPerPeer'].every(key => Number.isSafeInteger(config[key]) && config[key] > 0)
     && ['maxRouteBytes', 'maxSelectionSteps', 'maxRoutes'].every(key => Number.isSafeInteger(options[key]) && options[key] > 0),
@@ -34,7 +36,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     && ['transportId', 'residentId', 'executionId'].every(key => typeof stage[key] === 'string' && stage[key].length > 0),
   'Actual local stage identity required');
   assert(orchestration === null || orchestration && typeof orchestration === 'object' && !Array.isArray(orchestration)
-    && Object.keys(orchestration).every(key => ['autoStage', 'routeRanking'].includes(key)), 'Unknown ordered orchestration policy');
+    && Object.keys(orchestration).every(key => ['autoStage', 'routeRanking', 'admission'].includes(key)), 'Unknown ordered orchestration policy');
   assert(auto === null || stage === null && typeof auto.transportId === 'string' && auto.transportId.length > 0
     && Number.isSafeInteger(auto.dwellMs) && auto.dwellMs >= 0, 'Automatic stage assignment requires an authenticated transport and explicit dwell');
   assert(ranking === null || typeof ranking.margin === 'number' && ranking.margin >= 0 && ranking.margin < 1
@@ -43,6 +45,10 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
   'Measured route preference requires an explicit margin and workload');
   // Bounded, smoothed per (plan, participant, stage) costs from attempts this coordinator completed.
   const observations = ranking ? createRouteObservations({ maxEntries: ranking.maxObservations, smoothing: ranking.smoothing }) : null;
+  assert(admission === null || Number.isSafeInteger(admission.attemptBytes) && admission.attemptBytes > 0,
+    'Shared device admission requires an explicit attempt allocation');
+  // One owner prepares at most one resident at a time on this host's device; moves reuse this budget.
+  const device = admission ? createDeviceAdmission(admission) : null;
   const closedOwners = new WeakSet();
   const lifetime = new AbortController(), listeners = new Set(), admissions = new Map(), routes = new Map(), debt = new Set();
   const authority = createPartitionGrantAuthority({ identity, meshId, maxGrants: config.limits.maxAttempts,
@@ -136,6 +142,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     phase = 'loading'; notify();
     loading = Promise.resolve().then(() => loadProgram(selected, stage.index, {
       signal: AbortSignal.any([lifetime.signal, controller.signal]), participantId: identity.peerId, ordered: { stage: structuredClone(stage) },
+      ...(device ? { device, attemptBytes: admission.attemptBytes } : {}),
       registerCleanup(owner) { assert(typeof owner?.close === 'function', 'Preparation cleanup owner required'); preparationOwners.add(owner); return () => preparationOwners.delete(owner); },
       onProgress(value) { progress = value; notify(); }
     }));

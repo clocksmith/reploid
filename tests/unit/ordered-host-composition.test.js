@@ -78,6 +78,11 @@ it('browser binds an operator auto choice to the authenticated transport only wi
   await browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ routeRanking: ranking }))).connect();
   expect(ports.options.ordered.orchestration).toEqual({ routeRanking: ranking });
   expect(() => browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ routeRanking: { ...ranking, margin: 1 } })))).toThrow('orchestration');
+  // A shared device budget may not exceed the existing per-executor allocation ceiling.
+  const admission = { maxBytes: 1420000000, maxConcurrentAttempts: 2, attemptBytes: 300000000 };
+  await browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ admission }))).connect();
+  expect(ports.options.ordered.orchestration).toEqual({ admission });
+  expect(() => browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ admission: { ...admission, maxBytes: 1420000001 } })))).toThrow('orchestration');
   // The library's chosen stage still passes the host's explicit stage validation before loading.
   await expect(Promise.resolve().then(() => ports.options.loadProgram({ ...model, id: 'different' }, 1, {}))).rejects.toThrow('assigned');
   for (const [stageValue, policyValue] of [[auto, null], [JSON.stringify(stage()), policy],

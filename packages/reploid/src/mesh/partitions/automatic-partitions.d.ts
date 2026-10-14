@@ -75,6 +75,8 @@ export interface OrderedAutomaticPartitionOptions extends Omit<AutomaticPartitio
   };
   loadProgram(model: ChatModel, index: number, controls: { signal: AbortSignal; participantId: string;
     ordered: { stage: import('./partition-contract.js').PartitionRouteStage };
+    /** Present only with `orchestration.admission`; forward both to the resident. */
+    device?: import('./partition-device-admission.js').DeviceAdmission; attemptBytes?: number;
     registerCleanup(owner: { close(): void | Promise<void> }): () => void;
     onProgress(value: unknown): void }): Promise<{ runtime: import('./partition-route-execution.js').OrderedExecutionRuntime;
       model: ChatModel; plan: import('./partition-route-execution.js').OrderedExecutionPlan; planId: string;
@@ -89,6 +91,8 @@ export interface OrderedOrchestration {
    * route must be cheaper by `margin` while the current one is admissible and idle. */
   routeRanking?: { margin: number; smoothing: number; maxObservations: number;
     workload: { promptTokens: number; expectedTokens: number } };
+  /** One budget for this host's device: resident weights once, plus `attemptBytes` and one slot per admitted attempt. */
+  admission?: { maxBytes: number; maxConcurrentAttempts: number; attemptBytes: number };
 }
 export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionState,
   'placementDecision' | 'reservations' | 'attempts' | 'descriptor'> {

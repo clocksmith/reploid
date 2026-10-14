@@ -81,6 +81,14 @@ describe('Launch 3 mechanisms are off by default (Launch 1 candidate behavior)',
     expect(c.mesh.getState()).not.toHaveProperty('routeObservations');
   });
 
+  it('without a shared device, each resident admits by its own slots and loaders receive no device', async () => {
+    const c = await launch1(1);
+    await c.mesh.contribute('model', true);
+    expect(c.loadProgram.mock.calls[0][2]).not.toHaveProperty('device');
+    expect(c.loadProgram.mock.calls[0][2]).not.toHaveProperty('attemptBytes');
+    expect(c.discovery.options.describe().capacity).toEqual({ active: 0, availableSlots: 2, closed: false });
+  });
+
   it('host configuration without orchestration binds exactly the Launch 1 ordered options', () => {
     const stage = { modelId: model.id, index: 1, residentId: 'resident', executionId: 'execution' };
     const storage = value => ({ getItem: key => key === orderedPolicy.stageStorageKey ? value : null });
