@@ -1,0 +1,11 @@
+
+> reploid@0.1.0 package:native
+> node scripts/package-native.js
+
+{
+  "directory": "/private/var/tmp/reploid-signed-completion-app-8-20261014/app/output/reploid-native-07BdUY/reploid",
+  "archive": "/private/var/tmp/reploid-signed-completion-app-8-20261014/app/output/reploid-native-07BdUY/reploid-native-0.1.0.tgz",
+  "fileCount": 155,
+  "manifestSha256": "725f1be376d886a3b94d914821884255d0acfb2d86eb593b0157c13ef0b7c513",
+  "archiveSha256": "d8db7f08073b69cdcbeb54128f459183cfa24104851b2aa8c3a6852de0c48c4b"
+}

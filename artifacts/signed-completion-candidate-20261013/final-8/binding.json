@@ -1,0 +1,76 @@
+{
+  "sourceRevision": "76296a53d24f0c5a7df59508510883533961c43c",
+  "capsuleRevision": "doppler a40f02a102c4c06c317bc2b07ca32422ed124227 (artifacts/chunked-prefill-capsule-20261014; output /var/tmp/qwen35-capsule-chunk16-20261014-b)",
+  "capsule": {
+    "semanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+    "prefillTokenChunkSize": 16,
+    "placement": "B: mac-host browser stage 0, intel-host native stage 1, amd-host native stage 2 (output head on AMD)",
+    "qualificationReports": "reploid artifacts/completion-qualification-3-20261014/b/reports"
+  },
+  "supersedes": "final-7/ (Reploid c44ec852; custody rejected the relative program-file paths of the signed catalog, so full-model seeding downloaded every file and then offered nothing: \"Invalid file inventory\")",
+  "stage": "final signed three-stage delivery staged, packaged, byte-verified and installed on amd-host and intel-host (install-8/); physical application journey run-7 attempt c (contribution, seeding)",
+  "reusedScripts": {
+    "final/prepare-catalog.js": "c71a134728d943d79e5060fe18b52be8f5ebee9e16cf7eeb0fea919d90ae3e85",
+    "final/preflight.js": "f464b87f6f234f7a3c08273ea62e2f0b73c4ed4b95309f292bf63abbed3a55bb",
+    "final/verify-delivery.js": "87f76146cfd8766d2e08f4a8faebbf10a0f4795b5cc570d937aa2247817334db",
+    "final/scope-export.js": "593797355ead46da2704beecb1a18cbf5b75f78bfc7c20cf1372f786f9554626",
+    "final-2/check-swarm-label.js": "8f63b811a27a8e08ce11e31842d57ea9d6bde3b2b6fa3dffd300ef073604ddd1",
+    "final-3/check-room-token-file.js": "07a62291580bed7ab6b815087eb6d0db5d90704b7f953996b2c109ef4351b5c4",
+    "../basic-signed-candidate-20261013/final/stage-catalog.js": "4b8a183ff69c0c0d6b7be2a49972538e18f31c29e7ed205a385d2f1fb51ba3d9",
+    "final-6/preflight.js": "2a7c46448da544ccefa57c3a4239ee21c133ee01ad51b3529fd90b722f76f855",
+    "final-6/check-changed-files.js": "295dbe037ec5e292b2e86abc6747cb70cbb76d60c9e69ea1b25753d7076e8f44"
+  },
+  "newScripts": {
+    "final-8/prepare-catalog.sh": "5ff7ed37eb16ad8cd811f3ddb6539c94f6ab7e85aa170eadc8fdbf7980d5f259",
+    "final-8/verify-worker.js": "dc5d19e628cacedd1e265409cec94848c597f01430cd823ad3a84e50ddaf2753"
+  },
+  "outputs": {
+    "sourceTar": {
+      "path": "/var/tmp/reploid-signed-completion-app-8-20261014/source.tar",
+      "sha256": "217c40ad4bd5eab8b242d0b761737fff8d51d69fb7342797397466d8babaea57"
+    },
+    "runtimeArchive": {
+      "path": "/var/tmp/reploid-signed-completion-app-8-20261014/app/deploy/artifacts/doppler-gpu-0.6.28.tgz",
+      "sha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8"
+    },
+    "preparedCatalog": {
+      "path": "/var/tmp/reploid-signed-completion-app-8-20261014/signed-catalog/chat-models.json",
+      "sha256": "e2d149039b66c0b4718c371cd2b82c0cf5afd35809779c5401e237e0984024a8",
+      "byteIdenticalToFinal6": true
+    },
+    "stagedCatalog": {
+      "path": "/var/tmp/reploid-signed-completion-app-8-20261014/app/self/config/chat-models.json",
+      "sha256": "c96a3d193eff1e89ac4853849ea8ad8c9a4ce098ec8847ee3aa8ef143570ba26"
+    },
+    "browserManifest": {
+      "path": "/var/tmp/reploid-signed-completion-app-8-20261014/app/self/config/browser-bundle-manifest.json",
+      "sha256": "65486b17243e4f21bba0f74295cc1d24b9cf6ab8362736af4201b77d5eaee442",
+      "bundleHash": "sha256:c2550a929d4449df6fe28953e1751c2e6f117fc21d5befd86a96c3763d415d5a",
+      "files": 2051
+    },
+    "nativeTarball": {
+      "path": "/var/tmp/reploid-signed-completion-app-8-20261014/app/output/reploid-native-07BdUY/reploid-native-0.1.0.tgz",
+      "sha256": "d8db7f08073b69cdcbeb54128f459183cfa24104851b2aa8c3a6852de0c48c4b"
+    },
+    "nativeDescriptor": {
+      "path": "/var/tmp/reploid-signed-completion-app-8-20261014/app/output/reploid-native-07BdUY/reploid/native-delivery.json",
+      "sha256": "725f1be376d886a3b94d914821884255d0acfb2d86eb593b0157c13ef0b7c513",
+      "files": 155
+    },
+    "capsuleReleaseEvents": {
+      "path": "/var/tmp/qwen35-capsule-chunk16-20261014-b/release-events.json",
+      "sha256": "1b5eac755d8f554200bd12456960bec7310ec12079eb41699e8e84b996fb92a3",
+      "sequence": 4,
+      "expiresAtUtc": "2026-10-15T13:21:16.819Z"
+    }
+  },
+  "confirmed": {
+    "vendoredPartitionsExportsMetadataDigest": true,
+    "servedPartitionsExportsMetadataDigest": true,
+    "catalogModels": [
+      "qwen-3-5-0-8b-q4k-ehaf16 (ordered plan)"
+    ]
+  },
+  "applicationQualified": false,
+  "publicPinChanged": false
+}

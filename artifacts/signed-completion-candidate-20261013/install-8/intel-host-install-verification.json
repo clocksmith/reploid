@@ -1,0 +1,40 @@
+{
+  "schema": "reploid.native-install-verification/v1",
+  "host": "intel-host",
+  "node": "22.21.0",
+  "tarballSha256": "d8db7f08073b69cdcbeb54128f459183cfa24104851b2aa8c3a6852de0c48c4b",
+  "archiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "runtimeFilesEqual": 1984,
+  "orderedPlanAdmission": [
+    {
+      "index": 0,
+      "layerRange": [
+        0,
+        7
+      ],
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+    },
+    {
+      "index": 1,
+      "layerRange": [
+        8,
+        15
+      ],
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+    },
+    {
+      "index": 2,
+      "layerRange": [
+        16,
+        23
+      ],
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+    }
+  ],
+  "nativeModules": {
+    "@roamhq/wrtc": "0.10.0",
+    "ws": "8.21.0",
+    "webgpu": "0.4.0"
+  },
+  "scope": "CPU-only installed-bytes and plan-admission check; no GPU, peer, checkpoint or ledger opened"
+}

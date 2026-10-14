@@ -1,0 +1,431 @@
+{
+  "schema": "reploid.signed-catalog-staging-preflight/v2",
+  "applicationRoot": "/var/tmp/reploid-signed-completion-app-9-20261014/app",
+  "capsuleRoot": "/var/tmp/qwen35-capsule-chunk16-20261014-r5",
+  "catalogSha256": "c6da46b8f510e317b6d28a70901cea866a65bd0f568f091a9d348cfb86fe6196",
+  "runtime": {
+    "archive": "/var/tmp/reploid-signed-completion-app-9-20261014/app/deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "archiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "version": "0.6.28",
+    "integrity": "sha512-1OHMgIcxOUQ8Ml8Z+csmvY5yBE4rc9c/Gb+e00Uo2trXTRIXj2hKntxY9mpVqw4mNsXODGCt1mEHkDHOwxDxfw==",
+    "npmInstalledFiles": 1984,
+    "browserVendorFiles": 1984
+  },
+  "planAdmission": {
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [
+      8,
+      16
+    ],
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "applicationFile": "self/host/work-partition-plan.js",
+    "applicationFileSha256": "16a259d7e4f8861d73670657bfcc152af4dba44c0a46d9671b780dbd4161aea1",
+    "applicationCallLine": 59,
+    "applicationCall": "runtime.validateOrderedLayerPartitionPlan(manifest, plan);",
+    "runtimeValidatorParameters": 2,
+    "applicationResult": [
+      {
+        "index": 0,
+        "ok": true,
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+      },
+      {
+        "index": 1,
+        "ok": true,
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+      },
+      {
+        "index": 2,
+        "ok": true,
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+      }
+    ],
+    "withDeclaredTwoArgumentCall": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          7
+        ]
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          8,
+          15
+        ]
+      },
+      {
+        "index": 2,
+        "layerRange": [
+          16,
+          23
+        ]
+      }
+    ]
+  },
+  "addresses": {
+    "filesSearched": 47,
+    "tailnetDomains": 0,
+    "loginShaped": 0,
+    "ownMachineNamesChecked": 6,
+    "ownMachineNameMatches": [],
+    "scope": "This machine only; names of other hosts cannot be derived locally and are covered only by the tailnet and login patterns"
+  },
+  "releaseHistory": {
+    "events": [
+      {
+        "sequence": 1,
+        "digest": "sha256:d47ddb8d6f45b23230fbf2cf1731122ccc6160c51a968e616ff6cf366bf8c9d2",
+        "previousEventDigest": null,
+        "capsuleSemanticRoot": "sha256:73da7f55117f895e9d17a1dd811e411c6e4631596f70941042559c3d0a344142",
+        "authority": "reploid-paired-qualification-20261012",
+        "applicationId": "reploid-resident-qualification",
+        "expiresAtUtc": "2026-10-14T01:18:58.518Z"
+      },
+      {
+        "sequence": 2,
+        "digest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f",
+        "previousEventDigest": "sha256:d47ddb8d6f45b23230fbf2cf1731122ccc6160c51a968e616ff6cf366bf8c9d2",
+        "capsuleSemanticRoot": "sha256:67f240af03e77a892eb1cc724000dd11e580ad180405b426b0f62e5c309b3fe1",
+        "authority": "reploid-paired-qualification-20261012",
+        "applicationId": "reploid-resident-qualification",
+        "expiresAtUtc": "2026-10-15T02:14:39.006Z"
+      },
+      {
+        "sequence": 3,
+        "digest": "sha256:74ab985fb86baa7fe0c283bd9dabfb536b4a077e7942e9419eeca661500dea6a",
+        "previousEventDigest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f",
+        "capsuleSemanticRoot": "sha256:67f240af03e77a892eb1cc724000dd11e580ad180405b426b0f62e5c309b3fe1",
+        "authority": "reploid-paired-qualification-20261012",
+        "applicationId": "reploid-resident-qualification",
+        "expiresAtUtc": "2026-10-15T12:32:31.478Z"
+      },
+      {
+        "sequence": 4,
+        "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45",
+        "previousEventDigest": "sha256:74ab985fb86baa7fe0c283bd9dabfb536b4a077e7942e9419eeca661500dea6a",
+        "capsuleSemanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+        "authority": "reploid-paired-qualification-20261012",
+        "applicationId": "reploid-resident-qualification",
+        "expiresAtUtc": "2026-10-15T13:21:16.819Z"
+      },
+      {
+        "sequence": 5,
+        "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2",
+        "previousEventDigest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45",
+        "capsuleSemanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+        "authority": "reploid-paired-qualification-20261012",
+        "applicationId": "reploid-resident-qualification",
+        "expiresAtUtc": "2026-10-15T16:14:00.836Z"
+      }
+    ],
+    "earlierDigestMatches": true,
+    "minimumSequence": 5,
+    "applicationNamespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+    "earlierReleaseNamespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+    "forks": [
+      {
+        "sequence": 1,
+        "digest": "sha256:236f11e6856e66306b4bcaa363d2cbae704cce77a3252d270b3e693c257ee61d",
+        "capsuleSemanticRoot": "sha256:3c778665644a24d541c3d4494f5652ecc0d9952511b7beb4db9f3f364d20eca2"
+      },
+      {
+        "sequence": 1,
+        "digest": "sha256:ffc0db2cc9a4e9ded36758a16ac453120657aff050d60c9c68d5d574ee092595",
+        "capsuleSemanticRoot": "sha256:7391e1f4f7579af308808d371119c7e42b40acc1b00df5f42325d41d4febd083"
+      }
+    ],
+    "cases": [
+      {
+        "label": "no checkpoint",
+        "checkpoint": {
+          "sequence": 0,
+          "digest": null
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "minimumSequence": 5,
+        "accepted": true,
+        "verifiedCheckpoint": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "asExpected": true
+      },
+      {
+        "label": "holds the earlier release",
+        "checkpoint": {
+          "sequence": 1,
+          "digest": "sha256:d47ddb8d6f45b23230fbf2cf1731122ccc6160c51a968e616ff6cf366bf8c9d2"
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "minimumSequence": 5,
+        "accepted": true,
+        "verifiedCheckpoint": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "asExpected": true
+      },
+      {
+        "label": "holds this release",
+        "checkpoint": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "minimumSequence": 5,
+        "accepted": true,
+        "verifiedCheckpoint": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "asExpected": true
+      },
+      {
+        "label": "holds forked sequence 1 236f11e6",
+        "checkpoint": {
+          "sequence": 1,
+          "digest": "sha256:236f11e6856e66306b4bcaa363d2cbae704cce77a3252d270b3e693c257ee61d"
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "accepted": false,
+        "message": "Release history conflicts with the persisted checkpoint.",
+        "asExpected": true
+      },
+      {
+        "label": "holds forked sequence 1 ffc0db2c",
+        "checkpoint": {
+          "sequence": 1,
+          "digest": "sha256:ffc0db2cc9a4e9ded36758a16ac453120657aff050d60c9c68d5d574ee092595"
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "accepted": false,
+        "message": "Release history conflicts with the persisted checkpoint.",
+        "asExpected": true
+      },
+      {
+        "label": "forked history 236f11e6 offered to a holder of the earlier release",
+        "checkpoint": {
+          "sequence": 1,
+          "digest": "sha256:d47ddb8d6f45b23230fbf2cf1731122ccc6160c51a968e616ff6cf366bf8c9d2"
+        },
+        "presented": [
+          "1:236f11e6"
+        ],
+        "accepted": false,
+        "message": "Release history conflicts with the persisted checkpoint.",
+        "asExpected": true
+      },
+      {
+        "label": "forked history ffc0db2c offered to a holder of the earlier release",
+        "checkpoint": {
+          "sequence": 1,
+          "digest": "sha256:d47ddb8d6f45b23230fbf2cf1731122ccc6160c51a968e616ff6cf366bf8c9d2"
+        },
+        "presented": [
+          "1:ffc0db2c"
+        ],
+        "accepted": false,
+        "message": "Release history conflicts with the persisted checkpoint.",
+        "asExpected": true
+      },
+      {
+        "label": "earlier release alone, below minimum sequence",
+        "checkpoint": {
+          "sequence": 0,
+          "digest": null
+        },
+        "presented": [
+          "1:d47ddb8d"
+        ],
+        "accepted": false,
+        "message": "Release history rolled back below the required sequence.",
+        "asExpected": true
+      },
+      {
+        "label": "holds sequence 2 923ac7e6",
+        "checkpoint": {
+          "sequence": 2,
+          "digest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f"
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "minimumSequence": 5,
+        "accepted": true,
+        "verifiedCheckpoint": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "asExpected": true
+      },
+      {
+        "label": "holds sequence 3 74ab985f",
+        "checkpoint": {
+          "sequence": 3,
+          "digest": "sha256:74ab985fb86baa7fe0c283bd9dabfb536b4a077e7942e9419eeca661500dea6a"
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "minimumSequence": 5,
+        "accepted": true,
+        "verifiedCheckpoint": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "asExpected": true
+      },
+      {
+        "label": "holds sequence 4 7f62c19a",
+        "checkpoint": {
+          "sequence": 4,
+          "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "minimumSequence": 5,
+        "accepted": true,
+        "verifiedCheckpoint": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "asExpected": true
+      },
+      {
+        "label": "stale sequence 1-4 history alone, below minimum sequence",
+        "checkpoint": {
+          "sequence": 0,
+          "digest": null
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a"
+        ],
+        "accepted": false,
+        "message": "Release history rolled back below the required sequence.",
+        "asExpected": true
+      },
+      {
+        "label": "installed amd-host holds sequence 4 7f62c19a",
+        "checkpoint": {
+          "sequence": 4,
+          "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "minimumSequence": 5,
+        "accepted": true,
+        "verifiedCheckpoint": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "asExpected": true,
+        "namespaceMatches": true
+      },
+      {
+        "label": "installed intel-host holds sequence 4 7f62c19a",
+        "checkpoint": {
+          "sequence": 4,
+          "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "minimumSequence": 5,
+        "accepted": true,
+        "verifiedCheckpoint": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "asExpected": true,
+        "namespaceMatches": true
+      },
+      {
+        "label": "installed mac-host holds sequence 4 7f62c19a",
+        "checkpoint": {
+          "sequence": 4,
+          "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+        },
+        "presented": [
+          "1:d47ddb8d",
+          "2:923ac7e6",
+          "3:74ab985f",
+          "4:7f62c19a",
+          "5:70f24c97"
+        ],
+        "minimumSequence": 5,
+        "accepted": true,
+        "verifiedCheckpoint": {
+          "sequence": 5,
+          "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2"
+        },
+        "asExpected": true,
+        "namespaceMatches": true
+      }
+    ],
+    "runtimeConflictLine": 144,
+    "realCheckpointStoresOpened": false
+  },
+  "stop": [],
+  "staged": false,
+  "GPUOpened": false,
+  "node": "v22.20.0",
+  "platform": "darwin",
+  "architecture": "arm64"
+}

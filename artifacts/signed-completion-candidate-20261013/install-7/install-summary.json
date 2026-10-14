@@ -1,0 +1,46 @@
+{
+  "schema": "reploid.native-install-summary/v1",
+  "delivery": "final-7 (Reploid c44ec852)",
+  "installPath": "/var/tmp/reploid-signed-completion-7-20261014/reploid",
+  "tarballSha256": "6acd639d3740dd161f89c2e89dd566f9b311299d0ece2eb533d5217352a19ddb",
+  "descriptorSha256": "5b9db6a6396d0847a91b09e5ef5879316685271f1f689797df67c956f179ff70",
+  "archiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "remoteVerifySha256": "93da5a6d1256c37b7e1deb9ba36c565c02805abdc7e3d922f6f532e93679017d",
+  "procedure": [
+    "mkdir (new path)",
+    "copy tarball, runtime archive and ../install/remote-verify.js; hash all three on the host",
+    "tar -xzf (tarball root reploid/)",
+    "npm ci --no-audit --no-fund",
+    "node remote-verify.js <reploid> <tarball> <sha> <archive> <sha> <alias>",
+    "node server/native-participant.js --help"
+  ],
+  "hosts": {
+    "amd-host": {
+      "copiedFilesHashed": true,
+      "npmCi": "exit 0",
+      "remoteVerify": "exit 0",
+      "installedDescriptorSha256": "5b9db6a6396d0847a91b09e5ef5879316685271f1f689797df67c956f179ff70",
+      "help": "exit 0, lists --room-token-file, identical on both hosts"
+    },
+    "intel-host": {
+      "copiedFilesHashed": true,
+      "npmCi": "exit 0",
+      "remoteVerify": "exit 0",
+      "installedDescriptorSha256": "5b9db6a6396d0847a91b09e5ef5879316685271f1f689797df67c956f179ff70",
+      "help": "exit 0, lists --room-token-file, identical on both hosts"
+    }
+  },
+  "publicContributors": {
+    "amd-host": [
+      4103868,
+      4121371
+    ],
+    "intel-host": [
+      297260,
+      299769
+    ],
+    "presentBeforeAndAfter": true,
+    "touched": false
+  },
+  "earlierInstallsTouched": false
+}

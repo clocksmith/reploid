@@ -1,0 +1,88 @@
+{
+  "sourceRevision": "1473eda7ecfa48ebdbf2cc8a5c13ebc0f8d5a8c4",
+  "capsuleRevision": "doppler a40f02a102c4c06c317bc2b07ca32422ed124227 (artifacts/chunked-prefill-capsule-20261014); release history renewed at sequence 5 by doppler 71a3daf6 (artifacts/chunked-prefill-capsule-20261014/release-renewal-5); Capsule root /var/tmp/qwen35-capsule-chunk16-20261014-r5 is an APFS clone of the -b output with that history",
+  "capsule": {
+    "semanticRoot": "sha256:171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+    "prefillTokenChunkSize": 16,
+    "placement": "B: mac-host browser stage 0, intel-host native stage 1, amd-host native stage 2 (output head on AMD)",
+    "qualificationReports": "reploid artifacts/completion-qualification-3-20261014/b/reports"
+  },
+  "supersedes": "final-8/ (Reploid 76296a53; custody asked each supplier once per file, so one 30 s supplier stall ended a whole-model acquisition: run 7 attempts c and d) and the sequence-4 release history, which expires 2026-10-15T13:21:16Z",
+  "stage": "final signed three-stage delivery staged, packaged, byte-verified and installed on amd-host and intel-host (install-9/); physical application journey run-7 attempt e",
+  "reusedScripts": {
+    "final/prepare-catalog.js": "c71a134728d943d79e5060fe18b52be8f5ebee9e16cf7eeb0fea919d90ae3e85",
+    "final/preflight.js": "f464b87f6f234f7a3c08273ea62e2f0b73c4ed4b95309f292bf63abbed3a55bb",
+    "final/verify-delivery.js": "87f76146cfd8766d2e08f4a8faebbf10a0f4795b5cc570d937aa2247817334db",
+    "final/scope-export.js": "593797355ead46da2704beecb1a18cbf5b75f78bfc7c20cf1372f786f9554626",
+    "final-2/check-swarm-label.js": "8f63b811a27a8e08ce11e31842d57ea9d6bde3b2b6fa3dffd300ef073604ddd1",
+    "final-3/check-room-token-file.js": "07a62291580bed7ab6b815087eb6d0db5d90704b7f953996b2c109ef4351b5c4",
+    "../basic-signed-candidate-20261013/final/stage-catalog.js": "4b8a183ff69c0c0d6b7be2a49972538e18f31c29e7ed205a385d2f1fb51ba3d9",
+    "final-6/preflight.js": "2a7c46448da544ccefa57c3a4239ee21c133ee01ad51b3529fd90b722f76f855",
+    "final-6/check-changed-files.js": "295dbe037ec5e292b2e86abc6747cb70cbb76d60c9e69ea1b25753d7076e8f44"
+  },
+  "newScripts": {
+    "final-9/prepare-catalog.sh": "d8f8c5b8c4a9a11bd3c15e3bcb432611c2955c4db97bf0e28357d2f894604e51",
+    "final-9/preflight.js": "01c6bb2df79f6f6f5f3e9104074be1812fda2596ac817c5753ec7c320420a916",
+    "final-9/verify-worker.js": "ce5443d29b035a639cc5ca22673cde1ea5fb3a995f7a3c9f1e60f82a206b431f"
+  },
+  "heldCheckpoints": {
+    "path": "final-9/held-checkpoints.json",
+    "sha256": "f003095c25526a59108e7789b2e3700fbd952a67d43df5f394d38e333c49ce27"
+  },
+  "outputs": {
+    "sourceTar": {
+      "path": "/var/tmp/reploid-signed-completion-app-9-20261014/source.tar",
+      "sha256": "b8a193b580ffc3ccb11f14a14b843e52c0b68d58d07c15594e5c85ae42a60ef5"
+    },
+    "runtimeArchive": {
+      "path": "/var/tmp/reploid-signed-completion-app-9-20261014/app/deploy/artifacts/doppler-gpu-0.6.28.tgz",
+      "sha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8"
+    },
+    "preparedCatalog": {
+      "path": "/var/tmp/reploid-signed-completion-app-9-20261014/signed-catalog/chat-models.json",
+      "sha256": "c6da46b8f510e317b6d28a70901cea866a65bd0f568f091a9d348cfb86fe6196",
+      "differsFromFinal8Only": [
+        "packOpenOptions.releaseEvents",
+        "packOpenOptions.releasePolicy.minimumSequence"
+      ]
+    },
+    "stagedCatalog": {
+      "path": "/var/tmp/reploid-signed-completion-app-9-20261014/app/self/config/chat-models.json",
+      "sha256": "89ac4bfef47444e51de5218313b0c6dd45dc28b1c0c9a73f813886e927d301af"
+    },
+    "browserManifest": {
+      "path": "/var/tmp/reploid-signed-completion-app-9-20261014/app/self/config/browser-bundle-manifest.json",
+      "sha256": "8df6ac512f739b5b47756765e47bafb36f238c7e125c5bfe571b5b0c8d549bba",
+      "bundleHash": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+      "files": 2051
+    },
+    "nativeTarball": {
+      "path": "/var/tmp/reploid-signed-completion-app-9-20261014/app/output/reploid-native-3DxZ1d/reploid-native-0.1.0.tgz",
+      "sha256": "430d26f85993756c59909c57fc25512b00a583262acd16a0d722f7e3c76a0917"
+    },
+    "nativeDescriptor": {
+      "path": "/var/tmp/reploid-signed-completion-app-9-20261014/app/output/reploid-native-3DxZ1d/reploid/native-delivery.json",
+      "sha256": "d18d96ba636f596c2cfbcfe0ff572bc5a08a0ed39a02efb3d3d52fac46081a93",
+      "files": 155
+    },
+    "capsuleReleaseEvents": {
+      "path": "/var/tmp/qwen35-capsule-chunk16-20261014-r5/release-events.json",
+      "sha256": "7be31ba9583170a26f6e2ae3de609dd1f9e79864ba8479475512cdd84fa201c7",
+      "sequence": 5,
+      "digest": "sha256:70f24c979f6b08c25827de341f5b08ab441b1c30fdca6bcec019a596c3ed71d2",
+      "expiresAtUtc": "2026-10-15T16:14:00.836Z",
+      "sameAs": "doppler artifacts/chunked-prefill-capsule-20261014/release-renewal-5/release-events.json"
+    }
+  },
+  "confirmed": {
+    "vendoredPartitionsExportsMetadataDigest": true,
+    "servedPartitionsExportsMetadataDigest": true,
+    "catalogModels": [
+      "qwen-3-5-0-8b-q4k-ehaf16 (ordered plan)"
+    ],
+    "minimumSequence": 5,
+    "installedHostsHeldSequence4AndAdmitSequence5": "final-9/preflight.json cases \"installed <host> holds sequence 4\"; physical opening advanced amd-host, intel-host and the mac-host stage 0 profile to sequence 5 (run-7/bringup/e-*)"
+  },
+  "applicationQualified": false,
+  "publicPinChanged": false
+}
