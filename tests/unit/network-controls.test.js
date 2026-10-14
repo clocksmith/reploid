@@ -110,3 +110,22 @@ it('selects bounded file participation separately from compute and preserves the
     expect(root.querySelector('[data-toggle-file-contribution]').disabled).toBe(true);
   } finally {dispose();}
 });
+
+it('states the whole-model download and storage before full-model seeding is switched on', () => {
+  const state={models:[{id:'fixture',name:'Fixture'}],network:{files:{limits:{storedBytes:3221225472,supplyBytes:4294967296},
+    seedingBytes:{fixture:1156250409}}}};
+  const session={getState:()=>state,setSharing:vi.fn(),setFileSharing:vi.fn(),subscribe:listener=>{listener(state);return()=>{};}};
+  const root=document.createElement('div');root.innerHTML=renderConnectionControl()+renderSharingControls()
+    +'<ul data-insp-device-list></ul><span data-network-message></span><button data-mesh-invite></button><span data-mesh-peers></span>';
+  const dispose=bindNetworkControls(root,session);
+  try {
+    const mode=root.querySelector('[data-file-mode]'), limits=()=>root.querySelector('[data-file-limits]').textContent;
+    expect(limits()).not.toContain('Full-model seeding');
+    mode.value='full-model';mode.dispatchEvent(new Event('change'));
+    expect(limits()).toContain('Full-model seeding downloads and keeps 1.08 GiB on this device');
+    expect(limits()).toContain('at least 1,103 MiB');
+    expect(session.setFileSharing).not.toHaveBeenCalled();
+    delete state.network.files.seedingBytes;mode.dispatchEvent(new Event('change'));
+    expect(limits()).toContain('checked against your allowance when seeding starts');
+  } finally {dispose();}
+});

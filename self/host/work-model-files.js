@@ -12,6 +12,18 @@ import policy from '../config/chat-files.json' with { type: 'json' };
 
 export const getFileContributionLimits = () => ({ storedBytes: policy.maxStoredBytes, supplyBytes: policy.maxSupplyBytes, downloadBytes: policy.defaultAcquisitionBytes, maxDownloadBytes: policy.maxAcquisitionBytes, subsetBytes: policy.maxSubsetBytes });
 
+/** Bytes a full-model seed stores and may download, from signed catalog metadata only: the pinned
+ * source files, the signed Capsule's weight shards (the manifest's shards) and adapter artifacts.
+ * Null when the catalog does not declare the shards; the preflight still checks the allowance. */
+export function fullModelSeedingBytes(model) {
+  const files = model?.source?.files || [], shards = (model?.capsule?.artifacts || []).filter(item => item.role === 'weight-shard');
+  if (!files.length || !shards.length) return null;
+  const sizes = [...files, ...shards, ...(model.adapters || []).map(adapter => adapter.artifact)].map(item => item?.sizeBytes);
+  return sizes.every(size => Number.isSafeInteger(size) && size >= 0) ? sizes.reduce((total, size) => total + size, 0) : null;
+}
+const SEEDING_BYTES = Object.freeze(Object.fromEntries(LOCAL_DOPPLER_MODELS
+  .map(model => [model.id, fullModelSeedingBytes(model)]).filter(([, bytes]) => bytes !== null)));
+
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const decoder = new TextDecoder('utf-8', { fatal: true });
 
@@ -73,7 +85,7 @@ export function createWorkModelFiles({ getTransport, onChange = () => {}, fetchI
     supplyBudgetError: budgetError && { code: budgetError.code || 'CUSTODY_BUDGET_STORAGE', message: budgetError.message },
     preparing, stopping, error, progress: structuredClone(progress), receivedBytes: receipts.reduce((sum, item) => sum + item.receivedBytes, 0),
     verifiedFiles: receipts.flatMap(item => item.completed || []).map(({ artifactId, hash, sizeBytes }) => ({ artifactId, hash, sizeBytes })),
-    limits: getFileContributionLimits() });
+    limits: getFileContributionLimits(), seedingBytes: { ...SEEDING_BYTES } });
   const notify = () => onChange(getState());
   const tools = async () => {
     tooling ||= await import(globalThis.REPLOID_DOPPLER_STORAGE_MODULE_URL || DOPPLER_STORAGE_TOOLING_URL);
