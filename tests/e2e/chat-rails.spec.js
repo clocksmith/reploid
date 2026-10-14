@@ -1,3 +1,4 @@
+/* global chatFixture */
 import { test, expect } from '@playwright/test';
 
 // Real host/workspace path with an injected executor. This proves interaction,

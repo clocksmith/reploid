@@ -1,3 +1,4 @@
+/* global __nativePartitionFixture */
 /** Isolated installed-native host used only by the physical numerical fixture. */
 import assert from 'node:assert/strict';
 import { readFile, realpath } from 'node:fs/promises';

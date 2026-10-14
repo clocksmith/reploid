@@ -1,3 +1,4 @@
+/* global normalizationDispatch, numericalObservation */
 import { readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { parse } from 'acorn';

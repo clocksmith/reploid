@@ -2,7 +2,7 @@ import globals from 'globals';
 
 export default [
   { ignores: ['node_modules/**', 'artifacts/**', 'coverage/**', 'test-results/**', 'playwright-report/**',
-    'self/vendor/**', 'self/core/vendor/**', '**/dist/**', 'self/lib/**', 'doppler/**'] },
+    'self/vendor/**', 'self/core/vendor/**', '**/dist/**', 'self/lib/**', 'doppler/**', '.firebase-hosting/**'] },
   {
     files: ['**/*.js', '**/*.mjs'],
     languageOptions: { ecmaVersion: 'latest', sourceType: 'module',

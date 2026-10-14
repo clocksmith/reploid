@@ -1,3 +1,4 @@
+/* global encodeNumericalBytes, numericalObservation, resident */
 /** Diagnostic transport carries unchanged tensors between real browser partitions.
  * This local-byte diagnostic is separate from the ordinary-page WebRTC proof. */
 import assert from 'node:assert/strict';

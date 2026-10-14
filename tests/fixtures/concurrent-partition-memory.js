@@ -1,3 +1,4 @@
+/* global abortOnSubmit, encodeBytes, observePrefill, rejectOversizedAllocation, resident, settleMemory */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 

@@ -1,3 +1,4 @@
+/* global dashPattern, diagramTheme, exportSVG, svgContents, validateDocument */
 /** Plain DOM editor. JSON is always parsed as data; never evaluated as JavaScript. */
 (() => {
   const $=s=>document.querySelector(s),stage=$('#stage'),svg=$('#diagram'),group=$('#world');

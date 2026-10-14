@@ -1,3 +1,4 @@
+/* global resident, settleMemory */
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { createContext, runInContext } from 'node:vm';

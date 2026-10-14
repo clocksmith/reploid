@@ -1,3 +1,4 @@
+/* global documentSession */
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 

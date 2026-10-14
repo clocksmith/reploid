@@ -1,3 +1,4 @@
+/* global WebSocketPair */
 import { allowsSwarmOrigin } from '../swarm-origin-policy.js';
 import { DurableObject } from 'cloudflare:workers';
 import bootstrap from '../../self/config/swarm-bootstrap.json';

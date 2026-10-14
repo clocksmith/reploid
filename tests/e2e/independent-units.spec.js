@@ -1,3 +1,4 @@
+/* global units */
 import { test, expect, chromium } from '@playwright/test';
 import { createServer } from 'node:http';
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';

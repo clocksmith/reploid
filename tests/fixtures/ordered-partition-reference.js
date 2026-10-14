@@ -1,3 +1,4 @@
+/* global __nativePartitionFixture, encodeBytes, resident, settleMemory */
 /** Opt-in ordered branch of the existing installed-runtime physical reference fixture. */
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';

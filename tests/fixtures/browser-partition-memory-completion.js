@@ -1,3 +1,4 @@
+/* global __nativePartitionFixture, abortOnSubmit, chunks, encodeBytes, gpuValidationErrors, observePrefill, rejectOversizedAllocation, resident, settleMemory */
 /** Physical browser/native executors, installed package, exact retained requests, full decode.
  * Local verified bytes and Node tensor forwarding are not P2P acquisition proof. */
 import assert from 'node:assert/strict';
