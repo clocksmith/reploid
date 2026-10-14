@@ -19,6 +19,8 @@ vi.mock('../../self/vendor/reploid/transport/index.js', async original => ({ ...
 vi.mock('../../packages/reploid/src/transport/index.js', async original => ({ ...await original(), createSwarmTransport: () => ports.transport }));
 import { resolveConfig } from '../../self/vendor/reploid/config/index.js';
 import { createWorkSwarm } from '../../self/host/work-swarm.js';
+import { getOrderedParticipation } from '../../self/host/product-context.js';
+import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
 import { createNativeParticipant } from '../../server/native-participant.js';
 const cleanups = [];
 afterEach(async () => { await Promise.allSettled(cleanups.splice(0).map(fn => fn())); });
@@ -47,6 +49,38 @@ it.each([null, 'contributor'])('browser forwards explicit ordered %s and immutab
   ports.options.createNetwork({label:'ordered-test',maxPeers:4,timeoutMs:1000,ordered:routeOptions,createEndpoint(){}});
   expect(ports.networkOptions.ordered).toBe(routeOptions);
   await expect(Promise.resolve().then(() => ports.options.loadProgram({...model,id:'different'},1,{}))).rejects.toThrow('assigned');
+});
+const operatorStorage = saved => ({ getItem: key => key === orderedPolicy.stageStorageKey ? saved : null, setItem() {} });
+const browserSwarm = (storage, ordered = getOrderedParticipation(storage)) => {
+  const swarm = createWorkSwarm({ordered,storage,service:{},createModelFiles: () => ({async attach(){},async close(){},getState:()=>({})}),
+    networkOptions: () => ({autoConnect:true,discoveryScope:'public',config:resolveConfig({overrides:{mesh:{roomId:'mesh'}}})}) });
+  cleanups.push(() => swarm.close()); return swarm;
+};
+it.each([null, 'operator'])('browser host context binds %s stage with versioned ordered limits', async kind => {
+  await setup(); await browserSwarm(operatorStorage(kind ? JSON.stringify(stage()) : null)).connect();
+  expect(ports.options.ordered).toEqual({ stage: kind ? {index:1,participantId:ports.identity.peerId,transportId:'actual-rtc',
+    residentId:'resident',executionId:'execution'} : null, maxRouteBytes: orderedPolicy.limits.maxRouteBytes,
+  maxSelectionSteps: orderedPolicy.limits.maxSelectionSteps, maxRoutes: orderedPolicy.limits.maxRoutes });
+  expect(ports.options.policy.limits.maxStages).toBe(orderedPolicy.limits.maxStages);
+  expect(ports.options.policy.maxStageOffersPerPeer).toBe(orderedPolicy.limits.maxStageOffersPerPeer);
+});
+it('browser rejects invalid or unauthenticated operator stages with descriptive errors', async () => {
+  await setup();
+  for (const change of [{index:3}, {modelId:'absent'}, {executionId:''}, {route:'chosen-by-link'}]) {
+    expect(() => browserSwarm(operatorStorage(JSON.stringify({...stage(), ...change})))).toThrow('Ordered host stage requires a matching declared model plan and allocation identity');
+  }
+  const claimed = browserSwarm(operatorStorage(JSON.stringify({...stage(), participantId:'another-participant'})));
+  await expect(claimed.connect()).rejects.toThrow('Ordered host identity differs from the authenticated transport');
+  expect(ports.options).toBeNull();
+});
+it('browser host context leaves non-ordered catalogs in ordinary participation', async () => {
+  await setup();
+  const ordinary = getOrderedParticipation(operatorStorage(null), [{id:'two-device',partitionSplitLayer:4},{id:'whole-request'}]);
+  expect(ordinary).toBeNull();
+  await browserSwarm(operatorStorage(null), ordinary).connect();
+  expect(ports.options.ordered).toBeNull();
+  expect(ports.options.policy.limits.maxStages).toBeUndefined();
+  expect(ports.options.policy.maxStageOffersPerPeer).toBeUndefined();
 });
 it('native forwards actual authenticated stage and preserves separate file and compute consent', async () => {
   await setup(); const gpu = vi.fn(), ordered = orderedConfig(stage());

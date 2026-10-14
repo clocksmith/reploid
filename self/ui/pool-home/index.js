@@ -1,6 +1,6 @@
 /** Shell lifecycle. Sessions belong to the host and outlive individual route views. */
 import { createProductSession } from '../../host/product-session.js';
-import { getPeerRoomId, getPeerRoomBusFactory } from '../../host/product-context.js';
+import { getPeerRoomId, getPeerRoomBusFactory, getOrderedParticipation } from '../../host/product-context.js';
 import { getCurrentReploidStorage } from '../../instance.js';
 import { resolveRtcConfig } from '../../pool/p2p-transport.js';
 import { POOLDAY_NAME, ROUTE_COPY } from './constants.js';
@@ -12,8 +12,11 @@ import { bindThemeSelector } from './theme.js';
 import { bindPoolRouteControls } from './navigation.js';
 
 let disposeWorkspace;
-export function initPoolHome(mount, { operationNetwork = null, canonical = null } = {}) {
+export function initPoolHome(mount, { operationNetwork = null, canonical = null, ordered } = {}) {
   if (!mount) return;
+  // Host context, like the room, comes from this instance; a malformed stage stops before any binding.
+  const storage = getCurrentReploidStorage();
+  if (ordered === undefined) ordered = getOrderedParticipation(storage);
   disposeWorkspace?.();
   let disposed = false, revision = 0, changesRevision = 0;
   let detachView = () => {}, detachRibbon = () => {}, disposeSpecialists = () => {};
@@ -30,7 +33,7 @@ export function initPoolHome(mount, { operationNetwork = null, canonical = null 
       console.warn('[Reploid] Could not read changes awaiting review', error);
     }
   };
-  const openedHost = createProductSession({ storage: getCurrentReploidStorage(), operationNetwork, canonical,
+  const openedHost = createProductSession({ storage, operationNetwork, canonical, ordered,
     networkOptions: () => ({ roomId: getPeerRoomId(), roomBusFactory: getPeerRoomBusFactory(), rtcConfig: resolveRtcConfig() }),
     onChanges: refreshChanges,
     onDocuments: state => { if (!disposed) specialists?.updateDocumentView(mount, state); },

@@ -12,6 +12,9 @@ export function snapshotWorkPartitionSelection(selected) {
   return { ...selected, partitionPlan: freezeJson(structuredClone(plan)) };
 }
 
+/** A catalog model participates in ordered routes only through its declared Doppler plan version. */
+export const isWorkOrderedModel = model => model?.partitionPlan?.schema === 'doppler.layer-partition-contract/v3';
+
 /** Host stage identity is explicit; discovery cannot invent a resident session. */
 export function snapshotWorkPartitionStage(selected, index, participantId, ordered, canonical) {
   const isOrdered = selected.partitionPlan?.schema === 'doppler.layer-partition-contract/v3';
@@ -52,7 +55,7 @@ export function createWorkPartitionPlan(runtime, manifest, selected, index = 0) 
       || typeof runtime.validateOrderedLayerPartitionPlan !== 'function') {
       throw new Error('Installed Doppler does not support the declared ordered plan');
     }
-    runtime.validateOrderedLayerPartitionPlan(plan);
+    runtime.validateOrderedLayerPartitionPlan(manifest, plan);
   }
   runtime.resolveLayerPartition(manifest, { plan, index });
   partitionActivationContract(runtime, plan);

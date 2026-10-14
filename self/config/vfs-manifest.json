@@ -261,6 +261,7 @@
     "config/module-inventory.json",
     "config/module-registry.json",
     "config/module-resolution.js",
+    "config/ordered-participation.json",
     "config/partition-generation.js",
     "config/partition-policy.json",
     "config/reploid-environments.js",
