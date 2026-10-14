@@ -1,0 +1,153 @@
+{
+  "schema": "reploid.signed-catalog-staging-preflight/v1",
+  "applicationRoot": "/var/tmp/reploid-completion-chat-candidate-20261013/app",
+  "capsuleRoot": "/var/tmp/qwen35-capsule-completion-20261013-b",
+  "catalogSha256": "9cefc0cc9715fa32881e060cff4c2cdf6662b03306ac206c72ce92c9b397e2af",
+  "runtime": {
+    "archive": "/var/tmp/reploid-completion-chat-candidate-20261013/app/deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "archiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "version": "0.6.28",
+    "integrity": "sha512-1OHMgIcxOUQ8Ml8Z+csmvY5yBE4rc9c/Gb+e00Uo2trXTRIXj2hKntxY9mpVqw4mNsXODGCt1mEHkDHOwxDxfw==",
+    "npmInstalledFiles": 1984,
+    "browserVendorFiles": 1984
+  },
+  "planAdmission": {
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [
+      8,
+      16
+    ],
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "applicationFile": "self/host/work-partition-plan.js",
+    "applicationFileSha256": "6dbbc5bd741c3b314809d8a7a5f5a1c075a8150be94d2a582ee4f99c873208a4",
+    "applicationCallLine": 55,
+    "applicationCall": "runtime.validateOrderedLayerPartitionPlan(plan);",
+    "runtimeValidatorParameters": 2,
+    "applicationResult": [
+      {
+        "index": 0,
+        "ok": false,
+        "message": "Ordered partition plan schema mismatch.",
+        "frames": [
+          "config/layer-partition-plan.js:169",
+          "host/work-partition-plan.js:55",
+          "signed-completion-candidate-20261013/preflight.js:86"
+        ]
+      },
+      {
+        "index": 1,
+        "ok": false,
+        "message": "Ordered partition plan schema mismatch.",
+        "frames": [
+          "config/layer-partition-plan.js:169",
+          "host/work-partition-plan.js:55",
+          "signed-completion-candidate-20261013/preflight.js:86"
+        ]
+      },
+      {
+        "index": 2,
+        "ok": false,
+        "message": "Ordered partition plan schema mismatch.",
+        "frames": [
+          "config/layer-partition-plan.js:169",
+          "host/work-partition-plan.js:55",
+          "signed-completion-candidate-20261013/preflight.js:86"
+        ]
+      }
+    ],
+    "withDeclaredTwoArgumentCall": [
+      {
+        "index": 0,
+        "layerRange": [
+          0,
+          7
+        ]
+      },
+      {
+        "index": 1,
+        "layerRange": [
+          8,
+          15
+        ]
+      },
+      {
+        "index": 2,
+        "layerRange": [
+          16,
+          23
+        ]
+      }
+    ]
+  },
+  "addresses": {
+    "filesSearched": 47,
+    "tailnetDomains": 0,
+    "loginShaped": 0,
+    "ownMachineNamesChecked": 6,
+    "ownMachineNameMatches": [
+      {
+        "file": "artifacts/evidence/generation-report.json",
+        "role": "reference-report",
+        "sha256": "729c2f36c15076f4934348c32ea8900df8f6bf5f488c3563c5209fac60674da9",
+        "occurrences": 1,
+        "fields": [
+          {
+            "field": "$.deviceInfo[0].host",
+            "masked": "m******",
+            "length": 7
+          }
+        ]
+      },
+      {
+        "file": "artifacts/program-bundle.json",
+        "role": "program-bundle",
+        "sha256": "580f06db90b917a9d815337f7d04d5c71d59e478bb0947393e0b2d33cc1917ef",
+        "occurrences": 1,
+        "fields": [
+          {
+            "field": "$.captureProfile.adapter.deviceInfo[0].host",
+            "masked": "m******",
+            "length": 7
+          }
+        ]
+      }
+    ],
+    "scope": "This machine only; names of other hosts cannot be derived locally and are covered only by the tailnet and login patterns"
+  },
+  "releaseHistory": {
+    "current": {
+      "sequence": 1,
+      "digest": "sha256:236f11e6856e66306b4bcaa363d2cbae704cce77a3252d270b3e693c257ee61d",
+      "authority": "reploid-paired-qualification-20261012",
+      "applicationId": "reploid-resident-qualification",
+      "expiresAtUtc": "2026-10-15T01:57:06.582Z",
+      "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b"
+    },
+    "previous": {
+      "sequence": 1,
+      "digest": "sha256:ffc0db2cc9a4e9ded36758a16ac453120657aff050d60c9c68d5d574ee092595",
+      "authority": "reploid-paired-qualification-20261012",
+      "applicationId": "reploid-resident-qualification",
+      "expiresAtUtc": "2026-10-14T13:40:56.063Z",
+      "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b"
+    },
+    "sameCheckpointNamespace": true,
+    "sameSequenceDifferentDigest": true,
+    "runtimeRejection": {
+      "file": "node_modules/doppler-gpu/src/config/capsule-release-events.js",
+      "line": 144,
+      "message": "Release history conflicts with the persisted checkpoint."
+    },
+    "storedCheckpointsInspected": false,
+    "consequence": "If a host or browser profile already persisted the previous history at this sequence, opening this Capsule is rejected unless that checkpoint is reset, which this delivery must not do"
+  },
+  "stop": [
+    "plan-admission",
+    "machine-name-in-signed-metadata"
+  ],
+  "staged": false,
+  "GPUOpened": false,
+  "node": "v22.20.0",
+  "platform": "darwin",
+  "architecture": "arm64"
+}
