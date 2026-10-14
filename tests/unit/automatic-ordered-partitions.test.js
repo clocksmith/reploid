@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
+import { createRemotePermission, remotePermissionNeed } from '../../packages/reploid/src/chat/remote-permission.js';
 import { fixture as stagesFixture } from '../fixtures/ordered-partition-ports.js';
 import { createHash } from 'node:crypto';
 import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
@@ -168,32 +169,33 @@ describe('explicit ordered automatic participation (injected discovery and numer
       { requestApproval: async () => true })).rejects.toThrow('route changed');
     expect(f.entry.generate).not.toHaveBeenCalled();
   });
-  it('a route change between the displayed review and Approve invalidates that approval', async () => {
+  it('never moves a permitted request to a changed route; a retry records the route it is sent to', async () => {
     const f = await fixture(null);
     f.route.stages.forEach((stage, index) => { stage.participantId = 'peer:' + String(index).repeat(24); });
     f.discovery.capabilities = f.capabilities(true);
-    const shown = f.fullModel(), replaced = f.fullModel();
+    const planned = f.fullModel(), replaced = f.fullModel(), ids = model => model.partition.route.stages.map(stage => stage.participantId);
     replaced.partition.route.stages[2].participantId = 'peer:' + '9'.repeat(24);
-    f.entry.refresh.mockResolvedValueOnce({ ready: true, descriptor: { models: [shown] } })
-      .mockResolvedValueOnce({ ready: true, descriptor: { models: [replaced] } });
+    // The entry reports the planned route when the request is prepared and a replacement before dispatch.
+    f.entry.refresh.mockResolvedValueOnce({ ready: true, descriptor: { models: [planned] } })
+      .mockResolvedValueOnce({ ready: true, descriptor: { models: [replaced] } })
+      .mockResolvedValue({ ready: true, descriptor: { models: [replaced] } });
+    const permission = createRemotePermission({ id: 'remote', grantedAt: 1, need: remotePermissionNeed({ sharingScope: 'mesh',
+      disclosure: 'ordered-partition-activations-and-tokens', model: planned }) });
     let saved;
-    const app = createChatWorkspace({ meshId: 'mesh', participantId: f.identity.peerId,
+    const app = createChatWorkspace({ meshId: 'mesh', participantId: f.identity.peerId, remotePermissions: () => [permission],
       store: { load: () => structuredClone(saved), save: value => { saved = structuredClone(value); } },
       execute: (request, controls) => f.mesh.generate(request, controls) });
     cleanups.push(() => app.close());
-    const thread = app.createThread({ model: shown, permissions: { sharingScope: 'mesh' } }), completion = app.send(thread, 'secret');
-    const review = await vi.waitFor(() => {
-      const attempt = app.getState().threads[0].attempts.at(-1); expect(attempt.status).toBe('approval'); return attempt;
-    });
-    const displayed = review.approval.recipients;
-    expect(displayed).toEqual(shown.partition.route.stages.map(stage => stage.participantId));
-    // The mesh replaces stage 2 while the person reads the review; Approve names what was shown.
-    app.approve(thread, review.id, review.approval.id, true, { recipients: displayed });
-    const attempt = await completion;
+    const thread = app.createThread({ model: planned, permissions: { sharingScope: 'mesh' } });
+    const attempt = await app.send(thread, 'secret');
     expect(attempt.status).toBe('failed'); expect(attempt.error).toContain('route changed');
-    expect(attempt.authorization.recipients).toEqual(displayed);
-    expect(attempt.authorization.recipients).not.toContain(replaced.partition.route.stages[2].participantId);
+    expect(attempt.authorization).toMatchObject({ kind: 'permission', permissionId: 'remote', recipients: ids(planned) });
     expect(f.entry.generate).not.toHaveBeenCalled();
+    // An explicit Retry is a new attempt; the same permission covers it and its record names the new route.
+    const retried = await app.retry(thread, attempt.id);
+    expect(retried).toMatchObject({ status: 'completed', retryOf: attempt.id, authorization: { permissionId: 'remote', recipients: ids(replaced) } });
+    expect(f.entry.generate).toHaveBeenCalledOnce();
+    expect(f.entry.generate.mock.calls[0][0].route.stages.map(stage => stage.participantId)).toEqual(ids(replaced));
   });
   it('cancels a queued conversation while the first continues on its retained route', async () => {
     const f = await fixture(), entered = Promise.withResolvers(), release = Promise.withResolvers();

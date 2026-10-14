@@ -57,17 +57,17 @@ async function openProduct(ordered) {
   return host;
 }
 const weightlessRequester = { stage: null, ...orderedPolicy.limits };
-// The product view displays attempt.approval.recipients and approves exactly that list
-// (self/ui/pool-home/request-approval.js, conversation-workspace.js decide()). `reviewed` runs while the review is shown.
-async function sendApproved(chat, threadId, text, reviewed = () => {}) {
+// A fresh profile has no remote contributor permission, so the first remote request is held and sends
+// nothing; the one-time grant (self/ui/pool-home/remote-permission.js Allow) releases it. `held` runs meanwhile.
+async function sendPermitted(chat, threadId, text, held = () => {}) {
   const completion = chat.send(threadId, text);
-  const review = await vi.waitFor(() => {
+  const waiting = await vi.waitFor(() => {
     const attempt = chat.getState().threads.find(thread => thread.id === threadId).attempts.at(-1);
     expect(attempt.status).toBe('approval'); return attempt;
   }, { timeout: 5000 });
-  reviewed(review);
-  chat.approve(threadId, review.id, review.approval.id, true, { recipients: review.approval.recipients });
-  return { review, attempt: await completion };
+  held(waiting);
+  const permission = await chat.grantRemotePermission(waiting.approval.permissionNeed);
+  return { permission, attempt: await completion };
 }
 const readyModel = (chat, match) => vi.waitFor(() => {
   const model = chat.getState().models.find(row => match(row) && row.availability === 'ready');
@@ -85,14 +85,14 @@ it('admits ordered Send from the shipped product session under the authenticated
   const dispatched = () => f.states.filter(state => state.resident)
     .reduce((total, state) => total + state.resident.tokenize.mock.calls.length + state.resident.reserve.mock.calls.length, 0);
   const before = dispatched(), stages = model.partition.route.stages.map(stage => stage.participantId);
-  // Send creates the attempt only; no stage tokenizes or reserves until the displayed recipients are approved.
-  const { review, attempt } = await sendApproved(host.chat, threadId, tasks[0].prompt, pending => {
-    expect(pending.approval.recipients).toEqual(stages); expect(pending.authorization).toBeNull();
-    expect(dispatched()).toBe(before);
+  // No stage tokenizes or reserves until the one-time permission exists.
+  const { permission, attempt } = await sendPermitted(host.chat, threadId, tasks[0].prompt, pending => {
+    expect(pending.approval.permissionNeed).toMatchObject({ disclosure: 'ordered-partition-activations-and-tokens', modelIdentity: model.identity });
+    expect(pending.authorization).toBeNull(); expect(dispatched()).toBe(before);
   });
   expect(attempt.error).toBeNull();
   expect(attempt.status).toBe('completed');
-  expect(attempt.authorization).toMatchObject({ kind: 'once', source: 'approval', recipients: review.approval.recipients,
+  expect(attempt.authorization).toMatchObject({ kind: 'permission', source: 'permission', permissionId: permission.id, recipients: stages,
     disclosure: 'ordered-partition-activations-and-tokens',
     requesterIdentity: f.identities[5].peerId, recipientIdentity: f.identities[0].peerId, route: model.partition.route });
   expect(attempt.execution.identity.requesterId).toBe(f.identities[5].peerId);
@@ -238,10 +238,10 @@ it('keeps two-stage Send working from the product session; it never relied on a 
   const placeholder = createChatSession({ storage: null, swarm: host.swarm, partitions: host.swarm.partitions });
   cleanups.push(() => placeholder.close());
   for (const chat of [host.chat, placeholder]) {
-    const { attempt } = await sendApproved(chat, chat.createThread({ model }), '10');
+    const { attempt } = await sendPermitted(chat, chat.createThread({ model }), '10');
     expect(attempt.error).toBeNull();
     expect(attempt.status).toBe('completed');
-    expect(attempt.authorization).toMatchObject({ source: 'approval', disclosure: 'partition-activations-and-tokens',
+    expect(attempt.authorization).toMatchObject({ source: 'permission', disclosure: 'partition-activations-and-tokens',
       recipients: [model.partition.participantA, model.partition.participantB],
       participantA: model.partition.participantA, recipientIdentity: model.partition.participantB });
     expect(attempt.authorization.requesterIdentity).toBeUndefined();

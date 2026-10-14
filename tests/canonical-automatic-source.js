@@ -98,12 +98,12 @@ try {
     const input = document.querySelector('[data-composer-input]'); input.value = 'actual requester message';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     document.querySelector('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
-    // Send creates the attempt; disclosure waits for Approve in the displayed review.
+    // The first remote request asks once for the contributor permission; Allow sends it.
     await new Promise((resolve, reject) => {
       const started = Date.now(), poll = () => {
-        const review = document.querySelector('[data-chat-approval]');
-        if (review && !review.hidden) { review.querySelector('[data-approval-approve]').click(); resolve(); }
-        else if (Date.now() - started > 5000) reject(Error('review timeout')); else setTimeout(poll, 10);
+        const dialog = document.querySelector('[data-remote-permission]');
+        if (dialog?.open) { dialog.querySelector('[data-remote-permission-allow]').click(); resolve(); }
+        else if (Date.now() - started > 5000) reject(Error('permission timeout')); else setTimeout(poll, 10);
       };
       poll();
     });
@@ -118,7 +118,7 @@ try {
     const pending = await new Promise(resolve => { const stop = session.subscribe(value => {
       const attempt = value.activeThread?.attempts.at(-1);
       if (attempt?.status === 'approval') { queueMicrotask(() => stop()); resolve(attempt); } }); });
-    await session.approve(thread, pending.id, pending.approval.id, true, { recipients: pending.approval.recipients });
+    await session.grantRemotePermission(pending.approval.permissionNeed);
     result = await completing;
   }
   assert.equal(result.status, 'completed', result.error);

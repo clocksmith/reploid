@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { allowRemoteOnce } from '../fixtures/remote-permission.js';
 import { readFile } from 'node:fs/promises';
 
 const history = page => page.evaluate(() => JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')));
@@ -6,10 +7,10 @@ const send = async (page, text) => {
   await page.locator('[data-composer-input]').fill(text);
   await page.locator('[data-composer-input]').press('Enter');
 };
-// Send shows the recipient review; Approve records the displayed recipients for this attempt only.
+// The first remote request asks once for the contributor permission; every attempt cites it.
 const approve = async page => {
-  await page.locator('[data-chat-approval] [data-approval-approve]').click();
-  await expect.poll(async () => (await history(page))?.threads.at(-1)?.attempts.at(-1)?.authorization?.source).toBe('approval');
+  await allowRemoteOnce(page);
+  await expect.poll(async () => (await history(page))?.threads.at(-1)?.attempts.at(-1)?.authorization?.source).toBe('permission');
 };
 const complete = page => expect.poll(async () => (await history(page))?.threads.at(-1)?.attempts.at(-1)?.status).toBe('completed');
 
@@ -50,13 +51,13 @@ test('real WebRTC binds each Send to verified recipients across refresh and repl
     await send(requester, 'First approved message');
     await approve(requester, true); await complete(requester);
     const original = (await history(requester)).threads[0], grant = original.attempts[0].authorization;
-    expect(original.grants).toEqual([]); expect(grant.source).toBe('send');
+    expect(original.grants).toEqual([]); expect(grant.source).toBe('permission');
     expect(grant.recipientIdentity).toMatch(/^peer:[a-f0-9]{24}$/);
     await send(requester, 'Follow-up without another approval'); await complete(requester);
-    await expect(requester.locator('[data-chat-approval]')).toBeHidden();
+    await expect(requester.locator('[data-remote-permission]')).not.toHaveAttribute('open');
     await requester.reload(); await requester.locator('[data-toggle-thread-rail]').click(); await requester.locator('[data-thread-item-id]').first().click();
     await send(requester, 'After refresh'); await complete(requester);
-    expect((await history(requester)).threads[0].attempts.at(-1).authorization).toMatchObject({ source: 'send', kind: 'once', grantId: null });
+    expect((await history(requester)).threads[0].attempts.at(-1).authorization).toMatchObject({ source: 'permission', kind: 'permission', grantId: null });
     await supplier.locator('[data-inspector-section="participants"]').click();
     await supplier.locator('[data-mesh-connect]').click();
     await contribute(replacement);

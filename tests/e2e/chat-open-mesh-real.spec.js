@@ -1,4 +1,5 @@
 import { test, expect, chromium } from '@playwright/test';
+import { allowRemoteOnce } from '../fixtures/remote-permission.js';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
@@ -41,10 +42,8 @@ test('open chat discovers a real contributor, streams without requester weights,
     await page.locator('[data-toggle-inspector]').click();
     await page.locator('[data-contribution-model]').selectOption(model.id);
   };
-  // Send shows the recipient review; Approve releases this request only.
-  const approve = async page => {
-    await page.locator('[data-chat-approval] [data-approval-approve]').click();
-  };
+  // The first remote request in each context asks once for the contributor permission.
+  const approve = page => allowRemoteOnce(page);
   try {
     // Fixed test quotas exercise bounded cache operation reproducibly; these are
     // browser storage limits, not a claim about physical memory or disk capacity.

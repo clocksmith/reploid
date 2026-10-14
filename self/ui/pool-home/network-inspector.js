@@ -6,6 +6,7 @@ import { bindDialog } from '../components/dialog.js';
 import { updateModelSelect } from '../components/model-select.js';
 import { escapeHtml as escape } from '../components/attachments.js';
 import { projectExecutionRibbon, routeMarkup, detailMarkup } from './execution-ribbon.js';
+import { renderRemotePermissionSettings, updateRemotePermissionSettings } from './remote-permission.js';
 
 export function renderNetworkInspector() {
   return `<aside class="chat-network-rail pool-surface" data-network-rail aria-label="Network and settings">
@@ -34,7 +35,7 @@ export function renderNetworkInspector() {
       <button class="pool-button" type="button" data-model-setup>Run on this device</button>
       <details data-specialized-jobs><summary>Specialized model jobs</summary><div data-specialized-content></div></details>
     </section>
-    <section data-inspector-pane="settings" aria-label="Settings" hidden></section>
+    <section data-inspector-pane="settings" aria-label="Settings" hidden>${renderRemotePermissionSettings()}</section>
     <p data-network-message role="status" hidden></p><p data-inspector-error role="alert" hidden></p>
   </dialog></aside>
   <dialog class="chat-model-setup pool-surface" data-model-dialog aria-labelledby="model-setup-title">
@@ -88,6 +89,8 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
     const tab = event.target.closest('[data-inspector-section]'); if (tab) select(tab.dataset.inspectorSection);
     const grant = event.target.closest('[data-revoke-grant]');
     if (grant) void act(() => session.revokeGrant(session.getState().selectedId, grant.dataset.revokeGrant));
+    const remote = event.target.closest('[data-revoke-remote-permission]');
+    if (remote) void act(() => session.revokeRemotePermission(remote.dataset.revokeRemotePermission));
   }, options);
   const onEscape = event => { if (event.key === 'Escape' && panel.open) { event.preventDefault(); event.stopPropagation(); dialog.close(); } };
   rail.addEventListener('keydown', onEscape, options);
@@ -106,6 +109,7 @@ export function bindNetworkInspector(root, session, { getInviteUrl, loadSpeciali
       find('[data-ribbon-timeline]').innerHTML = events.map(event => `<li>${escape(event)}</li>`).join('') || '<li>No recorded attempt events.</li>';
     }
     find('[data-inspector-status]').textContent = view.statusLabel;
+    updateRemotePermissionSettings(panel, state);
     const grants = (state.activeThread?.grants || []).filter(grant => grant.revokedAt === null);
     find('[data-thread-permissions]').hidden = !grants.length;
     const next = JSON.stringify([state.selectedId, grants]);

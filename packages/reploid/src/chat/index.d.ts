@@ -7,6 +7,10 @@ import type { CanonicalPublicationPort } from '../mesh/partitions/partition-cano
 import type { EntryPublicationRecord } from '../mesh/partitions/partition-entry-publication.js';
 import type { OrderedPublicationPort } from '../mesh/partitions/partition-ordered-publication.js';
 export { createConversationPublication } from './workspace-publication.js';
+export { REMOTE_PERMISSION_SCHEMA, REMOTE_DISCLOSURES, remoteDisclosureKind, remotePermissionNeed, remotePermissionCovers,
+  createRemotePermission, validateRemotePermission } from './remote-permission.js';
+import type { RemotePermission, RemotePermissionNeed } from './remote-permission.js';
+export type { RemotePermission, RemotePermissionNeed } from './remote-permission.js';
 export type { TransactionalChatStore, PublicationReceipt } from './workspace-publication.js';
 export interface ChatModel {
   id: string;
@@ -47,8 +51,8 @@ export interface ChatRequest {
 export interface ChatEnvelope { threadId: string; attemptId: string }
 export interface ChatApproval extends ChatEnvelope {
   id: string; peerId: string; expiresAt: number; recipientIdentity?: string | null; reusable?: boolean;
-  /** Set by the workspace: executors receiving this disclosure in order (verified route stages, split pair, or one recipient). */
-  recipients?: string[];
+  /** Set by the workspace when no stored remote permission covers this disclosure; nothing is sent meanwhile. */
+  permissionNeed?: RemotePermissionNeed;
   [key: string]: unknown;
 }
 export interface ChatThreadGrant {
@@ -74,9 +78,10 @@ export interface ChatAttempt {
   finishedAt: number | null;
   error: string | null;
   approval: ChatApproval | null;
-  /** source 'approval': recipients are exactly the list the reviewer displayed and approved. */
-  authorization: { kind: 'once' | 'thread-grant'; grantId: string | null; peerId: string; recipientIdentity?: string | null;
-    source?: 'send' | 'approval'; recipients?: string[]; expiresAt?: number; modelId?: string; modelIdentity?: string; adapterIdentities?: string[];
+  /** kind 'permission' cites the stored remote permission (permissionId). recipients are the verified executors this
+   * attempt was dispatched to, in order: route stages, the split pair, or the one recipient. */
+  authorization: { kind: 'once' | 'thread-grant' | 'permission'; grantId: string | null; permissionId?: string; peerId: string; recipientIdentity?: string | null;
+    source?: 'send' | 'approval' | 'permission'; recipients?: string[]; expiresAt?: number; modelId?: string; modelIdentity?: string; adapterIdentities?: string[];
     participantA?: string; planId?: string; route?: PartitionRoute; requesterIdentity?: string; sharingScope?: string; disclosure?: string } | null;
   execution: Record<string, unknown> | null;
   request: ChatRequest;
@@ -114,6 +119,8 @@ export interface ChatWorkspaceOptions {
   /** Host-authenticated peer identity that execution binds into ordered requester disclosure; null until
    * authenticated. Defaults to participantId for hosts whose history participant is that peer. */
   requesterIdentity?: () => string | null;
+  /** The host's stored remote contributor permissions. When supplied, every remote disclosure needs one that covers it. */
+  remotePermissions?: (() => readonly RemotePermission[]) | null;
   store: { load(): unknown; save(state: unknown): void };
   execute(request: ChatRequest & ChatEnvelope & { meshId: string; participantId: string }, controls: ChatControls): Promise<ChatResult>;
   policy?: ChatPolicy; now?: () => number; id?: () => string;
@@ -132,13 +139,15 @@ export interface ChatWorkspace {
   reopenThread(threadId: string): void;
   send(threadId: string, content: string, options?: ChatSendOptions): ChatAttemptCompletion;
   retry(threadId: string, attemptId: string, options?: Pick<ChatSendOptions, 'authorizeDisclosure'>): ChatAttemptCompletion;
-  /** Decline cancels only this attempt. Accept with `recipients` (the displayed list) fails unless it equals approval.recipients. */
-  approve(threadId: string, attemptId: string, previewId: string, accepted: boolean, options?: { remember?: boolean; recipients?: string[] }): void;
+  /** Decline cancels only this attempt. Accepting is refused when the host supplies remotePermissions. */
+  approve(threadId: string, attemptId: string, previewId: string, accepted: boolean, options?: { remember?: boolean }): void;
+  /** Continues waiting attempts a stored permission now covers; returns how many. */
+  resumePermitted(): number;
   revokeGrant(threadId: string, grantId: string): void;
   cancel(threadId: string): Promise<unknown>;
   close(): Promise<void>;
 }
-export type TransactionalChatWorkspace = Omit<ChatWorkspace,'createThread'|'setSystemContext'|'renameThread'|'closeThread'|'reopenThread'|'approve'|'revokeGrant'> & {
+export type TransactionalChatWorkspace = Omit<ChatWorkspace,'createThread'|'setSystemContext'|'renameThread'|'closeThread'|'reopenThread'|'approve'|'revokeGrant'|'resumePermitted'> & {
  createThread(input:Parameters<ChatWorkspace['createThread']>[0]):Promise<string>;
  setSystemContext(...input:Parameters<ChatWorkspace['setSystemContext']>):Promise<void>;
  renameThread(...input:Parameters<ChatWorkspace['renameThread']>):Promise<void>;
@@ -146,6 +155,7 @@ export type TransactionalChatWorkspace = Omit<ChatWorkspace,'createThread'|'setS
  reopenThread(...input:Parameters<ChatWorkspace['reopenThread']>):Promise<void>;
  approve(...input:Parameters<ChatWorkspace['approve']>):void|Promise<void>;
  revokeGrant(...input:Parameters<ChatWorkspace['revokeGrant']>):void|Promise<void>;
+ resumePermitted():Promise<number>;
 };
 export function createChatWorkspace(options:Omit<ChatWorkspaceOptions,'store'> & {store:CanonicalWorkspaceHistory}):TransactionalChatWorkspace;
 export function createChatWorkspace(options:ChatWorkspaceOptions):ChatWorkspace;

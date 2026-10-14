@@ -8,8 +8,8 @@ Boot surfaces from trusted seeds.
 
 ## Authority
 - Owns seeding/startup/tools and independent threads.
-- Disclosure requires approval of displayed recipients/payload per attempt,
-  or revocable recipient/mesh/thread/model/adapter grants.
+- Remote disclosure needs a stored, revocable contributor permission
+  (sharing-scope/disclosure-kind/model-catalog) or thread grant.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
 - Tasks validate; repositories version; providers execute; views are immutable.
 - Excludes policy, module semantics and recovery-root mutation.
@@ -33,8 +33,8 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 - Viewing/stopping threads cannot change another's objective/grants/execution.
 - Candidate delivery grants no evaluation/adoption authority.
 - Peer operations require current authorization, exact identities and evidence.
-  Send/Retry never self-authorizes; approval covers one live attempt only.
-  Changed execution identities require a new user action.
+  Uncovered requests send nothing until granted; revocation spares admitted
+  answers, which never change route.
   Ordered catalogs with metadataDigest open one tab's transactional history, else report ordinary.
 - File contribution requires separate bounded consent. Explicit compute may acquire
   selected files, not redistribute. Discovery never downloads weights.

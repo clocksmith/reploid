@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { allowRemoteOnce } from '../fixtures/remote-permission.js';
 
 // Five scripted phone tasks, not human observations or inference qualification.
 // Production session, storage, permissions and UI; injected discovery/execution.
@@ -55,10 +56,10 @@ async function send(page, text) {
   await page.locator('[data-composer-send]').click();
 }
 async function approve(page) {
-  // Send shows the review; Approve records the displayed recipients before dispatch.
-  await page.locator('[data-chat-approval] [data-approval-approve]').click();
+  // The first remote request asks once for the contributor permission; every attempt cites it.
+  await allowRemoteOnce(page);
   await expect.poll(() => page.evaluate(() => window.journey.jobs.size)).toBeGreaterThan(0);
-  expect(await page.evaluate(() => window.journey.session.getState().activeThread.attempts.at(-1).authorization.source)).toBe('approval');
+  expect(await page.evaluate(() => window.journey.session.getState().activeThread.attempts.at(-1).authorization.source)).toBe('permission');
 }
 async function emit(page, text, finish = true) {
   await page.evaluate(({ text, finish }) => {

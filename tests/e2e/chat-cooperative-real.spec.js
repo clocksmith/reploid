@@ -1,4 +1,5 @@
 import { QUOTE_CASES, extractQuoteCode, evaluateQuoteCode } from '../fixtures/quote-code-evaluation.js';
+import { allowRemoteOnce } from '../fixtures/remote-permission.js';
 import { comparisonInput, COMPARISON_CHECK } from '../../self/host/document-comparison.js';
 import { test, expect, chromium } from '@playwright/test';
 import { readFile, writeFile, mkdtemp, rm } from 'node:fs/promises';
@@ -136,7 +137,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await selection.selectOption(model.id, { timeout: 30000 });
   };
   const approve = async page => {
-    await page.locator('[data-chat-approval] [data-approval-approve]').click();
+    await allowRemoteOnce(page);
     await expect.poll(async () => {
       const data = await history(page);
       const activeId = await page.locator('[data-thread-item-id][aria-current="true"]').getAttribute('data-thread-item-id').catch(() => null);

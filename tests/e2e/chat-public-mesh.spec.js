@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { allowRemoteOnce } from '../fixtures/remote-permission.js';
 import { compareCountedLines } from '../fixtures/counted-lines.js';
 
 // Seed operators run separately. This fresh requester uses only the hosted UI,
@@ -29,7 +30,7 @@ test('fresh public browser completes a distributed answer', async ({ browser }, 
     await page.locator('[data-composer-input]').fill('Reply with only the word Hello.');
     await page.locator('[data-composer-send]').click();
     const sent = Date.now();
-    await page.locator('[data-chat-approval] [data-approval-approve]').click();
+    await allowRemoteOnce(page);
     const history = () => page.evaluate(() => JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')));
     await expect.poll(async () => {
       const attempt = (await history())?.threads[0]?.attempts[0];
@@ -44,7 +45,7 @@ test('fresh public browser completes a distributed answer', async ({ browser }, 
       await page.locator('[data-new-thread]').click();
       await page.locator('[data-composer-input]').fill(prompt);
       await page.locator('[data-composer-send]').click();
-      await page.locator('[data-chat-approval] [data-approval-approve]').click();
+      await allowRemoteOnce(page);
       return (await history()).threads.at(-1).id;
     };
     const waitFor = async id => expect.poll(async () => {

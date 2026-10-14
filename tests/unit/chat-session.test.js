@@ -100,27 +100,36 @@ describe('Chat host with injected execution, not actual inference', () => {
     await session.close();
   });
 
-  it('requires scoped approval before a peer receives the conversation', async () => {
-    let disclosed = false;
+  it('holds a peer request until the one-time remote permission exists, then sends follow-ups without asking', async () => {
+    const peer = 'peer:' + 'b'.repeat(24), disclosed = [];
     const swarm = {
       getState: () => ({ sharing: false }), connect: async () => {}, hasProvider: () => true,
       async generate(messages, controls) {
-        const preview = { id: 'preview', providerId: 'peer-B', input: messages, expiresAt: Date.now() + 10000 };
+        const preview = { id: crypto.randomUUID(), providerId: peer, recipientIdentity: peer, operation: 'generate', disclosure: 'public',
+          modelId: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [], input: messages, expiresAt: Date.now() + 10000 };
         if (!await controls.approve(preview)) throw new Error('Declined');
-        disclosed = true;
+        disclosed.push(messages.at(-1).content);
         await controls.record({ stage: 'approved', preview });
         controls.onPartial('Peer answer');
-        return { model: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [], provider: 'doppler', peerId: 'peer-B', content: 'Peer answer' };
+        return { model: controls.modelId, modelIdentity: controls.modelIdentity, adapterIdentities: [], provider: 'doppler', peerId: peer, content: 'Peer answer' };
       }
     };
     const service = createChatTestService(), session = createChatSession({ storage: null, service, swarm });
-    const id = session.createThread(), completion = session.send(id, 'Public question');
+    const id = session.createThread(), model = session.getState().activeThread.model;
+    expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh' })).toMatchObject({ disclosure: 'public', modelIdentity: model.identity });
+    const completion = session.send(id, 'Public question');
     await vi.waitFor(() => expect(session.getState().activeThread.attempts[0].status).toBe('approval'));
-    expect(disclosed).toBe(false);
+    expect(disclosed).toEqual([]);
+    // The product host never approves one request; only a stored permission releases it.
     const attempt = session.getState().activeThread.attempts[0];
-    session.approve(id, attempt.id, attempt.approval.id, true);
+    expect(() => session.approve(id, attempt.id, attempt.approval.id, true)).toThrow('remote contributor permission');
+    const permission = await session.grantRemotePermission(attempt.approval.permissionNeed);
     expect((await completion).status).toBe('completed');
-    expect(disclosed).toBe(true); expect(service.calls).toHaveLength(0);
+    expect(disclosed).toEqual(['Public question']); expect(service.calls).toHaveLength(0);
+    expect(session.remotePermissionNeeded({ model, sharingScope: 'mesh' })).toBeNull();
+    const follow = await session.send(id, 'Follow-up');
+    expect(follow).toMatchObject({ status: 'completed', authorization: { kind: 'permission', permissionId: permission.id, recipients: [peer] } });
+    expect(disclosed).toEqual(['Public question', 'Follow-up']);
     await session.close();
   });
 

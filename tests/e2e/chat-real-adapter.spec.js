@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { allowRemoteOnce } from '../fixtures/remote-permission.js';
 import { readFile } from 'node:fs/promises';
 
 test('three Chrome tabs supply files, execute Doppler and receive independent adapted and base conversations', async ({ browser }, testInfo) => {
@@ -21,7 +22,7 @@ test('three Chrome tabs supply files, execute Doppler and receive independent ad
     await a.locator('[data-active-model-select]').selectOption(selection);
     await a.locator('[data-composer-input]').fill(message);
     await a.locator('[data-composer-send]').click();
-    await a.locator('[data-chat-approval] [data-approval-approve]').click();
+    await allowRemoteOnce(a);
   };
   try {
     await Promise.all([a.goto('/'), b.goto('/'), c.goto('/')]);

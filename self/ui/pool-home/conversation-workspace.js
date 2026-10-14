@@ -9,7 +9,7 @@ import { escapeHtml as escape, renderAttachments, readTextAttachments } from '..
 import { bindDisclosure } from '../components/disclosure.js';
 import { bindDialog } from '../components/dialog.js';
 import { createMessageList } from './message-list.js';
-import { renderRequestApproval, updateRequestApproval } from './request-approval.js';
+import { renderRemotePermissionDialog, bindRemotePermissionDialog } from './remote-permission.js';
 
 const selectable = model => ['ready', 'busy', 'loading', 'preparing'].includes(model.availability);
 
@@ -44,7 +44,6 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
     <section class="chat-conversation-area pool-surface" data-conversation-area aria-label="Current conversation">
       <div class="chat-transcript chat-message-stream" data-chat-transcript data-message-stream role="log" aria-label="Messages" aria-live="polite"></div>
       <p class="chat-error" role="alert" data-chat-error hidden></p>
-      ${renderRequestApproval()}
       <footer class="chat-composer-area" data-composer-area><form data-composer-form>
         <label class="chat-visually-hidden" for="chat-message">Message</label>
         <div class="chat-composer-field pool-input pool-glass pool-glass-focus pool-activity-edge" data-composer-field>
@@ -71,6 +70,7 @@ export function renderConversationWorkspace({ inspector = true } = {}) {
         <p data-next-model-status role="status" hidden></p>
         <div class="chat-network-actions"><button class="pool-button" type="button" data-model-picker-close>Cancel</button><button class="pool-button" type="button" data-change-model>New thread with this model</button></div>
       </dialog>
+      ${renderRemotePermissionDialog()}
     </section>
     ${inspector ? renderNetworkInspector() : ''}
   </section>`;
@@ -123,8 +123,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   }
   globalThis.addEventListener('resize', onResize, options);
   globalThis.visualViewport?.addEventListener('resize', onResize, options);
-  // Exact composer contents of each sent attempt until it settles; Decline returns them to an empty composer.
-  const drafts = new Map(), sent = new Map();
+  const drafts = new Map();
   const persisted = session.getDraft?.(session.getState().selectedId);
   if (persisted) { input.value = persisted.text; files = persisted.files; }
   const saveDraft = () => {
@@ -140,6 +139,13 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
   const after = (pending, next) => pending?.then ? pending.then(next) : next();
   const observe = pending => pending?.catch?.(error);
   const on = (selector, event, callback) => find(selector)?.addEventListener(event, callback, options);
+  // Asked once, before the first request that would leave this device; the host stores the answer.
+  const permission = bindRemotePermissionDialog(find('[data-remote-permission]'), session, { onError: error });
+  const permitted = async thread => {
+    const need = session.remotePermissionNeeded?.({ model: thread.model, sharingScope: thread.permissions?.sharingScope });
+    return !need || permission.ask(need);
+  };
+  let askedFor = null;
   function resizeInput() {
     input.style.height = 'auto';
     input.style.height = Math.min(Math.max(48, input.scrollHeight), Math.max(72, (globalThis.visualViewport?.height || globalThis.innerHeight || 800) * 0.22)) + 'px';
@@ -220,8 +226,6 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     find('[data-model-control]').dataset.activity = models.some(model => keyFor(model) === current && model.availability === 'ready') ? 'ready' : 'idle';
     threads.update(state.threads, state.selectedId, { archived });
     const busy = state.runningIds.includes(thread?.id) || !!state.comparisonPhase;
-    // Remote disclosure waits here; Decline replaces Stop for a request that has not been sent.
-    const reviewing = !!updateRequestApproval(container, state, { getSources: session.getDocumentSources });
     const contextControls = find('[data-context-controls]');
     contextControls.hidden = !session.previewContextPrompt;
     if (session.previewContextPrompt) {
@@ -235,11 +239,21 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     }
     find('[data-composer-send]').hidden = busy;
     find('[data-retry-connection]').hidden = busy || usable || preparing || state.network?.connecting || ['connecting', 'retrying'].includes(networkState); find('[data-composer-send]').disabled = reading || !usable || !!thread?.closed || !!state.storageError;
-    find('[data-composer-stop]').hidden = !busy || reviewing;
+    find('[data-composer-stop]').hidden = !busy;
     find('[data-conversation-download]').hidden = !thread?.messages.length;
     find('[data-composer-field]').dataset.activity = busy && attempt?.status === 'executing' ? 'executing' : 'idle';
     messages.update(thread, { usable: usable && !thread?.closed, busy, state });
     if (find('[data-model-picker]').open) updatePicker(state);
+    // A request found outside the stored permission at dispatch waits, sending nothing, until allowed or kept local.
+    const waiting = attempt?.status === 'approval' && attempt.approval?.permissionNeed ? attempt : null;
+    if (waiting && askedFor !== waiting.id && !permission.open) {
+      askedFor = waiting.id;
+      const threadId = thread.id, previewId = waiting.approval.id;
+      void permission.ask(waiting.approval.permissionNeed).then(allowed => allowed || act(() => {
+        const current = session.getState().threads.find(item => item.id === threadId)?.attempts.at(-1);
+        if (current?.id === waiting.id && current.status === 'approval') return session.approve(threadId, waiting.id, previewId, false);
+      }));
+    }
     error(state.storageError || '');
 
   };
@@ -317,21 +331,18 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     act(async () => {
       try {
         const model = state.models.find(item => (item.selectionId || item.id) === modelSelect.value);
-        const threadId = state.selectedId || await session.createThread({ model, sharingScope: model?.localReady ? 'local' : 'mesh', contextPrompt: contextPrompt || undefined });
+        const sharingScope = model?.localReady ? 'local' : 'mesh';
+        // Keep answers local sends nothing and leaves the draft in place.
+        if (!await permitted(state.activeThread || { model, permissions: { sharingScope } })) return;
+        const threadId = state.selectedId || await session.createThread({ model, sharingScope, contextPrompt: contextPrompt || undefined });
         if (selectedId === threadId) {
           const current = composerRevision === revision ? { text: content, files: attachments } : drafts.get(origin);
           if (current) { input.value = current.text; files = current.files; showFiles(); }
         }
-        // Send creates the attempt only; remote disclosure waits for Approve in the review below.
         const completion = session.send(threadId, content, attachments);
         // A second call cannot begin while asynchronous admission is pending.
         completion.catch(() => {});
         if (completion.admitted) await completion.admitted;
-        const attemptId = session.getState().threads?.find(item => item.id === threadId)?.attempts.at(-1)?.id;
-        if (attemptId) {
-          sent.set(attemptId, { threadId, text: content, files: attachments });
-          Promise.resolve(completion).finally(() => sent.delete(attemptId)).catch(() => {});
-        }
         if (composerRevision === revision && selectedId === threadId) {
           await session.saveDraft?.(null, null); await session.saveDraft?.(threadId, null);
           if (composerRevision === revision && selectedId === threadId) {
@@ -355,23 +366,11 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
       await navigator.clipboard.writeText(content); copy.textContent = 'Copied';
     });
     const button = event.target.closest('[data-retry-attempt]');
-    if (button && !button.disabled) act(() => session.retry(session.getState().selectedId, button.dataset.retryAttempt));
+    if (button && !button.disabled) act(async () => {
+      const thread = session.getState().activeThread;
+      if (await permitted(thread)) return session.retry(thread.id, button.dataset.retryAttempt);
+    });
   });
-  // The decision names the request and recipients this view displayed; the workspace rejects any other.
-  const decide = accepted => {
-    const section = find('[data-chat-approval]'), { threadId, attemptId, previewId, recipients } = section.dataset;
-    if (section.hidden || !previewId) return;
-    const buttons = [...section.querySelectorAll('button')], draft = sent.get(attemptId);
-    buttons.forEach(button => { button.disabled = true; });
-    act(() => after(session.approve(threadId, attemptId, previewId, accepted, accepted ? { recipients: JSON.parse(recipients) } : {}), () => {
-      // Declined text was never sent; it returns to this thread's composer unless a newer draft is there.
-      if (accepted || !draft || selectedId !== threadId || input.value.trim() || files.length) return;
-      input.value = draft.text; files = draft.files.map(file => ({ ...file })); composerRevision++; showFiles();
-      return saveDraft();
-    })).finally(() => { if (section.dataset.previewId === previewId) buttons.forEach(button => { button.disabled = false; }); });
-  };
-  on('[data-approval-approve]', 'click', () => decide(true));
-  on('[data-approval-decline]', 'click', () => decide(false));
   on('[data-composer-files]', 'click', () => { find('[data-attachment-help]').hidden = false; });
   on('[data-composer-files]', 'focus', () => { find('[data-attachment-help]').hidden = false; });
   on('[data-composer-files]', 'change', event => {
@@ -403,7 +402,7 @@ export function bindConversationWorkspace(root, session, { getInviteUrl, viewSta
     try { observe(saveDraft()); } catch (cause) { error(cause); }
     inputResize?.disconnect();
     detachInspector?.();
-    messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose();
+    messages.dispose(); threads.dispose(); actionsPanel.dispose(); picker.dispose(); renameDialog.dispose(); permission.dispose();
     const surface = container.closest('.pool-home');
     surface?.style.removeProperty('--pool-param-workspace-height');
     surface?.removeAttribute('data-chat-compact');
