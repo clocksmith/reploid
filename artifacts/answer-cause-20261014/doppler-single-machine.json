@@ -1,0 +1,8448 @@
+{
+ "schema": "reploid.answer-cause.doppler-single-machine/v1",
+ "startedAt": "2026-10-14T12:07:03.093Z",
+ "machine": "mac-host",
+ "dopplerVersion": "0.6.28",
+ "packageRoot": "/private/tmp/claude-501/-Users-xyz-deco/22e82490-1b9a-4712-a891-83c7a29fe6ca/scratchpad/archive-2df37d88/package",
+ "inputs": {
+  "catalog": {
+   "path": "/var/tmp/reploid-signed-completion-app-5-20261013/app/self/config/chat-models.json",
+   "sha256": "59811b4af5f7b44387344fe38fdea155de4f27a487332a846c27fee9257481d5"
+  },
+  "partitionPolicy": {
+   "path": "/var/tmp/reploid-signed-completion-app-5-20261013/app/self/config/partition-policy.json",
+   "sha256": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235"
+  },
+  "capsuleDir": "/var/tmp/qwen35-capsule-completion-20261013-c",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-67f240af03e77a892eb1cc724000dd11e580ad180405b426b0f62e5c309b3fe1",
+  "archivePackageVersion": "0.6.28",
+  "generation": {
+   "maxTokens": 1024,
+   "maxSeqLen": 4096,
+   "temperature": 0,
+   "topP": 1,
+   "topK": 1,
+   "repetitionPenalty": 1,
+   "repetitionPenaltyWindow": 0,
+   "presencePenalty": 0,
+   "useChatTemplate": true,
+   "suppressTokenIds": [],
+   "stopSequences": []
+  },
+  "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f",
+  "seed": null,
+  "chatTemplate": {
+   "type": "qwen",
+   "enabled": true,
+   "thinking": false
+  },
+  "runtimeConfigSource": "capsule.targetPlans[0].initialExecutionIdentity.programLoadPolicy.runtimeConfig",
+  "runtimeConfigSha256": "96da9de5d50b525ccd75ba2434c08778834a0f7323ad2461eb7338de01b31fce",
+  "tokenContract": {
+   "padTokenId": 248055,
+   "eosTokenId": 248046,
+   "stopTokenIds": [
+    248046,
+    248044
+   ]
+  }
+ },
+ "verification": {
+  "capsuleModelArtifacts": {
+   "count": 21,
+   "allMatch": true,
+   "rows": [
+    {
+     "path": "artifacts/model/manifest.json",
+     "role": "manifest",
+     "expected": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+     "actual": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/tokenizer.json",
+     "role": "tokenizer",
+     "expected": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+     "actual": "sha256:8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00000.bin",
+     "role": "weight-shard",
+     "expected": "sha256:96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f",
+     "actual": "sha256:96d19964c1444a98030586ba141b7b0c891fab95c52fb2c4429618a3ea711d1f",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00001.bin",
+     "role": "weight-shard",
+     "expected": "sha256:c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e",
+     "actual": "sha256:c6dbd495c64493cc0964d49f26a2b7f18319da95d6122c4f7a2d09d6a5d9459e",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00002.bin",
+     "role": "weight-shard",
+     "expected": "sha256:8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec",
+     "actual": "sha256:8afc35b2a6dc0f6bbf5de2cea79f8f53f199cec03a66d8cf5a117b724ba00dec",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00003.bin",
+     "role": "weight-shard",
+     "expected": "sha256:735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29",
+     "actual": "sha256:735461c9819224e8c3faf8cfd7f2069dab97ed824556184990f795a32c305b29",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00004.bin",
+     "role": "weight-shard",
+     "expected": "sha256:3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69",
+     "actual": "sha256:3cbdeb4e0c2505038e4313c91580511f5175d9108ab05652f69040452b282f69",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00005.bin",
+     "role": "weight-shard",
+     "expected": "sha256:e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4",
+     "actual": "sha256:e34e6f23816d5cdaf1e16dfbf0d3f537d18fe673764d680d64245c84bfbf21b4",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00006.bin",
+     "role": "weight-shard",
+     "expected": "sha256:70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313",
+     "actual": "sha256:70b3d422749e585719659b9e7627901d6aa1759851e717aec2abd8a96aab9313",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00007.bin",
+     "role": "weight-shard",
+     "expected": "sha256:e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4",
+     "actual": "sha256:e564556babdfbb1baffab20a3778a434a0632047ff9347d203a19a9c818a89d4",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00008.bin",
+     "role": "weight-shard",
+     "expected": "sha256:82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55",
+     "actual": "sha256:82cd4797be5ab68f782ed7aae634ee38e472f4c4187c9b835df649e7aa79da55",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00009.bin",
+     "role": "weight-shard",
+     "expected": "sha256:294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b",
+     "actual": "sha256:294432c344a641b36daca64e82f00c727c74fa131804e1430796b4c3b139ad7b",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00010.bin",
+     "role": "weight-shard",
+     "expected": "sha256:1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e",
+     "actual": "sha256:1290c563dc8242a983122e16397c75fd3d700acbcec9d96ee94d5eb2f63c795e",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00011.bin",
+     "role": "weight-shard",
+     "expected": "sha256:4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387",
+     "actual": "sha256:4f9be8b80afcb3b6780a6e450fe9b57827ceb227e197dcdb9343b8d3adab0387",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00012.bin",
+     "role": "weight-shard",
+     "expected": "sha256:93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668",
+     "actual": "sha256:93daf25bb1b1d4155b95f4b3969891220f66a66f71b00fe63a7f092967a7b668",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00013.bin",
+     "role": "weight-shard",
+     "expected": "sha256:a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690",
+     "actual": "sha256:a9926de9af0b1bb05ac2b2a6b9bad1645b9a3fc3f740105b97e064959b12e690",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00014.bin",
+     "role": "weight-shard",
+     "expected": "sha256:b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8",
+     "actual": "sha256:b338167c0c6a7bb0c967c73b0730d212f1ad718a899a8db50fef8b332eed66a8",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00015.bin",
+     "role": "weight-shard",
+     "expected": "sha256:8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455",
+     "actual": "sha256:8bc98ed891947db766df770d7c52eb2afd6c8c3a827981ddae7e52d2caeae455",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00016.bin",
+     "role": "weight-shard",
+     "expected": "sha256:914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266",
+     "actual": "sha256:914114c15d53702fedcd5bcbb153a4120b13fb45883ff76dabf9052fa8c9d266",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/shard_00017.bin",
+     "role": "weight-shard",
+     "expected": "sha256:d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78",
+     "actual": "sha256:d8fb99646d5213b1b2609899a7d86cfb8a6b8d02b9aa934f1fade2a3f8f54c78",
+     "match": true
+    },
+    {
+     "path": "artifacts/model/pieces.json",
+     "role": "piece-index",
+     "expected": "sha256:e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb",
+     "actual": "sha256:e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb",
+     "match": true
+    }
+   ]
+  },
+  "plan": {
+   "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+   "frozenPlanId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+   "match": true,
+   "splitLayers": [
+    8,
+    16
+   ]
+  },
+  "orderedExecutionIdentity": [
+   {
+    "partitionIndex": 0,
+    "match": true,
+    "expected": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+    "observed": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+    "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf"
+   },
+   {
+    "partitionIndex": 1,
+    "match": true,
+    "expected": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+    "observed": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+    "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf"
+   },
+   {
+    "partitionIndex": 2,
+    "match": true,
+    "expected": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+    "observed": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+    "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf"
+   }
+  ],
+  "unsplitExecutionIdentity": {
+   "match": true,
+   "expected": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+   "observed": "sha256:8f33ed2861cd950f65e9d62a3b78bd302c51e10548ad5c14edb20e2f6f44a50a",
+   "executionGraphHash": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf"
+  }
+ },
+ "modes": {
+  "orderedThreeStage": {
+   "turns": [
+    {
+     "label": "turn-1",
+     "renderedPrompt": "<|im_start|>user\nWrite a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+     "promptTokenIds": [
+      248045,
+      846,
+      198,
+      7734,
+      264,
+      2716,
+      12544,
+      709,
+      1923,
+      36,
+      20450,
+      45631,
+      8,
+      421,
+      4523,
+      264,
+      491,
+      1287,
+      8222,
+      1132,
+      1442,
+      1879,
+      4947,
+      11,
+      33472,
+      11,
+      1608,
+      3915,
+      321,
+      2336,
+      13,
+      6712,
+      1141,
+      1067,
+      364,
+      498,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      906,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+     ],
+     "promptTokenCount": 56,
+     "promptTokenCountMatchesDistributedActivationBytes": true,
+     "tokenIds": [
+      71093,
+      13670,
+      198,
+      1628,
+      1923,
+      36,
+      20450,
+      45631,
+      8,
+      313,
+      198,
+      220,
+      434,
+      11986,
+      13205,
+      1132,
+      1442,
+      4947,
+      11,
+      1179,
+      37996,
+      1070,
+      198,
+      220,
+      460,
+      4947,
+      6720,
+      1393,
+      574,
+      307,
+      984,
+      220,
+      17,
+      1981,
+      220,
+      15,
+      553,
+      2117,
+      1393,
+      574,
+      307,
+      348,
+      220,
+      17,
+      1174,
+      198,
+      92,
+      271,
+      320,
+      5536,
+      364,
+      498,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      60,
+      198,
+      5186,
+      1607,
+      8634,
+      36,
+      20450,
+      2477,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      80058,
+      695,
+      320,
+      8984,
+      25,
+      498,
+      17,
+      11,
+      220,
+      19,
+      11,
+      220,
+      21,
+      11,
+      220,
+      23,
+      60,
+      198,
+      71093,
+      248046
+     ],
+     "output": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+     "stopReason": "eos-token",
+     "decodeSteps": 100,
+     "activationBytes": 2539520,
+     "outputEqualsDistributed": true,
+     "decodeStepsEqualDistributed": true,
+     "firstDeltaDivergenceFromDistributed": null,
+     "steps": [
+      {
+       "step": 0,
+       "tokenId": 71093,
+       "text": "```",
+       "top5": [
+        {
+         "tokenId": 71093,
+         "logit": 24.49472999572754,
+         "text": "```"
+        },
+        {
+         "tokenId": 8160,
+         "logit": 22.518226623535156,
+         "text": "Here"
+        },
+        {
+         "tokenId": 1206,
+         "logit": 18.92992401123047,
+         "text": "To"
+        },
+        {
+         "tokenId": 13962,
+         "logit": 18.69650650024414,
+         "text": "###"
+        },
+        {
+         "tokenId": 760,
+         "logit": 18.522916793823242,
+         "text": "The"
+        }
+       ],
+       "marginTop1Top2": 1.9765033721923828
+      },
+      {
+       "step": 1,
+       "tokenId": 13670,
+       "text": "javascript",
+       "top5": [
+        {
+         "tokenId": 13670,
+         "logit": 28.072647094726562,
+         "text": "javascript"
+        },
+        {
+         "tokenId": 2439,
+         "logit": 25.238725662231445,
+         "text": "js"
+        },
+        {
+         "tokenId": 43781,
+         "logit": 21.499393463134766,
+         "text": "jsx"
+        },
+        {
+         "tokenId": 2164,
+         "logit": 20.992509841918945,
+         "text": "json"
+        },
+        {
+         "tokenId": 28514,
+         "logit": 19.954025268554688,
+         "text": "JavaScript"
+        }
+       ],
+       "marginTop1Top2": 2.833921432495117
+      },
+      {
+       "step": 2,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 28.507049560546875,
+         "text": "\n"
+        },
+        {
+         "tokenId": 271,
+         "logit": 21.901487350463867,
+         "text": "\n\n"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 16.611356735229492,
+         "text": "  \n"
+        },
+        {
+         "tokenId": 3537,
+         "logit": 16.304073333740234,
+         "text": "/**"
+        },
+        {
+         "tokenId": 4029,
+         "logit": 14.903553009033203,
+         "text": " /**"
+        }
+       ],
+       "marginTop1Top2": 6.605562210083008
+      },
+      {
+       "step": 3,
+       "tokenId": 1628,
+       "text": "function",
+       "top5": [
+        {
+         "tokenId": 1628,
+         "logit": 24.69283676147461,
+         "text": "function"
+        },
+        {
+         "tokenId": 3537,
+         "logit": 24.241792678833008,
+         "text": "/**"
+        },
+        {
+         "tokenId": 320,
+         "logit": 22.587902069091797,
+         "text": "//"
+        },
+        {
+         "tokenId": 1479,
+         "logit": 20.76587677001953,
+         "text": "export"
+        },
+        {
+         "tokenId": 989,
+         "logit": 20.274768829345703,
+         "text": "const"
+        }
+       ],
+       "marginTop1Top2": 0.45104408264160156
+      },
+      {
+       "step": 4,
+       "tokenId": 1923,
+       "text": " double",
+       "top5": [
+        {
+         "tokenId": 1923,
+         "logit": 23.97398567199707,
+         "text": " double"
+        },
+        {
+         "tokenId": 3915,
+         "logit": 17.820470809936523,
+         "text": " filter"
+        },
+        {
+         "tokenId": 37996,
+         "logit": 17.16766929626465,
+         "text": " doubles"
+        },
+        {
+         "tokenId": 33472,
+         "logit": 16.225440979003906,
+         "text": " doubled"
+        },
+        {
+         "tokenId": 615,
+         "logit": 15.611907005310059,
+         "text": " get"
+        }
+       ],
+       "marginTop1Top2": 6.153514862060547
+      },
+      {
+       "step": 5,
+       "tokenId": 36,
+       "text": "E",
+       "top5": [
+        {
+         "tokenId": 36,
+         "logit": 27.58675193786621,
+         "text": "E"
+        },
+        {
+         "tokenId": 12777,
+         "logit": 20.306827545166016,
+         "text": "Even"
+        },
+        {
+         "tokenId": 32983,
+         "logit": 19.429765701293945,
+         "text": "Ev"
+        },
+        {
+         "tokenId": 26359,
+         "logit": 18.091266632080078,
+         "text": "Numbers"
+        },
+        {
+         "tokenId": 16849,
+         "logit": 17.367767333984375,
+         "text": "Es"
+        }
+       ],
+       "marginTop1Top2": 7.279924392700195
+      },
+      {
+       "step": 6,
+       "tokenId": 20450,
+       "text": "vens",
+       "top5": [
+        {
+         "tokenId": 20450,
+         "logit": 30.41452407836914,
+         "text": "vens"
+        },
+        {
+         "tokenId": 27372,
+         "logit": 20.830869674682617,
+         "text": "versions"
+        },
+        {
+         "tokenId": 25509,
+         "logit": 20.707796096801758,
+         "text": "nums"
+        },
+        {
+         "tokenId": 1002,
+         "logit": 19.851451873779297,
+         "text": "ven"
+        },
+        {
+         "tokenId": 177251,
+         "logit": 19.495712280273438,
+         "text": "evens"
+        }
+       ],
+       "marginTop1Top2": 9.583654403686523
+      },
+      {
+       "step": 7,
+       "tokenId": 45631,
+       "text": "(numbers",
+       "top5": [
+        {
+         "tokenId": 45631,
+         "logit": 23.48180389404297,
+         "text": "(numbers"
+        },
+        {
+         "tokenId": 5216,
+         "logit": 17.830814361572266,
+         "text": "(input"
+        },
+        {
+         "tokenId": 20449,
+         "logit": 16.877864837646484,
+         "text": "(nums"
+        },
+        {
+         "tokenId": 318,
+         "logit": 16.72306251525879,
+         "text": " ("
+        },
+        {
+         "tokenId": 10620,
+         "logit": 16.491159439086914,
+         "text": "(arr"
+        }
+       ],
+       "marginTop1Top2": 5.650989532470703
+      },
+      {
+       "step": 8,
+       "tokenId": 8,
+       "text": ")",
+       "top5": [
+        {
+         "tokenId": 8,
+         "logit": 28.14461898803711,
+         "text": ")"
+        },
+        {
+         "tokenId": 11,
+         "logit": 18.89542579650879,
+         "text": ","
+        },
+        {
+         "tokenId": 283,
+         "logit": 18.108251571655273,
+         "text": " ="
+        },
+        {
+         "tokenId": 25,
+         "logit": 18.107955932617188,
+         "text": ":"
+        },
+        {
+         "tokenId": 1590,
+         "logit": 17.891292572021484,
+         "text": "):"
+        }
+       ],
+       "marginTop1Top2": 9.24919319152832
+      },
+      {
+       "step": 9,
+       "tokenId": 313,
+       "text": " {",
+       "top5": [
+        {
+         "tokenId": 313,
+         "logit": 30.41929054260254,
+         "text": " {"
+        },
+        {
+         "tokenId": 695,
+         "logit": 18.891653060913086,
+         "text": " \n"
+        },
+        {
+         "tokenId": 198,
+         "logit": 18.693668365478516,
+         "text": "\n"
+        },
+        {
+         "tokenId": 4535,
+         "logit": 18.47374725341797,
+         "text": " {}"
+        },
+        {
+         "tokenId": 27238,
+         "logit": 16.45830535888672,
+         "text": " {\\"
+        }
+       ],
+       "marginTop1Top2": 11.527637481689453
+      },
+      {
+       "step": 10,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 29.3675594329834,
+         "text": "\n"
+        },
+        {
+         "tokenId": 695,
+         "logit": 20.848955154418945,
+         "text": " \n"
+        },
+        {
+         "tokenId": 434,
+         "logit": 18.75786590576172,
+         "text": " //"
+        },
+        {
+         "tokenId": 460,
+         "logit": 18.72771644592285,
+         "text": " return"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 17.35888671875,
+         "text": "  \n"
+        }
+       ],
+       "marginTop1Top2": 8.518604278564453
+      },
+      {
+       "step": 11,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 29.527881622314453,
+         "text": " "
+        },
+        {
+         "tokenId": 262,
+         "logit": 22.70326805114746,
+         "text": "   "
+        },
+        {
+         "tokenId": 197,
+         "logit": 18.358850479125977,
+         "text": "\t"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 18.31257438659668,
+         "text": "  \n"
+        },
+        {
+         "tokenId": 256,
+         "logit": 18.0722599029541,
+         "text": "  "
+        }
+       ],
+       "marginTop1Top2": 6.824613571166992
+      },
+      {
+       "step": 12,
+       "tokenId": 434,
+       "text": " //",
+       "top5": [
+        {
+         "tokenId": 434,
+         "logit": 25.62625503540039,
+         "text": " //"
+        },
+        {
+         "tokenId": 460,
+         "logit": 25.146303176879883,
+         "text": " return"
+        },
+        {
+         "tokenId": 713,
+         "logit": 22.351491928100586,
+         "text": " const"
+        },
+        {
+         "tokenId": 413,
+         "logit": 21.122037887573242,
+         "text": " if"
+        },
+        {
+         "tokenId": 4029,
+         "logit": 20.399314880371094,
+         "text": " /**"
+        }
+       ],
+       "marginTop1Top2": 0.4799518585205078
+      },
+      {
+       "step": 13,
+       "tokenId": 11986,
+       "text": " Filter",
+       "top5": [
+        {
+         "tokenId": 11986,
+         "logit": 19.52716827392578,
+         "text": " Filter"
+        },
+        {
+         "tokenId": 11747,
+         "logit": 18.047382354736328,
+         "text": " Using"
+        },
+        {
+         "tokenId": 5272,
+         "logit": 17.94129753112793,
+         "text": " Use"
+        },
+        {
+         "tokenId": 3915,
+         "logit": 16.847728729248047,
+         "text": " filter"
+        },
+        {
+         "tokenId": 4091,
+         "logit": 16.279287338256836,
+         "text": " Create"
+        }
+       ],
+       "marginTop1Top2": 1.4797859191894531
+      },
+      {
+       "step": 14,
+       "tokenId": 13205,
+       "text": " keeps",
+       "top5": [
+        {
+         "tokenId": 13205,
+         "logit": 19.67192840576172,
+         "text": " keeps"
+        },
+        {
+         "tokenId": 310,
+         "logit": 18.010910034179688,
+         "text": " to"
+        },
+        {
+         "tokenId": 25,
+         "logit": 17.549612045288086,
+         "text": ":"
+        },
+        {
+         "tokenId": 1442,
+         "logit": 16.61840057373047,
+         "text": " even"
+        },
+        {
+         "tokenId": 27245,
+         "logit": 16.360328674316406,
+         "text": " removes"
+        }
+       ],
+       "marginTop1Top2": 1.6610183715820312
+      },
+      {
+       "step": 15,
+       "tokenId": 1132,
+       "text": " only",
+       "top5": [
+        {
+         "tokenId": 1132,
+         "logit": 22.909883499145508,
+         "text": " only"
+        },
+        {
+         "tokenId": 1442,
+         "logit": 20.688186645507812,
+         "text": " even"
+        },
+        {
+         "tokenId": 279,
+         "logit": 19.321077346801758,
+         "text": " the"
+        },
+        {
+         "tokenId": 5255,
+         "logit": 19.190410614013672,
+         "text": " elements"
+        },
+        {
+         "tokenId": 4947,
+         "logit": 18.673002243041992,
+         "text": " numbers"
+        }
+       ],
+       "marginTop1Top2": 2.2216968536376953
+      },
+      {
+       "step": 16,
+       "tokenId": 1442,
+       "text": " even",
+       "top5": [
+        {
+         "tokenId": 1442,
+         "logit": 21.45135498046875,
+         "text": " even"
+        },
+        {
+         "tokenId": 4947,
+         "logit": 20.211519241333008,
+         "text": " numbers"
+        },
+        {
+         "tokenId": 279,
+         "logit": 19.911521911621094,
+         "text": " the"
+        },
+        {
+         "tokenId": 5255,
+         "logit": 19.320941925048828,
+         "text": " elements"
+        },
+        {
+         "tokenId": 2663,
+         "logit": 18.9494686126709,
+         "text": " values"
+        }
+       ],
+       "marginTop1Top2": 1.2398357391357422
+      },
+      {
+       "step": 17,
+       "tokenId": 4947,
+       "text": " numbers",
+       "top5": [
+        {
+         "tokenId": 4947,
+         "logit": 23.926549911499023,
+         "text": " numbers"
+        },
+        {
+         "tokenId": 2663,
+         "logit": 20.548654556274414,
+         "text": " values"
+        },
+        {
+         "tokenId": 10804,
+         "logit": 19.287017822265625,
+         "text": " inputs"
+        },
+        {
+         "tokenId": 5255,
+         "logit": 19.099531173706055,
+         "text": " elements"
+        },
+        {
+         "tokenId": 1879,
+         "logit": 18.39872169494629,
+         "text": " input"
+        }
+       ],
+       "marginTop1Top2": 3.3778953552246094
+      },
+      {
+       "step": 18,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 22.262157440185547,
+         "text": ","
+        },
+        {
+         "tokenId": 321,
+         "logit": 21.325084686279297,
+         "text": " and"
+        },
+        {
+         "tokenId": 13,
+         "logit": 21.157817840576172,
+         "text": "."
+        },
+        {
+         "tokenId": 198,
+         "logit": 21.027612686157227,
+         "text": "\n"
+        },
+        {
+         "tokenId": 318,
+         "logit": 20.757568359375,
+         "text": " ("
+        }
+       ],
+       "marginTop1Top2": 0.93707275390625
+      },
+      {
+       "step": 19,
+       "tokenId": 1179,
+       "text": " then",
+       "top5": [
+        {
+         "tokenId": 1179,
+         "logit": 19.269628524780273,
+         "text": " then"
+        },
+        {
+         "tokenId": 321,
+         "logit": 17.726224899291992,
+         "text": " and"
+        },
+        {
+         "tokenId": 37996,
+         "logit": 17.210205078125,
+         "text": " doubles"
+        },
+        {
+         "tokenId": 13640,
+         "logit": 17.031003952026367,
+         "text": " maps"
+        },
+        {
+         "tokenId": 31637,
+         "logit": 16.544185638427734,
+         "text": " converts"
+        }
+       ],
+       "marginTop1Top2": 1.5434036254882812
+      },
+      {
+       "step": 20,
+       "tokenId": 37996,
+       "text": " doubles",
+       "top5": [
+        {
+         "tokenId": 37996,
+         "logit": 18.45754623413086,
+         "text": " doubles"
+        },
+        {
+         "tokenId": 2336,
+         "logit": 17.162864685058594,
+         "text": " map"
+        },
+        {
+         "tokenId": 4866,
+         "logit": 17.063304901123047,
+         "text": " Map"
+        },
+        {
+         "tokenId": 13640,
+         "logit": 16.883277893066406,
+         "text": " maps"
+        },
+        {
+         "tokenId": 16298,
+         "logit": 16.851503372192383,
+         "text": " applies"
+        }
+       ],
+       "marginTop1Top2": 1.2946815490722656
+      },
+      {
+       "step": 21,
+       "tokenId": 1070,
+       "text": " them",
+       "top5": [
+        {
+         "tokenId": 1070,
+         "logit": 24.47164535522461,
+         "text": " them"
+        },
+        {
+         "tokenId": 1754,
+         "logit": 22.96411895751953,
+         "text": " each"
+        },
+        {
+         "tokenId": 279,
+         "logit": 20.857410430908203,
+         "text": " the"
+        },
+        {
+         "tokenId": 836,
+         "logit": 20.613779067993164,
+         "text": " their"
+        },
+        {
+         "tokenId": 424,
+         "logit": 19.620439529418945,
+         "text": " it"
+        }
+       ],
+       "marginTop1Top2": 1.5075263977050781
+      },
+      {
+       "step": 22,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 22.49550437927246,
+         "text": "\n"
+        },
+        {
+         "tokenId": 13,
+         "logit": 22.288040161132812,
+         "text": "."
+        },
+        {
+         "tokenId": 1608,
+         "logit": 21.322893142700195,
+         "text": " using"
+        },
+        {
+         "tokenId": 11,
+         "logit": 20.970909118652344,
+         "text": ","
+        },
+        {
+         "tokenId": 318,
+         "logit": 20.34284782409668,
+         "text": " ("
+        }
+       ],
+       "marginTop1Top2": 0.20746421813964844
+      },
+      {
+       "step": 23,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 28.678983688354492,
+         "text": " "
+        },
+        {
+         "tokenId": 262,
+         "logit": 16.6003360748291,
+         "text": "   "
+        },
+        {
+         "tokenId": 434,
+         "logit": 16.502971649169922,
+         "text": " //"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 16.3315486907959,
+         "text": "  \n"
+        },
+        {
+         "tokenId": 92,
+         "logit": 16.109163284301758,
+         "text": "}"
+        }
+       ],
+       "marginTop1Top2": 12.07864761352539
+      },
+      {
+       "step": 24,
+       "tokenId": 460,
+       "text": " return",
+       "top5": [
+        {
+         "tokenId": 460,
+         "logit": 24.260753631591797,
+         "text": " return"
+        },
+        {
+         "tokenId": 713,
+         "logit": 22.062284469604492,
+         "text": " const"
+        },
+        {
+         "tokenId": 434,
+         "logit": 22.04780387878418,
+         "text": " //"
+        },
+        {
+         "tokenId": 4947,
+         "logit": 17.747270584106445,
+         "text": " numbers"
+        },
+        {
+         "tokenId": 1042,
+         "logit": 17.659473419189453,
+         "text": " let"
+        }
+       ],
+       "marginTop1Top2": 2.1984691619873047
+      },
+      {
+       "step": 25,
+       "tokenId": 4947,
+       "text": " numbers",
+       "top5": [
+        {
+         "tokenId": 4947,
+         "logit": 24.17146873474121,
+         "text": " numbers"
+        },
+        {
+         "tokenId": 318,
+         "logit": 17.950918197631836,
+         "text": " ("
+        },
+        {
+         "tokenId": 3915,
+         "logit": 17.930742263793945,
+         "text": " filter"
+        },
+        {
+         "tokenId": 15824,
+         "logit": 15.760631561279297,
+         "text": " [..."
+        },
+        {
+         "tokenId": 13019,
+         "logit": 15.733280181884766,
+         "text": " filters"
+        }
+       ],
+       "marginTop1Top2": 6.220550537109375
+      },
+      {
+       "step": 26,
+       "tokenId": 6720,
+       "text": ".filter",
+       "top5": [
+        {
+         "tokenId": 6720,
+         "logit": 21.972309112548828,
+         "text": ".filter"
+        },
+        {
+         "tokenId": 198,
+         "logit": 21.029308319091797,
+         "text": "\n"
+        },
+        {
+         "tokenId": 4617,
+         "logit": 17.9102840423584,
+         "text": ".map"
+        },
+        {
+         "tokenId": 23047,
+         "logit": 15.751031875610352,
+         "text": ".reduce"
+        },
+        {
+         "tokenId": 4458,
+         "logit": 14.615457534790039,
+         "text": "?."
+        }
+       ],
+       "marginTop1Top2": 0.9430007934570312
+      },
+      {
+       "step": 27,
+       "tokenId": 1393,
+       "text": "(n",
+       "top5": [
+        {
+         "tokenId": 1393,
+         "logit": 21.926837921142578,
+         "text": "(n"
+        },
+        {
+         "tokenId": 2007,
+         "logit": 19.80954933166504,
+         "text": "(x"
+        },
+        {
+         "tokenId": 7815,
+         "logit": 19.784605026245117,
+         "text": "(num"
+        },
+        {
+         "tokenId": 1148,
+         "logit": 19.42564582824707,
+         "text": "(("
+        },
+        {
+         "tokenId": 17382,
+         "logit": 18.15829086303711,
+         "text": "(number"
+        }
+       ],
+       "marginTop1Top2": 2.117288589477539
+      },
+      {
+       "step": 28,
+       "tokenId": 574,
+       "text": " =>",
+       "top5": [
+        {
+         "tokenId": 574,
+         "logit": 25.615421295166016,
+         "text": " =>"
+        },
+        {
+         "tokenId": 77,
+         "logit": 18.291303634643555,
+         "text": "n"
+        },
+        {
+         "tokenId": 283,
+         "logit": 16.32938575744629,
+         "text": " ="
+        },
+        {
+         "tokenId": 8,
+         "logit": 15.659438133239746,
+         "text": ")"
+        },
+        {
+         "tokenId": 835,
+         "logit": 14.911543846130371,
+         "text": " >"
+        }
+       ],
+       "marginTop1Top2": 7.324117660522461
+      },
+      {
+       "step": 29,
+       "tokenId": 307,
+       "text": " n",
+       "top5": [
+        {
+         "tokenId": 307,
+         "logit": 22.63616180419922,
+         "text": " n"
+        },
+        {
+         "tokenId": 313,
+         "logit": 19.276473999023438,
+         "text": " {"
+        },
+        {
+         "tokenId": 7558,
+         "logit": 18.575944900512695,
+         "text": " typeof"
+        },
+        {
+         "tokenId": 729,
+         "logit": 17.23346519470215,
+         "text": " !"
+        },
+        {
+         "tokenId": 1442,
+         "logit": 17.153095245361328,
+         "text": " even"
+        }
+       ],
+       "marginTop1Top2": 3.3596878051757812
+      },
+      {
+       "step": 30,
+       "tokenId": 984,
+       "text": " %",
+       "top5": [
+        {
+         "tokenId": 984,
+         "logit": 24.110353469848633,
+         "text": " %"
+        },
+        {
+         "tokenId": 835,
+         "logit": 19.302875518798828,
+         "text": " >"
+        },
+        {
+         "tokenId": 1981,
+         "logit": 18.03473663330078,
+         "text": " ==="
+        },
+        {
+         "tokenId": 4235,
+         "logit": 17.980730056762695,
+         "text": " !=="
+        },
+        {
+         "tokenId": 4,
+         "logit": 17.586830139160156,
+         "text": "%"
+        }
+       ],
+       "marginTop1Top2": 4.807477951049805
+      },
+      {
+       "step": 31,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 27.41513442993164,
+         "text": " "
+        },
+        {
+         "tokenId": 1981,
+         "logit": 16.700395584106445,
+         "text": " ==="
+        },
+        {
+         "tokenId": 5447,
+         "logit": 14.169041633605957,
+         "text": " Number"
+        },
+        {
+         "tokenId": 17,
+         "logit": 14.145221710205078,
+         "text": "2"
+        },
+        {
+         "tokenId": 4235,
+         "logit": 13.820734024047852,
+         "text": " !=="
+        }
+       ],
+       "marginTop1Top2": 10.714738845825195
+      },
+      {
+       "step": 32,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 33.424102783203125,
+         "text": "2"
+        },
+        {
+         "tokenId": 16,
+         "logit": 21.67127227783203,
+         "text": "1"
+        },
+        {
+         "tokenId": 15,
+         "logit": 20.249866485595703,
+         "text": "0"
+        },
+        {
+         "tokenId": 1981,
+         "logit": 20.16526985168457,
+         "text": " ==="
+        },
+        {
+         "tokenId": 20,
+         "logit": 19.256345748901367,
+         "text": "5"
+        }
+       ],
+       "marginTop1Top2": 11.752830505371094
+      },
+      {
+       "step": 33,
+       "tokenId": 1981,
+       "text": " ===",
+       "top5": [
+        {
+         "tokenId": 1981,
+         "logit": 27.392396926879883,
+         "text": " ==="
+        },
+        {
+         "tokenId": 4235,
+         "logit": 22.15115737915039,
+         "text": " !=="
+        },
+        {
+         "tokenId": 835,
+         "logit": 18.728593826293945,
+         "text": " >"
+        },
+        {
+         "tokenId": 976,
+         "logit": 17.91905403137207,
+         "text": " &&"
+        },
+        {
+         "tokenId": 606,
+         "logit": 17.574338912963867,
+         "text": " =="
+        }
+       ],
+       "marginTop1Top2": 5.241239547729492
+      },
+      {
+       "step": 34,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 26.03260040283203,
+         "text": " "
+        },
+        {
+         "tokenId": 804,
+         "logit": 15.133325576782227,
+         "text": " true"
+        },
+        {
+         "tokenId": 867,
+         "logit": 15.091809272766113,
+         "text": " false"
+        },
+        {
+         "tokenId": 307,
+         "logit": 15.050257682800293,
+         "text": " n"
+        },
+        {
+         "tokenId": 359,
+         "logit": 13.614990234375,
+         "text": " '"
+        }
+       ],
+       "marginTop1Top2": 10.899274826049805
+      },
+      {
+       "step": 35,
+       "tokenId": 15,
+       "text": "0",
+       "top5": [
+        {
+         "tokenId": 15,
+         "logit": 28.85789680480957,
+         "text": "0"
+        },
+        {
+         "tokenId": 16,
+         "logit": 19.86631202697754,
+         "text": "1"
+        },
+        {
+         "tokenId": 17,
+         "logit": 19.688875198364258,
+         "text": "2"
+        },
+        {
+         "tokenId": 220,
+         "logit": 16.273113250732422,
+         "text": " "
+        },
+        {
+         "tokenId": 19,
+         "logit": 15.746585845947266,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 8.991584777832031
+      },
+      {
+       "step": 36,
+       "tokenId": 553,
+       "text": ").",
+       "top5": [
+        {
+         "tokenId": 553,
+         "logit": 24.49284553527832,
+         "text": ")."
+        },
+        {
+         "tokenId": 8,
+         "logit": 22.947025299072266,
+         "text": ")"
+        },
+        {
+         "tokenId": 1174,
+         "logit": 21.793176651000977,
+         "text": ");"
+        },
+        {
+         "tokenId": 976,
+         "logit": 21.296417236328125,
+         "text": " &&"
+        },
+        {
+         "tokenId": 42068,
+         "logit": 19.641511917114258,
+         "text": ")?."
+        }
+       ],
+       "marginTop1Top2": 1.5458202362060547
+      },
+      {
+       "step": 37,
+       "tokenId": 2117,
+       "text": "map",
+       "top5": [
+        {
+         "tokenId": 2117,
+         "logit": 24.242582321166992,
+         "text": "map"
+        },
+        {
+         "tokenId": 25434,
+         "logit": 20.72856330871582,
+         "text": "reduce"
+        },
+        {
+         "tokenId": 5147,
+         "logit": 19.699888229370117,
+         "text": "filter"
+        },
+        {
+         "tokenId": 55659,
+         "logit": 18.04724884033203,
+         "text": "flatMap"
+        },
+        {
+         "tokenId": 3282,
+         "logit": 17.798830032348633,
+         "text": "then"
+        }
+       ],
+       "marginTop1Top2": 3.514019012451172
+      },
+      {
+       "step": 38,
+       "tokenId": 1393,
+       "text": "(n",
+       "top5": [
+        {
+         "tokenId": 1393,
+         "logit": 22.976062774658203,
+         "text": "(n"
+        },
+        {
+         "tokenId": 7815,
+         "logit": 19.1641788482666,
+         "text": "(num"
+        },
+        {
+         "tokenId": 2007,
+         "logit": 19.143522262573242,
+         "text": "(x"
+        },
+        {
+         "tokenId": 41579,
+         "logit": 19.00042724609375,
+         "text": "(Number"
+        },
+        {
+         "tokenId": 1148,
+         "logit": 18.277950286865234,
+         "text": "(("
+        }
+       ],
+       "marginTop1Top2": 3.8118839263916016
+      },
+      {
+       "step": 39,
+       "tokenId": 574,
+       "text": " =>",
+       "top5": [
+        {
+         "tokenId": 574,
+         "logit": 24.90604019165039,
+         "text": " =>"
+        },
+        {
+         "tokenId": 348,
+         "logit": 18.766061782836914,
+         "text": " *"
+        },
+        {
+         "tokenId": 77,
+         "logit": 17.87241554260254,
+         "text": "n"
+        },
+        {
+         "tokenId": 17,
+         "logit": 15.273762702941895,
+         "text": "2"
+        },
+        {
+         "tokenId": 2742,
+         "logit": 15.114070892333984,
+         "text": "Number"
+        }
+       ],
+       "marginTop1Top2": 6.139978408813477
+      },
+      {
+       "step": 40,
+       "tokenId": 307,
+       "text": " n",
+       "top5": [
+        {
+         "tokenId": 307,
+         "logit": 24.264860153198242,
+         "text": " n"
+        },
+        {
+         "tokenId": 220,
+         "logit": 20.59238624572754,
+         "text": " "
+        },
+        {
+         "tokenId": 348,
+         "logit": 16.927316665649414,
+         "text": " *"
+        },
+        {
+         "tokenId": 1923,
+         "logit": 16.689834594726562,
+         "text": " double"
+        },
+        {
+         "tokenId": 313,
+         "logit": 16.0396785736084,
+         "text": " {"
+        }
+       ],
+       "marginTop1Top2": 3.672473907470703
+      },
+      {
+       "step": 41,
+       "tokenId": 348,
+       "text": " *",
+       "top5": [
+        {
+         "tokenId": 348,
+         "logit": 25.197708129882812,
+         "text": " *"
+        },
+        {
+         "tokenId": 1174,
+         "logit": 19.088214874267578,
+         "text": ");"
+        },
+        {
+         "tokenId": 478,
+         "logit": 18.236766815185547,
+         "text": " +"
+        },
+        {
+         "tokenId": 2972,
+         "logit": 17.78236198425293,
+         "text": " **"
+        },
+        {
+         "tokenId": 1981,
+         "logit": 16.86871337890625,
+         "text": " ==="
+        }
+       ],
+       "marginTop1Top2": 6.109493255615234
+      },
+      {
+       "step": 42,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 26.730749130249023,
+         "text": " "
+        },
+        {
+         "tokenId": 307,
+         "logit": 19.799928665161133,
+         "text": " n"
+        },
+        {
+         "tokenId": 1923,
+         "logit": 15.667007446289062,
+         "text": " double"
+        },
+        {
+         "tokenId": 5447,
+         "logit": 15.540066719055176,
+         "text": " Number"
+        },
+        {
+         "tokenId": 1324,
+         "logit": 15.45508861541748,
+         "text": " number"
+        }
+       ],
+       "marginTop1Top2": 6.930820465087891
+      },
+      {
+       "step": 43,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 30.92592430114746,
+         "text": "2"
+        },
+        {
+         "tokenId": 16,
+         "logit": 23.100767135620117,
+         "text": "1"
+        },
+        {
+         "tokenId": 18,
+         "logit": 20.342918395996094,
+         "text": "3"
+        },
+        {
+         "tokenId": 15,
+         "logit": 20.220441818237305,
+         "text": "0"
+        },
+        {
+         "tokenId": 19,
+         "logit": 20.035011291503906,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 7.825157165527344
+      },
+      {
+       "step": 44,
+       "tokenId": 1174,
+       "text": ");",
+       "top5": [
+        {
+         "tokenId": 1174,
+         "logit": 25.531044006347656,
+         "text": ");"
+        },
+        {
+         "tokenId": 8,
+         "logit": 19.73203468322754,
+         "text": ")"
+        },
+        {
+         "tokenId": 553,
+         "logit": 19.356597900390625,
+         "text": ")."
+        },
+        {
+         "tokenId": 11,
+         "logit": 16.978708267211914,
+         "text": ","
+        },
+        {
+         "tokenId": 348,
+         "logit": 16.512094497680664,
+         "text": " *"
+        }
+       ],
+       "marginTop1Top2": 5.799009323120117
+      },
+      {
+       "step": 45,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 26.709999084472656,
+         "text": "\n"
+        },
+        {
+         "tokenId": 271,
+         "logit": 21.787601470947266,
+         "text": "\n\n"
+        },
+        {
+         "tokenId": 695,
+         "logit": 20.534833908081055,
+         "text": " \n"
+        },
+        {
+         "tokenId": 434,
+         "logit": 17.49673080444336,
+         "text": " //"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 17.241056442260742,
+         "text": "  \n"
+        }
+       ],
+       "marginTop1Top2": 4.922397613525391
+      },
+      {
+       "step": 46,
+       "tokenId": 92,
+       "text": "}",
+       "top5": [
+        {
+         "tokenId": 92,
+         "logit": 28.905668258666992,
+         "text": "}"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 22.414384841918945,
+         "text": "  \n"
+        },
+        {
+         "tokenId": 10738,
+         "logit": 18.98017120361328,
+         "text": "};"
+        },
+        {
+         "tokenId": 220,
+         "logit": 18.685205459594727,
+         "text": " "
+        },
+        {
+         "tokenId": 1031,
+         "logit": 17.735565185546875,
+         "text": "    \n"
+        }
+       ],
+       "marginTop1Top2": 6.491283416748047
+      },
+      {
+       "step": 47,
+       "tokenId": 271,
+       "text": "\n\n",
+       "top5": [
+        {
+         "tokenId": 271,
+         "logit": 28.151020050048828,
+         "text": "\n\n"
+        },
+        {
+         "tokenId": 198,
+         "logit": 23.764501571655273,
+         "text": "\n"
+        },
+        {
+         "tokenId": 434,
+         "logit": 18.905847549438477,
+         "text": " //"
+        },
+        {
+         "tokenId": 4558,
+         "logit": 18.101905822753906,
+         "text": " \n\n"
+        },
+        {
+         "tokenId": 1358,
+         "logit": 17.29450798034668,
+         "text": "\n\n\n"
+        }
+       ],
+       "marginTop1Top2": 4.386518478393555
+      },
+      {
+       "step": 48,
+       "tokenId": 320,
+       "text": "//",
+       "top5": [
+        {
+         "tokenId": 320,
+         "logit": 24.896440505981445,
+         "text": "//"
+        },
+        {
+         "tokenId": 5186,
+         "logit": 24.05858039855957,
+         "text": "console"
+        },
+        {
+         "tokenId": 989,
+         "logit": 21.86174774169922,
+         "text": "const"
+        },
+        {
+         "tokenId": 4190,
+         "logit": 20.8809757232666,
+         "text": "double"
+        },
+        {
+         "tokenId": 3537,
+         "logit": 19.73464584350586,
+         "text": "/**"
+        }
+       ],
+       "marginTop1Top2": 0.837860107421875
+      },
+      {
+       "step": 49,
+       "tokenId": 5536,
+       "text": " Result",
+       "top5": [
+        {
+         "tokenId": 5536,
+         "logit": 20.31437110900879,
+         "text": " Result"
+        },
+        {
+         "tokenId": 12996,
+         "logit": 19.40874671936035,
+         "text": " Example"
+        },
+        {
+         "tokenId": 3284,
+         "logit": 19.114423751831055,
+         "text": " Test"
+        },
+        {
+         "tokenId": 1690,
+         "logit": 18.3018856048584,
+         "text": " For"
+        },
+        {
+         "tokenId": 17560,
+         "logit": 17.128637313842773,
+         "text": " Results"
+        }
+       ],
+       "marginTop1Top2": 0.9056243896484375
+      },
+      {
+       "step": 50,
+       "tokenId": 364,
+       "text": " for",
+       "top5": [
+        {
+         "tokenId": 364,
+         "logit": 25.12683868408203,
+         "text": " for"
+        },
+        {
+         "tokenId": 25,
+         "logit": 20.71481704711914,
+         "text": ":"
+        },
+        {
+         "tokenId": 948,
+         "logit": 19.212526321411133,
+         "text": " when"
+        },
+        {
+         "tokenId": 369,
+         "logit": 18.327608108520508,
+         "text": " is"
+        },
+        {
+         "tokenId": 314,
+         "logit": 18.316469192504883,
+         "text": " of"
+        }
+       ],
+       "marginTop1Top2": 4.412021636962891
+      },
+      {
+       "step": 51,
+       "tokenId": 498,
+       "text": " [",
+       "top5": [
+        {
+         "tokenId": 498,
+         "logit": 23.79639434814453,
+         "text": " ["
+        },
+        {
+         "tokenId": 1879,
+         "logit": 22.317861557006836,
+         "text": " input"
+        },
+        {
+         "tokenId": 279,
+         "logit": 21.818132400512695,
+         "text": " the"
+        },
+        {
+         "tokenId": 4947,
+         "logit": 20.06040382385254,
+         "text": " numbers"
+        },
+        {
+         "tokenId": 10804,
+         "logit": 19.964319229125977,
+         "text": " inputs"
+        }
+       ],
+       "marginTop1Top2": 1.4785327911376953
+      },
+      {
+       "step": 52,
+       "tokenId": 16,
+       "text": "1",
+       "top5": [
+        {
+         "tokenId": 16,
+         "logit": 28.37139892578125,
+         "text": "1"
+        },
+        {
+         "tokenId": 220,
+         "logit": 20.47707176208496,
+         "text": " "
+        },
+        {
+         "tokenId": 17,
+         "logit": 17.749401092529297,
+         "text": "2"
+        },
+        {
+         "tokenId": 15,
+         "logit": 16.737911224365234,
+         "text": "0"
+        },
+        {
+         "tokenId": 19,
+         "logit": 16.652551651000977,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 7.894327163696289
+      },
+      {
+       "step": 53,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 28.5696964263916,
+         "text": ","
+        },
+        {
+         "tokenId": 13,
+         "logit": 17.975954055786133,
+         "text": "."
+        },
+        {
+         "tokenId": 220,
+         "logit": 17.35503387451172,
+         "text": " "
+        },
+        {
+         "tokenId": 15,
+         "logit": 16.430160522460938,
+         "text": "0"
+        },
+        {
+         "tokenId": 25,
+         "logit": 14.507431983947754,
+         "text": ":"
+        }
+       ],
+       "marginTop1Top2": 10.593742370605469
+      },
+      {
+       "step": 54,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 31.209003448486328,
+         "text": " "
+        },
+        {
+         "tokenId": 17,
+         "logit": 18.28260040283203,
+         "text": "2"
+        },
+        {
+         "tokenId": 498,
+         "logit": 15.217016220092773,
+         "text": " ["
+        },
+        {
+         "tokenId": 1116,
+         "logit": 14.339790344238281,
+         "text": " ,"
+        },
+        {
+         "tokenId": 262,
+         "logit": 14.120732307434082,
+         "text": "   "
+        }
+       ],
+       "marginTop1Top2": 12.926403045654297
+      },
+      {
+       "step": 55,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 32.171504974365234,
+         "text": "2"
+        },
+        {
+         "tokenId": 18,
+         "logit": 21.54585838317871,
+         "text": "3"
+        },
+        {
+         "tokenId": 19,
+         "logit": 19.779394149780273,
+         "text": "4"
+        },
+        {
+         "tokenId": 16,
+         "logit": 19.683080673217773,
+         "text": "1"
+        },
+        {
+         "tokenId": 220,
+         "logit": 19.628015518188477,
+         "text": " "
+        }
+       ],
+       "marginTop1Top2": 10.625646591186523
+      },
+      {
+       "step": 56,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 29.35392189025879,
+         "text": ","
+        },
+        {
+         "tokenId": 18,
+         "logit": 15.955076217651367,
+         "text": "3"
+        },
+        {
+         "tokenId": 13,
+         "logit": 15.397295951843262,
+         "text": "."
+        },
+        {
+         "tokenId": 220,
+         "logit": 15.10294246673584,
+         "text": " "
+        },
+        {
+         "tokenId": 15,
+         "logit": 14.519290924072266,
+         "text": "0"
+        }
+       ],
+       "marginTop1Top2": 13.398845672607422
+      },
+      {
+       "step": 57,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 31.00265121459961,
+         "text": " "
+        },
+        {
+         "tokenId": 18,
+         "logit": 15.44200611114502,
+         "text": "3"
+        },
+        {
+         "tokenId": 2423,
+         "logit": 14.509010314941406,
+         "text": " ..."
+        },
+        {
+         "tokenId": 58317,
+         "logit": 14.506209373474121,
+         "text": " ...,"
+        },
+        {
+         "tokenId": 498,
+         "logit": 13.46053695678711,
+         "text": " ["
+        }
+       ],
+       "marginTop1Top2": 15.56064510345459
+      },
+      {
+       "step": 58,
+       "tokenId": 18,
+       "text": "3",
+       "top5": [
+        {
+         "tokenId": 18,
+         "logit": 33.30707931518555,
+         "text": "3"
+        },
+        {
+         "tokenId": 19,
+         "logit": 20.827346801757812,
+         "text": "4"
+        },
+        {
+         "tokenId": 20,
+         "logit": 18.83391571044922,
+         "text": "5"
+        },
+        {
+         "tokenId": 15,
+         "logit": 18.622365951538086,
+         "text": "0"
+        },
+        {
+         "tokenId": 17,
+         "logit": 18.621517181396484,
+         "text": "2"
+        }
+       ],
+       "marginTop1Top2": 12.479732513427734
+      },
+      {
+       "step": 59,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 31.192588806152344,
+         "text": ","
+        },
+        {
+         "tokenId": 60,
+         "logit": 19.412946701049805,
+         "text": "]"
+        },
+        {
+         "tokenId": 19,
+         "logit": 16.970340728759766,
+         "text": "4"
+        },
+        {
+         "tokenId": 220,
+         "logit": 15.898704528808594,
+         "text": " "
+        },
+        {
+         "tokenId": 13,
+         "logit": 14.54102611541748,
+         "text": "."
+        }
+       ],
+       "marginTop1Top2": 11.779642105102539
+      },
+      {
+       "step": 60,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 29.60095977783203,
+         "text": " "
+        },
+        {
+         "tokenId": 2423,
+         "logit": 16.14333152770996,
+         "text": " ..."
+        },
+        {
+         "tokenId": 19,
+         "logit": 16.05560874938965,
+         "text": "4"
+        },
+        {
+         "tokenId": 60,
+         "logit": 12.95654296875,
+         "text": "]"
+        },
+        {
+         "tokenId": 2205,
+         "logit": 12.676478385925293,
+         "text": " ]"
+        }
+       ],
+       "marginTop1Top2": 13.45762825012207
+      },
+      {
+       "step": 61,
+       "tokenId": 19,
+       "text": "4",
+       "top5": [
+        {
+         "tokenId": 19,
+         "logit": 33.43397903442383,
+         "text": "4"
+        },
+        {
+         "tokenId": 16,
+         "logit": 18.87582778930664,
+         "text": "1"
+        },
+        {
+         "tokenId": 20,
+         "logit": 18.59542465209961,
+         "text": "5"
+        },
+        {
+         "tokenId": 21,
+         "logit": 18.24517250061035,
+         "text": "6"
+        },
+        {
+         "tokenId": 18,
+         "logit": 18.193742752075195,
+         "text": "3"
+        }
+       ],
+       "marginTop1Top2": 14.558151245117188
+      },
+      {
+       "step": 62,
+       "tokenId": 60,
+       "text": "]",
+       "top5": [
+        {
+         "tokenId": 60,
+         "logit": 26.175586700439453,
+         "text": "]"
+        },
+        {
+         "tokenId": 5491,
+         "logit": 25.947101593017578,
+         "text": "]:"
+        },
+        {
+         "tokenId": 11,
+         "logit": 20.516990661621094,
+         "text": ","
+        },
+        {
+         "tokenId": 1089,
+         "logit": 18.659931182861328,
+         "text": "],"
+        },
+        {
+         "tokenId": 906,
+         "logit": 17.823007583618164,
+         "text": "]."
+        }
+       ],
+       "marginTop1Top2": 0.228485107421875
+      },
+      {
+       "step": 63,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 23.93343734741211,
+         "text": "\n"
+        },
+        {
+         "tokenId": 369,
+         "logit": 21.030899047851562,
+         "text": " is"
+        },
+        {
+         "tokenId": 1411,
+         "logit": 19.41778564453125,
+         "text": " ->"
+        },
+        {
+         "tokenId": 318,
+         "logit": 18.634746551513672,
+         "text": " ("
+        },
+        {
+         "tokenId": 1000,
+         "logit": 18.402408599853516,
+         "text": " would"
+        }
+       ],
+       "marginTop1Top2": 2.902538299560547
+      },
+      {
+       "step": 64,
+       "tokenId": 5186,
+       "text": "console",
+       "top5": [
+        {
+         "tokenId": 5186,
+         "logit": 23.56922149658203,
+         "text": "console"
+        },
+        {
+         "tokenId": 320,
+         "logit": 22.547452926635742,
+         "text": "//"
+        },
+        {
+         "tokenId": 989,
+         "logit": 21.538616180419922,
+         "text": "const"
+        },
+        {
+         "tokenId": 4190,
+         "logit": 20.759681701660156,
+         "text": "double"
+        },
+        {
+         "tokenId": 71093,
+         "logit": 18.902008056640625,
+         "text": "```"
+        }
+       ],
+       "marginTop1Top2": 1.021768569946289
+      },
+      {
+       "step": 65,
+       "tokenId": 1607,
+       "text": ".log",
+       "top5": [
+        {
+         "tokenId": 1607,
+         "logit": 24.187028884887695,
+         "text": ".log"
+        },
+        {
+         "tokenId": 10030,
+         "logit": 15.412370681762695,
+         "text": ".table"
+        },
+        {
+         "tokenId": 920,
+         "logit": 14.714611053466797,
+         "text": ".d"
+        },
+        {
+         "tokenId": 7007,
+         "logit": 14.397261619567871,
+         "text": ".array"
+        },
+        {
+         "tokenId": 3587,
+         "logit": 13.696375846862793,
+         "text": ".assert"
+        }
+       ],
+       "marginTop1Top2": 8.774658203125
+      },
+      {
+       "step": 66,
+       "tokenId": 8634,
+       "text": "(double",
+       "top5": [
+        {
+         "tokenId": 8634,
+         "logit": 24.30428695678711,
+         "text": "(double"
+        },
+        {
+         "tokenId": 2477,
+         "logit": 21.261280059814453,
+         "text": "(["
+        },
+        {
+         "tokenId": 7,
+         "logit": 20.23726463317871,
+         "text": "("
+        },
+        {
+         "tokenId": 1446,
+         "logit": 18.439350128173828,
+         "text": "(d"
+        },
+        {
+         "tokenId": 1693,
+         "logit": 18.121145248413086,
+         "text": "(new"
+        }
+       ],
+       "marginTop1Top2": 3.0430068969726562
+      },
+      {
+       "step": 67,
+       "tokenId": 36,
+       "text": "E",
+       "top5": [
+        {
+         "tokenId": 36,
+         "logit": 32.19502258300781,
+         "text": "E"
+        },
+        {
+         "tokenId": 68,
+         "logit": 17.227705001831055,
+         "text": "e"
+        },
+        {
+         "tokenId": 35,
+         "logit": 17.216665267944336,
+         "text": "D"
+        },
+        {
+         "tokenId": 40,
+         "logit": 16.0103816986084,
+         "text": "I"
+        },
+        {
+         "tokenId": 32,
+         "logit": 15.606443405151367,
+         "text": "A"
+        }
+       ],
+       "marginTop1Top2": 14.967317581176758
+      },
+      {
+       "step": 68,
+       "tokenId": 20450,
+       "text": "vens",
+       "top5": [
+        {
+         "tokenId": 20450,
+         "logit": 26.651620864868164,
+         "text": "vens"
+        },
+        {
+         "tokenId": 177251,
+         "logit": 22.14406394958496,
+         "text": "evens"
+        },
+        {
+         "tokenId": 38304,
+         "logit": 19.365087509155273,
+         "text": "lems"
+        },
+        {
+         "tokenId": 1002,
+         "logit": 18.909561157226562,
+         "text": "ven"
+        },
+        {
+         "tokenId": 38685,
+         "logit": 18.322507858276367,
+         "text": "visions"
+        }
+       ],
+       "marginTop1Top2": 4.507556915283203
+      },
+      {
+       "step": 69,
+       "tokenId": 2477,
+       "text": "([",
+       "top5": [
+        {
+         "tokenId": 2477,
+         "logit": 24.894956588745117,
+         "text": "(["
+        },
+        {
+         "tokenId": 7,
+         "logit": 18.093141555786133,
+         "text": "("
+        },
+        {
+         "tokenId": 10243,
+         "logit": 16.688438415527344,
+         "text": "([]"
+        },
+        {
+         "tokenId": 79623,
+         "logit": 16.398298263549805,
+         "text": "([..."
+        },
+        {
+         "tokenId": 1693,
+         "logit": 16.246841430664062,
+         "text": "(new"
+        }
+       ],
+       "marginTop1Top2": 6.801815032958984
+      },
+      {
+       "step": 70,
+       "tokenId": 16,
+       "text": "1",
+       "top5": [
+        {
+         "tokenId": 16,
+         "logit": 29.382038116455078,
+         "text": "1"
+        },
+        {
+         "tokenId": 17,
+         "logit": 19.503192901611328,
+         "text": "2"
+        },
+        {
+         "tokenId": 18,
+         "logit": 18.176374435424805,
+         "text": "3"
+        },
+        {
+         "tokenId": 19,
+         "logit": 18.01860809326172,
+         "text": "4"
+        },
+        {
+         "tokenId": 220,
+         "logit": 17.93292808532715,
+         "text": " "
+        }
+       ],
+       "marginTop1Top2": 9.87884521484375
+      },
+      {
+       "step": 71,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 26.771060943603516,
+         "text": ","
+        },
+        {
+         "tokenId": 77,
+         "logit": 17.220378875732422,
+         "text": "n"
+        },
+        {
+         "tokenId": 13,
+         "logit": 16.7962646484375,
+         "text": "."
+        },
+        {
+         "tokenId": 80058,
+         "logit": 16.25471305847168,
+         "text": "]));"
+        },
+        {
+         "tokenId": 220,
+         "logit": 15.338552474975586,
+         "text": " "
+        }
+       ],
+       "marginTop1Top2": 9.550682067871094
+      },
+      {
+       "step": 72,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 28.634113311767578,
+         "text": " "
+        },
+        {
+         "tokenId": 17,
+         "logit": 18.236238479614258,
+         "text": "2"
+        },
+        {
+         "tokenId": 804,
+         "logit": 13.669426918029785,
+         "text": " true"
+        },
+        {
+         "tokenId": 819,
+         "logit": 13.063545227050781,
+         "text": " null"
+        },
+        {
+         "tokenId": 262,
+         "logit": 13.004138946533203,
+         "text": "   "
+        }
+       ],
+       "marginTop1Top2": 10.39787483215332
+      },
+      {
+       "step": 73,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 31.64576530456543,
+         "text": "2"
+        },
+        {
+         "tokenId": 18,
+         "logit": 21.70169448852539,
+         "text": "3"
+        },
+        {
+         "tokenId": 19,
+         "logit": 20.95810890197754,
+         "text": "4"
+        },
+        {
+         "tokenId": 16,
+         "logit": 19.998764038085938,
+         "text": "1"
+        },
+        {
+         "tokenId": 20,
+         "logit": 19.332412719726562,
+         "text": "5"
+        }
+       ],
+       "marginTop1Top2": 9.944070816040039
+      },
+      {
+       "step": 74,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 28.898855209350586,
+         "text": ","
+        },
+        {
+         "tokenId": 18,
+         "logit": 15.88960075378418,
+         "text": "3"
+        },
+        {
+         "tokenId": 77,
+         "logit": 15.573826789855957,
+         "text": "n"
+        },
+        {
+         "tokenId": 80058,
+         "logit": 15.481560707092285,
+         "text": "]));"
+        },
+        {
+         "tokenId": 13,
+         "logit": 15.476800918579102,
+         "text": "."
+        }
+       ],
+       "marginTop1Top2": 13.009254455566406
+      },
+      {
+       "step": 75,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 30.51175308227539,
+         "text": " "
+        },
+        {
+         "tokenId": 18,
+         "logit": 15.9032564163208,
+         "text": "3"
+        },
+        {
+         "tokenId": 307,
+         "logit": 13.148608207702637,
+         "text": " n"
+        },
+        {
+         "tokenId": 4013,
+         "logit": 12.518218994140625,
+         "text": " Math"
+        },
+        {
+         "tokenId": 653,
+         "logit": 12.483433723449707,
+         "text": " #"
+        }
+       ],
+       "marginTop1Top2": 14.60849666595459
+      },
+      {
+       "step": 76,
+       "tokenId": 18,
+       "text": "3",
+       "top5": [
+        {
+         "tokenId": 18,
+         "logit": 33.147117614746094,
+         "text": "3"
+        },
+        {
+         "tokenId": 19,
+         "logit": 21.89750862121582,
+         "text": "4"
+        },
+        {
+         "tokenId": 20,
+         "logit": 19.254779815673828,
+         "text": "5"
+        },
+        {
+         "tokenId": 17,
+         "logit": 19.07308578491211,
+         "text": "2"
+        },
+        {
+         "tokenId": 16,
+         "logit": 18.89178466796875,
+         "text": "1"
+        }
+       ],
+       "marginTop1Top2": 11.249608993530273
+      },
+      {
+       "step": 77,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 29.877601623535156,
+         "text": ","
+        },
+        {
+         "tokenId": 80058,
+         "logit": 20.210542678833008,
+         "text": "]));"
+        },
+        {
+         "tokenId": 9087,
+         "logit": 16.559743881225586,
+         "text": "]))"
+        },
+        {
+         "tokenId": 220,
+         "logit": 15.498763084411621,
+         "text": " "
+        },
+        {
+         "tokenId": 19,
+         "logit": 15.017173767089844,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 9.667058944702148
+      },
+      {
+       "step": 78,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 27.71859359741211,
+         "text": " "
+        },
+        {
+         "tokenId": 19,
+         "logit": 14.650346755981445,
+         "text": "4"
+        },
+        {
+         "tokenId": 2423,
+         "logit": 13.328941345214844,
+         "text": " ..."
+        },
+        {
+         "tokenId": 80058,
+         "logit": 13.282649040222168,
+         "text": "]));"
+        },
+        {
+         "tokenId": 471,
+         "logit": 11.310093879699707,
+         "text": " -"
+        }
+       ],
+       "marginTop1Top2": 13.068246841430664
+      },
+      {
+       "step": 79,
+       "tokenId": 19,
+       "text": "4",
+       "top5": [
+        {
+         "tokenId": 19,
+         "logit": 30.095264434814453,
+         "text": "4"
+        },
+        {
+         "tokenId": 20,
+         "logit": 18.11526870727539,
+         "text": "5"
+        },
+        {
+         "tokenId": 16,
+         "logit": 16.80906867980957,
+         "text": "1"
+        },
+        {
+         "tokenId": 80058,
+         "logit": 16.23397445678711,
+         "text": "]));"
+        },
+        {
+         "tokenId": 17,
+         "logit": 16.15447998046875,
+         "text": "2"
+        }
+       ],
+       "marginTop1Top2": 11.979995727539062
+      },
+      {
+       "step": 80,
+       "tokenId": 80058,
+       "text": "]));",
+       "top5": [
+        {
+         "tokenId": 80058,
+         "logit": 24.795618057250977,
+         "text": "]));"
+        },
+        {
+         "tokenId": 60,
+         "logit": 18.309375762939453,
+         "text": "]"
+        },
+        {
+         "tokenId": 9087,
+         "logit": 17.316030502319336,
+         "text": "]))"
+        },
+        {
+         "tokenId": 52859,
+         "logit": 16.487581253051758,
+         "text": "]))."
+        },
+        {
+         "tokenId": 10381,
+         "logit": 15.0465726852417,
+         "text": "])."
+        }
+       ],
+       "marginTop1Top2": 6.486242294311523
+      },
+      {
+       "step": 81,
+       "tokenId": 695,
+       "text": " \n",
+       "top5": [
+        {
+         "tokenId": 695,
+         "logit": 23.436769485473633,
+         "text": " \n"
+        },
+        {
+         "tokenId": 434,
+         "logit": 22.7562313079834,
+         "text": " //"
+        },
+        {
+         "tokenId": 198,
+         "logit": 21.673372268676758,
+         "text": "\n"
+        },
+        {
+         "tokenId": 220,
+         "logit": 18.24310874938965,
+         "text": " "
+        },
+        {
+         "tokenId": 4558,
+         "logit": 17.25201988220215,
+         "text": " \n\n"
+        }
+       ],
+       "marginTop1Top2": 0.6805381774902344
+      },
+      {
+       "step": 82,
+       "tokenId": 320,
+       "text": "//",
+       "top5": [
+        {
+         "tokenId": 320,
+         "logit": 25.178457260131836,
+         "text": "//"
+        },
+        {
+         "tokenId": 71093,
+         "logit": 21.080650329589844,
+         "text": "```"
+        },
+        {
+         "tokenId": 1022,
+         "logit": 19.480836868286133,
+         "text": "/*"
+        },
+        {
+         "tokenId": 3537,
+         "logit": 18.050397872924805,
+         "text": "/**"
+        },
+        {
+         "tokenId": 6164,
+         "logit": 17.664966583251953,
+         "text": "<!--"
+        }
+       ],
+       "marginTop1Top2": 4.097806930541992
+      },
+      {
+       "step": 83,
+       "tokenId": 8984,
+       "text": " Output",
+       "top5": [
+        {
+         "tokenId": 8984,
+         "logit": 20.780561447143555,
+         "text": " Output"
+        },
+        {
+         "tokenId": 5019,
+         "logit": 17.190608978271484,
+         "text": " Returns"
+        },
+        {
+         "tokenId": 56445,
+         "logit": 16.67873764038086,
+         "text": " Outputs"
+        },
+        {
+         "tokenId": 30003,
+         "logit": 15.734478950500488,
+         "text": " Expected"
+        },
+        {
+         "tokenId": 498,
+         "logit": 15.224247932434082,
+         "text": " ["
+        }
+       ],
+       "marginTop1Top2": 3.5899524688720703
+      },
+      {
+       "step": 84,
+       "tokenId": 25,
+       "text": ":",
+       "top5": [
+        {
+         "tokenId": 25,
+         "logit": 24.333572387695312,
+         "text": ":"
+        },
+        {
+         "tokenId": 1220,
+         "logit": 17.40161895751953,
+         "text": " should"
+        },
+        {
+         "tokenId": 498,
+         "logit": 16.230318069458008,
+         "text": " ["
+        },
+        {
+         "tokenId": 668,
+         "logit": 16.078632354736328,
+         "text": " will"
+        },
+        {
+         "tokenId": 1287,
+         "logit": 15.932873725891113,
+         "text": " array"
+        }
+       ],
+       "marginTop1Top2": 6.931953430175781
+      },
+      {
+       "step": 85,
+       "tokenId": 498,
+       "text": " [",
+       "top5": [
+        {
+         "tokenId": 498,
+         "logit": 22.252111434936523,
+         "text": " ["
+        },
+        {
+         "tokenId": 220,
+         "logit": 16.24497413635254,
+         "text": " "
+        },
+        {
+         "tokenId": 4177,
+         "logit": 15.034770011901855,
+         "text": " [["
+        },
+        {
+         "tokenId": 2958,
+         "logit": 14.9490327835083,
+         "text": " []"
+        },
+        {
+         "tokenId": 491,
+         "logit": 14.842251777648926,
+         "text": " new"
+        }
+       ],
+       "marginTop1Top2": 6.007137298583984
+      },
+      {
+       "step": 86,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 22.305612564086914,
+         "text": "2"
+        },
+        {
+         "tokenId": 19,
+         "logit": 19.57277488708496,
+         "text": "4"
+        },
+        {
+         "tokenId": 220,
+         "logit": 19.397979736328125,
+         "text": " "
+        },
+        {
+         "tokenId": 15,
+         "logit": 19.16257667541504,
+         "text": "0"
+        },
+        {
+         "tokenId": 16,
+         "logit": 18.825563430786133,
+         "text": "1"
+        }
+       ],
+       "marginTop1Top2": 2.732837677001953
+      },
+      {
+       "step": 87,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 25.62661361694336,
+         "text": ","
+        },
+        {
+         "tokenId": 15,
+         "logit": 19.40476417541504,
+         "text": "0"
+        },
+        {
+         "tokenId": 13,
+         "logit": 18.65249252319336,
+         "text": "."
+        },
+        {
+         "tokenId": 60,
+         "logit": 17.49116325378418,
+         "text": "]"
+        },
+        {
+         "tokenId": 19,
+         "logit": 16.457260131835938,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 6.22184944152832
+      },
+      {
+       "step": 88,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 25.994983673095703,
+         "text": " "
+        },
+        {
+         "tokenId": 19,
+         "logit": 15.227144241333008,
+         "text": "4"
+        },
+        {
+         "tokenId": 256,
+         "logit": 14.446743965148926,
+         "text": "  "
+        },
+        {
+         "tokenId": 498,
+         "logit": 14.37883472442627,
+         "text": " ["
+        },
+        {
+         "tokenId": 471,
+         "logit": 14.058025360107422,
+         "text": " -"
+        }
+       ],
+       "marginTop1Top2": 10.767839431762695
+      },
+      {
+       "step": 89,
+       "tokenId": 19,
+       "text": "4",
+       "top5": [
+        {
+         "tokenId": 19,
+         "logit": 26.5773868560791,
+         "text": "4"
+        },
+        {
+         "tokenId": 17,
+         "logit": 21.115169525146484,
+         "text": "2"
+        },
+        {
+         "tokenId": 23,
+         "logit": 19.238643646240234,
+         "text": "8"
+        },
+        {
+         "tokenId": 18,
+         "logit": 19.21265983581543,
+         "text": "3"
+        },
+        {
+         "tokenId": 16,
+         "logit": 19.13132095336914,
+         "text": "1"
+        }
+       ],
+       "marginTop1Top2": 5.462217330932617
+      },
+      {
+       "step": 90,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 26.987552642822266,
+         "text": ","
+        },
+        {
+         "tokenId": 60,
+         "logit": 24.057449340820312,
+         "text": "]"
+        },
+        {
+         "tokenId": 1404,
+         "logit": 16.76412010192871,
+         "text": "]["
+        },
+        {
+         "tokenId": 1089,
+         "logit": 16.70348358154297,
+         "text": "],"
+        },
+        {
+         "tokenId": 21,
+         "logit": 16.030235290527344,
+         "text": "6"
+        }
+       ],
+       "marginTop1Top2": 2.930103302001953
+      },
+      {
+       "step": 91,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 24.372262954711914,
+         "text": " "
+        },
+        {
+         "tokenId": 471,
+         "logit": 16.894702911376953,
+         "text": " -"
+        },
+        {
+         "tokenId": 5438,
+         "logit": 15.207789421081543,
+         "text": " undefined"
+        },
+        {
+         "tokenId": 498,
+         "logit": 15.031280517578125,
+         "text": " ["
+        },
+        {
+         "tokenId": 2423,
+         "logit": 14.382498741149902,
+         "text": " ..."
+        }
+       ],
+       "marginTop1Top2": 7.477560043334961
+      },
+      {
+       "step": 92,
+       "tokenId": 21,
+       "text": "6",
+       "top5": [
+        {
+         "tokenId": 21,
+         "logit": 25.722219467163086,
+         "text": "6"
+        },
+        {
+         "tokenId": 19,
+         "logit": 21.315032958984375,
+         "text": "4"
+        },
+        {
+         "tokenId": 17,
+         "logit": 20.597267150878906,
+         "text": "2"
+        },
+        {
+         "tokenId": 23,
+         "logit": 20.440134048461914,
+         "text": "8"
+        },
+        {
+         "tokenId": 15,
+         "logit": 20.30725860595703,
+         "text": "0"
+        }
+       ],
+       "marginTop1Top2": 4.407186508178711
+      },
+      {
+       "step": 93,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 27.064186096191406,
+         "text": ","
+        },
+        {
+         "tokenId": 60,
+         "logit": 23.706878662109375,
+         "text": "]"
+        },
+        {
+         "tokenId": 1089,
+         "logit": 16.10915756225586,
+         "text": "],"
+        },
+        {
+         "tokenId": 906,
+         "logit": 15.87474536895752,
+         "text": "]."
+        },
+        {
+         "tokenId": 220,
+         "logit": 14.852741241455078,
+         "text": " "
+        }
+       ],
+       "marginTop1Top2": 3.3573074340820312
+      },
+      {
+       "step": 94,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 25.636144638061523,
+         "text": " "
+        },
+        {
+         "tokenId": 2423,
+         "logit": 16.100317001342773,
+         "text": " ..."
+        },
+        {
+         "tokenId": 471,
+         "logit": 15.830900192260742,
+         "text": " -"
+        },
+        {
+         "tokenId": 318,
+         "logit": 15.086249351501465,
+         "text": " ("
+        },
+        {
+         "tokenId": 498,
+         "logit": 14.86715316772461,
+         "text": " ["
+        }
+       ],
+       "marginTop1Top2": 9.53582763671875
+      },
+      {
+       "step": 95,
+       "tokenId": 23,
+       "text": "8",
+       "top5": [
+        {
+         "tokenId": 23,
+         "logit": 27.220035552978516,
+         "text": "8"
+        },
+        {
+         "tokenId": 16,
+         "logit": 18.63274574279785,
+         "text": "1"
+        },
+        {
+         "tokenId": 21,
+         "logit": 17.97518539428711,
+         "text": "6"
+        },
+        {
+         "tokenId": 17,
+         "logit": 17.328447341918945,
+         "text": "2"
+        },
+        {
+         "tokenId": 19,
+         "logit": 16.866050720214844,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 8.587289810180664
+      },
+      {
+       "step": 96,
+       "tokenId": 60,
+       "text": "]",
+       "top5": [
+        {
+         "tokenId": 60,
+         "logit": 26.81352424621582,
+         "text": "]"
+        },
+        {
+         "tokenId": 5098,
+         "logit": 20.130691528320312,
+         "text": "];"
+        },
+        {
+         "tokenId": 11,
+         "logit": 19.00666046142578,
+         "text": ","
+        },
+        {
+         "tokenId": 1089,
+         "logit": 17.365938186645508,
+         "text": "],"
+        },
+        {
+         "tokenId": 906,
+         "logit": 15.938459396362305,
+         "text": "]."
+        }
+       ],
+       "marginTop1Top2": 6.682832717895508
+      },
+      {
+       "step": 97,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 24.216527938842773,
+         "text": "\n"
+        },
+        {
+         "tokenId": 318,
+         "logit": 19.327537536621094,
+         "text": " ("
+        },
+        {
+         "tokenId": 695,
+         "logit": 19.003698348999023,
+         "text": " \n"
+        },
+        {
+         "tokenId": 271,
+         "logit": 17.126678466796875,
+         "text": "\n\n"
+        },
+        {
+         "tokenId": 1521,
+         "logit": 15.81910228729248,
+         "text": " because"
+        }
+       ],
+       "marginTop1Top2": 4.88899040222168
+      },
+      {
+       "step": 98,
+       "tokenId": 71093,
+       "text": "```",
+       "top5": [
+        {
+         "tokenId": 71093,
+         "logit": 26.52782440185547,
+         "text": "```"
+        },
+        {
+         "tokenId": 5186,
+         "logit": 19.364931106567383,
+         "text": "console"
+        },
+        {
+         "tokenId": 320,
+         "logit": 18.756450653076172,
+         "text": "//"
+        },
+        {
+         "tokenId": 13475,
+         "logit": 17.482192993164062,
+         "text": "``"
+        },
+        {
+         "tokenId": 1022,
+         "logit": 17.357114791870117,
+         "text": "/*"
+        }
+       ],
+       "marginTop1Top2": 7.162893295288086
+      },
+      {
+       "step": 99,
+       "tokenId": 248046,
+       "text": "",
+       "top5": [
+        {
+         "tokenId": 248046,
+         "logit": 22.997922897338867,
+         "text": ""
+        },
+        {
+         "tokenId": 271,
+         "logit": 20.119033813476562,
+         "text": "\n\n"
+        },
+        {
+         "tokenId": 198,
+         "logit": 17.162195205688477,
+         "text": "\n"
+        },
+        {
+         "tokenId": 332,
+         "logit": 14.54439926147461,
+         "text": "**"
+        },
+        {
+         "tokenId": 2972,
+         "logit": 13.715886116027832,
+         "text": " **"
+        }
+       ],
+       "marginTop1Top2": 2.8788890838623047
+      }
+     ]
+    },
+    {
+     "label": "turn-2-follow-up",
+     "renderedPrompt": "<|im_start|>user\nWrite a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].<|im_end|>\n<|im_start|>assistant\n```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```<|im_end|>\n<|im_start|>user\nUsing that same function, what is returned for [-2, 3, 6]? Answer only with the array.<|im_end|>\n<|im_start|>assistant\n<think>\n\n</think>\n\n",
+     "promptTokenIds": [
+      248045,
+      846,
+      198,
+      7734,
+      264,
+      2716,
+      12544,
+      709,
+      1923,
+      36,
+      20450,
+      45631,
+      8,
+      421,
+      4523,
+      264,
+      491,
+      1287,
+      8222,
+      1132,
+      1442,
+      1879,
+      4947,
+      11,
+      33472,
+      11,
+      1608,
+      3915,
+      321,
+      2336,
+      13,
+      6712,
+      1141,
+      1067,
+      364,
+      498,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      906,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      71093,
+      13670,
+      198,
+      1628,
+      1923,
+      36,
+      20450,
+      45631,
+      8,
+      313,
+      198,
+      220,
+      434,
+      11986,
+      13205,
+      1132,
+      1442,
+      4947,
+      11,
+      1179,
+      37996,
+      1070,
+      198,
+      220,
+      460,
+      4947,
+      6720,
+      1393,
+      574,
+      307,
+      984,
+      220,
+      17,
+      1981,
+      220,
+      15,
+      553,
+      2117,
+      1393,
+      574,
+      307,
+      348,
+      220,
+      17,
+      1174,
+      198,
+      92,
+      271,
+      320,
+      5536,
+      364,
+      498,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      60,
+      198,
+      5186,
+      1607,
+      8634,
+      36,
+      20450,
+      2477,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      80058,
+      695,
+      320,
+      8984,
+      25,
+      498,
+      17,
+      11,
+      220,
+      19,
+      11,
+      220,
+      21,
+      11,
+      220,
+      23,
+      60,
+      198,
+      71093,
+      248046,
+      198,
+      248045,
+      846,
+      198,
+      15947,
+      421,
+      1788,
+      709,
+      11,
+      1092,
+      369,
+      5743,
+      364,
+      9758,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      21,
+      48282,
+      21134,
+      1132,
+      440,
+      279,
+      1287,
+      13,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+     ],
+     "promptTokenCount": 189,
+     "promptTokenCountMatchesDistributedActivationBytes": true,
+     "tokenIds": [
+      7368,
+      21,
+      11,
+      220,
+      16,
+      17,
+      11,
+      220,
+      16,
+      23,
+      60,
+      248046
+     ],
+     "output": "[-6, 12, 18]",
+     "stopReason": "eos-token",
+     "decodeSteps": 12,
+     "activationBytes": 3276800,
+     "outputEqualsDistributed": true,
+     "decodeStepsEqualDistributed": true,
+     "firstDeltaDivergenceFromDistributed": null,
+     "steps": [
+      {
+       "step": 0,
+       "tokenId": 7368,
+       "text": "[-",
+       "top5": [
+        {
+         "tokenId": 7368,
+         "logit": 25.9740047454834,
+         "text": "[-"
+        },
+        {
+         "tokenId": 58,
+         "logit": 24.77736473083496,
+         "text": "["
+        },
+        {
+         "tokenId": 1249,
+         "logit": 19.425966262817383,
+         "text": "[]"
+        },
+        {
+         "tokenId": 7426,
+         "logit": 18.564741134643555,
+         "text": "[n"
+        },
+        {
+         "tokenId": 659,
+         "logit": 18.444137573242188,
+         "text": "['"
+        }
+       ],
+       "marginTop1Top2": 1.1966400146484375
+      },
+      {
+       "step": 1,
+       "tokenId": 21,
+       "text": "6",
+       "top5": [
+        {
+         "tokenId": 21,
+         "logit": 22.951086044311523,
+         "text": "6"
+        },
+        {
+         "tokenId": 17,
+         "logit": 22.736419677734375,
+         "text": "2"
+        },
+        {
+         "tokenId": 19,
+         "logit": 22.442371368408203,
+         "text": "4"
+        },
+        {
+         "tokenId": 16,
+         "logit": 22.125064849853516,
+         "text": "1"
+        },
+        {
+         "tokenId": 23,
+         "logit": 20.948530197143555,
+         "text": "8"
+        }
+       ],
+       "marginTop1Top2": 0.21466636657714844
+      },
+      {
+       "step": 2,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 25.945154190063477,
+         "text": ","
+        },
+        {
+         "tokenId": 60,
+         "logit": 20.434499740600586,
+         "text": "]"
+        },
+        {
+         "tokenId": 4838,
+         "logit": 20.019805908203125,
+         "text": ",-"
+        },
+        {
+         "tokenId": 471,
+         "logit": 17.881120681762695,
+         "text": " -"
+        },
+        {
+         "tokenId": 15,
+         "logit": 17.615915298461914,
+         "text": "0"
+        }
+       ],
+       "marginTop1Top2": 5.510654449462891
+      },
+      {
+       "step": 3,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 23.682119369506836,
+         "text": " "
+        },
+        {
+         "tokenId": 471,
+         "logit": 21.569902420043945,
+         "text": " -"
+        },
+        {
+         "tokenId": 16,
+         "logit": 16.62611961364746,
+         "text": "1"
+        },
+        {
+         "tokenId": 2205,
+         "logit": 15.435546875,
+         "text": " ]"
+        },
+        {
+         "tokenId": 21,
+         "logit": 15.005230903625488,
+         "text": "6"
+        }
+       ],
+       "marginTop1Top2": 2.1122169494628906
+      },
+      {
+       "step": 4,
+       "tokenId": 16,
+       "text": "1",
+       "top5": [
+        {
+         "tokenId": 16,
+         "logit": 23.280839920043945,
+         "text": "1"
+        },
+        {
+         "tokenId": 21,
+         "logit": 22.447223663330078,
+         "text": "6"
+        },
+        {
+         "tokenId": 18,
+         "logit": 20.116817474365234,
+         "text": "3"
+        },
+        {
+         "tokenId": 23,
+         "logit": 19.426258087158203,
+         "text": "8"
+        },
+        {
+         "tokenId": 17,
+         "logit": 19.14940071105957,
+         "text": "2"
+        }
+       ],
+       "marginTop1Top2": 0.8336162567138672
+      },
+      {
+       "step": 5,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 24.77781105041504,
+         "text": "2"
+        },
+        {
+         "tokenId": 23,
+         "logit": 21.86212921142578,
+         "text": "8"
+        },
+        {
+         "tokenId": 11,
+         "logit": 21.576786041259766,
+         "text": ","
+        },
+        {
+         "tokenId": 15,
+         "logit": 20.72694206237793,
+         "text": "0"
+        },
+        {
+         "tokenId": 19,
+         "logit": 19.4657039642334,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 2.915681838989258
+      },
+      {
+       "step": 6,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 25.856748580932617,
+         "text": ","
+        },
+        {
+         "tokenId": 60,
+         "logit": 23.598487854003906,
+         "text": "]"
+        },
+        {
+         "tokenId": 4838,
+         "logit": 17.969133377075195,
+         "text": ",-"
+        },
+        {
+         "tokenId": 75654,
+         "logit": 16.905569076538086,
+         "text": "]**"
+        },
+        {
+         "tokenId": 15,
+         "logit": 16.37923240661621,
+         "text": "0"
+        }
+       ],
+       "marginTop1Top2": 2.258260726928711
+      },
+      {
+       "step": 7,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 23.7302188873291,
+         "text": " "
+        },
+        {
+         "tokenId": 471,
+         "logit": 21.615764617919922,
+         "text": " -"
+        },
+        {
+         "tokenId": 2205,
+         "logit": 15.719249725341797,
+         "text": " ]"
+        },
+        {
+         "tokenId": 1317,
+         "logit": 14.810229301452637,
+         "text": " –"
+        },
+        {
+         "tokenId": 2168,
+         "logit": 13.987744331359863,
+         "text": " None"
+        }
+       ],
+       "marginTop1Top2": 2.1144542694091797
+      },
+      {
+       "step": 8,
+       "tokenId": 16,
+       "text": "1",
+       "top5": [
+        {
+         "tokenId": 16,
+         "logit": 24.87521743774414,
+         "text": "1"
+        },
+        {
+         "tokenId": 17,
+         "logit": 22.428958892822266,
+         "text": "2"
+        },
+        {
+         "tokenId": 21,
+         "logit": 21.382232666015625,
+         "text": "6"
+        },
+        {
+         "tokenId": 18,
+         "logit": 20.396806716918945,
+         "text": "3"
+        },
+        {
+         "tokenId": 23,
+         "logit": 18.889955520629883,
+         "text": "8"
+        }
+       ],
+       "marginTop1Top2": 2.446258544921875
+      },
+      {
+       "step": 9,
+       "tokenId": 23,
+       "text": "8",
+       "top5": [
+        {
+         "tokenId": 23,
+         "logit": 24.605623245239258,
+         "text": "8"
+        },
+        {
+         "tokenId": 17,
+         "logit": 22.026262283325195,
+         "text": "2"
+        },
+        {
+         "tokenId": 19,
+         "logit": 20.446256637573242,
+         "text": "4"
+        },
+        {
+         "tokenId": 15,
+         "logit": 19.404747009277344,
+         "text": "0"
+        },
+        {
+         "tokenId": 21,
+         "logit": 18.702972412109375,
+         "text": "6"
+        }
+       ],
+       "marginTop1Top2": 2.5793609619140625
+      },
+      {
+       "step": 10,
+       "tokenId": 60,
+       "text": "]",
+       "top5": [
+        {
+         "tokenId": 60,
+         "logit": 25.25133514404297,
+         "text": "]"
+        },
+        {
+         "tokenId": 11,
+         "logit": 24.00874900817871,
+         "text": ","
+        },
+        {
+         "tokenId": 4838,
+         "logit": 17.383102416992188,
+         "text": ",-"
+        },
+        {
+         "tokenId": 75654,
+         "logit": 16.851892471313477,
+         "text": "]**"
+        },
+        {
+         "tokenId": 13,
+         "logit": 16.01186180114746,
+         "text": "."
+        }
+       ],
+       "marginTop1Top2": 1.2425861358642578
+      },
+      {
+       "step": 11,
+       "tokenId": 248046,
+       "text": "",
+       "top5": [
+        {
+         "tokenId": 248046,
+         "logit": 25.56231689453125,
+         "text": ""
+        },
+        {
+         "tokenId": 198,
+         "logit": 21.117115020751953,
+         "text": "\n"
+        },
+        {
+         "tokenId": 318,
+         "logit": 17.79629898071289,
+         "text": " ("
+        },
+        {
+         "tokenId": 220,
+         "logit": 16.02657699584961,
+         "text": " "
+        },
+        {
+         "tokenId": 63,
+         "logit": 15.943026542663574,
+         "text": "`"
+        }
+       ],
+       "marginTop1Top2": 4.445201873779297
+      }
+     ]
+    }
+   ]
+  },
+  "unsplit": {
+   "turns": [
+    {
+     "label": "turn-1",
+     "promptTokenIds": [
+      248045,
+      846,
+      198,
+      7734,
+      264,
+      2716,
+      12544,
+      709,
+      1923,
+      36,
+      20450,
+      45631,
+      8,
+      421,
+      4523,
+      264,
+      491,
+      1287,
+      8222,
+      1132,
+      1442,
+      1879,
+      4947,
+      11,
+      33472,
+      11,
+      1608,
+      3915,
+      321,
+      2336,
+      13,
+      6712,
+      1141,
+      1067,
+      364,
+      498,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      906,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+     ],
+     "promptTokenCount": 56,
+     "tokenIds": [
+      71093,
+      13670,
+      198,
+      1628,
+      1923,
+      36,
+      20450,
+      45631,
+      8,
+      313,
+      198,
+      220,
+      434,
+      11986,
+      13205,
+      1132,
+      1442,
+      4947,
+      11,
+      1179,
+      37996,
+      1070,
+      198,
+      220,
+      460,
+      4947,
+      6720,
+      1393,
+      574,
+      307,
+      984,
+      220,
+      17,
+      1981,
+      220,
+      15,
+      553,
+      2117,
+      1393,
+      574,
+      307,
+      348,
+      220,
+      17,
+      1174,
+      198,
+      92,
+      271,
+      320,
+      5536,
+      364,
+      498,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      60,
+      198,
+      5186,
+      1607,
+      8634,
+      36,
+      20450,
+      2477,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      80058,
+      695,
+      320,
+      8984,
+      25,
+      498,
+      17,
+      11,
+      220,
+      19,
+      11,
+      220,
+      21,
+      11,
+      220,
+      23,
+      60,
+      198,
+      71093,
+      248046
+     ],
+     "output": "```javascript\nfunction doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n```",
+     "stopReason": "eos-token",
+     "decodeSteps": 100,
+     "outputEqualsDistributed": true,
+     "decodeStepsEqualDistributed": true,
+     "firstDeltaDivergenceFromDistributed": null,
+     "steps": [
+      {
+       "step": 0,
+       "tokenId": 71093,
+       "text": "```",
+       "top5": [
+        {
+         "tokenId": 71093,
+         "logit": 24.49472999572754,
+         "text": "```"
+        },
+        {
+         "tokenId": 8160,
+         "logit": 22.518226623535156,
+         "text": "Here"
+        },
+        {
+         "tokenId": 1206,
+         "logit": 18.92992401123047,
+         "text": "To"
+        },
+        {
+         "tokenId": 13962,
+         "logit": 18.69650650024414,
+         "text": "###"
+        },
+        {
+         "tokenId": 760,
+         "logit": 18.522916793823242,
+         "text": "The"
+        }
+       ],
+       "marginTop1Top2": 1.9765033721923828
+      },
+      {
+       "step": 1,
+       "tokenId": 13670,
+       "text": "javascript",
+       "top5": [
+        {
+         "tokenId": 13670,
+         "logit": 28.072647094726562,
+         "text": "javascript"
+        },
+        {
+         "tokenId": 2439,
+         "logit": 25.238725662231445,
+         "text": "js"
+        },
+        {
+         "tokenId": 43781,
+         "logit": 21.499393463134766,
+         "text": "jsx"
+        },
+        {
+         "tokenId": 2164,
+         "logit": 20.992509841918945,
+         "text": "json"
+        },
+        {
+         "tokenId": 28514,
+         "logit": 19.954025268554688,
+         "text": "JavaScript"
+        }
+       ],
+       "marginTop1Top2": 2.833921432495117
+      },
+      {
+       "step": 2,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 28.507049560546875,
+         "text": "\n"
+        },
+        {
+         "tokenId": 271,
+         "logit": 21.901487350463867,
+         "text": "\n\n"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 16.611356735229492,
+         "text": "  \n"
+        },
+        {
+         "tokenId": 3537,
+         "logit": 16.304073333740234,
+         "text": "/**"
+        },
+        {
+         "tokenId": 4029,
+         "logit": 14.903553009033203,
+         "text": " /**"
+        }
+       ],
+       "marginTop1Top2": 6.605562210083008
+      },
+      {
+       "step": 3,
+       "tokenId": 1628,
+       "text": "function",
+       "top5": [
+        {
+         "tokenId": 1628,
+         "logit": 24.69283676147461,
+         "text": "function"
+        },
+        {
+         "tokenId": 3537,
+         "logit": 24.241792678833008,
+         "text": "/**"
+        },
+        {
+         "tokenId": 320,
+         "logit": 22.587902069091797,
+         "text": "//"
+        },
+        {
+         "tokenId": 1479,
+         "logit": 20.76587677001953,
+         "text": "export"
+        },
+        {
+         "tokenId": 989,
+         "logit": 20.274768829345703,
+         "text": "const"
+        }
+       ],
+       "marginTop1Top2": 0.45104408264160156
+      },
+      {
+       "step": 4,
+       "tokenId": 1923,
+       "text": " double",
+       "top5": [
+        {
+         "tokenId": 1923,
+         "logit": 23.97398567199707,
+         "text": " double"
+        },
+        {
+         "tokenId": 3915,
+         "logit": 17.820470809936523,
+         "text": " filter"
+        },
+        {
+         "tokenId": 37996,
+         "logit": 17.16766929626465,
+         "text": " doubles"
+        },
+        {
+         "tokenId": 33472,
+         "logit": 16.225440979003906,
+         "text": " doubled"
+        },
+        {
+         "tokenId": 615,
+         "logit": 15.611907005310059,
+         "text": " get"
+        }
+       ],
+       "marginTop1Top2": 6.153514862060547
+      },
+      {
+       "step": 5,
+       "tokenId": 36,
+       "text": "E",
+       "top5": [
+        {
+         "tokenId": 36,
+         "logit": 27.58675193786621,
+         "text": "E"
+        },
+        {
+         "tokenId": 12777,
+         "logit": 20.306827545166016,
+         "text": "Even"
+        },
+        {
+         "tokenId": 32983,
+         "logit": 19.429765701293945,
+         "text": "Ev"
+        },
+        {
+         "tokenId": 26359,
+         "logit": 18.091266632080078,
+         "text": "Numbers"
+        },
+        {
+         "tokenId": 16849,
+         "logit": 17.367767333984375,
+         "text": "Es"
+        }
+       ],
+       "marginTop1Top2": 7.279924392700195
+      },
+      {
+       "step": 6,
+       "tokenId": 20450,
+       "text": "vens",
+       "top5": [
+        {
+         "tokenId": 20450,
+         "logit": 30.41452407836914,
+         "text": "vens"
+        },
+        {
+         "tokenId": 27372,
+         "logit": 20.830869674682617,
+         "text": "versions"
+        },
+        {
+         "tokenId": 25509,
+         "logit": 20.707796096801758,
+         "text": "nums"
+        },
+        {
+         "tokenId": 1002,
+         "logit": 19.851451873779297,
+         "text": "ven"
+        },
+        {
+         "tokenId": 177251,
+         "logit": 19.495712280273438,
+         "text": "evens"
+        }
+       ],
+       "marginTop1Top2": 9.583654403686523
+      },
+      {
+       "step": 7,
+       "tokenId": 45631,
+       "text": "(numbers",
+       "top5": [
+        {
+         "tokenId": 45631,
+         "logit": 23.48180389404297,
+         "text": "(numbers"
+        },
+        {
+         "tokenId": 5216,
+         "logit": 17.830814361572266,
+         "text": "(input"
+        },
+        {
+         "tokenId": 20449,
+         "logit": 16.877864837646484,
+         "text": "(nums"
+        },
+        {
+         "tokenId": 318,
+         "logit": 16.72306251525879,
+         "text": " ("
+        },
+        {
+         "tokenId": 10620,
+         "logit": 16.491159439086914,
+         "text": "(arr"
+        }
+       ],
+       "marginTop1Top2": 5.650989532470703
+      },
+      {
+       "step": 8,
+       "tokenId": 8,
+       "text": ")",
+       "top5": [
+        {
+         "tokenId": 8,
+         "logit": 28.14461898803711,
+         "text": ")"
+        },
+        {
+         "tokenId": 11,
+         "logit": 18.89542579650879,
+         "text": ","
+        },
+        {
+         "tokenId": 283,
+         "logit": 18.108251571655273,
+         "text": " ="
+        },
+        {
+         "tokenId": 25,
+         "logit": 18.107955932617188,
+         "text": ":"
+        },
+        {
+         "tokenId": 1590,
+         "logit": 17.891292572021484,
+         "text": "):"
+        }
+       ],
+       "marginTop1Top2": 9.24919319152832
+      },
+      {
+       "step": 9,
+       "tokenId": 313,
+       "text": " {",
+       "top5": [
+        {
+         "tokenId": 313,
+         "logit": 30.41929054260254,
+         "text": " {"
+        },
+        {
+         "tokenId": 695,
+         "logit": 18.891653060913086,
+         "text": " \n"
+        },
+        {
+         "tokenId": 198,
+         "logit": 18.693668365478516,
+         "text": "\n"
+        },
+        {
+         "tokenId": 4535,
+         "logit": 18.47374725341797,
+         "text": " {}"
+        },
+        {
+         "tokenId": 27238,
+         "logit": 16.45830535888672,
+         "text": " {\\"
+        }
+       ],
+       "marginTop1Top2": 11.527637481689453
+      },
+      {
+       "step": 10,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 29.3675594329834,
+         "text": "\n"
+        },
+        {
+         "tokenId": 695,
+         "logit": 20.848955154418945,
+         "text": " \n"
+        },
+        {
+         "tokenId": 434,
+         "logit": 18.75786590576172,
+         "text": " //"
+        },
+        {
+         "tokenId": 460,
+         "logit": 18.72771644592285,
+         "text": " return"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 17.35888671875,
+         "text": "  \n"
+        }
+       ],
+       "marginTop1Top2": 8.518604278564453
+      },
+      {
+       "step": 11,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 29.527881622314453,
+         "text": " "
+        },
+        {
+         "tokenId": 262,
+         "logit": 22.70326805114746,
+         "text": "   "
+        },
+        {
+         "tokenId": 197,
+         "logit": 18.358850479125977,
+         "text": "\t"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 18.31257438659668,
+         "text": "  \n"
+        },
+        {
+         "tokenId": 256,
+         "logit": 18.0722599029541,
+         "text": "  "
+        }
+       ],
+       "marginTop1Top2": 6.824613571166992
+      },
+      {
+       "step": 12,
+       "tokenId": 434,
+       "text": " //",
+       "top5": [
+        {
+         "tokenId": 434,
+         "logit": 25.62625503540039,
+         "text": " //"
+        },
+        {
+         "tokenId": 460,
+         "logit": 25.146303176879883,
+         "text": " return"
+        },
+        {
+         "tokenId": 713,
+         "logit": 22.351491928100586,
+         "text": " const"
+        },
+        {
+         "tokenId": 413,
+         "logit": 21.122037887573242,
+         "text": " if"
+        },
+        {
+         "tokenId": 4029,
+         "logit": 20.399314880371094,
+         "text": " /**"
+        }
+       ],
+       "marginTop1Top2": 0.4799518585205078
+      },
+      {
+       "step": 13,
+       "tokenId": 11986,
+       "text": " Filter",
+       "top5": [
+        {
+         "tokenId": 11986,
+         "logit": 19.52716827392578,
+         "text": " Filter"
+        },
+        {
+         "tokenId": 11747,
+         "logit": 18.047382354736328,
+         "text": " Using"
+        },
+        {
+         "tokenId": 5272,
+         "logit": 17.94129753112793,
+         "text": " Use"
+        },
+        {
+         "tokenId": 3915,
+         "logit": 16.847728729248047,
+         "text": " filter"
+        },
+        {
+         "tokenId": 4091,
+         "logit": 16.279287338256836,
+         "text": " Create"
+        }
+       ],
+       "marginTop1Top2": 1.4797859191894531
+      },
+      {
+       "step": 14,
+       "tokenId": 13205,
+       "text": " keeps",
+       "top5": [
+        {
+         "tokenId": 13205,
+         "logit": 19.67192840576172,
+         "text": " keeps"
+        },
+        {
+         "tokenId": 310,
+         "logit": 18.010910034179688,
+         "text": " to"
+        },
+        {
+         "tokenId": 25,
+         "logit": 17.549612045288086,
+         "text": ":"
+        },
+        {
+         "tokenId": 1442,
+         "logit": 16.61840057373047,
+         "text": " even"
+        },
+        {
+         "tokenId": 27245,
+         "logit": 16.360328674316406,
+         "text": " removes"
+        }
+       ],
+       "marginTop1Top2": 1.6610183715820312
+      },
+      {
+       "step": 15,
+       "tokenId": 1132,
+       "text": " only",
+       "top5": [
+        {
+         "tokenId": 1132,
+         "logit": 22.909883499145508,
+         "text": " only"
+        },
+        {
+         "tokenId": 1442,
+         "logit": 20.688186645507812,
+         "text": " even"
+        },
+        {
+         "tokenId": 279,
+         "logit": 19.321077346801758,
+         "text": " the"
+        },
+        {
+         "tokenId": 5255,
+         "logit": 19.190410614013672,
+         "text": " elements"
+        },
+        {
+         "tokenId": 4947,
+         "logit": 18.673002243041992,
+         "text": " numbers"
+        }
+       ],
+       "marginTop1Top2": 2.2216968536376953
+      },
+      {
+       "step": 16,
+       "tokenId": 1442,
+       "text": " even",
+       "top5": [
+        {
+         "tokenId": 1442,
+         "logit": 21.45135498046875,
+         "text": " even"
+        },
+        {
+         "tokenId": 4947,
+         "logit": 20.211519241333008,
+         "text": " numbers"
+        },
+        {
+         "tokenId": 279,
+         "logit": 19.911521911621094,
+         "text": " the"
+        },
+        {
+         "tokenId": 5255,
+         "logit": 19.320941925048828,
+         "text": " elements"
+        },
+        {
+         "tokenId": 2663,
+         "logit": 18.9494686126709,
+         "text": " values"
+        }
+       ],
+       "marginTop1Top2": 1.2398357391357422
+      },
+      {
+       "step": 17,
+       "tokenId": 4947,
+       "text": " numbers",
+       "top5": [
+        {
+         "tokenId": 4947,
+         "logit": 23.926549911499023,
+         "text": " numbers"
+        },
+        {
+         "tokenId": 2663,
+         "logit": 20.548654556274414,
+         "text": " values"
+        },
+        {
+         "tokenId": 10804,
+         "logit": 19.287017822265625,
+         "text": " inputs"
+        },
+        {
+         "tokenId": 5255,
+         "logit": 19.099531173706055,
+         "text": " elements"
+        },
+        {
+         "tokenId": 1879,
+         "logit": 18.39872169494629,
+         "text": " input"
+        }
+       ],
+       "marginTop1Top2": 3.3778953552246094
+      },
+      {
+       "step": 18,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 22.262157440185547,
+         "text": ","
+        },
+        {
+         "tokenId": 321,
+         "logit": 21.325084686279297,
+         "text": " and"
+        },
+        {
+         "tokenId": 13,
+         "logit": 21.157817840576172,
+         "text": "."
+        },
+        {
+         "tokenId": 198,
+         "logit": 21.027612686157227,
+         "text": "\n"
+        },
+        {
+         "tokenId": 318,
+         "logit": 20.757568359375,
+         "text": " ("
+        }
+       ],
+       "marginTop1Top2": 0.93707275390625
+      },
+      {
+       "step": 19,
+       "tokenId": 1179,
+       "text": " then",
+       "top5": [
+        {
+         "tokenId": 1179,
+         "logit": 19.269628524780273,
+         "text": " then"
+        },
+        {
+         "tokenId": 321,
+         "logit": 17.726224899291992,
+         "text": " and"
+        },
+        {
+         "tokenId": 37996,
+         "logit": 17.210205078125,
+         "text": " doubles"
+        },
+        {
+         "tokenId": 13640,
+         "logit": 17.031003952026367,
+         "text": " maps"
+        },
+        {
+         "tokenId": 31637,
+         "logit": 16.544185638427734,
+         "text": " converts"
+        }
+       ],
+       "marginTop1Top2": 1.5434036254882812
+      },
+      {
+       "step": 20,
+       "tokenId": 37996,
+       "text": " doubles",
+       "top5": [
+        {
+         "tokenId": 37996,
+         "logit": 18.45754623413086,
+         "text": " doubles"
+        },
+        {
+         "tokenId": 2336,
+         "logit": 17.162864685058594,
+         "text": " map"
+        },
+        {
+         "tokenId": 4866,
+         "logit": 17.063304901123047,
+         "text": " Map"
+        },
+        {
+         "tokenId": 13640,
+         "logit": 16.883277893066406,
+         "text": " maps"
+        },
+        {
+         "tokenId": 16298,
+         "logit": 16.851503372192383,
+         "text": " applies"
+        }
+       ],
+       "marginTop1Top2": 1.2946815490722656
+      },
+      {
+       "step": 21,
+       "tokenId": 1070,
+       "text": " them",
+       "top5": [
+        {
+         "tokenId": 1070,
+         "logit": 24.47164535522461,
+         "text": " them"
+        },
+        {
+         "tokenId": 1754,
+         "logit": 22.96411895751953,
+         "text": " each"
+        },
+        {
+         "tokenId": 279,
+         "logit": 20.857410430908203,
+         "text": " the"
+        },
+        {
+         "tokenId": 836,
+         "logit": 20.613779067993164,
+         "text": " their"
+        },
+        {
+         "tokenId": 424,
+         "logit": 19.620439529418945,
+         "text": " it"
+        }
+       ],
+       "marginTop1Top2": 1.5075263977050781
+      },
+      {
+       "step": 22,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 22.49550437927246,
+         "text": "\n"
+        },
+        {
+         "tokenId": 13,
+         "logit": 22.288040161132812,
+         "text": "."
+        },
+        {
+         "tokenId": 1608,
+         "logit": 21.322893142700195,
+         "text": " using"
+        },
+        {
+         "tokenId": 11,
+         "logit": 20.970909118652344,
+         "text": ","
+        },
+        {
+         "tokenId": 318,
+         "logit": 20.34284782409668,
+         "text": " ("
+        }
+       ],
+       "marginTop1Top2": 0.20746421813964844
+      },
+      {
+       "step": 23,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 28.678983688354492,
+         "text": " "
+        },
+        {
+         "tokenId": 262,
+         "logit": 16.6003360748291,
+         "text": "   "
+        },
+        {
+         "tokenId": 434,
+         "logit": 16.502971649169922,
+         "text": " //"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 16.3315486907959,
+         "text": "  \n"
+        },
+        {
+         "tokenId": 92,
+         "logit": 16.109163284301758,
+         "text": "}"
+        }
+       ],
+       "marginTop1Top2": 12.07864761352539
+      },
+      {
+       "step": 24,
+       "tokenId": 460,
+       "text": " return",
+       "top5": [
+        {
+         "tokenId": 460,
+         "logit": 24.260753631591797,
+         "text": " return"
+        },
+        {
+         "tokenId": 713,
+         "logit": 22.062284469604492,
+         "text": " const"
+        },
+        {
+         "tokenId": 434,
+         "logit": 22.04780387878418,
+         "text": " //"
+        },
+        {
+         "tokenId": 4947,
+         "logit": 17.747270584106445,
+         "text": " numbers"
+        },
+        {
+         "tokenId": 1042,
+         "logit": 17.659473419189453,
+         "text": " let"
+        }
+       ],
+       "marginTop1Top2": 2.1984691619873047
+      },
+      {
+       "step": 25,
+       "tokenId": 4947,
+       "text": " numbers",
+       "top5": [
+        {
+         "tokenId": 4947,
+         "logit": 24.17146873474121,
+         "text": " numbers"
+        },
+        {
+         "tokenId": 318,
+         "logit": 17.950918197631836,
+         "text": " ("
+        },
+        {
+         "tokenId": 3915,
+         "logit": 17.930742263793945,
+         "text": " filter"
+        },
+        {
+         "tokenId": 15824,
+         "logit": 15.760631561279297,
+         "text": " [..."
+        },
+        {
+         "tokenId": 13019,
+         "logit": 15.733280181884766,
+         "text": " filters"
+        }
+       ],
+       "marginTop1Top2": 6.220550537109375
+      },
+      {
+       "step": 26,
+       "tokenId": 6720,
+       "text": ".filter",
+       "top5": [
+        {
+         "tokenId": 6720,
+         "logit": 21.972309112548828,
+         "text": ".filter"
+        },
+        {
+         "tokenId": 198,
+         "logit": 21.029308319091797,
+         "text": "\n"
+        },
+        {
+         "tokenId": 4617,
+         "logit": 17.9102840423584,
+         "text": ".map"
+        },
+        {
+         "tokenId": 23047,
+         "logit": 15.751031875610352,
+         "text": ".reduce"
+        },
+        {
+         "tokenId": 4458,
+         "logit": 14.615457534790039,
+         "text": "?."
+        }
+       ],
+       "marginTop1Top2": 0.9430007934570312
+      },
+      {
+       "step": 27,
+       "tokenId": 1393,
+       "text": "(n",
+       "top5": [
+        {
+         "tokenId": 1393,
+         "logit": 21.926837921142578,
+         "text": "(n"
+        },
+        {
+         "tokenId": 2007,
+         "logit": 19.80954933166504,
+         "text": "(x"
+        },
+        {
+         "tokenId": 7815,
+         "logit": 19.784605026245117,
+         "text": "(num"
+        },
+        {
+         "tokenId": 1148,
+         "logit": 19.42564582824707,
+         "text": "(("
+        },
+        {
+         "tokenId": 17382,
+         "logit": 18.15829086303711,
+         "text": "(number"
+        }
+       ],
+       "marginTop1Top2": 2.117288589477539
+      },
+      {
+       "step": 28,
+       "tokenId": 574,
+       "text": " =>",
+       "top5": [
+        {
+         "tokenId": 574,
+         "logit": 25.615421295166016,
+         "text": " =>"
+        },
+        {
+         "tokenId": 77,
+         "logit": 18.291303634643555,
+         "text": "n"
+        },
+        {
+         "tokenId": 283,
+         "logit": 16.32938575744629,
+         "text": " ="
+        },
+        {
+         "tokenId": 8,
+         "logit": 15.659438133239746,
+         "text": ")"
+        },
+        {
+         "tokenId": 835,
+         "logit": 14.911543846130371,
+         "text": " >"
+        }
+       ],
+       "marginTop1Top2": 7.324117660522461
+      },
+      {
+       "step": 29,
+       "tokenId": 307,
+       "text": " n",
+       "top5": [
+        {
+         "tokenId": 307,
+         "logit": 22.63616180419922,
+         "text": " n"
+        },
+        {
+         "tokenId": 313,
+         "logit": 19.276473999023438,
+         "text": " {"
+        },
+        {
+         "tokenId": 7558,
+         "logit": 18.575944900512695,
+         "text": " typeof"
+        },
+        {
+         "tokenId": 729,
+         "logit": 17.23346519470215,
+         "text": " !"
+        },
+        {
+         "tokenId": 1442,
+         "logit": 17.153095245361328,
+         "text": " even"
+        }
+       ],
+       "marginTop1Top2": 3.3596878051757812
+      },
+      {
+       "step": 30,
+       "tokenId": 984,
+       "text": " %",
+       "top5": [
+        {
+         "tokenId": 984,
+         "logit": 24.110353469848633,
+         "text": " %"
+        },
+        {
+         "tokenId": 835,
+         "logit": 19.302875518798828,
+         "text": " >"
+        },
+        {
+         "tokenId": 1981,
+         "logit": 18.03473663330078,
+         "text": " ==="
+        },
+        {
+         "tokenId": 4235,
+         "logit": 17.980730056762695,
+         "text": " !=="
+        },
+        {
+         "tokenId": 4,
+         "logit": 17.586830139160156,
+         "text": "%"
+        }
+       ],
+       "marginTop1Top2": 4.807477951049805
+      },
+      {
+       "step": 31,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 27.41513442993164,
+         "text": " "
+        },
+        {
+         "tokenId": 1981,
+         "logit": 16.700395584106445,
+         "text": " ==="
+        },
+        {
+         "tokenId": 5447,
+         "logit": 14.169041633605957,
+         "text": " Number"
+        },
+        {
+         "tokenId": 17,
+         "logit": 14.145221710205078,
+         "text": "2"
+        },
+        {
+         "tokenId": 4235,
+         "logit": 13.820734024047852,
+         "text": " !=="
+        }
+       ],
+       "marginTop1Top2": 10.714738845825195
+      },
+      {
+       "step": 32,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 33.424102783203125,
+         "text": "2"
+        },
+        {
+         "tokenId": 16,
+         "logit": 21.67127227783203,
+         "text": "1"
+        },
+        {
+         "tokenId": 15,
+         "logit": 20.249866485595703,
+         "text": "0"
+        },
+        {
+         "tokenId": 1981,
+         "logit": 20.16526985168457,
+         "text": " ==="
+        },
+        {
+         "tokenId": 20,
+         "logit": 19.256345748901367,
+         "text": "5"
+        }
+       ],
+       "marginTop1Top2": 11.752830505371094
+      },
+      {
+       "step": 33,
+       "tokenId": 1981,
+       "text": " ===",
+       "top5": [
+        {
+         "tokenId": 1981,
+         "logit": 27.392396926879883,
+         "text": " ==="
+        },
+        {
+         "tokenId": 4235,
+         "logit": 22.15115737915039,
+         "text": " !=="
+        },
+        {
+         "tokenId": 835,
+         "logit": 18.728593826293945,
+         "text": " >"
+        },
+        {
+         "tokenId": 976,
+         "logit": 17.91905403137207,
+         "text": " &&"
+        },
+        {
+         "tokenId": 606,
+         "logit": 17.574338912963867,
+         "text": " =="
+        }
+       ],
+       "marginTop1Top2": 5.241239547729492
+      },
+      {
+       "step": 34,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 26.03260040283203,
+         "text": " "
+        },
+        {
+         "tokenId": 804,
+         "logit": 15.133325576782227,
+         "text": " true"
+        },
+        {
+         "tokenId": 867,
+         "logit": 15.091809272766113,
+         "text": " false"
+        },
+        {
+         "tokenId": 307,
+         "logit": 15.050257682800293,
+         "text": " n"
+        },
+        {
+         "tokenId": 359,
+         "logit": 13.614990234375,
+         "text": " '"
+        }
+       ],
+       "marginTop1Top2": 10.899274826049805
+      },
+      {
+       "step": 35,
+       "tokenId": 15,
+       "text": "0",
+       "top5": [
+        {
+         "tokenId": 15,
+         "logit": 28.85789680480957,
+         "text": "0"
+        },
+        {
+         "tokenId": 16,
+         "logit": 19.86631202697754,
+         "text": "1"
+        },
+        {
+         "tokenId": 17,
+         "logit": 19.688875198364258,
+         "text": "2"
+        },
+        {
+         "tokenId": 220,
+         "logit": 16.273113250732422,
+         "text": " "
+        },
+        {
+         "tokenId": 19,
+         "logit": 15.746585845947266,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 8.991584777832031
+      },
+      {
+       "step": 36,
+       "tokenId": 553,
+       "text": ").",
+       "top5": [
+        {
+         "tokenId": 553,
+         "logit": 24.49284553527832,
+         "text": ")."
+        },
+        {
+         "tokenId": 8,
+         "logit": 22.947025299072266,
+         "text": ")"
+        },
+        {
+         "tokenId": 1174,
+         "logit": 21.793176651000977,
+         "text": ");"
+        },
+        {
+         "tokenId": 976,
+         "logit": 21.296417236328125,
+         "text": " &&"
+        },
+        {
+         "tokenId": 42068,
+         "logit": 19.641511917114258,
+         "text": ")?."
+        }
+       ],
+       "marginTop1Top2": 1.5458202362060547
+      },
+      {
+       "step": 37,
+       "tokenId": 2117,
+       "text": "map",
+       "top5": [
+        {
+         "tokenId": 2117,
+         "logit": 24.242582321166992,
+         "text": "map"
+        },
+        {
+         "tokenId": 25434,
+         "logit": 20.72856330871582,
+         "text": "reduce"
+        },
+        {
+         "tokenId": 5147,
+         "logit": 19.699888229370117,
+         "text": "filter"
+        },
+        {
+         "tokenId": 55659,
+         "logit": 18.04724884033203,
+         "text": "flatMap"
+        },
+        {
+         "tokenId": 3282,
+         "logit": 17.798830032348633,
+         "text": "then"
+        }
+       ],
+       "marginTop1Top2": 3.514019012451172
+      },
+      {
+       "step": 38,
+       "tokenId": 1393,
+       "text": "(n",
+       "top5": [
+        {
+         "tokenId": 1393,
+         "logit": 22.976062774658203,
+         "text": "(n"
+        },
+        {
+         "tokenId": 7815,
+         "logit": 19.1641788482666,
+         "text": "(num"
+        },
+        {
+         "tokenId": 2007,
+         "logit": 19.143522262573242,
+         "text": "(x"
+        },
+        {
+         "tokenId": 41579,
+         "logit": 19.00042724609375,
+         "text": "(Number"
+        },
+        {
+         "tokenId": 1148,
+         "logit": 18.277950286865234,
+         "text": "(("
+        }
+       ],
+       "marginTop1Top2": 3.8118839263916016
+      },
+      {
+       "step": 39,
+       "tokenId": 574,
+       "text": " =>",
+       "top5": [
+        {
+         "tokenId": 574,
+         "logit": 24.90604019165039,
+         "text": " =>"
+        },
+        {
+         "tokenId": 348,
+         "logit": 18.766061782836914,
+         "text": " *"
+        },
+        {
+         "tokenId": 77,
+         "logit": 17.87241554260254,
+         "text": "n"
+        },
+        {
+         "tokenId": 17,
+         "logit": 15.273762702941895,
+         "text": "2"
+        },
+        {
+         "tokenId": 2742,
+         "logit": 15.114070892333984,
+         "text": "Number"
+        }
+       ],
+       "marginTop1Top2": 6.139978408813477
+      },
+      {
+       "step": 40,
+       "tokenId": 307,
+       "text": " n",
+       "top5": [
+        {
+         "tokenId": 307,
+         "logit": 24.264860153198242,
+         "text": " n"
+        },
+        {
+         "tokenId": 220,
+         "logit": 20.59238624572754,
+         "text": " "
+        },
+        {
+         "tokenId": 348,
+         "logit": 16.927316665649414,
+         "text": " *"
+        },
+        {
+         "tokenId": 1923,
+         "logit": 16.689834594726562,
+         "text": " double"
+        },
+        {
+         "tokenId": 313,
+         "logit": 16.0396785736084,
+         "text": " {"
+        }
+       ],
+       "marginTop1Top2": 3.672473907470703
+      },
+      {
+       "step": 41,
+       "tokenId": 348,
+       "text": " *",
+       "top5": [
+        {
+         "tokenId": 348,
+         "logit": 25.197708129882812,
+         "text": " *"
+        },
+        {
+         "tokenId": 1174,
+         "logit": 19.088214874267578,
+         "text": ");"
+        },
+        {
+         "tokenId": 478,
+         "logit": 18.236766815185547,
+         "text": " +"
+        },
+        {
+         "tokenId": 2972,
+         "logit": 17.78236198425293,
+         "text": " **"
+        },
+        {
+         "tokenId": 1981,
+         "logit": 16.86871337890625,
+         "text": " ==="
+        }
+       ],
+       "marginTop1Top2": 6.109493255615234
+      },
+      {
+       "step": 42,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 26.730749130249023,
+         "text": " "
+        },
+        {
+         "tokenId": 307,
+         "logit": 19.799928665161133,
+         "text": " n"
+        },
+        {
+         "tokenId": 1923,
+         "logit": 15.667007446289062,
+         "text": " double"
+        },
+        {
+         "tokenId": 5447,
+         "logit": 15.540066719055176,
+         "text": " Number"
+        },
+        {
+         "tokenId": 1324,
+         "logit": 15.45508861541748,
+         "text": " number"
+        }
+       ],
+       "marginTop1Top2": 6.930820465087891
+      },
+      {
+       "step": 43,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 30.92592430114746,
+         "text": "2"
+        },
+        {
+         "tokenId": 16,
+         "logit": 23.100767135620117,
+         "text": "1"
+        },
+        {
+         "tokenId": 18,
+         "logit": 20.342918395996094,
+         "text": "3"
+        },
+        {
+         "tokenId": 15,
+         "logit": 20.220441818237305,
+         "text": "0"
+        },
+        {
+         "tokenId": 19,
+         "logit": 20.035011291503906,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 7.825157165527344
+      },
+      {
+       "step": 44,
+       "tokenId": 1174,
+       "text": ");",
+       "top5": [
+        {
+         "tokenId": 1174,
+         "logit": 25.531044006347656,
+         "text": ");"
+        },
+        {
+         "tokenId": 8,
+         "logit": 19.73203468322754,
+         "text": ")"
+        },
+        {
+         "tokenId": 553,
+         "logit": 19.356597900390625,
+         "text": ")."
+        },
+        {
+         "tokenId": 11,
+         "logit": 16.978708267211914,
+         "text": ","
+        },
+        {
+         "tokenId": 348,
+         "logit": 16.512094497680664,
+         "text": " *"
+        }
+       ],
+       "marginTop1Top2": 5.799009323120117
+      },
+      {
+       "step": 45,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 26.709999084472656,
+         "text": "\n"
+        },
+        {
+         "tokenId": 271,
+         "logit": 21.787601470947266,
+         "text": "\n\n"
+        },
+        {
+         "tokenId": 695,
+         "logit": 20.534833908081055,
+         "text": " \n"
+        },
+        {
+         "tokenId": 434,
+         "logit": 17.49673080444336,
+         "text": " //"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 17.241056442260742,
+         "text": "  \n"
+        }
+       ],
+       "marginTop1Top2": 4.922397613525391
+      },
+      {
+       "step": 46,
+       "tokenId": 92,
+       "text": "}",
+       "top5": [
+        {
+         "tokenId": 92,
+         "logit": 28.905668258666992,
+         "text": "}"
+        },
+        {
+         "tokenId": 2228,
+         "logit": 22.414384841918945,
+         "text": "  \n"
+        },
+        {
+         "tokenId": 10738,
+         "logit": 18.98017120361328,
+         "text": "};"
+        },
+        {
+         "tokenId": 220,
+         "logit": 18.685205459594727,
+         "text": " "
+        },
+        {
+         "tokenId": 1031,
+         "logit": 17.735565185546875,
+         "text": "    \n"
+        }
+       ],
+       "marginTop1Top2": 6.491283416748047
+      },
+      {
+       "step": 47,
+       "tokenId": 271,
+       "text": "\n\n",
+       "top5": [
+        {
+         "tokenId": 271,
+         "logit": 28.151020050048828,
+         "text": "\n\n"
+        },
+        {
+         "tokenId": 198,
+         "logit": 23.764501571655273,
+         "text": "\n"
+        },
+        {
+         "tokenId": 434,
+         "logit": 18.905847549438477,
+         "text": " //"
+        },
+        {
+         "tokenId": 4558,
+         "logit": 18.101905822753906,
+         "text": " \n\n"
+        },
+        {
+         "tokenId": 1358,
+         "logit": 17.29450798034668,
+         "text": "\n\n\n"
+        }
+       ],
+       "marginTop1Top2": 4.386518478393555
+      },
+      {
+       "step": 48,
+       "tokenId": 320,
+       "text": "//",
+       "top5": [
+        {
+         "tokenId": 320,
+         "logit": 24.896440505981445,
+         "text": "//"
+        },
+        {
+         "tokenId": 5186,
+         "logit": 24.05858039855957,
+         "text": "console"
+        },
+        {
+         "tokenId": 989,
+         "logit": 21.86174774169922,
+         "text": "const"
+        },
+        {
+         "tokenId": 4190,
+         "logit": 20.8809757232666,
+         "text": "double"
+        },
+        {
+         "tokenId": 3537,
+         "logit": 19.73464584350586,
+         "text": "/**"
+        }
+       ],
+       "marginTop1Top2": 0.837860107421875
+      },
+      {
+       "step": 49,
+       "tokenId": 5536,
+       "text": " Result",
+       "top5": [
+        {
+         "tokenId": 5536,
+         "logit": 20.31437110900879,
+         "text": " Result"
+        },
+        {
+         "tokenId": 12996,
+         "logit": 19.40874671936035,
+         "text": " Example"
+        },
+        {
+         "tokenId": 3284,
+         "logit": 19.114423751831055,
+         "text": " Test"
+        },
+        {
+         "tokenId": 1690,
+         "logit": 18.3018856048584,
+         "text": " For"
+        },
+        {
+         "tokenId": 17560,
+         "logit": 17.128637313842773,
+         "text": " Results"
+        }
+       ],
+       "marginTop1Top2": 0.9056243896484375
+      },
+      {
+       "step": 50,
+       "tokenId": 364,
+       "text": " for",
+       "top5": [
+        {
+         "tokenId": 364,
+         "logit": 25.12683868408203,
+         "text": " for"
+        },
+        {
+         "tokenId": 25,
+         "logit": 20.71481704711914,
+         "text": ":"
+        },
+        {
+         "tokenId": 948,
+         "logit": 19.212526321411133,
+         "text": " when"
+        },
+        {
+         "tokenId": 369,
+         "logit": 18.327608108520508,
+         "text": " is"
+        },
+        {
+         "tokenId": 314,
+         "logit": 18.316469192504883,
+         "text": " of"
+        }
+       ],
+       "marginTop1Top2": 4.412021636962891
+      },
+      {
+       "step": 51,
+       "tokenId": 498,
+       "text": " [",
+       "top5": [
+        {
+         "tokenId": 498,
+         "logit": 23.79639434814453,
+         "text": " ["
+        },
+        {
+         "tokenId": 1879,
+         "logit": 22.317861557006836,
+         "text": " input"
+        },
+        {
+         "tokenId": 279,
+         "logit": 21.818132400512695,
+         "text": " the"
+        },
+        {
+         "tokenId": 4947,
+         "logit": 20.06040382385254,
+         "text": " numbers"
+        },
+        {
+         "tokenId": 10804,
+         "logit": 19.964319229125977,
+         "text": " inputs"
+        }
+       ],
+       "marginTop1Top2": 1.4785327911376953
+      },
+      {
+       "step": 52,
+       "tokenId": 16,
+       "text": "1",
+       "top5": [
+        {
+         "tokenId": 16,
+         "logit": 28.37139892578125,
+         "text": "1"
+        },
+        {
+         "tokenId": 220,
+         "logit": 20.47707176208496,
+         "text": " "
+        },
+        {
+         "tokenId": 17,
+         "logit": 17.749401092529297,
+         "text": "2"
+        },
+        {
+         "tokenId": 15,
+         "logit": 16.737911224365234,
+         "text": "0"
+        },
+        {
+         "tokenId": 19,
+         "logit": 16.652551651000977,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 7.894327163696289
+      },
+      {
+       "step": 53,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 28.5696964263916,
+         "text": ","
+        },
+        {
+         "tokenId": 13,
+         "logit": 17.975954055786133,
+         "text": "."
+        },
+        {
+         "tokenId": 220,
+         "logit": 17.35503387451172,
+         "text": " "
+        },
+        {
+         "tokenId": 15,
+         "logit": 16.430160522460938,
+         "text": "0"
+        },
+        {
+         "tokenId": 25,
+         "logit": 14.507431983947754,
+         "text": ":"
+        }
+       ],
+       "marginTop1Top2": 10.593742370605469
+      },
+      {
+       "step": 54,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 31.209003448486328,
+         "text": " "
+        },
+        {
+         "tokenId": 17,
+         "logit": 18.28260040283203,
+         "text": "2"
+        },
+        {
+         "tokenId": 498,
+         "logit": 15.217016220092773,
+         "text": " ["
+        },
+        {
+         "tokenId": 1116,
+         "logit": 14.339790344238281,
+         "text": " ,"
+        },
+        {
+         "tokenId": 262,
+         "logit": 14.120732307434082,
+         "text": "   "
+        }
+       ],
+       "marginTop1Top2": 12.926403045654297
+      },
+      {
+       "step": 55,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 32.171504974365234,
+         "text": "2"
+        },
+        {
+         "tokenId": 18,
+         "logit": 21.54585838317871,
+         "text": "3"
+        },
+        {
+         "tokenId": 19,
+         "logit": 19.779394149780273,
+         "text": "4"
+        },
+        {
+         "tokenId": 16,
+         "logit": 19.683080673217773,
+         "text": "1"
+        },
+        {
+         "tokenId": 220,
+         "logit": 19.628015518188477,
+         "text": " "
+        }
+       ],
+       "marginTop1Top2": 10.625646591186523
+      },
+      {
+       "step": 56,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 29.35392189025879,
+         "text": ","
+        },
+        {
+         "tokenId": 18,
+         "logit": 15.955076217651367,
+         "text": "3"
+        },
+        {
+         "tokenId": 13,
+         "logit": 15.397295951843262,
+         "text": "."
+        },
+        {
+         "tokenId": 220,
+         "logit": 15.10294246673584,
+         "text": " "
+        },
+        {
+         "tokenId": 15,
+         "logit": 14.519290924072266,
+         "text": "0"
+        }
+       ],
+       "marginTop1Top2": 13.398845672607422
+      },
+      {
+       "step": 57,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 31.00265121459961,
+         "text": " "
+        },
+        {
+         "tokenId": 18,
+         "logit": 15.44200611114502,
+         "text": "3"
+        },
+        {
+         "tokenId": 2423,
+         "logit": 14.509010314941406,
+         "text": " ..."
+        },
+        {
+         "tokenId": 58317,
+         "logit": 14.506209373474121,
+         "text": " ...,"
+        },
+        {
+         "tokenId": 498,
+         "logit": 13.46053695678711,
+         "text": " ["
+        }
+       ],
+       "marginTop1Top2": 15.56064510345459
+      },
+      {
+       "step": 58,
+       "tokenId": 18,
+       "text": "3",
+       "top5": [
+        {
+         "tokenId": 18,
+         "logit": 33.30707931518555,
+         "text": "3"
+        },
+        {
+         "tokenId": 19,
+         "logit": 20.827346801757812,
+         "text": "4"
+        },
+        {
+         "tokenId": 20,
+         "logit": 18.83391571044922,
+         "text": "5"
+        },
+        {
+         "tokenId": 15,
+         "logit": 18.622365951538086,
+         "text": "0"
+        },
+        {
+         "tokenId": 17,
+         "logit": 18.621517181396484,
+         "text": "2"
+        }
+       ],
+       "marginTop1Top2": 12.479732513427734
+      },
+      {
+       "step": 59,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 31.192588806152344,
+         "text": ","
+        },
+        {
+         "tokenId": 60,
+         "logit": 19.412946701049805,
+         "text": "]"
+        },
+        {
+         "tokenId": 19,
+         "logit": 16.970340728759766,
+         "text": "4"
+        },
+        {
+         "tokenId": 220,
+         "logit": 15.898704528808594,
+         "text": " "
+        },
+        {
+         "tokenId": 13,
+         "logit": 14.54102611541748,
+         "text": "."
+        }
+       ],
+       "marginTop1Top2": 11.779642105102539
+      },
+      {
+       "step": 60,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 29.60095977783203,
+         "text": " "
+        },
+        {
+         "tokenId": 2423,
+         "logit": 16.14333152770996,
+         "text": " ..."
+        },
+        {
+         "tokenId": 19,
+         "logit": 16.05560874938965,
+         "text": "4"
+        },
+        {
+         "tokenId": 60,
+         "logit": 12.95654296875,
+         "text": "]"
+        },
+        {
+         "tokenId": 2205,
+         "logit": 12.676478385925293,
+         "text": " ]"
+        }
+       ],
+       "marginTop1Top2": 13.45762825012207
+      },
+      {
+       "step": 61,
+       "tokenId": 19,
+       "text": "4",
+       "top5": [
+        {
+         "tokenId": 19,
+         "logit": 33.43397903442383,
+         "text": "4"
+        },
+        {
+         "tokenId": 16,
+         "logit": 18.87582778930664,
+         "text": "1"
+        },
+        {
+         "tokenId": 20,
+         "logit": 18.59542465209961,
+         "text": "5"
+        },
+        {
+         "tokenId": 21,
+         "logit": 18.24517250061035,
+         "text": "6"
+        },
+        {
+         "tokenId": 18,
+         "logit": 18.193742752075195,
+         "text": "3"
+        }
+       ],
+       "marginTop1Top2": 14.558151245117188
+      },
+      {
+       "step": 62,
+       "tokenId": 60,
+       "text": "]",
+       "top5": [
+        {
+         "tokenId": 60,
+         "logit": 26.175586700439453,
+         "text": "]"
+        },
+        {
+         "tokenId": 5491,
+         "logit": 25.947101593017578,
+         "text": "]:"
+        },
+        {
+         "tokenId": 11,
+         "logit": 20.516990661621094,
+         "text": ","
+        },
+        {
+         "tokenId": 1089,
+         "logit": 18.659931182861328,
+         "text": "],"
+        },
+        {
+         "tokenId": 906,
+         "logit": 17.823007583618164,
+         "text": "]."
+        }
+       ],
+       "marginTop1Top2": 0.228485107421875
+      },
+      {
+       "step": 63,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 23.93343734741211,
+         "text": "\n"
+        },
+        {
+         "tokenId": 369,
+         "logit": 21.030899047851562,
+         "text": " is"
+        },
+        {
+         "tokenId": 1411,
+         "logit": 19.41778564453125,
+         "text": " ->"
+        },
+        {
+         "tokenId": 318,
+         "logit": 18.634746551513672,
+         "text": " ("
+        },
+        {
+         "tokenId": 1000,
+         "logit": 18.402408599853516,
+         "text": " would"
+        }
+       ],
+       "marginTop1Top2": 2.902538299560547
+      },
+      {
+       "step": 64,
+       "tokenId": 5186,
+       "text": "console",
+       "top5": [
+        {
+         "tokenId": 5186,
+         "logit": 23.56922149658203,
+         "text": "console"
+        },
+        {
+         "tokenId": 320,
+         "logit": 22.547452926635742,
+         "text": "//"
+        },
+        {
+         "tokenId": 989,
+         "logit": 21.538616180419922,
+         "text": "const"
+        },
+        {
+         "tokenId": 4190,
+         "logit": 20.759681701660156,
+         "text": "double"
+        },
+        {
+         "tokenId": 71093,
+         "logit": 18.902008056640625,
+         "text": "```"
+        }
+       ],
+       "marginTop1Top2": 1.021768569946289
+      },
+      {
+       "step": 65,
+       "tokenId": 1607,
+       "text": ".log",
+       "top5": [
+        {
+         "tokenId": 1607,
+         "logit": 24.187028884887695,
+         "text": ".log"
+        },
+        {
+         "tokenId": 10030,
+         "logit": 15.412370681762695,
+         "text": ".table"
+        },
+        {
+         "tokenId": 920,
+         "logit": 14.714611053466797,
+         "text": ".d"
+        },
+        {
+         "tokenId": 7007,
+         "logit": 14.397261619567871,
+         "text": ".array"
+        },
+        {
+         "tokenId": 3587,
+         "logit": 13.696375846862793,
+         "text": ".assert"
+        }
+       ],
+       "marginTop1Top2": 8.774658203125
+      },
+      {
+       "step": 66,
+       "tokenId": 8634,
+       "text": "(double",
+       "top5": [
+        {
+         "tokenId": 8634,
+         "logit": 24.30428695678711,
+         "text": "(double"
+        },
+        {
+         "tokenId": 2477,
+         "logit": 21.261280059814453,
+         "text": "(["
+        },
+        {
+         "tokenId": 7,
+         "logit": 20.23726463317871,
+         "text": "("
+        },
+        {
+         "tokenId": 1446,
+         "logit": 18.439350128173828,
+         "text": "(d"
+        },
+        {
+         "tokenId": 1693,
+         "logit": 18.121145248413086,
+         "text": "(new"
+        }
+       ],
+       "marginTop1Top2": 3.0430068969726562
+      },
+      {
+       "step": 67,
+       "tokenId": 36,
+       "text": "E",
+       "top5": [
+        {
+         "tokenId": 36,
+         "logit": 32.19502258300781,
+         "text": "E"
+        },
+        {
+         "tokenId": 68,
+         "logit": 17.227705001831055,
+         "text": "e"
+        },
+        {
+         "tokenId": 35,
+         "logit": 17.216665267944336,
+         "text": "D"
+        },
+        {
+         "tokenId": 40,
+         "logit": 16.0103816986084,
+         "text": "I"
+        },
+        {
+         "tokenId": 32,
+         "logit": 15.606443405151367,
+         "text": "A"
+        }
+       ],
+       "marginTop1Top2": 14.967317581176758
+      },
+      {
+       "step": 68,
+       "tokenId": 20450,
+       "text": "vens",
+       "top5": [
+        {
+         "tokenId": 20450,
+         "logit": 26.651620864868164,
+         "text": "vens"
+        },
+        {
+         "tokenId": 177251,
+         "logit": 22.14406394958496,
+         "text": "evens"
+        },
+        {
+         "tokenId": 38304,
+         "logit": 19.365087509155273,
+         "text": "lems"
+        },
+        {
+         "tokenId": 1002,
+         "logit": 18.909561157226562,
+         "text": "ven"
+        },
+        {
+         "tokenId": 38685,
+         "logit": 18.322507858276367,
+         "text": "visions"
+        }
+       ],
+       "marginTop1Top2": 4.507556915283203
+      },
+      {
+       "step": 69,
+       "tokenId": 2477,
+       "text": "([",
+       "top5": [
+        {
+         "tokenId": 2477,
+         "logit": 24.894956588745117,
+         "text": "(["
+        },
+        {
+         "tokenId": 7,
+         "logit": 18.093141555786133,
+         "text": "("
+        },
+        {
+         "tokenId": 10243,
+         "logit": 16.688438415527344,
+         "text": "([]"
+        },
+        {
+         "tokenId": 79623,
+         "logit": 16.398298263549805,
+         "text": "([..."
+        },
+        {
+         "tokenId": 1693,
+         "logit": 16.246841430664062,
+         "text": "(new"
+        }
+       ],
+       "marginTop1Top2": 6.801815032958984
+      },
+      {
+       "step": 70,
+       "tokenId": 16,
+       "text": "1",
+       "top5": [
+        {
+         "tokenId": 16,
+         "logit": 29.382038116455078,
+         "text": "1"
+        },
+        {
+         "tokenId": 17,
+         "logit": 19.503192901611328,
+         "text": "2"
+        },
+        {
+         "tokenId": 18,
+         "logit": 18.176374435424805,
+         "text": "3"
+        },
+        {
+         "tokenId": 19,
+         "logit": 18.01860809326172,
+         "text": "4"
+        },
+        {
+         "tokenId": 220,
+         "logit": 17.93292808532715,
+         "text": " "
+        }
+       ],
+       "marginTop1Top2": 9.87884521484375
+      },
+      {
+       "step": 71,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 26.771060943603516,
+         "text": ","
+        },
+        {
+         "tokenId": 77,
+         "logit": 17.220378875732422,
+         "text": "n"
+        },
+        {
+         "tokenId": 13,
+         "logit": 16.7962646484375,
+         "text": "."
+        },
+        {
+         "tokenId": 80058,
+         "logit": 16.25471305847168,
+         "text": "]));"
+        },
+        {
+         "tokenId": 220,
+         "logit": 15.338552474975586,
+         "text": " "
+        }
+       ],
+       "marginTop1Top2": 9.550682067871094
+      },
+      {
+       "step": 72,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 28.634113311767578,
+         "text": " "
+        },
+        {
+         "tokenId": 17,
+         "logit": 18.236238479614258,
+         "text": "2"
+        },
+        {
+         "tokenId": 804,
+         "logit": 13.669426918029785,
+         "text": " true"
+        },
+        {
+         "tokenId": 819,
+         "logit": 13.063545227050781,
+         "text": " null"
+        },
+        {
+         "tokenId": 262,
+         "logit": 13.004138946533203,
+         "text": "   "
+        }
+       ],
+       "marginTop1Top2": 10.39787483215332
+      },
+      {
+       "step": 73,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 31.64576530456543,
+         "text": "2"
+        },
+        {
+         "tokenId": 18,
+         "logit": 21.70169448852539,
+         "text": "3"
+        },
+        {
+         "tokenId": 19,
+         "logit": 20.95810890197754,
+         "text": "4"
+        },
+        {
+         "tokenId": 16,
+         "logit": 19.998764038085938,
+         "text": "1"
+        },
+        {
+         "tokenId": 20,
+         "logit": 19.332412719726562,
+         "text": "5"
+        }
+       ],
+       "marginTop1Top2": 9.944070816040039
+      },
+      {
+       "step": 74,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 28.898855209350586,
+         "text": ","
+        },
+        {
+         "tokenId": 18,
+         "logit": 15.88960075378418,
+         "text": "3"
+        },
+        {
+         "tokenId": 77,
+         "logit": 15.573826789855957,
+         "text": "n"
+        },
+        {
+         "tokenId": 80058,
+         "logit": 15.481560707092285,
+         "text": "]));"
+        },
+        {
+         "tokenId": 13,
+         "logit": 15.476800918579102,
+         "text": "."
+        }
+       ],
+       "marginTop1Top2": 13.009254455566406
+      },
+      {
+       "step": 75,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 30.51175308227539,
+         "text": " "
+        },
+        {
+         "tokenId": 18,
+         "logit": 15.9032564163208,
+         "text": "3"
+        },
+        {
+         "tokenId": 307,
+         "logit": 13.148608207702637,
+         "text": " n"
+        },
+        {
+         "tokenId": 4013,
+         "logit": 12.518218994140625,
+         "text": " Math"
+        },
+        {
+         "tokenId": 653,
+         "logit": 12.483433723449707,
+         "text": " #"
+        }
+       ],
+       "marginTop1Top2": 14.60849666595459
+      },
+      {
+       "step": 76,
+       "tokenId": 18,
+       "text": "3",
+       "top5": [
+        {
+         "tokenId": 18,
+         "logit": 33.147117614746094,
+         "text": "3"
+        },
+        {
+         "tokenId": 19,
+         "logit": 21.89750862121582,
+         "text": "4"
+        },
+        {
+         "tokenId": 20,
+         "logit": 19.254779815673828,
+         "text": "5"
+        },
+        {
+         "tokenId": 17,
+         "logit": 19.07308578491211,
+         "text": "2"
+        },
+        {
+         "tokenId": 16,
+         "logit": 18.89178466796875,
+         "text": "1"
+        }
+       ],
+       "marginTop1Top2": 11.249608993530273
+      },
+      {
+       "step": 77,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 29.877601623535156,
+         "text": ","
+        },
+        {
+         "tokenId": 80058,
+         "logit": 20.210542678833008,
+         "text": "]));"
+        },
+        {
+         "tokenId": 9087,
+         "logit": 16.559743881225586,
+         "text": "]))"
+        },
+        {
+         "tokenId": 220,
+         "logit": 15.498763084411621,
+         "text": " "
+        },
+        {
+         "tokenId": 19,
+         "logit": 15.017173767089844,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 9.667058944702148
+      },
+      {
+       "step": 78,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 27.71859359741211,
+         "text": " "
+        },
+        {
+         "tokenId": 19,
+         "logit": 14.650346755981445,
+         "text": "4"
+        },
+        {
+         "tokenId": 2423,
+         "logit": 13.328941345214844,
+         "text": " ..."
+        },
+        {
+         "tokenId": 80058,
+         "logit": 13.282649040222168,
+         "text": "]));"
+        },
+        {
+         "tokenId": 471,
+         "logit": 11.310093879699707,
+         "text": " -"
+        }
+       ],
+       "marginTop1Top2": 13.068246841430664
+      },
+      {
+       "step": 79,
+       "tokenId": 19,
+       "text": "4",
+       "top5": [
+        {
+         "tokenId": 19,
+         "logit": 30.095264434814453,
+         "text": "4"
+        },
+        {
+         "tokenId": 20,
+         "logit": 18.11526870727539,
+         "text": "5"
+        },
+        {
+         "tokenId": 16,
+         "logit": 16.80906867980957,
+         "text": "1"
+        },
+        {
+         "tokenId": 80058,
+         "logit": 16.23397445678711,
+         "text": "]));"
+        },
+        {
+         "tokenId": 17,
+         "logit": 16.15447998046875,
+         "text": "2"
+        }
+       ],
+       "marginTop1Top2": 11.979995727539062
+      },
+      {
+       "step": 80,
+       "tokenId": 80058,
+       "text": "]));",
+       "top5": [
+        {
+         "tokenId": 80058,
+         "logit": 24.795618057250977,
+         "text": "]));"
+        },
+        {
+         "tokenId": 60,
+         "logit": 18.309375762939453,
+         "text": "]"
+        },
+        {
+         "tokenId": 9087,
+         "logit": 17.316030502319336,
+         "text": "]))"
+        },
+        {
+         "tokenId": 52859,
+         "logit": 16.487581253051758,
+         "text": "]))."
+        },
+        {
+         "tokenId": 10381,
+         "logit": 15.0465726852417,
+         "text": "])."
+        }
+       ],
+       "marginTop1Top2": 6.486242294311523
+      },
+      {
+       "step": 81,
+       "tokenId": 695,
+       "text": " \n",
+       "top5": [
+        {
+         "tokenId": 695,
+         "logit": 23.436769485473633,
+         "text": " \n"
+        },
+        {
+         "tokenId": 434,
+         "logit": 22.7562313079834,
+         "text": " //"
+        },
+        {
+         "tokenId": 198,
+         "logit": 21.673372268676758,
+         "text": "\n"
+        },
+        {
+         "tokenId": 220,
+         "logit": 18.24310874938965,
+         "text": " "
+        },
+        {
+         "tokenId": 4558,
+         "logit": 17.25201988220215,
+         "text": " \n\n"
+        }
+       ],
+       "marginTop1Top2": 0.6805381774902344
+      },
+      {
+       "step": 82,
+       "tokenId": 320,
+       "text": "//",
+       "top5": [
+        {
+         "tokenId": 320,
+         "logit": 25.178457260131836,
+         "text": "//"
+        },
+        {
+         "tokenId": 71093,
+         "logit": 21.080650329589844,
+         "text": "```"
+        },
+        {
+         "tokenId": 1022,
+         "logit": 19.480836868286133,
+         "text": "/*"
+        },
+        {
+         "tokenId": 3537,
+         "logit": 18.050397872924805,
+         "text": "/**"
+        },
+        {
+         "tokenId": 6164,
+         "logit": 17.664966583251953,
+         "text": "<!--"
+        }
+       ],
+       "marginTop1Top2": 4.097806930541992
+      },
+      {
+       "step": 83,
+       "tokenId": 8984,
+       "text": " Output",
+       "top5": [
+        {
+         "tokenId": 8984,
+         "logit": 20.780561447143555,
+         "text": " Output"
+        },
+        {
+         "tokenId": 5019,
+         "logit": 17.190608978271484,
+         "text": " Returns"
+        },
+        {
+         "tokenId": 56445,
+         "logit": 16.67873764038086,
+         "text": " Outputs"
+        },
+        {
+         "tokenId": 30003,
+         "logit": 15.734478950500488,
+         "text": " Expected"
+        },
+        {
+         "tokenId": 498,
+         "logit": 15.224247932434082,
+         "text": " ["
+        }
+       ],
+       "marginTop1Top2": 3.5899524688720703
+      },
+      {
+       "step": 84,
+       "tokenId": 25,
+       "text": ":",
+       "top5": [
+        {
+         "tokenId": 25,
+         "logit": 24.333572387695312,
+         "text": ":"
+        },
+        {
+         "tokenId": 1220,
+         "logit": 17.40161895751953,
+         "text": " should"
+        },
+        {
+         "tokenId": 498,
+         "logit": 16.230318069458008,
+         "text": " ["
+        },
+        {
+         "tokenId": 668,
+         "logit": 16.078632354736328,
+         "text": " will"
+        },
+        {
+         "tokenId": 1287,
+         "logit": 15.932873725891113,
+         "text": " array"
+        }
+       ],
+       "marginTop1Top2": 6.931953430175781
+      },
+      {
+       "step": 85,
+       "tokenId": 498,
+       "text": " [",
+       "top5": [
+        {
+         "tokenId": 498,
+         "logit": 22.252111434936523,
+         "text": " ["
+        },
+        {
+         "tokenId": 220,
+         "logit": 16.24497413635254,
+         "text": " "
+        },
+        {
+         "tokenId": 4177,
+         "logit": 15.034770011901855,
+         "text": " [["
+        },
+        {
+         "tokenId": 2958,
+         "logit": 14.9490327835083,
+         "text": " []"
+        },
+        {
+         "tokenId": 491,
+         "logit": 14.842251777648926,
+         "text": " new"
+        }
+       ],
+       "marginTop1Top2": 6.007137298583984
+      },
+      {
+       "step": 86,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 22.305612564086914,
+         "text": "2"
+        },
+        {
+         "tokenId": 19,
+         "logit": 19.57277488708496,
+         "text": "4"
+        },
+        {
+         "tokenId": 220,
+         "logit": 19.397979736328125,
+         "text": " "
+        },
+        {
+         "tokenId": 15,
+         "logit": 19.16257667541504,
+         "text": "0"
+        },
+        {
+         "tokenId": 16,
+         "logit": 18.825563430786133,
+         "text": "1"
+        }
+       ],
+       "marginTop1Top2": 2.732837677001953
+      },
+      {
+       "step": 87,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 25.62661361694336,
+         "text": ","
+        },
+        {
+         "tokenId": 15,
+         "logit": 19.40476417541504,
+         "text": "0"
+        },
+        {
+         "tokenId": 13,
+         "logit": 18.65249252319336,
+         "text": "."
+        },
+        {
+         "tokenId": 60,
+         "logit": 17.49116325378418,
+         "text": "]"
+        },
+        {
+         "tokenId": 19,
+         "logit": 16.457260131835938,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 6.22184944152832
+      },
+      {
+       "step": 88,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 25.994983673095703,
+         "text": " "
+        },
+        {
+         "tokenId": 19,
+         "logit": 15.227144241333008,
+         "text": "4"
+        },
+        {
+         "tokenId": 256,
+         "logit": 14.446743965148926,
+         "text": "  "
+        },
+        {
+         "tokenId": 498,
+         "logit": 14.37883472442627,
+         "text": " ["
+        },
+        {
+         "tokenId": 471,
+         "logit": 14.058025360107422,
+         "text": " -"
+        }
+       ],
+       "marginTop1Top2": 10.767839431762695
+      },
+      {
+       "step": 89,
+       "tokenId": 19,
+       "text": "4",
+       "top5": [
+        {
+         "tokenId": 19,
+         "logit": 26.5773868560791,
+         "text": "4"
+        },
+        {
+         "tokenId": 17,
+         "logit": 21.115169525146484,
+         "text": "2"
+        },
+        {
+         "tokenId": 23,
+         "logit": 19.238643646240234,
+         "text": "8"
+        },
+        {
+         "tokenId": 18,
+         "logit": 19.21265983581543,
+         "text": "3"
+        },
+        {
+         "tokenId": 16,
+         "logit": 19.13132095336914,
+         "text": "1"
+        }
+       ],
+       "marginTop1Top2": 5.462217330932617
+      },
+      {
+       "step": 90,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 26.987552642822266,
+         "text": ","
+        },
+        {
+         "tokenId": 60,
+         "logit": 24.057449340820312,
+         "text": "]"
+        },
+        {
+         "tokenId": 1404,
+         "logit": 16.76412010192871,
+         "text": "]["
+        },
+        {
+         "tokenId": 1089,
+         "logit": 16.70348358154297,
+         "text": "],"
+        },
+        {
+         "tokenId": 21,
+         "logit": 16.030235290527344,
+         "text": "6"
+        }
+       ],
+       "marginTop1Top2": 2.930103302001953
+      },
+      {
+       "step": 91,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 24.372262954711914,
+         "text": " "
+        },
+        {
+         "tokenId": 471,
+         "logit": 16.894702911376953,
+         "text": " -"
+        },
+        {
+         "tokenId": 5438,
+         "logit": 15.207789421081543,
+         "text": " undefined"
+        },
+        {
+         "tokenId": 498,
+         "logit": 15.031280517578125,
+         "text": " ["
+        },
+        {
+         "tokenId": 2423,
+         "logit": 14.382498741149902,
+         "text": " ..."
+        }
+       ],
+       "marginTop1Top2": 7.477560043334961
+      },
+      {
+       "step": 92,
+       "tokenId": 21,
+       "text": "6",
+       "top5": [
+        {
+         "tokenId": 21,
+         "logit": 25.722219467163086,
+         "text": "6"
+        },
+        {
+         "tokenId": 19,
+         "logit": 21.315032958984375,
+         "text": "4"
+        },
+        {
+         "tokenId": 17,
+         "logit": 20.597267150878906,
+         "text": "2"
+        },
+        {
+         "tokenId": 23,
+         "logit": 20.440134048461914,
+         "text": "8"
+        },
+        {
+         "tokenId": 15,
+         "logit": 20.30725860595703,
+         "text": "0"
+        }
+       ],
+       "marginTop1Top2": 4.407186508178711
+      },
+      {
+       "step": 93,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 27.064186096191406,
+         "text": ","
+        },
+        {
+         "tokenId": 60,
+         "logit": 23.706878662109375,
+         "text": "]"
+        },
+        {
+         "tokenId": 1089,
+         "logit": 16.10915756225586,
+         "text": "],"
+        },
+        {
+         "tokenId": 906,
+         "logit": 15.87474536895752,
+         "text": "]."
+        },
+        {
+         "tokenId": 220,
+         "logit": 14.852741241455078,
+         "text": " "
+        }
+       ],
+       "marginTop1Top2": 3.3573074340820312
+      },
+      {
+       "step": 94,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 25.636144638061523,
+         "text": " "
+        },
+        {
+         "tokenId": 2423,
+         "logit": 16.100317001342773,
+         "text": " ..."
+        },
+        {
+         "tokenId": 471,
+         "logit": 15.830900192260742,
+         "text": " -"
+        },
+        {
+         "tokenId": 318,
+         "logit": 15.086249351501465,
+         "text": " ("
+        },
+        {
+         "tokenId": 498,
+         "logit": 14.86715316772461,
+         "text": " ["
+        }
+       ],
+       "marginTop1Top2": 9.53582763671875
+      },
+      {
+       "step": 95,
+       "tokenId": 23,
+       "text": "8",
+       "top5": [
+        {
+         "tokenId": 23,
+         "logit": 27.220035552978516,
+         "text": "8"
+        },
+        {
+         "tokenId": 16,
+         "logit": 18.63274574279785,
+         "text": "1"
+        },
+        {
+         "tokenId": 21,
+         "logit": 17.97518539428711,
+         "text": "6"
+        },
+        {
+         "tokenId": 17,
+         "logit": 17.328447341918945,
+         "text": "2"
+        },
+        {
+         "tokenId": 19,
+         "logit": 16.866050720214844,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 8.587289810180664
+      },
+      {
+       "step": 96,
+       "tokenId": 60,
+       "text": "]",
+       "top5": [
+        {
+         "tokenId": 60,
+         "logit": 26.81352424621582,
+         "text": "]"
+        },
+        {
+         "tokenId": 5098,
+         "logit": 20.130691528320312,
+         "text": "];"
+        },
+        {
+         "tokenId": 11,
+         "logit": 19.00666046142578,
+         "text": ","
+        },
+        {
+         "tokenId": 1089,
+         "logit": 17.365938186645508,
+         "text": "],"
+        },
+        {
+         "tokenId": 906,
+         "logit": 15.938459396362305,
+         "text": "]."
+        }
+       ],
+       "marginTop1Top2": 6.682832717895508
+      },
+      {
+       "step": 97,
+       "tokenId": 198,
+       "text": "\n",
+       "top5": [
+        {
+         "tokenId": 198,
+         "logit": 24.216527938842773,
+         "text": "\n"
+        },
+        {
+         "tokenId": 318,
+         "logit": 19.327537536621094,
+         "text": " ("
+        },
+        {
+         "tokenId": 695,
+         "logit": 19.003698348999023,
+         "text": " \n"
+        },
+        {
+         "tokenId": 271,
+         "logit": 17.126678466796875,
+         "text": "\n\n"
+        },
+        {
+         "tokenId": 1521,
+         "logit": 15.81910228729248,
+         "text": " because"
+        }
+       ],
+       "marginTop1Top2": 4.88899040222168
+      },
+      {
+       "step": 98,
+       "tokenId": 71093,
+       "text": "```",
+       "top5": [
+        {
+         "tokenId": 71093,
+         "logit": 26.52782440185547,
+         "text": "```"
+        },
+        {
+         "tokenId": 5186,
+         "logit": 19.364931106567383,
+         "text": "console"
+        },
+        {
+         "tokenId": 320,
+         "logit": 18.756450653076172,
+         "text": "//"
+        },
+        {
+         "tokenId": 13475,
+         "logit": 17.482192993164062,
+         "text": "``"
+        },
+        {
+         "tokenId": 1022,
+         "logit": 17.357114791870117,
+         "text": "/*"
+        }
+       ],
+       "marginTop1Top2": 7.162893295288086
+      },
+      {
+       "step": 99,
+       "tokenId": 248046,
+       "text": "",
+       "top5": [
+        {
+         "tokenId": 248046,
+         "logit": 22.997922897338867,
+         "text": ""
+        },
+        {
+         "tokenId": 271,
+         "logit": 20.119033813476562,
+         "text": "\n\n"
+        },
+        {
+         "tokenId": 198,
+         "logit": 17.162195205688477,
+         "text": "\n"
+        },
+        {
+         "tokenId": 332,
+         "logit": 14.54439926147461,
+         "text": "**"
+        },
+        {
+         "tokenId": 2972,
+         "logit": 13.715886116027832,
+         "text": " **"
+        }
+       ],
+       "marginTop1Top2": 2.8788890838623047
+      }
+     ]
+    },
+    {
+     "label": "turn-2-follow-up",
+     "promptTokenIds": [
+      248045,
+      846,
+      198,
+      7734,
+      264,
+      2716,
+      12544,
+      709,
+      1923,
+      36,
+      20450,
+      45631,
+      8,
+      421,
+      4523,
+      264,
+      491,
+      1287,
+      8222,
+      1132,
+      1442,
+      1879,
+      4947,
+      11,
+      33472,
+      11,
+      1608,
+      3915,
+      321,
+      2336,
+      13,
+      6712,
+      1141,
+      1067,
+      364,
+      498,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      906,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      71093,
+      13670,
+      198,
+      1628,
+      1923,
+      36,
+      20450,
+      45631,
+      8,
+      313,
+      198,
+      220,
+      434,
+      11986,
+      13205,
+      1132,
+      1442,
+      4947,
+      11,
+      1179,
+      37996,
+      1070,
+      198,
+      220,
+      460,
+      4947,
+      6720,
+      1393,
+      574,
+      307,
+      984,
+      220,
+      17,
+      1981,
+      220,
+      15,
+      553,
+      2117,
+      1393,
+      574,
+      307,
+      348,
+      220,
+      17,
+      1174,
+      198,
+      92,
+      271,
+      320,
+      5536,
+      364,
+      498,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      60,
+      198,
+      5186,
+      1607,
+      8634,
+      36,
+      20450,
+      2477,
+      16,
+      11,
+      220,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      19,
+      80058,
+      695,
+      320,
+      8984,
+      25,
+      498,
+      17,
+      11,
+      220,
+      19,
+      11,
+      220,
+      21,
+      11,
+      220,
+      23,
+      60,
+      198,
+      71093,
+      248046,
+      198,
+      248045,
+      846,
+      198,
+      15947,
+      421,
+      1788,
+      709,
+      11,
+      1092,
+      369,
+      5743,
+      364,
+      9758,
+      17,
+      11,
+      220,
+      18,
+      11,
+      220,
+      21,
+      48282,
+      21134,
+      1132,
+      440,
+      279,
+      1287,
+      13,
+      248046,
+      198,
+      248045,
+      74455,
+      198,
+      248068,
+      271,
+      248069,
+      271
+     ],
+     "promptTokenCount": 189,
+     "tokenIds": [
+      7368,
+      21,
+      11,
+      220,
+      16,
+      17,
+      11,
+      220,
+      16,
+      23,
+      60,
+      248046
+     ],
+     "output": "[-6, 12, 18]",
+     "stopReason": "eos-token",
+     "decodeSteps": 12,
+     "outputEqualsDistributed": true,
+     "decodeStepsEqualDistributed": true,
+     "firstDeltaDivergenceFromDistributed": null,
+     "steps": [
+      {
+       "step": 0,
+       "tokenId": 7368,
+       "text": "[-",
+       "top5": [
+        {
+         "tokenId": 7368,
+         "logit": 25.9740047454834,
+         "text": "[-"
+        },
+        {
+         "tokenId": 58,
+         "logit": 24.77736473083496,
+         "text": "["
+        },
+        {
+         "tokenId": 1249,
+         "logit": 19.425966262817383,
+         "text": "[]"
+        },
+        {
+         "tokenId": 7426,
+         "logit": 18.564741134643555,
+         "text": "[n"
+        },
+        {
+         "tokenId": 659,
+         "logit": 18.444137573242188,
+         "text": "['"
+        }
+       ],
+       "marginTop1Top2": 1.1966400146484375
+      },
+      {
+       "step": 1,
+       "tokenId": 21,
+       "text": "6",
+       "top5": [
+        {
+         "tokenId": 21,
+         "logit": 22.951086044311523,
+         "text": "6"
+        },
+        {
+         "tokenId": 17,
+         "logit": 22.736419677734375,
+         "text": "2"
+        },
+        {
+         "tokenId": 19,
+         "logit": 22.442371368408203,
+         "text": "4"
+        },
+        {
+         "tokenId": 16,
+         "logit": 22.125064849853516,
+         "text": "1"
+        },
+        {
+         "tokenId": 23,
+         "logit": 20.948530197143555,
+         "text": "8"
+        }
+       ],
+       "marginTop1Top2": 0.21466636657714844
+      },
+      {
+       "step": 2,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 25.945154190063477,
+         "text": ","
+        },
+        {
+         "tokenId": 60,
+         "logit": 20.434499740600586,
+         "text": "]"
+        },
+        {
+         "tokenId": 4838,
+         "logit": 20.019805908203125,
+         "text": ",-"
+        },
+        {
+         "tokenId": 471,
+         "logit": 17.881120681762695,
+         "text": " -"
+        },
+        {
+         "tokenId": 15,
+         "logit": 17.615915298461914,
+         "text": "0"
+        }
+       ],
+       "marginTop1Top2": 5.510654449462891
+      },
+      {
+       "step": 3,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 23.682119369506836,
+         "text": " "
+        },
+        {
+         "tokenId": 471,
+         "logit": 21.569902420043945,
+         "text": " -"
+        },
+        {
+         "tokenId": 16,
+         "logit": 16.62611961364746,
+         "text": "1"
+        },
+        {
+         "tokenId": 2205,
+         "logit": 15.435546875,
+         "text": " ]"
+        },
+        {
+         "tokenId": 21,
+         "logit": 15.005230903625488,
+         "text": "6"
+        }
+       ],
+       "marginTop1Top2": 2.1122169494628906
+      },
+      {
+       "step": 4,
+       "tokenId": 16,
+       "text": "1",
+       "top5": [
+        {
+         "tokenId": 16,
+         "logit": 23.280839920043945,
+         "text": "1"
+        },
+        {
+         "tokenId": 21,
+         "logit": 22.447223663330078,
+         "text": "6"
+        },
+        {
+         "tokenId": 18,
+         "logit": 20.116817474365234,
+         "text": "3"
+        },
+        {
+         "tokenId": 23,
+         "logit": 19.426258087158203,
+         "text": "8"
+        },
+        {
+         "tokenId": 17,
+         "logit": 19.14940071105957,
+         "text": "2"
+        }
+       ],
+       "marginTop1Top2": 0.8336162567138672
+      },
+      {
+       "step": 5,
+       "tokenId": 17,
+       "text": "2",
+       "top5": [
+        {
+         "tokenId": 17,
+         "logit": 24.77781105041504,
+         "text": "2"
+        },
+        {
+         "tokenId": 23,
+         "logit": 21.86212921142578,
+         "text": "8"
+        },
+        {
+         "tokenId": 11,
+         "logit": 21.576786041259766,
+         "text": ","
+        },
+        {
+         "tokenId": 15,
+         "logit": 20.72694206237793,
+         "text": "0"
+        },
+        {
+         "tokenId": 19,
+         "logit": 19.4657039642334,
+         "text": "4"
+        }
+       ],
+       "marginTop1Top2": 2.915681838989258
+      },
+      {
+       "step": 6,
+       "tokenId": 11,
+       "text": ",",
+       "top5": [
+        {
+         "tokenId": 11,
+         "logit": 25.856748580932617,
+         "text": ","
+        },
+        {
+         "tokenId": 60,
+         "logit": 23.598487854003906,
+         "text": "]"
+        },
+        {
+         "tokenId": 4838,
+         "logit": 17.969133377075195,
+         "text": ",-"
+        },
+        {
+         "tokenId": 75654,
+         "logit": 16.905569076538086,
+         "text": "]**"
+        },
+        {
+         "tokenId": 15,
+         "logit": 16.37923240661621,
+         "text": "0"
+        }
+       ],
+       "marginTop1Top2": 2.258260726928711
+      },
+      {
+       "step": 7,
+       "tokenId": 220,
+       "text": " ",
+       "top5": [
+        {
+         "tokenId": 220,
+         "logit": 23.7302188873291,
+         "text": " "
+        },
+        {
+         "tokenId": 471,
+         "logit": 21.615764617919922,
+         "text": " -"
+        },
+        {
+         "tokenId": 2205,
+         "logit": 15.719249725341797,
+         "text": " ]"
+        },
+        {
+         "tokenId": 1317,
+         "logit": 14.810229301452637,
+         "text": " –"
+        },
+        {
+         "tokenId": 2168,
+         "logit": 13.987744331359863,
+         "text": " None"
+        }
+       ],
+       "marginTop1Top2": 2.1144542694091797
+      },
+      {
+       "step": 8,
+       "tokenId": 16,
+       "text": "1",
+       "top5": [
+        {
+         "tokenId": 16,
+         "logit": 24.87521743774414,
+         "text": "1"
+        },
+        {
+         "tokenId": 17,
+         "logit": 22.428958892822266,
+         "text": "2"
+        },
+        {
+         "tokenId": 21,
+         "logit": 21.382232666015625,
+         "text": "6"
+        },
+        {
+         "tokenId": 18,
+         "logit": 20.396806716918945,
+         "text": "3"
+        },
+        {
+         "tokenId": 23,
+         "logit": 18.889955520629883,
+         "text": "8"
+        }
+       ],
+       "marginTop1Top2": 2.446258544921875
+      },
+      {
+       "step": 9,
+       "tokenId": 23,
+       "text": "8",
+       "top5": [
+        {
+         "tokenId": 23,
+         "logit": 24.605623245239258,
+         "text": "8"
+        },
+        {
+         "tokenId": 17,
+         "logit": 22.026262283325195,
+         "text": "2"
+        },
+        {
+         "tokenId": 19,
+         "logit": 20.446256637573242,
+         "text": "4"
+        },
+        {
+         "tokenId": 15,
+         "logit": 19.404747009277344,
+         "text": "0"
+        },
+        {
+         "tokenId": 21,
+         "logit": 18.702972412109375,
+         "text": "6"
+        }
+       ],
+       "marginTop1Top2": 2.5793609619140625
+      },
+      {
+       "step": 10,
+       "tokenId": 60,
+       "text": "]",
+       "top5": [
+        {
+         "tokenId": 60,
+         "logit": 25.25133514404297,
+         "text": "]"
+        },
+        {
+         "tokenId": 11,
+         "logit": 24.00874900817871,
+         "text": ","
+        },
+        {
+         "tokenId": 4838,
+         "logit": 17.383102416992188,
+         "text": ",-"
+        },
+        {
+         "tokenId": 75654,
+         "logit": 16.851892471313477,
+         "text": "]**"
+        },
+        {
+         "tokenId": 13,
+         "logit": 16.01186180114746,
+         "text": "."
+        }
+       ],
+       "marginTop1Top2": 1.2425861358642578
+      },
+      {
+       "step": 11,
+       "tokenId": 248046,
+       "text": "",
+       "top5": [
+        {
+         "tokenId": 248046,
+         "logit": 25.56231689453125,
+         "text": ""
+        },
+        {
+         "tokenId": 198,
+         "logit": 21.117115020751953,
+         "text": "\n"
+        },
+        {
+         "tokenId": 318,
+         "logit": 17.79629898071289,
+         "text": " ("
+        },
+        {
+         "tokenId": 220,
+         "logit": 16.02657699584961,
+         "text": " "
+        },
+        {
+         "tokenId": 63,
+         "logit": 15.943026542663574,
+         "text": "`"
+        }
+       ],
+       "marginTop1Top2": 4.445201873779297
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "gpu": {
+  "provider": "webgpu",
+  "adapter": {
+   "vendor": "apple",
+   "architecture": "metal-3",
+   "device": "apple-m3",
+   "description": "Metal driver on macOS Version 26.6.2 (Build 25G83)"
+  },
+  "hasF16": true,
+  "hasSubgroups": true
+ },
+ "cleanup": {
+  "orderedResidents": [
+   "fulfilled",
+   "fulfilled",
+   "fulfilled"
+  ]
+ },
+ "finishedAt": "2026-10-14T12:21:27.166Z"
+}
