@@ -1,0 +1,39 @@
+{
+  "schema": "reploid.completion-chat-package-install/v1",
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "commands": [
+    "npm install --save-exact --ignore-scripts --no-audit --no-fund file:deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "node scripts/vendor-doppler.js deploy/artifacts/doppler-gpu-0.6.28.tgz",
+    "node scripts/sync-doppler-generation-contract.js",
+    "node scripts/sync-doppler-partition-contract.js",
+    "node scripts/sync-reploid-library.js",
+    "node scripts/sync-runtime-config.js (rejected the unrelated 0.6.27 Pool model)",
+    "node ../final/scope-export.js",
+    "node scripts/sync-runtime-config.js --write"
+  ],
+  "filesPerCopy": 1984,
+  "npmInstalledAndBrowserVendorEqual": true,
+  "verifiedBy": "preflight.json runtime section",
+  "footprintRelativeToSourceTar": {
+    "changedFiles": 16,
+    "addedFiles": 1985,
+    "missingFiles": 0,
+    "byteEqualToFinal3Export": 15,
+    "differsFromFinal3Export": [
+      "self/vendor/reploid/package-assets.json (vendored chat files changed in 2d434709)"
+    ],
+    "vendorTreeByteEqualToFinal3Export": true,
+    "servedSelfTreeDifferencesFromFinal3BeforeStaging": [
+      "host/chat-session.js",
+      "host/product-session.js",
+      "host/work-swarm.js",
+      "vendor/reploid/chat/index.d.ts",
+      "vendor/reploid/chat/thread-grants.js",
+      "vendor/reploid/chat/workspace.js",
+      "vendor/reploid/package-assets.json"
+    ]
+  },
+  "generationContractSynchronized": true,
+  "partitionDeclarationsSynchronized": true,
+  "applicationQualified": false
+}
