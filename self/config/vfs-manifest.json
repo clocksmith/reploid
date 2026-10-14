@@ -1893,6 +1893,7 @@
     "vendor/reploid/mesh/partitions/partition-chat-canonical.js",
     "vendor/reploid/mesh/partitions/partition-chat.js",
     "vendor/reploid/mesh/partitions/partition-contract.js",
+    "vendor/reploid/mesh/partitions/partition-device-admission.js",
     "vendor/reploid/mesh/partitions/partition-discovery.js",
     "vendor/reploid/mesh/partitions/partition-entry-publication.js",
     "vendor/reploid/mesh/partitions/partition-entry.js",

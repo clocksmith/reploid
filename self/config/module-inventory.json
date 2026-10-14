@@ -2374,8 +2374,9 @@
     {
       "path": "self/host/work-partition-plan.js",
       "owner": "self",
-      "sha256": "sha256:ad30c3d94dd2422e66bed1f28945f6a04ab321c5ccfd314bd99da81d5f447766",
+      "sha256": "sha256:e6835f7d5ae9dd40ac0ecc572145702bb3ff82fa1fc9df088c7f2b882e6f3088",
       "imports": [
+        "../config/partition-policy.json",
         "../vendor/reploid/config/index.js",
         "../vendor/reploid/mesh/partitions/partition-contract.js"
       ]
@@ -2389,7 +2390,7 @@
     {
       "path": "self/host/work-partitions.js",
       "owner": "self",
-      "sha256": "sha256:cf1424d648286cefbd446e75c086d71e65ac35080844186f650a00104d2322c1",
+      "sha256": "sha256:1fb20c5e676bea6738b1a8a66e0641310a84dcbb58ff05f5fcaef6a8aa54bffa",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/partition-generation.js",
@@ -15217,10 +15218,11 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:d751c9e86e4534f41ffca86dc8ca4153f64b39282d94baedd4bb9e17ad04ce68",
+      "sha256": "sha256:fed0fe3e0610fc89682da100d75db15926747a7fa73bc3c7cbb125cd1ebe95a0",
       "imports": [
         "./partition-chat.js",
         "./partition-contract.js",
+        "./partition-device-admission.js",
         "./partition-discovery.js",
         "./partition-entry-publication.js",
         "./partition-entry.js",
@@ -15296,6 +15298,15 @@
       "owner": "vendor",
       "sha256": "sha256:97ab2918549977e3c76a94fb37e964aa4fef292e6b8d13ce863b7b7f3c49d59b",
       "imports": []
+    },
+    {
+      "path": "vendor/reploid/mesh/partitions/partition-device-admission.js",
+      "owner": "vendor",
+      "sha256": "sha256:f2fa5f74078fc902c2763fa01b5bd7e1abf4587d75d26d01072cae1627d16354",
+      "imports": [
+        "../../transport/partition-errors.json",
+        "./partition-contract.js"
+      ]
     },
     {
       "path": "vendor/reploid/mesh/partitions/partition-discovery.js",
@@ -15496,7 +15507,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/resident-partition.js",
       "owner": "vendor",
-      "sha256": "sha256:7a4c9f4619efab076125732d3b6d76bd849ee365ebda68361940bda341095647",
+      "sha256": "sha256:9e89c3332a1760239284f69066a66f62cd0397be71eda30b1bad8c8d89c1cc4a",
       "imports": [
         "../../transport/partition-errors.json",
         "./partition-contract.js",
