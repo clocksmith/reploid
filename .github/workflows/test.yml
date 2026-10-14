@@ -34,11 +34,11 @@ jobs:
     - name: Unit and integration tests
       run: npm test
 
-    - name: Installed package smoke
-      run: node tests/library-package-acceptance.js
-
     - name: Install Chromium
       run: npx playwright install --with-deps chromium
+
+    - name: Installed package smoke
+      run: node tests/library-package-acceptance.js
 
     - name: Browser boot smoke
       run: npm run test:e2e:smoke
