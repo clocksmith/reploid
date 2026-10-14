@@ -128,6 +128,13 @@ export function bindNetworkControls(container, session, { getInviteUrl } = {}) {
       if (!downloadInput.value && fileLimits?.downloadBytes) downloadInput.value = fileLimits.downloadBytes / 1048576;
       find('[data-file-download-label]').hidden = modeSelect.value === 'cached-only';
       downloadInput.disabled = !!sharingFiles || !!network.files?.acquisitionBudget;
+      // Full-model seeding states its whole download and storage before it is switched on.
+      if (modeSelect.value === 'full-model') {
+        const seeding = network.files?.seedingBytes?.[contributionSelect.value];
+        find('[data-file-limits]').textContent += Number.isSafeInteger(seeding)
+          ? ` · Full-model seeding downloads and keeps ${gib(seeding)} on this device and needs an allowance of at least ${Math.ceil(seeding / 1048576).toLocaleString()} MiB`
+          : ' · The full-model size is checked against your allowance when seeding starts';
+      }
       if (network.files?.acquisitionBudget) {
         downloadInput.value = network.files.acquisitionBudget.maxBytes / 1048576;
         find('[data-file-limits]').textContent += ` · Download allowance used ${gib(network.files.acquisitionBudget.reservedBytes)} of ${gib(network.files.acquisitionBudget.maxBytes)}`;
