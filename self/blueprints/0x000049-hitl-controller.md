@@ -4,7 +4,7 @@
 
 **Implementation Status:** In-Progress
 
-**Verified Artifacts:** `/self/infrastructure/hitl-controller.js`, `/self/ui/components/confirmation-modal.js`
+**Verified Artifacts:** `/self/infrastructure/hitl-controller.js`
 
 **Planned Artifacts:** `/capabilities/cognition/sentinel-fsm.js`, `hitl-controller.js`
 

@@ -106,6 +106,22 @@ var partitionActions = Object.freeze([
 // self/vendor/reploid/transport/partition-data-channel.js
 var encoder2 = new TextEncoder();
 
+// self/vendor/reploid/mesh/partitions/partition-generation-request.js
+var TEXT_GENERATION_CAPABILITY = Object.freeze({ schema: "reploid.text-generation/v1", usage: "raw-model-tokens/v1" });
+
+// self/vendor/reploid/mesh/partitions/partition-summary.js
+var STAGE_RUNTIME_KEYS = Object.freeze([
+  "executionMs",
+  "inputUploadMs",
+  "encodeMs",
+  "submitWaitMs",
+  "activationReadbackMs",
+  "logitsMs",
+  "gpuKernelsMs",
+  "logitsReadbackMs",
+  "samplingMs"
+]);
+
 // self/vendor/reploid/config/transport-defaults.json
 var transport_defaults_default = {
   DEFAULT_SIGNAL_POLL_TIMEOUT_MS: 5e3,

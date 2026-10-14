@@ -11,8 +11,9 @@ import {
   BROWSER_BUNDLE_DESCRIPTOR_PATH,
   validateBrowserBundleManifest
 } from '../self/pool/browser-release-identity.js';
-import { toBrowserSourcePath, toCanonicalBrowserPath, toPosix } from './browser-tree-paths.js';
+import { toBrowserSourcePath, toCanonicalBrowserPath } from './browser-tree-paths.js';
 import { createModuleMetadataResolver } from './module-metadata.js';
+import { buildHostingFileSet } from './hosting-file-set.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -77,14 +78,13 @@ async function main() {
   const allRelSet = new Set(allRelFiles);
 
   const browserBundleManifest = JSON.parse(await fs.readFile(BROWSER_BUNDLE_MANIFEST_PATH, 'utf8'));
-  const browserBundleEntries = await Promise.all(allFiles
-    .filter((file) => toPosix(path.relative(SELF_DIR, file)) !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
-    .filter((file) => !toPosix(path.relative(SELF_DIR, file)).split('/').some((segment) => (
-      segment.startsWith('.') || segment === 'node_modules'
-    )))
+  // Served and VFS files come from the same selection the manifest builders use.
+  const hostingFiles = await buildHostingFileSet({ selfDir: SELF_DIR });
+  const browserBundleEntries = await Promise.all(hostingFiles
+    .filter((file) => file !== BROWSER_BUNDLE_DESCRIPTOR_PATH)
     .map(async (file) => ({
-      path: toPosix(path.relative(SELF_DIR, file)),
-      bytes: new Uint8Array(await fs.readFile(file))
+      path: file,
+      bytes: new Uint8Array(await fs.readFile(path.join(SELF_DIR, file)))
     })));
   const browserBundleValidation = await validateBrowserBundleManifest(browserBundleManifest, {
     entries: browserBundleEntries
@@ -97,13 +97,15 @@ async function main() {
   const manifestFiles = Array.isArray(manifest.files) ? manifest.files : [];
   const manifestSet = new Set(manifestFiles);
 
-  for (const file of allRelSet) {
+  const expectedVfsSet = new Set(hostingFiles.map(toCanonicalBrowserPath));
+  expectedVfsSet.add(toCanonicalBrowserPath(path.relative(SELF_DIR, MANIFEST_PATH)));
+  for (const file of expectedVfsSet) {
     if (!manifestSet.has(file)) {
       errors.push(`VFS manifest missing: ${file}`);
     }
   }
   for (const file of manifestSet) {
-    if (!allRelSet.has(file)) {
+    if (!expectedVfsSet.has(file)) {
       errors.push(`VFS manifest has extra entry: ${file}`);
     }
   }

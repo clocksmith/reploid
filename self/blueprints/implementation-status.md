@@ -17,6 +17,6 @@ See [`canonical-inventory.md`](canonical-inventory.md) for every canonical ID an
 ```bash
 npm run build:blueprints
 npm run build:genesis
-npm run verify:blueprints
+npm run verify:registry
 npm run test:unit
 ```
