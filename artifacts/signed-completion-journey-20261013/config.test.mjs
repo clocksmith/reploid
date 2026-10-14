@@ -54,6 +54,9 @@ rejects('a machine outside the three aliases', config => { config.browsers.stora
 rejects('a route that does not match the split layers', config => { config.freeze.route.pop(); delete config.freeze.nativeArtifacts['intel-host']; }, /stage count must equal splitLayers \+ 1/);
 rejects('two stages on one machine', config => { config.freeze.route[2].machine = 'amd-host'; }, /distinct machine/);
 rejects('a native stage 0', config => { config.freeze.route[0] = { ...config.freeze.route[1], index: 0, machine: 'mac-host', participantId: 'peer:' + '0'.repeat(24) }; }, /stage 0 coordinator/);
+rejects('a CDP requester that cannot create separate profiles', config => {
+  config.browsers.requester.connect = { kind: 'cdp', endpoint: 'http://127.0.0.1:29691' };
+}, /requester\.connect\.kind: must be launch: independent requesters need separate user data directories/);
 rejects('a launched coordinator', config => { config.browsers.coordinator.connect = { kind: 'launch', channel: 'chrome', headless: true, remoteDebuggingPort: 29690 }; }, /must be cdp/);
 rejects('an acquirer on the sharer machine', config => { config.browsers.storageAcquirer.machine = 'mac-host'; }, /another computer/);
 rejects('a browser loss target', config => { config.contributorControl.lossTarget = 'mac-host'; }, /native stage machine/);

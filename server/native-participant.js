@@ -475,9 +475,46 @@ export function createNativeShutdown(participant, gpuHost) {
   })();
 }
 
+/** Reads the private room capability once from an operator file. The path must be absolute and
+ * name a regular file owned by the current user with mode 0600. The final path component is
+ * opened without following a symbolic link and the open descriptor is checked before it is read.
+ * One trailing newline (LF or CRLF) is removed; the token is otherwise unchanged. */
+export async function readNativeRoomTokenFile(file, { uid = process.getuid?.() } = {}) {
+  requireValue(typeof file === 'string' && path.isAbsolute(file), '--room-token-file requires an absolute path');
+  requireValue(Number.isSafeInteger(uid), '--room-token-file requires a POSIX host that reports the current user id');
+  let handle;
+  try { handle = await fs.open(file, fs.constants.O_RDONLY | fs.constants.O_NOFOLLOW | fs.constants.O_NONBLOCK); }
+  catch (error) {
+    const reason = error.code === 'ENOENT' ? 'does not exist'
+      : error.code === 'ELOOP' ? 'is a symbolic link, not a regular file' : `cannot be opened (${error.code || error.message})`;
+    throw new Error(`--room-token-file ${reason}: ${file}`);
+  }
+  try {
+    const stat = await handle.stat();
+    requireValue(stat.isFile(), `--room-token-file must be a regular file: ${file}`);
+    requireValue(stat.uid === uid, `--room-token-file must be owned by the current user (uid ${uid}), not uid ${stat.uid}: ${file}`);
+    const mode = stat.mode & 0o7777;
+    requireValue(mode === 0o600, `--room-token-file must have mode 0600 (owner read/write only), not ${mode.toString(8).padStart(4, '0')}: ${file}`);
+    const token = (await handle.readFile('utf8')).replace(/\r?\n$/, '');
+    requireValue(token.length > 0, `--room-token-file is empty: ${file}`);
+    return token;
+  } finally { await handle.close(); }
+}
+
+/** One source for the room capability. The value then follows the same path as --room-token
+ * (createRoomIntroductionAdmission and the signaling join), so it is validated identically.
+ * --room-token remains for compatibility; it exposes the token in process arguments. */
+export async function resolveNativeRoomToken(values, { warn = message => console.error(message), uid } = {}) {
+  const inline = values['room-token'], file = values['room-token-file'];
+  requireValue(inline === undefined || file === undefined, 'Choose either --room-token or --room-token-file, not both');
+  if (file !== undefined) return readNativeRoomTokenFile(file, { uid });
+  if (inline !== undefined) warn('Warning: --room-token exposes the room token in process arguments; use --room-token-file');
+  return inline;
+}
+
 async function main() {
   const { values } = parseArgs({ options: Object.fromEntries(['model', 'model-directory', 'identity-file', 'rtc-module',
-    'ws-module', 'gpu-module', 'ordered-config', 'signaling-url', 'room', 'room-token', 'origin', 'cache-directory'].map(key => [key, { type: 'string' }]).concat([
+    'ws-module', 'gpu-module', 'ordered-config', 'signaling-url', 'room', 'room-token', 'room-token-file', 'origin', 'cache-directory'].map(key => [key, { type: 'string' }]).concat([
       ['help', { type: 'boolean', default: false }], ['canonical', { type: 'boolean', default: false }], ['share-files', { type: 'boolean', default: false }], ['contribute', { type: 'boolean', default: false }], ['connect-only', { type: 'boolean', default: false }]])) });
   if (values.help) {
     console.log(`Reploid native participant (Node 22.13 or newer)
@@ -486,9 +523,14 @@ Usage: reploid-participant --connect-only|--share-files|--contribute
   --identity-file <private state/identity.json>
   --rtc-module @roamhq/wrtc --ws-module ws [--gpu-module webgpu]
   [--cache-directory <verified piece cache>] [--signaling-url <ws(s) URL>]
-  [--room <namespace>] [--room-token <join marker>] [--origin <allowed origin>]
+  [--room <namespace>] [--room-token-file <absolute path>] [--origin <allowed origin>]
   [--ordered-config <absolute JSON path>] (explicit stage assignment and ordered limits)
   [--canonical] (requires explicit catalog generation and a capable installed runtime)
+
+--room-token-file reads the private room token once at startup from a regular
+file owned by this user with mode 0600; one trailing newline is removed.
+--room-token <join marker> still works but exposes the token in process
+arguments and prints a warning; it cannot be combined with --room-token-file.
 
 File sharing and compute are separate explicit choices; both may be enabled.
 Compute requires --gpu-module. Missing assigned pieces use authenticated peers.
@@ -499,6 +541,8 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
   requireValue(values.contribute || values['share-files'] || values['connect-only'], 'Choose --contribute, --share-files or --connect-only explicitly');
   if (values.contribute) requireValue(values['gpu-module'], '--gpu-module is required for compute');
   for (const name of ['model', 'model-directory', 'identity-file', 'rtc-module', 'ws-module']) requireValue(values[name], '--' + name + ' is required');
+  // Before identity, module or connection side effects; read once.
+  const roomToken = await resolveNativeRoomToken(values);
   let ordered = null;
   if (values['ordered-config']) {
     requireValue(!values.canonical && path.isAbsolute(values['ordered-config']), 'Ordered config requires an absolute file path and ordinary execution');
@@ -526,7 +570,7 @@ Native GPU execution is qualified on Linux/Vulkan only; --help opens no provider
   const gpuHost = createNativeGpuHost(() => importModule(values['gpu-module']));
   const participant = await createNativeParticipant({ model, modelDirectory: values['model-directory'], identity, rtc,
     WebSocket: HostWebSocket, signalingUrl: values['signaling-url'] || bootstrap.signalingUrl,
-    roomId: values.room || bootstrap.publicRoomId, roomToken: values['room-token'] || bootstrap.publicJoinMarker,
+    roomId: values.room || bootstrap.publicRoomId, roomToken: roomToken || bootstrap.publicJoinMarker,
     cacheDirectory: values['cache-directory'] || path.join(path.dirname(identityFile), 'model-cache'),
     ordered, canonical: values.canonical ? { epochDirectory: path.join(path.dirname(identityFile), 'canonical-epochs',
       createHash('sha256').update(values.room || bootstrap.publicRoomId).digest('hex')) } : null,

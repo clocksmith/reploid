@@ -103,11 +103,12 @@ export function journeyReport(fixture) {
     streamSamples, copy: { messageId: 'r-a1', clipboardText: firstAnswer },
     beforeReload: observed, restoredState: structuredClone(observed), restoration: { draft: fixture.draft },
     returnSamples: [0, 1].map(() => ({ runningIds: [], history: structuredClone(projection) })), returnObservationMs: 3000,
+    // Independent requesters are separate browser profiles (README, "Contract decision").
     concurrency: { servedLimit: 2, pairedSamples: [{ at: SENT, statuses: ['executing', 'queued'] }, { at: SENT, statuses: ['executing', 'executing'] }], tabs: [
-      { role: 'cancel', instanceId: 'instance-a', requesterPeerId: PEERS.tabA, attemptId: 'ac', threadId: 'tc', contentAtStop: count(7),
-        final: cancelThread, samples: [{ status: 'executing' }, { status: 'cancelling' }, { status: 'cancelled' }], custodyAfter: custody() },
-      { role: 'survivor', instanceId: 'instance-b', requesterPeerId: PEERS.tabB, attemptId: 'as', threadId: 'ts', final: survivorThread,
-        samples: [{ status: 'executing' }, { status: 'completed' }], streamSamples: tabSamples, custodyAfter: custody() }] },
+      { role: 'cancel', profile: 'concurrent-0', profileDirectory: 'reploid-journey-profile-aaaaaa', requesterPeerId: PEERS.tabA, attemptId: 'ac', threadId: 'tc',
+        contentAtStop: count(7), final: cancelThread, samples: [{ status: 'executing' }, { status: 'cancelling' }, { status: 'cancelled' }], custodyAfter: custody() },
+      { role: 'survivor', profile: 'concurrent-1', profileDirectory: 'reploid-journey-profile-bbbbbb', requesterPeerId: PEERS.tabB, attemptId: 'as', threadId: 'ts',
+        final: survivorThread, samples: [{ status: 'executing' }, { status: 'completed' }], streamSamples: tabSamples, custodyAfter: custody() }] },
     retry: { failedAttemptId: 'af', contentBeforeFailure: count(8), failed: failedThread, final: finalRetry, custodyAfter: custody(),
       returnSamples: [0, 1].map(() => ({ runningIds: [], attemptCount: 1 })) },
     coordinator: { receipts: [receipt({ attemptId: 'ac', phase: 'cancelled' }), receipt({ attemptId: 'af', phase: 'cancelled' }), receipt({ attemptId: 'a1' })] },
@@ -144,6 +145,7 @@ export function lossReport(fixture) {
   };
 }
 
+const REFUSAL = 'Another tab owns this peer connection'; // self/host/work-peer-offers.js:21
 const piece = digit => ({ path: `piece-${String(digit).repeat(64)}.bin`, role: 'model-weights', sizeBytes: 4194304, hashAlgorithm: 'sha256', hash: String(digit).repeat(64) });
 const metadata = [{ path: 'manifest.json', role: 'model-manifest', sizeBytes: 214203, hashAlgorithm: 'sha256', hash: '7'.repeat(64) }];
 const MiB = 1048576;
@@ -164,19 +166,34 @@ export function contributionReport() {
     peer: { supplier: { machine: 'mac-host', transportId: 'transport-sharer', suppliedBytesBefore: 0, suppliedBytesAfter: 4194304 },
       acquirer: { machine: 'intel-host', weightRequests: [], receipts: [{ transferId: 'x1', source: 'peer', receivedBytes: 4194304, reservedBytes: 4194304,
         attempts: [{ peerId: 'transport-sharer', status: 'accepted' }], completed: [{ artifactId: piece(8).path, hash: 'sha256:' + piece(8).hash, sizeBytes: 4194304 }] }] } },
-    reload: { before: { offered: [piece(8)], budget: budget(4442765) },
+    reload: { tab: 'supplier-cached', profilePages: 1, before: { offered: [piece(8)], budget: budget(4442765) },
       after: { mode: 'cached-only', offered: [piece(8)], budget: budget(4442765), requests: [] } },
-    contention: { allowanceBytes: 5 * MiB, ledgerBefore: null, ledgerAfter: budget(4691226),
-      tabs: [{ instanceId: 'c0', budget: budget(4691226), outcome: { sharing: true, error: '' },
-        transfers: [{ key: 'manifest', bytes: 214203 }, { key: 'index', bytes: 34258 }, { key: 'piece-0', bytes: 4194304 }] },
-      { instanceId: 'c1', budget: budget(4691226), outcome: { sharing: false, error: 'No verified model pieces are available within the approved allowance' },
-        transfers: [{ key: 'manifest', bytes: 214203 }, { key: 'index', bytes: 34258 }] }] },
-    interruption: { ledgerBefore: null, ledgerFinal: budget(12831373, 13 * MiB),
+    // Two tabs of one profile: the owner acquires, the second is refused by the single-owner lock.
+    contention: { allowanceBytes: 5 * MiB, ledgerBefore: null, ledgerSamples: [budget(214203), budget(4442765)], ledgerAfter: budget(4442765),
+      owner: { name: 'contention-0', profile: 'contention', consumerPeerId: PEERS.tabA, budget: budget(4442765), outcome: { sharing: true, error: '' },
+        transfers: [{ key: 'manifest', bytes: 214203, finished: true }, { key: 'index', bytes: 34258, finished: true }, { key: 'piece-0', bytes: 4194304, finished: true }] },
+      second: { name: 'contention-1', profile: 'contention', refusal: REFUSAL, ledgerAfter: budget(4442765), transfers: [],
+        fileAttempt: { clickedAt: '2026-10-13T12:00:02.000Z', harnessError: null },
+        samples: [{ phase: 'opened', error: null }, { phase: 'opened', error: REFUSAL }, { phase: 'after-start', error: REFUSAL }, { phase: 'after-acquisition', error: REFUSAL }]
+          .map(row => ({ at: '2026-10-13T12:00:01.000Z', consumerPeerId: null, custodyOwner: false, filesSharing: false, filesPreparing: false, ...row })) } },
+    // A 4 MiB piece aborted by the reload, charged when interrupted and again when resumed.
+    interruption: { minimumInFlightBytes: MiB, ledgerBefore: null, ledgerFinal: budget(12831373, 13 * MiB), reloadAt: '2026-10-13T12:00:03.010Z',
+      inFlightAtReload: { key: 'piece-1', bytes: 4194304, weight: true, startedAt: '2026-10-13T12:00:03.000Z', outcome: 'aborted',
+        failure: 'net::ERR_ABORTED', finishedAt: '2026-10-13T12:00:03.020Z' },
       completedBefore: [{ key: 'manifest', bytes: 214203 }, { key: 'index', bytes: 34258 }, { key: 'piece-0', bytes: 4194304 }],
+      completedDuringInterruption: [], unattributed: [],
       interrupted: [{ key: 'piece-1', bytes: 4194304 }], resumed: [{ key: 'piece-1', bytes: 4194304, finished: true }],
       final: { sharing: true, error: '', offered: [piece(8), piece(9)] } },
-    cachedOnly: { mode: 'cached-only', files: { mode: 'cached-only', sharing: true, pending: 0 }, requests: [], receiptsBefore: 0, receiptsAfter: 0,
-      budgetBefore: budget(4442765), budgetAfter: budget(4442765) },
+    // One tab of the sharer profile at a time: the sharer tab closed, then the next tab connected normally.
+    cachedOnly: { mode: 'cached-only',
+      sharer: { name: 'supplier-main', peerId: PEERS.tabA, offered: [...metadata, piece(8)], budget: budget(4442765), closedAt: '2026-10-13T12:01:00.000Z' },
+      tab: { name: 'supplier-cached', openedAt: '2026-10-13T12:01:00.100Z', profilePages: 1, lockSamples: [
+        { at: '2026-10-13T12:01:01.000Z', consumerPeerId: null, error: null, custodyOwner: false, filesSharing: false, filesPreparing: false },
+        { at: '2026-10-13T12:01:02.000Z', consumerPeerId: PEERS.tabA, error: null, custodyOwner: true, filesSharing: false, filesPreparing: false }] },
+      files: { mode: 'cached-only', sharing: true, pending: 0 }, offered: [...metadata, piece(8)], requests: [], receiptsBefore: 0, receiptsAfter: 0,
+      budgetBefore: budget(4442765), budgetAfter: budget(4442765), observationMs: 3000,
+      samples: [0, 1, 2].map(index => ({ at: `2026-10-13T12:01:0${5 + index}.000Z`, pending: 0, preparing: false, sharing: true })),
+      window: { openedAt: '2026-10-13T12:01:00.100Z', startedAt: '2026-10-13T12:01:03.000Z', outcomeAt: '2026-10-13T12:01:04.000Z', endedAt: '2026-10-13T12:01:07.100Z' } },
     stop: { inFlightAtStop: { filesPreparing: true, pendingRequests: 1 }, budgetBefore: budget(4442765), budgetAfter: budget(4442765),
       filesAfter: { sharing: false, preparing: false, stopping: false, pending: 0 }, requestsAfterSettled: 0,
       stopClickedAt: '2026-10-13T12:00:05.000Z', chat: { attemptId: 'ax', final: stopChat,

@@ -1,8 +1,43 @@
 # Signed completion journey harness
 
-Acceptance tooling for the installed signed application on the frozen ordered three-stage route (`doppler.layer-partition-contract/v3`, split layers 8 and 16): `mac-host` browser contributor at stage 0, `amd-host` native contributor at stage 1, `intel-host` native contributor at stage 2. A requester browser chooses the model and sends; Reploid selects the route. No physical journey has run. Only the unit tests below were executed.
+Acceptance tooling for the installed signed application on the frozen ordered three-stage route (`doppler.layer-partition-contract/v3`, split layers 8 and 16): `mac-host` browser contributor at stage 0, `amd-host` native contributor at stage 1, `intel-host` native contributor at stage 2. A requester browser chooses the model and sends; Reploid selects the route. Physical runs 1 and 2 are recorded in `run-1/` and `run-2/` (start with `run-2/harness-results.json`). The run-2 fixes described below were verified by unit tests only; no browser, server, GPU, contributor or SSH session was started for them.
 
-Component: acceptance tooling. Intent: preserved. Acceptance evidence: `node --test` over this folder ([unit-tests.txt](unit-tests.txt)). Boundary effects: none. No application source, precedent artifact or other folder was modified.
+Component: acceptance tooling. Intent: preserved, with one recorded contract decision (below). Acceptance evidence: `node --test` over this folder ([unit-tests.txt](unit-tests.txt)). Boundary effects: `server/native-participant.js` gained `--room-token-file` (see "Native contributor launch"); no other application source and no `run-1/` or `run-2/` evidence was modified.
+
+---
+
+## Contract decision: one connected tab per browser profile
+
+Decided after run 2. On the product route a browser profile connects from one tab at a time. This is the intended contract: one peer identity must not be connected twice, and the single owner is also what keeps a profile's allowance from being double spent.
+
+| Code | What it does |
+|------|--------------|
+| `self/host/work-swarm.js:165` | `connectOnce` calls `peerOffers.acquire()` before it builds the consumer, custody and partition owners |
+| `self/host/work-peer-offers.js:16-21` | `acquire` reads the one stored peer id for the room and requests Web Lock `reploid:tool-peer:<id>` with `ifAvailable`; a second tab is rejected with `Another tab owns this peer connection` |
+| `self/kernel/boot.js:160` | The only assignment of a per-tab instance (`REPLOID_INSTANCE_ID`). The product route never runs it, so storage is unscoped and `getCurrentReploidInstanceId()` is null (`self/instance.js:156-160`) |
+
+Run-2 observation: `run-2/bringup/probe-second-tab.json` (second tab: no consumer peer, no custody owner, that exact error).
+
+Consequences for this harness:
+
+- REP-7 and REP-4 concurrency (bounded concurrent requests, isolated cancellation) is accepted through independent requesters: separate browser profiles, each a new user data directory with its own peer identity, running at the same time against the same route. Every earlier strictness stays: each conversation's own answer, history and cleanup; one cancelled while the others complete unaffected.
+- `concurrency` no longer reads a per-tab instance id (always null on the product route, formerly `observe.mjs:72`). It requires distinct profiles and profile directories, distinct requester peer identities, and distinct `identity.requesterId` on the concurrent attempts.
+- `competingTabs` opens two tabs of ONE profile. The second must be refused with exactly `Another tab owns this peer connection` and must never show a consumer identity or custody owner. The profile ledger must stay within its allowance, charge exactly the observed transfers, and complete no transfer twice. A second tab that connects, or any overspend, fails.
+- The explicit-retry tab is its own profile, because a new tab of the already connected requester profile is refused.
+- `cachedOnly` and `reloadPreserved` use the sharer profile one tab at a time. The sharer tab is closed first; the next tab of that profile must connect normally (lock released, never refused) and becomes the profile's only tab for cached-only mode and then for the reload. A step that opens a second concurrent tab of the sharer profile fails.
+
+---
+
+## Changes after run 2
+
+| Run-2 defect | Change |
+|--------------|--------|
+| H1: `chooseOrderedModel` selected in the hidden model select | `harness.mjs` opens the closed thread rail through the application's "Choose model" control (`[data-open-model]`, `conversation-workspace.js:21,103-104`) and fails with a named message if that control is absent or ambiguous, or the select stays hidden |
+| H2: same-profile tabs treated as independent requesters | Contract decision above; `openRequesterProfile` in `harness.mjs` launches each requester with its own user data directory; `config.mjs` requires `browsers.requester.connect.kind` `launch` |
+| H3: reload after the 64- and 512-byte pieces had already finished | The reload is issued from the request event of the first weight piece of at least 1 MiB (`MIN_INTERRUPTED_PIECE_BYTES`), with no observation round trip in between. `interruptedResume` requires that piece to be aborted or unsettled by the reload, and the ledger to charge exactly the observed transfers |
+| F1: room token on the native command line | `--room-token-file` (see "Native contributor launch") |
+
+`cachedOnly` (decided after run 2, same contract): run 2's step opened a second tab of the connected sharer profile and was refused ("Custody owner deadline"). The step now closes the sharer tab, records its verified inventory, ledger and peer identity, opens one new tab of the same profile, waits until it connects with a custody owner and no refusal, and only then selects cached-only mode in it. It requires zero model-file requests over that tab's whole lifetime through a frozen quiet window after the outcome (`contribution.json` `cachedOnlyObservationMs`), and an inventory made only of, and restoring every one of, the pieces verified before the sharer tab closed. Same-profile evidence is the ledger: the new tab must read the closed sharer tab's ledger unchanged. Peer identities are recorded, not asserted.
 
 ---
 
@@ -12,15 +47,15 @@ Component: acceptance tooling. Intent: preserved. Acceptance evidence: `node --t
 |------|-----|
 | `config.mjs` | Loads the one JSON config, rejects missing/unknown keys, non-loopback URLs, private addresses and unfilled placeholders; validates the room file |
 | `config.example.json` | Template with every key; its `REPLACE` values fail validation until filled |
-| `harness.mjs` | Browser launch/CDP connection, request tracking, waits and every UI action, each tied to a `self/ui` selector |
-| `observe.mjs` | Read-only CDP observation of host owners, adapted from the precedent observer; request classifier |
+| `harness.mjs` | Browser launch/CDP connection, independent requester profiles, request tracking and watchers, the interruption classifier, waits and every UI action, each tied to a `self/ui` selector |
+| `observe.mjs` | Read-only CDP observation of host owners (including whether a tab owns its profile's connection), adapted from the precedent observer; request classifier |
 | `checks.mjs` | Requester journey checks, generalized from the precedent `checks.mjs` to N ordered stages |
 | `loss-checks.mjs` | Contributor-loss checks |
 | `contribution-checks.mjs` | Launch 2 storage checks (a) to (f), each a separate result |
 | `timing.mjs` | Per-answer timing record and its validator |
-| `run-requester.mjs`, `run-contributor-loss.mjs`, `run-contribution.mjs` | The three physical runners (unrun) |
+| `run-requester.mjs`, `run-contributor-loss.mjs`, `run-contribution.mjs` | The three physical runners (runs 1 and 2 recorded; not run since the run-2 fixes) |
 | `journey.json`, `contributor-loss.json`, `contribution.json` | Frozen prompts, observation windows and review criteria |
-| `test-fixtures.mjs`, `*.test.mjs` | Fixtures in the ordered shape and unit tests |
+| `test-fixtures.mjs`, `*.test.mjs` | Fixtures in the ordered shape and unit tests; `harness.test.mjs` drives model choice through a fake page and the interruption classifier through tracker-shaped rows |
 
 ---
 
@@ -29,13 +64,13 @@ Component: acceptance tooling. Intent: preserved. Acceptance evidence: `node --t
 ### Requester journey (`run-requester.mjs`)
 
 1. **Open.** Verifies the served `bundleHash` equals the frozen browser bundle, opens the loopback origin with the private room, and records the app's own `getOrderedParticipation` result for this instance (must be ordered mode with `stage: null`). "Install" is the operator's installation of the signed export; the product route has no in-app install control (`self/index.html:125-147` releases service workers).
-2. **Model choice.** Selects the frozen ordered selection `<modelId>/partition/<planId>` in the model control and waits for the ready activity.
+2. **Model choice.** Opens the thread rail with the application's "Choose model" control, selects the frozen ordered selection `<modelId>/partition/<planId>` in the model control and waits for the ready activity. An absent control fails with a named message.
 3. **Recipient approval.** Send is the authorization (`self/ui/pool-home/CATSCAN.md:28-30`, `self/host/chat-session.js:227-229`). Each attempt's stored `authorization` must be `source: 'send'`, disclose `ordered-partition-activations-and-tokens`, name exactly the frozen route, and equal the route the attempt executed.
 4. **Two turns.** Streams the first answer (visible incomplete prefix required), copies it with the real Copy control, sends the history-aware follow-up in the same thread (actual first answer verbatim in the second request).
 5. **Reload.** Saves an unsent draft, reloads, selects the thread, and observes for the fixture window that history, draft and running attempts are unchanged.
-6. **Concurrent independent tabs.** Opens `concurrency.tabs` new tabs (each its own instance and requester identity, `self/instance.js:126-153`), sends in all, requires a sample where all execute simultaneously, then presses Stop in one. The stopped attempt must be a requester cancellation with its partial text, settled on every stage by the coordinator; every neighbour must complete its exact count with EOS and settled cleanup.
-7. **Explicit retry after a failure.** Reloads a tab mid-answer (the workspace marks it interrupted, `packages/reploid/src/chat/workspace.js:45-49`), observes no redispatch, clicks Retry, and requires exactly one new attempt with `retryOf`, fresh Send authorization, completion, and unchanged earlier messages.
-8. **Selective acquisition.** Every requester tab is tracked context-wide: zero weight HTTP requests and empty custody before, after, after reload, in every concurrent tab and in the retry tab.
+6. **Concurrent independent requesters.** Launches `concurrency.tabs` separate browser profiles (each a new user data directory, so its own storage and peer identity; see "Contract decision"), sends in all at the same time against the same route, requires a sample where all execute simultaneously, then presses Stop in one. The stopped attempt must be a requester cancellation with its partial text, settled on every stage by the coordinator; every neighbour must complete its exact count with EOS and settled cleanup.
+7. **Explicit retry after a failure.** In its own profile, reloads the tab mid-answer (the workspace marks it interrupted, `packages/reploid/src/chat/workspace.js:45-49`), observes no redispatch, clicks Retry, and requires exactly one new attempt with `retryOf`, fresh Send authorization, completion, and unchanged earlier messages.
+8. **Selective acquisition.** Every requester profile is tracked context-wide: zero weight HTTP requests and empty custody before, after, after reload, in every concurrent requester and in the retry requester. Profile directories are removed when the run closes.
 
 ### Contributor loss (`run-contributor-loss.mjs`)
 
@@ -47,11 +82,11 @@ Streams a long count, then calls the configured `stop` export for `contributorCo
 |------|--------|------------------|
 | (a) | `sharedWhileChatting` | Bounded acquisition started while the participant's own ordered answer streams; offered verified pieces within the allowance; overlap; the answer completes |
 | (b) | `peerAcquisition` | Acquirer on another machine waits for the sharer's offer, acquires; receipts show accepted chunks from the sharer's custody identity, zero acquirer weight HTTP requests, sharer supply accounting covers the bytes |
-| (e) | `cachedOnly` | New tab on the sharer origin in cached-only mode: zero model-file requests, no new receipts, ledger unchanged, nothing pending |
-| (c) | `reloadPreserved` | Sharer reload, cached-only restart: offered pieces are a superset of the pre-reload inventory; ledger cap equal, consumption not reset; zero requests |
+| (e) | `cachedOnly` | Sharer tab closed first; the next tab of the same profile must connect normally (no single-owner refusal, custody owner present) and is the profile's only open tab; cached-only mode in it: zero model-file requests over the tab's whole lifetime and the frozen quiet window, no new receipts, the sharer's ledger unchanged, nothing pending, inventory only from (and restoring all of) the sharer's verified pieces |
+| (c) | `reloadPreserved` | Reload of the sharer profile's only tab (the cached-only tab from (e)), cached-only restart: offered pieces are a superset of the pre-reload inventory; ledger cap equal, consumption not reset; zero requests; no other tab of the profile open |
 | (f) | `stopSettles` | Fresh context: answer streaming, bounded acquisition in flight, Stop sharing; files settle (not sharing/preparing/stopping, nothing pending), charges retained, no later requests, answer completes uncancelled |
-| (d) | `competingTabs` | Fresh context, two tabs start at once on one origin ledger: no overspend, every observed transfer charged, one cap |
-| (d) | `interruptedResume` | Fresh context: reload while a second piece transfers; resume never re-downloads completed transfers; the interrupted transfer is re-acquired or excluded by the remaining allowance; every transfer charged |
+| (d) | `competingTabs` | Fresh context, two tabs of one profile press the file control at once: the second is refused by the single-owner lock (exact text recorded, never a consumer identity or custody owner, no transfer); the profile ledger keeps one cap, never exceeds it, charges exactly the observed transfers and completes none twice |
+| (d) | `interruptedResume` | Fresh context: reload issued from the request event of the first weight piece of at least 1 MiB; that piece must be aborted or unsettled by the reload; resume never re-downloads completed transfers; the interrupted transfer is re-acquired or excluded by the remaining allowance; the ledger charges exactly the observed transfers (no double charge) |
 
 Offers from this run are withdrawn before (f) and (d) so their transfers are observable over HTTP. Peer transfers are also counted from custody receipts.
 
@@ -84,7 +119,24 @@ node artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs /abs/
 node artifacts/signed-completion-journey-20261013/run-contribution.mjs /abs/journey-config.json
 ```
 
-Prerequisites the harness does not create: the installed signed export served at each loopback origin; the operator's stage assignment (stage 0 in the Mac browser instance's `reploid.ordered-stage.v1`, natives with `--ordered-config`); a running stage 0 browser reachable over a loopback CDP endpoint; remote browsers forwarded to loopback ports; native file sharing off during (d) and (f). Each run writes a new timestamped report in `reportDirectory` (`wx`, never overwritten); the room token and private addresses are redacted before every write. `report.ok` is true only when the run finished and every automated check passed. `manualReview.answerUsefulness` stays `null` for independent review.
+Prerequisites the harness does not create: the installed signed export served at each loopback origin; the operator's stage assignment (stage 0 in the Mac browser instance's `reploid.ordered-stage.v1`, natives with `--ordered-config`); natives launched with `--room-token-file` (below); a running stage 0 browser reachable over a loopback CDP endpoint; remote browsers forwarded to loopback ports; native file sharing off during (d) and (f).
+
+### Native contributor launch
+
+The room token reaches each native contributor through `--room-token-file`, never through process arguments or the service journal. On each native host, write the token from the private room file into an owner-only file, then pass its absolute path:
+
+```sh
+umask 077   # the token file is created with mode 0600
+node -e 'process.stdout.write(JSON.parse(require("fs").readFileSync(process.argv[1], "utf8")).token)' \
+  /abs/private-room.json > /abs/room-token
+node server/native-participant.js --contribute --share-files \
+  --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /abs/model --cache-directory /abs/state/cache \
+  --identity-file /abs/state/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu \
+  --origin http://127.0.0.1:<port> --signaling-url ws://127.0.0.1:<port>/swarm \
+  --room <roomId from the room file> --room-token-file /abs/room-token --ordered-config /abs/stage.json
+```
+
+The file must be a regular file owned by the contributor's user with mode 0600; otherwise startup stops before identity, module or network side effects. `--room-token` still works but prints a warning, and the two options cannot be combined. The run-1 and run-2 launch scripts under `run-*/tools/` are evidence of how those runs were launched and are not updated. Each run writes a new timestamped report in `reportDirectory` (`wx`, never overwritten); the room token and private addresses are redacted before every write. `report.ok` is true only when the run finished and every automated check passed. `manualReview.answerUsefulness` stays `null` for independent review.
 
 ### Configuration schema
 
@@ -101,13 +153,13 @@ All keys are required; unknown keys are rejected; `null` is accepted only for `a
 | `freeze.modelId`, `planSchema`, `splitLayers` | string, v3, increasing ints | Route length must be `splitLayers + 1` |
 | `freeze.nativeArtifacts` | map | Exactly one identity per native stage machine (replaces precedent `run.mjs:14` single `nativeArtifact`) |
 | `freeze.route[]` | `{index, machine, host, participantId[, orderedConfig]}` | Distinct machines and peers; stage 0 is the browser; natives carry an absolute `orderedConfig` passed to the control module |
-| `browsers.requester`, `coordinator`, `storageSupplier`, `storageAcquirer` | `{machine, origin, connect}` | `connect` is `{kind:'launch', channel, headless, remoteDebuggingPort}` or `{kind:'cdp', endpoint}`; coordinator must be `cdp` on the stage 0 machine; acquirer must be another machine than supplier; endpoints distinct |
+| `browsers.requester`, `coordinator`, `storageSupplier`, `storageAcquirer` | `{machine, origin, connect}` | `connect` is `{kind:'launch', channel, headless, remoteDebuggingPort}` or `{kind:'cdp', endpoint}`; requester must be `launch` (each independent requester is a new user data directory; only the first uses `remoteDebuggingPort`); coordinator must be `cdp` on the stage 0 machine; acquirer must be another machine than supplier; endpoints distinct |
 | `contributorControl` | `{module, stopExport, restoreExport, lossTarget}` | Absolute module; `lossTarget` is a native route machine |
 | `timeouts` | `readyMs, answerMs, lossReportMs, capacityReturnMs, transferMs, settlementMs` | Positive ms; `answerMs` replaces the precedent's fixed 180000 (`run.mjs:58`) |
 | `observation.pollMs` | int 1..1000 | Sampling interval |
-| `concurrency.tabs` | int 2..8 | Also checked against the served `limits.maxConcurrentAttempts` |
+| `concurrency.tabs` | int 2..8 | Number of concurrent independent requester profiles; also checked against the served `limits.maxConcurrentAttempts` |
 | `modelFiles.pathPatterns` | path-only regex list | Adds model-file classes; the precedent weight regex always applies |
-| `storage.sharingAllowanceMiB`, `stopAllowanceMiB`, `contentionAllowanceMiB`, `interruptionAllowanceMiB` | int MiB | Ledgers are immutable per origin (`work-model-files.js:355`). Interruption must fit metadata plus three 4 MiB pieces (13 MiB for the 0.8B pieces) to show a completed resume |
+| `storage.sharingAllowanceMiB`, `stopAllowanceMiB`, `contentionAllowanceMiB`, `interruptionAllowanceMiB` | int MiB | Ledgers are immutable per origin (`work-model-files.js:355`). Interruption must fit the metadata and small pieces before the first piece of at least 1 MiB plus that piece twice (charged when interrupted and again when resumed) to show a completed resume. Run 2's 0.8B index: 326,877 bytes before a 5,253,248-byte piece, 10,833,373 bytes in total, within 13 MiB |
 
 Control module contract: `stop(stage)` and `restore(stage)` receive `{machine, stage, participantId, orderedConfig, nativeArtifact}` and resolve `{method, stoppedAt|restoredAt, detail?}`. The harness records the method; it never contacts a machine itself.
 
@@ -119,7 +171,8 @@ Control module contract: `stop(stage)` and `restore(stage)` receive `{machine, s
 |-----|------------------|--------|
 | Composer, Send | `[data-composer-input]`, `[data-composer-send]` | `self/ui/pool-home/conversation-workspace.js:50,53,305-333` |
 | Stop (selected thread) | `[data-composer-stop]` | `conversation-workspace.js:54,337` |
-| Model choice and readiness | `[data-active-model-select]`, `[data-model-control][data-activity="ready"]` | `conversation-workspace.js:27,217,270` |
+| Choose model (opens the thread rail) | `[data-open-model]` | `conversation-workspace.js:21,103-104` |
+| Model choice and readiness | `[data-active-model-select]`, `[data-model-control][data-activity="ready"]` | `conversation-workspace.js:17-27,217,270` |
 | Thread rail and items | `[data-toggle-thread-rail]`, `[data-thread-item-id]` | `shell-view.js:41`, `conversation-list.js:12`, `conversation-workspace.js:304` |
 | Message body, Copy, Retry, failure status | `.chat-message-content`, `[data-copy-message]`, `[data-retry-attempt]`, `.chat-message-actions [role=status]` / `details pre` | `message-list.js:10,36-38,63-66`; `conversation-workspace.js:338-347` |
 | Device pane | `[data-toggle-inspector]`, `[data-contextual-inspector]`, `[data-inspector-section="device"]` | `network-inspector.js:12-18,95` |
@@ -127,6 +180,7 @@ Control module contract: `stop(stage)` and `restore(stage)` receive `{machine, s
 | Host session | listener on `[data-toggle-contribution]` closes over `session` | `network-controls.js:163` |
 | Chat state, drafts | `session.getState()`, `getDraft()` | `self/host/chat-session.js:139,180` |
 | Network, contribution, coordinator receipts | `getState().network.contribution.attempts` | `chat-session.js:125`, `work-swarm.js:193`, `automatic-ordered-partitions.js:39` |
+| Profile connection owner, refusal | `getState().network.consumer.peerId`, `network.error`, custody owner presence | `work-swarm.js:162-165,210`, `work-peer-offers.js:16-21` |
 | Custody state, receipts | `swarm` then `modelFiles.getState()/getReceipts()` | `work-swarm.js:317`, `work-model-files.js:70-76,447` |
 | Offered inventory, custody identity | closure `offered`, `identity` of the exchange | `packages/reploid/src/artifacts/custody/exchange.js:2,22` |
 | Ordered participation | `getOrderedParticipation(getCurrentReploidStorage())` | `self/host/product-context.js:11-22`, `self/instance.js:268` |
@@ -173,7 +227,7 @@ From `artifacts/signed-host-opener-20261012/requester-return-control/`:
 - `checks.mjs:28-30` two-device fields become `identity.route.stages`: schema `reploid.mesh.partition-summary/v2`, frozen model and plan, distinct contributors equal to the frozen count, frozen stage order, requester outside the route. Cleanup rows `{partitionIndex,status,error}` must cover each stage once, all `settled` with `error: null`, phase `completed`; every stage reserved and timed every step.
 - `plain-chat.json` criterion 5 now names the frozen ordered route instead of "two distinct contributors".
 - Retained unchanged: two turns, same thread, one new follow-up attempt, natural EOS, verbatim history, visible incomplete prefix, real clipboard, zero weights with non-empty custody evidence, reload history/draft/redispatch window. The READY control mode was not ported. Weight tracking is context-wide instead of first-page only.
-- Unsigned harnesses: the capacity-failover single-tab, localStorage, public-site flow is replaced by host-owner observation of independent loopback tabs; the live-conversation hard-coded ports and approval clicks are replaced by config endpoints and Send authorization.
+- Unsigned harnesses: the capacity-failover single-tab, localStorage, public-site flow is replaced by host-owner observation of independent loopback requester profiles; the live-conversation hard-coded ports and approval clicks are replaced by config endpoints and Send authorization.
 
 ---
 
@@ -201,8 +255,9 @@ Answer usefulness or correctness beyond the frozen counts; numerical accuracy; s
 
 ## Verification performed
 
-- `node --test` over the six test files: see [unit-tests.txt](unit-tests.txt).
+- `node --test` over the seven test files: see [unit-tests.txt](unit-tests.txt).
 - `node --check` on every module.
-- Not run: any runner, browser, server, GPU, contributor, SSH, or the Verification Worker on these files.
+- `--room-token-file`: `tests/unit/native-room-token-file.test.js` (Vitest, `--config tests/vitest.config.js`).
+- Not run: any runner, browser, server, GPU, contributor, SSH, or the Verification Worker on these files. The run-2 fixes are unproven on a physical run.
 
 *Last updated: October 2026*

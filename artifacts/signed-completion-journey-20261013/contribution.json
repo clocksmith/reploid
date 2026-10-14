@@ -3,6 +3,7 @@
   "scope": "Launch 2 optional storage contribution through the existing file controls alongside ordered chat: bounded sharing while chatting, peer acquisition by another computer, reload, competing tabs, interrupted acquisition, cached-only mode and stopping.",
   "chatPrompt": "Count from 1 to 200 in order, one integer per line. No commentary.",
   "chatStartedAfterCharacters": 8,
+  "cachedOnlyObservationMs": 3000,
   "interruption": "reload of the acquiring tab while a model-file transfer is in flight",
   "automaticRetries": 0,
   "codeReferences": {
