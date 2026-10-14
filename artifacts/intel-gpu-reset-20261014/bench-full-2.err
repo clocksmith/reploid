@@ -1,0 +1,22 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
+[609.4ms][Harness] Suite model init: loadMode=file, modelId=qwen-3-5-0-8b-q4k-ehaf16, hasModelUrl=yes
+[612.2ms][TestHarness] Initializing WebGPU...
+[616.1ms][Platform] No specific platform matched for adapter (vendor=intel, arch=gen-12lp), falling back to generic
+[GPU] intel gen-12lp, f16/subgroups, 4.0GB, submit probe: 2.4ms
+[639.1ms][TestHarness] GPU: hasF16=true, hasSubgroups=true
+[639.1ms][TestHarness] Fetching manifest...
+[649.1ms][TestHarness] Model: transformer
+[650.1ms][TestHarness] Creating pipeline...
+[661.0ms][Pipeline] Execution v1 enabled (steps=43, kernelPathInline=yes, pipelineInline=no)
+[661.3ms][Config] Using manifest-first config (source of truth)
+[665.0ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[665.0ms][Pipeline] Vision capable: imageTokenId=248056
+[666.0ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (19 decode steps, 8 kernels, source=execution-v1)
+[666.3ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[666.9ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[937.0ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[1132.9ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[1133.2ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1134.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[1135.9ms][Pipeline] Unloaded

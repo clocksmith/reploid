@@ -1,0 +1,38 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 1000000 to 16 to fit dynamic offset allocation limit.
+[573.6ms][Harness] Suite model init: loadMode=file, modelId=qwen-3-5-0-8b-q4k-ehaf16, hasModelUrl=yes
+[576.1ms][TestHarness] Initializing WebGPU...
+[579.3ms][Platform] No specific platform matched for adapter (vendor=intel, arch=gen-12lp), falling back to generic
+[GPU] intel gen-12lp, f16/subgroups, 4.0GB, submit probe: 2.4ms
+[600.5ms][TestHarness] GPU: hasF16=true, hasSubgroups=true
+[600.5ms][TestHarness] Fetching manifest...
+[611.4ms][TestHarness] Model: transformer
+[612.3ms][TestHarness] Creating pipeline...
+[620.6ms][Pipeline] Execution v1 enabled (steps=43, kernelPathInline=yes, pipelineInline=no)
+[620.8ms][Config] Using manifest-first config (source of truth)
+[624.6ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[624.7ms][Pipeline] Vision capable: imageTokenId=248056
+[625.7ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (19 decode steps, 8 kernels, source=execution-v1)
+[626.0ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[626.6ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[852.2ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[1041.5ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[1041.9ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[1043.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[1048.1ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[1120.9ms][ShardCache] Custom shard loader configured
+[1121.3ms][Loader] Initializing...
+[1212.4ms][HeapManager] Allocated segment 0: 1024MB
+[1212.6ms][HeapManager] Segmented heap: 1GB per segment
+[1212.6ms][HeapManager] Initialized with strategy: SEGMENTED
+[1212.8ms][Loader] Initialized (f16, subgroups)
+[1213.5ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[1239.7ms][Loader] [0.0s] Memory (start): | RSS=215.34 MB (heap=63.51 MB/65.98 MB, external=2.00 GB, arrayBuffers=1.00 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1240.5ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1893.2ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1893.9ms][Loader] Layers: 0-23
+[2537.7ms][Loader] Layers: 24 complete (0.64s)
+[2764.8ms][Loader] Complete: 890.16 MB in 1.52s (584.86 MB/s)
+[2766.1ms][Loader] [1.6s] Memory (complete): | RSS=277.46 MB (heap=65.19 MB/82.23 MB, external=1.03 GB, arrayBuffers=1.03 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[2817.7ms][Pipeline] Model loaded successfully (2203ms)
+[2822.6ms][TestHarness] Pipeline ready
