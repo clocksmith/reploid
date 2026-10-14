@@ -10,8 +10,8 @@ at the end and has not run.
 `main` also produces the Launch 1 candidate. Every mechanism below is off unless the host
 passes an explicit `ordered.orchestration` member. Without one, stages come only from operator
 assignment, routes use first-valid matching in peer-id order, each resident admits by its own
-slots and the existing error codes are unchanged. Each mechanism's commit extends one
-default-off test that pins this.
+slots and the existing error codes are unchanged. Each mechanism's commit extends
+[`launch3-default-off.test.js`](../tests/unit/launch3-default-off.test.js), which pins this.
 
 ## Arrangement
 

@@ -62,6 +62,12 @@ export function createWorkPartitionPlan(runtime, manifest, selected, index = 0) 
   return plan;
 }
 
+/** Launch 3 policy members; each stays off unless the operator configures it. */
+const ORCHESTRATION_POLICIES = Object.freeze({
+  autoStage: value => Number.isSafeInteger(value?.dwellMs) && value.dwellMs >= 0 && Object.keys(value).length === 1
+});
+const isAutoStage = stage => stage?.assignment === 'auto';
+
 /** Snapshot operator-selected geometry and limits before host connection awaits. */
 export function snapshotWorkOrderedParticipation(ordered, canonical, models) {
   if (ordered === null) return null;
@@ -70,7 +76,25 @@ export function snapshotWorkOrderedParticipation(ordered, canonical, models) {
   for (const key of ['maxStages', 'maxStageOffersPerPeer', 'maxRouteBytes', 'maxSelectionSteps', 'maxRoutes']) {
     if (!Number.isSafeInteger(copy[key]) || copy[key] <= 0) throw new Error('Explicit ordered host limit required: ' + key);
   }
-  if (copy.stage !== null) {
+  if (copy.orchestration !== undefined) {
+    const policy = copy.orchestration;
+    if (!policy || typeof policy !== 'object' || Array.isArray(policy)
+      || Object.entries(policy).some(([key, value]) => !Object.hasOwn(ORCHESTRATION_POLICIES, key) || !ORCHESTRATION_POLICIES[key](value))) {
+      throw new Error('Ordered orchestration policy must name known, explicitly bounded mechanisms');
+    }
+  }
+  if (isAutoStage(copy.stage) !== (copy.orchestration?.autoStage !== undefined)) {
+    throw new Error('Automatic ordered stage requires both the operator auto choice and its orchestration policy');
+  }
+  if (isAutoStage(copy.stage)) {
+    // The operator authorizes this contributor's own policy to pick a stage of this model.
+    const stage = copy.stage, selected = models.find(model => model.id === stage.modelId);
+    if (!selected || selected.partitionPlan?.schema !== 'doppler.layer-partition-contract/v3'
+      || selected.partitionPlan.stageCount > copy.maxStages
+      || Object.keys(stage).some(key => !['modelId', 'assignment'].includes(key))) {
+      throw new Error('Ordered host stage requires a matching declared model plan and allocation identity');
+    }
+  } else if (copy.stage !== null) {
     const stage = copy.stage, selected = models.find(model => model.id === stage?.modelId);
     if (!selected || selected.partitionPlan?.schema !== 'doppler.layer-partition-contract/v3'
       || !Number.isSafeInteger(stage.index) || stage.index < 0 || stage.index >= selected.partitionPlan.stageCount
@@ -92,8 +116,12 @@ export function bindWorkOrderedParticipation(options, participantId, transportId
       || configured.transportId !== undefined && configured.transportId !== transportId)) {
     throw new Error('Ordered host identity differs from the authenticated transport');
   }
-  const stage = configured === null ? null : { index: configured.index, participantId, transportId,
+  const stage = configured === null || isAutoStage(configured) ? null : { index: configured.index, participantId, transportId,
     residentId: configured.residentId, executionId: configured.executionId };
-  return { ordered: { stage, maxRouteBytes: options.maxRouteBytes, maxSelectionSteps: options.maxSelectionSteps, maxRoutes: options.maxRoutes },
-    policy: { ...policy, maxStageOffersPerPeer: options.maxStageOffersPerPeer, limits: { ...policy.limits, maxStages: options.maxStages } } };
+  // Absent orchestration keeps the Launch 1 binding unchanged.
+  const orchestration = options.orchestration === undefined ? null : structuredClone(options.orchestration);
+  if (orchestration?.autoStage) orchestration.autoStage = { ...orchestration.autoStage, transportId };
+  return { ordered: { stage, maxRouteBytes: options.maxRouteBytes, maxSelectionSteps: options.maxSelectionSteps, maxRoutes: options.maxRoutes,
+    ...(orchestration ? { orchestration } : {}) },
+  policy: { ...policy, maxStageOffersPerPeer: options.maxStageOffersPerPeer, limits: { ...policy.limits, maxStages: options.maxStages } } };
 }
