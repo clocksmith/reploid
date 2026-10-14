@@ -1,0 +1,4678 @@
+{
+ "schema": "reploid.plain-divergence-capture/v1",
+ "label": "paired-capsule",
+ "startedAt": "2026-10-14T20:50:40.330Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "referenceSha256": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+ "manifestIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "configSha256": "sha256:77f045e99a0fc98e57de71fee5caaf2e1b67903d3c14a9fe5627859551881d82",
+ "request": 2,
+ "captureStep": 15,
+ "steps": [
+  {
+   "step": 0,
+   "maxDifference": 9.465929977636733e-7,
+   "maxDifferenceAt": 1919,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 1,
+   "maxDifference": 9.511217982094422e-7,
+   "maxDifferenceAt": 13,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 2,
+   "maxDifference": 8.68015469279726e-7,
+   "maxDifferenceAt": 40,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 17,
+   "referenceTokenId": 17,
+   "tokenMatches": true
+  },
+  {
+   "step": 3,
+   "maxDifference": 7.162583912645459e-7,
+   "maxDifferenceAt": 13,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 4,
+   "maxDifference": 8.71407298319582e-7,
+   "maxDifferenceAt": 17,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 18,
+   "referenceTokenId": 18,
+   "tokenMatches": true
+  },
+  {
+   "step": 5,
+   "maxDifference": 5.736278545498408e-7,
+   "maxDifferenceAt": 198,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 6,
+   "maxDifference": 7.928766692089084e-7,
+   "maxDifferenceAt": 1076,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 19,
+   "referenceTokenId": 19,
+   "tokenMatches": true
+  },
+  {
+   "step": 7,
+   "maxDifference": 7.735741682779462e-7,
+   "maxDifferenceAt": 271,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 8,
+   "maxDifference": 8.880480919515321e-7,
+   "maxDifferenceAt": 1076,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 20,
+   "referenceTokenId": 20,
+   "tokenMatches": true
+  },
+  {
+   "step": 9,
+   "maxDifference": 7.18186271342347e-7,
+   "maxDifferenceAt": 220,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 10,
+   "maxDifference": 6.088153909900029e-7,
+   "maxDifferenceAt": 1076,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 21,
+   "referenceTokenId": 21,
+   "tokenMatches": true
+  },
+  {
+   "step": 11,
+   "maxDifference": 8.808601243970315e-7,
+   "maxDifferenceAt": 271,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 12,
+   "maxDifference": 7.976590090663649e-7,
+   "maxDifferenceAt": 22,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 22,
+   "referenceTokenId": 22,
+   "tokenMatches": true
+  },
+  {
+   "step": 13,
+   "maxDifference": 9.029354934853018e-7,
+   "maxDifferenceAt": 198,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 14,
+   "maxDifference": 8.974647514037315e-7,
+   "maxDifferenceAt": 220,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 23,
+   "referenceTokenId": 23,
+   "tokenMatches": true
+  },
+  {
+   "step": 15,
+   "maxDifference": 6.479467806741468e-7,
+   "maxDifferenceAt": 248046,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 16,
+   "maxDifference": 9.431464889075869e-7,
+   "maxDifferenceAt": 248069,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 24,
+   "referenceTokenId": 24,
+   "tokenMatches": true
+  },
+  {
+   "step": 17,
+   "maxDifference": 6.020213518809214e-7,
+   "maxDifferenceAt": 248046,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 18,
+   "maxDifference": 4.76104393243304e-7,
+   "maxDifferenceAt": 27733,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 19,
+   "maxDifference": 6.868741131427214e-7,
+   "maxDifferenceAt": 220,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 15,
+   "referenceTokenId": 15,
+   "tokenMatches": true
+  },
+  {
+   "step": 20,
+   "maxDifference": 8.416379735365354e-7,
+   "maxDifferenceAt": 271,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 21,
+   "maxDifference": 4.7671555236661334e-7,
+   "maxDifferenceAt": 4277,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 22,
+   "maxDifference": 7.527730794265608e-7,
+   "maxDifferenceAt": 16,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 23,
+   "maxDifference": 5.66631417342478e-7,
+   "maxDifferenceAt": 271,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 24,
+   "maxDifference": 5.008885572976851e-7,
+   "maxDifferenceAt": 220,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 25,
+   "maxDifference": 7.055716224613207e-7,
+   "maxDifferenceAt": 15,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 17,
+   "referenceTokenId": 17,
+   "tokenMatches": true
+  },
+  {
+   "step": 26,
+   "maxDifference": 4.758145006888981e-7,
+   "maxDifferenceAt": 478,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 27,
+   "maxDifference": 7.735567919553432e-7,
+   "maxDifferenceAt": 1076,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 28,
+   "maxDifference": 7.37632763758711e-7,
+   "maxDifferenceAt": 16,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 18,
+   "referenceTokenId": 18,
+   "tokenMatches": true
+  },
+  {
+   "step": 29,
+   "maxDifference": 7.353005955224035e-7,
+   "maxDifferenceAt": 271,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 30,
+   "maxDifference": 4.943657643252664e-7,
+   "maxDifferenceAt": 16,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 31,
+   "maxDifference": 8.45685566019938e-7,
+   "maxDifferenceAt": 198,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 19,
+   "referenceTokenId": 19,
+   "tokenMatches": true
+  },
+  {
+   "step": 32,
+   "maxDifference": 5.022872180404647e-7,
+   "maxDifferenceAt": 271,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 33,
+   "maxDifference": 4.989301132241053e-7,
+   "maxDifferenceAt": 16,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 34,
+   "maxDifference": 8.834450042627395e-7,
+   "maxDifferenceAt": 21,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 20,
+   "referenceTokenId": 20,
+   "tokenMatches": true
+  },
+  {
+   "step": 35,
+   "maxDifference": 7.852569972044421e-7,
+   "maxDifferenceAt": 271,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 36,
+   "maxDifference": 4.765196788270032e-7,
+   "maxDifferenceAt": 16077,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 37,
+   "maxDifference": 9.196834902525097e-7,
+   "maxDifferenceAt": 20,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 21,
+   "referenceTokenId": 21,
+   "tokenMatches": true
+  },
+  {
+   "step": 38,
+   "maxDifference": 7.017729615199642e-7,
+   "maxDifferenceAt": 198,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 39,
+   "maxDifference": 4.763602685642354e-7,
+   "maxDifferenceAt": 32228,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 40,
+   "maxDifference": 6.057156873851e-7,
+   "maxDifferenceAt": 23,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 22,
+   "referenceTokenId": 22,
+   "tokenMatches": true
+  },
+  {
+   "step": 41,
+   "maxDifference": 6.90009414938686e-7,
+   "maxDifferenceAt": 198,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 42,
+   "maxDifference": 6.659978630807473e-7,
+   "maxDifferenceAt": 16,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 43,
+   "maxDifference": 8.981626429260814e-7,
+   "maxDifferenceAt": 220,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 23,
+   "referenceTokenId": 23,
+   "tokenMatches": true
+  },
+  {
+   "step": 44,
+   "maxDifference": 8.844390428919269e-7,
+   "maxDifferenceAt": 198,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 45,
+   "maxDifference": 8.330828507041588e-7,
+   "maxDifferenceAt": 16,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 46,
+   "maxDifference": 8.883623330291357e-7,
+   "maxDifferenceAt": 198,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 24,
+   "referenceTokenId": 24,
+   "tokenMatches": true
+  },
+  {
+   "step": 47,
+   "maxDifference": 6.82579010202744e-7,
+   "maxDifferenceAt": 271,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 48,
+   "maxDifference": 4.766864023508788e-7,
+   "maxDifferenceAt": 57,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 17,
+   "referenceTokenId": 17,
+   "tokenMatches": true
+  },
+  {
+   "step": 49,
+   "maxDifference": 9.520044947919359e-7,
+   "maxDifferenceAt": 198,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 15,
+   "referenceTokenId": 15,
+   "tokenMatches": true
+  },
+  {
+   "step": 50,
+   "maxDifference": 9.168414152327387e-7,
+   "maxDifferenceAt": 198,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 248046,
+   "referenceTokenId": 248046,
+   "tokenMatches": true
+  }
+ ],
+ "captures": {
+  "prefill": [
+   {
+    "opId": "embed.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 0,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.0.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 188416,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.0.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 376832,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.0.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 1507328,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.0.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 1884160,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.0.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 2260992,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.0.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 2449408,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.0.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 2637824,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.0.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 2826240,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.1.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 3203072,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.1.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 3391488,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.1.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 4521984,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.1.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 4898816,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.1.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 5275648,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.1.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 5464064,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.1.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 5652480,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.1.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 5840896,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.2.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 6217728,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.2.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 6406144,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.2.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 7536640,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.2.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 7913472,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.2.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 8290304,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.2.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 8478720,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.2.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 8667136,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.2.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 8855552,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.3.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 9232384,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 9420800,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 9797632,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 9891840,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 9986048,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 10362880,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 10457088,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 10833920,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 10928128,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 11304960,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 11493376,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 11681792,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.3.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 11870208,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.4.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 12247040,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.4.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 12435456,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.4.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 13565952,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.4.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 13942784,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.4.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 14319616,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.4.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 14508032,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.4.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 14696448,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.4.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 14884864,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.5.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 15261696,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.5.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 15450112,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.5.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 16580608,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.5.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 16957440,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.5.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 17334272,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.5.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 17522688,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.5.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 17711104,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.5.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 17899520,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.6.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 18276352,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.6.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 18464768,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.6.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 19595264,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.6.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 19972096,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.6.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 20348928,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.6.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 20537344,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.6.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 20725760,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.6.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 20914176,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.7.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 21291008,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 21479424,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 21856256,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 21950464,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 22044672,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 22421504,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 22515712,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 22892544,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 22986752,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 23363584,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 23552000,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 23740416,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.7.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 23928832,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.8.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 24305664,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.8.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 24494080,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.8.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 25624576,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.8.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 26001408,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.8.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 26378240,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.8.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 26566656,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.8.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 26755072,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.8.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 26943488,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.9.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 27320320,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.9.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 27508736,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.9.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 28639232,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.9.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 29016064,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.9.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 29392896,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.9.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 29581312,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.9.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 29769728,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.9.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 29958144,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.10.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 30334976,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.10.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 30523392,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.10.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 31653888,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.10.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 32030720,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.10.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 32407552,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.10.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 32595968,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.10.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 32784384,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.10.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 32972800,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.11.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 33349632,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 33538048,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 33914880,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 34009088,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 34103296,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 34480128,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 34574336,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 34951168,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 35045376,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 35422208,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 35610624,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 35799040,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.11.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 35987456,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.12.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 36364288,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.12.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 36552704,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.12.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 37683200,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.12.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 38060032,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.12.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 38436864,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.12.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 38625280,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.12.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 38813696,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.12.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 39002112,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.13.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 39378944,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.13.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 39567360,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.13.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 40697856,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.13.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 41074688,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.13.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 41451520,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.13.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 41639936,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.13.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 41828352,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.13.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 42016768,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.14.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 42393600,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.14.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 42582016,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.14.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 43712512,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.14.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 44089344,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.14.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 44466176,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.14.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 44654592,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.14.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 44843008,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.14.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 45031424,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.15.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 45408256,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 45596672,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 45973504,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 46067712,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 46161920,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 46538752,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 46632960,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 47009792,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 47104000,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 47480832,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 47669248,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 47857664,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.15.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 48046080,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.16.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 48422912,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.16.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 48611328,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.16.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 49741824,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.16.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 50118656,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.16.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 50495488,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.16.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 50683904,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.16.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 50872320,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.16.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 51060736,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.17.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 51437568,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.17.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 51625984,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.17.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 52756480,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.17.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 53133312,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.17.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 53510144,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.17.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 53698560,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.17.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 53886976,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.17.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 54075392,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.18.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 54452224,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.18.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 54640640,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.18.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 55771136,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.18.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 56147968,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.18.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 56524800,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.18.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 56713216,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.18.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 56901632,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.18.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 57090048,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.19.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 57466880,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 57655296,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 58032128,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 58126336,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 58220544,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 58597376,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 58691584,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 59068416,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 59162624,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 59539456,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 59727872,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 59916288,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.19.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 60104704,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.20.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 60481536,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.20.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 60669952,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.20.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 61800448,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.20.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 62177280,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.20.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 62554112,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.20.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 62742528,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.20.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 62930944,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.20.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 63119360,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.21.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 63496192,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.21.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 63684608,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.21.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 64815104,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.21.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 65191936,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.21.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 65568768,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.21.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 65757184,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.21.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 65945600,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.21.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 66134016,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.22.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 66510848,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.22.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 66699264,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.22.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 67829760,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.22.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 68206592,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.22.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 68583424,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.22.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 68771840,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.22.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 68960256,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.22.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 69148672,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "layer.23.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 69525504,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 69713920,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 70090752,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 70184960,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 70279168,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 70656000,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 70750208,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 71127040,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 71221248,
+    "precision": "f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 71598080,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 71786496,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 71974912,
+    "precision": "two-f32",
+    "chunks": 12
+   },
+   {
+    "opId": "layer.23.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 72163328,
+    "precision": "two-f32",
+    "chunks": 24
+   },
+   {
+    "opId": "final_norm.out",
+    "tokens": 8,
+    "width": 1024,
+    "length": 8192,
+    "offset": 72540160,
+    "precision": "two-f32",
+    "chunks": 1
+   }
+  ],
+  "decode-15": [
+   {
+    "opId": "embed.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 0,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 1024,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 2048,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 8192,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 10240,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 12288,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 13312,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 14336,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 15360,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.1.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 17408,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 18432,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 24576,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 26624,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 28672,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 29696,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 30720,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 31744,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.2.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 33792,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 34816,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 40960,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 43008,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 45056,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 46080,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 47104,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 48128,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.3.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 50176,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 51200,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 53248,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 53760,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 54272,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 56320,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 56832,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 58880,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 59392,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 61440,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 62464,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 63488,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 64512,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.4.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 66560,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 67584,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 73728,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 75776,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 77824,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 78848,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 79872,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 80896,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.5.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 82944,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 83968,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 90112,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 92160,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 94208,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 95232,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 96256,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 97280,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.6.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 99328,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 100352,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 106496,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 108544,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 110592,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 111616,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 112640,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 113664,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.7.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 115712,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 116736,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 118784,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 119296,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 119808,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 121856,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 122368,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 124416,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 124928,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 126976,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 128000,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 129024,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 130048,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.8.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 132096,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 133120,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 139264,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 141312,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 143360,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 144384,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 145408,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 146432,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.9.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 148480,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 149504,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 155648,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 157696,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 159744,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 160768,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 161792,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 162816,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.10.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 164864,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 165888,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 172032,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 174080,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 176128,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 177152,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 178176,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 179200,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.11.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 181248,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 182272,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 184320,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 184832,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 185344,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 187392,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 187904,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 189952,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 190464,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 192512,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 193536,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 194560,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 195584,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.12.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 197632,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 198656,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 204800,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 206848,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 208896,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 209920,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 210944,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 211968,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.13.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 214016,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 215040,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 221184,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 223232,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 225280,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 226304,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 227328,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 228352,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.14.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 230400,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 231424,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 237568,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 239616,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 241664,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 242688,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 243712,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 244736,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.15.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 246784,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 247808,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 249856,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 250368,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 250880,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 252928,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 253440,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 255488,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 256000,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 258048,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 259072,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 260096,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 261120,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.16.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 263168,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 264192,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 270336,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 272384,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 274432,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 275456,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 276480,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 277504,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.17.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 279552,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 280576,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 286720,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 288768,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 290816,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 291840,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 292864,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 293888,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.18.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 295936,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 296960,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 303104,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 305152,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 307200,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 308224,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 309248,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 310272,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.19.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 312320,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 313344,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 315392,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 315904,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 316416,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 318464,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 318976,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 321024,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 321536,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 323584,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 324608,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 325632,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 326656,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.20.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 328704,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 329728,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 335872,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 337920,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 339968,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 340992,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 342016,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 343040,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.21.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 345088,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 346112,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 352256,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 354304,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 356352,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 357376,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 358400,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 359424,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.22.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 361472,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 362496,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 368640,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 370688,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 372736,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 373760,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 374784,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 375808,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.23.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 377856,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 378880,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 380928,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 381440,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 381952,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 384000,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 384512,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 386560,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 387072,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 389120,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 390144,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 391168,
+    "precision": "two-f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 392192,
+    "precision": "two-f32",
+    "chunks": 2
+   },
+   {
+    "opId": "final_norm.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 394240,
+    "precision": "two-f32",
+    "chunks": 1
+   }
+  ]
+ },
+ "caches": {
+  "cache-after-prefill": [
+   {
+    "layer": 3,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "58fcc7d28fc562aabe78197a12fc9c2405d829eff1ea5af6f70db392e720c431",
+    "valueSha256": "73859b9ece40f856170d1bbbde41e260b42c8c4144e2d4fd60f9c58075741215"
+   },
+   {
+    "layer": 7,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "9d715385ef957e1688dd7dc6353052466e8d1aa2ab358a43738328449a3c3a47",
+    "valueSha256": "1dc5b18f3c6882da098b6dbcaf13e8ef5b634801a0c74ab3f12af2c63209154f"
+   },
+   {
+    "layer": 11,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "3ca46729aefa3fe17426a70ec5ffd9caa101dfdd4ec776ce7131cb9e068f50bd",
+    "valueSha256": "17b1d99d19e39266db28d8afd18d2e721f9e6add05fd3a9fef9234e0fca4e8b6"
+   },
+   {
+    "layer": 15,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "8ea095283c7a9cc75a9d670dfee72043acceb1c37fffc6697332f860201e595b",
+    "valueSha256": "6ceaeb6d47cac70e50901d759327881e127956f74ae64863d3c20b0b33aaabeb"
+   },
+   {
+    "layer": 19,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "92969116300ff2366c92467bea2d1fdc18b9d6ec3d23dc5117e8c173545c48b9",
+    "valueSha256": "77c4308646002eea117500d4b722b8014521c052d21ae95024cfae1e8dd478d1"
+   },
+   {
+    "layer": 23,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "5a9c18c898498f09f755bde0ff6497a51c1a617e37a97ae124a9e13422fe3748",
+    "valueSha256": "1f0372b0c3ce1626c0fd3c3b9f8c5a95b98cc723466cf68323c705fcb7ec20f3"
+   }
+  ],
+  "cache-final": [
+   {
+    "layer": 3,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "15db78165e546aa799f369858bb786234e7cb24a103191793593ec8cec57de19",
+    "valueSha256": "f571ec0bc4109446dd89cd8774eb4e7151d6ff742d01dc631484a55362c4d6e3"
+   },
+   {
+    "layer": 7,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "861a221b8e4fa461874d87aaa692ad50731ae7d59df16162c123f3096ce5abb7",
+    "valueSha256": "d6fe3b3253bb856cc2ec3278f3a091191aaf2bbba0a6550e8919407aa84348ce"
+   },
+   {
+    "layer": 11,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "c2f14f50b334a039b5e841b993ec8c0ad244e645feef489b300b430d4d179b48",
+    "valueSha256": "10c65a11a60c8da96fe69cfee8a487e923bfd9cd1258b5e62b93b19b4d34503b"
+   },
+   {
+    "layer": 15,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "5c9a59cfdb4316c35f7a9d61ea48c05522d5e7e3c456cafe892938d211febc50",
+    "valueSha256": "7d1ae7856eec9af444405e259a09535a3f7dabaf3abd2928b12c44406f9ef040"
+   },
+   {
+    "layer": 19,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "5e5f1c281f1b3700b39623bb1aa06bcc035f2ba5ae99857138d140a613f60066",
+    "valueSha256": "c1994bcdbee5184efdadf1aa5e2a9d1f2be8396633db0b001bbd44ab85132ddd"
+   },
+   {
+    "layer": 23,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "6a52bedee74dce61275ba39519d8cdedf0d355265bd35a809226fb99f3a3ef4a",
+    "valueSha256": "f347812779527175fdb3046f9a44dad141bb6f101c2aec2a31a5f654463de748"
+   }
+  ]
+ },
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true
+ },
+ "promptTokens": 184,
+ "promptMatchesFrozenPrefix": true,
+ "maxDifference": 9.520044947919359e-7,
+ "failedSteps": [],
+ "finishedAt": "2026-10-14T20:52:35.615Z"
+}

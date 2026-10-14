@@ -1,0 +1,10 @@
+batch session3 start 2026-10-14T21:26:50Z amdgpu-errors 50
+public-native cpu 145.5
+s22-plain-control-session3 exit=0 seconds=9 at 21:26:59 amdgpu-errors 50
+public-native cpu 170.0
+s20-split20-paired-front exit=0 seconds=231 at 21:30:50 amdgpu-errors 50
+public-native cpu 100.0
+s21-split23-paired-front exit=0 seconds=259 at 21:35:09 amdgpu-errors 50
+public-native cpu 120.0
+s23-paired-control-session3 exit=0 seconds=276 at 21:39:46 amdgpu-errors 50
+batch session3 done 2026-10-14T21:39:46Z

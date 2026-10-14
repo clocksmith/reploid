@@ -1,0 +1,141 @@
+{
+ "machine": "amd-host",
+ "root": "/var/tmp/plain-divergence-20261014",
+ "files": [
+  {
+   "path": "out/capture-paired-probefix/cache-after-prefill.f16",
+   "bytes": 2260992,
+   "sha256": "95f4042ef79ad20a485612ff69ded26db38f7cc6d7b51335ae6267a7524fe17d"
+  },
+  {
+   "path": "out/capture-paired-probefix/cache-final.f16",
+   "bytes": 2875392,
+   "sha256": "b1bb0f9bfcb446f6e41cdb7cfde0badd7d4a83299e0f7323fac3d94e2ae1cf34"
+  },
+  {
+   "path": "out/capture-paired-probefix/decode-15.f64",
+   "bytes": 401408,
+   "sha256": "00d9fd4899bdf2d7ab04cc128a1105bbaee5f6d1141ce1c59377a0cb3b2dacdf"
+  },
+  {
+   "path": "out/capture-paired-probefix/logits-0.f32",
+   "bytes": 993280,
+   "sha256": "25d5fb7b1447a91dacf3149faa091170e8d0995c84dddf0b124e9343ac6561d2"
+  },
+  {
+   "path": "out/capture-paired-probefix/logits-15.f32",
+   "bytes": 993280,
+   "sha256": "9b2b9158cb73326363dd5a89f760f315d5a18c84ee5e0f9e65820a4600b17098"
+  },
+  {
+   "path": "out/capture-paired-probefix/prefill.f64",
+   "bytes": 73859072,
+   "sha256": "df7d79274051f87d3f5d990f29d16751c0bd18c1037d85d742d2c7432a795e64"
+  },
+  {
+   "path": "out/capture-paired-probefix/report.json",
+   "bytes": 26753,
+   "sha256": "d444eff5db9380fb0cae15b80eb4e6f2b80fc8b65ce630c2bdca581f2187d293"
+  },
+  {
+   "path": "out/capture-paired/cache-after-prefill.f16",
+   "bytes": 2260992,
+   "sha256": "95f4042ef79ad20a485612ff69ded26db38f7cc6d7b51335ae6267a7524fe17d"
+  },
+  {
+   "path": "out/capture-paired/cache-final.f16",
+   "bytes": 2875392,
+   "sha256": "b1bb0f9bfcb446f6e41cdb7cfde0badd7d4a83299e0f7323fac3d94e2ae1cf34"
+  },
+  {
+   "path": "out/capture-paired/decode-15.f64",
+   "bytes": 3162112,
+   "sha256": "b025dba62d3713eb3935d8cfec712296dedce74b9f098e428bfd2da2d1fa0498"
+  },
+  {
+   "path": "out/capture-paired/logits-0.f32",
+   "bytes": 993280,
+   "sha256": "25d5fb7b1447a91dacf3149faa091170e8d0995c84dddf0b124e9343ac6561d2"
+  },
+  {
+   "path": "out/capture-paired/logits-15.f32",
+   "bytes": 993280,
+   "sha256": "9b2b9158cb73326363dd5a89f760f315d5a18c84ee5e0f9e65820a4600b17098"
+  },
+  {
+   "path": "out/capture-paired/prefill.f64",
+   "bytes": 580386816,
+   "sha256": "814375a4017c084f36ea5c797a0358fe2c54e4d00b7f8fb9323fd1f1afa1495a"
+  },
+  {
+   "path": "out/capture-paired/report.json",
+   "bytes": 92036,
+   "sha256": "c5e4ac67ad55261c15ba262db33269d9f70e1fe959ab418a3f1ddfe7781405ca"
+  },
+  {
+   "path": "out/capture-plain/cache-after-prefill.f16",
+   "bytes": 2260992,
+   "sha256": "8816cbf54a4cd3e118c8748bbb8c26322b443878f6eacfc64210974ad75dbd36"
+  },
+  {
+   "path": "out/capture-plain/cache-final.f16",
+   "bytes": 2875392,
+   "sha256": "cbaad4682263e7312d8dbf414a980493011457659218f590e3385ede3ef5d56a"
+  },
+  {
+   "path": "out/capture-plain/decode-15.f64",
+   "bytes": 3162112,
+   "sha256": "bc04079a83f55f6e5fe4e374004596e693df4768b5595dd54b2cf4f4515f4524"
+  },
+  {
+   "path": "out/capture-plain/logits-0.f32",
+   "bytes": 993280,
+   "sha256": "eebdcb193a91444ac6de28bc73d678a09fd4ccd26af745a638b69a1af20387a1"
+  },
+  {
+   "path": "out/capture-plain/logits-15.f32",
+   "bytes": 993280,
+   "sha256": "863d9c67201a58ca6a90db3ee0d9c5b70645fa3b761eb16eae5ec43711c20b54"
+  },
+  {
+   "path": "out/capture-plain/prefill.f64",
+   "bytes": 581828608,
+   "sha256": "9658bd9c9f8fbdb8e449658a47f8314bf2c386507fd0538008153dddba907e2e"
+  },
+  {
+   "path": "out/capture-plain/report.json",
+   "bytes": 90779,
+   "sha256": "8e03160db3b2faff52b81acd72a876ab1cb4cffc935b6b52531a1271241e0f42"
+  },
+  {
+   "path": "runs/s01-paired-control/caches/request-0.f16",
+   "bytes": 245760,
+   "sha256": "7665150b60bed5250bf69bb158ced3627483848d0285172d30a4a64470d9dce5"
+  },
+  {
+   "path": "runs/s01-paired-control/caches/request-0.json",
+   "bytes": 1674,
+   "sha256": "fdf156f0a4e78891ed95d088c9688621fde1da03af89019c4bd4f9fc75c8e3eb"
+  },
+  {
+   "path": "runs/s01-paired-control/caches/request-1.f16",
+   "bytes": 270336,
+   "sha256": "f32fa8bd55b7b4e5c4ab75e31c0c8cb0f17c2c53903d093b946b0469097a901f"
+  },
+  {
+   "path": "runs/s01-paired-control/caches/request-1.json",
+   "bytes": 1674,
+   "sha256": "5b0be330f8c643c04430ffdfcf3de6c5fa631f1f6e2897ccf916533324fe3566"
+  },
+  {
+   "path": "runs/s01-paired-control/caches/request-2.f16",
+   "bytes": 2875392,
+   "sha256": "b1bb0f9bfcb446f6e41cdb7cfde0badd7d4a83299e0f7323fac3d94e2ae1cf34"
+  },
+  {
+   "path": "runs/s01-paired-control/caches/request-2.json",
+   "bytes": 1680,
+   "sha256": "b13e806a6effc9e4255b9a7f1078c2bcc00aab4de43015ab72b06984ed101b6f"
+  }
+ ]
+}

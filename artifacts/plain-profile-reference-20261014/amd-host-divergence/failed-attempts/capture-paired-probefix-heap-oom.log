@@ -1,0 +1,50 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[599.9ms][Pipeline] Execution v1 enabled (steps=43, kernelPathInline=yes, pipelineInline=no)
+[600.0ms][Config] Using manifest-first config (source of truth)
+[604.3ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[604.4ms][Pipeline] Vision capable: imageTokenId=248056
+[605.5ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (19 decode steps, 8 kernels, source=execution-v1)
+[605.8ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[606.3ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[723.7ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[873.5ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[874.0ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[877.1ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[879.6ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[944.2ms][ShardCache] Custom shard loader configured
+[944.5ms][Loader] Initializing...
+[988.6ms][HeapManager] Allocated segment 0: 1024MB
+[988.8ms][HeapManager] Segmented heap: 1GB per segment
+[988.8ms][HeapManager] Initialized with strategy: SEGMENTED
+[988.9ms][Loader] Initialized (f16, subgroups)
+[989.4ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[1004.9ms][Loader] [0.0s] Memory (start): | RSS=497.36 MB (heap=197.65 MB/200.40 MB, external=2.14 GB, arrayBuffers=1.14 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1005.5ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1155.6ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1155.9ms][Loader] Layers: 0-23
+[1313.9ms][Loader] Layers: 24 complete (0.16s)
+[1357.9ms][Loader] Complete: 890.16 MB in 0.35s (2.48 GB/s)
+[1358.9ms][Loader] [0.4s] Memory (complete): | RSS=579.22 MB (heap=208.62 MB/226.65 MB, external=1.18 GB, arrayBuffers=1.18 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1372.9ms][Pipeline] Model loaded successfully (779ms)
+
+<--- Last few GCs --->
+
+[3198911:0x5f1261d94000]    68960 ms: Mark-Compact 2044.2 (2078.2) -> 2041.5 (2081.4) MB, pooled: 8 MB, 22.50 / 0.00 ms  (average mu = 0.207, current mu = 0.028) allocation failure; scavenge might not succeed
+[3198911:0x5f1261d94000]    68982 ms: Mark-Compact 2047.0 (2083.0) -> 2042.0 (2081.9) MB, pooled: 8 MB, 20.55 / 0.00 ms  (average mu = 0.140, current mu = 0.053) allocation failure; scavenge might not succeed
+
+
+<--- JS stacktrace --->
+
+FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory
+----- Native stack trace -----
+
+ 1: 0x7c8b61346804 node::OOMErrorHandler(char const*, v8::OOMDetails const&) [/usr/lib/x86_64-linux-gnu/libnode.so.127]
+ 2: 0x7c8b61a6f754 v8::Utils::ReportOOMFailure(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/usr/lib/x86_64-linux-gnu/libnode.so.127]
+ 3: 0x7c8b61a6fa4a v8::internal::V8::FatalProcessOutOfMemory(v8::internal::Isolate*, char const*, v8::OOMDetails const&) [/usr/lib/x86_64-linux-gnu/libnode.so.127]
+ 4: 0x7c8b61cb8a9b  [/usr/lib/x86_64-linux-gnu/libnode.so.127]
+ 5: 0x7c8b61cb8ad8 v8::internal::Heap::ReportIneffectiveMarkCompactIfNeeded() [/usr/lib/x86_64-linux-gnu/libnode.so.127]
+ 6: 0x7c8b61cd0e6e  [/usr/lib/x86_64-linux-gnu/libnode.so.127]
+ 7: 0x7c8b61cd3a1c  [/usr/lib/x86_64-linux-gnu/libnode.so.127]
+ 8: 0x7c8b625fbf47  [/usr/lib/x86_64-linux-gnu/libnode.so.127]

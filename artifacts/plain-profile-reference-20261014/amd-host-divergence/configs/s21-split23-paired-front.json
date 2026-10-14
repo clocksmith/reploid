@@ -1,0 +1,125 @@
+{
+ "label": "paired layers 0-22, plain layer 23 + head",
+ "split": {
+  "splitLayer": 23,
+  "front": {
+   "modelDir": "/var/tmp/doppler-cold-compile-model-20261013",
+   "runtimeConfig": {
+    "inference": {
+     "compute": {
+      "activationDtype": "f32"
+     },
+     "generation": {
+      "disableMultiTokenDecode": false
+     },
+     "session": {
+      "attentionDecodeOnline": null,
+      "compute": {
+       "defaults": {
+        "accumDtype": "f32",
+        "activationDtype": "f32",
+        "mathDtype": "f32",
+        "outputDtype": "f32"
+       }
+      },
+      "decodeLoop": {
+       "batchSize": 4,
+       "disableCommandBatching": false,
+       "readbackInterval": 8,
+       "readbackMode": "sequential",
+       "ringStaging": 1,
+       "ringStop": 1,
+       "ringTokens": 1,
+       "stopCheckMode": "batch",
+       "submitLatencyThresholdMs": null
+      },
+      "fusedFfnQ4K": null,
+      "intermediatePrecision": "two-f32",
+      "kvcache": {
+       "kvDtype": "f16",
+       "layout": "contiguous",
+       "maxSeqLen": 4096,
+       "pageSize": 256,
+       "quantization": {
+        "bitWidth": 4,
+        "mode": "none",
+        "prodMode": false
+       },
+       "tiering": {
+        "coldDtype": "f16",
+        "coldPageSize": 256,
+        "compression": {
+         "bitWidth": 4,
+         "blockSize": 1,
+         "mode": "none",
+         "prodMode": false
+        },
+        "gating": {
+         "minAluBwRatio": 0,
+         "mode": "auto"
+        },
+        "hotWindow": 1024,
+        "mode": "off"
+       }
+      },
+      "linearRecurrentStatePrecision": "two-f32",
+      "lmHeadArgmaxQ4K": null,
+      "perLayerInputs": {
+       "gpuUpload": {
+        "mode": "per_step_slices",
+        "stagingRows": 2
+       },
+       "hotCache": {
+        "maxBytes": 134217728,
+        "maxTokens": 1024,
+        "mode": "prepared_tokens",
+        "outputDtype": "f32"
+       },
+       "materialization": "auto",
+       "prefetch": {
+        "mode": "next_token",
+        "rowsAhead": 1
+       },
+       "rowCache": {
+        "decodedDtype": "f32",
+        "maxBytes": 134217728,
+        "maxRows": 256,
+        "mode": "lru"
+       }
+      },
+      "prefillChunkLayers": 1,
+      "prefillChunkSubmitMode": "async",
+      "prefillTokenChunkSize": 16,
+      "retainQ4KMaterialization": false,
+      "skipEmbeddingKVCacheWrites": false,
+      "speculation": {
+       "mode": "self",
+       "rollbackOnReject": true,
+       "threshold": null,
+       "tokens": 1,
+       "verify": "greedy"
+      },
+      "useFlashPrefillAttention": false,
+      "useFusedGateUpGelu": false,
+      "useFusedQKVSplitQKNorm": false,
+      "useFusedQKVSplitQKNormRoPE": false,
+      "useFusedRmsnormWideTile": false,
+      "useGreedyLmHeadArgmaxFusion": false,
+      "useLargeBatchF16F32FusedGateUp": false,
+      "useLinearAttentionABProjectionFusion": false,
+      "useLinearAttentionFusedDecodeCore": false,
+      "useLinearAttentionQKVZProjectionFusion": false,
+      "useOrtFlashPrefillAttention": false,
+      "usePostAttnNormFusedGateUp": false,
+      "usePostFfnNextInputRMSNormPairFusion": false,
+      "useSandwichRMSNormPairFusion": false,
+      "useTiledQ4KPrefill": false,
+      "useWideTileQ4KDecode": false,
+      "useWideTileQ4KPrefill": false,
+      "useWideTileResidualFusion": false
+     }
+    }
+   }
+  }
+ }
+}

@@ -1,0 +1,3910 @@
+{
+ "plain": {
+  "label": "plain-manifest-defaults",
+  "maxDifference": 0.0034951507058513798,
+  "failedSteps": 27
+ },
+ "referenceProxy": {
+  "label": "paired-capsule",
+  "maxDifference": 9.520044947919359e-07,
+  "failedSteps": 0,
+  "finalCachesMatchApprovedF64Identities": {
+   "3": true,
+   "7": true,
+   "11": true,
+   "15": true,
+   "19": true,
+   "23": true
+  }
+ },
+ "plainFinalCachesMatchApproved": {
+  "3": false,
+  "7": false,
+  "11": false,
+  "15": false,
+  "19": false,
+  "23": false
+ },
+ "prefill": [
+  {
+   "opId": "embed.out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 0.0,
+   "relRms": 0.0,
+   "exactFraction": 1.0,
+   "lastTokenMaxAbs": 0.0,
+   "lastTokenRelRms": 0.0,
+   "referenceRms": 0.020440212140345557
+  },
+  {
+   "opId": "layer.0.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.2.attn.post_input_norm",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 1.119630425705509e-05,
+   "relRms": 4.63157867224112e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.0032926752501226e-05,
+   "lastTokenRelRms": 6.866007188045163e-07,
+   "referenceRms": 1.4117179983255772
+  },
+  {
+   "opId": "layer.2.attn.qkv_proj",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 6144,
+   "maxAbs": 9.291231713781656e-06,
+   "relRms": 4.2154604604685544e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.891773402069475e-06,
+   "lastTokenRelRms": 5.081873400268998e-07,
+   "referenceRms": 1.0376098067768296
+  },
+  {
+   "opId": "layer.2.attn.linear_z_proj",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 2048,
+   "maxAbs": 5.94382695062734e-06,
+   "relRms": 2.976470763479958e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.1076365871740563e-06,
+   "lastTokenRelRms": 3.8259381616281785e-07,
+   "referenceRms": 1.5904168647322778
+  },
+  {
+   "opId": "layer.2.attn.linear_core_out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 2048,
+   "maxAbs": 1.6128924966718472e-06,
+   "relRms": 4.7387394156166887e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.571400891688725e-07,
+   "lastTokenRelRms": 4.765396201271937e-07,
+   "referenceRms": 0.07896995661709222
+  },
+  {
+   "opId": "layer.2.attn.out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 3.472574885421409e-07,
+   "relRms": 6.027229160734655e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 5.1866730049754395e-08,
+   "lastTokenRelRms": 5.650902696507573e-07,
+   "referenceRms": 0.028080036912870417
+  },
+  {
+   "opId": "layer.2.attn.post_attn",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 3.472574885421409e-07,
+   "relRms": 6.027229160734655e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 5.1866730049754395e-08,
+   "lastTokenRelRms": 5.650902696507573e-07,
+   "referenceRms": 0.028080036912870417
+  },
+  {
+   "opId": "layer.2.ffn.out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 4.3978205965800043e-07,
+   "relRms": 6.15430276570607e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.4580330187641266e-07,
+   "lastTokenRelRms": 6.686273066748365e-07,
+   "referenceRms": 0.036533446875235666
+  },
+  {
+   "opId": "layer.2.layer.out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 5.353797805085492e-07,
+   "relRms": 4.86988326586875e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.2250607284158832e-07,
+   "lastTokenRelRms": 6.402594606032307e-07,
+   "referenceRms": 0.05433654256105677
+  },
+  {
+   "opId": "layer.3.attn.post_input_norm",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 1.7321421523774916e-05,
+   "relRms": 4.747293203578866e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 5.189065092281453e-06,
+   "lastTokenRelRms": 6.35349697954463e-07,
+   "referenceRms": 1.3539436117953345
+  },
+  {
+   "opId": "layer.3.attn.q_proj",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 2048,
+   "maxAbs": 4.467485354098244e-06,
+   "relRms": 4.2296340694438736e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.3559524322536163e-06,
+   "lastTokenRelRms": 5.533521526962955e-07,
+   "referenceRms": 0.7098500729877848
+  },
+  {
+   "opId": "layer.3.attn.k_proj",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 512,
+   "maxAbs": 2.5720455916200535e-06,
+   "relRms": 4.6115446403601575e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.1887770174089383e-06,
+   "lastTokenRelRms": 5.010906036216764e-07,
+   "referenceRms": 0.6238820131835309
+  },
+  {
+   "opId": "layer.3.attn.v_proj",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 512,
+   "maxAbs": 4.382414353187869e-06,
+   "relRms": 4.76610288948411e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.3171086390428854e-06,
+   "lastTokenRelRms": 6.132061406271352e-07,
+   "referenceRms": 0.6061497869616834
+  },
+  {
+   "opId": "layer.3.attn.q_norm",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 2048,
+   "maxAbs": 5.228599356144059e-06,
+   "relRms": 4.7321720518047823e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.4961182677761826e-06,
+   "lastTokenRelRms": 5.900181515086874e-07,
+   "referenceRms": 1.3429441168048932
+  },
+  {
+   "opId": "layer.3.attn.k_norm",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 512,
+   "maxAbs": 4.895527310644354e-06,
+   "relRms": 4.604156633350844e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.663690350208526e-06,
+   "lastTokenRelRms": 4.881948971840685e-07,
+   "referenceRms": 1.4204557025468008
+  },
+  {
+   "opId": "layer.3.attn.q_rope",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 2048,
+   "maxAbs": 1.8347390198236724e-05,
+   "relRms": 5.137646741224968e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 9.508248730583091e-06,
+   "lastTokenRelRms": 6.755108334771725e-07,
+   "referenceRms": 1.3429441168048932
+  },
+  {
+   "opId": "layer.3.attn.k_rope",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 512,
+   "maxAbs": 1.613382604048752e-05,
+   "relRms": 5.266007920820639e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 4.757695122314942e-06,
+   "lastTokenRelRms": 5.471580745252859e-07,
+   "referenceRms": 1.4204557025468008
+  },
+  {
+   "opId": "layer.3.attn.core_out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 2048,
+   "maxAbs": 0.00044824872673743243,
+   "relRms": 6.8068137824991675e-06,
+   "exactFraction": 0.005405591881793478,
+   "lastTokenMaxAbs": 5.997537647228768e-05,
+   "lastTokenRelRms": 1.3436761434567941e-05,
+   "referenceRms": 0.5184286329238333
+  },
+  {
+   "opId": "layer.3.attn.out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 9.088166202819714e-06,
+   "relRms": 1.3487533004203355e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.3449171243351543e-06,
+   "lastTokenRelRms": 1.9663104354475888e-05,
+   "referenceRms": 0.03179949763515834
+  },
+  {
+   "opId": "layer.3.attn.post_attn",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 9.088166202819714e-06,
+   "relRms": 1.3487533004203355e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.3449171243351543e-06,
+   "lastTokenRelRms": 1.9663104354475888e-05,
+   "referenceRms": 0.03179949763515834
+  },
+  {
+   "opId": "layer.3.ffn.out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 1.2992571816639042e-05,
+   "relRms": 1.1322602937970423e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.0567163043494485e-06,
+   "lastTokenRelRms": 1.6045371541981473e-05,
+   "referenceRms": 0.031536189237039276
+  },
+  {
+   "opId": "layer.3.layer.out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 1.5563029331033817e-05,
+   "relRms": 8.003106693465153e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.053438437954469e-06,
+   "lastTokenRelRms": 1.2483994069527693e-05,
+   "referenceRms": 0.05939463174788938
+  },
+  {
+   "opId": "layer.4.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.7.attn.post_input_norm",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 0.00020842368505213926,
+   "relRms": 1.0250089640559019e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 4.967748486706114e-05,
+   "lastTokenRelRms": 1.2581746754981443e-05,
+   "referenceRms": 1.1255437566228657
+  },
+  {
+   "opId": "layer.7.attn.q_proj",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 2048,
+   "maxAbs": 0.0001499816975112367,
+   "relRms": 7.449286963738777e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.954543553939203e-05,
+   "lastTokenRelRms": 5.5469936666009895e-06,
+   "referenceRms": 0.6361056660306172
+  },
+  {
+   "opId": "layer.7.attn.k_proj",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 512,
+   "maxAbs": 4.2715532053705374e-05,
+   "relRms": 8.750510990220307e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.4905175309554153e-05,
+   "lastTokenRelRms": 9.372835753769304e-06,
+   "referenceRms": 0.44033182314119296
+  },
+  {
+   "opId": "layer.7.attn.v_proj",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 512,
+   "maxAbs": 0.0001352457919026051,
+   "relRms": 9.781762133841635e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.041543022368586e-05,
+   "lastTokenRelRms": 1.1806894817499743e-05,
+   "referenceRms": 0.5462818327862045
+  },
+  {
+   "opId": "layer.7.attn.q_norm",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 2048,
+   "maxAbs": 0.00027295747793232294,
+   "relRms": 8.600558451572131e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.46664453299006e-05,
+   "lastTokenRelRms": 7.099912798803531e-06,
+   "referenceRms": 1.327448197610579
+  },
+  {
+   "opId": "layer.7.attn.k_norm",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 512,
+   "maxAbs": 0.00016033828021155827,
+   "relRms": 9.10782267754052e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 4.619449088849592e-05,
+   "lastTokenRelRms": 9.43163803728456e-06,
+   "referenceRms": 1.5162691501637813
+  },
+  {
+   "opId": "layer.7.attn.q_rope",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 2048,
+   "maxAbs": 0.00027807966980120113,
+   "relRms": 8.606279845827249e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.46664453299006e-05,
+   "lastTokenRelRms": 7.113228064015922e-06,
+   "referenceRms": 1.327448197610579
+  },
+  {
+   "opId": "layer.7.attn.k_rope",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 512,
+   "maxAbs": 0.00016033828021155827,
+   "relRms": 9.109431467199709e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 4.619449088849592e-05,
+   "lastTokenRelRms": 9.435484366259272e-06,
+   "referenceRms": 1.5162691501637813
+  },
+  {
+   "opId": "layer.7.attn.core_out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 2048,
+   "maxAbs": 0.0015243548836139098,
+   "relRms": 2.9596091513990087e-05,
+   "exactFraction": 0.005434782608695652,
+   "lastTokenMaxAbs": 0.0001244263737583129,
+   "lastTokenRelRms": 2.742378890477247e-05,
+   "referenceRms": 0.5151523253613067
+  },
+  {
+   "opId": "layer.7.attn.out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 4.849811356599787e-05,
+   "relRms": 6.033909452155454e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.621276231852155e-06,
+   "lastTokenRelRms": 4.137887560433776e-05,
+   "referenceRms": 0.037040965211410704
+  },
+  {
+   "opId": "layer.7.attn.post_attn",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 4.849811356599787e-05,
+   "relRms": 6.033909452155454e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.621276231852155e-06,
+   "lastTokenRelRms": 4.137887560433776e-05,
+   "referenceRms": 0.037040965211410704
+  },
+  {
+   "opId": "layer.7.ffn.out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 4.2438790485044287e-05,
+   "relRms": 7.926633405441737e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 4.720961005802438e-06,
+   "lastTokenRelRms": 3.8268089038214275e-05,
+   "referenceRms": 0.028282606577070747
+  },
+  {
+   "opId": "layer.7.layer.out",
+   "tokens": 184,
+   "lastToken": 183,
+   "width": 1024,
+   "maxAbs": 4.195468116613421e-05,
+   "relRms": 4.1708833413343296e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.6480972017138846e-06,
+   "lastTokenRelRms": 2.3304719242482415e-05,
+   "referenceRms": 0.06441551075167812
+  },
+  {
+   "opId": "layer.8.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.q_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.k_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.v_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.q_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.k_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.q_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.k_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.q_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.k_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.v_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.q_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.k_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.q_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.k_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.q_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.k_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.v_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.q_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.k_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.q_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.k_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.q_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.k_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.v_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.q_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.k_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.q_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.k_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "final_norm.out",
+   "missing": [
+    true,
+    false
+   ]
+  }
+ ],
+ "decode-15": [
+  {
+   "opId": "embed.out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 0.0,
+   "relRms": 0.0,
+   "exactFraction": 1.0,
+   "lastTokenMaxAbs": 0.0,
+   "lastTokenRelRms": 0.0,
+   "referenceRms": 0.020613219948075967
+  },
+  {
+   "opId": "layer.0.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.0.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.1.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.2.attn.post_input_norm",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 1.3325636587069312e-05,
+   "relRms": 1.0117213576306627e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.3325636587069312e-05,
+   "lastTokenRelRms": 1.0117213576306627e-06,
+   "referenceRms": 1.3829213181816153
+  },
+  {
+   "opId": "layer.2.attn.qkv_proj",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 6144,
+   "maxAbs": 6.898020215473366e-06,
+   "relRms": 9.337026974439909e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 6.898020215473366e-06,
+   "lastTokenRelRms": 9.337026974439909e-07,
+   "referenceRms": 0.9351024725567129
+  },
+  {
+   "opId": "layer.2.attn.linear_z_proj",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 2048,
+   "maxAbs": 5.9439371540292996e-06,
+   "relRms": 6.404159896093059e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 5.9439371540292996e-06,
+   "lastTokenRelRms": 6.404159896093059e-07,
+   "referenceRms": 1.5470740222735144
+  },
+  {
+   "opId": "layer.2.attn.linear_core_out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 2048,
+   "maxAbs": 2.0821629926892626e-06,
+   "relRms": 1.0472456581095715e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.0821629926892626e-06,
+   "lastTokenRelRms": 1.0472456581095715e-06,
+   "referenceRms": 0.07205102439653079
+  },
+  {
+   "opId": "layer.2.attn.out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 2.5122407532052193e-07,
+   "relRms": 1.2570924664695815e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.5122407532052193e-07,
+   "lastTokenRelRms": 1.2570924664695815e-06,
+   "referenceRms": 0.024940890455563934
+  },
+  {
+   "opId": "layer.2.attn.post_attn",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 2.5122407532052193e-07,
+   "relRms": 1.2570924664695815e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.5122407532052193e-07,
+   "lastTokenRelRms": 1.2570924664695815e-06,
+   "referenceRms": 0.024940890455563934
+  },
+  {
+   "opId": "layer.2.ffn.out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 2.0394438415838323e-07,
+   "relRms": 1.4594419956102865e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.0394438415838323e-07,
+   "lastTokenRelRms": 1.4594419956102865e-06,
+   "referenceRms": 0.0339745159009166
+  },
+  {
+   "opId": "layer.2.layer.out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 6.632563138708747e-07,
+   "relRms": 1.0692754037112285e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 6.632563138708747e-07,
+   "lastTokenRelRms": 1.0692754037112285e-06,
+   "referenceRms": 0.04508127162925737
+  },
+  {
+   "opId": "layer.3.attn.post_input_norm",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 1.4776613454614562e-05,
+   "relRms": 1.0586262811945756e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.4776613454614562e-05,
+   "lastTokenRelRms": 1.0586262811945756e-06,
+   "referenceRms": 1.336227431353259
+  },
+  {
+   "opId": "layer.3.attn.q_proj",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 2048,
+   "maxAbs": 4.898073605374975e-06,
+   "relRms": 9.674446993535826e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 4.898073605374975e-06,
+   "lastTokenRelRms": 9.674446993535826e-07,
+   "referenceRms": 0.6025555987755227
+  },
+  {
+   "opId": "layer.3.attn.k_proj",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 512,
+   "maxAbs": 2.640702101319725e-06,
+   "relRms": 1.0380763137461047e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.640702101319725e-06,
+   "lastTokenRelRms": 1.0380763137461047e-06,
+   "referenceRms": 0.5245253104730657
+  },
+  {
+   "opId": "layer.3.attn.v_proj",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 512,
+   "maxAbs": 2.6156437940016986e-06,
+   "relRms": 8.962581490583574e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 2.6156437940016986e-06,
+   "lastTokenRelRms": 8.962581490583574e-07,
+   "referenceRms": 0.6197866480269439
+  },
+  {
+   "opId": "layer.3.attn.q_norm",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 2048,
+   "maxAbs": 6.6250756223240614e-06,
+   "relRms": 9.801239995975981e-07,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 6.6250756223240614e-06,
+   "lastTokenRelRms": 9.801239995975981e-07,
+   "referenceRms": 1.3521721106749274
+  },
+  {
+   "opId": "layer.3.attn.k_norm",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 512,
+   "maxAbs": 6.383858293879108e-06,
+   "relRms": 1.0062046000073204e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 6.383858293879108e-06,
+   "lastTokenRelRms": 1.0062046000073204e-06,
+   "referenceRms": 1.3820249907081321
+  },
+  {
+   "opId": "layer.3.attn.q_rope",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 2048,
+   "maxAbs": 1.0008804801842075e-05,
+   "relRms": 1.0324417306500726e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.0008804801842075e-05,
+   "lastTokenRelRms": 1.0324417306500726e-06,
+   "referenceRms": 1.3521721106749272
+  },
+  {
+   "opId": "layer.3.attn.k_rope",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 512,
+   "maxAbs": 6.383858293879108e-06,
+   "relRms": 1.0648183567275294e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 6.383858293879108e-06,
+   "lastTokenRelRms": 1.0648183567275294e-06,
+   "referenceRms": 1.3820249907081323
+  },
+  {
+   "opId": "layer.3.attn.core_out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 2048,
+   "maxAbs": 0.00016832267983968308,
+   "relRms": 1.1605249383278444e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 0.00016832267983968308,
+   "lastTokenRelRms": 1.1605249383278444e-05,
+   "referenceRms": 0.4590009912547865
+  },
+  {
+   "opId": "layer.3.attn.out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 1.3364341215904574e-06,
+   "relRms": 1.0814818212391727e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.3364341215904574e-06,
+   "lastTokenRelRms": 1.0814818212391727e-05,
+   "referenceRms": 0.027327819829816337
+  },
+  {
+   "opId": "layer.3.attn.post_attn",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 1.3364341215904574e-06,
+   "relRms": 1.0814818212391727e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.3364341215904574e-06,
+   "lastTokenRelRms": 1.0814818212391727e-05,
+   "referenceRms": 0.027327819829816337
+  },
+  {
+   "opId": "layer.3.ffn.out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 9.774951696822631e-07,
+   "relRms": 8.977974825980055e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 9.774951696822631e-07,
+   "lastTokenRelRms": 8.977974825980055e-06,
+   "referenceRms": 0.032004929350838256
+  },
+  {
+   "opId": "layer.3.layer.out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 1.0787577255089165e-06,
+   "relRms": 6.28099980299766e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.0787577255089165e-06,
+   "lastTokenRelRms": 6.28099980299766e-06,
+   "referenceRms": 0.049726307340391025
+  },
+  {
+   "opId": "layer.4.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.4.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.5.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.6.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.7.attn.post_input_norm",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 3.402300621146992e-05,
+   "relRms": 6.686202066584623e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.402300621146992e-05,
+   "lastTokenRelRms": 6.686202066584623e-06,
+   "referenceRms": 1.0991034456874902
+  },
+  {
+   "opId": "layer.7.attn.q_proj",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 2048,
+   "maxAbs": 1.8194260577253374e-05,
+   "relRms": 5.677899144430632e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 1.8194260577253374e-05,
+   "lastTokenRelRms": 5.677899144430632e-06,
+   "referenceRms": 0.5258794159964775
+  },
+  {
+   "opId": "layer.7.attn.k_proj",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 512,
+   "maxAbs": 8.353612464873095e-06,
+   "relRms": 6.0645370731503156e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 8.353612464873095e-06,
+   "lastTokenRelRms": 6.0645370731503156e-06,
+   "referenceRms": 0.4488633979734649
+  },
+  {
+   "opId": "layer.7.attn.v_proj",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 512,
+   "maxAbs": 9.880497181313785e-06,
+   "relRms": 5.741059318482026e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 9.880497181313785e-06,
+   "lastTokenRelRms": 5.741059318482026e-06,
+   "referenceRms": 0.5373329722857163
+  },
+  {
+   "opId": "layer.7.attn.q_norm",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 2048,
+   "maxAbs": 4.103588890203014e-05,
+   "relRms": 6.207053791045545e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 4.103588890203014e-05,
+   "lastTokenRelRms": 6.207053791045545e-06,
+   "referenceRms": 1.4064898962091177
+  },
+  {
+   "opId": "layer.7.attn.k_norm",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 512,
+   "maxAbs": 3.410775657197718e-05,
+   "relRms": 6.077022418449568e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.410775657197718e-05,
+   "lastTokenRelRms": 6.077022418449568e-06,
+   "referenceRms": 1.5049117417423703
+  },
+  {
+   "opId": "layer.7.attn.q_rope",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 2048,
+   "maxAbs": 6.283386883865205e-05,
+   "relRms": 6.285048466520623e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 6.283386883865205e-05,
+   "lastTokenRelRms": 6.285048466520623e-06,
+   "referenceRms": 1.4064898962091177
+  },
+  {
+   "opId": "layer.7.attn.k_rope",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 512,
+   "maxAbs": 3.4156156225151335e-05,
+   "relRms": 6.100138050234966e-06,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.4156156225151335e-05,
+   "lastTokenRelRms": 6.100138050234966e-06,
+   "referenceRms": 1.5049117417423703
+  },
+  {
+   "opId": "layer.7.attn.core_out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 2048,
+   "maxAbs": 0.00011026522588730714,
+   "relRms": 2.395621501408069e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 0.00011026522588730714,
+   "lastTokenRelRms": 2.395621501408069e-05,
+   "referenceRms": 0.45978133125141435
+  },
+  {
+   "opId": "layer.7.attn.out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 5.194563612809233e-06,
+   "relRms": 3.5616247400832614e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 5.194563612809233e-06,
+   "lastTokenRelRms": 3.5616247400832614e-05,
+   "referenceRms": 0.03242924898096363
+  },
+  {
+   "opId": "layer.7.attn.post_attn",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 5.194563612809233e-06,
+   "relRms": 3.5616247400832614e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 5.194563612809233e-06,
+   "lastTokenRelRms": 3.5616247400832614e-05,
+   "referenceRms": 0.03242924898096363
+  },
+  {
+   "opId": "layer.7.ffn.out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 4.754843500265338e-06,
+   "relRms": 3.274994459142178e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 4.754843500265338e-06,
+   "lastTokenRelRms": 3.274994459142178e-05,
+   "referenceRms": 0.032869628200517274
+  },
+  {
+   "opId": "layer.7.layer.out",
+   "tokens": 1,
+   "lastToken": 0,
+   "width": 1024,
+   "maxAbs": 3.926582405736068e-06,
+   "relRms": 1.882724714319803e-05,
+   "exactFraction": 0.0,
+   "lastTokenMaxAbs": 3.926582405736068e-06,
+   "lastTokenRelRms": 1.882724714319803e-05,
+   "referenceRms": 0.060267965368944465
+  },
+  {
+   "opId": "layer.8.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.8.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.9.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.10.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.q_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.k_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.v_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.q_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.k_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.q_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.k_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.11.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.12.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.13.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.14.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.q_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.k_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.v_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.q_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.k_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.q_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.k_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.15.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.16.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.17.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.18.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.q_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.k_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.v_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.q_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.k_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.q_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.k_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.19.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.20.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.21.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.qkv_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.linear_z_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.linear_core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.22.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.post_input_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.q_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.k_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.v_proj",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.q_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.k_norm",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.q_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.k_rope",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.core_out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.attn.post_attn",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.ffn.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "layer.23.layer.out",
+   "missing": [
+    true,
+    false
+   ]
+  },
+  {
+   "opId": "final_norm.out",
+   "missing": [
+    true,
+    false
+   ]
+  }
+ ],
+ "cache-after-prefill": [
+  {
+   "layer": 3,
+   "kind": "key",
+   "values": 94208,
+   "differentStoredValues": 343,
+   "fraction": 0.0036408797554347825,
+   "tokensWithDifference": 157,
+   "firstTokenWithDifference": 1,
+   "maxUlpSteps": 16,
+   "maxAbsChange": 0.001953125
+  },
+  {
+   "layer": 3,
+   "kind": "value",
+   "values": 94208,
+   "differentStoredValues": 311,
+   "fraction": 0.0033012058423913045,
+   "tokensWithDifference": 146,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 10,
+   "maxAbsChange": 0.001953125
+  },
+  {
+   "layer": 7,
+   "kind": "key",
+   "values": 94208,
+   "differentStoredValues": 3775,
+   "fraction": 0.040070906929347824,
+   "tokensWithDifference": 183,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32765,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 7,
+   "kind": "value",
+   "values": 94208,
+   "differentStoredValues": 3995,
+   "fraction": 0.042406165081521736,
+   "tokensWithDifference": 182,
+   "firstTokenWithDifference": 1,
+   "maxUlpSteps": 192,
+   "maxAbsChange": 0.001953125
+  },
+  {
+   "layer": 11,
+   "kind": "key",
+   "values": 94208,
+   "differentStoredValues": 11734,
+   "fraction": 0.12455417798913043,
+   "tokensWithDifference": 184,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 31729,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 11,
+   "kind": "value",
+   "values": 94208,
+   "differentStoredValues": 13064,
+   "fraction": 0.138671875,
+   "tokensWithDifference": 183,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32892,
+   "maxAbsChange": 0.001953125
+  },
+  {
+   "layer": 15,
+   "kind": "key",
+   "values": 94208,
+   "differentStoredValues": 10385,
+   "fraction": 0.11023479959239131,
+   "tokensWithDifference": 184,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32330,
+   "maxAbsChange": 0.0078125
+  },
+  {
+   "layer": 15,
+   "kind": "value",
+   "values": 94208,
+   "differentStoredValues": 10553,
+   "fraction": 0.11201808763586957,
+   "tokensWithDifference": 184,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32613,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 19,
+   "kind": "key",
+   "values": 94208,
+   "differentStoredValues": 7956,
+   "fraction": 0.08445142663043478,
+   "tokensWithDifference": 184,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32518,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 19,
+   "kind": "value",
+   "values": 94208,
+   "differentStoredValues": 8720,
+   "fraction": 0.09256114130434782,
+   "tokensWithDifference": 184,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 471,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 23,
+   "kind": "key",
+   "values": 94208,
+   "differentStoredValues": 6931,
+   "fraction": 0.07357124660326086,
+   "tokensWithDifference": 184,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32836,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 23,
+   "kind": "value",
+   "values": 94208,
+   "differentStoredValues": 5021,
+   "fraction": 0.053296959918478264,
+   "tokensWithDifference": 184,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32965,
+   "maxAbsChange": 0.0078125
+  }
+ ],
+ "cache-final": [
+  {
+   "layer": 3,
+   "kind": "key",
+   "values": 119808,
+   "differentStoredValues": 512,
+   "fraction": 0.004273504273504274,
+   "tokensWithDifference": 201,
+   "firstTokenWithDifference": 1,
+   "maxUlpSteps": 28,
+   "maxAbsChange": 0.001953125
+  },
+  {
+   "layer": 3,
+   "kind": "value",
+   "values": 119808,
+   "differentStoredValues": 505,
+   "fraction": 0.004215077457264957,
+   "tokensWithDifference": 193,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 40,
+   "maxAbsChange": 0.001953125
+  },
+  {
+   "layer": 7,
+   "kind": "key",
+   "values": 119808,
+   "differentStoredValues": 4698,
+   "fraction": 0.039212740384615384,
+   "tokensWithDifference": 233,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32765,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 7,
+   "kind": "value",
+   "values": 119808,
+   "differentStoredValues": 5072,
+   "fraction": 0.04233440170940171,
+   "tokensWithDifference": 232,
+   "firstTokenWithDifference": 1,
+   "maxUlpSteps": 192,
+   "maxAbsChange": 0.001953125
+  },
+  {
+   "layer": 11,
+   "kind": "key",
+   "values": 119808,
+   "differentStoredValues": 14232,
+   "fraction": 0.1187900641025641,
+   "tokensWithDifference": 234,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 31729,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 11,
+   "kind": "value",
+   "values": 119808,
+   "differentStoredValues": 16058,
+   "fraction": 0.13403111645299146,
+   "tokensWithDifference": 233,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32892,
+   "maxAbsChange": 0.001953125
+  },
+  {
+   "layer": 15,
+   "kind": "key",
+   "values": 119808,
+   "differentStoredValues": 13303,
+   "fraction": 0.11103599091880342,
+   "tokensWithDifference": 234,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32330,
+   "maxAbsChange": 0.0078125
+  },
+  {
+   "layer": 15,
+   "kind": "value",
+   "values": 119808,
+   "differentStoredValues": 13504,
+   "fraction": 0.11271367521367522,
+   "tokensWithDifference": 234,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32613,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 19,
+   "kind": "key",
+   "values": 119808,
+   "differentStoredValues": 11400,
+   "fraction": 0.09515224358974358,
+   "tokensWithDifference": 234,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32518,
+   "maxAbsChange": 0.0078125
+  },
+  {
+   "layer": 19,
+   "kind": "value",
+   "values": 119808,
+   "differentStoredValues": 12652,
+   "fraction": 0.10560229700854701,
+   "tokensWithDifference": 234,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 1037,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 23,
+   "kind": "key",
+   "values": 119808,
+   "differentStoredValues": 10971,
+   "fraction": 0.09157151442307693,
+   "tokensWithDifference": 234,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32836,
+   "maxAbsChange": 0.00390625
+  },
+  {
+   "layer": 23,
+   "kind": "value",
+   "values": 119808,
+   "differentStoredValues": 8786,
+   "fraction": 0.07333400106837606,
+   "tokensWithDifference": 234,
+   "firstTokenWithDifference": 0,
+   "maxUlpSteps": 32965,
+   "maxAbsChange": 0.0078125
+  }
+ ],
+ "plainCacheStore": [
+  {
+   "layer": 3,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 3,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 7,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 7,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 11,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 11,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 15,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 15,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 19,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 19,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 23,
+   "kind": "key",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  },
+  {
+   "layer": 23,
+   "kind": "value",
+   "values": 94208,
+   "plainStoredEqualsNearestF16OfPlainPreStoreValue": 94208
+  }
+ ],
+ "cacheStoreAttribution": [
+  {
+   "layer": 3,
+   "kind": "key",
+   "values": 94208,
+   "referenceStoredEqualsNearestF16OfReferencePreStore": 94208,
+   "preStoreRelRms": 5.266007920820639e-07,
+   "preStoreMaxRelative": 0.027225353157462273,
+   "nearestF16Differs": 343,
+   "storedBitsDiffer": 343,
+   "flippedMedianPreStoreRelative": 3.132277161964603e-05,
+   "flippedMedianDistanceInF16Spacings": 0.04298531216772972
+  },
+  {
+   "layer": 3,
+   "kind": "value",
+   "values": 94208,
+   "referenceStoredEqualsNearestF16OfReferencePreStore": 94208,
+   "preStoreRelRms": 4.76610288948411e-07,
+   "preStoreMaxRelative": 0.010985934004912677,
+   "nearestF16Differs": 311,
+   "storedBitsDiffer": 311,
+   "flippedMedianPreStoreRelative": 2.0737330365743298e-05,
+   "flippedMedianDistanceInF16Spacings": 0.03521038151302491
+  },
+  {
+   "layer": 7,
+   "kind": "key",
+   "values": 94208,
+   "referenceStoredEqualsNearestF16OfReferencePreStore": 94208,
+   "preStoreRelRms": 9.109431467199709e-06,
+   "preStoreMaxRelative": 2.022639456844339,
+   "nearestF16Differs": 3775,
+   "storedBitsDiffer": 3775,
+   "flippedMedianPreStoreRelative": 0.00014756669064511476,
+   "flippedMedianDistanceInF16Spacings": 0.21920513937220676
+  },
+  {
+   "layer": 7,
+   "kind": "value",
+   "values": 94208,
+   "referenceStoredEqualsNearestF16OfReferencePreStore": 94208,
+   "preStoreRelRms": 9.781762133841635e-06,
+   "preStoreMaxRelative": 0.21651976069869786,
+   "nearestF16Differs": 3995,
+   "storedBitsDiffer": 3995,
+   "flippedMedianPreStoreRelative": 0.0001459926195710534,
+   "flippedMedianDistanceInF16Spacings": 0.22142710344633088
+  }
+ ]
+}

@@ -1,0 +1,15 @@
+{
+ "label": "plain + F64-backed F16 K and V in layers 3, 7, 11 only (diagnostic)",
+ "kvSubstitution": {
+  "cacheDir": "/var/tmp/plain-divergence-20261014/runs/s01-paired-control/caches",
+  "layers": [
+   3,
+   7,
+   11
+  ],
+  "kinds": [
+   "key",
+   "value"
+  ]
+ }
+}

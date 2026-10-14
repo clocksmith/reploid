@@ -1,0 +1,46 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[660.9ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[661.0ms][Config] Using manifest-first config (source of truth)
+[665.8ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[665.9ms][Pipeline] Vision capable: imageTokenId=248056
+[667.0ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[667.3ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[667.9ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[789.0ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[916.3ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[916.7ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[919.8ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[920.6ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[962.7ms][ShardCache] Custom shard loader configured
+[963.0ms][Loader] Initializing...
+[1012.7ms][HeapManager] Allocated segment 0: 1024MB
+[1012.9ms][HeapManager] Segmented heap: 1GB per segment
+[1012.9ms][HeapManager] Initialized with strategy: SEGMENTED
+[1013.0ms][Loader] Initialized (f16, subgroups)
+[1013.5ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[1026.5ms][Loader] [0.0s] Memory (start): | RSS=497.33 MB (heap=197.58 MB/200.15 MB, external=2.14 GB, arrayBuffers=1.14 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[1027.1ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1174.4ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1174.8ms][Loader] Layers: 0-23
+[1326.7ms][Loader] Layers: 24 complete (0.15s)
+[1370.6ms][Loader] Complete: 890.16 MB in 0.34s (2.54 GB/s)
+[1371.5ms][Loader] [0.4s] Memory (complete): | RSS=575.64 MB (heap=208.73 MB/227.15 MB, external=1.17 GB, arrayBuffers=1.17 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1380.8ms][Pipeline] Model loaded successfully (726ms)
+[1414.4ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[1422.1ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+[1499.6ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[1677.2ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[1708.5ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[1714.6ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[1730.3ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+{"label":"plain control, end of session","speedPass":0,"prefillMs":317.22738000000004,"decodeMedianMs":29.535985999999866}
+{"label":"plain control, end of session","speedPass":1,"prefillMs":183.26052299999992,"decodeMedianMs":27.622183000000405}
+[5987.1ms][KernelSelect] matmul variant=f16w_f32a reason=default
+{"label":"plain control, end of session","attempt":0,"promptTokens":19,"maxDifference":0.0005488027261089101,"failedSteps":0}
+{"label":"plain control, end of session","attempt":1,"promptTokens":21,"maxDifference":0.0006218545628309258,"failedSteps":0}
+{"label":"plain control, end of session","attempt":2,"promptTokens":184,"maxDifference":0.0034951507058513798,"failedSteps":27}
+{"label":"plain control, end of session","comparedSteps":55,"withinTolerance":28,"tokenMatches":55,"maxDifference":0.0034951507058513798,"valuesOverTolerance":25151,"passed":false,"prompt56Ms":183.26052299999992,"prompt184Ms":338.0820220000005,"decodeMedianMs":27.622183000000405}
+[8564.0ms][ExpertCache] Cache cleared
+[8565.1ms][Pipeline] Unloaded

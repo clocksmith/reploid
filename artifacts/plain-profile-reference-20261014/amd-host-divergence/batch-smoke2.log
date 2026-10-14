@@ -1,0 +1,4 @@
+batch smoke2 start 2026-10-14T21:26:36Z amdgpu-errors 50
+public-native cpu 120.0
+s19-split20-plain-plain exit=0 seconds=9 at 21:26:46 amdgpu-errors 50
+batch smoke2 done 2026-10-14T21:26:46Z

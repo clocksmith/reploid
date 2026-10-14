@@ -1,0 +1,6 @@
+{
+ "label": "mechanism control: plain prefill handed to plain decode",
+ "hybridPrefill": {
+  "modelDir": "/var/tmp/plain-profile-reference-20261014/model"
+ }
+}

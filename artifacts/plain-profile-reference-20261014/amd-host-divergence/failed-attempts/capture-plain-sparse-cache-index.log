@@ -1,0 +1,46 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[600.8ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[601.0ms][Config] Using manifest-first config (source of truth)
+[605.3ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[605.3ms][Pipeline] Vision capable: imageTokenId=248056
+[606.4ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[606.8ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[607.3ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[719.5ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[835.5ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[835.9ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[839.0ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[839.8ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[892.7ms][ShardCache] Custom shard loader configured
+[893.0ms][Loader] Initializing...
+[941.0ms][HeapManager] Allocated segment 0: 1024MB
+[941.2ms][HeapManager] Segmented heap: 1GB per segment
+[941.2ms][HeapManager] Initialized with strategy: SEGMENTED
+[941.3ms][Loader] Initialized (f16, subgroups)
+[941.8ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[954.6ms][Loader] [0.0s] Memory (start): | RSS=496.27 MB (heap=197.55 MB/200.15 MB, external=2.14 GB, arrayBuffers=1.14 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[955.2ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1122.7ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1123.0ms][Loader] Layers: 0-23
+[1336.3ms][Loader] Layers: 24 complete (0.21s)
+[1378.0ms][Loader] Complete: 890.16 MB in 0.42s (2.06 GB/s)
+[1379.0ms][Loader] [0.4s] Memory (complete): | RSS=594.90 MB (heap=224.43 MB/258.90 MB, external=1.17 GB, arrayBuffers=1.17 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1388.0ms][Pipeline] Model loaded successfully (793ms)
+[1418.8ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[1425.4ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+[1496.3ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[5731.4ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[6068.4ms][ExpertCache] Cache cleared
+[6069.8ms][Pipeline] Unloaded
+file:///var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/doppler-gpu/src/inference/kv-cache/layer-range.js:63
+            if (typeof layer !== 'number' || !localIndices.has(layer)) throw new RangeError(describeMissing(layer));
+                                                                             ^
+
+RangeError: Layer 0 has no allocated KV cache.
+    at Proxy.<anonymous> (file:///var/tmp/reploid-signed-completion-9-20261014/reploid/node_modules/doppler-gpu/src/inference/kv-cache/layer-range.js:63:78)
+    at readCaches (file:///var/tmp/plain-divergence-20261014/divergence-capture.mjs:110:29)
+    at async file:///var/tmp/plain-divergence-20261014/divergence-capture.mjs:168:9
+
+Node.js v22.22.1

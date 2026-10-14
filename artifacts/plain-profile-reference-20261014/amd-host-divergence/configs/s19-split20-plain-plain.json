@@ -1,0 +1,9 @@
+{
+ "label": "mechanism control: plain layers 0-19 partition, plain 20-23 + head partition",
+ "split": {
+  "splitLayer": 20,
+  "front": {
+   "modelDir": "/var/tmp/plain-profile-reference-20261014/model"
+  }
+ }
+}

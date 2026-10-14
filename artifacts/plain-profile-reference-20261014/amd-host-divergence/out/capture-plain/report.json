@@ -1,0 +1,4706 @@
+{
+ "schema": "reploid.plain-divergence-capture/v1",
+ "label": "plain-manifest-defaults",
+ "startedAt": "2026-10-14T20:50:26.134Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "referenceSha256": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+ "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+ "configSha256": "sha256:1a2443230049b0ce92985f4b95fe45ce73a09a5aa5ce19b232e275586819b95b",
+ "request": 2,
+ "captureStep": 15,
+ "steps": [
+  {
+   "step": 0,
+   "maxDifference": 0.0007045465124986272,
+   "maxDifferenceAt": 362,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 1,
+   "maxDifference": 0.0009503841421754089,
+   "maxDifferenceAt": 83317,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 2,
+   "maxDifference": 0.000874628876696093,
+   "maxDifferenceAt": 47187,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 17,
+   "referenceTokenId": 17,
+   "tokenMatches": true
+  },
+  {
+   "step": 3,
+   "maxDifference": 0.0012218348229229292,
+   "maxDifferenceAt": 18050,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 4,
+   "maxDifference": 0.0009291759612581885,
+   "maxDifferenceAt": 199982,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 18,
+   "referenceTokenId": 18,
+   "tokenMatches": true
+  },
+  {
+   "step": 5,
+   "maxDifference": 0.0010074224643119578,
+   "maxDifferenceAt": 91348,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 6,
+   "maxDifference": 0.0008553656772734008,
+   "maxDifferenceAt": 221590,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 19,
+   "referenceTokenId": 19,
+   "tokenMatches": true
+  },
+  {
+   "step": 7,
+   "maxDifference": 0.0016050100181441707,
+   "maxDifferenceAt": 19,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 8,
+   "maxDifference": 0.001128586798007536,
+   "maxDifferenceAt": 164617,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 20,
+   "referenceTokenId": 20,
+   "tokenMatches": true
+  },
+  {
+   "step": 9,
+   "maxDifference": 0.0013949900368572798,
+   "maxDifferenceAt": 220,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 10,
+   "maxDifference": 0.0008699663913529498,
+   "maxDifferenceAt": 244803,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 21,
+   "referenceTokenId": 21,
+   "tokenMatches": true
+  },
+  {
+   "step": 11,
+   "maxDifference": 0.0012521076714966384,
+   "maxDifferenceAt": 31287,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 12,
+   "maxDifference": 0.0016727544986774312,
+   "maxDifferenceAt": 6299,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 22,
+   "referenceTokenId": 22,
+   "tokenMatches": true
+  },
+  {
+   "step": 13,
+   "maxDifference": 0.0011684873689841169,
+   "maxDifferenceAt": 22,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 14,
+   "maxDifference": 0.0013319037369317055,
+   "maxDifferenceAt": 43138,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 23,
+   "referenceTokenId": 23,
+   "tokenMatches": true
+  },
+  {
+   "step": 15,
+   "maxDifference": 0.0034951507058513798,
+   "maxDifferenceAt": 23,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 16,
+   "maxDifference": 0.002632727920642175,
+   "maxDifferenceAt": 30425,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 24,
+   "referenceTokenId": 24,
+   "tokenMatches": true
+  },
+  {
+   "step": 17,
+   "maxDifference": 0.0017313005149155458,
+   "maxDifferenceAt": 106267,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 18,
+   "maxDifference": 0.0014719822522586412,
+   "maxDifferenceAt": 23,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 19,
+   "maxDifference": 0.0009948375116621833,
+   "maxDifferenceAt": 193120,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 15,
+   "referenceTokenId": 15,
+   "tokenMatches": true
+  },
+  {
+   "step": 20,
+   "maxDifference": 0.0008592278058827674,
+   "maxDifferenceAt": 119983,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 21,
+   "maxDifference": 0.00114682049126702,
+   "maxDifferenceAt": 76917,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 22,
+   "maxDifference": 0.0014038471613346815,
+   "maxDifferenceAt": 15,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 23,
+   "maxDifference": 0.0007546564400962019,
+   "maxDifferenceAt": 28788,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 24,
+   "maxDifference": 0.0008952914360844666,
+   "maxDifferenceAt": 57087,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 25,
+   "maxDifference": 0.0008576013131431637,
+   "maxDifferenceAt": 15,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 17,
+   "referenceTokenId": 17,
+   "tokenMatches": true
+  },
+  {
+   "step": 26,
+   "maxDifference": 0.000940365352354533,
+   "maxDifferenceAt": 66887,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 27,
+   "maxDifference": 0.0015674119321396063,
+   "maxDifferenceAt": 98175,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 28,
+   "maxDifference": 0.0029949721614030977,
+   "maxDifferenceAt": 106534,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 18,
+   "referenceTokenId": 18,
+   "tokenMatches": true
+  },
+  {
+   "step": 29,
+   "maxDifference": 0.0011165999654408898,
+   "maxDifferenceAt": 33436,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 30,
+   "maxDifference": 0.0012766540596569342,
+   "maxDifferenceAt": 1679,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 31,
+   "maxDifference": 0.0025398793345914328,
+   "maxDifferenceAt": 113325,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 19,
+   "referenceTokenId": 19,
+   "tokenMatches": true
+  },
+  {
+   "step": 32,
+   "maxDifference": 0.0012680395525963561,
+   "maxDifferenceAt": 17,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 33,
+   "maxDifference": 0.0012627405895366817,
+   "maxDifferenceAt": 105918,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 34,
+   "maxDifference": 0.002037322277846254,
+   "maxDifferenceAt": 243765,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 20,
+   "referenceTokenId": 20,
+   "tokenMatches": true
+  },
+  {
+   "step": 35,
+   "maxDifference": 0.0009723353038059157,
+   "maxDifferenceAt": 5314,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 36,
+   "maxDifference": 0.0007994120298850937,
+   "maxDifferenceAt": 20491,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 37,
+   "maxDifference": 0.0012005550134190912,
+   "maxDifferenceAt": 131558,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 21,
+   "referenceTokenId": 21,
+   "tokenMatches": true
+  },
+  {
+   "step": 38,
+   "maxDifference": 0.0007937472024854841,
+   "maxDifferenceAt": 45,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 39,
+   "maxDifference": 0.00090041467053803,
+   "maxDifferenceAt": 72255,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 40,
+   "maxDifference": 0.0011548509624756953,
+   "maxDifferenceAt": 106534,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 22,
+   "referenceTokenId": 22,
+   "tokenMatches": true
+  },
+  {
+   "step": 41,
+   "maxDifference": 0.0007725627678629721,
+   "maxDifferenceAt": 18807,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 42,
+   "maxDifference": 0.0010188522212866147,
+   "maxDifferenceAt": 90325,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 43,
+   "maxDifference": 0.0008982977191729358,
+   "maxDifferenceAt": 895,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 23,
+   "referenceTokenId": 23,
+   "tokenMatches": true
+  },
+  {
+   "step": 44,
+   "maxDifference": 0.0006256748844046811,
+   "maxDifferenceAt": 9411,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 45,
+   "maxDifference": 0.0008433216705414637,
+   "maxDifferenceAt": 117252,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 16,
+   "referenceTokenId": 16,
+   "tokenMatches": true
+  },
+  {
+   "step": 46,
+   "maxDifference": 0.0009707933326028595,
+   "maxDifferenceAt": 30425,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 24,
+   "referenceTokenId": 24,
+   "tokenMatches": true
+  },
+  {
+   "step": 47,
+   "maxDifference": 0.000791556510757907,
+   "maxDifferenceAt": 40012,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 198,
+   "referenceTokenId": 198,
+   "tokenMatches": true
+  },
+  {
+   "step": 48,
+   "maxDifference": 0.0007414438361301734,
+   "maxDifferenceAt": 23517,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 17,
+   "referenceTokenId": 17,
+   "tokenMatches": true
+  },
+  {
+   "step": 49,
+   "maxDifference": 0.000746095359572152,
+   "maxDifferenceAt": 54866,
+   "finite": true,
+   "withinTolerance": true,
+   "tokenId": 15,
+   "referenceTokenId": 15,
+   "tokenMatches": true
+  },
+  {
+   "step": 50,
+   "maxDifference": 0.001117481843592949,
+   "maxDifferenceAt": 74137,
+   "finite": true,
+   "withinTolerance": false,
+   "tokenId": 248046,
+   "referenceTokenId": 248046,
+   "tokenMatches": true
+  }
+ ],
+ "captures": {
+  "prefill": [
+   {
+    "opId": "embed.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 0,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 188416,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 376832,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 1507328,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 1884160,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 2260992,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 2449408,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 2637824,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 2826240,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.1.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 3203072,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 3391488,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 4521984,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 4898816,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 5275648,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 5464064,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 5652480,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 5840896,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.2.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 6217728,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 6406144,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 7536640,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 7913472,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 8290304,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 8478720,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 8667136,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 8855552,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.3.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 9232384,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 9420800,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 9797632,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 9891840,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 9986048,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 10362880,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 10457088,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 10833920,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 10928128,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 11304960,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 11493376,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 11681792,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 11870208,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.4.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 12247040,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 12435456,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 13565952,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 13942784,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 14319616,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 14508032,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 14696448,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 14884864,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.5.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 15261696,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 15450112,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 16580608,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 16957440,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 17334272,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 17522688,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 17711104,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 17899520,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.6.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 18276352,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 18464768,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 19595264,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 19972096,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 20348928,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 20537344,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 20725760,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 20914176,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.7.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 21291008,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 21479424,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 21856256,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 21950464,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 22044672,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 22421504,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 22515712,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 22892544,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 22986752,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 23363584,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 23552000,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 23740416,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 23928832,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.8.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 24305664,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 24494080,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 25624576,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 26001408,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 26378240,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 26566656,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 26755072,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 26943488,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.9.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 27320320,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 27508736,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 28639232,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 29016064,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 29392896,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 29581312,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 29769728,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 29958144,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.10.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 30334976,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 30523392,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 31653888,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 32030720,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 32407552,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 32595968,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 32784384,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 32972800,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.11.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 33349632,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 33538048,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 33914880,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 34009088,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 34103296,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 34480128,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 34574336,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 34951168,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 35045376,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 35422208,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 35610624,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 35799040,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 35987456,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.12.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 36364288,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 36552704,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 37683200,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 38060032,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 38436864,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 38625280,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 38813696,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 39002112,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.13.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 39378944,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 39567360,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 40697856,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 41074688,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 41451520,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 41639936,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 41828352,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 42016768,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.14.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 42393600,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 42582016,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 43712512,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 44089344,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 44466176,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 44654592,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 44843008,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 45031424,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.15.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 45408256,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 45596672,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 45973504,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 46067712,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 46161920,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 46538752,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 46632960,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 47009792,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 47104000,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 47480832,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 47669248,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 47857664,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 48046080,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.16.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 48422912,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 48611328,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 49741824,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 50118656,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 50495488,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 50683904,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 50872320,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 51060736,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.17.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 51437568,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 51625984,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 52756480,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 53133312,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 53510144,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 53698560,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 53886976,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 54075392,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.18.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 54452224,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 54640640,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 55771136,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 56147968,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 56524800,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 56713216,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 56901632,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 57090048,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.19.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 57466880,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 57655296,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 58032128,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 58126336,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 58220544,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 58597376,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 58691584,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 59068416,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 59162624,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 59539456,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 59727872,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 59916288,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 60104704,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.20.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 60481536,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 60669952,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 61800448,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 62177280,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 62554112,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 62742528,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 62930944,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 63119360,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.21.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 63496192,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 63684608,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 64815104,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 65191936,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 65568768,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 65757184,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 65945600,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 66134016,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.22.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 66510848,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.qkv_proj",
+    "tokens": 184,
+    "width": 6144,
+    "length": 1130496,
+    "offset": 66699264,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.linear_z_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 67829760,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.linear_core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 68206592,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 68583424,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 68771840,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 68960256,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 69148672,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.23.attn.post_input_norm",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 69525504,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.q_proj",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 69713920,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.k_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 70090752,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.v_proj",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 70184960,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.q_norm",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 70279168,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.k_norm",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 70656000,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.q_rope",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 70750208,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.k_rope",
+    "tokens": 184,
+    "width": 512,
+    "length": 94208,
+    "offset": 71127040,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.core_out",
+    "tokens": 184,
+    "width": 2048,
+    "length": 376832,
+    "offset": 71221248,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 71598080,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.post_attn",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 71786496,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.ffn.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 71974912,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.layer.out",
+    "tokens": 368,
+    "width": 1024,
+    "length": 376832,
+    "offset": 72163328,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "final_norm.out",
+    "tokens": 184,
+    "width": 1024,
+    "length": 188416,
+    "offset": 72540160,
+    "precision": "f32",
+    "chunks": 1
+   }
+  ],
+  "decode-15": [
+   {
+    "opId": "embed.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 0,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 1024,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 2048,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 8192,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 10240,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 12288,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 13312,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 14336,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.0.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 15360,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.1.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 17408,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 18432,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 24576,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 26624,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 28672,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 29696,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 30720,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.1.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 31744,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.2.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 33792,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 34816,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 40960,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 43008,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 45056,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 46080,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 47104,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.2.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 48128,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.3.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 50176,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 51200,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 53248,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 53760,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 54272,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 56320,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 56832,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 58880,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 59392,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 61440,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 62464,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 63488,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.3.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 64512,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.4.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 66560,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 67584,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 73728,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 75776,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 77824,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 78848,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 79872,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.4.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 80896,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.5.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 82944,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 83968,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 90112,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 92160,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 94208,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 95232,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 96256,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.5.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 97280,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.6.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 99328,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 100352,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 106496,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 108544,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 110592,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 111616,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 112640,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.6.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 113664,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.7.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 115712,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 116736,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 118784,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 119296,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 119808,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 121856,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 122368,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 124416,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 124928,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 126976,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 128000,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 129024,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.7.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 130048,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.8.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 132096,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 133120,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 139264,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 141312,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 143360,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 144384,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 145408,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.8.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 146432,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.9.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 148480,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 149504,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 155648,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 157696,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 159744,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 160768,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 161792,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.9.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 162816,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.10.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 164864,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 165888,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 172032,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 174080,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 176128,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 177152,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 178176,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.10.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 179200,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.11.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 181248,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 182272,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 184320,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 184832,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 185344,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 187392,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 187904,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 189952,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 190464,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 192512,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 193536,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 194560,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.11.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 195584,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.12.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 197632,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 198656,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 204800,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 206848,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 208896,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 209920,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 210944,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.12.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 211968,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.13.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 214016,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 215040,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 221184,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 223232,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 225280,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 226304,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 227328,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.13.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 228352,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.14.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 230400,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 231424,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 237568,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 239616,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 241664,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 242688,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 243712,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.14.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 244736,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.15.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 246784,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 247808,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 249856,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 250368,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 250880,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 252928,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 253440,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 255488,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 256000,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 258048,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 259072,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 260096,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.15.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 261120,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.16.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 263168,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 264192,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 270336,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 272384,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 274432,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 275456,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 276480,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.16.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 277504,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.17.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 279552,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 280576,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 286720,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 288768,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 290816,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 291840,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 292864,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.17.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 293888,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.18.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 295936,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 296960,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 303104,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 305152,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 307200,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 308224,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 309248,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.18.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 310272,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.19.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 312320,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 313344,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 315392,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 315904,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 316416,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 318464,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 318976,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 321024,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 321536,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 323584,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 324608,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 325632,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.19.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 326656,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.20.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 328704,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 329728,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 335872,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 337920,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 339968,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 340992,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 342016,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.20.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 343040,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.21.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 345088,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 346112,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 352256,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 354304,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 356352,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 357376,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 358400,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.21.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 359424,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.22.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 361472,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.qkv_proj",
+    "tokens": 1,
+    "width": 6144,
+    "length": 6144,
+    "offset": 362496,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.linear_z_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 368640,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.linear_core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 370688,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 372736,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 373760,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 374784,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.22.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 375808,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "layer.23.attn.post_input_norm",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 377856,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.q_proj",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 378880,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.k_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 380928,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.v_proj",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 381440,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.q_norm",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 381952,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.k_norm",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 384000,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.q_rope",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 384512,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.k_rope",
+    "tokens": 1,
+    "width": 512,
+    "length": 512,
+    "offset": 386560,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.core_out",
+    "tokens": 1,
+    "width": 2048,
+    "length": 2048,
+    "offset": 387072,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 389120,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.attn.post_attn",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 390144,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.ffn.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 391168,
+    "precision": "f32",
+    "chunks": 1
+   },
+   {
+    "opId": "layer.23.layer.out",
+    "tokens": 2,
+    "width": 1024,
+    "length": 2048,
+    "offset": 392192,
+    "precision": "f32",
+    "chunks": 2
+   },
+   {
+    "opId": "final_norm.out",
+    "tokens": 1,
+    "width": 1024,
+    "length": 1024,
+    "offset": 394240,
+    "precision": "f32",
+    "chunks": 1
+   }
+  ]
+ },
+ "caches": {
+  "cache-after-prefill": [
+   {
+    "layer": 3,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "af216d63397c48e0ddb081c03efc0d6ef621d532379011c3dc5dcd84339f5f70",
+    "valueSha256": "bd8cf27c520aba12955922cae2649ed7275fcef97b5e8d5c5461e5a4aeddafc9"
+   },
+   {
+    "layer": 7,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "465c05d90e236c6947efbd6c264dd4905d7df61dcea5e4fe8323ee3a057875ed",
+    "valueSha256": "4f12448710035b9adf36125e2237022651448af29b6f46bf7fe1fbcb6eb5a83d"
+   },
+   {
+    "layer": 11,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "640593ddfdb2383f1e26f2721e6df864b1971bf7cc38ab2ca461efeef40c22e4",
+    "valueSha256": "dea3444434bc5f4c36182e93c81df39c7765e9badaffb34bf0c535232e4803fd"
+   },
+   {
+    "layer": 15,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "80c2240ee634d0d6815b3fbb48d23bb96730871e27e89654cd64cd145ee232c2",
+    "valueSha256": "2123455dd4a77351db8ade7fdbe64d0582a1a532e06237d766d7df745376f87e"
+   },
+   {
+    "layer": 19,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "be8bd0ff1ce379781902a81b336172eaa592e0a6dc976e76c64aac05dfc6fa5e",
+    "valueSha256": "a1f4a4dffa3037e0bab02b088916185863eac256d7a35c13f3f98811a0294e9d"
+   },
+   {
+    "layer": 23,
+    "seqLen": 184,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "72d307df8de626a2fb3c9de403b95ccf6621a001340e49c9eac92cb5ea8c7697",
+    "valueSha256": "8a427fdded67a53668ecd9ff7aa063c17d0e1c7996a62a6d99de368e3ba4a05a"
+   }
+  ],
+  "cache-final": [
+   {
+    "layer": 3,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "61613df9d90cece154804296f6b124ff8ba3f050e52fcdfc23f734068fe39871",
+    "valueSha256": "15d727f77183b9712786923c1fdbb2e3ad8896a6221e5e76a6e9b84c403b442f"
+   },
+   {
+    "layer": 7,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "17493ef6a2e24fbce72a3f8fe75b52da48a46976a7cad328d754ed799c48a904",
+    "valueSha256": "5ce4bb5db7f0336e2b7d5bb56a5b4df6843ebd84c8b838185cb7ef2613025bd2"
+   },
+   {
+    "layer": 11,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "0d47a604bcc6e81c5dde1dd9965e396b1e75ee70fa8ad18cf23b67fa945d373d",
+    "valueSha256": "87c6584dac22d7c7b4249138c555224d196c4900907b730cac2094f2670798a1"
+   },
+   {
+    "layer": 15,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "33a3538227936177e63444d608f17916242442caa96f66eaee9ceeecf00deb90",
+    "valueSha256": "c4ee2cc0110bdd10b063cf1a0f86b261e813a3b127935840e2c3c508a7553e05"
+   },
+   {
+    "layer": 19,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "ff63c7edd03e56a572b441c32026d77ee998303b82da7edab7e720745a6c8fa0",
+    "valueSha256": "c668b1e78c242649d0a440429966e88b304ba22107fcefbb11c703aae694b2af"
+   },
+   {
+    "layer": 23,
+    "seqLen": 234,
+    "numHeads": 2,
+    "headDim": 256,
+    "keySha256": "c1fb336e737ce384099523c1142f039bfa0278923648380b356a352a4b6de3fa",
+    "valueSha256": "c6c9f8877e609770a23fc11e166a905777311b982b5fadad5775949ff5378b3e"
+   }
+  ]
+ },
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true
+ },
+ "promptTokens": 184,
+ "promptMatchesFrozenPrefix": true,
+ "maxDifference": 0.0034951507058513798,
+ "failedSteps": [
+  3,
+  5,
+  7,
+  8,
+  9,
+  11,
+  12,
+  13,
+  14,
+  15,
+  16,
+  17,
+  18,
+  21,
+  22,
+  27,
+  28,
+  29,
+  30,
+  31,
+  32,
+  33,
+  34,
+  37,
+  40,
+  42,
+  50
+ ],
+ "finishedAt": "2026-10-14T20:50:33.602Z"
+}
