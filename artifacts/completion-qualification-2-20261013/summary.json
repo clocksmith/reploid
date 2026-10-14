@@ -1,0 +1,918 @@
+{
+  "schema": "reploid.completion-candidate-physical-summary/v1",
+  "scope": "Actual ordered resident execution with local verified files and controller forwarding; not signed opening or authenticated transport",
+  "archiveSha256": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "captureSha256": "sha256:3a117a2ba86f90f0434434f3791b8ff66f9c1d5b108f499aec94938b424d2293",
+  "captureBytes": 218184583,
+  "captureGzipSha256": "sha256:5d863e9d1ac51e91068c96b6cc24a562f3c581146b3e7c7dcded47d469f8c39b",
+  "expectationsHash": "sha256:2a0bdaea2f54e02bf43c75ae6b02adc37f4ba0016b93c93c038332e23e76f0b7",
+  "prefixes": 55,
+  "requiredPrefixes": 55,
+  "tolerance": 0.001,
+  "allNumericalMatches": true,
+  "maxDifference": 9.520044947919359e-07,
+  "maxStageMs": 186504.195167,
+  "logicalActivationBytes": 4521984,
+  "transferScope": "Logical activations through diagnostic controller; network framing, peer acquisition and egress unmeasured",
+  "operations": [
+    {
+      "label": "request-2:step-13:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:30:46.877Z",
+      "finishedAt": "2026-10-14T01:30:48.206Z"
+    },
+    {
+      "label": "request-2:step-13:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:30:48.514Z",
+      "finishedAt": "2026-10-14T01:30:54.542Z"
+    },
+    {
+      "label": "request-2:step-14:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:30:54.898Z",
+      "finishedAt": "2026-10-14T01:30:55.614Z"
+    },
+    {
+      "label": "request-2:step-14:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:30:55.963Z",
+      "finishedAt": "2026-10-14T01:30:57.035Z"
+    },
+    {
+      "label": "request-2:step-14:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:30:57.399Z",
+      "finishedAt": "2026-10-14T01:31:03.486Z"
+    },
+    {
+      "label": "request-2:step-15:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:03.831Z",
+      "finishedAt": "2026-10-14T01:31:04.547Z"
+    },
+    {
+      "label": "request-2:step-15:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:04.895Z",
+      "finishedAt": "2026-10-14T01:31:05.914Z"
+    },
+    {
+      "label": "request-2:step-15:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:06.274Z",
+      "finishedAt": "2026-10-14T01:31:11.881Z"
+    },
+    {
+      "label": "request-2:step-16:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:12.254Z",
+      "finishedAt": "2026-10-14T01:31:12.981Z"
+    },
+    {
+      "label": "request-2:step-16:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:13.350Z",
+      "finishedAt": "2026-10-14T01:31:15.195Z"
+    },
+    {
+      "label": "request-2:step-16:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:15.558Z",
+      "finishedAt": "2026-10-14T01:31:21.418Z"
+    },
+    {
+      "label": "request-2:step-17:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:21.816Z",
+      "finishedAt": "2026-10-14T01:31:22.551Z"
+    },
+    {
+      "label": "request-2:step-17:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:22.938Z",
+      "finishedAt": "2026-10-14T01:31:24.242Z"
+    },
+    {
+      "label": "request-2:step-17:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:24.627Z",
+      "finishedAt": "2026-10-14T01:31:33.250Z"
+    },
+    {
+      "label": "request-2:step-18:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:33.661Z",
+      "finishedAt": "2026-10-14T01:31:34.417Z"
+    },
+    {
+      "label": "request-2:step-18:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:34.825Z",
+      "finishedAt": "2026-10-14T01:31:38.149Z"
+    },
+    {
+      "label": "request-2:step-18:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:38.566Z",
+      "finishedAt": "2026-10-14T01:31:45.265Z"
+    },
+    {
+      "label": "request-2:step-19:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:45.695Z",
+      "finishedAt": "2026-10-14T01:31:46.467Z"
+    },
+    {
+      "label": "request-2:step-19:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:46.896Z",
+      "finishedAt": "2026-10-14T01:31:48.073Z"
+    },
+    {
+      "label": "request-2:step-19:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:48.529Z",
+      "finishedAt": "2026-10-14T01:31:53.871Z"
+    },
+    {
+      "label": "request-2:step-20:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:54.348Z",
+      "finishedAt": "2026-10-14T01:31:55.134Z"
+    },
+    {
+      "label": "request-2:step-20:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:55.571Z",
+      "finishedAt": "2026-10-14T01:31:57.280Z"
+    },
+    {
+      "label": "request-2:step-20:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:31:57.749Z",
+      "finishedAt": "2026-10-14T01:32:06.461Z"
+    },
+    {
+      "label": "request-2:step-21:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:06.940Z",
+      "finishedAt": "2026-10-14T01:32:07.721Z"
+    },
+    {
+      "label": "request-2:step-21:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:08.199Z",
+      "finishedAt": "2026-10-14T01:32:10.009Z"
+    },
+    {
+      "label": "request-2:step-21:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:10.464Z",
+      "finishedAt": "2026-10-14T01:32:15.854Z"
+    },
+    {
+      "label": "request-2:step-22:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:16.370Z",
+      "finishedAt": "2026-10-14T01:32:17.170Z"
+    },
+    {
+      "label": "request-2:step-22:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:17.680Z",
+      "finishedAt": "2026-10-14T01:32:20.197Z"
+    },
+    {
+      "label": "request-2:step-22:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:20.672Z",
+      "finishedAt": "2026-10-14T01:32:29.425Z"
+    },
+    {
+      "label": "request-2:step-23:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:29.934Z",
+      "finishedAt": "2026-10-14T01:32:30.754Z"
+    },
+    {
+      "label": "request-2:step-23:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:31.273Z",
+      "finishedAt": "2026-10-14T01:32:32.865Z"
+    },
+    {
+      "label": "request-2:step-23:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:33.371Z",
+      "finishedAt": "2026-10-14T01:32:38.930Z"
+    },
+    {
+      "label": "request-2:step-24:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:39.476Z",
+      "finishedAt": "2026-10-14T01:32:40.304Z"
+    },
+    {
+      "label": "request-2:step-24:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:40.819Z",
+      "finishedAt": "2026-10-14T01:32:43.396Z"
+    },
+    {
+      "label": "request-2:step-24:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:43.970Z",
+      "finishedAt": "2026-10-14T01:32:56.105Z"
+    },
+    {
+      "label": "request-2:step-25:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:56.691Z",
+      "finishedAt": "2026-10-14T01:32:57.605Z"
+    },
+    {
+      "label": "request-2:step-25:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:32:58.195Z",
+      "finishedAt": "2026-10-14T01:33:03.770Z"
+    },
+    {
+      "label": "request-2:step-25:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:04.322Z",
+      "finishedAt": "2026-10-14T01:33:09.832Z"
+    },
+    {
+      "label": "request-2:step-26:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:10.421Z",
+      "finishedAt": "2026-10-14T01:33:11.302Z"
+    },
+    {
+      "label": "request-2:step-26:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:11.850Z",
+      "finishedAt": "2026-10-14T01:33:17.488Z"
+    },
+    {
+      "label": "request-2:step-26:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:18.094Z",
+      "finishedAt": "2026-10-14T01:33:23.329Z"
+    },
+    {
+      "label": "request-2:step-27:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:23.928Z",
+      "finishedAt": "2026-10-14T01:33:24.829Z"
+    },
+    {
+      "label": "request-2:step-27:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:25.477Z",
+      "finishedAt": "2026-10-14T01:33:27.590Z"
+    },
+    {
+      "label": "request-2:step-27:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:28.192Z",
+      "finishedAt": "2026-10-14T01:33:37.442Z"
+    },
+    {
+      "label": "request-2:step-28:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:38.042Z",
+      "finishedAt": "2026-10-14T01:33:38.964Z"
+    },
+    {
+      "label": "request-2:step-28:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:39.564Z",
+      "finishedAt": "2026-10-14T01:33:41.481Z"
+    },
+    {
+      "label": "request-2:step-28:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:42.137Z",
+      "finishedAt": "2026-10-14T01:33:47.811Z"
+    },
+    {
+      "label": "request-2:step-29:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:48.424Z",
+      "finishedAt": "2026-10-14T01:33:49.362Z"
+    },
+    {
+      "label": "request-2:step-29:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:50.011Z",
+      "finishedAt": "2026-10-14T01:33:51.891Z"
+    },
+    {
+      "label": "request-2:step-29:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:52.558Z",
+      "finishedAt": "2026-10-14T01:33:58.213Z"
+    },
+    {
+      "label": "request-2:step-30:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:33:58.928Z",
+      "finishedAt": "2026-10-14T01:33:59.903Z"
+    },
+    {
+      "label": "request-2:step-30:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:00.563Z",
+      "finishedAt": "2026-10-14T01:34:02.347Z"
+    },
+    {
+      "label": "request-2:step-30:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:02.989Z",
+      "finishedAt": "2026-10-14T01:34:08.696Z"
+    },
+    {
+      "label": "request-2:step-31:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:09.412Z",
+      "finishedAt": "2026-10-14T01:34:10.354Z"
+    },
+    {
+      "label": "request-2:step-31:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:11.071Z",
+      "finishedAt": "2026-10-14T01:34:13.817Z"
+    },
+    {
+      "label": "request-2:step-31:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:14.464Z",
+      "finishedAt": "2026-10-14T01:34:20.228Z"
+    },
+    {
+      "label": "request-2:step-32:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:20.944Z",
+      "finishedAt": "2026-10-14T01:34:21.971Z"
+    },
+    {
+      "label": "request-2:step-32:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:22.660Z",
+      "finishedAt": "2026-10-14T01:34:24.670Z"
+    },
+    {
+      "label": "request-2:step-32:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:25.407Z",
+      "finishedAt": "2026-10-14T01:34:31.001Z"
+    },
+    {
+      "label": "request-2:step-33:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:31.729Z",
+      "finishedAt": "2026-10-14T01:34:32.730Z"
+    },
+    {
+      "label": "request-2:step-33:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:33.432Z",
+      "finishedAt": "2026-10-14T01:34:35.570Z"
+    },
+    {
+      "label": "request-2:step-33:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:36.275Z",
+      "finishedAt": "2026-10-14T01:34:42.022Z"
+    },
+    {
+      "label": "request-2:step-34:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:42.778Z",
+      "finishedAt": "2026-10-14T01:34:43.810Z"
+    },
+    {
+      "label": "request-2:step-34:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:44.525Z",
+      "finishedAt": "2026-10-14T01:34:46.801Z"
+    },
+    {
+      "label": "request-2:step-34:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:47.509Z",
+      "finishedAt": "2026-10-14T01:34:53.272Z"
+    },
+    {
+      "label": "request-2:step-35:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:54.079Z",
+      "finishedAt": "2026-10-14T01:34:55.132Z"
+    },
+    {
+      "label": "request-2:step-35:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:55.921Z",
+      "finishedAt": "2026-10-14T01:34:58.512Z"
+    },
+    {
+      "label": "request-2:step-35:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:34:59.242Z",
+      "finishedAt": "2026-10-14T01:35:05.044Z"
+    },
+    {
+      "label": "request-2:step-36:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:05.877Z",
+      "finishedAt": "2026-10-14T01:35:06.950Z"
+    },
+    {
+      "label": "request-2:step-36:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:07.700Z",
+      "finishedAt": "2026-10-14T01:35:09.660Z"
+    },
+    {
+      "label": "request-2:step-36:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:10.423Z",
+      "finishedAt": "2026-10-14T01:35:16.226Z"
+    },
+    {
+      "label": "request-2:step-37:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:17.054Z",
+      "finishedAt": "2026-10-14T01:35:18.113Z"
+    },
+    {
+      "label": "request-2:step-37:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:18.888Z",
+      "finishedAt": "2026-10-14T01:35:20.884Z"
+    },
+    {
+      "label": "request-2:step-37:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:21.670Z",
+      "finishedAt": "2026-10-14T01:35:27.932Z"
+    },
+    {
+      "label": "request-2:step-38:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:28.771Z",
+      "finishedAt": "2026-10-14T01:35:29.879Z"
+    },
+    {
+      "label": "request-2:step-38:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:30.654Z",
+      "finishedAt": "2026-10-14T01:35:36.510Z"
+    },
+    {
+      "label": "request-2:step-38:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:37.350Z",
+      "finishedAt": "2026-10-14T01:35:43.191Z"
+    },
+    {
+      "label": "request-2:step-39:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:44.082Z",
+      "finishedAt": "2026-10-14T01:35:45.206Z"
+    },
+    {
+      "label": "request-2:step-39:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:45.998Z",
+      "finishedAt": "2026-10-14T01:35:47.998Z"
+    },
+    {
+      "label": "request-2:step-39:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:48.788Z",
+      "finishedAt": "2026-10-14T01:35:54.303Z"
+    },
+    {
+      "label": "request-2:step-40:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:55.269Z",
+      "finishedAt": "2026-10-14T01:35:56.373Z"
+    },
+    {
+      "label": "request-2:step-40:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:35:57.293Z",
+      "finishedAt": "2026-10-14T01:36:03.168Z"
+    },
+    {
+      "label": "request-2:step-40:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:36:04.025Z",
+      "finishedAt": "2026-10-14T01:36:17.430Z"
+    },
+    {
+      "label": "request-2:step-41:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:36:18.271Z",
+      "finishedAt": "2026-10-14T01:36:19.425Z"
+    },
+    {
+      "label": "request-2:step-41:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:36:20.265Z",
+      "finishedAt": "2026-10-14T01:36:26.659Z"
+    },
+    {
+      "label": "request-2:step-41:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:36:27.581Z",
+      "finishedAt": "2026-10-14T01:36:51.416Z"
+    },
+    {
+      "label": "request-2:step-42:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:36:52.251Z",
+      "finishedAt": "2026-10-14T01:36:53.452Z"
+    },
+    {
+      "label": "request-2:step-42:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:36:54.335Z",
+      "finishedAt": "2026-10-14T01:37:00.299Z"
+    },
+    {
+      "label": "request-2:step-42:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:37:01.180Z",
+      "finishedAt": "2026-10-14T01:37:13.949Z"
+    },
+    {
+      "label": "request-2:step-43:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:37:14.848Z",
+      "finishedAt": "2026-10-14T01:37:16.018Z"
+    },
+    {
+      "label": "request-2:step-43:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:37:16.899Z",
+      "finishedAt": "2026-10-14T01:37:18.783Z"
+    },
+    {
+      "label": "request-2:step-43:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:37:19.618Z",
+      "finishedAt": "2026-10-14T01:37:25.520Z"
+    },
+    {
+      "label": "request-2:step-44:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:37:26.394Z",
+      "finishedAt": "2026-10-14T01:37:27.642Z"
+    },
+    {
+      "label": "request-2:step-44:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:37:28.488Z",
+      "finishedAt": "2026-10-14T01:37:37.905Z"
+    },
+    {
+      "label": "request-2:step-44:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:37:38.849Z",
+      "finishedAt": "2026-10-14T01:38:12.499Z"
+    },
+    {
+      "label": "request-2:step-45:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:13.415Z",
+      "finishedAt": "2026-10-14T01:38:14.645Z"
+    },
+    {
+      "label": "request-2:step-45:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:15.509Z",
+      "finishedAt": "2026-10-14T01:38:17.564Z"
+    },
+    {
+      "label": "request-2:step-45:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:18.423Z",
+      "finishedAt": "2026-10-14T01:38:27.899Z"
+    },
+    {
+      "label": "request-2:step-46:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:28.807Z",
+      "finishedAt": "2026-10-14T01:38:30.056Z"
+    },
+    {
+      "label": "request-2:step-46:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:30.933Z",
+      "finishedAt": "2026-10-14T01:38:32.950Z"
+    },
+    {
+      "label": "request-2:step-46:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:33.842Z",
+      "finishedAt": "2026-10-14T01:38:39.347Z"
+    },
+    {
+      "label": "request-2:step-47:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:40.296Z",
+      "finishedAt": "2026-10-14T01:38:41.533Z"
+    },
+    {
+      "label": "request-2:step-47:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:42.442Z",
+      "finishedAt": "2026-10-14T01:38:44.537Z"
+    },
+    {
+      "label": "request-2:step-47:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:45.490Z",
+      "finishedAt": "2026-10-14T01:38:54.926Z"
+    },
+    {
+      "label": "request-2:step-48:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:55.983Z",
+      "finishedAt": "2026-10-14T01:38:57.301Z"
+    },
+    {
+      "label": "request-2:step-48:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:38:58.235Z",
+      "finishedAt": "2026-10-14T01:39:09.575Z"
+    },
+    {
+      "label": "request-2:step-48:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:39:10.538Z",
+      "finishedAt": "2026-10-14T01:39:16.494Z"
+    },
+    {
+      "label": "request-2:step-49:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:39:17.485Z",
+      "finishedAt": "2026-10-14T01:39:18.785Z"
+    },
+    {
+      "label": "request-2:step-49:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:39:19.698Z",
+      "finishedAt": "2026-10-14T01:39:24.973Z"
+    },
+    {
+      "label": "request-2:step-49:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:39:25.928Z",
+      "finishedAt": "2026-10-14T01:39:40.966Z"
+    },
+    {
+      "label": "request-2:step-50:stage-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:39:41.973Z",
+      "finishedAt": "2026-10-14T01:39:43.256Z"
+    },
+    {
+      "label": "request-2:step-50:stage-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:39:44.185Z",
+      "finishedAt": "2026-10-14T01:39:46.260Z"
+    },
+    {
+      "label": "request-2:step-50:stage-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:39:47.207Z",
+      "finishedAt": "2026-10-14T01:39:52.930Z"
+    },
+    {
+      "label": "close-attempt-2-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:39:53.930Z",
+      "finishedAt": "2026-10-14T01:39:56.552Z"
+    },
+    {
+      "label": "close-attempt-2-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:39:54.301Z",
+      "finishedAt": "2026-10-14T01:40:01.358Z"
+    },
+    {
+      "label": "close-attempt-2-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:39:54.907Z",
+      "finishedAt": "2026-10-14T01:40:02.351Z"
+    },
+    {
+      "label": "close-resident-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:03.350Z",
+      "finishedAt": "2026-10-14T01:40:04.822Z"
+    },
+    {
+      "label": "source-observation-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:05.297Z",
+      "finishedAt": "2026-10-14T01:40:05.765Z"
+    },
+    {
+      "label": "close-context-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:06.261Z",
+      "finishedAt": "2026-10-14T01:40:06.942Z"
+    },
+    {
+      "label": "release-endpoint-0",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:07.424Z",
+      "finishedAt": "2026-10-14T01:40:07.892Z"
+    },
+    {
+      "label": "close-resident-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:08.356Z",
+      "finishedAt": "2026-10-14T01:40:17.830Z"
+    },
+    {
+      "label": "source-observation-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:18.329Z",
+      "finishedAt": "2026-10-14T01:40:18.795Z"
+    },
+    {
+      "label": "close-context-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:19.269Z",
+      "finishedAt": "2026-10-14T01:40:19.739Z"
+    },
+    {
+      "label": "release-endpoint-1",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:20.248Z",
+      "finishedAt": "2026-10-14T01:40:21.777Z"
+    },
+    {
+      "label": "close-resident-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:22.263Z",
+      "finishedAt": "2026-10-14T01:40:25.133Z"
+    },
+    {
+      "label": "source-observation-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:25.623Z",
+      "finishedAt": "2026-10-14T01:40:26.111Z"
+    },
+    {
+      "label": "close-context-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:26.588Z",
+      "finishedAt": "2026-10-14T01:40:27.057Z"
+    },
+    {
+      "label": "release-endpoint-2",
+      "status": "completed",
+      "startedAt": "2026-10-14T01:40:27.528Z",
+      "finishedAt": "2026-10-14T01:40:28.208Z"
+    }
+  ],
+  "cleanup": [
+    {
+      "executorId": "mac-stage-0",
+      "residentClosed": true,
+      "barriers": 1,
+      "attemptsClosed": 3,
+      "error": null,
+      "ownership": null,
+      "elapsedMs": 1946.300125000067,
+      "devicePeakBytes": 705193152,
+      "owners": {
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        },
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "deviceEvents": [],
+      "observationErrors": []
+    },
+    {
+      "executorId": "amd-stage-1",
+      "residentClosed": true,
+      "barriers": 1,
+      "attemptsClosed": 3,
+      "error": null,
+      "ownership": null,
+      "elapsedMs": 9972.286667000037,
+      "devicePeakBytes": 196760720,
+      "owners": {
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        },
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "deviceEvents": [],
+      "observationErrors": []
+    },
+    {
+      "executorId": "suby-stage-2",
+      "residentClosed": true,
+      "barriers": 1,
+      "attemptsClosed": 3,
+      "error": null,
+      "ownership": null,
+      "elapsedMs": 3359.2804589997977,
+      "devicePeakBytes": 339500176,
+      "owners": {
+        "active": {
+          "bytes": 0,
+          "count": 0
+        },
+        "deferredCleanup": {
+          "bytes": 0,
+          "count": 0
+        },
+        "retainedModel": {
+          "bytes": 0,
+          "count": 0
+        }
+      },
+      "deviceEvents": [],
+      "observationErrors": []
+    }
+  ],
+  "nativeHostSettlements": [
+    {
+      "closed": true,
+      "providerOpened": true,
+      "ownedProviderReleased": true,
+      "executorId": "amd-stage-1",
+      "pid": 2263262
+    },
+    {
+      "closed": true,
+      "providerOpened": true,
+      "ownedProviderReleased": true,
+      "executorId": "suby-stage-2",
+      "pid": 1201866
+    }
+  ],
+  "executorSettlements": [
+    {
+      "partitionIndex": 0,
+      "executorId": "mac-stage-0",
+      "executorIdentity": {
+        "pid": 38093,
+        "contextId": "E4C0E399309D290FE61C7D0DC4A3DE4D"
+      },
+      "contextClosed": true
+    },
+    {
+      "partitionIndex": 1,
+      "executorId": "amd-stage-1",
+      "executorIdentity": {
+        "pid": 2263262,
+        "contextId": "/e1bb8006-1581-416e-b70d-9803ef10ab27"
+      },
+      "contextClosed": true
+    },
+    {
+      "partitionIndex": 2,
+      "executorId": "suby-stage-2",
+      "executorIdentity": {
+        "pid": 1201866,
+        "contextId": "/cc78e826-9081-4844-a4fb-d5528faf6a20"
+      },
+      "contextClosed": true
+    }
+  ],
+  "failure": null,
+  "cleanupFailure": null,
+  "gpuLimitBytes": 1420000000,
+  "publicPinChanged": false,
+  "applicationQualified": false,
+  "performanceQualified": false
+}

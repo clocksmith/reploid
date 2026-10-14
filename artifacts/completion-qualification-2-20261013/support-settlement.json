@@ -1,0 +1,43 @@
+{
+  "schema": "reploid.owned-diagnostic-settlement/v1",
+  "at": "2026-10-14T01:42:47.410816+00:00",
+  "scope": "Owned diagnostic shutdown after a completed run; public contributors preserved",
+  "hosts": {
+    "amd-host": {
+      "providerExit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-10-14T01:40:21.831Z"
+      },
+      "providerReleased": true,
+      "memoryPeakBytes": 750182400,
+      "memoryEvents": "no high, max or oom events",
+      "ownedScopesInactive": true,
+      "ownedPortsClosed": true,
+      "ownedProcesses": 0,
+      "publicContributorsUnchanged": true
+    },
+    "intel-host": {
+      "providerExit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-10-14T01:40:28.386Z"
+      },
+      "providerReleased": true,
+      "memoryPeakBytes": 1199083520,
+      "memoryEvents": "no high, max or oom events",
+      "ownedScopesInactive": true,
+      "ownedPortsClosed": true,
+      "ownedProcesses": 0,
+      "publicContributorsUnchanged": true
+    }
+  },
+  "mac-host": {
+    "ownedChromium": "closed through its stop file",
+    "deliveryServer": "stopped by SIGTERM to the verified owned process",
+    "inspectorTunnels": "stopped by SIGTERM to the verified owned processes",
+    "ownedPortsClosed": true
+  },
+  "gpuSettlement": "All three residents closed through the harness with every attempt closed and no active, deferred-cleanup or retained-model owners; both native providers reported their provider released and exited 0.",
+  "previousUnknownGpuSettlement": "Unknown settlement from the interrupted first rerun is not inferred cleared by this campaign"
+}
