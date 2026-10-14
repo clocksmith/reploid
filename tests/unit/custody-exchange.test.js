@@ -143,10 +143,22 @@ it('retains cumulative supply accounting across acquisitions and fails closed af
   } finally { f.close(); }
 });
 
+it('offers and transfers a signed catalog file named by a relative path, as full-model seeding does', async () => {
+  // Run 7: full-model seeding offers every catalog file, and signed catalogs name program files
+  // under artifacts/...; the flat-name rule rejected the whole inventory ("Invalid file inventory").
+  const f = await fixture(), [a, b] = f.owners, nested = { ...f.file, path: 'artifacts/program/host/text-generation.js', role: 'host-source' };
+  try {
+    b.offer([f.file, nested]); await vi.waitFor(() => expect(a.has(nested)).toBe(true));
+    expect(await a.acquire(nested, { signal: new AbortController().signal })).toEqual(f.bytes);
+    expect(a.has({ ...nested, path: 'artifacts/program/host/other.js' })).toBe(false);
+  } finally { f.close(); }
+});
+
 it('ignores malformed inventories and rejects invalid descriptors before allocating a transfer', async () => {
   const f = await fixture(), [a, b] = f.owners;
   try {
-    for (const artifact of [null, {}, { ...f.file, path: '../shard.bin' }, { ...f.file, sizeBytes: -1 }]) {
+    for (const artifact of [null, {}, { ...f.file, path: '../shard.bin' }, { ...f.file, path: '/abs/shard.bin' }, { ...f.file, path: 'a//shard.bin' },
+      { ...f.file, path: 'a/./shard.bin' }, { ...f.file, path: 'a/../shard.bin' }, { ...f.file, path: 'artifacts/' }, { ...f.file, sizeBytes: -1 }]) {
       f.stores[0].get('reploid:custody-offer')('1', { artifacts: [artifact] });
       expect(a.has(f.file)).toBe(false);
       expect(() => b.offer([artifact])).toThrow('Invalid file inventory');
