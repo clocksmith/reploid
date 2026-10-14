@@ -1,0 +1,167 @@
+{
+  "schema": "reploid.interrupted-qualification-summary/v1",
+  "derived": "Alias-only summary derived from the retained raw capture; not a qualification record.",
+  "outcome": "interrupted-by-supervisor-deadline",
+  "qualified": false,
+  "archiveSha256": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "expectationsHash": "sha256:11bdc21244f884570bf841f7f04f872a7a67582ed875cc0c4c0adceb8ed63f75",
+  "reservationId": "completion-candidate-three-stage-qualification-20261013",
+  "reservationObservedAt": "2026-10-14T00:25:40.218893+00:00",
+  "rawCapture": {
+    "bytes": 164185367,
+    "sha256": "sha256:923c9047a00a3dfe04e953fbce2ba06eed4356fd936b971fd4a474b70714ff57",
+    "gzipSha256": "sha256:74252aca097c7a0772675f6f169b13fc83064b4a4b371fb0b6691ccb381bac98",
+    "retention": "operator-private storage; not in this repository"
+  },
+  "requiredPrefixes": 55,
+  "prefixesCompared": 39,
+  "allComparedWithinTolerance": true,
+  "tolerance": 0.001,
+  "maxDifference": 9.511217982094422e-07,
+  "requests": [
+    {
+      "request": 0,
+      "stepsCompleted": 2,
+      "completed": true,
+      "error": null,
+      "attemptSettlement": [
+        {
+          "index": 0,
+          "closed": true
+        },
+        {
+          "index": 1,
+          "closed": true
+        },
+        {
+          "index": 2,
+          "closed": true
+        }
+      ]
+    },
+    {
+      "request": 1,
+      "stepsCompleted": 2,
+      "completed": true,
+      "error": null,
+      "attemptSettlement": [
+        {
+          "index": 0,
+          "closed": true
+        },
+        {
+          "index": 1,
+          "closed": true
+        },
+        {
+          "index": 2,
+          "closed": true
+        }
+      ]
+    },
+    {
+      "request": 2,
+      "stepsCompleted": 35,
+      "completed": false,
+      "error": {
+        "name": "AssertionError",
+        "message": "Native inspector is closed"
+      },
+      "attemptSettlement": [
+        {
+          "index": 0,
+          "closed": true
+        },
+        {
+          "index": 1,
+          "closed": false,
+          "error": "Native inspector is closed",
+          "ownership": "unknown"
+        },
+        {
+          "index": 2,
+          "closed": false,
+          "error": "Native inspector is closed",
+          "ownership": "unknown"
+        }
+      ]
+    }
+  ],
+  "failure": {
+    "name": "AssertionError",
+    "message": "Native inspector is closed"
+  },
+  "cleanupFailure": "Native inspector is closed",
+  "residentSettlement": [
+    {
+      "host": "mac-host",
+      "residentClosed": true,
+      "attemptsClosed": 3,
+      "error": null,
+      "ownership": null,
+      "elapsedMs": 1931.7,
+      "devicePeakBytes": 705193152
+    },
+    {
+      "host": "amd-host",
+      "residentClosed": false,
+      "attemptsClosed": 2,
+      "error": "Native inspector is closed",
+      "ownership": "unknown",
+      "elapsedMs": 1135.5,
+      "devicePeakBytes": null
+    },
+    {
+      "host": "intel-host",
+      "residentClosed": false,
+      "attemptsClosed": 2,
+      "error": "Native inspector is closed",
+      "ownership": "unknown",
+      "elapsedMs": 1181.9,
+      "devicePeakBytes": null
+    }
+  ],
+  "executorSettlements": [
+    {
+      "host": "mac-host",
+      "contextClosed": true,
+      "error": null
+    },
+    {
+      "host": "amd-host",
+      "contextClosed": true,
+      "error": "Native inspector is closed"
+    },
+    {
+      "host": "intel-host",
+      "contextClosed": true,
+      "error": "Native inspector is closed"
+    }
+  ],
+  "nativeHostSettlements": 0,
+  "longPrefill": {
+    "mac-host": 45.6,
+    "amd-host": 23.4,
+    "intel-host": 203.8
+  },
+  "decodeStageSeconds": {
+    "mac-host": {
+      "medianSeconds": 0.96,
+      "maxSeconds": 1.5,
+      "steps": 36
+    },
+    "amd-host": {
+      "medianSeconds": 1.76,
+      "maxSeconds": 11.9,
+      "steps": 36
+    },
+    "intel-host": {
+      "medianSeconds": 13.73,
+      "maxSeconds": 144.3,
+      "steps": 36
+    }
+  },
+  "timingScope": "Stage timers include diagnostic evidence persistence and controller transport; not isolated GPU time and not performance acceptance.",
+  "stageDeadlineMs": 300000,
+  "supervisorDeadlineMs": 1740000
+}
