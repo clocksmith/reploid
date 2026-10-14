@@ -31,7 +31,7 @@ HTTP verification matched every one of the 1,905 manifest entries against the
 same bundle identity (`hosting.log`, `served-local.log`). This is localhost
 verification, not public deployment.
 
-At `ea377dfe`, the complete suite on x@128 passed 3,160 tests across 292
+At `ea377dfe`, the complete suite on amd-host passed 3,160 tests across 292
 files, with 29 tests / three files skipped (`full-suite.log.gz`). Command:
 `npx vitest run --config tests/vitest.config.js --maxWorkers=2`. This includes
 the native delivery and multiline regression changes; it does not run GPUs.

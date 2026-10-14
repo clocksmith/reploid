@@ -5,7 +5,7 @@ Mac/Suby attachment journey. The proposed control uses installed accepted Dopple
 0.6.27 through its public compatibility session, resetting generation state before
 each request. It does not repair the prompt or replace the numerical reference.
 
-The first x@128 attempt could not generate: `doppler.open` honored the supplied
+The first amd-host attempt could not generate: `doppler.open` honored the supplied
 8,192-token KV session bound but attempted the manifest's full 262,144-position
 RoPE tables. A 134,217,728-byte cosine allocation was rejected with 1,406,276,176
 bytes already live under the unchanged 1,420,000,000-byte cap. Model unload and

@@ -17,8 +17,8 @@ Discovery Worker deployed from `383c3a53` as `cloudflare-swarm-20261012-loopback
 
 [Live browser record](live-discovery.json): fresh Chromium pages at `https://replo.id`, `http://localhost:50237` and `http://127.0.0.1:50238` automatically join the public rendezvous. All three discover the same ready participants:
 
-- Browser contributor on x@128: `3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c`, partition 2; existing launcher PID 34457 verified still running.
-- Native contributor on x@128: `0762c10f-8537-4476-ab7c-230922ebb6a9`, partition 1; existing Node participant PID 55889 verified still running.
+- Browser contributor on amd-host: `3c58e9a2-fe7e-4b3f-8cd1-4f97cba1907c`, partition 2; existing launcher PID 34457 verified still running.
+- Native contributor on amd-host: `0762c10f-8537-4476-ab7c-230922ebb6a9`, partition 1; existing Node participant PID 55889 verified still running.
 
 Each page makes zero `.bin`, `.safetensors` or `.gguf` weight requests. This establishes shared prepared-node discovery and real peer connections, not a newly executed generation, numerical qualification, successful Suby preparation or universal NAT reachability. Suby's existing unavailable participants remain visible; this change does not fix their acquisition failures.
 

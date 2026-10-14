@@ -1,5 +1,5 @@
 {
-  "path": "x@128:/var/tmp/reploid-native-empty-compute-20261012/process.log",
+  "path": "amd-host:/var/tmp/reploid-native-empty-compute-20261012/process.log",
   "sha256": "dd33e15a168d84f6a8f2570252095eb8a95974738de641b5dd9b694c49f2bbd1",
   "bytes": 214066933,
   "note": "Raw repeated inventory log retained on execution host; all unique signed custody receipts retained in final-custody.json.gz."

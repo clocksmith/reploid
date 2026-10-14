@@ -34,7 +34,7 @@ Existing `package-native.js` produces:
 - Native archive SHA256
   `7e5bbc5579386f1d3fbaad83525487736a2a995d0272216de7b4a7c97881034b`.
 
-That archive was copied to x@128, its SHA256 checked, and extracted outside the
+That archive was copied to amd-host, its SHA256 checked, and extracted outside the
 checkout at `/var/tmp/reploid-native-archive9-20261012/reploid`. Normal `npm ci`
 installed twelve packages; the installed CLI's `--help` exits successfully.
 Independent byte comparisons verify all 95 delivery entries and all 1,974

@@ -14,7 +14,7 @@ numerical/model-quality qualification.
   participant `peer:0b4018c83a3f71679522bb52`.
 - Initial output partition: Chrome on Mac, layers 12–23,
   participant `peer:dd8252a3cc6dfe8aa08b10e6` after the diagnostic restart.
-- Replacement output partition: actual Node on x@128 with Dawn/AMD Vulkan,
+- Replacement output partition: actual Node on amd-host with Dawn/AMD Vulkan,
   participant `peer:6fef3a618f40d5acfc712941`. It does not launch a browser.
   [Native ownership, package and provider receipts](../native-participant-20261012/README.md).
 - Standard Doppler 0.6.27 archive remains SHA-256
@@ -191,7 +191,7 @@ offline backup. That remains a model-quality failure. Controllers are retained.
 and correct $72 follow-up after contributor reload. These runs use the accepted
 pin and pinned-manifest opening; they are not a frozen signed release sequence.
 
-## Full unit sweep on x@128
+## Full unit sweep on amd-host
 
 At `61c2290f`, all **258 unit files / 2,697 tests** pass with 18 declared skips:
 `npx vitest run --config tests/vitest.config.js tests/unit --maxWorkers=2`.
@@ -219,7 +219,7 @@ The answer repeats the retained offline-backup factual error. Lifecycle success
 does not grant answer-quality acceptance. No automatic retry or resumed state
 was introduced. The original readiness failure remains retained above.
 
-At `9e031fff`, x@128 also passes **27 integration files / 392 tests**, with three
+At `9e031fff`, amd-host also passes **27 integration files / 392 tests**, with three
 files and 11 tests explicitly skipped. The bounded command was
 `npx vitest run --config tests/vitest.config.js tests/integration --maxWorkers=2`;
 `settlement-integration-pass.log.gz` retains its output.
