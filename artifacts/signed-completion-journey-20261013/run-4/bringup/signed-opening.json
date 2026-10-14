@@ -1,0 +1,155 @@
+{
+ "schema": "reploid.signed-completion-journey-run-4-bringup/v1",
+ "outcome": "passed: all three contributors opened the signed Capsule, verified release history (sequence 2 923ac7e6...) and reached ready; route mac-host -> amd-host -> intel-host formed",
+ "machines": "mac-host, amd-host, intel-host are aliases; no hostnames are recorded",
+ "served": {
+  "bundleHash": "sha256:2890c961afde518abde48107fa8d99c148d11dfaf5d6c9e546ae118ddde357a1 (observed over loopback and through both reverse forwards)",
+  "productSessionJs": "sha256:c5adbd88... passes requesterIdentity (observed)"
+ },
+ "native": {
+  "install": "/var/tmp/reploid-signed-completion-3-20261013/reploid (final-3 tarball fcacf463..., native-delivery.json 8595ba31... = final-4 descriptor, observed on both hosts)",
+  "roomToken": "--room-token-file only; token written over ssh stdin; argv and journal checked with grep -F -f <token file> (0 hits for every native process, every scope); no token on any command line",
+  "state": {
+   "amd-host": "/var/tmp/reploid-signed-native-metadata-20261012",
+   "intel-host": "/var/tmp/reploid-signed-completion-journey-run1-20261013/intel-state"
+  },
+  "scopes": "scj-run4-amd-native-1..4 and scj-run4-intel-native-1..3, each MemoryHigh=10737418240 MemoryMax=12884901888 MemorySwapMax=0 RuntimeMaxSec=1800, file sharing off"
+ },
+ "processesStarted": {
+  "mac-host": [
+   "app-server pid 61399 (127.0.0.1:29670)",
+   "tunnel-amd pid 61402",
+   "tunnel-intel pid 61403 (adds 127.0.0.1:29674 forward)",
+   "stage0-browser pid 61430 then 64121 (reused run-2 profile, instance scj-run2-stage0, CDP 127.0.0.1:29671)",
+   "supplier-browser pid 64446 (new run-4 profile, CDP 127.0.0.1:29673, --disable-gpu)",
+   "requester profiles: launched and removed by the harness (temporary user data directories; none left)"
+  ],
+  "amd-host": [
+   "amd-native-1 (requester journey; stopped by its 30-minute cap)",
+   "amd-native-2 (loss target; SIGKILL by the control module)",
+   "amd-native-3 (restore)",
+   "amd-native-4 (contribution)"
+  ],
+  "intel-host": [
+   "intel-native-1 (requester journey; stopped by its 30-minute cap)",
+   "intel-native-2 (loss harness)",
+   "intel-native-3 (contribution)",
+   "intel-acquirer browser scope (CDP 127.0.0.1:29674, --disable-gpu)"
+  ]
+ },
+ "contributors": {
+  "mac-host-first": {
+   "participantId": "peer:3bd0d254cd44202342c36420",
+   "stageKeyAfter": {
+    "stage": {
+     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+     "index": 0,
+     "residentId": "scj-run4-stage-0-resident",
+     "executionId": "scj-run4-stage-0-ordinary"
+    }
+   },
+   "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "description": ""
+   },
+   "openingMode": "signed-capsule",
+   "checkpoint": {
+    "sequence": 2,
+    "digest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f"
+   },
+   "authorizationVerifiedAt": "2026-10-14T05:05:16.239Z",
+   "descriptor": {
+    "index": 0,
+    "layerRange": [
+     0,
+     7
+    ],
+    "residentWeightBytes": 603512832,
+    "ready": true
+   },
+   "custody": {
+    "queueMs": 0,
+    "peerTransferMs": 0,
+    "cacheReadMs": 57286.600004673004,
+    "peerBytes": 0,
+    "cacheBytes": 4883410368,
+    "transfers": 0,
+    "failures": 0
+   },
+   "readyAt": "2026-10-14T05:06:20.752Z",
+   "placement": [
+    "peer:3bd0d254cd44202342c36420",
+    "peer:9af15d884eba51b0c0540e2a",
+    "peer:09610aefbd15a133d7af2b57"
+   ]
+  },
+  "mac-host-relaunch": {
+   "participantId": "peer:409fd972455868efc6b71ab7",
+   "stageKeyAfter": {
+    "stage": {
+     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+     "index": 0,
+     "residentId": "scj-run4-stage-0-resident",
+     "executionId": "scj-run4-stage-0-ordinary"
+    }
+   },
+   "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "description": ""
+   },
+   "openingMode": "signed-capsule",
+   "checkpoint": {
+    "sequence": 2,
+    "digest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f"
+   },
+   "authorizationVerifiedAt": "2026-10-14T05:53:25.077Z",
+   "descriptor": {
+    "index": 0,
+    "layerRange": [
+     0,
+     7
+    ],
+    "residentWeightBytes": 603512832,
+    "ready": true
+   },
+   "custody": {
+    "queueMs": 0,
+    "peerTransferMs": 0,
+    "cacheReadMs": 57142.09999918938,
+    "peerBytes": 0,
+    "cacheBytes": 4883410368,
+    "transfers": 0,
+    "failures": 0
+   },
+   "readyAt": "2026-10-14T05:54:27.537Z",
+   "placement": [
+    "peer:409fd972455868efc6b71ab7",
+    "peer:9af15d884eba51b0c0540e2a",
+    "peer:09610aefbd15a133d7af2b57"
+   ]
+  },
+  "amd-host": {
+   "participantId": "peer:9af15d884eba51b0c0540e2a",
+   "openingMode": "signed-capsule",
+   "layers": [
+    8,
+    15
+   ],
+   "checkpoint": "sequence 2 923ac7e6... before and after",
+   "ledger": "1458219861 of 4294967296 before and after"
+  },
+  "intel-host": {
+   "participantId": "peer:09610aefbd15a133d7af2b57",
+   "openingMode": "signed-capsule",
+   "layers": [
+    16,
+    23
+   ],
+   "checkpoint": "sequence 2 923ac7e6... before and after",
+   "ledger": "0 of 4294967296 before and after"
+  }
+ },
+ "note": "Each stage 0 page start in this room produced a new stage 0 peer identity (run 2 peer:15923429..., run 3 peer:a8a4f314..., run 4 peer:3bd0d254... then peer:409fd972...) although profile and instance were reused; recorded, not judged."
+}

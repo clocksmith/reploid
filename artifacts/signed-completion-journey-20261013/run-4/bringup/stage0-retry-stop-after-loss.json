@@ -1,0 +1,440 @@
+{
+ "schema": "reploid.run-4-stage0-retry-stop/v1",
+ "samples": [
+  {
+   "at": "2026-10-14T05:50:38.199Z",
+   "phase": "ready",
+   "error": "Ordered chat cleanup remains unsettled",
+   "offering": true,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:50:40.397Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:50:42.441Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:50:44.485Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:50:46.524Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:50:48.567Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:50:50.611Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:50:52.657Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:50:54.702Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:50:56.748Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:50:58.796Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:00.843Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:02.886Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:04.932Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:06.977Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:09.023Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:11.069Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:13.112Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:15.156Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:17.200Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:19.246Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:21.290Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:23.334Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:25.378Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:27.422Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:29.466Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:31.512Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:33.557Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:35.592Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:37.637Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:39.681Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:41.724Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:43.770Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:45.815Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:47.867Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:49.912Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:51.957Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:54.001Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:56.051Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:51:58.076Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:00.101Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:02.127Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:04.158Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:06.189Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:08.222Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:10.251Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:12.286Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:14.318Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:16.359Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:18.385Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:20.430Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:22.475Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:24.520Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:26.563Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:28.608Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:30.652Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:32.698Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:34.742Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:36.780Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  },
+  {
+   "at": "2026-10-14T05:52:38.824Z",
+   "phase": "failed",
+   "error": "Ordered chat settlement failed",
+   "offering": false,
+   "unsettledOwners": 1
+  }
+ ],
+ "clickedAt": "2026-10-14T05:50:38.247Z",
+ "after": {
+  "at": "2026-10-14T05:52:38.824Z",
+  "phase": "failed",
+  "error": "Ordered chat settlement failed",
+  "offering": false,
+  "unsettledOwners": 1
+ },
+ "settled": false,
+ "ui": {
+  "label": "Cleanup not confirmed",
+  "progress": "Ordered chat settlement failed",
+  "retryStopHidden": false,
+  "toggleDisabled": true
+ }
+}

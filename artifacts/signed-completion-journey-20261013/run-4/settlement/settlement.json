@@ -1,0 +1,55 @@
+{
+ "schema": "reploid.signed-completion-journey-run-4-settlement/v1",
+ "mac-host": {
+  "stage0": "final stage 0 switched off through its own control at 06:20:08Z: ready -> idle, offering false, unsettledOwners 0 (stage0-stop.json); browser closed (pid 64121 exited). The first stage 0 instance could not settle after the loss (bringup/stage0-retry-stop-after-loss.json: failed, unsettledOwners 1) and was released only by Browser.close at 05:52:53Z",
+  "coordinatorAtStop": "phase ready, unsettledOwners 0, reservations active 0; contribution chats c14db03d and 04461655 cancelled with every stage settled",
+  "supplierBrowser": "Browser.close; pid 64446 exited",
+  "appServer": "pid 61399 SIGTERM, stopping logged 06:20:44Z",
+  "tunnels": "pids 61402, 61403 exited",
+  "ports29670to29674Listening": false,
+  "nonOwnedProcessesUnchanged": true,
+  "requesterProfiles": "none left in the temp directory"
+ },
+ "amd-host": {
+  "natives": [
+   "native-1: runtime cap 05:34:38Z (systemd SIGTERM) -> stopping -> idle, unsettledOwners 0, device destroyed; 36min 46s CPU, 735.9M peak",
+   "native-2: SIGKILL by the loss control at 05:38:17Z (abrupt; no in-process settlement possible)",
+   "native-3: SIGTERM 05:52:58Z, inactive in 1 s, 622.3M peak",
+   "native-4: SIGTERM 06:20:13Z, inactive in 1 s, 742.3M peak"
+  ],
+  "ownedProcessesAfter": 0,
+  "port29670Listening": false,
+  "signedState": "sequence 2 923ac7e6...; ledger 1458219861 (unchanged); identity 871ad22c... unchanged"
+ },
+ "intel-host": {
+  "natives": [
+   "native-1: runtime cap 05:34:43Z -> idle, unsettledOwners 0; 359.3M peak, 0B swap",
+   "native-2: SIGTERM 05:53:00Z, inactive in 1 s, 1016.5M peak",
+   "native-3: SIGTERM 06:20:15Z, inactive in 1 s, 1.0G peak"
+  ],
+  "acquirerBrowser": "SIGTERM, inactive in 1 s, 314593280 bytes peak",
+  "ownedProcessesAfter": 0,
+  "ports29670and29674Listening": false,
+  "signedState": "sequence 2 923ac7e6...; ledger 0 (unchanged); identity 3a3d2251... unchanged"
+ },
+ "publicContributors": {
+  "amd-host": {
+   "unchanged": true,
+   "pids": [
+    4103868,
+    4121371
+   ]
+  },
+  "intel-host": {
+   "unchanged": true,
+   "pids": [
+    297260,
+    299769
+   ]
+  }
+ },
+ "unconfirmedRemoteCleanup": "The loss attempt a79a65bb left stage 1 cleanup unknown at the coordinator; the killed process and its scope are gone (OS-released); no in-application settlement exists for it.",
+ "secretsRemoved": "room-token and room-id removed on both native hosts; private-room.json removed on mac-host",
+ "filesLeftOnHosts": "mac-host run-4 dir: control-state.json, mac-supplier-profile; stage 0 profile in the run-2 dir (storage holds dead room capabilities). native hosts run-4 dir: stage config, native logs; intel-host also the acquirer profile and log.",
+ "unchanged": "maxAcquisitionChunkBytes, both 4 GiB ledgers, every release sequence"
+}
