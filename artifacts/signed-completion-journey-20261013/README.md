@@ -4,7 +4,7 @@ Acceptance tooling for the installed signed application on the frozen ordered th
 
 ## Results: Launch 1 journey and Launch 2 contribution pass automated acceptance (runs 5 and 6)
 
-Candidate: signed delivery `final-5` (Reploid `95641fe7`, browser bundle `3c1fab71…`, native descriptor `1fecc004…` installed on `amd-host` and `intel-host`), Doppler 0.6.28 candidate archive `2df37d88…`, Capsule `-c` release sequence 2 `923ac7e6…` signed by the **test** authority. Same route in every run: `mac-host` browser stage 0, `amd-host` native stage 1, `intel-host` native stage 2.
+Candidate: signed delivery `final-5` (Reploid `95641fe7`, browser bundle `3c1fab71...`, native descriptor `1fecc004...` installed on `amd-host` and `intel-host`), Doppler 0.6.28 candidate archive `2df37d88...`, Capsule `-c` release sequence 2 `923ac7e6...` signed by the **test** authority. Same route in every run: `mac-host` browser stage 0, `amd-host` native stage 1, `intel-host` native stage 2.
 
 | Harness | Run | Automated checks | Evidence |
 |---|---|---|---|
@@ -18,7 +18,7 @@ Run 4 found the contributor-loss defects that `95641fe7` fixes (loss reported as
 - Devices: one Mac browser stage, one AMD Linux native stage, one Intel Linux native stage.
 - Concurrency: 2 simultaneous independent requesters.
 - Longest completed answer: 171 decode steps, in 608 s.
-- Decode time per step: Intel stage 2.65–3.56 s; Mac and AMD stages 0.44–0.66 s each. About 3.5 s per generated token end to end. The Intel stage is the bottleneck. The one follow-up answer, which includes prefill of the earlier exchange, averaged 4.3 / 1.9 / 18.2 s per step over 12 steps.
+- Decode time per step: Intel stage 2.65 to 3.56 s; Mac and AMD stages 0.44 to 0.66 s each. About 3.5 s per generated token end to end. The Intel stage is the bottleneck. The one follow-up answer, which includes prefill of the earlier exchange, averaged 4.3 / 1.9 / 18.2 s per step over 12 steps.
 - Context: only short conversations are established (a follow-up after one exchange). Prompt token counts are not recorded in this evidence. DR-5's long-prompt workload (1,627 decode steps in the earlier two-stage control) would take about 95 minutes per answer at this rate, so it is not qualified here.
 
 **Not established by these runs:**
@@ -121,17 +121,19 @@ Offers from this run are withdrawn before (f), and every earlier tab is closed b
 
 ### Timing record (`timing.mjs`)
 
-One record per attempt; completed answers must be complete. Each measured value keeps its clock and source; unexposed boundaries are `not-observable` with a reason and source, never estimated. Only the boundaries listed below may be `not-observable`; any other absent boundary is `missing` and fails.
+One record per attempt (schema `reploid.signed-completion-answer-timing/v2`; runs 1 to 6 wrote v1); completed answers must be complete. Each measured value keeps its clock and source; unexposed boundaries are `not-observable` with a reason and source, never estimated. Only the boundaries listed below may be `not-observable`; any other absent boundary is `missing` and fails.
 
 | Boundary | Status | Clock / source |
 |----------|--------|----------------|
 | `requester.attemptMs` | measured | requester app, `workspace.js:116` and `:248` |
 | `requester.firstVisibleTextMs` | measured | harness poll, resolution `observation.pollMs` |
-| `coordinator.stages[].stepMsTotal`, `stepCount`, `decodeSteps` | measured | coordinator, `partition-route-execution.js:167-175`, aggregated by `partition-summary.js:9-14`; includes remote transport for stages 1 and 2 |
+| `coordinator.stages[].stepMsTotal`, `stepCount`, `generatedTokens` | measured | coordinator, `partition-route-execution.js:167-175`, aggregated by `partition-summary.js`; includes remote transport for stages 1 and 2. Every route step samples one token, so `generatedTokens` counts the token sampled after prefill too (v1 called it `decodeSteps`) |
+| `coordinator.promptTokens` | measured from candidates whose summary carries phases; otherwise not-observable | step 0 `inputTokenCount`, `partition-summary.js` `summarizeOrderedPhases` |
+| `coordinator.phases.prompt.stages[]`, `coordinator.phases.decode.stages[]` | recorded values | per stage: step 0 (prompt prefill plus the first sampled token) separately from steps 1 onward (one-token decode); coordinator elapsed plus each contributor's Doppler metrics (`executionMs`, `encodeMs`, `submitWaitMs`, `inputUploadMs`, `activationReadbackMs`, `logitsMs`, `gpuKernelsMs`, `logitsReadbackMs`, `samplingMs`; null or count 0 when unreported) |
 | `coordinator.activationBytes` | measured | `partition-route-execution.js:209` |
-| `runtime.executionMs`, `logitsReadbackMs`, `samplingMs` | not-observable | produced by Doppler `resident-partition.js:173-202,230`, dropped by `partition-summary.js:16-18` |
+| `runtime.executionMs` (all stages), `logitsReadbackMs`, `samplingMs` (final stage) | measured from candidates whose summary carries phases; otherwise not-observable | sums of contributor Doppler metrics over prompt and decode; missing if any stage omitted a step |
 | `scheduler.queuedMs`, `loadMs`, `executionMs` | not-observable | ordered route bypasses the scheduler, `self/host/chat-execution.js:48-51`; observations discarded at `:29` |
-| `transport` | not-observable | ordered v2 summary carries none (`partition-summary.js:16-18` versus `:43-45`) |
+| `transport` | not-observable | the ordered summary carries no transport split; stage elapsed minus contributor `executionMs` bounds it from above |
 | `persistence` | not-observable | `workspace.js:63-94` saves ordinary history untimed |
 
 ---
