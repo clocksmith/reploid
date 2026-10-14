@@ -1,0 +1,46 @@
+{
+ "schema": "reploid.run-5-supplementary-capacity-return/v1",
+ "scope": "outside the loss harness; observation only",
+ "samples": [
+  {
+   "at": "2026-10-14T07:23:43.754Z",
+   "phase": "ready",
+   "error": null,
+   "unsettledOwners": 0,
+   "decision": "missing-eligible-stage",
+   "routeTransports": null,
+   "ready": false,
+   "unknownAttempts": 1
+  },
+  {
+   "at": "2026-10-14T07:23:46.875Z",
+   "phase": "ready",
+   "error": null,
+   "unsettledOwners": 0,
+   "decision": "reservation-required",
+   "routeTransports": [
+    "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+    "0849bc21-7f70-49de-b53f-22c8c93fe7eb",
+    "2723c9c5-1ce5-416a-a475-ce4249faab16"
+   ],
+   "ready": true,
+   "unknownAttempts": 1
+  }
+ ],
+ "restore": {
+  "method": "new owned bounded systemd scope with the same identity, cache, ledger, checkpoint store and ordered config",
+  "restoredAt": "2026-10-14T07:23:43.709Z",
+  "detail": {
+   "unit": "scj-run5-amd-native-3",
+   "share": "noshare",
+   "launch": [
+    "active=active",
+    "ActiveEnterTimestamp=Wed 2026-10-14 03:23:39 EDT",
+    "pids=1941058 "
+   ]
+  }
+ },
+ "restoreReturnedAt": "2026-10-14T07:23:43.713Z",
+ "capacityReturnedAt": "2026-10-14T07:23:46.875Z",
+ "capacityReturnMs": 3166
+}

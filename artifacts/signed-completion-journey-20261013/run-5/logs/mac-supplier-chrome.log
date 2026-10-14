@@ -1,0 +1,159 @@
+
+DevTools listening on ws://127.0.0.1:29673/devtools/browser/9e33ebf8-7310-4a50-a62b-cddb0edde94a
+Trying to load the allocator multiple times. This is *not* supported.
+[82694:30552422:1014/032447.369167:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032447.369563:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032447.370387:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032447.370469:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032447.370538:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032447.370612:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032449.428146:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032449.529575:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032449.558173:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032449.607269:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032449.631167:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032449.687938:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032449.712713:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82687:30552360:1014/032449.809606:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[82694:30552422:1014/032449.819392:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032453.165192:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032453.166456:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032453.166910:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032453.167010:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032453.167089:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+Created TensorFlow Lite XNNPACK delegate for CPU.
+[82764:30553225:1014/032506.249138:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake-all --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[82764:30553225:1014/032506.249927:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1272252, parent pid: 82687
+[82764:30553225:1014/032506.251496:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 11805974528B (10.995GiB) / 494384795648B (460.432GiB)
+[82764:30553225:1014/032506.251523:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 11805974528B (10.995GiB) / 494384795648B (460.432GiB)
+[82764:30553225:1014/032506.251577:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[82766:30553229:1014/032506.263983:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=157.0.8089.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[82766:30553229:1014/032506.264338:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1272252, parent pid: 1
+[82766:30553229:1014/032506.265644:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 11805966336B (10.995GiB) / 494384795648B (460.432GiB)
+[82766:30553229:1014/032506.265664:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 11805966336B (10.995GiB) / 494384795648B (460.432GiB)
+[82766:30553229:1014/032506.265710:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[82764:30553225:1014/032506.266047:VERBOSE1:chrome/updater/crash_reporter.cc:123] Crash handler launched and ready.
+[82764:30553225:1014/032506.266570:VERBOSE1:chrome/updater/crash_client.cc:109] Found 0 completed crash reports
+[82764:30553225:1014/032506.266631:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports
+[82764:30553225:1014/032506.266705:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)
+[82764:30553225:1014/032506.266716:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)
+[82764:30553225:1014/032506.266723:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)
+[82764:30553225:1014/032506.266750:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)
+[82764:30553225:1014/032506.266796:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/Chrome-headless/Crashpad/settings.dat: No such file or directory (2)
+[82764:30553225:1014/032506.266808:VERBOSE1:chrome/updater/updater.cc:107] Crash reporting initialized.
+[82764:30553237:1014/032506.267041:VERBOSE1:chrome/updater/app/app_wakeall.cc:58] Launching `/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake`
+[82767:30553243:1014/032506.276717:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[82767:30553243:1014/032506.277094:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1272252, parent pid: 82764
+[82767:30553243:1014/032506.278340:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 11805966336B (10.995GiB) / 494384795648B (460.432GiB)
+[82767:30553243:1014/032506.278359:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 11805966336B (10.995GiB) / 494384795648B (460.432GiB)
+[82767:30553243:1014/032506.278413:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[82769:30553247:1014/032506.290120:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=157.0.8089.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[82769:30553247:1014/032506.290463:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1272252, parent pid: 1
+[82769:30553247:1014/032506.291606:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 11805962240B (10.995GiB) / 494384795648B (460.432GiB)
+[82769:30553247:1014/032506.291624:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 11805962240B (10.995GiB) / 494384795648B (460.432GiB)
+[82769:30553247:1014/032506.291665:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[82767:30553243:1014/032506.291977:VERBOSE1:chrome/updater/crash_reporter.cc:123] Crash handler launched and ready.
+[82767:30553243:1014/032506.292478:VERBOSE1:chrome/updater/crash_client.cc:109] Found 0 completed crash reports
+[82767:30553243:1014/032506.292529:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports
+[82767:30553243:1014/032506.292596:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)
+[82767:30553243:1014/032506.292607:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)
+[82767:30553243:1014/032506.292615:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)
+[82767:30553243:1014/032506.292641:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)
+[82767:30553243:1014/032506.292681:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/Chrome-headless/Crashpad/settings.dat: No such file or directory (2)
+[82767:30553243:1014/032506.292692:VERBOSE1:chrome/updater/updater.cc:107] Crash reporting initialized.
+[82767:30553243:1014/032506.292828:VERBOSE1:chrome/updater/ipc/update_service_internal_proxy_mojo.cc:61] Run
+[82687:30552360:1014/032513.135318:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[82767:30553243:1014/032522.893179:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0
+[82767:30553243:1014/032522.893747:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[82767:30553243:1014/032522.893767:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--wake) returned 0.
+[82764:30553237:1014/032523.055818:VERBOSE1:chrome/updater/app/app_wakeall.cc:68] `/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake` exited 0
+[82764:30553225:1014/032523.056237:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0
+[82764:30553225:1014/032523.056817:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[82764:30553225:1014/032523.056882:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--wake-all) returned 0.
+[82769:30553247:1014/032532.907910:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[82769:30553247:1014/032532.907955:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--crash-handler) returned 0.
+[82766:30553229:1014/032532.909667:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[82766:30553229:1014/032532.909859:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--crash-handler) returned 0.
+[82736:30552962:1014/032533.331342:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:61139 (any)
+[82736:30552962:1014/032533.331555:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:53597 (any)
+[82736:30552962:1014/032533.331648:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:53878 (any)
+[82687:30552360:1014/032557.944424:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+Trying to load the allocator multiple times. This is *not* supported.
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1791962867.242445 30554987 environment.cc:526] Selected adapter: Apple M3, arch=metal-3, vendor=apple, backend=Metal, adapterType=Integrated GPU
+I0000 00:00:1791962867.244319 30554996 environment.cc:526] Selected adapter: Apple M3, arch=metal-3, vendor=apple, backend=Metal, adapterType=Integrated GPU
+[82687:30552360:1014/032755.582662:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[82687:30552294:1014/032847.628279:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_ExtensionsZeroStatePromo before browser initialization complete; IPH will not be shown.
+[82694:30552422:1014/032847.631906:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032847.632700:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032847.633260:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032847.633353:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032847.633423:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032855.198333:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032855.199373:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032855.199893:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032855.199990:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/032855.200071:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82957:30555818:1014/032920.000340:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[82957:30555764:1014/032920.029329:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[82735:30555675:1014/032931.813244:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:56237 (any)
+[82735:30555675:1014/032931.813444:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62454 (any)
+[82735:30555675:1014/032931.825960:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:63796 (any)
+[82735:30555675:1014/032931.826067:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:60563 (any)
+[82735:30555675:1014/032935.324496:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:55410 (any)
+[82957:30555818:1014/032935.344174:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:60471 (any)
+[82957:30555818:1014/032935.344341:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:51732 (any)
+[82957:30555818:1014/032935.344417:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:64574 (any)
+[82957:30555818:1014/032935.344477:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:52469 (any)
+[82957:30555818:1014/032935.344533:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:65492 (any)
+[82735:30555675:1014/032937.967219:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[82735:30552907:1014/032937.973821:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[82957:30555818:1014/032937.974596:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[82957:30555764:1014/032937.986536:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[82957:30555818:1014/032943.994156:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[82957:30555764:1014/032944.014617:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[82735:30555675:1014/033025.982894:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[82735:30552907:1014/033025.983690:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[82957:30555818:1014/033038.010160:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[82957:30555764:1014/033038.038326:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[82687:30552360:1014/033041.929060:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[82735:30555675:1014/033043.960323:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[82735:30552907:1014/033043.970852:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[82957:30555818:1014/033143.981342:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[82957:30555764:1014/033143.991995:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[82957:30555818:1014/033146.008617:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[82957:30555764:1014/033146.027588:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[82735:30555675:1014/033149.965044:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:846] Send failedINVALID_STATE
+[82735:30552907:1014/033149.975918:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "", code: 65535
+[82687:30552294:1014/033217.076719:ERROR:chrome/browser/ui/views/user_education/impl/browser_user_education_interface_impl.cc:186] Attempting to show IPH IPH_ExtensionsZeroStatePromo before browser initialization complete; IPH will not be shown.
+[82694:30552422:1014/033217.094956:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/033217.096517:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/033217.097199:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/033217.097293:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/033217.097383:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/033217.397001:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82957:30555818:1014/033220.095218:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport0->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[82957:30555764:1014/033220.097202:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[83146:30557598:1014/033220.097326:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport0->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[83146:30557537:1014/033220.097389:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[83146:30557537:1014/033220.109186:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[82957:30555764:1014/033220.109624:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[82957:30555818:1014/033220.463844:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport4->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[83146:30557598:1014/033220.464059:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport4->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[83146:30557537:1014/033220.465157:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[82957:30555764:1014/033220.465417:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[83146:30557598:1014/033220.516953:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport5->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[83146:30557537:1014/033220.518911:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[83146:30557537:1014/033220.524125:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[82687:30552378:1014/033220.593030:ERROR:base/process/process_mac.cc:45] task_policy_set TASK_CATEGORY_POLICY: (os/kern) invalid argument (4)
+[82687:30552378:1014/033220.593086:ERROR:base/process/process_mac.cc:90] task_policy_set TASK_SUPPRESSION_POLICY: (os/kern) invalid argument (4)
+[82694:30552422:1014/033220.654094:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/033220.654944:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/033220.655368:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/033220.655454:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[82694:30552422:1014/033220.655547:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[83151:30557728:1014/033221.178795:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport1->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[83151:30557674:1014/033221.191490:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[83151:30557728:1014/033304.638459:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:52719 (any)
+[83151:30557728:1014/033304.638701:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:52784 (any)
+[83151:30557728:1014/033304.638825:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:56685 (any)

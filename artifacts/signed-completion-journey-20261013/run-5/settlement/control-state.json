@@ -1,0 +1,48 @@
+{
+ "current": {
+  "amd-host": "scj-run5-amd-native-4",
+  "intel-host": "scj-run5-intel-native-3"
+ },
+ "counter": {
+  "amd-host": 4,
+  "intel-host": 3
+ },
+ "share": {
+  "amd-host": "noshare",
+  "intel-host": "noshare"
+ },
+ "history": [
+  {
+   "action": "operator-refresh",
+   "units": {
+    "amd-host": "scj-run5-amd-native-2",
+    "intel-host": "scj-run5-intel-native-2"
+   },
+   "reason": "fresh scopes immediately before the loss harness (run-5 procedure)"
+  },
+  {
+   "action": "stop",
+   "machine": "amd-host",
+   "unit": "scj-run5-amd-native-2",
+   "stoppedAt": "2026-10-14T07:20:24.763985172Z",
+   "pids": "1878733 ",
+   "scopeAfter": "inactive",
+   "at": "2026-10-14T07:20:25.790Z"
+  },
+  {
+   "action": "restore",
+   "machine": "amd-host",
+   "unit": "scj-run5-amd-native-3",
+   "restoredAt": "2026-10-14T07:23:43.709Z",
+   "share": "noshare"
+  },
+  {
+   "action": "operator-refresh",
+   "units": {
+    "amd-host": "scj-run5-amd-native-4",
+    "intel-host": "scj-run5-intel-native-3"
+   },
+   "reason": "fresh scopes immediately before the contribution harness (run-5 procedure)"
+  }
+ ]
+}

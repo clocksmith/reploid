@@ -1,0 +1,1681 @@
+{
+  "schema": "reploid.signed-completion-journey-report/v1",
+  "harness": "contributor-loss",
+  "startedAt": "2026-10-14T07:18:27.055Z",
+  "configSha256": "e116cb698db0b9fd3bed10eab92f9d4fc67d6c57dbcbc5a8204cf68927501026",
+  "fixtureSha256": "658f35be1d2beab062a8d7e1a54303c0af5d0619201acb4347730a0d944d162f",
+  "freeze": {
+    "browserBundle": "sha256:3c1fab715e5074b0d573bb726f91b790229672ae9d27bef19c9c80935750fbc2",
+    "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [
+      8,
+      16
+    ],
+    "nativeArtifacts": {
+      "amd-host": "sha256:d99a07e335617cdf4fb91cb401a9bf8a21823ebceb18c79b4c41bd049f46bc6e",
+      "intel-host": "sha256:d99a07e335617cdf4fb91cb401a9bf8a21823ebceb18c79b4c41bd049f46bc6e"
+    },
+    "route": [
+      {
+        "index": 0,
+        "machine": "mac-host",
+        "host": "browser",
+        "participantId": "peer:926ad427d22d341af18d0ff1"
+      },
+      {
+        "index": 1,
+        "machine": "amd-host",
+        "host": "native",
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run5-20261013/amd-host-stage-1.json"
+      },
+      {
+        "index": 2,
+        "machine": "intel-host",
+        "host": "native",
+        "participantId": "peer:09610aefbd15a133d7af2b57",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run5-20261013/intel-host-stage-2.json"
+      }
+    ]
+  },
+  "ok": false,
+  "errors": [],
+  "scope": "Stop one native stage contributor through the configured callback while an ordered answer streams; observe the requester report, ownership settlement, absence of continuation and an explicit retry after capacity returns.",
+  "lossTarget": {
+    "machine": "amd-host",
+    "stage": 1,
+    "participantId": "peer:9af15d884eba51b0c0540e2a"
+  },
+  "modelFileRequests": [],
+  "streamSamples": [],
+  "terminalSamples": [
+    {
+      "at": "2026-10-14T07:20:42.375Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    }
+  ],
+  "postFailureSamples": [
+    {
+      "at": "2026-10-14T07:20:42.380Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:42.647Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:42.915Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:43.206Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:43.472Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:43.739Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:43.996Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:44.257Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:44.528Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:44.798Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:45.066Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:45.337Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:45.601Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:45.864Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:46.134Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:46.404Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:46.675Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:46.947Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    },
+    {
+      "at": "2026-10-14T07:20:47.217Z",
+      "status": "failed",
+      "attemptIds": [
+        "47a76fa4-902c-4e4d-92b0-4a302bb72c6e"
+      ],
+      "runningIds": [],
+      "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n"
+    }
+  ],
+  "preRetrySamples": [],
+  "timing": [
+    {
+      "schema": "reploid.signed-completion-answer-timing/v1",
+      "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+      "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+      "status": "failed",
+      "requester": {
+        "attemptMs": {
+          "status": "measured",
+          "value": 132182,
+          "unit": "ms",
+          "clock": "requester-application",
+          "source": "packages/reploid/src/chat/workspace.js:248 minus packages/reploid/src/chat/workspace.js:116"
+        },
+        "firstVisibleTextMs": {
+          "status": "missing",
+          "unit": "ms",
+          "clock": "harness",
+          "source": "harness stream sample (Send click to first nonempty rendered response)",
+          "resolutionMs": 100
+        },
+        "outputCharacters": 24
+      },
+      "coordinator": {
+        "decodeSteps": 24,
+        "stages": [
+          {
+            "partitionIndex": 0,
+            "steps": 24,
+            "stepCount": 24,
+            "stepMsTotal": {
+              "status": "measured",
+              "value": 15548.499999761581,
+              "unit": "ms",
+              "clock": "coordinator",
+              "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+            }
+          },
+          {
+            "partitionIndex": 1,
+            "steps": 24,
+            "stepCount": 24,
+            "stepMsTotal": {
+              "status": "measured",
+              "value": 13161.79999947548,
+              "unit": "ms",
+              "clock": "coordinator",
+              "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+            }
+          },
+          {
+            "partitionIndex": 2,
+            "steps": 24,
+            "stepCount": 24,
+            "stepMsTotal": {
+              "status": "measured",
+              "value": 85021.39999985695,
+              "unit": "ms",
+              "clock": "coordinator",
+              "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:167-175 (per stage, includes remote transport); aggregated by partition-summary.js:9-14"
+            }
+          }
+        ],
+        "activationBytes": {
+          "status": "missing",
+          "unit": "bytes",
+          "clock": "coordinator",
+          "source": "packages/reploid/src/mesh/partitions/partition-route-execution.js:209"
+        }
+      },
+      "runtime": {
+        "executionMs": {
+          "status": "not-observable",
+          "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+          "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+        },
+        "logitsReadbackMs": {
+          "status": "not-observable",
+          "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+          "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+        },
+        "samplingMs": {
+          "status": "not-observable",
+          "reason": "Doppler per-stage metrics never reach an observable application boundary for ordered routes",
+          "source": "doppler src/inference/pipelines/text/resident-partition.js:173-202,230 produces metrics; partition-route-execution.js:182 keeps them per step on the coordinator; partition-summary.js:16-18 drops them from the requester summary; server/native-participant.js:51-63 state log omits them"
+        }
+      },
+      "scheduler": {
+        "queuedMs": {
+          "status": "not-observable",
+          "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+          "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+        },
+        "loadMs": {
+          "status": "not-observable",
+          "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+          "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+        },
+        "executionMs": {
+          "status": "not-observable",
+          "reason": "Ordered partition attempts bypass the chat scheduler; the host also discards scheduler observations",
+          "source": "packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations"
+        }
+      },
+      "transport": {
+        "status": "not-observable",
+        "reason": "Ordered summaries carry no transport timing",
+        "source": "partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none"
+      },
+      "persistence": {
+        "status": "not-observable",
+        "reason": "History persistence exposes no timing",
+        "source": "packages/reploid/src/chat/workspace.js:63-94 saves ordinary history synchronously inside persist() and exposes no timing; partition-ordered-chat.js:45-46 keeps ordered routes on ordinary history"
+      }
+    }
+  ],
+  "servedDescriptor": "sha256:3c1fab715e5074b0d573bb726f91b790229672ae9d27bef19c9c80935750fbc2",
+  "modelChoice": {
+    "selectedValue": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+  },
+  "custodyBefore": {
+    "state": {
+      "sharing": false,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "peers": [
+        "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+        "474c1e44-b3bf-496a-8612-31381446c8a4",
+        "2723c9c5-1ce5-416a-a475-ce4249faab16"
+      ],
+      "model": null,
+      "mode": null,
+      "acquisitionBudget": null,
+      "acquisitionBudgetError": null,
+      "supplyBudgetError": null,
+      "preparing": false,
+      "stopping": false,
+      "error": "",
+      "progress": null,
+      "receivedBytes": 0,
+      "verifiedFiles": [],
+      "limits": {
+        "storedBytes": 3221225472,
+        "supplyBytes": 4294967296,
+        "downloadBytes": 67108864,
+        "maxDownloadBytes": 4294967296,
+        "subsetBytes": 67108864
+      }
+    },
+    "receipts": []
+  },
+  "failedAttemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+  "beforeLoss": {
+    "id": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+    "model": {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16",
+      "name": "Qwen 3.5 0.8B",
+      "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+      "index": 0,
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "residentId": "scj-run5-stage-0-resident",
+      "executionId": "scj-run5-stage-0-ordinary",
+      "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+      },
+      "availability": "ready",
+      "adapters": [],
+      "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "partition": {
+        "schema": "reploid.partition-selection/v2",
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "coordinatorId": "peer:926ad427d22d341af18d0ff1",
+        "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "stages": [
+            {
+              "index": 0,
+              "participantId": "peer:926ad427d22d341af18d0ff1",
+              "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+              "residentId": "scj-run5-stage-0-resident",
+              "executionId": "scj-run5-stage-0-ordinary"
+            },
+            {
+              "index": 1,
+              "participantId": "peer:9af15d884eba51b0c0540e2a",
+              "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+              "residentId": "scj-run5-stage-1-resident",
+              "executionId": "scj-run5-stage-1-ordinary"
+            },
+            {
+              "index": 2,
+              "participantId": "peer:09610aefbd15a133d7af2b57",
+              "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+              "residentId": "scj-run5-stage-2-resident",
+              "executionId": "scj-run5-stage-2-ordinary"
+            }
+          ],
+          "activation": {
+            "schema": "doppler.activation-tensor/v2",
+            "dtype": "f32",
+            "hiddenSize": 1024,
+            "precision": "two-f32",
+            "components": 2,
+            "elementStrideBytes": 8
+          }
+        }
+      },
+      "provider": "doppler",
+      "contextLength": 4096,
+      "quantization": "q4k",
+      "size": "Q4K",
+      "recommended": true,
+      "textGeneration": {
+        "schema": "reploid.text-generation/v1",
+        "usage": "raw-model-tokens/v1"
+      },
+      "providerIds": [
+        "peer:926ad427d22d341af18d0ff1",
+        "peer:9af15d884eba51b0c0540e2a",
+        "peer:09610aefbd15a133d7af2b57"
+      ],
+      "placement": "ordered-layer-partition"
+    },
+    "purpose": "",
+    "systemContext": {
+      "content": "",
+      "metadata": {
+        "policyId": "reploid.compact-context/v1",
+        "enabled": false,
+        "maxWords": 16,
+        "wordCount": 0,
+        "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+        "mode": null
+      }
+    },
+    "members": [
+      "local-user"
+    ],
+    "permissions": {
+      "sharingScope": "mesh"
+    },
+    "grants": [],
+    "messages": [
+      {
+        "id": "06c7aae3-4afc-4b78-aa54-621599f4ed3f",
+        "role": "user",
+        "content": "Count from 1 to 40 in order, one integer per line. No commentary.",
+        "status": "completed"
+      },
+      {
+        "id": "3a640c96-f321-4555-ae2a-ee640a4a34cd",
+        "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+        "role": "assistant",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n",
+        "status": "streaming"
+      }
+    ],
+    "attempts": [
+      {
+        "id": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+        "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+        "userMessageId": "06c7aae3-4afc-4b78-aa54-621599f4ed3f",
+        "responseId": "3a640c96-f321-4555-ae2a-ee640a4a34cd",
+        "retryOf": null,
+        "status": "executing",
+        "createdAt": 1791962310182,
+        "finishedAt": null,
+        "error": null,
+        "approval": null,
+        "execution": {
+          "placement": "ordered-layer-partition",
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:926ad427d22d341af18d0ff1",
+                  "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+                  "residentId": "scj-run5-stage-0-resident",
+                  "executionId": "scj-run5-stage-0-ordinary"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:9af15d884eba51b0c0540e2a",
+                  "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+                  "residentId": "scj-run5-stage-1-resident",
+                  "executionId": "scj-run5-stage-1-ordinary"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:09610aefbd15a133d7af2b57",
+                  "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+                  "residentId": "scj-run5-stage-2-resident",
+                  "executionId": "scj-run5-stage-2-ordinary"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v2",
+                "dtype": "f32",
+                "hiddenSize": 1024,
+                "precision": "two-f32",
+                "components": 2,
+                "elementStrideBytes": 8
+              }
+            },
+            "requesterId": "peer:62812118b9865326fafb5ad9",
+            "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+            "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+            "placementGeneration": 0
+          },
+          "stepSummary": {
+            "count": 24,
+            "stages": [
+              {
+                "partitionIndex": 0,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 15548.499999761581
+                }
+              },
+              {
+                "partitionIndex": 1,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 13161.79999947548
+                }
+              },
+              {
+                "partitionIndex": 2,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 85021.39999985695
+                }
+              }
+            ]
+          }
+        },
+        "authorization": {
+          "kind": "once",
+          "grantId": null,
+          "peerId": "peer:926ad427d22d341af18d0ff1",
+          "recipientIdentity": "peer:926ad427d22d341af18d0ff1",
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:926ad427d22d341af18d0ff1",
+                "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+                "residentId": "scj-run5-stage-0-resident",
+                "executionId": "scj-run5-stage-0-ordinary"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:9af15d884eba51b0c0540e2a",
+                "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+                "residentId": "scj-run5-stage-1-resident",
+                "executionId": "scj-run5-stage-1-ordinary"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:09610aefbd15a133d7af2b57",
+                "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+                "residentId": "scj-run5-stage-2-resident",
+                "executionId": "scj-run5-stage-2-ordinary"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          "requesterIdentity": "peer:62812118b9865326fafb5ad9",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "adapterIdentities": [],
+          "sharingScope": "mesh",
+          "source": "send",
+          "expiresAt": 1791963210250
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-0-8b-q4k-ehaf16",
+            "name": "Qwen 3.5 0.8B",
+            "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "index": 0,
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "residentId": "scj-run5-stage-0-resident",
+            "executionId": "scj-run5-stage-0-ordinary",
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "availability": "ready",
+            "adapters": [],
+            "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "partition": {
+              "schema": "reploid.partition-selection/v2",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "coordinatorId": "peer:926ad427d22d341af18d0ff1",
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "peer:926ad427d22d341af18d0ff1",
+                    "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+                    "residentId": "scj-run5-stage-0-resident",
+                    "executionId": "scj-run5-stage-0-ordinary"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "peer:9af15d884eba51b0c0540e2a",
+                    "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+                    "residentId": "scj-run5-stage-1-resident",
+                    "executionId": "scj-run5-stage-1-ordinary"
+                  },
+                  {
+                    "index": 2,
+                    "participantId": "peer:09610aefbd15a133d7af2b57",
+                    "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+                    "residentId": "scj-run5-stage-2-resident",
+                    "executionId": "scj-run5-stage-2-ordinary"
+                  }
+                ],
+                "activation": {
+                  "schema": "doppler.activation-tensor/v2",
+                  "dtype": "f32",
+                  "hiddenSize": 1024,
+                  "precision": "two-f32",
+                  "components": 2,
+                  "elementStrideBytes": 8
+                }
+              }
+            },
+            "provider": "doppler",
+            "contextLength": 4096,
+            "quantization": "q4k",
+            "size": "Q4K",
+            "recommended": true,
+            "textGeneration": {
+              "schema": "reploid.text-generation/v1",
+              "usage": "raw-model-tokens/v1"
+            },
+            "providerIds": [
+              "peer:926ad427d22d341af18d0ff1",
+              "peer:9af15d884eba51b0c0540e2a",
+              "peer:09610aefbd15a133d7af2b57"
+            ],
+            "placement": "ordered-layer-partition"
+          },
+          "permissions": {
+            "sharingScope": "mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Count from 1 to 40 in order, one integer per line. No commentary."
+            }
+          ]
+        },
+        "systemContext": {
+          "content": "",
+          "metadata": {
+            "policyId": "reploid.compact-context/v1",
+            "enabled": false,
+            "maxWords": 16,
+            "wordCount": 0,
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "mode": null
+          }
+        }
+      }
+    ],
+    "closed": false,
+    "createdAt": 1791962310177
+  },
+  "sentAt": "2026-10-14T07:18:30.143Z",
+  "stop": {
+    "method": "SIGKILL to every process of the owned native systemd scope (abrupt, unannounced contributor loss)",
+    "stoppedAt": "2026-10-14T07:20:24.763985172Z",
+    "detail": {
+      "unit": "scj-run5-amd-native-2",
+      "pids": "1878733",
+      "scopeAfter": "inactive",
+      "participantId": "peer:9af15d884eba51b0c0540e2a",
+      "stage": 1
+    },
+    "calledAt": "2026-10-14T07:20:25.792Z"
+  },
+  "postFailureObservationMs": 5095,
+  "failed": {
+    "id": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+    "model": {
+      "id": "qwen-3-5-0-8b-q4k-ehaf16",
+      "name": "Qwen 3.5 0.8B",
+      "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+      "index": 0,
+      "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "residentId": "scj-run5-stage-0-resident",
+      "executionId": "scj-run5-stage-0-ordinary",
+      "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+      },
+      "availability": "ready",
+      "adapters": [],
+      "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+      "partition": {
+        "schema": "reploid.partition-selection/v2",
+        "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+        "coordinatorId": "peer:926ad427d22d341af18d0ff1",
+        "route": {
+          "schema": "reploid.partition-route/v1",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "stages": [
+            {
+              "index": 0,
+              "participantId": "peer:926ad427d22d341af18d0ff1",
+              "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+              "residentId": "scj-run5-stage-0-resident",
+              "executionId": "scj-run5-stage-0-ordinary"
+            },
+            {
+              "index": 1,
+              "participantId": "peer:9af15d884eba51b0c0540e2a",
+              "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+              "residentId": "scj-run5-stage-1-resident",
+              "executionId": "scj-run5-stage-1-ordinary"
+            },
+            {
+              "index": 2,
+              "participantId": "peer:09610aefbd15a133d7af2b57",
+              "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+              "residentId": "scj-run5-stage-2-resident",
+              "executionId": "scj-run5-stage-2-ordinary"
+            }
+          ],
+          "activation": {
+            "schema": "doppler.activation-tensor/v2",
+            "dtype": "f32",
+            "hiddenSize": 1024,
+            "precision": "two-f32",
+            "components": 2,
+            "elementStrideBytes": 8
+          }
+        }
+      },
+      "provider": "doppler",
+      "contextLength": 4096,
+      "quantization": "q4k",
+      "size": "Q4K",
+      "recommended": true,
+      "textGeneration": {
+        "schema": "reploid.text-generation/v1",
+        "usage": "raw-model-tokens/v1"
+      },
+      "providerIds": [
+        "peer:926ad427d22d341af18d0ff1",
+        "peer:9af15d884eba51b0c0540e2a",
+        "peer:09610aefbd15a133d7af2b57"
+      ],
+      "placement": "ordered-layer-partition"
+    },
+    "purpose": "",
+    "systemContext": {
+      "content": "",
+      "metadata": {
+        "policyId": "reploid.compact-context/v1",
+        "enabled": false,
+        "maxWords": 16,
+        "wordCount": 0,
+        "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+        "mode": null
+      }
+    },
+    "members": [
+      "local-user"
+    ],
+    "permissions": {
+      "sharingScope": "mesh"
+    },
+    "grants": [],
+    "messages": [
+      {
+        "id": "06c7aae3-4afc-4b78-aa54-621599f4ed3f",
+        "role": "user",
+        "content": "Count from 1 to 40 in order, one integer per line. No commentary.",
+        "status": "completed"
+      },
+      {
+        "id": "3a640c96-f321-4555-ae2a-ee640a4a34cd",
+        "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+        "role": "assistant",
+        "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n",
+        "status": "failed"
+      }
+    ],
+    "attempts": [
+      {
+        "id": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+        "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+        "userMessageId": "06c7aae3-4afc-4b78-aa54-621599f4ed3f",
+        "responseId": "3a640c96-f321-4555-ae2a-ee640a4a34cd",
+        "retryOf": null,
+        "status": "failed",
+        "createdAt": 1791962310182,
+        "finishedAt": 1791962442364,
+        "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+        "approval": null,
+        "execution": {
+          "placement": "ordered-layer-partition",
+          "identity": {
+            "schema": "reploid.partition-attempt/v2",
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:926ad427d22d341af18d0ff1",
+                  "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+                  "residentId": "scj-run5-stage-0-resident",
+                  "executionId": "scj-run5-stage-0-ordinary"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:9af15d884eba51b0c0540e2a",
+                  "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+                  "residentId": "scj-run5-stage-1-resident",
+                  "executionId": "scj-run5-stage-1-ordinary"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:09610aefbd15a133d7af2b57",
+                  "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+                  "residentId": "scj-run5-stage-2-resident",
+                  "executionId": "scj-run5-stage-2-ordinary"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v2",
+                "dtype": "f32",
+                "hiddenSize": 1024,
+                "precision": "two-f32",
+                "components": 2,
+                "elementStrideBytes": 8
+              }
+            },
+            "requesterId": "peer:62812118b9865326fafb5ad9",
+            "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+            "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+            "placementGeneration": 0
+          },
+          "stepSummary": {
+            "count": 24,
+            "stages": [
+              {
+                "partitionIndex": 0,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 15548.499999761581
+                }
+              },
+              {
+                "partitionIndex": 1,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 13161.79999947548
+                }
+              },
+              {
+                "partitionIndex": 2,
+                "steps": 24,
+                "stepMs": {
+                  "count": 24,
+                  "total": 85021.39999985695
+                }
+              }
+            ]
+          }
+        },
+        "authorization": {
+          "kind": "once",
+          "grantId": null,
+          "peerId": "peer:926ad427d22d341af18d0ff1",
+          "recipientIdentity": "peer:926ad427d22d341af18d0ff1",
+          "disclosure": "ordered-partition-activations-and-tokens",
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "route": {
+            "schema": "reploid.partition-route/v1",
+            "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "stages": [
+              {
+                "index": 0,
+                "participantId": "peer:926ad427d22d341af18d0ff1",
+                "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+                "residentId": "scj-run5-stage-0-resident",
+                "executionId": "scj-run5-stage-0-ordinary"
+              },
+              {
+                "index": 1,
+                "participantId": "peer:9af15d884eba51b0c0540e2a",
+                "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+                "residentId": "scj-run5-stage-1-resident",
+                "executionId": "scj-run5-stage-1-ordinary"
+              },
+              {
+                "index": 2,
+                "participantId": "peer:09610aefbd15a133d7af2b57",
+                "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+                "residentId": "scj-run5-stage-2-resident",
+                "executionId": "scj-run5-stage-2-ordinary"
+              }
+            ],
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            }
+          },
+          "requesterIdentity": "peer:62812118b9865326fafb5ad9",
+          "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+          "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "adapterIdentities": [],
+          "sharingScope": "mesh",
+          "source": "send",
+          "expiresAt": 1791963210250
+        },
+        "request": {
+          "model": {
+            "id": "qwen-3-5-0-8b-q4k-ehaf16",
+            "name": "Qwen 3.5 0.8B",
+            "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "index": 0,
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "residentId": "scj-run5-stage-0-resident",
+            "executionId": "scj-run5-stage-0-ordinary",
+            "activation": {
+              "schema": "doppler.activation-tensor/v2",
+              "dtype": "f32",
+              "hiddenSize": 1024,
+              "precision": "two-f32",
+              "components": 2,
+              "elementStrideBytes": 8
+            },
+            "availability": "ready",
+            "adapters": [],
+            "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "partition": {
+              "schema": "reploid.partition-selection/v2",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "coordinatorId": "peer:926ad427d22d341af18d0ff1",
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "peer:926ad427d22d341af18d0ff1",
+                    "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+                    "residentId": "scj-run5-stage-0-resident",
+                    "executionId": "scj-run5-stage-0-ordinary"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "peer:9af15d884eba51b0c0540e2a",
+                    "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+                    "residentId": "scj-run5-stage-1-resident",
+                    "executionId": "scj-run5-stage-1-ordinary"
+                  },
+                  {
+                    "index": 2,
+                    "participantId": "peer:09610aefbd15a133d7af2b57",
+                    "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+                    "residentId": "scj-run5-stage-2-resident",
+                    "executionId": "scj-run5-stage-2-ordinary"
+                  }
+                ],
+                "activation": {
+                  "schema": "doppler.activation-tensor/v2",
+                  "dtype": "f32",
+                  "hiddenSize": 1024,
+                  "precision": "two-f32",
+                  "components": 2,
+                  "elementStrideBytes": 8
+                }
+              }
+            },
+            "provider": "doppler",
+            "contextLength": 4096,
+            "quantization": "q4k",
+            "size": "Q4K",
+            "recommended": true,
+            "textGeneration": {
+              "schema": "reploid.text-generation/v1",
+              "usage": "raw-model-tokens/v1"
+            },
+            "providerIds": [
+              "peer:926ad427d22d341af18d0ff1",
+              "peer:9af15d884eba51b0c0540e2a",
+              "peer:09610aefbd15a133d7af2b57"
+            ],
+            "placement": "ordered-layer-partition"
+          },
+          "permissions": {
+            "sharingScope": "mesh"
+          },
+          "members": [
+            "local-user"
+          ],
+          "messages": [
+            {
+              "role": "user",
+              "content": "Count from 1 to 40 in order, one integer per line. No commentary."
+            }
+          ]
+        },
+        "systemContext": {
+          "content": "",
+          "metadata": {
+            "policyId": "reploid.compact-context/v1",
+            "enabled": false,
+            "maxWords": 16,
+            "wordCount": 0,
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "mode": null
+          }
+        }
+      }
+    ],
+    "closed": false,
+    "createdAt": 1791962310177
+  },
+  "renderedFailure": {
+    "status": "A computer disconnected. Retry this answer.",
+    "technical": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+  },
+  "failure": "Error: Coordinator failure receipt deadline\n    at waitFor (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:183:9)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs:83:31",
+  "body": "7\n7\nThreads\nQwen 3.5 0.8B\nConversation\nCount from 1 to 40 in order, one integer per line. No commentary.\nfailed\n…\nCount from 1 to 40 in order, one integer per line. No commentary.\nFailed · 3 computers\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n\nA computer disconnected. Retry this answer.\n\nTechnical details\nRetry response\nStarts a new attempt; keeps this response.\nMessage\nAttach files\n\nModel unavailable.\n\nRetry connection",
+  "finalState": {
+    "schema": "reploid.chat-owner-observation/v1",
+    "source": "existing host getState/getDraft",
+    "storageMode": "legacy",
+    "threads": [
+      {
+        "id": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+        "model": {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16",
+          "name": "Qwen 3.5 0.8B",
+          "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "index": 0,
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "residentId": "scj-run5-stage-0-resident",
+          "executionId": "scj-run5-stage-0-ordinary",
+          "activation": {
+            "schema": "doppler.activation-tensor/v2",
+            "dtype": "f32",
+            "hiddenSize": 1024,
+            "precision": "two-f32",
+            "components": 2,
+            "elementStrideBytes": 8
+          },
+          "availability": "ready",
+          "adapters": [],
+          "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "partition": {
+            "schema": "reploid.partition-selection/v2",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "coordinatorId": "peer:926ad427d22d341af18d0ff1",
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:926ad427d22d341af18d0ff1",
+                  "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+                  "residentId": "scj-run5-stage-0-resident",
+                  "executionId": "scj-run5-stage-0-ordinary"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:9af15d884eba51b0c0540e2a",
+                  "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+                  "residentId": "scj-run5-stage-1-resident",
+                  "executionId": "scj-run5-stage-1-ordinary"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:09610aefbd15a133d7af2b57",
+                  "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+                  "residentId": "scj-run5-stage-2-resident",
+                  "executionId": "scj-run5-stage-2-ordinary"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v2",
+                "dtype": "f32",
+                "hiddenSize": 1024,
+                "precision": "two-f32",
+                "components": 2,
+                "elementStrideBytes": 8
+              }
+            }
+          },
+          "provider": "doppler",
+          "contextLength": 4096,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "recommended": true,
+          "textGeneration": {
+            "schema": "reploid.text-generation/v1",
+            "usage": "raw-model-tokens/v1"
+          },
+          "providerIds": [
+            "peer:926ad427d22d341af18d0ff1",
+            "peer:9af15d884eba51b0c0540e2a",
+            "peer:09610aefbd15a133d7af2b57"
+          ],
+          "placement": "ordered-layer-partition"
+        },
+        "purpose": "",
+        "systemContext": {
+          "content": "",
+          "metadata": {
+            "policyId": "reploid.compact-context/v1",
+            "enabled": false,
+            "maxWords": 16,
+            "wordCount": 0,
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "mode": null
+          }
+        },
+        "members": [
+          "local-user"
+        ],
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "grants": [],
+        "messages": [
+          {
+            "id": "06c7aae3-4afc-4b78-aa54-621599f4ed3f",
+            "role": "user",
+            "content": "Count from 1 to 40 in order, one integer per line. No commentary.",
+            "status": "completed"
+          },
+          {
+            "id": "3a640c96-f321-4555-ae2a-ee640a4a34cd",
+            "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+            "role": "assistant",
+            "content": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n",
+            "status": "failed"
+          }
+        ],
+        "attempts": [
+          {
+            "id": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+            "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+            "userMessageId": "06c7aae3-4afc-4b78-aa54-621599f4ed3f",
+            "responseId": "3a640c96-f321-4555-ae2a-ee640a4a34cd",
+            "retryOf": null,
+            "status": "failed",
+            "createdAt": 1791962310182,
+            "finishedAt": 1791962442364,
+            "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+            "approval": null,
+            "execution": {
+              "placement": "ordered-layer-partition",
+              "identity": {
+                "schema": "reploid.partition-attempt/v2",
+                "route": {
+                  "schema": "reploid.partition-route/v1",
+                  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                  "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                  "stages": [
+                    {
+                      "index": 0,
+                      "participantId": "peer:926ad427d22d341af18d0ff1",
+                      "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+                      "residentId": "scj-run5-stage-0-resident",
+                      "executionId": "scj-run5-stage-0-ordinary"
+                    },
+                    {
+                      "index": 1,
+                      "participantId": "peer:9af15d884eba51b0c0540e2a",
+                      "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+                      "residentId": "scj-run5-stage-1-resident",
+                      "executionId": "scj-run5-stage-1-ordinary"
+                    },
+                    {
+                      "index": 2,
+                      "participantId": "peer:09610aefbd15a133d7af2b57",
+                      "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+                      "residentId": "scj-run5-stage-2-resident",
+                      "executionId": "scj-run5-stage-2-ordinary"
+                    }
+                  ],
+                  "activation": {
+                    "schema": "doppler.activation-tensor/v2",
+                    "dtype": "f32",
+                    "hiddenSize": 1024,
+                    "precision": "two-f32",
+                    "components": 2,
+                    "elementStrideBytes": 8
+                  }
+                },
+                "requesterId": "peer:62812118b9865326fafb5ad9",
+                "threadId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+                "attemptId": "47a76fa4-902c-4e4d-92b0-4a302bb72c6e",
+                "placementGeneration": 0
+              },
+              "stepSummary": {
+                "count": 24,
+                "stages": [
+                  {
+                    "partitionIndex": 0,
+                    "steps": 24,
+                    "stepMs": {
+                      "count": 24,
+                      "total": 15548.499999761581
+                    }
+                  },
+                  {
+                    "partitionIndex": 1,
+                    "steps": 24,
+                    "stepMs": {
+                      "count": 24,
+                      "total": 13161.79999947548
+                    }
+                  },
+                  {
+                    "partitionIndex": 2,
+                    "steps": 24,
+                    "stepMs": {
+                      "count": 24,
+                      "total": 85021.39999985695
+                    }
+                  }
+                ]
+              }
+            },
+            "authorization": {
+              "kind": "once",
+              "grantId": null,
+              "peerId": "peer:926ad427d22d341af18d0ff1",
+              "recipientIdentity": "peer:926ad427d22d341af18d0ff1",
+              "disclosure": "ordered-partition-activations-and-tokens",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "route": {
+                "schema": "reploid.partition-route/v1",
+                "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "stages": [
+                  {
+                    "index": 0,
+                    "participantId": "peer:926ad427d22d341af18d0ff1",
+                    "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+                    "residentId": "scj-run5-stage-0-resident",
+                    "executionId": "scj-run5-stage-0-ordinary"
+                  },
+                  {
+                    "index": 1,
+                    "participantId": "peer:9af15d884eba51b0c0540e2a",
+                    "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+                    "residentId": "scj-run5-stage-1-resident",
+                    "executionId": "scj-run5-stage-1-ordinary"
+                  },
+                  {
+                    "index": 2,
+                    "participantId": "peer:09610aefbd15a133d7af2b57",
+                    "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+                    "residentId": "scj-run5-stage-2-resident",
+                    "executionId": "scj-run5-stage-2-ordinary"
+                  }
+                ],
+                "activation": {
+                  "schema": "doppler.activation-tensor/v2",
+                  "dtype": "f32",
+                  "hiddenSize": 1024,
+                  "precision": "two-f32",
+                  "components": 2,
+                  "elementStrideBytes": 8
+                }
+              },
+              "requesterIdentity": "peer:62812118b9865326fafb5ad9",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "adapterIdentities": [],
+              "sharingScope": "mesh",
+              "source": "send",
+              "expiresAt": 1791963210250
+            },
+            "request": {
+              "model": {
+                "id": "qwen-3-5-0-8b-q4k-ehaf16",
+                "name": "Qwen 3.5 0.8B",
+                "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "index": 0,
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "residentId": "scj-run5-stage-0-resident",
+                "executionId": "scj-run5-stage-0-ordinary",
+                "activation": {
+                  "schema": "doppler.activation-tensor/v2",
+                  "dtype": "f32",
+                  "hiddenSize": 1024,
+                  "precision": "two-f32",
+                  "components": 2,
+                  "elementStrideBytes": 8
+                },
+                "availability": "ready",
+                "adapters": [],
+                "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "partition": {
+                  "schema": "reploid.partition-selection/v2",
+                  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                  "coordinatorId": "peer:926ad427d22d341af18d0ff1",
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:926ad427d22d341af18d0ff1",
+                        "transportId": "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+                        "residentId": "scj-run5-stage-0-resident",
+                        "executionId": "scj-run5-stage-0-ordinary"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:9af15d884eba51b0c0540e2a",
+                        "transportId": "474c1e44-b3bf-496a-8612-31381446c8a4",
+                        "residentId": "scj-run5-stage-1-resident",
+                        "executionId": "scj-run5-stage-1-ordinary"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:09610aefbd15a133d7af2b57",
+                        "transportId": "2723c9c5-1ce5-416a-a475-ce4249faab16",
+                        "residentId": "scj-run5-stage-2-resident",
+                        "executionId": "scj-run5-stage-2-ordinary"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v2",
+                      "dtype": "f32",
+                      "hiddenSize": 1024,
+                      "precision": "two-f32",
+                      "components": 2,
+                      "elementStrideBytes": 8
+                    }
+                  }
+                },
+                "provider": "doppler",
+                "contextLength": 4096,
+                "quantization": "q4k",
+                "size": "Q4K",
+                "recommended": true,
+                "textGeneration": {
+                  "schema": "reploid.text-generation/v1",
+                  "usage": "raw-model-tokens/v1"
+                },
+                "providerIds": [
+                  "peer:926ad427d22d341af18d0ff1",
+                  "peer:9af15d884eba51b0c0540e2a",
+                  "peer:09610aefbd15a133d7af2b57"
+                ],
+                "placement": "ordered-layer-partition"
+              },
+              "permissions": {
+                "sharingScope": "mesh"
+              },
+              "members": [
+                "local-user"
+              ],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Count from 1 to 40 in order, one integer per line. No commentary."
+                }
+              ]
+            },
+            "systemContext": {
+              "content": "",
+              "metadata": {
+                "policyId": "reploid.compact-context/v1",
+                "enabled": false,
+                "maxWords": 16,
+                "wordCount": 0,
+                "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "mode": null
+              }
+            }
+          }
+        ],
+        "closed": false,
+        "createdAt": 1791962310177
+      }
+    ],
+    "selectedId": "28e0dcf5-018d-46d0-b88f-8ca27b542714",
+    "runningIds": [],
+    "storageError": null,
+    "drafts": {
+      "new": {
+        "text": "",
+        "files": []
+      },
+      "28e0dcf5-018d-46d0-b88f-8ca27b542714": {
+        "text": "",
+        "files": []
+      }
+    },
+    "requesterPeerId": "peer:62812118b9865326fafb5ad9"
+  },
+  "custodyAfter": {
+    "state": {
+      "sharing": false,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "peers": [
+        "685221ab-ef26-4c6b-9172-aa7e47aa0e76",
+        "2723c9c5-1ce5-416a-a475-ce4249faab16"
+      ],
+      "model": null,
+      "mode": null,
+      "acquisitionBudget": null,
+      "acquisitionBudgetError": null,
+      "supplyBudgetError": null,
+      "preparing": false,
+      "stopping": false,
+      "error": "",
+      "progress": null,
+      "receivedBytes": 0,
+      "verifiedFiles": [],
+      "limits": {
+        "storedBytes": 3221225472,
+        "supplyBytes": 4294967296,
+        "downloadBytes": 67108864,
+        "maxDownloadBytes": 4294967296,
+        "subsetBytes": 67108864
+      }
+    },
+    "receipts": []
+  },
+  "weights": [],
+  "assessment": {
+    "automatedPass": false,
+    "failures": [
+      "ownershipExplicit: Coordinator receipt for the failed attempt unobserved",
+      "ownershipExplicit: Coordinator cleanup rows do not cover every stage exactly once",
+      "ownershipExplicit: Coordinator phase contradicts its cleanup rows",
+      "ownershipExplicit: Coordinator receipt lacks the failure cause",
+      "explicitRetry: Capacity did not return before the deadline",
+      "explicitRetry: Injected restore callback did not report its method",
+      "explicitRetry: Retry was requested before capacity returned",
+      "explicitRetry: Explicit retry did not start exactly one new attempt linked to the failure",
+      "explicitRetry: Retry changed earlier messages or the preserved partial answer",
+      "explicitRetry: Retry not complete",
+      "explicitRetry: Retry natural EOS unobserved",
+      "explicitRetry: Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "explicitRetry: Retry ordered route identity unobserved",
+      "explicitRetry: Retry route binds a different model or plan than the freeze",
+      "explicitRetry: Retry distinct route contributors (0) differ from the frozen route (3)",
+      "explicitRetry: Retry route stages differ from the frozen stage order",
+      "explicitRetry: Retry requester was assigned a stage",
+      "explicitRetry: Retry cleanup rows do not cover every stage exactly once",
+      "explicitRetry: Retry cleanup not confirmed: a cleanup row is unsettled",
+      "explicitRetry: Retry settlement phase not completed",
+      "explicitRetry: Retry not every stage was admitted",
+      "explicitRetry: Retry not every stage executed every step",
+      "explicitRetry: Retry recipients were not approved by this attempt's Send or Retry",
+      "explicitRetry: Retry approval does not cover ordered activations and tokens",
+      "explicitRetry: Retry approved recipients differ from the frozen route",
+      "explicitRetry: Retry approval is not addressed to the stage 0 coordinator",
+      "explicitRetry: Retry approval binds another model or plan",
+      "explicitRetry: Retry executed route differs from the approved route",
+      "explicitRetry: Retry requester approved itself as a stage",
+      "timing: Retry timing record missing"
+    ],
+    "checks": {
+      "lossInjected": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190"
+        ]
+      },
+      "lossReported": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "ROADMAP.md:28",
+          "REP-7 docs/roadmap/requirements.md:148"
+        ]
+      },
+      "ownershipExplicit": {
+        "pass": false,
+        "failures": [
+          "Coordinator receipt for the failed attempt unobserved",
+          "Coordinator cleanup rows do not cover every stage exactly once",
+          "Coordinator phase contradicts its cleanup rows",
+          "Coordinator receipt lacks the failure cause"
+        ],
+        "requirements": [
+          "REP-6 docs/roadmap/requirements.md:406",
+          "REP-4 docs/roadmap/requirements.md:272",
+          "ROADMAP.md:28"
+        ]
+      },
+      "noSilentContinuation": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "REP-6 docs/roadmap/requirements.md:406",
+          "DR-5 docs/roadmap/requirements.md:190"
+        ]
+      },
+      "explicitRetry": {
+        "pass": false,
+        "failures": [
+          "Capacity did not return before the deadline",
+          "Injected restore callback did not report its method",
+          "Retry was requested before capacity returned",
+          "Explicit retry did not start exactly one new attempt linked to the failure",
+          "Retry changed earlier messages or the preserved partial answer",
+          "Retry not complete",
+          "Retry natural EOS unobserved",
+          "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+          "Retry ordered route identity unobserved",
+          "Retry route binds a different model or plan than the freeze",
+          "Retry distinct route contributors (0) differ from the frozen route (3)",
+          "Retry route stages differ from the frozen stage order",
+          "Retry requester was assigned a stage",
+          "Retry cleanup rows do not cover every stage exactly once",
+          "Retry cleanup not confirmed: a cleanup row is unsettled",
+          "Retry settlement phase not completed",
+          "Retry not every stage was admitted",
+          "Retry not every stage executed every step",
+          "Retry recipients were not approved by this attempt's Send or Retry",
+          "Retry approval does not cover ordered activations and tokens",
+          "Retry approved recipients differ from the frozen route",
+          "Retry approval is not addressed to the stage 0 coordinator",
+          "Retry approval binds another model or plan",
+          "Retry executed route differs from the approved route",
+          "Retry requester approved itself as a stage"
+        ],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "REP-6 docs/roadmap/requirements.md:406"
+        ]
+      },
+      "selectiveAcquisition": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:133"
+        ]
+      },
+      "timing": {
+        "pass": false,
+        "failures": [
+          "Retry timing record missing"
+        ],
+        "requirements": [
+          "ROADMAP.md:14"
+        ]
+      }
+    },
+    "observedErrorCode": "CONNECTION_LOST",
+    "manualReview": {
+      "answerUsefulness": null,
+      "criteria": [
+        "The retried answer completes the requested count; correctness of the count is reviewed separately from lifecycle acceptance.",
+        "The requester-visible report states that a contributor was lost, not only that the answer could not finish."
+      ],
+      "reviewer": null
+    }
+  },
+  "status": "automated acceptance failed",
+  "requesterClosedWhileActive": false,
+  "finishedAt": "2026-10-14T07:22:47.598Z"
+}
