@@ -1,0 +1,12 @@
+file:///private/var/tmp/reploid-signed-completion-app-6-20261014/app/scripts/sync-runtime-config.js:99
+      throw new Error(`Enabled model ${model.modelId} pins Doppler ${model.runtimeVersion}; `
+            ^
+
+Error: Enabled model esm2-t12-35m-ur50d-f32-af32 pins Doppler 0.6.27; the browser loads 0.6.28. Explicitly update and qualify the model runtime pin before release.
+    at synchronizeRuntimeConfig (file:///private/var/tmp/reploid-signed-completion-app-6-20261014/app/scripts/sync-runtime-config.js:99:13)
+    at file:///private/var/tmp/reploid-signed-completion-app-6-20261014/app/scripts/sync-runtime-config.js:168:24
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:665:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.20.0
