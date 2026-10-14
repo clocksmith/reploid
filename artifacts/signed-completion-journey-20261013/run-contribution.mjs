@@ -4,10 +4,10 @@
 // and their checks then fail closed. Steps that need a fresh acquisition ledger use a fresh
 // browser context, because a ledger's cap is immutable once created (work-model-files.js:355).
 import { orderedSelectionId } from './config.mjs';
-import { compilePatterns, observeChat, observeConnectionOwner, observeCustody, observeNetwork, observeOffer } from './observe.mjs';
+import { compilePatterns, observeChat, observeConnectionOwner, observeCustody, observeNetwork, observeOffer, observeSupplierOffers } from './observe.mjs';
 import { assessContribution, SINGLE_OWNER_REFUSAL, MIN_INTERRUPTED_PIECE_BYTES } from './contribution-checks.mjs';
 import { TERMINAL, startRun, openBrowser, appUrl, trackRequests, transferBytes, transferKey, waitFor, withDeadline, openApp, chooseOrderedModel,
-  send, followAttempt, waitForAttempt, attemptIds, startFileContribution, stopFileContribution, readLedger, classifyInterruption, sleep, now } from './harness.mjs';
+  send, followAttempt, waitForAttempt, attemptIds, startFileContribution, stopFileContribution, readLedger, classifyInterruption, closeOtherTabs, sleep, now } from './harness.mjs';
 
 const { config, room, fixture, report, save } = await startRun('storage-contribution', './contribution.json');
 const { freeze, timeouts, storage } = config, poll = config.observation.pollMs, selectionId = orderedSelectionId(freeze);
@@ -15,20 +15,31 @@ const patterns = compilePatterns(config.modelFiles.pathPatterns), mib = value =>
 Object.assign(report, { scope: fixture.scope, modelFileRequests: [], stepErrors: {} });
 const supplierBrowser = await openBrowser(config.browsers.storageSupplier);
 const acquirerBrowser = await openBrowser(config.browsers.storageAcquirer);
-const contexts = [];
+const contexts = [], tabNames = new Map();
 const supplierOrigin = config.browsers.storageSupplier.origin, acquirerOrigin = config.browsers.storageAcquirer.origin;
 
 async function freshContext(handle, label) {
   const context = await handle.browser.newContext({ viewport: { width: 1440, height: 1000 } }); contexts.push(context);
   return { context, tracker: trackRequests(context, patterns, report.modelFileRequests, label) };
 }
+// Every tab of every context this run created, named or not.
+const harnessTabs = () => contexts.flatMap(context => context.pages()).map(page => ({ name: tabNames.get(page) ?? 'unnamed', page }));
 async function openTab(owner, name, origin) {
-  const page = await owner.context.newPage(); owner.tracker.name(page, name);
+  const page = await owner.context.newPage(); owner.tracker.name(page, name); tabNames.set(page, name);
   page.on('pageerror', error => report.stepErrors[`${name}:pageerror`] = error.message);
   await openApp(page, appUrl(origin, room, config.application.signalingUrl), timeouts.readyMs);
   return page;
 }
 const rowsOf = (name, since = '') => report.modelFileRequests.filter(row => row.page === name && row.at >= since);
+// Every model-file request of one context, including requests without a page (workers).
+const contextRows = label => report.modelFileRequests.filter(row => row.label === label);
+// Samples which connected peers offer files to `page` for at least windowMs (fixture supplierObservationMs).
+async function observeSuppliers(page, windowMs) {
+  if (!Number.isSafeInteger(windowMs) || windowMs <= 0) throw Error('Fixture supplierObservationMs required');
+  const samples = [], started = Date.now();
+  do { samples.push({ at: now(), ...await observeSupplierOffers(page) }); await sleep(poll); } while (Date.now() - started < windowMs);
+  return { samples, observationMs: Date.now() - started };
+}
 const filesOf = async page => (await observeNetwork(page)).files;
 async function shareOutcome(page) {
   let started = false;
@@ -201,9 +212,19 @@ try {
   });
 
   // (d) Interrupt an acquisition by reloading while a piece of at least 1 MiB transfers, then resume it.
+  // Origin is this step's only intended supplier. Peer transfers before the reload end with the page
+  // and cannot be observed (run 3: the competing-tabs owner still offered its subset and served the
+  // metadata and small pieces unobserved). So every earlier tab of this run is closed first, and no
+  // connected peer may offer files before the acquisition starts or after it resumes.
   await step('interruptedResume', async () => {
+    const isolation = await closeOtherTabs(harnessTabs(), { observe: filesOf });
+    report.interruption = { minimumInFlightBytes: MIN_INTERRUPTED_PIECE_BYTES, isolation };
+    if (isolation.remainingOpen.length) throw Error(`Tabs that could supply pieces remain open: ${isolation.remainingOpen.join(', ')}`);
     const owner = await freshContext(supplierBrowser, 'interrupt'), page = await openTab(owner, 'interrupt-main', supplierOrigin);
     await custodyReady(page);
+    const before = await observeSuppliers(page, fixture.supplierObservationMs);
+    report.interruption.suppliers = { observationMs: before.observationMs, before: before.samples, after: [] };
+    if (before.samples.some(sample => sample.offering.length)) throw Error('Another supplier is offering model files to the interrupt tab');
     const ledgerBefore = await readLedger(page);
     // The first indexed pieces (64 and 512 bytes) finish over loopback before any poll. Each piece is
     // reserved right before its own request and pieces are acquired one at a time (work-model-files.js:155-158,
@@ -220,12 +241,15 @@ try {
     const resumedSince = now();
     await startFileContribution(page, { modelId: freeze.modelId, mode: 'bounded-acquisition', allowanceMiB: storage.interruptionAllowanceMiB });
     const files = await shareOutcome(page);
-    const shape = classifyInterruption(rowsOf('interrupt-main'), { target, reloadAt, resumedSince });
-    // Pre-reload custody is not read: that round trip would delay the reload. Offers are withdrawn, so
-    // peer transfers are not expected; any receipt after the resume is counted once with the resume.
-    report.interruption = { minimumInFlightBytes: MIN_INTERRUPTED_PIECE_BYTES, ledgerBefore, ...shape,
-      resumed: [...shape.resumed, ...peerTransfers(await observeCustody(page))],
-      ledgerFinal: await readLedger(page), final: { sharing: files.sharing, error: files.error, offered: (await observeOffer(page)).offered } };
+    // Every transfer of the interrupt context, from any source: all its HTTP rows, and the custody
+    // receipts after the resume, counted once with the resume. Pre-reload custody is not read: that
+    // round trip would delay the reload. No supplier was offering, so no peer transfer is expected;
+    // any receipt fails the check, and an unobserved one leaves the ledger above the observed sum.
+    const shape = classifyInterruption(contextRows('interrupt'), { target, reloadAt, resumedSince });
+    const peer = peerTransfers(await observeCustody(page));
+    report.interruption.suppliers.after.push({ at: now(), ...await observeSupplierOffers(page) });
+    Object.assign(report.interruption, { ledgerBefore, ...shape, peerTransfers: peer, resumed: [...shape.resumed, ...peer],
+      ledgerFinal: await readLedger(page), final: { sharing: files.sharing, error: files.error, offered: (await observeOffer(page)).offered } });
   });
 } finally {
   report.assessment = assessContribution(report, freeze, fixture);

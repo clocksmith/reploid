@@ -7,10 +7,18 @@ const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const activeStatuses = new Set(['queued', 'loading', 'executing', 'approval', 'cancelling']);
 
-export function createChatWorkspace({ meshId, participantId, store, execute,
+// participantId owns history. requesterIdentity is the host-authenticated peer identity that execution
+// binds into ordered requester disclosure; null until authenticated. Hosts whose participant is that peer keep the default.
+export function createChatWorkspace({ meshId, participantId, store, execute, requesterIdentity = () => participantId,
   policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
   assert(typeof meshId === 'string' && meshId && typeof participantId === 'string' && participantId, 'Mesh and participant identities required');
-  assert(typeof store?.load === 'function' && typeof store?.save === 'function' && typeof execute === 'function', 'Workspace host ports required');
+  assert(typeof store?.load === 'function' && typeof store?.save === 'function' && typeof execute === 'function'
+    && typeof requesterIdentity === 'function', 'Workspace host ports required');
+  const requester = () => {
+    const value = requesterIdentity();
+    assert(value === null || typeof value === 'string' && value, 'Invalid requester identity');
+    return value;
+  };
   for (const name of ['maxThreads', 'maxThreadGrants', 'maxMessagesPerThread', 'maxMessageCharacters', 'maxResponseCharacters', 'maxConcurrentAttempts', 'attemptTimeoutMs']) {
     assert(Number.isSafeInteger(policy[name]) && policy[name] > 0, `Invalid ${name}`);
   }
@@ -36,12 +44,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
   const threads = copy(loaded?.threads || []);
   let durableThreads = copy(threads);
   assert(threads.length <= limits.maxThreads && new Set(threads.map(thread => thread.id)).size === threads.length, 'Invalid stored threads');
+  const loadedRequester = threads.length ? requester() : null;
   for (const thread of threads) {
     assert(typeof thread.id === 'string' && Array.isArray(thread.messages) && Array.isArray(thread.attempts)
       && Array.isArray(thread.members) && thread.messages.length <= limits.maxMessagesPerThread, 'Invalid stored conversation');
     thread.grants ??= [];
     thread.systemContext = validateSystemContext(thread.systemContext);
-    validateThreadGrants(thread.grants, thread.id, meshId, limits.maxThreadGrants, participantId);
+    validateThreadGrants(thread.grants, thread.id, meshId, limits.maxThreadGrants, loadedRequester);
     for (const attempt of thread.attempts) if (activeStatuses.has(attempt.status)) {
       attempt.status = 'interrupted'; attempt.error = 'Connection interrupted. Retry starts a new attempt.';
       attempt.approval = null; attempt.finishedAt = now();
@@ -183,7 +192,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
               && typeof preview.peerId === 'string' && preview.peerId && Number.isFinite(preview.expiresAt)
               && preview.expiresAt > now(), 'Invalid conversation disclosure');
             assert(!run.approval, 'An approval is already pending');
-            const scope = disclosureScope(request, preview, participantId), grant = matchingThreadGrant(thread.grants, scope);
+            const scope = disclosureScope(request, preview, requester()), grant = matchingThreadGrant(thread.grants, scope);
             if (transactional) assert(scope?.disclosure === 'partition-activations-and-tokens', 'Canonical disclosure requires exact verified partition recipients');
             if (authorizeDisclosure) {
               assert(scope, 'Peer disclosure does not match the selected model and verified recipients');
@@ -320,7 +329,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute,
       if (accepted !== true) { run.controller.abort(new Error('Disclosure declined')); return; }
       const allowed = accepted === true && attempt.approval.expiresAt > now() && !run.controller.signal.aborted;
       if (allowed) {
-        const scope = disclosureScope(attempt.request, attempt.approval, participantId);
+        const scope = disclosureScope(attempt.request, attempt.approval, requester());
         let grant = null;
         if (remember) {
           assert(scope, 'Reusable disclosure requires a verified recipient and exact execution identity');

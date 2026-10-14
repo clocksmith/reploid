@@ -2,1047 +2,1113 @@ TAP version 13
 # Subtest: coherent ordered receipt passes automated checks only, never answer usefulness
 ok 1 - coherent ordered receipt passes automated checks only, never answer usefulness
   ---
-  duration_ms: 5.725875
+  duration_ms: 7.28825
   type: 'test'
   ...
 # Subtest: rejects a two-stage route where three are frozen
 ok 2 - rejects a two-stage route where three are frozen
   ---
-  duration_ms: 2.063958
+  duration_ms: 1.793375
   type: 'test'
   ...
 # Subtest: rejects an unsettled cleanup row
 ok 3 - rejects an unsettled cleanup row
   ---
-  duration_ms: 0.781875
+  duration_ms: 0.764125
   type: 'test'
   ...
 # Subtest: rejects a weight request by the requester
 ok 4 - rejects a weight request by the requester
   ---
-  duration_ms: 0.661417
+  duration_ms: 0.6575
   type: 'test'
   ...
 # Subtest: rejects a cancelled neighbour
 ok 5 - rejects a cancelled neighbour
   ---
-  duration_ms: 0.658167
+  duration_ms: 0.65425
   type: 'test'
   ...
 # Subtest: rejects transport cutoff
 ok 6 - rejects transport cutoff
   ---
-  duration_ms: 0.604458
+  duration_ms: 0.607208
   type: 'test'
   ...
 # Subtest: rejects output cap
 ok 7 - rejects output cap
   ---
-  duration_ms: 0.62225
+  duration_ms: 0.749959
   type: 'test'
   ...
 # Subtest: rejects unknown cleanup
 ok 8 - rejects unknown cleanup
   ---
-  duration_ms: 0.413917
+  duration_ms: 0.457625
   type: 'test'
   ...
 # Subtest: rejects hidden fallback
 ok 9 - rejects hidden fallback
   ---
-  duration_ms: 0.892292
+  duration_ms: 0.961792
   type: 'test'
   ...
 # Subtest: rejects fabricated history
 ok 10 - rejects fabricated history
   ---
-  duration_ms: 0.764959
+  duration_ms: 0.813958
   type: 'test'
   ...
 # Subtest: rejects terminal-only output
 ok 11 - rejects terminal-only output
   ---
-  duration_ms: 0.817667
+  duration_ms: 0.586708
   type: 'test'
   ...
 # Subtest: rejects invisible stream
 ok 12 - rejects invisible stream
   ---
-  duration_ms: 0.495166
+  duration_ms: 1.802
   type: 'test'
   ...
 # Subtest: rejects wrong clipboard
 ok 13 - rejects wrong clipboard
   ---
-  duration_ms: 0.484042
+  duration_ms: 1.205583
   type: 'test'
   ...
 # Subtest: rejects missing custody
 ok 14 - rejects missing custody
   ---
-  duration_ms: 0.496333
+  duration_ms: 0.545208
   type: 'test'
   ...
 # Subtest: rejects reload redispatch
 ok 15 - rejects reload redispatch
   ---
-  duration_ms: 0.433166
+  duration_ms: 0.418292
   type: 'test'
   ...
 # Subtest: rejects changed reload text
 ok 16 - rejects changed reload text
   ---
-  duration_ms: 2.578834
+  duration_ms: 0.681917
   type: 'test'
   ...
 # Subtest: rejects short return observation
 ok 17 - rejects short return observation
   ---
-  duration_ms: 2.379833
+  duration_ms: 0.488667
   type: 'test'
   ...
 # Subtest: rejects lost draft
 ok 18 - rejects lost draft
   ---
-  duration_ms: 0.877708
+  duration_ms: 0.448
   type: 'test'
   ...
 # Subtest: rejects swapped stage order
 ok 19 - rejects swapped stage order
   ---
-  duration_ms: 0.437834
+  duration_ms: 0.38675
   type: 'test'
   ...
 # Subtest: rejects requester inside the route
 ok 20 - rejects requester inside the route
   ---
-  duration_ms: 0.731958
+  duration_ms: 0.375083
   type: 'test'
   ...
 # Subtest: rejects a stage that skipped steps
 ok 21 - rejects a stage that skipped steps
   ---
-  duration_ms: 1.54975
+  duration_ms: 1.602709
   type: 'test'
   ...
 # Subtest: rejects a stage that was never admitted
 ok 22 - rejects a stage that was never admitted
   ---
-  duration_ms: 0.702666
+  duration_ms: 1.161958
   type: 'test'
   ...
 # Subtest: rejects a requester assigned a stage
 ok 23 - rejects a requester assigned a stage
   ---
-  duration_ms: 0.460167
+  duration_ms: 1.097291
   type: 'test'
   ...
 # Subtest: rejects a requester outside ordered mode
 ok 24 - rejects a requester outside ordered mode
   ---
-  duration_ms: 0.41775
+  duration_ms: 0.763167
   type: 'test'
   ...
 # Subtest: rejects a different served bundle
 ok 25 - rejects a different served bundle
   ---
-  duration_ms: 0.657
+  duration_ms: 0.614917
   type: 'test'
   ...
 # Subtest: rejects another model chosen
 ok 26 - rejects another model chosen
   ---
-  duration_ms: 0.507292
+  duration_ms: 0.428208
   type: 'test'
   ...
 # Subtest: rejects approved recipients that differ from the frozen route
 ok 27 - rejects approved recipients that differ from the frozen route
   ---
-  duration_ms: 0.430167
+  duration_ms: 0.403375
   type: 'test'
   ...
 # Subtest: rejects an attempt not approved by Send
 ok 28 - rejects an attempt not approved by Send
   ---
-  duration_ms: 0.377041
+  duration_ms: 0.634834
   type: 'test'
   ...
 # Subtest: rejects tabs that never executed simultaneously
 ok 29 - rejects tabs that never executed simultaneously
   ---
-  duration_ms: 0.417625
+  duration_ms: 0.6355
   type: 'test'
   ...
 # Subtest: rejects concurrent requests from one browser profile
 ok 30 - rejects concurrent requests from one browser profile
   ---
-  duration_ms: 0.58875
+  duration_ms: 0.648292
   type: 'test'
   ...
 # Subtest: rejects concurrent requesters sharing one peer identity
 ok 31 - rejects concurrent requesters sharing one peer identity
   ---
-  duration_ms: 0.421083
+  duration_ms: 0.44
   type: 'test'
   ...
 # Subtest: rejects a concurrent requester without a peer identity
 ok 32 - rejects a concurrent requester without a peer identity
   ---
-  duration_ms: 0.401042
+  duration_ms: 0.418375
   type: 'test'
   ...
 # Subtest: rejects concurrent attempts sent by one requester
 ok 33 - rejects concurrent attempts sent by one requester
   ---
-  duration_ms: 0.4005
+  duration_ms: 0.412167
   type: 'test'
   ...
 # Subtest: rejects a concurrent requester without a profile directory
 ok 34 - rejects a concurrent requester without a profile directory
   ---
-  duration_ms: 0.609375
+  duration_ms: 0.485459
   type: 'test'
   ...
 # Subtest: rejects more tabs than the served admission limit
 ok 35 - rejects more tabs than the served admission limit
   ---
-  duration_ms: 0.406875
+  duration_ms: 0.529417
   type: 'test'
   ...
 # Subtest: rejects a stop that lost its partial answer
 ok 36 - rejects a stop that lost its partial answer
   ---
-  duration_ms: 0.408375
+  duration_ms: 0.410792
   type: 'test'
   ...
 # Subtest: rejects a stopped attempt the coordinator did not settle
 ok 37 - rejects a stopped attempt the coordinator did not settle
   ---
-  duration_ms: 0.383875
+  duration_ms: 0.430667
   type: 'test'
   ...
 # Subtest: rejects a neighbour answer with a wrong count
 ok 38 - rejects a neighbour answer with a wrong count
   ---
-  duration_ms: 0.41025
+  duration_ms: 0.397
   type: 'test'
   ...
 # Subtest: rejects a retry after a user stop instead of a failure
 ok 39 - rejects a retry after a user stop instead of a failure
   ---
-  duration_ms: 0.572584
+  duration_ms: 0.724167
   type: 'test'
   ...
 # Subtest: rejects a redispatch before the explicit retry
 ok 40 - rejects a redispatch before the explicit retry
   ---
-  duration_ms: 0.409833
+  duration_ms: 0.44775
   type: 'test'
   ...
 # Subtest: rejects a retry not linked to its failure
 ok 41 - rejects a retry not linked to its failure
   ---
-  duration_ms: 0.394916
+  duration_ms: 0.596792
   type: 'test'
   ...
 # Subtest: rejects a retry that changed the preserved partial answer
 ok 42 - rejects a retry that changed the preserved partial answer
   ---
-  duration_ms: 0.390208
+  duration_ms: 0.424541
   type: 'test'
   ...
 # Subtest: rejects an estimated timing boundary
 ok 43 - rejects an estimated timing boundary
   ---
-  duration_ms: 0.696417
+  duration_ms: 0.430792
   type: 'test'
   ...
 # Subtest: rejects an observable boundary marked not-observable
 ok 44 - rejects an observable boundary marked not-observable
   ---
-  duration_ms: 0.410542
+  duration_ms: 0.552541
   type: 'test'
   ...
 # Subtest: rejects a missing per-stage timing
 ok 45 - rejects a missing per-stage timing
   ---
-  duration_ms: 0.36925
+  duration_ms: 0.435
   type: 'test'
   ...
 # Subtest: missing observations fail closed rather than throwing
 ok 46 - missing observations fail closed rather than throwing
   ---
-  duration_ms: 0.07675
+  duration_ms: 0.082666
   type: 'test'
   ...
 # Subtest: incorrect answer with complete transport never becomes semantic acceptance
 ok 47 - incorrect answer with complete transport never becomes semantic acceptance
   ---
-  duration_ms: 0.412375
+  duration_ms: 0.405459
   type: 'test'
   ...
 # Subtest: template keys match the schema and a filled template is accepted
 ok 48 - template keys match the schema and a filled template is accepted
   ---
-  duration_ms: 1.85725
+  duration_ms: 1.805458
   type: 'test'
   ...
 # Subtest: the unfilled template is rejected
 ok 49 - the unfilled template is rejected
   ---
-  duration_ms: 1.006083
+  duration_ms: 1.056625
   type: 'test'
   ...
 # Subtest: config rejects a missing field (no defaults)
 ok 50 - config rejects a missing field (no defaults)
   ---
-  duration_ms: 0.838959
+  duration_ms: 0.767125
   type: 'test'
   ...
 # Subtest: config rejects an unknown field
 ok 51 - config rejects an unknown field
   ---
-  duration_ms: 1.251375
+  duration_ms: 0.814708
   type: 'test'
   ...
 # Subtest: config rejects a host name origin
 ok 52 - config rejects a host name origin
   ---
-  duration_ms: 0.460208
+  duration_ms: 0.46
   type: 'test'
   ...
 # Subtest: config rejects a public signaling relay
 ok 53 - config rejects a public signaling relay
   ---
-  duration_ms: 0.28675
+  duration_ms: 0.291584
   type: 'test'
   ...
 # Subtest: config rejects a tailnet domain anywhere
 ok 54 - config rejects a tailnet domain anywhere
   ---
-  duration_ms: 0.174875
+  duration_ms: 0.192959
   type: 'test'
   ...
 # Subtest: config rejects a login address anywhere
 ok 55 - config rejects a login address anywhere
   ---
-  duration_ms: 0.310959
+  duration_ms: 0.349375
   type: 'test'
   ...
 # Subtest: config rejects a machine outside the three aliases
 ok 56 - config rejects a machine outside the three aliases
   ---
-  duration_ms: 0.375375
+  duration_ms: 0.403916
   type: 'test'
   ...
 # Subtest: config rejects a route that does not match the split layers
 ok 57 - config rejects a route that does not match the split layers
   ---
-  duration_ms: 0.394875
+  duration_ms: 0.414375
   type: 'test'
   ...
 # Subtest: config rejects two stages on one machine
 ok 58 - config rejects two stages on one machine
   ---
-  duration_ms: 0.273542
+  duration_ms: 1.623792
   type: 'test'
   ...
 # Subtest: config rejects a native stage 0
 ok 59 - config rejects a native stage 0
   ---
-  duration_ms: 0.184959
+  duration_ms: 0.413167
   type: 'test'
   ...
 # Subtest: config rejects a CDP requester that cannot create separate profiles
 ok 60 - config rejects a CDP requester that cannot create separate profiles
   ---
-  duration_ms: 0.1675
+  duration_ms: 0.351083
   type: 'test'
   ...
 # Subtest: config rejects a launched coordinator
 ok 61 - config rejects a launched coordinator
   ---
-  duration_ms: 0.155458
+  duration_ms: 0.367667
   type: 'test'
   ...
 # Subtest: config rejects an acquirer on the sharer machine
 ok 62 - config rejects an acquirer on the sharer machine
   ---
-  duration_ms: 0.154959
+  duration_ms: 0.291292
   type: 'test'
   ...
 # Subtest: config rejects a browser loss target
 ok 63 - config rejects a browser loss target
   ---
-  duration_ms: 0.151125
+  duration_ms: 0.354583
   type: 'test'
   ...
 # Subtest: config rejects a missing native artifact
 ok 64 - config rejects a missing native artifact
   ---
-  duration_ms: 0.156083
+  duration_ms: 0.328542
   type: 'test'
   ...
 # Subtest: config rejects a non-v3 plan
 ok 65 - config rejects a non-v3 plan
   ---
-  duration_ms: 0.149459
+  duration_ms: 0.314042
   type: 'test'
   ...
 # Subtest: config rejects a relative report directory
 ok 66 - config rejects a relative report directory
   ---
-  duration_ms: 0.139917
+  duration_ms: 0.291208
   type: 'test'
   ...
 # Subtest: config rejects a pattern carrying a host
 ok 67 - config rejects a pattern carrying a host
   ---
-  duration_ms: 0.143209
+  duration_ms: 0.290583
   type: 'test'
   ...
 # Subtest: config rejects more tabs than allowed
 ok 68 - config rejects more tabs than allowed
   ---
-  duration_ms: 0.14825
+  duration_ms: 0.555917
   type: 'test'
   ...
 # Subtest: config rejects a fractional allowance
 ok 69 - config rejects a fractional allowance
   ---
-  duration_ms: 0.15575
+  duration_ms: 0.351542
   type: 'test'
   ...
 # Subtest: room file must be a private capability
 ok 70 - room file must be a private capability
   ---
-  duration_ms: 0.134292
+  duration_ms: 0.262209
   type: 'test'
   ...
 # Subtest: private address guard ignores package specs and redacts addresses
 ok 71 - private address guard ignores package specs and redacts addresses
   ---
-  duration_ms: 0.1955
+  duration_ms: 0.393458
   type: 'test'
   ...
 # Subtest: ordered selection id matches the catalog projection
 ok 72 - ordered selection id matches the catalog projection
   ---
-  duration_ms: 0.029916
+  duration_ms: 0.0715
   type: 'test'
   ...
 # Subtest: request classifier keeps the precedent weight paths and adds configured model files
 ok 73 - request classifier keeps the precedent weight paths and adds configured model files
   ---
-  duration_ms: 0.247042
+  duration_ms: 0.506125
   type: 'test'
   ...
 # Subtest: coherent storage contribution evidence passes each separate check
 ok 74 - coherent storage contribution evidence passes each separate check
   ---
-  duration_ms: 2.196458
+  duration_ms: 3.38725
   type: 'test'
   ...
 # Subtest: rejects an overspent allowance across competing tabs
 ok 75 - rejects an overspent allowance across competing tabs
   ---
-  duration_ms: 0.453167
+  duration_ms: 0.492334
   type: 'test'
   ...
 # Subtest: rejects a ledger reserved beyond its cap
 ok 76 - rejects a ledger reserved beyond its cap
   ---
-  duration_ms: 0.261709
+  duration_ms: 0.309583
   type: 'test'
   ...
 # Subtest: rejects an uncharged transfer
 ok 77 - rejects an uncharged transfer
   ---
-  duration_ms: 0.239791
+  duration_ms: 0.191292
   type: 'test'
   ...
 # Subtest: rejects tabs with different caps
 ok 78 - rejects tabs with different caps
   ---
-  duration_ms: 0.328
+  duration_ms: 0.786458
   type: 'test'
   ...
 # Subtest: rejects a second tab of the profile that connects
 ok 79 - rejects a second tab of the profile that connects
   ---
-  duration_ms: 0.80725
+  duration_ms: 0.218417
   type: 'test'
   ...
 # Subtest: rejects a second tab that silently connects without any refusal
 ok 80 - rejects a second tab that silently connects without any refusal
   ---
-  duration_ms: 0.389583
+  duration_ms: 0.192792
   type: 'test'
   ...
 # Subtest: rejects a second tab stopped by another error than the single-owner lock
 ok 81 - rejects a second tab stopped by another error than the single-owner lock
   ---
-  duration_ms: 0.385958
+  duration_ms: 0.348875
   type: 'test'
   ...
 # Subtest: rejects a refused tab that still transferred model files
 ok 82 - rejects a refused tab that still transferred model files
   ---
-  duration_ms: 0.669833
+  duration_ms: 0.657708
   type: 'test'
   ...
 # Subtest: rejects a charge without a transfer (charged twice)
 ok 83 - rejects a charge without a transfer (charged twice)
   ---
-  duration_ms: 0.422083
+  duration_ms: 0.406458
   type: 'test'
   ...
 # Subtest: rejects a piece transferred to completion twice
 ok 84 - rejects a piece transferred to completion twice
   ---
-  duration_ms: 0.280291
+  duration_ms: 0.182333
   type: 'test'
   ...
 # Subtest: rejects a ledger sample above the allowance
 ok 85 - rejects a ledger sample above the allowance
   ---
-  duration_ms: 0.39675
+  duration_ms: 0.114
   type: 'test'
   ...
 # Subtest: rejects two tabs in different profiles
 ok 86 - rejects two tabs in different profiles
   ---
-  duration_ms: 0.260875
+  duration_ms: 0.100208
   type: 'test'
   ...
 # Subtest: rejects a cached-only acquisition request
 ok 87 - rejects a cached-only acquisition request
   ---
-  duration_ms: 0.234917
+  duration_ms: 0.103375
   type: 'test'
   ...
 # Subtest: rejects a cached-only custody acquisition
 ok 88 - rejects a cached-only custody acquisition
   ---
-  duration_ms: 0.227917
+  duration_ms: 0.102709
   type: 'test'
   ...
 # Subtest: rejects a cached-only ledger charge
 ok 89 - rejects a cached-only ledger charge
   ---
-  duration_ms: 0.23
+  duration_ms: 0.101667
   type: 'test'
   ...
 # Subtest: rejects a cached-only tab request before cached-only mode started
 ok 90 - rejects a cached-only tab request before cached-only mode started
   ---
-  duration_ms: 0.257375
+  duration_ms: 0.10475
   type: 'test'
   ...
 # Subtest: rejects a cached-only tab weight request during the quiet window
 ok 91 - rejects a cached-only tab weight request during the quiet window
   ---
-  duration_ms: 0.231709
+  duration_ms: 0.098667
   type: 'test'
   ...
 # Subtest: rejects a step that opened a second concurrent tab of the sharer profile
 ok 92 - rejects a step that opened a second concurrent tab of the sharer profile
   ---
-  duration_ms: 0.298917
+  duration_ms: 0.1415
   type: 'test'
   ...
 # Subtest: rejects a second tab counted while the sharer tab was already closed
 ok 93 - rejects a second tab counted while the sharer tab was already closed
   ---
-  duration_ms: 0.21775
+  duration_ms: 0.098167
   type: 'test'
   ...
 # Subtest: rejects a next tab of the profile refused by the lock
 ok 94 - rejects a next tab of the profile refused by the lock
   ---
-  duration_ms: 0.225667
+  duration_ms: 0.103292
   type: 'test'
   ...
 # Subtest: rejects a next tab of the profile that never connected
 ok 95 - rejects a next tab of the profile that never connected
   ---
-  duration_ms: 0.214375
+  duration_ms: 0.101208
   type: 'test'
   ...
 # Subtest: rejects a cached-only piece absent from the verified cache
 ok 96 - rejects a cached-only piece absent from the verified cache
   ---
-  duration_ms: 0.235875
+  duration_ms: 0.103417
   type: 'test'
   ...
 # Subtest: rejects a cached-only inventory that lost a verified piece
 ok 97 - rejects a cached-only inventory that lost a verified piece
   ---
-  duration_ms: 0.238542
+  duration_ms: 0.101916
   type: 'test'
   ...
 # Subtest: rejects a cached-only observation shorter than the frozen window
 ok 98 - rejects a cached-only observation shorter than the frozen window
   ---
-  duration_ms: 0.224792
+  duration_ms: 0.44375
   type: 'test'
   ...
 # Subtest: rejects a cached-only window that does not start when the tab opened
 ok 99 - rejects a cached-only window that does not start when the tab opened
   ---
-  duration_ms: 0.219208
+  duration_ms: 0.157709
   type: 'test'
   ...
 # Subtest: rejects a pending transfer during the quiet window
 ok 100 - rejects a pending transfer during the quiet window
   ---
-  duration_ms: 1.004583
+  duration_ms: 0.119291
   type: 'test'
   ...
 # Subtest: rejects a reload observed while another tab of the sharer profile was open
 ok 101 - rejects a reload observed while another tab of the sharer profile was open
   ---
-  duration_ms: 0.129167
+  duration_ms: 0.101458
   type: 'test'
   ...
 # Subtest: cached-only fails closed without the frozen observation window
 ok 102 - cached-only fails closed without the frozen observation window
   ---
-  duration_ms: 0.108458
+  duration_ms: 0.106583
   type: 'test'
   ...
 # Subtest: rejects sharing that never overlapped the conversation
 ok 103 - rejects sharing that never overlapped the conversation
   ---
-  duration_ms: 0.157708
+  duration_ms: 0.154666
   type: 'test'
   ...
 # Subtest: rejects a conversation cancelled by sharing
 ok 104 - rejects a conversation cancelled by sharing
   ---
-  duration_ms: 0.105584
+  duration_ms: 0.104375
   type: 'test'
   ...
 # Subtest: rejects a subset larger than the allowance
 ok 105 - rejects a subset larger than the allowance
   ---
-  duration_ms: 0.100875
+  duration_ms: 0.100375
   type: 'test'
   ...
 # Subtest: rejects a cache-only share counted as bounded sharing
 ok 106 - rejects a cache-only share counted as bounded sharing
   ---
-  duration_ms: 0.089375
+  duration_ms: 0.091083
   type: 'test'
   ...
 # Subtest: rejects pieces acquired from another peer
 ok 107 - rejects pieces acquired from another peer
   ---
-  duration_ms: 0.091292
+  duration_ms: 0.092541
   type: 'test'
   ...
 # Subtest: rejects pieces fetched over HTTP by the acquirer
 ok 108 - rejects pieces fetched over HTTP by the acquirer
   ---
-  duration_ms: 0.092291
+  duration_ms: 0.093417
   type: 'test'
   ...
 # Subtest: rejects an acquirer on the same computer
 ok 109 - rejects an acquirer on the same computer
   ---
-  duration_ms: 0.085792
+  duration_ms: 0.100833
   type: 'test'
   ...
 # Subtest: rejects supply accounting below the transfer
 ok 110 - rejects supply accounting below the transfer
   ---
-  duration_ms: 0.09025
+  duration_ms: 0.093375
   type: 'test'
   ...
 # Subtest: rejects a reload that reset consumed allowance
 ok 111 - rejects a reload that reset consumed allowance
   ---
-  duration_ms: 0.092916
+  duration_ms: 0.092792
   type: 'test'
   ...
 # Subtest: rejects a reload that lost verified inventory
 ok 112 - rejects a reload that lost verified inventory
   ---
-  duration_ms: 0.093792
+  duration_ms: 0.095416
   type: 'test'
   ...
 # Subtest: rejects a reload that downloaded again
 ok 113 - rejects a reload that downloaded again
   ---
-  duration_ms: 0.096042
+  duration_ms: 0.09475
   type: 'test'
   ...
 # Subtest: rejects a resume that downloaded a verified piece again
 ok 114 - rejects a resume that downloaded a verified piece again
   ---
-  duration_ms: 0.097916
+  duration_ms: 0.100333
   type: 'test'
   ...
 # Subtest: rejects an interruption not resumed although the allowance covered it
 ok 115 - rejects an interruption not resumed although the allowance covered it
   ---
-  duration_ms: 0.169625
+  duration_ms: 0.183
   type: 'test'
   ...
 # Subtest: rejects a refunded interrupted transfer
 ok 116 - rejects a refunded interrupted transfer
   ---
-  duration_ms: 0.098416
+  duration_ms: 0.103625
   type: 'test'
   ...
 # Subtest: rejects no interrupted transfer
 ok 117 - rejects no interrupted transfer
   ---
-  duration_ms: 0.097625
+  duration_ms: 0.106833
   type: 'test'
   ...
 # Subtest: rejects an interruption that never caught an in-flight piece
 ok 118 - rejects an interruption that never caught an in-flight piece
   ---
-  duration_ms: 0.114625
+  duration_ms: 0.109875
   type: 'test'
   ...
 # Subtest: rejects an in-flight piece smaller than 1 MiB
 ok 119 - rejects an in-flight piece smaller than 1 MiB
   ---
-  duration_ms: 0.101375
+  duration_ms: 0.102792
   type: 'test'
   ...
 # Subtest: rejects a reload issued before the piece started
 ok 120 - rejects a reload issued before the piece started
   ---
-  duration_ms: 0.097958
+  duration_ms: 0.564208
   type: 'test'
   ...
 # Subtest: rejects an in-flight piece missing from the interrupted transfers
 ok 121 - rejects an in-flight piece missing from the interrupted transfers
   ---
-  duration_ms: 0.091542
+  duration_ms: 0.122416
   type: 'test'
   ...
 # Subtest: rejects a double charge after the resume
 ok 122 - rejects a double charge after the resume
   ---
-  duration_ms: 1.038792
+  duration_ms: 0.106416
   type: 'test'
   ...
 # Subtest: rejects a transfer that completed during the interruption but was not charged
 ok 123 - rejects a transfer that completed during the interruption but was not charged
   ---
-  duration_ms: 0.147791
+  duration_ms: 0.101958
+  type: 'test'
+  ...
+# Subtest: rejects an unintended supplier that served pieces before the reload (run 3)
+ok 124 - rejects an unintended supplier that served pieces before the reload (run 3)
+  ---
+  duration_ms: 0.174209
+  type: 'test'
+  ...
+# Subtest: rejects an unintended supplier whose transfer was observed and charged exactly
+ok 125 - rejects an unintended supplier whose transfer was observed and charged exactly
+  ---
+  duration_ms: 0.118042
+  type: 'test'
+  ...
+# Subtest: rejects an unintended supplier that evaded every offer sample and served a piece unobserved
+ok 126 - rejects an unintended supplier that evaded every offer sample and served a piece unobserved
+  ---
+  duration_ms: 0.105666
+  type: 'test'
+  ...
+# Subtest: rejects a supplier tab kept open as intended
+ok 127 - rejects a supplier tab kept open as intended
+  ---
+  duration_ms: 0.114541
+  type: 'test'
+  ...
+# Subtest: rejects a missing tab isolation record
+ok 128 - rejects a missing tab isolation record
+  ---
+  duration_ms: 0.09875
+  type: 'test'
+  ...
+# Subtest: rejects supplier offers never observed
+ok 129 - rejects supplier offers never observed
+  ---
+  duration_ms: 0.111
+  type: 'test'
+  ...
+# Subtest: rejects a supplier observation shorter than the frozen window
+ok 130 - rejects a supplier observation shorter than the frozen window
+  ---
+  duration_ms: 0.096042
+  type: 'test'
+  ...
+# Subtest: rejects no supplier observation after the resume
+ok 131 - rejects no supplier observation after the resume
+  ---
+  duration_ms: 0.092958
+  type: 'test'
+  ...
+# Subtest: rejects unobserved custody receipts
+ok 132 - rejects unobserved custody receipts
+  ---
+  duration_ms: 0.091125
+  type: 'test'
+  ...
+# Subtest: interrupted resume fails closed without the frozen supplier observation window
+ok 133 - interrupted resume fails closed without the frozen supplier observation window
+  ---
+  duration_ms: 0.110125
   type: 'test'
   ...
 # Subtest: rejects a stop with nothing in flight
-ok 124 - rejects a stop with nothing in flight
+ok 134 - rejects a stop with nothing in flight
   ---
-  duration_ms: 0.114125
+  duration_ms: 0.093
   type: 'test'
   ...
 # Subtest: rejects a stop that left a transfer pending
-ok 125 - rejects a stop that left a transfer pending
+ok 135 - rejects a stop that left a transfer pending
   ---
-  duration_ms: 0.098917
+  duration_ms: 0.0885
   type: 'test'
   ...
 # Subtest: rejects a stop that refunded charges
-ok 126 - rejects a stop that refunded charges
+ok 136 - rejects a stop that refunded charges
   ---
-  duration_ms: 0.092375
+  duration_ms: 0.089
   type: 'test'
   ...
 # Subtest: rejects acquisition after the stop settled
-ok 127 - rejects acquisition after the stop settled
+ok 137 - rejects acquisition after the stop settled
   ---
-  duration_ms: 0.090292
+  duration_ms: 0.088292
   type: 'test'
   ...
 # Subtest: rejects a stop that cancelled the conversation
-ok 128 - rejects a stop that cancelled the conversation
+ok 138 - rejects a stop that cancelled the conversation
   ---
-  duration_ms: 0.095584
+  duration_ms: 0.089792
   type: 'test'
   ...
 # Subtest: interrupted transfer excluded by the remaining allowance is a correct resume
-ok 129 - interrupted transfer excluded by the remaining allowance is a correct resume
+ok 139 - interrupted transfer excluded by the remaining allowance is a correct resume
   ---
-  duration_ms: 0.098708
+  duration_ms: 0.093667
   type: 'test'
   ...
 # Subtest: missing observations fail closed rather than throwing
-ok 130 - missing observations fail closed rather than throwing
+ok 140 - missing observations fail closed rather than throwing
   ---
-  duration_ms: 0.157291
+  duration_ms: 0.145792
   type: 'test'
   ...
 # Subtest: model choice opens the thread rail through the Choose model control before selecting
-ok 131 - model choice opens the thread rail through the Choose model control before selecting
+ok 141 - model choice opens the thread rail through the Choose model control before selecting
   ---
-  duration_ms: 0.503375
+  duration_ms: 0.50325
   type: 'test'
   ...
 # Subtest: model choice fails clearly when the Choose model control is absent
-ok 132 - model choice fails clearly when the Choose model control is absent
-  ---
-  duration_ms: 0.354958
-  type: 'test'
-  ...
-# Subtest: model choice fails clearly when the control is ambiguous or the select stays hidden
-ok 133 - model choice fails clearly when the control is ambiguous or the select stays hidden
-  ---
-  duration_ms: 0.098459
-  type: 'test'
-  ...
-# Subtest: request watcher resolves on the request event of the first matching large piece
-ok 134 - request watcher resolves on the request event of the first matching large piece
-  ---
-  duration_ms: 6.624459
-  type: 'test'
-  ...
-# Subtest: a reload issued while the large piece transfers is caught, resumed and charged exactly once per transfer
-ok 135 - a reload issued while the large piece transfers is caught, resumed and charged exactly once per transfer
-  ---
-  duration_ms: 0.534833
-  type: 'test'
-  ...
-# Subtest: an unsettled large piece at the reload also counts as caught in flight
-ok 136 - an unsettled large piece at the reload also counts as caught in flight
-  ---
-  duration_ms: 0.138666
-  type: 'test'
-  ...
-# Subtest: an interruption whose reload lost the race fails instead of passing on small pieces
-ok 137 - an interruption whose reload lost the race fails instead of passing on small pieces
-  ---
-  duration_ms: 0.1355
-  type: 'test'
-  ...
-# Subtest: transfer size of an aborted range uses its declared bytes
-ok 138 - transfer size of an aborted range uses its declared bytes
-  ---
-  duration_ms: 0.035042
-  type: 'test'
-  ...
-# Subtest: no file carries a private machine address or login
-ok 139 - no file carries a private machine address or login
-  ---
-  duration_ms: 14.601
-  type: 'test'
-  ...
-# Subtest: non-ASCII characters are approved symbols only; no emoji or emdash
-ok 140 - non-ASCII characters are approved symbols only; no emoji or emdash
-  ---
-  duration_ms: 9.058792
-  type: 'test'
-  ...
-# Subtest: reported loss with explicit ownership and an explicit retry passes
-ok 141 - reported loss with explicit ownership and an explicit retry passes
-  ---
-  duration_ms: 3.856291
-  type: 'test'
-  ...
-# Subtest: accepted loss report is bound to the application failure table and UI label
-ok 142 - accepted loss report is bound to the application failure table and UI label
-  ---
-  duration_ms: 0.274292
-  type: 'test'
-  ...
-# Subtest: rejects a missing contributor-loss report when cleanup failure is reported instead
-ok 143 - rejects a missing contributor-loss report when cleanup failure is reported instead
-  ---
-  duration_ms: 0.480459
-  type: 'test'
-  ...
-# Subtest: cleanup-failure masking still counts as explicit unknown ownership
-ok 144 - cleanup-failure masking still counts as explicit unknown ownership
-  ---
-  duration_ms: 0.454125
-  type: 'test'
-  ...
-# Subtest: rejects a generic peer failure reported as loss
-ok 145 - rejects a generic peer failure reported as loss
-  ---
-  duration_ms: 0.26775
-  type: 'test'
-  ...
-# Subtest: rejects no rendered loss report
-ok 146 - rejects no rendered loss report
-  ---
-  duration_ms: 0.266375
-  type: 'test'
-  ...
-# Subtest: rejects a loss after which the answer still completed
-ok 147 - rejects a loss after which the answer still completed
-  ---
-  duration_ms: 0.664709
-  type: 'test'
-  ...
-# Subtest: rejects a stop injected before streaming
-ok 148 - rejects a stop injected before streaming
-  ---
-  duration_ms: 0.193292
-  type: 'test'
-  ...
-# Subtest: rejects a stop callback without its method
-ok 149 - rejects a stop callback without its method
+ok 142 - model choice fails clearly when the Choose model control is absent
   ---
   duration_ms: 0.34925
   type: 'test'
   ...
-# Subtest: rejects a loss target that is not a frozen native stage
-ok 150 - rejects a loss target that is not a frozen native stage
+# Subtest: model choice fails clearly when the control is ambiguous or the select stays hidden
+ok 143 - model choice fails clearly when the control is ambiguous or the select stays hidden
   ---
-  duration_ms: 0.71325
+  duration_ms: 0.099792
+  type: 'test'
+  ...
+# Subtest: request watcher resolves on the request event of the first matching large piece
+ok 144 - request watcher resolves on the request event of the first matching large piece
+  ---
+  duration_ms: 7.839416
+  type: 'test'
+  ...
+# Subtest: a reload issued while the large piece transfers is caught, resumed and charged exactly once per transfer
+ok 145 - a reload issued while the large piece transfers is caught, resumed and charged exactly once per transfer
+  ---
+  duration_ms: 0.558833
+  type: 'test'
+  ...
+# Subtest: an unsettled large piece at the reload also counts as caught in flight
+ok 146 - an unsettled large piece at the reload also counts as caught in flight
+  ---
+  duration_ms: 0.141667
+  type: 'test'
+  ...
+# Subtest: an interruption whose reload lost the race fails instead of passing on small pieces
+ok 147 - an interruption whose reload lost the race fails instead of passing on small pieces
+  ---
+  duration_ms: 0.13
+  type: 'test'
+  ...
+# Subtest: every earlier tab except a kept supplier is closed before the interruption, even if unreadable
+ok 148 - every earlier tab except a kept supplier is closed before the interruption, even if unreadable
+  ---
+  duration_ms: 0.222375
+  type: 'test'
+  ...
+# Subtest: transfer size of an aborted range uses its declared bytes
+ok 149 - transfer size of an aborted range uses its declared bytes
+  ---
+  duration_ms: 0.196333
+  type: 'test'
+  ...
+# Subtest: no file carries a private machine address or login
+ok 150 - no file carries a private machine address or login
+  ---
+  duration_ms: 11.078166
+  type: 'test'
+  ...
+# Subtest: non-ASCII characters are approved symbols only; no emoji or emdash
+ok 151 - non-ASCII characters are approved symbols only; no emoji or emdash
+  ---
+  duration_ms: 5.323417
+  type: 'test'
+  ...
+# Subtest: reported loss with explicit ownership and an explicit retry passes
+ok 152 - reported loss with explicit ownership and an explicit retry passes
+  ---
+  duration_ms: 3.563459
+  type: 'test'
+  ...
+# Subtest: accepted loss report is bound to the application failure table and UI label
+ok 153 - accepted loss report is bound to the application failure table and UI label
+  ---
+  duration_ms: 0.558917
+  type: 'test'
+  ...
+# Subtest: rejects a missing contributor-loss report when cleanup failure is reported instead
+ok 154 - rejects a missing contributor-loss report when cleanup failure is reported instead
+  ---
+  duration_ms: 0.930042
+  type: 'test'
+  ...
+# Subtest: cleanup-failure masking still counts as explicit unknown ownership
+ok 155 - cleanup-failure masking still counts as explicit unknown ownership
+  ---
+  duration_ms: 0.960625
+  type: 'test'
+  ...
+# Subtest: rejects a generic peer failure reported as loss
+ok 156 - rejects a generic peer failure reported as loss
+  ---
+  duration_ms: 0.5775
+  type: 'test'
+  ...
+# Subtest: rejects no rendered loss report
+ok 157 - rejects no rendered loss report
+  ---
+  duration_ms: 0.601125
+  type: 'test'
+  ...
+# Subtest: rejects a loss after which the answer still completed
+ok 158 - rejects a loss after which the answer still completed
+  ---
+  duration_ms: 2.671583
+  type: 'test'
+  ...
+# Subtest: rejects a stop injected before streaming
+ok 159 - rejects a stop injected before streaming
+  ---
+  duration_ms: 0.555209
+  type: 'test'
+  ...
+# Subtest: rejects a stop callback without its method
+ok 160 - rejects a stop callback without its method
+  ---
+  duration_ms: 0.825708
+  type: 'test'
+  ...
+# Subtest: rejects a loss target that is not a frozen native stage
+ok 161 - rejects a loss target that is not a frozen native stage
+  ---
+  duration_ms: 1.535125
   type: 'test'
   ...
 # Subtest: rejects an unclassified requester error
-ok 151 - rejects an unclassified requester error
+ok 162 - rejects an unclassified requester error
   ---
-  duration_ms: 0.283708
+  duration_ms: 0.65025
   type: 'test'
   ...
 # Subtest: rejects a cancelled attempt instead of a failed one
-ok 152 - rejects a cancelled attempt instead of a failed one
+ok 163 - rejects a cancelled attempt instead of a failed one
   ---
-  duration_ms: 0.163334
+  duration_ms: 0.395833
   type: 'test'
   ...
 # Subtest: rejects a missing coordinator receipt
-ok 153 - rejects a missing coordinator receipt
+ok 164 - rejects a missing coordinator receipt
   ---
-  duration_ms: 0.145958
+  duration_ms: 0.331083
   type: 'test'
   ...
 # Subtest: rejects an unknown row without its error
-ok 154 - rejects an unknown row without its error
+ok 165 - rejects an unknown row without its error
   ---
-  duration_ms: 0.277125
+  duration_ms: 0.42925
   type: 'test'
   ...
 # Subtest: rejects a phase that hides unknown cleanup
-ok 155 - rejects a phase that hides unknown cleanup
+ok 166 - rejects a phase that hides unknown cleanup
   ---
-  duration_ms: 0.151
+  duration_ms: 0.213333
   type: 'test'
   ...
 # Subtest: rejects unknown ownership reported as an ordinary failure
-ok 156 - rejects unknown ownership reported as an ordinary failure
+ok 167 - rejects unknown ownership reported as an ordinary failure
   ---
-  duration_ms: 0.143125
+  duration_ms: 0.173334
   type: 'test'
   ...
 # Subtest: rejects silent continuation of output
-ok 157 - rejects silent continuation of output
+ok 168 - rejects silent continuation of output
   ---
-  duration_ms: 0.147125
+  duration_ms: 0.15875
   type: 'test'
   ...
 # Subtest: rejects an automatic replacement attempt
-ok 158 - rejects an automatic replacement attempt
+ok 169 - rejects an automatic replacement attempt
   ---
-  duration_ms: 0.142875
+  duration_ms: 0.156666
   type: 'test'
   ...
 # Subtest: rejects a dispatch while waiting for capacity
-ok 159 - rejects a dispatch while waiting for capacity
+ok 170 - rejects a dispatch while waiting for capacity
   ---
-  duration_ms: 0.145291
+  duration_ms: 0.155875
   type: 'test'
   ...
 # Subtest: rejects a lost partial answer
-ok 160 - rejects a lost partial answer
+ok 171 - rejects a lost partial answer
   ---
-  duration_ms: 0.143334
+  duration_ms: 0.153959
   type: 'test'
   ...
 # Subtest: rejects a short post-failure observation
-ok 161 - rejects a short post-failure observation
+ok 172 - rejects a short post-failure observation
   ---
-  duration_ms: 0.394291
+  duration_ms: 1.760042
   type: 'test'
   ...
 # Subtest: rejects capacity that never returned
-ok 162 - rejects capacity that never returned
+ok 173 - rejects capacity that never returned
   ---
-  duration_ms: 0.140625
+  duration_ms: 0.44625
   type: 'test'
   ...
 # Subtest: rejects a retry before capacity returned
-ok 163 - rejects a retry before capacity returned
+ok 174 - rejects a retry before capacity returned
   ---
-  duration_ms: 0.13325
+  duration_ms: 0.351458
   type: 'test'
   ...
 # Subtest: rejects a retry not linked to the failure
-ok 164 - rejects a retry not linked to the failure
+ok 175 - rejects a retry not linked to the failure
   ---
-  duration_ms: 0.132958
+  duration_ms: 0.427666
   type: 'test'
   ...
 # Subtest: rejects a retry on a two-stage route
-ok 165 - rejects a retry on a two-stage route
+ok 176 - rejects a retry on a two-stage route
   ---
-  duration_ms: 0.137084
+  duration_ms: 0.431625
   type: 'test'
   ...
 # Subtest: rejects a requester weight request
-ok 166 - rejects a requester weight request
+ok 177 - rejects a requester weight request
   ---
-  duration_ms: 0.136083
+  duration_ms: 0.386875
   type: 'test'
   ...
 # Subtest: rejects a missing retry timing record
-ok 167 - rejects a missing retry timing record
+ok 178 - rejects a missing retry timing record
   ---
-  duration_ms: 0.123542
+  duration_ms: 0.395458
   type: 'test'
   ...
 # Subtest: missing observations fail closed rather than throwing
-ok 168 - missing observations fail closed rather than throwing
+ok 179 - missing observations fail closed rather than throwing
   ---
-  duration_ms: 0.062958
+  duration_ms: 0.156459
   type: 'test'
   ...
 # Subtest: timing keeps each exposed boundary separate with its clock and source
-ok 169 - timing keeps each exposed boundary separate with its clock and source
+ok 180 - timing keeps each exposed boundary separate with its clock and source
   ---
-  duration_ms: 0.974625
+  duration_ms: 1.048125
   type: 'test'
   ...
 # Subtest: unexposed boundaries are marked not-observable, never estimated
-ok 170 - unexposed boundaries are marked not-observable, never estimated
+ok 181 - unexposed boundaries are marked not-observable, never estimated
   ---
-  duration_ms: 0.186458
+  duration_ms: 0.480875
   type: 'test'
   ...
 # Subtest: a completed answer without coordinator stage timing fails
-ok 171 - a completed answer without coordinator stage timing fails
+ok 182 - a completed answer without coordinator stage timing fails
   ---
-  duration_ms: 0.209709
+  duration_ms: 0.626
   type: 'test'
   ...
 # Subtest: a partial attempt record may omit measurements when completeness is not required
-ok 172 - a partial attempt record may omit measurements when completeness is not required
+ok 183 - a partial attempt record may omit measurements when completeness is not required
   ---
-  duration_ms: 0.149
+  duration_ms: 0.316625
   type: 'test'
   ...
 # Subtest: a not-observable boundary replaced by a guess is rejected
-ok 173 - a not-observable boundary replaced by a guess is rejected
+ok 184 - a not-observable boundary replaced by a guess is rejected
   ---
-  duration_ms: 0.08
+  duration_ms: 0.1735
   type: 'test'
   ...
-1..173
-# tests 173
+1..184
+# tests 184
 # suites 0
-# pass 173
+# pass 184
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 192.511166
+# duration_ms 197.960291

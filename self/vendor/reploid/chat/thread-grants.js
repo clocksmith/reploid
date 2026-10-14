@@ -63,10 +63,12 @@ export function matchingThreadGrant(grants, scope) {
     && grant.requesterIdentity === scope.requesterIdentity && sameJson(grant.route, scope.route));
 }
 
+// requesterIdentity null: the host has not authenticated its requester yet. The stored grant
+// must still bind a peer requester; matchingThreadGrant then requires the authenticated identity.
 function validOrderedGrant(grant, requesterIdentity) {
   try {
     const route = canonicalPartitionRoute(grant.route);
-    return recipient(requesterIdentity) && grant.requesterIdentity === requesterIdentity
+    return recipient(grant.requesterIdentity) && (requesterIdentity === null || grant.requesterIdentity === requesterIdentity)
       && route.stages.every(stage => recipient(stage.participantId))
       && route.stages[0].participantId === grant.recipientIdentity
       && route.modelId === grant.modelId && route.modelIdentity === grant.modelIdentity

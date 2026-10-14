@@ -159,6 +159,20 @@ export function classifyInterruption(rows, { target, reloadAt, resumedSince }) {
   };
 }
 
+/** Closes every open harness tab except the named intended suppliers, so no other tab can supply pieces
+ * to a later acquisition. Each tab's file state is read first (`observe`); an unreadable tab is closed
+ * anyway. Returns what was closed and every non-kept tab still open, which must be none. */
+export async function closeOtherTabs(tabs, { keep = [], observe = async () => null } = {}) {
+  const closed = [];
+  for (const { name, page } of tabs) {
+    if (keep.includes(name) || page.isClosed()) continue;
+    const files = await observe(page).catch(() => null);
+    await page.close().catch(() => {});
+    closed.push({ name, sharing: files ? files.sharing === true : null, closedAt: now() });
+  }
+  return { keep: [...keep], closed, remainingOpen: tabs.filter(({ name, page }) => !keep.includes(name) && !page.isClosed()).map(({ name }) => name) };
+}
+
 export async function waitFor(probe, { timeout, poll, label }) {
   const end = Date.now() + timeout;
   while (Date.now() < end) {

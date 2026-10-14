@@ -19,7 +19,8 @@ function channels() {
   }));
   return pair;
 }
-export async function automaticOrderedMesh() {
+// modelFields adds catalog metadata, such as provider, that host composition requires.
+export async function automaticOrderedMesh({ modelFields = {} } = {}) {
   const base = stageFixture(3), identities = await Promise.all(Array.from({ length: 8 }, () => createSigningIdentity({ algorithm: 'ECDSA' })));
   base.plan.partitions.forEach((stage,index)=>{stage.layerRange=[index*2,index*2+1];});
   // Two coordinators and middle-stage replicas share a final-stage resident.
@@ -27,7 +28,7 @@ export async function automaticOrderedMesh() {
   const indices = [0,1,2,0,1,null,null,1];
   const visible = [[1,2,5,7],[0,2],[0,1,3,4,7],[2,4,6],[2,3],[0],[3],[0,2]];
   const listeners = identities.map(() => new Map()), opens = [], meshes = [], loads = [], states = [], gates = [];
-  const model = { id: base.route.modelId, identity: base.route.modelIdentity, name: 'Injected task fixture' };
+  const model = { id: base.route.modelId, identity: base.route.modelIdentity, name: 'Injected task fixture', ...modelFields };
   const channelPolicy = { maxFrameBytes: 64, maxControlBytes: 131072, maxPayloadBytes: 8192, maxPendingBytes: 32768,
     maxPendingRequests: 16, maxRequestsPerChannel: 4096, maxBufferedBytes: 262144, maxTransferBytes: 16777216, timeoutMs: 3000 };
   const policy = { pollMs: 25, maxPeers: 16, connectTimeoutMs: 3000, grantMs: 60000, maxStageOffersPerPeer: 4, limits: { ...base.limits, maxOutputCharacters: 256 },
