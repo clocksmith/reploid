@@ -7,7 +7,7 @@ everyday questions, explanations, summaries and retrieval-backed answers with
 supporting citations through prepared shared capacity. People may use funded
 Community Access, earn credits for useful validated contributions, or buy top-ups
 without subscriptions. Contribution stays optional; requesting needs no weights
-or cluster management. The [product specification](docs/product-specification.md)
+or cluster management. The [product specification](ROADMAP.md#product-specification)
 defines this intent, including nonexpiring balances, quoted service, owner limits
 and separately qualified financial accounting.
 

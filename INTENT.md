@@ -19,7 +19,7 @@ subtly neumorphic styling.
 The initial consumer product is earned everyday AI access: contribute useful
 capacity, then redeem service credits from any device. Funded Community Access
 and optional top-ups coexist with earned access. The
-[product specification](docs/product-specification.md) defines owner control,
+[product specification](ROADMAP.md#product-specification) defines owner control,
 disclosure, nonexpiring credits, quotes and separate financial acceptance.
 Consumer chat leads; coding and vertical specialization follow later.
 
