@@ -98,13 +98,29 @@ try {
     const input = document.querySelector('[data-composer-input]'); input.value = 'actual requester message';
     input.dispatchEvent(new Event('input', { bubbles: true }));
     document.querySelector('[data-composer-form]').dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
+    // Send creates the attempt; disclosure waits for Approve in the displayed review.
+    await new Promise((resolve, reject) => {
+      const started = Date.now(), poll = () => {
+        const review = document.querySelector('[data-chat-approval]');
+        if (review && !review.hidden) { review.querySelector('[data-approval-approve]').click(); resolve(); }
+        else if (Date.now() - started > 5000) reject(Error('review timeout')); else setTimeout(poll, 10);
+      };
+      poll();
+    });
     result = await completion;
     const saved = await database.read('workspace');
     browserResult = { status: result.status, output: session.getState().activeThread.messages.at(-1).content,
       visible: document.querySelector('[data-message-stream]').textContent.includes('34'),
       records: saved.publications[thread].records.length, metadataText: saved.workspace.threads[0].messages.at(-1).content,
       draftCleared: input.value === '', a: f.counters.a, b: f.counters.b };
-  } else result = await session.send(thread, 'actual requester message', [], { allowPeerExecution: true });
+  } else {
+    const completing = session.send(thread, 'actual requester message');
+    const pending = await new Promise(resolve => { const stop = session.subscribe(value => {
+      const attempt = value.activeThread?.attempts.at(-1);
+      if (attempt?.status === 'approval') { queueMicrotask(() => stop()); resolve(attempt); } }); });
+    await session.approve(thread, pending.id, pending.approval.id, true, { recipients: pending.approval.recipients });
+    result = await completing;
+  }
   assert.equal(result.status, 'completed', result.error);
   assert.equal(session.getState().activeThread.messages.at(-1).content, '34');
   assert.equal(root.publications[thread].records.length, 2);

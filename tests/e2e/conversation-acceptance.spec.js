@@ -53,12 +53,12 @@ async function mount(page, { available = true } = {}) {
 async function send(page, text) {
   await page.locator('[data-composer-input]').fill(text);
   await page.locator('[data-composer-send]').click();
-  await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
 }
 async function approve(page) {
-  // Send records exact verified one-attempt authorization before dispatch.
+  // Send shows the review; Approve records the displayed recipients before dispatch.
+  await page.locator('[data-chat-approval] [data-approval-approve]').click();
   await expect.poll(() => page.evaluate(() => window.journey.jobs.size)).toBeGreaterThan(0);
-  expect(await page.evaluate(() => window.journey.session.getState().activeThread.attempts.at(-1).authorization.source)).toBe('send');
+  expect(await page.evaluate(() => window.journey.session.getState().activeThread.attempts.at(-1).authorization.source)).toBe('approval');
 }
 async function emit(page, text, finish = true) {
   await page.evaluate(({ text, finish }) => {
@@ -129,7 +129,6 @@ test('scripted contributor loss: explicit retry keeps the partial response separ
   await page.evaluate(() => window.journey.jobs.get(window.journey.session.getState().selectedId).fail());
   await expect(page.locator('.is-assistant')).toContainText('A computer disconnected. Retry this answer.');
   await page.locator('[data-retry-attempt]').click();
-  await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
   await approve(page); await emit(page, 'Complete replacement answer.');
   await expect(page.locator('.is-assistant')).toHaveCount(2);
   await expect(page.locator('.is-assistant').first()).toContainText('Partial before departure.');

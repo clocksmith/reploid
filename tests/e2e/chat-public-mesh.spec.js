@@ -29,7 +29,7 @@ test('fresh public browser completes a distributed answer', async ({ browser }, 
     await page.locator('[data-composer-input]').fill('Reply with only the word Hello.');
     await page.locator('[data-composer-send]').click();
     const sent = Date.now();
-    await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
+    await page.locator('[data-chat-approval] [data-approval-approve]').click();
     const history = () => page.evaluate(() => JSON.parse(localStorage.getItem('reploid.chat-workspace:v1')));
     await expect.poll(async () => {
       const attempt = (await history())?.threads[0]?.attempts[0];
@@ -44,7 +44,7 @@ test('fresh public browser completes a distributed answer', async ({ browser }, 
       await page.locator('[data-new-thread]').click();
       await page.locator('[data-composer-input]').fill(prompt);
       await page.locator('[data-composer-send]').click();
-      await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
+      await page.locator('[data-chat-approval] [data-approval-approve]').click();
       return (await history()).threads.at(-1).id;
     };
     const waitFor = async id => expect.poll(async () => {

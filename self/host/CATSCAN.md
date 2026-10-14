@@ -8,7 +8,7 @@ Boot surfaces from trusted seeds.
 
 ## Authority
 - Owns seeding, startup, tools and independent threads.
-- Disclosure requires per-attempt Send/Retry, exact-payload approval,
+- Disclosure requires approval of displayed recipients/payload per attempt,
   or revocable recipient/mesh/thread/model/adapter grants.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
 - Tasks validate; repositories version; providers execute; views are immutable.
@@ -33,7 +33,7 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 - Viewing/stopping threads cannot change another's objective, grants or execution.
 - Candidate delivery grants no evaluation/adoption authority.
 - Peer operations require current authorization, exact identities and evidence.
-  Send/Retry authorizes one live attempt, never restoration or future messages.
+  Send/Retry never self-authorizes; approval covers one live attempt only.
   Changed execution identities require a new user action.
 - File contribution requires separate bounded consent. Explicit compute may acquire
   selected files, not redistribute them. Discovery never downloads weights.

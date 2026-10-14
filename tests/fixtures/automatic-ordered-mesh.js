@@ -27,7 +27,7 @@ export async function automaticOrderedMesh({ modelFields = {} } = {}) {
   // Slots5/6 are weightless requesters;7 is the initially absent replacement.
   const indices = [0,1,2,0,1,null,null,1];
   const visible = [[1,2,5,7],[0,2],[0,1,3,4,7],[2,4,6],[2,3],[0],[3],[0,2]];
-  const listeners = identities.map(() => new Map()), opens = [], meshes = [], loads = [], states = [], gates = [];
+  const listeners = identities.map(() => new Map()), opens = [], traffic = [], meshes = [], loads = [], states = [], gates = [];
   const model = { id: base.route.modelId, identity: base.route.modelIdentity, name: 'Injected task fixture', ...modelFields };
   const channelPolicy = { maxFrameBytes: 64, maxControlBytes: 131072, maxPayloadBytes: 8192, maxPendingBytes: 32768,
     maxPendingRequests: 16, maxRequestsPerChannel: 4096, maxBufferedBytes: 262144, maxTransferBytes: 16777216, timeoutMs: 3000 };
@@ -87,6 +87,11 @@ export async function automaticOrderedMesh({ modelFields = {} } = {}) {
         const target = Number(peer.split('-').at(-1)); if (slot === target) throw Error('Unexpected self connection');
         const receive = listeners[target].get(label); if (!receive) throw Error('Endpoint unavailable');
         const pair = channels(); opens.push({ from: slot, to: target, label });
+        // Every frame either side transmits, so tests can prove what left a participant and when.
+        for (const [side, from, to] of [[0, slot, target], [1, target, slot]]) {
+          const send = pair[side].send;
+          pair[side].send = data => { traffic.push({ from, to, label, data }); return send.call(pair[side], data); };
+        }
         receive(`transport-${slot}`, pair[1]); return pair[0];
       } };
     const loadProgram = vi.fn(async () => ({ model, runtime: base.runtime, plan: base.plan, planId: base.route.planId, resident }));
@@ -96,7 +101,7 @@ export async function automaticOrderedMesh({ modelFields = {} } = {}) {
       peers: () => visible[slot].map(i => ({ id: `transport-${i}`, localTransportId: `transport-${slot}` })),
       createNetwork: options => createPartitionNetwork({ ...options, transport, verifyPeer: async peer => identities[Number(peer.split('-').at(-1))].peerId }), loadProgram }));
   }
-  return { model, meshes, states, loads, opens, identities,
+  return { model, meshes, states, loads, opens, traffic, identities,
     async prepare() { for (const i of [1,2,4,0,3]) await meshes[i].contribute(model.id, true); },
     select(requester, coordinator) { return meshes[requester].getModels().find(row => row.partition?.route.stages[0].participantId === identities[coordinator].peerId); },
     gate(slot, threadId, step=1) {

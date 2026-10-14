@@ -45,7 +45,10 @@ export interface ChatRequest {
 }
 export interface ChatEnvelope { threadId: string; attemptId: string }
 export interface ChatApproval extends ChatEnvelope {
-  id: string; peerId: string; expiresAt: number; recipientIdentity?: string | null; reusable?: boolean; [key: string]: unknown;
+  id: string; peerId: string; expiresAt: number; recipientIdentity?: string | null; reusable?: boolean;
+  /** Set by the workspace: executors receiving this disclosure in order (verified route stages, split pair, or one recipient). */
+  recipients?: string[];
+  [key: string]: unknown;
 }
 export interface ChatThreadGrant {
   id: string; meshId: string; threadId: string; recipientIdentity: string;
@@ -69,8 +72,9 @@ export interface ChatAttempt {
   finishedAt: number | null;
   error: string | null;
   approval: ChatApproval | null;
+  /** source 'approval': recipients are exactly the list the reviewer displayed and approved. */
   authorization: { kind: 'once' | 'thread-grant'; grantId: string | null; peerId: string; recipientIdentity?: string | null;
-    source?: 'send'; expiresAt?: number; modelId?: string; modelIdentity?: string; adapterIdentities?: string[];
+    source?: 'send' | 'approval'; recipients?: string[]; expiresAt?: number; modelId?: string; modelIdentity?: string; adapterIdentities?: string[];
     participantA?: string; planId?: string; route?: PartitionRoute; requesterIdentity?: string; sharingScope?: string; disclosure?: string } | null;
   execution: Record<string, unknown> | null;
   request: ChatRequest;
@@ -125,7 +129,8 @@ export interface ChatWorkspace {
   reopenThread(threadId: string): void;
   send(threadId: string, content: string, options?: ChatSendOptions): ChatAttemptCompletion;
   retry(threadId: string, attemptId: string, options?: Pick<ChatSendOptions, 'authorizeDisclosure'>): ChatAttemptCompletion;
-  approve(threadId: string, attemptId: string, previewId: string, accepted: boolean, options?: { remember?: boolean }): void;
+  /** Decline cancels only this attempt. Accept with `recipients` (the displayed list) fails unless it equals approval.recipients. */
+  approve(threadId: string, attemptId: string, previewId: string, accepted: boolean, options?: { remember?: boolean; recipients?: string[] }): void;
   revokeGrant(threadId: string, grantId: string): void;
   cancel(threadId: string): Promise<unknown>;
   close(): Promise<void>;

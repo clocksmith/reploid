@@ -136,7 +136,7 @@ test('one model executes cooperatively on discovered physical peers from selecti
     await selection.selectOption(model.id, { timeout: 30000 });
   };
   const approve = async page => {
-    await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
+    await page.locator('[data-chat-approval] [data-approval-approve]').click();
     await expect.poll(async () => {
       const data = await history(page);
       const activeId = await page.locator('[data-thread-item-id][aria-current="true"]').getAttribute('data-thread-item-id').catch(() => null);

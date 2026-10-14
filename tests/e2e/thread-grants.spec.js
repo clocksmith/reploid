@@ -6,9 +6,10 @@ const send = async (page, text) => {
   await page.locator('[data-composer-input]').fill(text);
   await page.locator('[data-composer-input]').press('Enter');
 };
+// Send shows the recipient review; Approve records the displayed recipients for this attempt only.
 const approve = async page => {
-  await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
-  await expect.poll(async () => (await history(page))?.threads.at(-1)?.attempts.at(-1)?.authorization?.source).toBe('send');
+  await page.locator('[data-chat-approval] [data-approval-approve]').click();
+  await expect.poll(async () => (await history(page))?.threads.at(-1)?.attempts.at(-1)?.authorization?.source).toBe('approval');
 };
 const complete = page => expect.poll(async () => (await history(page))?.threads.at(-1)?.attempts.at(-1)?.status).toBe('completed');
 

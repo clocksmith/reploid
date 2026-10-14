@@ -55,6 +55,13 @@ export function disclosureScope(request, preview, requesterIdentity) {
     ...(partition ? { planId: preview.planId, participantA: preview.participantA } : {}) };
 }
 
+/** Executors receiving this disclosure, in order: the verified route, the verified pair, or the one recipient. */
+export function disclosureRecipients(scope, preview) {
+  if (scope?.route) return scope.route.stages.map(stage => stage.participantId);
+  if (scope?.participantA) return [scope.participantA, scope.recipientIdentity];
+  return [scope?.recipientIdentity || preview.peerId];
+}
+
 export function matchingThreadGrant(grants, scope) {
   return scope && grants.find(grant => grant.revokedAt === null
     && ['recipientIdentity', 'modelId', 'modelIdentity', 'sharingScope', 'disclosure'].every(key => grant[key] === scope[key])

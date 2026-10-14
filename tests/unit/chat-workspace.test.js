@@ -125,6 +125,32 @@ describe('conversation workspace', () => {
     await app.close();
   });
 
+  it('records exactly the displayed recipients and approves nothing for a different list', async () => {
+    const peer = 'peer:' + 'b'.repeat(24), disclosed = [];
+    const { app } = fixture(async (request, controls) => {
+      const preview = { ...result(request, ''), id: 'preview-' + request.attemptId, peerId: peer, recipientIdentity: peer,
+        operation: 'generate', disclosure: 'public', expiresAt: Date.now() + 10000, input: request.messages };
+      if (!await controls.requestApproval(preview)) throw new Error('Disclosure declined');
+      disclosed.push(request.attemptId);
+      return result(request, 'Peer answer');
+    });
+    const thread = app.createThread({ model, permissions: { sharingScope: 'mesh' } }), completion = app.send(thread, 'Question');
+    await vi.waitFor(() => expect(app.getState().threads[0].attempts[0].status).toBe('approval'));
+    const pending = app.getState().threads[0].attempts[0];
+    expect(pending.approval.recipients).toEqual([peer]);
+    // A stale or altered display (another recipient list) leaves the review pending with no authorization.
+    expect(() => app.approve(thread, pending.id, pending.approval.id, true, { recipients: ['peer:' + 'c'.repeat(24)] }))
+      .toThrow('Approval no longer matches the displayed recipients');
+    expect(app.getState().threads[0].attempts[0]).toMatchObject({ status: 'approval', authorization: null });
+    expect(disclosed).toEqual([]);
+    app.approve(thread, pending.id, pending.approval.id, true, { recipients: [peer] });
+    const attempt = await completion;
+    expect(attempt.status).toBe('completed'); expect(disclosed).toEqual([attempt.id]);
+    expect(attempt.authorization).toMatchObject({ kind: 'once', source: 'approval', recipients: [peer], recipientIdentity: peer,
+      disclosure: 'public', modelIdentity: model.identity, expiresAt: pending.approval.expiresAt });
+    await app.close();
+  });
+
   it('restores interrupted output without resending and retries into a separate generation', async () => {
     const gate = deferred(); let original, control;
     const { app, options, store } = fixture(async (request, controls) => {

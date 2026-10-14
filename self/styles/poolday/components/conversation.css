@@ -75,7 +75,7 @@
   scrollbar-gutter: stable;
   padding-block: var(--pool-space-md);
 }
-.chat-message-stream, .chat-composer-area, .chat-error { width: min(100%, var(--pool-px-r48)); align-self: center; margin-inline: auto; }
+.chat-message-stream, .chat-approval, .chat-composer-area, .chat-error { width: min(100%, var(--pool-px-r48)); align-self: center; margin-inline: auto; }
 .chat-message-row { min-width: 0; width: 100%; display: grid; gap: var(--pool-space-sm); }
 .chat-message-row.is-user { position: relative; width: max-content; min-width: min(100%, var(--pool-px-r8)); max-width: 82%; padding-inline-end: var(--pool-px-64); }
 .chat-message-row.is-user { align-self: flex-end; padding-block: var(--pool-space-md); padding-inline-start: var(--pool-space-lg); border-radius: var(--pool-radius-control); background: var(--pool-surface-inset); box-shadow: var(--pool-surface-shadow-inset); }
@@ -180,9 +180,11 @@
 .chat-thread-list { min-height: 0; overflow-y: auto; flex: 1; }
 .chat-thread-header, .chat-sidebar-header, .chat-composer-area { flex-shrink: 0; }
 .chat-composer-area { max-height: 45dvh; }
-.chat-approval { min-height: 0; margin-block: var(--pool-space-lg); font-size: var(--pool-text-sm); }
+/* Approve/Decline stay visible; only the reviewed content scrolls. */
+.chat-approval { flex-shrink: 0; max-height: 55dvh; grid-template-rows: minmax(0, 1fr) auto; box-sizing: border-box; font-size: var(--pool-text-sm); }
+.chat-approval .chat-network-actions { justify-content: flex-end; }
 .chat-approval-actions { display: grid; gap: var(--pool-space-md); }
-.chat-approval-body { min-width: 0; }
+.chat-approval-body { min-width: 0; min-height: 0; overflow-y: auto; }
 .chat-thread-row { position: relative; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
 .chat-thread-menu { position: relative; }
 .chat-thread-menu > summary { list-style: none; }

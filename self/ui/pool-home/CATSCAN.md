@@ -25,10 +25,10 @@ Outputs: [conversations](conversation-workspace.js), [markup](view.js), [Room-1]
   accessible themes/responsive scrolling. Activities prescribe no hierarchy.
 - Link tasks/helpers/jobs/results/candidates; show observations and missing admission/evaluators.
 - Preserve execution in protein/document examples and request/execution/comparison/acceptance/receipt lifecycles. Recovery requires valid state.
-- Disclose execution location. Send and Retry authorize only their exact attempt's
-  messages/attached-text/derived-data to verified model executors, without a
-  separate review screen. Viewing/restoring/selection grants nothing; contribution is separate.
-- Keep failures and Stop visible; selection never stops background threads.
+- Disclose execution location. Before remote disclosure, show content, named
+  recipients and scope; Approve authorizes only those recipients for that attempt;
+  Decline keeps its draft. Local runs need no review. Viewing/restoring/selection grants nothing.
+- Keep failures, reviews and Stop visible; selection never stops background threads.
 - Include compatible adapters in model selection. Separate compute/bounded file consent;
   discovery/thread grants imply neither.
 - Inspect Pack/runtime/provider/hardware/fallback/timing/output/agreement. Review grants no evaluation/promotion; receipts prove no hardware attestation; acceptance names policy.

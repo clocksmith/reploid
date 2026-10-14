@@ -53,7 +53,7 @@ export function createMessageList(stream, { getSources, positions = new Map(), s
         if (message.role === 'assistant') updateExecutionActivity(row.querySelector('[data-execution-activity]'), { ...state, activeThread: { ...thread, attempts: attempt ? [attempt] : [] } });
         const author = row.querySelector('.chat-message-author');
         author.hidden = message.role === 'user' || !!message.content || !row.querySelector('[data-execution-activity]').hidden;
-        if (!author.hidden) author.textContent = ({ queued: 'Waiting…', loading: 'Preparing…', executing: 'Thinking…', cancelling: 'Stopping…' })[attempt?.status] || '';
+        if (!author.hidden) author.textContent = ({ queued: 'Waiting…', approval: 'Awaiting approval', loading: 'Preparing…', executing: 'Thinking…', cancelling: 'Stopping…' })[attempt?.status] || '';
         const failed = message.role === 'assistant' && attempt && ['failed', 'cancelled', 'interrupted'].includes(attempt.status);
         const retryable = failed && attempt.id === thread.attempts.at(-1)?.id && !busy;
         const actions = row.querySelector('.chat-message-actions');

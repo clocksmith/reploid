@@ -1,7 +1,7 @@
 /** Conversation state only. Execution, trust and transport are explicit host ports. */
 import { partitionActivity } from '../mesh/partitions/partition-summary.js';
 import defaults from './policy.json' with { type: 'json' };
-import { disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
+import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
@@ -214,7 +214,10 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
               await persist(); controller.signal.throwIfAborted();
               return true;
             }
-            attempt.status = 'approval'; attempt.approval = { ...copy(preview), reusable: !!scope };
+            // Partition review requires verified recipients; unverified stages are never offered for approval.
+            assert(scope || !request.model.partition, 'Peer disclosure does not match the selected model and verified recipients');
+            attempt.status = 'approval';
+            attempt.approval = { ...copy(preview), reusable: !!scope, recipients: disclosureRecipients(scope, preview) };
             return new Promise(resolve => {
               const expiry = setTimeout(() => finish(false), Math.min(limits.attemptTimeoutMs, preview.expiresAt - now()));
               const finish = accepted => {
@@ -322,11 +325,14 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       assert(!thread.closed && attempt?.id === attemptId && ['cancelled', 'failed', 'interrupted'].includes(attempt.status), 'Only the latest interrupted or unsuccessful response can be retried');
       return start(thread, attempt.request, attempt.userMessageId, attempt.id, true, authorizeDisclosure);
     },
-    approve(threadId, attemptId, previewId, accepted, { remember = false } = {}) {
+    approve(threadId, attemptId, previewId, accepted, { remember = false, recipients } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1), run = runs.get(threadId);
       assert(attempt?.id === attemptId && attempt.approval?.id === previewId && run?.approval, 'Approval no longer matches this attempt');
       assert(!run.deciding, 'Approval is already being recorded');
       if (accepted !== true) { run.controller.abort(new Error('Disclosure declined')); return; }
+      // A reviewer states the recipients it displayed. Any other list approves nothing and leaves the review pending.
+      assert(recipients === undefined || Array.isArray(recipients)
+        && JSON.stringify(recipients) === JSON.stringify(attempt.approval.recipients), 'Approval no longer matches the displayed recipients');
       const allowed = accepted === true && attempt.approval.expiresAt > now() && !run.controller.signal.aborted;
       if (allowed) {
         const scope = disclosureScope(attempt.request, attempt.approval, requester());
@@ -339,7 +345,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         }
         attempt.authorization = { kind: remember ? 'thread-grant' : 'once', grantId: grant?.id || null,
           peerId: attempt.approval.peerId, recipientIdentity: attempt.approval.recipientIdentity || null,
-          ...(transactional ? { ...copy(scope), expiresAt: attempt.approval.expiresAt } : {}) };
+          ...copy(scope), source: 'approval', recipients: copy(attempt.approval.recipients), expiresAt: attempt.approval.expiresAt };
         run.deciding = true;
         const fail = error => { if (grant) thread.grants.pop(); attempt.authorization = null; run.approval?.(false); run.deciding = false; throw error; };
         try {

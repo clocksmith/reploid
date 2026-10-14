@@ -55,6 +55,18 @@ function openProduct(ordered) {
   return host;
 }
 const weightlessRequester = { stage: null, ...orderedPolicy.limits };
+// The product view displays attempt.approval.recipients and approves exactly that list
+// (self/ui/pool-home/request-approval.js, conversation-workspace.js decide()). `reviewed` runs while the review is shown.
+async function sendApproved(chat, threadId, text, reviewed = () => {}) {
+  const completion = chat.send(threadId, text);
+  const review = await vi.waitFor(() => {
+    const attempt = chat.getState().threads.find(thread => thread.id === threadId).attempts.at(-1);
+    expect(attempt.status).toBe('approval'); return attempt;
+  }, { timeout: 5000 });
+  reviewed(review);
+  chat.approve(threadId, review.id, review.approval.id, true, { recipients: review.approval.recipients });
+  return { review, attempt: await completion };
+}
 const readyModel = (chat, match) => vi.waitFor(() => {
   const model = chat.getState().models.find(row => match(row) && row.availability === 'ready');
   expect(model).toBeTruthy(); return model;
@@ -68,11 +80,18 @@ it('admits ordered Send from the shipped product session under the authenticated
   const model = await readyModel(host.chat, row => row.partition?.coordinatorId === f.identities[0].peerId);
   expect(ports.bound).toEqual([f.identities[5].peerId]);
   const threadId = host.chat.createThread({ model });
-  // Send is the approval (conversation-workspace.js -> chat-session.js send allowPeerExecution).
-  const attempt = await host.chat.send(threadId, tasks[0].prompt, [], { allowPeerExecution: true });
+  const dispatched = () => f.states.filter(state => state.resident)
+    .reduce((total, state) => total + state.resident.tokenize.mock.calls.length + state.resident.reserve.mock.calls.length, 0);
+  const before = dispatched(), stages = model.partition.route.stages.map(stage => stage.participantId);
+  // Send creates the attempt only; no stage tokenizes or reserves until the displayed recipients are approved.
+  const { review, attempt } = await sendApproved(host.chat, threadId, tasks[0].prompt, pending => {
+    expect(pending.approval.recipients).toEqual(stages); expect(pending.authorization).toBeNull();
+    expect(dispatched()).toBe(before);
+  });
   expect(attempt.error).toBeNull();
   expect(attempt.status).toBe('completed');
-  expect(attempt.authorization).toMatchObject({ kind: 'once', source: 'send', disclosure: 'ordered-partition-activations-and-tokens',
+  expect(attempt.authorization).toMatchObject({ kind: 'once', source: 'approval', recipients: review.approval.recipients,
+    disclosure: 'ordered-partition-activations-and-tokens',
     requesterIdentity: f.identities[5].peerId, recipientIdentity: f.identities[0].peerId, route: model.partition.route });
   expect(attempt.execution.identity.requesterId).toBe(f.identities[5].peerId);
   expect(host.swarm.partitions.requesterIdentity()).toBe(f.identities[5].peerId);
@@ -94,7 +113,8 @@ it('still rejects ordered Send for a placeholder, unauthenticated or different r
   const before = dispatched();
   const rejects = async chat => {
     const threadId = chat.createThread({ model });
-    const attempt = await chat.send(threadId, tasks[0].prompt, [], { allowPeerExecution: true });
+    // Unverified recipients are never offered for review: the attempt fails before any approval state.
+    const attempt = await chat.send(threadId, tasks[0].prompt);
     expect(attempt.status).toBe('failed');
     expect(attempt.error).toBe(DISCLOSURE_MISMATCH);
     expect(attempt.authorization).toBeNull();
@@ -216,10 +236,11 @@ it('keeps two-stage Send working from the product session; it never relied on a 
   const placeholder = createChatSession({ storage: null, swarm: host.swarm, partitions: host.swarm.partitions });
   cleanups.push(() => placeholder.close());
   for (const chat of [host.chat, placeholder]) {
-    const attempt = await chat.send(chat.createThread({ model }), '10', [], { allowPeerExecution: true });
+    const { attempt } = await sendApproved(chat, chat.createThread({ model }), '10');
     expect(attempt.error).toBeNull();
     expect(attempt.status).toBe('completed');
-    expect(attempt.authorization).toMatchObject({ source: 'send', disclosure: 'partition-activations-and-tokens',
+    expect(attempt.authorization).toMatchObject({ source: 'approval', disclosure: 'partition-activations-and-tokens',
+      recipients: [model.partition.participantA, model.partition.participantB],
       participantA: model.partition.participantA, recipientIdentity: model.partition.participantB });
     expect(attempt.authorization.requesterIdentity).toBeUndefined();
   }

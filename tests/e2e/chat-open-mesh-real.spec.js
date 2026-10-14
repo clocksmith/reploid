@@ -41,8 +41,9 @@ test('open chat discovers a real contributor, streams without requester weights,
     await page.locator('[data-toggle-inspector]').click();
     await page.locator('[data-contribution-model]').selectOption(model.id);
   };
+  // Send shows the recipient review; Approve releases this request only.
   const approve = async page => {
-    await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
+    await page.locator('[data-chat-approval] [data-approval-approve]').click();
   };
   try {
     // Fixed test quotas exercise bounded cache operation reproducibly; these are
