@@ -1,0 +1,116 @@
+{
+ "schema": "reploid.signed-completion-journey-config/v1",
+ "reportDirectory": "/Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-2/reports",
+ "application": {
+  "roomFile": "/var/tmp/reploid-signed-completion-journey-run2-20261013/private-room.json",
+  "descriptorPath": "/config/browser-bundle-manifest.json",
+  "partitionPolicyPath": "/config/partition-policy.json",
+  "signalingUrl": null
+ },
+ "freeze": {
+  "browserBundle": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d",
+  "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+  "planSchema": "doppler.layer-partition-contract/v3",
+  "splitLayers": [
+   8,
+   16
+  ],
+  "nativeArtifacts": {
+   "amd-host": "sha256:845b84bbce4e7cb1beddd0b246329c89d662057f45895b47b4b1dd6452ee9314",
+   "intel-host": "sha256:845b84bbce4e7cb1beddd0b246329c89d662057f45895b47b4b1dd6452ee9314"
+  },
+  "route": [
+   {
+    "index": 0,
+    "machine": "mac-host",
+    "host": "browser",
+    "participantId": "peer:15923429008fd27579410a26"
+   },
+   {
+    "index": 1,
+    "machine": "amd-host",
+    "host": "native",
+    "participantId": "peer:9af15d884eba51b0c0540e2a",
+    "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run2-20261013/amd-host-stage-1.json"
+   },
+   {
+    "index": 2,
+    "machine": "intel-host",
+    "host": "native",
+    "participantId": "peer:09610aefbd15a133d7af2b57",
+    "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run2-20261013/intel-host-stage-2.json"
+   }
+  ]
+ },
+ "browsers": {
+  "requester": {
+   "machine": "mac-host",
+   "origin": "http://127.0.0.1:29670/",
+   "connect": {
+    "kind": "launch",
+    "channel": "chrome",
+    "headless": true,
+    "remoteDebuggingPort": 29672
+   }
+  },
+  "coordinator": {
+   "machine": "mac-host",
+   "origin": "http://127.0.0.1:29670/",
+   "connect": {
+    "kind": "cdp",
+    "endpoint": "http://127.0.0.1:29671"
+   }
+  },
+  "storageSupplier": {
+   "machine": "mac-host",
+   "origin": "http://127.0.0.1:29670/",
+   "connect": {
+    "kind": "cdp",
+    "endpoint": "http://127.0.0.1:29673"
+   }
+  },
+  "storageAcquirer": {
+   "machine": "intel-host",
+   "origin": "http://127.0.0.1:29670/",
+   "connect": {
+    "kind": "cdp",
+    "endpoint": "http://127.0.0.1:29674"
+   }
+  }
+ },
+ "contributorControl": {
+  "module": "/Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-2/tools/contributor-control.mjs",
+  "stopExport": "stopContributor",
+  "restoreExport": "restoreContributor",
+  "lossTarget": "amd-host"
+ },
+ "timeouts": {
+  "readyMs": 300000,
+  "answerMs": 600000,
+  "lossReportMs": 360000,
+  "capacityReturnMs": 600000,
+  "transferMs": 300000,
+  "settlementMs": 120000
+ },
+ "observation": {
+  "pollMs": 100
+ },
+ "concurrency": {
+  "tabs": 2
+ },
+ "modelFiles": {
+  "pathPatterns": [
+   "^/config/model-(manifests|pieces|artifacts)/[0-9a-f]{64}\\.[a-z]+$",
+   "^/qualification/capsule/artifacts/model/"
+  ]
+ },
+ "storage": {
+  "sharingAllowanceMiB": 5,
+  "stopAllowanceMiB": 64,
+  "contentionAllowanceMiB": 5,
+  "interruptionAllowanceMiB": 13
+ }
+}

@@ -1,0 +1,75 @@
+{
+ "schema": "reploid.run-1-host-snapshot/v1",
+ "machine": "amd-host",
+ "at": "2026-10-14T03:56:10.288778+00:00",
+ "loadavg": [
+  "2.32",
+  "2.61",
+  "2.54"
+ ],
+ "memory": {
+  "MemTotal": 131891187712,
+  "MemAvailable": 71609737216,
+  "SwapTotal": 8589930496,
+  "SwapFree": 921600
+ },
+ "gpuSamples": [
+  {
+   "amdBusyPercent": [
+    "0"
+   ],
+   "intelActMhz": []
+  },
+  {
+   "amdBusyPercent": [
+    "0"
+   ],
+   "intelActMhz": []
+  },
+  {
+   "amdBusyPercent": [
+    "0"
+   ],
+   "intelActMhz": []
+  }
+ ],
+ "publicContributors": [
+  {
+   "pid": 4103868,
+   "ppid": 1,
+   "args": "node server/native-participant.js --contribute --share-files --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/x/.local/share/reploid/public-native/weights --cache-directory /home/x/.local/share/reploid/public-native/cache-budget-20261012 --identity-file /home/x/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://rep"
+  },
+  {
+   "pid": 4121371,
+   "ppid": 1,
+   "args": "node scripts/run-mesh-contributor.js --url https://replo.id/ --model qwen-3-5-0-8b-q4k-ehaf16 --profile /home/x/.local/share/reploid/public-compute --contribute compute"
+  }
+ ],
+ "ownedProcesses": [],
+ "ownedScopes": [],
+ "allUserScopes": [
+  "app-com.google.Chrome-1451388.scope",
+  "app-com.google.Chrome-3967031.scope",
+  "app-com.google.Chrome-4121431.scope",
+  "app-gnome-org.gnome.Evolution\\x2dalarm\\x2dnotify-14527.scope",
+  "app-gnome-org.gnome.SettingsDaemon.DiskUtilityNotify-14498.scope",
+  "app-gnome-update\\x2dnotifier-14511.scope",
+  "init.scope",
+  "snap.tmux.tmux-441c0b6c-6247-43d8-b528-2ad3a8fdff26.scope",
+  "snap.tmux.tmux-50c56394-65ad-4037-bd4a-63bd2b66ef16.scope",
+  "snap.tmux.tmux-535cdaf4-ad5b-4871-bdec-861e462d7362.scope",
+  "snap.tmux.tmux-8eb05b15-524c-40b2-ba53-33a60f6522e8.scope",
+  "snap.tmux.tmux-b48d608a-3d71-4731-b9b8-e4721ce14c55.scope"
+ ],
+ "ports": {
+  "29670": {
+   "listening": false,
+   "addresses": []
+  },
+  "29674": {
+   "listening": false,
+   "addresses": []
+  }
+ },
+ "scope": "Read-only snapshot; hostnames not recorded"
+}

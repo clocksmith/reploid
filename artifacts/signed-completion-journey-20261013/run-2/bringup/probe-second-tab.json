@@ -1,0 +1,46 @@
+{
+ "at": "2026-10-14T03:53:36.922Z",
+ "tabs": [
+  {
+   "name": "probe-a",
+   "network": null,
+   "requesterPeerId": "peer:941ed890dbd71ebfdd0e6a56",
+   "instanceId": null,
+   "consumer": {
+    "instanceParam": null
+   },
+   "custody": {
+    "receipts": 0,
+    "sharing": false
+   },
+   "networkState": {
+    "consumerPeerId": "peer:941ed890dbd71ebfdd0e6a56",
+    "paused": false,
+    "error": "",
+    "files": {
+     "sharing": false,
+     "error": ""
+    }
+   }
+  },
+  {
+   "name": "probe-b",
+   "network": null,
+   "requesterPeerId": null,
+   "instanceId": null,
+   "consumer": {
+    "instanceParam": null
+   },
+   "custodyError": "Custody observation unavailable",
+   "networkState": {
+    "consumerPeerId": null,
+    "paused": false,
+    "error": "Another tab owns this peer connection",
+    "files": {
+     "sharing": false,
+     "error": null
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,21 @@
+{
+ "schema": "reploid.run-2-signed-state/v1",
+ "machine": "intel-host",
+ "stateDirectory": "/var/tmp/reploid-signed-completion-journey-run1-20261013/intel-state",
+ "at": "2026-10-14T03:55:54.343036+00:00",
+ "releaseCheckpoints": [
+  {
+   "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+   "sequence": 2,
+   "digest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f"
+  }
+ ],
+ "supplyLedger": {
+  "schema": "reploid.custody-supply-budget/v1",
+  "maxBytes": 4294967296,
+  "reservedBytes": 0
+ },
+ "identityPeerId": "peer:09610aefbd15a133d7af2b57",
+ "identitySha256": "3a3d2251341d37edd79c4b027d4eb20b2087dcec05e91e278c0be289211a12d7",
+ "cacheEntries": 579
+}

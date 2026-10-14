@@ -1,0 +1,48 @@
+{
+  "schema": "reploid.signed-completion-journey-run-2-settlement/v1",
+  "settledAt": "2026-10-14T03:57:00Z",
+  "mac-host": {
+    "stage0Contributor": "Help answer requests switched off through its own control at 03:55:05Z; host owner ready -> idle with offering false and unsettledOwners 0 within ~1.2 s (stage0-stop.json); browser closed by CDP Browser.close; pid 51229 absent, port 29671 closed",
+    "coordinatorAtStop": "no attempts recorded (no conversation was ever sent); reservations active 0, availableSlots 2 (coordinator-before-stop.json)",
+    "supplierBrowser": "closed by CDP Browser.close; pid 52113 absent",
+    "requesterBrowsers": "launched and closed by the harnesses themselves",
+    "appServer": "pid 51170 SIGTERM; request log records 'stopping' at 03:55:54Z",
+    "tunnels": "pids 51193 and 51194 SIGTERM; absent",
+    "ports29670to29674Listening": false,
+    "nonOwnedProcessesUnchanged": true
+  },
+  "amd-host": {
+    "natives": [
+      { "unit": "scj-run2-amd-native-1", "stop": "SIGTERM 03:35:38Z (operator refresh)", "after": "idle, unsettledOwners 0, Pipeline unloaded, device destroyed, inactive in 1 s", "journal": "15min 30s CPU over 12min 37s, 676M memory peak" },
+      { "unit": "scj-run2-amd-native-2", "stop": "SIGTERM 03:55:20Z", "after": "idle, unsettledOwners 0, device destroyed, inactive in 1 s", "journal": "23min 51s CPU over 19min 33s, 628.4M memory peak" }
+    ],
+    "lossInjection": "none (the loss harness failed before calling the control module)",
+    "ownedProcessesAfter": 0, "port29670Listening": false,
+    "signedState": "checkpoint sequence 2 923ac7e6... (unchanged this run); supply ledger 662384632 -> 1458219861 of 4294967296 bytes (stage 0 piece supply in the first scope); identity unchanged sha256 871ad22c...; 602 cache entries"
+  },
+  "intel-host": {
+    "natives": [
+      { "unit": "scj-run2-intel-native-1", "stop": "SIGTERM 03:35:40Z (operator refresh)", "after": "idle, unsettledOwners 0, inactive in 1 s", "journal": "14min 20s CPU, 960.1M memory peak, 0B swap peak" },
+      { "unit": "scj-run2-intel-native-2", "stop": "SIGTERM 03:55:22Z", "after": "idle, unsettledOwners 0, inactive in 1 s", "journal": "22min 8s CPU, 931.6M memory peak, 0B swap peak" }
+    ],
+    "acquirerBrowser": { "unit": "scj-run2-intel-acquirer", "stop": "SIGTERM", "after": "inactive in 1 s, memory peak 322015232 bytes, port 29674 closed" },
+    "ownedProcessesAfter": 0, "ports29670and29674Listening": false,
+    "signedState": "checkpoint sequence 2 923ac7e6... (unchanged); ledger 0 of 4294967296 bytes; identity unchanged sha256 3a3d2251...; 579 cache entries"
+  },
+  "publicContributors": {
+    "amd-host": { "unchanged": true, "pids": [4103868, 4121371] },
+    "intel-host": { "unchanged": true, "pids": [297260, 299769] },
+    "evidence": "preflight/*.json versus settlement/*.json: identical pid and argument lists"
+  },
+  "filesLeftOnHosts": {
+    "mac-host": "/var/tmp/reploid-signed-completion-journey-run2-20261013: control-state.json (unit names only; copied here as control-state.json), mac-stage0-profile (first signed browser state: checkpoint sequence 2, cached stage 0 pieces, and the dead room capability in its storage), mac-supplier-profile",
+    "amd-host": "/var/tmp/reploid-signed-completion-journey-run2-20261013: stage config, native-exec.sh, native logs",
+    "intel-host": "/var/tmp/reploid-signed-completion-journey-run2-20261013: stage config, native-exec.sh, native and acquirer logs, intel-acquirer-profile",
+    "privateRoomFiles": "removed on all three machines after the run"
+  },
+  "reviewerNotes": [
+    "The room token was on each native node process's argv while it ran (the CLI offers no file or environment option); it was not recorded in the systemd journal this run (0 hits checked after launch).",
+    "Browser profiles retain the dead private room capability in their storage; the signaling server for that room no longer exists.",
+    "maxAcquisitionChunkBytes and both 4 GiB ledgers were not changed; no release sequence was reset."
+  ]
+}

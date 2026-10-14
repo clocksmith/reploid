@@ -1,0 +1,237 @@
+{
+  "schema": "reploid.signed-completion-journey-report/v1",
+  "harness": "contributor-loss",
+  "startedAt": "2026-10-14T03:40:37.663Z",
+  "configSha256": "2cd670d8ed03a85bce1f6dc1d54daf66b5afb1b94d186fefcef9bf86a91f6766",
+  "fixtureSha256": "7dd06aa4488c8e79b4e5aa8b4dbe804d39bc71a9bfaa3ceafab970c343d0edc1",
+  "freeze": {
+    "browserBundle": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d",
+    "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [
+      8,
+      16
+    ],
+    "nativeArtifacts": {
+      "amd-host": "sha256:845b84bbce4e7cb1beddd0b246329c89d662057f45895b47b4b1dd6452ee9314",
+      "intel-host": "sha256:845b84bbce4e7cb1beddd0b246329c89d662057f45895b47b4b1dd6452ee9314"
+    },
+    "route": [
+      {
+        "index": 0,
+        "machine": "mac-host",
+        "host": "browser",
+        "participantId": "peer:15923429008fd27579410a26"
+      },
+      {
+        "index": 1,
+        "machine": "amd-host",
+        "host": "native",
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run2-20261013/amd-host-stage-1.json"
+      },
+      {
+        "index": 2,
+        "machine": "intel-host",
+        "host": "native",
+        "participantId": "peer:09610aefbd15a133d7af2b57",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run2-20261013/intel-host-stage-2.json"
+      }
+    ]
+  },
+  "ok": false,
+  "errors": [],
+  "scope": "Stop one native stage contributor through the configured callback while an ordered answer streams; observe the requester report, ownership settlement, absence of continuation and an explicit retry after capacity returns.",
+  "lossTarget": {
+    "machine": "amd-host",
+    "stage": 1,
+    "participantId": "peer:9af15d884eba51b0c0540e2a"
+  },
+  "modelFileRequests": [],
+  "streamSamples": [],
+  "terminalSamples": [],
+  "postFailureSamples": [],
+  "preRetrySamples": [],
+  "timing": [],
+  "servedDescriptor": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d",
+  "failure": "locator.selectOption: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-active-model-select]')\u001b[22m\n\u001b[2m    - locator resolved to <select id=\"chat-model\" aria-label=\"Model\" data-active-model-select=\"\" class=\"pool-input pool-glass\" data-catalog=\"[[\"qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf\",\"Qwen 3.5 0.8B\",\"Ready\"]]\">…</select>\u001b[22m\n\u001b[2m  - attempting select option action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    59 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying select option action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at chooseOrderedModel (/Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:130:45)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs:51:41",
+  "body": "7\n7\nMessage\nAttach files",
+  "finalState": {
+    "schema": "reploid.chat-owner-observation/v1",
+    "source": "existing host getState/getDraft",
+    "storageMode": "legacy",
+    "threads": [],
+    "selectedId": null,
+    "runningIds": [],
+    "storageError": null,
+    "drafts": {
+      "new": {
+        "text": "",
+        "files": []
+      }
+    },
+    "requesterPeerId": "peer:f984d860a34660a4554e68a1",
+    "instanceId": null
+  },
+  "weights": [],
+  "assessment": {
+    "automatedPass": false,
+    "failures": [
+      "lossInjected: Contributor was not stopped while the conversation was streaming",
+      "lossInjected: Injected stop callback did not report its method and time",
+      "lossReported: Requester error does not report contributor loss (observed unclassified: none)",
+      "lossReported: Rendered failure status does not report contributor loss (none)",
+      "ownershipExplicit: Requester attempt did not settle as failed",
+      "ownershipExplicit: Requester error is not an explicit partition failure category",
+      "ownershipExplicit: Coordinator cleanup rows do not cover every stage exactly once",
+      "ownershipExplicit: Coordinator phase contradicts its cleanup rows",
+      "ownershipExplicit: Coordinator receipt lacks the failure cause",
+      "noSilentContinuation: Failed attempt lost the partial answer visible before the loss",
+      "noSilentContinuation: Post-failure observations missing",
+      "noSilentContinuation: Post-failure observation interval incomplete",
+      "explicitRetry: Capacity did not return before the deadline",
+      "explicitRetry: Injected restore callback did not report its method",
+      "explicitRetry: Retry was requested before capacity returned",
+      "explicitRetry: Explicit retry did not start exactly one new attempt linked to the failure",
+      "explicitRetry: Retry not complete",
+      "explicitRetry: Retry natural EOS unobserved",
+      "explicitRetry: Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "explicitRetry: Retry ordered route identity unobserved",
+      "explicitRetry: Retry route binds a different model or plan than the freeze",
+      "explicitRetry: Retry distinct route contributors (0) differ from the frozen route (3)",
+      "explicitRetry: Retry route stages differ from the frozen stage order",
+      "explicitRetry: Retry requester was assigned a stage",
+      "explicitRetry: Retry cleanup rows do not cover every stage exactly once",
+      "explicitRetry: Retry cleanup not confirmed: a cleanup row is unsettled",
+      "explicitRetry: Retry settlement phase not completed",
+      "explicitRetry: Retry not every stage was admitted",
+      "explicitRetry: Retry not every stage executed every step",
+      "explicitRetry: Retry recipients were not approved by this attempt's Send or Retry",
+      "explicitRetry: Retry approval does not cover ordered activations and tokens",
+      "explicitRetry: Retry approved recipients differ from the frozen route",
+      "explicitRetry: Retry approval is not addressed to the stage 0 coordinator",
+      "explicitRetry: Retry approval binds another model or plan",
+      "explicitRetry: Retry executed route differs from the approved route",
+      "explicitRetry: Retry requester approved itself as a stage",
+      "selectiveAcquisition: Requester received or retained weights, or custody evidence is missing",
+      "timing: Retry timing record missing"
+    ],
+    "checks": {
+      "lossInjected": {
+        "pass": false,
+        "failures": [
+          "Contributor was not stopped while the conversation was streaming",
+          "Injected stop callback did not report its method and time"
+        ],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190"
+        ]
+      },
+      "lossReported": {
+        "pass": false,
+        "failures": [
+          "Requester error does not report contributor loss (observed unclassified: none)",
+          "Rendered failure status does not report contributor loss (none)"
+        ],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "ROADMAP.md:28",
+          "REP-7 docs/roadmap/requirements.md:148"
+        ]
+      },
+      "ownershipExplicit": {
+        "pass": false,
+        "failures": [
+          "Requester attempt did not settle as failed",
+          "Requester error is not an explicit partition failure category",
+          "Coordinator cleanup rows do not cover every stage exactly once",
+          "Coordinator phase contradicts its cleanup rows",
+          "Coordinator receipt lacks the failure cause"
+        ],
+        "requirements": [
+          "REP-6 docs/roadmap/requirements.md:406",
+          "REP-4 docs/roadmap/requirements.md:272",
+          "ROADMAP.md:28"
+        ]
+      },
+      "noSilentContinuation": {
+        "pass": false,
+        "failures": [
+          "Failed attempt lost the partial answer visible before the loss",
+          "Post-failure observations missing",
+          "Post-failure observation interval incomplete"
+        ],
+        "requirements": [
+          "REP-6 docs/roadmap/requirements.md:406",
+          "DR-5 docs/roadmap/requirements.md:190"
+        ]
+      },
+      "explicitRetry": {
+        "pass": false,
+        "failures": [
+          "Capacity did not return before the deadline",
+          "Injected restore callback did not report its method",
+          "Retry was requested before capacity returned",
+          "Explicit retry did not start exactly one new attempt linked to the failure",
+          "Retry not complete",
+          "Retry natural EOS unobserved",
+          "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+          "Retry ordered route identity unobserved",
+          "Retry route binds a different model or plan than the freeze",
+          "Retry distinct route contributors (0) differ from the frozen route (3)",
+          "Retry route stages differ from the frozen stage order",
+          "Retry requester was assigned a stage",
+          "Retry cleanup rows do not cover every stage exactly once",
+          "Retry cleanup not confirmed: a cleanup row is unsettled",
+          "Retry settlement phase not completed",
+          "Retry not every stage was admitted",
+          "Retry not every stage executed every step",
+          "Retry recipients were not approved by this attempt's Send or Retry",
+          "Retry approval does not cover ordered activations and tokens",
+          "Retry approved recipients differ from the frozen route",
+          "Retry approval is not addressed to the stage 0 coordinator",
+          "Retry approval binds another model or plan",
+          "Retry executed route differs from the approved route",
+          "Retry requester approved itself as a stage"
+        ],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "REP-6 docs/roadmap/requirements.md:406"
+        ]
+      },
+      "selectiveAcquisition": {
+        "pass": false,
+        "failures": [
+          "Requester received or retained weights, or custody evidence is missing"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:133"
+        ]
+      },
+      "timing": {
+        "pass": false,
+        "failures": [
+          "Retry timing record missing"
+        ],
+        "requirements": [
+          "ROADMAP.md:14"
+        ]
+      }
+    },
+    "observedErrorCode": null,
+    "manualReview": {
+      "answerUsefulness": null,
+      "criteria": [
+        "The retried answer completes the requested count; correctness of the count is reviewed separately from lifecycle acceptance.",
+        "The requester-visible report states that a contributor was lost, not only that the answer could not finish."
+      ],
+      "reviewer": null
+    }
+  },
+  "status": "automated acceptance failed",
+  "requesterClosedWhileActive": false,
+  "finishedAt": "2026-10-14T03:41:10.775Z"
+}

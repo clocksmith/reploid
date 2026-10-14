@@ -1,0 +1,376 @@
+{
+ "schema": "reploid.signed-completion-journey-run-2-results/v1",
+ "harnesses": {
+  "contributor-loss": {
+   "report": "reports/contributor-loss-2026-10-14T03-40-37-663Z.json",
+   "ok": false,
+   "startedAt": "2026-10-14T03:40:37.663Z",
+   "finishedAt": "2026-10-14T03:41:10.775Z",
+   "failure": "locator.selectOption: Timeout 30000ms exceeded.",
+   "stepErrors": {},
+   "checks": {
+    "lossInjected": {
+     "pass": false,
+     "failures": [
+      "Contributor was not stopped while the conversation was streaming",
+      "Injected stop callback did not report its method and time"
+     ]
+    },
+    "lossReported": {
+     "pass": false,
+     "failures": [
+      "Requester error does not report contributor loss (observed unclassified: none)",
+      "Rendered failure status does not report contributor loss (none)"
+     ]
+    },
+    "ownershipExplicit": {
+     "pass": false,
+     "failures": [
+      "Requester attempt did not settle as failed",
+      "Requester error is not an explicit partition failure category",
+      "Coordinator cleanup rows do not cover every stage exactly once",
+      "Coordinator phase contradicts its cleanup rows",
+      "Coordinator receipt lacks the failure cause"
+     ]
+    },
+    "noSilentContinuation": {
+     "pass": false,
+     "failures": [
+      "Failed attempt lost the partial answer visible before the loss",
+      "Post-failure observations missing",
+      "Post-failure observation interval incomplete"
+     ]
+    },
+    "explicitRetry": {
+     "pass": false,
+     "failures": [
+      "Capacity did not return before the deadline",
+      "Injected restore callback did not report its method",
+      "Retry was requested before capacity returned",
+      "Explicit retry did not start exactly one new attempt linked to the failure",
+      "Retry not complete",
+      "Retry natural EOS unobserved",
+      "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Retry ordered route identity unobserved",
+      "Retry route binds a different model or plan than the freeze",
+      "Retry distinct route contributors (0) differ from the frozen route (3)",
+      "Retry route stages differ from the frozen stage order",
+      "Retry requester was assigned a stage",
+      "Retry cleanup rows do not cover every stage exactly once",
+      "Retry cleanup not confirmed: a cleanup row is unsettled",
+      "Retry settlement phase not completed",
+      "Retry not every stage was admitted",
+      "Retry not every stage executed every step",
+      "Retry recipients were not approved by this attempt's Send or Retry",
+      "Retry approval does not cover ordered activations and tokens",
+      "Retry approved recipients differ from the frozen route",
+      "Retry approval is not addressed to the stage 0 coordinator",
+      "Retry approval binds another model or plan",
+      "Retry executed route differs from the approved route",
+      "Retry requester approved itself as a stage"
+     ]
+    },
+    "selectiveAcquisition": {
+     "pass": false,
+     "failures": [
+      "Requester received or retained weights, or custody evidence is missing"
+     ]
+    },
+    "timing": {
+     "pass": false,
+     "failures": [
+      "Retry timing record missing"
+     ]
+    }
+   }
+  },
+  "requester-journey": {
+   "report": "reports/requester-journey-2026-10-14T03-36-17-461Z.json",
+   "ok": false,
+   "startedAt": "2026-10-14T03:36:17.461Z",
+   "finishedAt": "2026-10-14T03:36:50.551Z",
+   "failure": "locator.selectOption: Timeout 30000ms exceeded.",
+   "stepErrors": {},
+   "checks": {
+    "open": {
+     "pass": false,
+     "failures": [
+      "Application never reported a ready ordered model",
+      "Fresh requester unexpectedly contains attempts",
+      "Requester did not enter ordered mode with stage: null",
+      "Requester is contributing compute"
+     ]
+    },
+    "modelChoice": {
+     "pass": false,
+     "failures": [
+      "The frozen ordered model was not chosen through the model control",
+      "No chosen-model conversation observed"
+     ]
+    },
+    "recipientApproval": {
+     "pass": false,
+     "failures": [
+      "No approved attempt observed"
+     ]
+    },
+    "selectiveAcquisition": {
+     "pass": false,
+     "failures": [
+      "Requester received or retained weights, or custody evidence is missing",
+      "A concurrent requester tab received weights or lacks custody evidence",
+      "Retry requester tab received weights or lacks custody evidence"
+     ]
+    },
+    "streaming": {
+     "pass": false,
+     "failures": [
+      "Two completed turns required"
+     ]
+    },
+    "completion": {
+     "pass": false,
+     "failures": [
+      "Two completed turns required"
+     ]
+    },
+    "followUp": {
+     "pass": false,
+     "failures": [
+      "Two completed turns required"
+     ]
+    },
+    "copy": {
+     "pass": false,
+     "failures": [
+      "Two completed turns required"
+     ]
+    },
+    "reload": {
+     "pass": false,
+     "failures": [
+      "Reload changed messages or attempts",
+      "Reload lost unsent draft",
+      "New/changed attempt observed after reload, or return observations missing",
+      "Bounded redispatch observation incomplete"
+     ]
+    },
+    "concurrency": {
+     "pass": false,
+     "failures": [
+      "Expected 2 concurrent independent tabs",
+      "Concurrent requests exceed the served route admission limit",
+      "Concurrent requests were never executing simultaneously",
+      "Exactly one cancelled tab and the rest surviving tabs required"
+     ]
+    },
+    "isolatedCancellation": {
+     "pass": false,
+     "failures": [
+      "Stopped request did not settle as a requester cancellation",
+      "Stopped request did not preserve its visible partial answer",
+      "Coordinator did not settle every stage of the cancelled attempt",
+      "No surviving neighbour observed"
+     ]
+    },
+    "explicitRetry": {
+     "pass": false,
+     "failures": [
+      "No unsuccessful attempt (other than a user stop) preceded the retry",
+      "Failed attempt did not retain its partial answer",
+      "An attempt was redispatched before the explicit retry",
+      "Explicit retry did not start exactly one new attempt linked to the failure",
+      "Retry not complete",
+      "Retry natural EOS unobserved",
+      "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Retry ordered route identity unobserved",
+      "Retry route binds a different model or plan than the freeze",
+      "Retry distinct route contributors (0) differ from the frozen route (3)",
+      "Retry route stages differ from the frozen stage order",
+      "Retry requester was assigned a stage",
+      "Retry cleanup rows do not cover every stage exactly once",
+      "Retry cleanup not confirmed: a cleanup row is unsettled",
+      "Retry settlement phase not completed",
+      "Retry not every stage was admitted",
+      "Retry not every stage executed every step",
+      "Retry recipients were not approved by this attempt's Send or Retry",
+      "Retry approval does not cover ordered activations and tokens",
+      "Retry approved recipients differ from the frozen route",
+      "Retry approval is not addressed to the stage 0 coordinator",
+      "Retry approval binds another model or plan",
+      "Retry executed route differs from the approved route",
+      "Retry requester approved itself as a stage",
+      "Coordinator did not settle every stage of the failed attempt"
+     ]
+    },
+    "timing": {
+     "pass": false,
+     "failures": [
+      "A completed answer lacks an attempt identity for timing"
+     ]
+    }
+   }
+  },
+  "storage-contribution": {
+   "report": "reports/storage-contribution-2026-10-14T03-41-48-969Z.json",
+   "ok": false,
+   "startedAt": "2026-10-14T03:41:48.969Z",
+   "finishedAt": "2026-10-14T03:52:59.873Z",
+   "failure": null,
+   "stepErrors": {
+    "sharedWhileChatting": "locator.selectOption: Timeout 30000ms exceeded.",
+    "peerAcquisition": "Error: Prerequisite sharing step did not share",
+    "cachedOnly": "Error: Custody owner deadline",
+    "reloadPreserved": "Error: Prerequisite sharing step did not share",
+    "stopSettles": "locator.selectOption: Timeout 30000ms exceeded.",
+    "competingTabs": "Error: Custody owner deadline"
+   },
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": false,
+     "failures": [
+      "Subset was not acquired in bounded-acquisition mode",
+      "File contribution is not sharing",
+      "No verified piece is offered",
+      "Offered subset exceeds the approved allowance or subset limit",
+      "Acquisition allowance missing, renewed or overspent",
+      "File contribution did not overlap an active conversation",
+      "Sharer conversation not complete",
+      "Sharer conversation natural EOS unobserved",
+      "Sharer conversation ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Sharer conversation ordered route identity unobserved",
+      "Sharer conversation route binds a different model or plan than the freeze",
+      "Sharer conversation distinct route contributors (0) differ from the frozen route (3)",
+      "Sharer conversation route stages differ from the frozen stage order",
+      "Sharer conversation requester was assigned a stage",
+      "Sharer conversation cleanup rows do not cover every stage exactly once",
+      "Sharer conversation cleanup not confirmed: a cleanup row is unsettled",
+      "Sharer conversation settlement phase not completed",
+      "Sharer conversation not every stage was admitted",
+      "Sharer conversation not every stage executed every step"
+     ]
+    },
+    "peerAcquisition": {
+     "pass": false,
+     "failures": [
+      "Acquirer is not another computer",
+      "Sharer transport identity unobserved",
+      "Acquirer completed none of the shared pieces",
+      "Acquirer fetched weights over HTTP during peer acquisition",
+      "Sharer supply accounting does not cover the transferred pieces"
+     ]
+    },
+    "reloadPreserved": {
+     "pass": false,
+     "failures": [
+      "No verified inventory before reload",
+      "Consumed allowance unobserved before or after reload",
+      "Reload reset consumed allowance",
+      "Inventory was not rebuilt from the cache alone"
+     ]
+    },
+    "competingTabs": {
+     "pass": false,
+     "failures": [
+      "Two independent tabs required",
+      "Shared ledger missing or its cap changed",
+      "Ledger reservations exceed the allowance",
+      "Observed transfers overspent the allowance",
+      "A transfer was not charged to the shared ledger"
+     ]
+    },
+    "interruptedResume": {
+     "pass": false,
+     "failures": [
+      "No in-flight transfer was interrupted"
+     ]
+    },
+    "cachedOnly": {
+     "pass": false,
+     "failures": [
+      "Cached-only mode was not selected",
+      "Cached-only mode issued model-file acquisition requests",
+      "Cached-only mode created a custody acquisition",
+      "Cached-only mode left a transfer pending"
+     ]
+    },
+    "stopSettles": {
+     "pass": false,
+     "failures": [
+      "No acquisition was in flight when contribution stopped",
+      "Stopped contribution did not settle its transfers",
+      "Stopping refunded, renewed or lost incurred charges",
+      "Acquisition continued after contribution settled",
+      "Conversation was not active when contribution stopped",
+      "Conversation after stop not complete",
+      "Conversation after stop natural EOS unobserved",
+      "Conversation after stop ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Conversation after stop ordered route identity unobserved",
+      "Conversation after stop route binds a different model or plan than the freeze",
+      "Conversation after stop distinct route contributors (0) differ from the frozen route (3)",
+      "Conversation after stop route stages differ from the frozen stage order",
+      "Conversation after stop requester was assigned a stage",
+      "Conversation after stop cleanup rows do not cover every stage exactly once",
+      "Conversation after stop cleanup not confirmed: a cleanup row is unsettled",
+      "Conversation after stop settlement phase not completed",
+      "Conversation after stop not every stage was admitted",
+      "Conversation after stop not every stage executed every step"
+     ]
+    }
+   }
+  }
+ },
+ "firstFailure": {
+  "requester-journey": "harness.mjs:130 (chooseOrderedModel selectOption) from run-requester.mjs:51: [data-active-model-select] \"element is not visible\" for 30 s; every later phase unobserved, so all 13 checks fail closed",
+  "contributor-loss": "same line, from run-contributor-loss.mjs:51; no loss injected (control module never called); all 7 checks fail closed",
+  "storage-contribution": "(a) and (f) same line via startChat run-contribution.mjs:50; (b),(c) prerequisite; (e) and (d)-competingTabs: Custody owner deadline at run-contribution.mjs:97 and :150 on the second tab of a browser context; (d)-interruptedResume ran: only \"No in-flight transfer was interrupted\" failed"
+ },
+ "classification": {
+  "harnessDefects": [
+   {
+    "id": "H1",
+    "what": "chooseOrderedModel selects in the model <select> without opening the thread rail that contains it",
+    "where": "artifacts/signed-completion-journey-20261013/harness.mjs:126-131 (selectOption at :130)",
+    "evidence": "select is in aside#chat-threads (self/ui/pool-home/conversation-workspace.js:17-27); the rail starts closed, setThreads(viewState.threadsOpen ?? false) at :103; the app opens it through [data-open-model] (:104) or [data-toggle-thread-rail] (:105). Fresh requester had selectedId null, so the select was not hidden by :186; the catalog option was present and Ready (data-catalog attribute in the failure log).",
+    "observed": true
+   },
+   {
+    "id": "H2",
+    "what": "Multi-tab steps assume each same-context tab is an independent instance and requester; on the product route only one tab per browser profile can connect",
+    "where": "harness README line 36 and run-requester.mjs concurrency tabs (same context); run-contribution.mjs cachedOnly (second supplier tab) and competingTabs (two tabs, one context)",
+    "evidence": "probe bringup/probe-second-tab.json: second tab network.error \"Another tab owns this peer connection\", no consumer peer, no custody owner. Code: index.html product route boots /ui/pool-home/index.js and never calls ensureReploidWindowInstance (only kernel/boot.js:160 does), so getCurrentReploidInstanceId() is null without an instance URL parameter (self/instance.js:156-160) and storage is unscoped; self/host/work-swarm.js:165 calls peerOffers.acquire(); self/host/work-peer-offers.js:16-21 reads one stored peer id per room and takes Web Lock reploid:tool-peer:<id> with ifAvailable, rejecting the second tab.",
+    "observed": true,
+    "note": "Whether one connected tab per profile is the intended product contract or a REP-7 concurrency defect is a product decision; the code path is deliberate (an explicit lock with a specific message)."
+   },
+   {
+    "id": "H3",
+    "what": "interruptedResume cannot catch an in-flight transfer: the first indexed pieces are 64 and 512 bytes and complete over loopback in milliseconds before the reload takes effect",
+    "where": "run-contribution.mjs:170-178 (second-piece-in-flight wait at :174, reload at :178)",
+    "evidence": "reports/storage-contribution-*.json interruption: 12 completed before reload, 0 interrupted, 75 resumed; every other interruptedResume assertion passed (no re-download of completed transfers, ledger 13631485 of 13631488, all transfers charged, resumed contribution shares 85 pieces)",
+    "observed": true
+   }
+  ],
+  "applicationDefects": [
+   {
+    "id": "A0",
+    "status": "fixed in d7931c57 and confirmed in installed/served bytes",
+    "what": "run-1 reploid-partitions-ordered label rejection; route formed in run 2"
+   }
+  ],
+  "applicationFindings": [
+   {
+    "id": "F1",
+    "what": "Native CLI has no file or environment option for the room capability; the token is on the node process argv",
+    "where": "server/native-participant.js:480,489,529",
+    "observed": true
+   },
+   {
+    "id": "F2",
+    "what": "REPLOID_INSTANCE_ID is never set on the product route (observeChat instanceId null for the stage 0 page with ?instance= and for the requester), so the harness concurrency check \"Tabs are not independent application instances\" would fail even with independent tabs",
+    "where": "index.html product-route boot vs kernel/boot.js:160; artifacts/signed-completion-journey-20261013/observe.mjs:72",
+    "observed": "instanceId null observed; consequence for the concurrency check is inferred"
+   }
+  ]
+ },
+ "notExercised": "No conversation was sent: Send-as-approval, streaming, follow-up, copy, reload, concurrency, cancellation, retry, contributor loss and peer acquisition remain unobserved. REP-7 Approve/Decline wording stays an open manual-review item."
+}

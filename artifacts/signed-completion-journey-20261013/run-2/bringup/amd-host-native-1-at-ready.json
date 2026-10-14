@@ -1,0 +1,383 @@
+{
+ "schema": "reploid.run-2-native-log-summary/v1",
+ "machine": "amd-host",
+ "log": "/var/tmp/reploid-signed-completion-journey-run2-20261013/scj-run2-amd-native-1.log",
+ "init": {
+  "event": "native-initialized",
+  "participantId": "peer:9af15d884eba51b0c0540e2a",
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16"
+ },
+ "partitionTransitions": [
+  {
+   "line": 10,
+   "event": "partition-state",
+   "phase": "idle",
+   "error": null,
+   "offering": false,
+   "modelId": null,
+   "unsettledOwners": 0,
+   "progress": null,
+   "placement": [],
+   "placementOmitted": 0,
+   "descriptor": null,
+   "reservations": null,
+   "attempts": {
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "acquisition": null
+  },
+  {
+   "line": 13,
+   "event": "partition-state",
+   "phase": "loading",
+   "error": null,
+   "offering": true,
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "unsettledOwners": 0,
+   "progress": null,
+   "placement": [],
+   "placementOmitted": 0,
+   "descriptor": null,
+   "reservations": null,
+   "attempts": {
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "acquisition": null
+  },
+  {
+   "line": 17,
+   "event": "partition-state",
+   "phase": "loading",
+   "error": null,
+   "offering": true,
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "unsettledOwners": 0,
+   "progress": {
+    "stage": "opening",
+    "message": "Opening native assigned partition"
+   },
+   "placement": [],
+   "placementOmitted": 0,
+   "descriptor": null,
+   "reservations": null,
+   "attempts": {
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "acquisition": null
+  },
+  {
+   "line": 57,
+   "event": "partition-state",
+   "phase": "ready",
+   "error": null,
+   "offering": true,
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "unsettledOwners": 0,
+   "progress": null,
+   "placement": [],
+   "placementOmitted": 0,
+   "descriptor": {
+    "schema": "doppler.resident-partition/v2",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "index": 1,
+    "ready": true,
+    "residentWeightBytes": 94953472,
+    "generationDigest": "sha256:8dc76cd41787bbdda87506913b74bf058ecdcd979c6cb04a9a5cfe7c476d257f",
+    "layerRange": [
+     8,
+     15
+    ]
+   },
+   "reservations": {
+    "active": 0,
+    "availableSlots": 2,
+    "closed": false,
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "attempts": {
+    "count": 0,
+    "omitted": 0,
+    "records": []
+   },
+   "acquisition": {
+    "openingMode": "signed-capsule",
+    "memory": {
+     "liveBytes": 97104144,
+     "maxBytes": 1420000000,
+     "peakBytes": 113881408,
+     "allocations": 129,
+     "rejected": 0
+    },
+    "preparation": {}
+   }
+  }
+ ],
+ "lastNetwork": {
+  "line": 1183,
+  "peerCount": 2,
+  "connectionState": "connected",
+  "files": {
+   "sharing": true,
+   "offered": null,
+   "suppliedBytes": 1458219861,
+   "supplyBudget": null,
+   "supplyBudgetError": null,
+   "cache": {
+    "quarantined": []
+   }
+  }
+ },
+ "stderrLines": [
+  {
+   "line": 46,
+   "text": "[WebRTCSwarm] Peer joined: 5d5e664f-abce-4194-aca2-0257214ce6e8"
+  },
+  {
+   "line": 47,
+   "text": "[WebRTCSwarm] Received offer from: 5d5e664f-abce-4194-aca2-0257214ce6e8"
+  },
+  {
+   "line": 48,
+   "text": "[WebRTCSwarm] Data channel opened with 5d5e664f-abce-4194-aca2-0257214ce6e8"
+  },
+  {
+   "line": 52,
+   "text": "[7196.0ms][Loader] Layers: 8 complete (2.70s)"
+  },
+  {
+   "line": 53,
+   "text": "[7196.3ms][Loader] Complete: 89.58 MB in 2.70s (33.22 MB/s)"
+  },
+  {
+   "line": 54,
+   "text": "[7197.1ms][Loader] [2.7s] Memory (complete): | RSS=404.79 MB (heap=74.94 MB/117.40 MB, external=1.07 GB, arrayBuffers=1.06 GB) | GPU=90.55 MB (114 active, 0 pooled, peak=90.55 MB) | ShardCache=0 B (0 shards) | Layers=8, GPUBuffers=114"
+  },
+  {
+   "line": 55,
+   "text": "[7211.5ms][Pipeline] Model loaded successfully (3417ms)"
+  },
+  {
+   "line": 56,
+   "text": "[7214.1ms][doppler] Model ready"
+  },
+  {
+   "line": 102,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 6ms"
+  },
+  {
+   "line": 148,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 60ms"
+  },
+  {
+   "line": 194,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 13ms"
+  },
+  {
+   "line": 210,
+   "text": "[WebRTCSwarm] Peer joined: 19d7d7a6-5ff3-457e-95a3-6c68d0326c63"
+  },
+  {
+   "line": 211,
+   "text": "[WebRTCSwarm] Received offer from: 19d7d7a6-5ff3-457e-95a3-6c68d0326c63"
+  },
+  {
+   "line": 212,
+   "text": "[WebRTCSwarm] Peer left: 19d7d7a6-5ff3-457e-95a3-6c68d0326c63"
+  },
+  {
+   "line": 213,
+   "text": "[WebRTCSwarm] Peer left: 5d5e664f-abce-4194-aca2-0257214ce6e8"
+  },
+  {
+   "line": 214,
+   "text": "[WebRTCSwarm] Peer joined: 19d7d7a6-5ff3-457e-95a3-6c68d0326c63"
+  },
+  {
+   "line": 215,
+   "text": "[WebRTCSwarm] Cannot send to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: not connected"
+  },
+  {
+   "line": 216,
+   "text": "[WebRTCSwarm] Received offer from: 19d7d7a6-5ff3-457e-95a3-6c68d0326c63"
+  },
+  {
+   "line": 217,
+   "text": "[WebRTCSwarm] Data channel opened with 19d7d7a6-5ff3-457e-95a3-6c68d0326c63"
+  },
+  {
+   "line": 221,
+   "text": "[WebRTCSwarm] Peer joined: 5d5e664f-abce-4194-aca2-0257214ce6e8"
+  },
+  {
+   "line": 264,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 6ms"
+  },
+  {
+   "line": 265,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 176ms"
+  },
+  {
+   "line": 311,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 71ms"
+  },
+  {
+   "line": 312,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 174ms"
+  },
+  {
+   "line": 358,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 11ms"
+  },
+  {
+   "line": 359,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 35ms"
+  },
+  {
+   "line": 405,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 10ms"
+  },
+  {
+   "line": 406,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 33ms"
+  },
+  {
+   "line": 452,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 48ms"
+  },
+  {
+   "line": 453,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 94ms"
+  },
+  {
+   "line": 499,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 7ms"
+  },
+  {
+   "line": 500,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 37ms"
+  },
+  {
+   "line": 544,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 10ms"
+  },
+  {
+   "line": 547,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 139ms"
+  },
+  {
+   "line": 590,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 8ms"
+  },
+  {
+   "line": 591,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 53ms"
+  },
+  {
+   "line": 637,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 26ms"
+  },
+  {
+   "line": 638,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 133ms"
+  },
+  {
+   "line": 684,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 6ms"
+  },
+  {
+   "line": 685,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 34ms"
+  },
+  {
+   "line": 731,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 8ms"
+  },
+  {
+   "line": 732,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 95ms"
+  },
+  {
+   "line": 778,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 7ms"
+  },
+  {
+   "line": 779,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 48ms"
+  },
+  {
+   "line": 825,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 19ms"
+  },
+  {
+   "line": 826,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 43ms"
+  },
+  {
+   "line": 872,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 7ms"
+  },
+  {
+   "line": 873,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 58ms"
+  },
+  {
+   "line": 917,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 183ms"
+  },
+  {
+   "line": 920,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 499ms"
+  },
+  {
+   "line": 963,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 6ms"
+  },
+  {
+   "line": 964,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 34ms"
+  },
+  {
+   "line": 1010,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 8ms"
+  },
+  {
+   "line": 1011,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 21ms"
+  },
+  {
+   "line": 1057,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 8ms"
+  },
+  {
+   "line": 1058,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 15ms"
+  },
+  {
+   "line": 1104,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 16ms"
+  },
+  {
+   "line": 1105,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 16ms"
+  },
+  {
+   "line": 1151,
+   "text": "[WebRTCSwarm] Latency to 5d5e664f-abce-4194-aca2-0257214ce6e8: 7ms"
+  },
+  {
+   "line": 1152,
+   "text": "[WebRTCSwarm] Latency to 19d7d7a6-5ff3-457e-95a3-6c68d0326c63: 57ms"
+  }
+ ],
+ "stderrLineCount": 96
+}

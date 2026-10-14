@@ -1,0 +1,326 @@
+{
+  "schema": "reploid.signed-completion-journey-report/v1",
+  "harness": "requester-journey",
+  "startedAt": "2026-10-14T03:36:17.461Z",
+  "configSha256": "2cd670d8ed03a85bce1f6dc1d54daf66b5afb1b94d186fefcef9bf86a91f6766",
+  "fixtureSha256": "67000d39ccb6c79822579a973477e33960d7c1a4cf625a2f8a5674177b2b1dd0",
+  "freeze": {
+    "browserBundle": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d",
+    "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [
+      8,
+      16
+    ],
+    "nativeArtifacts": {
+      "amd-host": "sha256:845b84bbce4e7cb1beddd0b246329c89d662057f45895b47b4b1dd6452ee9314",
+      "intel-host": "sha256:845b84bbce4e7cb1beddd0b246329c89d662057f45895b47b4b1dd6452ee9314"
+    },
+    "route": [
+      {
+        "index": 0,
+        "machine": "mac-host",
+        "host": "browser",
+        "participantId": "peer:15923429008fd27579410a26"
+      },
+      {
+        "index": 1,
+        "machine": "amd-host",
+        "host": "native",
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run2-20261013/amd-host-stage-1.json"
+      },
+      {
+        "index": 2,
+        "machine": "intel-host",
+        "host": "native",
+        "participantId": "peer:09610aefbd15a133d7af2b57",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run2-20261013/intel-host-stage-2.json"
+      }
+    ]
+  },
+  "ok": false,
+  "errors": [],
+  "scope": "Useful plain coding conversation, reload, concurrent independent tabs, isolated cancellation and explicit retry through the installed signed application on the frozen ordered route; attachments and document tasks excluded.",
+  "questions": [
+    "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].",
+    "Using that same function, what is returned for [-2, 3, 6]? Answer only with the array."
+  ],
+  "weights": [],
+  "modelFileRequests": [],
+  "turns": [],
+  "streamSamples": [],
+  "returnSamples": [],
+  "timing": [],
+  "sends": [],
+  "open": {
+    "servedDescriptor": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d"
+  },
+  "failure": "locator.selectOption: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-active-model-select]')\u001b[22m\n\u001b[2m    - locator resolved to <select id=\"chat-model\" aria-label=\"Model\" data-active-model-select=\"\" class=\"pool-input pool-glass\" data-catalog=\"[[\"qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf\",\"Qwen 3.5 0.8B\",\"Ready\"]]\">…</select>\u001b[22m\n\u001b[2m  - attempting select option action\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m    - waiting 20ms\u001b[22m\n\u001b[2m    2 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m      - element is not visible\u001b[22m\n\u001b[2m    - retrying select option action\u001b[22m\n\u001b[2m      - waiting 100ms\u001b[22m\n\u001b[2m    59 × waiting for element to be visible and enabled\u001b[22m\n\u001b[2m       - element is not visible\u001b[22m\n\u001b[2m     - retrying select option action\u001b[22m\n\u001b[2m       - waiting 500ms\u001b[22m\n\n    at chooseOrderedModel (/Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:130:45)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-requester.mjs:51:41",
+  "body": "7\n7\nMessage\nAttach files",
+  "finalState": {
+    "schema": "reploid.chat-owner-observation/v1",
+    "source": "existing host getState/getDraft",
+    "storageMode": "legacy",
+    "threads": [],
+    "selectedId": null,
+    "runningIds": [],
+    "storageError": null,
+    "drafts": {
+      "new": {
+        "text": "",
+        "files": []
+      }
+    },
+    "requesterPeerId": "peer:e7d70af67f0b09236ddc2a43",
+    "instanceId": null
+  },
+  "assessment": {
+    "automatedPass": false,
+    "lifecycleAndInteractionPass": false,
+    "failures": [
+      "open: Application never reported a ready ordered model",
+      "open: Fresh requester unexpectedly contains attempts",
+      "open: Requester did not enter ordered mode with stage: null",
+      "open: Requester is contributing compute",
+      "modelChoice: The frozen ordered model was not chosen through the model control",
+      "modelChoice: No chosen-model conversation observed",
+      "recipientApproval: No approved attempt observed",
+      "selectiveAcquisition: Requester received or retained weights, or custody evidence is missing",
+      "selectiveAcquisition: A concurrent requester tab received weights or lacks custody evidence",
+      "selectiveAcquisition: Retry requester tab received weights or lacks custody evidence",
+      "streaming: Two completed turns required",
+      "completion: Two completed turns required",
+      "followUp: Two completed turns required",
+      "copy: Two completed turns required",
+      "reload: Reload changed messages or attempts",
+      "reload: Reload lost unsent draft",
+      "reload: New/changed attempt observed after reload, or return observations missing",
+      "reload: Bounded redispatch observation incomplete",
+      "concurrency: Expected 2 concurrent independent tabs",
+      "concurrency: Concurrent requests exceed the served route admission limit",
+      "concurrency: Concurrent requests were never executing simultaneously",
+      "concurrency: Exactly one cancelled tab and the rest surviving tabs required",
+      "isolatedCancellation: Stopped request did not settle as a requester cancellation",
+      "isolatedCancellation: Stopped request did not preserve its visible partial answer",
+      "isolatedCancellation: Coordinator did not settle every stage of the cancelled attempt",
+      "isolatedCancellation: No surviving neighbour observed",
+      "explicitRetry: No unsuccessful attempt (other than a user stop) preceded the retry",
+      "explicitRetry: Failed attempt did not retain its partial answer",
+      "explicitRetry: An attempt was redispatched before the explicit retry",
+      "explicitRetry: Explicit retry did not start exactly one new attempt linked to the failure",
+      "explicitRetry: Retry not complete",
+      "explicitRetry: Retry natural EOS unobserved",
+      "explicitRetry: Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "explicitRetry: Retry ordered route identity unobserved",
+      "explicitRetry: Retry route binds a different model or plan than the freeze",
+      "explicitRetry: Retry distinct route contributors (0) differ from the frozen route (3)",
+      "explicitRetry: Retry route stages differ from the frozen stage order",
+      "explicitRetry: Retry requester was assigned a stage",
+      "explicitRetry: Retry cleanup rows do not cover every stage exactly once",
+      "explicitRetry: Retry cleanup not confirmed: a cleanup row is unsettled",
+      "explicitRetry: Retry settlement phase not completed",
+      "explicitRetry: Retry not every stage was admitted",
+      "explicitRetry: Retry not every stage executed every step",
+      "explicitRetry: Retry recipients were not approved by this attempt's Send or Retry",
+      "explicitRetry: Retry approval does not cover ordered activations and tokens",
+      "explicitRetry: Retry approved recipients differ from the frozen route",
+      "explicitRetry: Retry approval is not addressed to the stage 0 coordinator",
+      "explicitRetry: Retry approval binds another model or plan",
+      "explicitRetry: Retry executed route differs from the approved route",
+      "explicitRetry: Retry requester approved itself as a stage",
+      "explicitRetry: Coordinator did not settle every stage of the failed attempt",
+      "timing: A completed answer lacks an attempt identity for timing"
+    ],
+    "checks": {
+      "open": {
+        "pass": false,
+        "failures": [
+          "Application never reported a ready ordered model",
+          "Fresh requester unexpectedly contains attempts",
+          "Requester did not enter ordered mode with stage: null",
+          "Requester is contributing compute"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:133",
+          "ROADMAP.md:28,34"
+        ]
+      },
+      "modelChoice": {
+        "pass": false,
+        "failures": [
+          "The frozen ordered model was not chosen through the model control",
+          "No chosen-model conversation observed"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:135",
+          "ROADMAP.md:34"
+        ]
+      },
+      "recipientApproval": {
+        "pass": false,
+        "failures": [
+          "No approved attempt observed"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:135,145",
+          "DR-3 docs/roadmap/requirements.md:417"
+        ]
+      },
+      "selectiveAcquisition": {
+        "pass": false,
+        "failures": [
+          "Requester received or retained weights, or custody evidence is missing",
+          "A concurrent requester tab received weights or lacks custody evidence",
+          "Retry requester tab received weights or lacks custody evidence"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:133,173"
+        ]
+      },
+      "streaming": {
+        "pass": false,
+        "failures": [
+          "Two completed turns required"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:146,173"
+        ]
+      },
+      "completion": {
+        "pass": false,
+        "failures": [
+          "Two completed turns required"
+        ],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "REP-7 docs/roadmap/requirements.md:133,173"
+        ]
+      },
+      "followUp": {
+        "pass": false,
+        "failures": [
+          "Two completed turns required"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:133,173"
+        ]
+      },
+      "copy": {
+        "pass": false,
+        "failures": [
+          "Two completed turns required"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:146,173"
+        ]
+      },
+      "reload": {
+        "pass": false,
+        "failures": [
+          "Reload changed messages or attempts",
+          "Reload lost unsent draft",
+          "New/changed attempt observed after reload, or return observations missing",
+          "Bounded redispatch observation incomplete"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:147,173",
+          "DR-5 docs/roadmap/requirements.md:195"
+        ]
+      },
+      "concurrency": {
+        "pass": false,
+        "failures": [
+          "Expected 2 concurrent independent tabs",
+          "Concurrent requests exceed the served route admission limit",
+          "Concurrent requests were never executing simultaneously",
+          "Exactly one cancelled tab and the rest surviving tabs required"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:133",
+          "DR-5 docs/roadmap/requirements.md:190",
+          "REP-4 docs/roadmap/requirements.md:272"
+        ]
+      },
+      "isolatedCancellation": {
+        "pass": false,
+        "failures": [
+          "Stopped request did not settle as a requester cancellation",
+          "Stopped request did not preserve its visible partial answer",
+          "Coordinator did not settle every stage of the cancelled attempt",
+          "No surviving neighbour observed"
+        ],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "REP-7 docs/roadmap/requirements.md:148"
+        ]
+      },
+      "explicitRetry": {
+        "pass": false,
+        "failures": [
+          "No unsuccessful attempt (other than a user stop) preceded the retry",
+          "Failed attempt did not retain its partial answer",
+          "An attempt was redispatched before the explicit retry",
+          "Explicit retry did not start exactly one new attempt linked to the failure",
+          "Retry not complete",
+          "Retry natural EOS unobserved",
+          "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+          "Retry ordered route identity unobserved",
+          "Retry route binds a different model or plan than the freeze",
+          "Retry distinct route contributors (0) differ from the frozen route (3)",
+          "Retry route stages differ from the frozen stage order",
+          "Retry requester was assigned a stage",
+          "Retry cleanup rows do not cover every stage exactly once",
+          "Retry cleanup not confirmed: a cleanup row is unsettled",
+          "Retry settlement phase not completed",
+          "Retry not every stage was admitted",
+          "Retry not every stage executed every step",
+          "Retry recipients were not approved by this attempt's Send or Retry",
+          "Retry approval does not cover ordered activations and tokens",
+          "Retry approved recipients differ from the frozen route",
+          "Retry approval is not addressed to the stage 0 coordinator",
+          "Retry approval binds another model or plan",
+          "Retry executed route differs from the approved route",
+          "Retry requester approved itself as a stage",
+          "Coordinator did not settle every stage of the failed attempt"
+        ],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "REP-6 docs/roadmap/requirements.md:406",
+          "REP-7 docs/roadmap/requirements.md:148"
+        ]
+      },
+      "timing": {
+        "pass": false,
+        "failures": [
+          "A completed answer lacks an attempt identity for timing"
+        ],
+        "requirements": [
+          "ROADMAP.md:14"
+        ]
+      }
+    },
+    "semanticAcceptance": null,
+    "overallAcceptance": false,
+    "usefulConversationQualified": false,
+    "manualReview": {
+      "answerUsefulness": null,
+      "criteria": [
+        "The first answer supplies a complete JavaScript function that filters even values then doubles them, using filter and map, without changing the input array.",
+        "The first example evaluates to [4, 8]; any explanation must agree with the code and must not falsely claim filter/map mutate the input.",
+        "The actual first answer is retained verbatim in the second request's ordered history. No ideal assistant answer is inserted.",
+        "The follow-up answer is the array [-4, 12], consistent with the requested function. Assess factual correctness separately from natural completion."
+      ],
+      "reviewer": null,
+      "recipientDisclosureContract": null
+    },
+    "redispatchScope": "No changed attempt/history or running attempt during the recorded return interval; not proof about all future execution."
+  },
+  "status": "automated acceptance failed",
+  "requesterClosedWhileActive": false,
+  "remoteSettlementAfterRequesterClose": "no active attempt observed before close",
+  "finishedAt": "2026-10-14T03:36:50.551Z"
+}

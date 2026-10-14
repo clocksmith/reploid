@@ -1,0 +1,24 @@
+{
+ "current": {
+  "amd-host": "scj-run2-amd-native-2",
+  "intel-host": "scj-run2-intel-native-2"
+ },
+ "counter": {
+  "amd-host": 2,
+  "intel-host": 2
+ },
+ "share": {
+  "amd-host": "noshare",
+  "intel-host": "noshare"
+ },
+ "history": [
+  {
+   "action": "operator-refresh",
+   "units": {
+    "amd-host": "scj-run2-amd-native-2",
+    "intel-host": "scj-run2-intel-native-2"
+   },
+   "reason": "fresh 30-minute scopes before the requester journey"
+  }
+ ]
+}
