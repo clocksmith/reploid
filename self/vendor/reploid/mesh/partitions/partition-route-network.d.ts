@@ -1,3 +1,4 @@
+export declare const ORDERED_PARTITION_CHANNEL: 'reploid-partitions-ordered';
 import type { PartitionRoute } from './partition-contract.js';
 import type { SwarmTransport } from '../../transport/swarm.js';
 export interface RoutePartitionNetwork<T> {

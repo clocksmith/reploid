@@ -2,10 +2,12 @@ import { assertPartition as assert, canonicalPartitionJson, canonicalPartitionRo
 
 const REQUEST = 'reploid.partition-channel-route/v1';
 const ACCEPT = 'reploid.partition-channel-route-accepted/v1';
+/** Auxiliary channel label for ordered routes; the swarm transport must admit it. */
+export const ORDERED_PARTITION_CHANNEL = 'reploid-partitions-ordered';
 /** Route-bound channels inside the existing authenticated partition network. */
 export function createRoutePartitionNetwork({ transport, verifyPeer, createEndpoint, maxPeers, timeoutMs,
   ordered, onPeer = () => {}, label }) {
-  assert(label === 'reploid-partitions-ordered' && typeof ordered?.validateRoute === 'function'
+  assert(label === ORDERED_PARTITION_CHANNEL && typeof ordered?.validateRoute === 'function'
     && Number.isSafeInteger(ordered.maxRouteBytes) && ordered.maxRouteBytes > 0
     && typeof transport?.onDataChannel === 'function' && typeof transport.getPeerBinding === 'function'
     && typeof verifyPeer === 'function' && typeof createEndpoint === 'function'

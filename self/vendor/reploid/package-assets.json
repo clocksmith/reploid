@@ -656,8 +656,8 @@
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.js",
-      "bytes": 23110,
-      "sha256": "92748a347f692f1df039f085fed1c350555c8b9786da5755a223bcdec6d19bbc"
+      "bytes": 23181,
+      "sha256": "37af0d7c54c24dd55ec6f29aa3f012a7ad9e9885303920b2f11f43fd73778647"
     },
     {
       "path": "mesh/partitions/automatic-partitions.d.ts",
@@ -846,13 +846,13 @@
     },
     {
       "path": "mesh/partitions/partition-route-network.d.ts",
-      "bytes": 1148,
-      "sha256": "b43513dc6c874e68c0f6d681869c23f75f5ef4b8d245f71bd2e07a45867bcdbf"
+      "bytes": 1226,
+      "sha256": "47390220927c7a16c2945844816199cd3e672da58243cf4b5bd51966af597af3"
     },
     {
       "path": "mesh/partitions/partition-route-network.js",
-      "bytes": 10425,
-      "sha256": "20fb8045b8f85e9d5e6ce29f6454d43c1d0d9c39a245e96797e83adc26a0a7ea"
+      "bytes": 10579,
+      "sha256": "d8e80f1c5c7d0e9675ff7775c4fe3669cc7dc8f6d5a1dfc95387ee536953b585"
     },
     {
       "path": "mesh/partitions/partition-runner.d.ts",
@@ -1086,13 +1086,13 @@
     },
     {
       "path": "transport/swarm.d.ts",
-      "bytes": 2341,
-      "sha256": "a96db905fee4d1a453ab004c3f66d46f75fc6dd74a172b6427dc4f70c9e3fbd5"
+      "bytes": 2453,
+      "sha256": "bb89742bd23ae7edc35f66ea5f409f4eeb9ff327c78a65c1369abebae443a24f"
     },
     {
       "path": "transport/swarm.js",
-      "bytes": 46585,
-      "sha256": "407d453582b837099f34c07788892d88a1b1af49db2625ea2799ad59e3d2da6e"
+      "bytes": 46774,
+      "sha256": "ae1d9239e6b3ef5753aae822ae9fe9be4b888d425b20efd871e0b618f8847579"
     },
     {
       "path": "transport/tool-offer-channel.d.ts",

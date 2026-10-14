@@ -1,0 +1,82 @@
+{
+  "schema": "reploid.signed-completion-journey-run-1-bringup/v1",
+  "outcome": "failed: both native contributors opened the signed Capsule and verified the release history, then failed before ready; the run stopped under the bring-up rule",
+  "machines": "mac-host, amd-host, intel-host are aliases; no hostnames are recorded",
+  "candidate": {
+    "application": "Reploid f1b2fd77 export, /var/tmp/reploid-signed-completion-app-20261013/app",
+    "browserBundle": "sha256:c6de2012f2dcfb41b973246ed91a20c92a8596f54665d75088dd1039e31cd8df (served /config/browser-bundle-manifest.json, observed)",
+    "nativePackage": "/var/tmp/reploid-signed-completion-20261013/reploid on amd-host and intel-host",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "modelDirectory": "/var/tmp/doppler-cold-compile-model-20261013"
+  },
+  "stageAssignment": {
+    "rule": "Operator stage object is exactly {modelId,index,residentId,executionId}; participantId/transportId are optional and, when present, must equal the authenticated identities (self/host/work-partition-plan.js:63-81,90-97). residentId and executionId are operator-assigned opaque allocation labels: non-empty strings of at most 256 characters (packages/reploid/src/mesh/partitions/partition-contract.js:79-80,149), carried unchanged into the route (automatic-ordered-partitions.js:44-47,105; resident-route.js:7-9); Doppler additionally requires distinct (participantId,residentId) pairs per route (doppler-gpu src/inference/pipelines/text/resident-partition-contract.js:74-76). No application code derives them from runtime state in ordinary ordered mode (only canonical mode derives residentId=randomUUID and executionId=generation.executionIdentity, server/native-participant.js:318-321).",
+    "native": "--ordered-config document {stage, maxStages, maxStageOffersPerPeer, maxRouteBytes, maxSelectionSteps, maxRoutes} with the limits copied from self/config/ordered-participation.json; validated with the export's snapshotWorkOrderedParticipation before launch",
+    "files": ["../config/mac-host-stage-0.json", "../config/amd-host-stage-1.json", "../config/intel-host-stage-2.json"]
+  },
+  "processesStarted": {
+    "mac-host": [
+      { "alias": "app-server", "pid": 49569, "command": "node tools/app-server.mjs <export app> <capsule -c> 29670 logs/app-server-requests.jsonl", "bind": "127.0.0.1:29670", "serves": "hosting payload with firebase.json rewrites, /qualification/capsule/artifacts/model/ (catalog source.baseUrl), application PublicSwarmServer at /swarm", "why": "server/proxy.js (precedent) listens on all interfaces" },
+      { "alias": "tunnel-amd", "pid": 49633, "forwards": "remote 127.0.0.1:29670 -> mac 127.0.0.1:29670" },
+      { "alias": "tunnel-intel", "pid": 49634, "forwards": "remote 127.0.0.1:29670 -> mac 127.0.0.1:29670; mac 127.0.0.1:29674 -> remote 127.0.0.1:29674 (reserved for the acquirer inspector, never used)" }
+    ],
+    "amd-host": [
+      { "alias": "amd-native-1", "scope": "scj-run1-amd-native-1.scope", "pid": 3404087, "startedAt": "2026-10-14T03:09:34Z", "limits": "MemoryHigh=10737418240 MemoryMax=12884901888 MemorySwapMax=0 RuntimeMaxSec=1800 (observed via systemctl show)",
+        "args": "server/native-participant.js --contribute --share-files --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /var/tmp/doppler-cold-compile-model-20261013 --cache-directory /var/tmp/reploid-signed-native-metadata-20261012/cache --identity-file /var/tmp/reploid-signed-native-metadata-20261012/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin http://127.0.0.1:29670 --signaling-url ws://127.0.0.1:29670/swarm --room [PRIVATE ROOM] --room-token [REDACTED] --ordered-config /var/tmp/reploid-signed-completion-journey-run1-20261013/amd-host-stage-1.json",
+        "reusedState": "existing identity (sha256 871ad22c..., peer:9af15d884eba51b0c0540e2a), cache with its ledger, release-checkpoints beside the cache" }
+    ],
+    "intel-host": [
+      { "alias": "intel-native-1", "scope": "scj-run1-intel-native-1.scope", "pid": 1238440, "startedAt": "2026-10-14T03:09:38Z", "limits": "same as amd-native-1",
+        "args": "same as amd-native-1 with --cache-directory /var/tmp/reploid-signed-completion-journey-run1-20261013/intel-state/cache --identity-file /var/tmp/reploid-signed-completion-journey-run1-20261013/intel-state/identity.json --ordered-config /var/tmp/reploid-signed-completion-journey-run1-20261013/intel-host-stage-2.json",
+        "newState": "FIRST signed state for this host: identity, cache, ledger and checkpoint store were created by the application on this start" }
+    ],
+    "notStarted": ["mac-host stage 0 browser contributor", "requester browser", "storage supplier and acquirer browsers", "contributor control module"]
+  },
+  "contributors": {
+    "amd-host": {
+      "participantId": "peer:9af15d884eba51b0c0540e2a",
+      "signedCapsuleOpened": true,
+      "evidence": "log line 60: acquisition.openingMode signed-capsule; descriptor doppler.resident-partition/v2 ready=true, index 1, layerRange [8,15], residentWeightBytes 94953472, planId 7a4ce534..., modelIdentity 6b2cb026...; Doppler device memory live 97104144, peak 113881408 of 1420000000, rejected 0",
+      "releaseHistoryVerified": true,
+      "releaseEvidence": "checkpoint namespace sha256:ce08ba3f... advanced from sequence 1 sha256:d47ddb8d... (read-only before launch) to sequence 2 sha256:923ac7e6... (read-only after opening); no reset",
+      "reachedReady": false,
+      "phaseTransitions": "idle -> loading -> loading(Opening native assigned partition) -> failed",
+      "error": "Explicit auxiliary channel handler required",
+      "unsettledOwnersAtFailure": 1,
+      "supplyLedger": "maxBytes 4294967296, reservedBytes 662384632 before and after (unchanged)"
+    },
+    "intel-host": {
+      "participantId": "peer:09610aefbd15a133d7af2b57",
+      "firstSignedState": true,
+      "signedCapsuleOpened": true,
+      "evidence": "log line 88: openingMode signed-capsule; descriptor ready=true, index 2, layerRange [16,23], residentWeightBytes 238020608; device memory live 240171328, peak 256948544 of 1420000000, rejected 0",
+      "releaseHistoryVerified": true,
+      "releaseEvidence": "new checkpoint store created at namespace sha256:ce08ba3f..., sequence 2 sha256:923ac7e6...",
+      "reachedReady": false,
+      "phaseTransitions": "idle -> loading -> loading(Opening native assigned partition) -> failed",
+      "error": "Explicit auxiliary channel handler required",
+      "unsettledOwnersAtFailure": 1,
+      "supplyLedger": "new ledger maxBytes 4294967296, reservedBytes 0"
+    },
+    "mac-host": {
+      "started": false,
+      "reason": "Bring-up rule: stop when signed opening/readiness fails on any contributor.",
+      "inferredOutcome": "Same failure (source inference, not observed): the served payload carries byte-identical vendor/reploid/transport/swarm.js (407d4535...), mesh/partitions/automatic-ordered-partitions.js (92748a34...) and partition-route-network.js (20fb8045...), and self/host/work-partition-networks.js:10 passes the real swarm transport to createPartitionNetwork."
+    }
+  },
+  "defect": {
+    "symptom": "Every ordered contributor opens its resident, then fails before ready; no ordered route can form.",
+    "codePath": [
+      "packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:109 prepare() creates the execution network with label 'reploid-partitions-ordered' after the resident is ready",
+      "packages/reploid/src/mesh/partitions/partition-route-network.js:8 requires exactly that label, and :140 registers it with transport.onDataChannel(label, ...)",
+      "packages/reploid/src/transport/swarm.js:11-12 AUXILIARY_CHANNELS = ['reploid-custody','reploid-partitions','reploid-partitions-input','reploid-partitions-control','reploid-jobs'] omits 'reploid-partitions-ordered'",
+      "packages/reploid/src/transport/swarm.js:1194 throws 'Explicit auxiliary channel handler required'; :92-95 (retainAuxiliary) and :1200 (openDataChannel) would reject the same label on accept and open",
+      "automatic-ordered-partitions.js:131-135 catches it: phase 'failed', resident moved to debt (unsettledOwners 1)"
+    ],
+    "installedBytes": "swarm.js sha256 407d453582b8... identical in the export, the served payload and both installed native packages; automatic-ordered-partitions.js 92748a347f69..., partition-route-network.js 20fb8045b8f8... identical likewise",
+    "whyTestsMissedIt": "tests/unit/ordered-partition-network.test.js:17 and tests/unit/automatic-ordered-network.test.js:33 inject a fake transport whose onDataChannel accepts any label",
+    "checkoutHead": "packages/reploid/src/transport/swarm.js:11-12 at HEAD 7e250b08 has the same list (not fixed)"
+  },
+  "harnesses": "run-requester.mjs, run-contributor-loss.mjs and run-contribution.mjs were not run: no ordered route can form, and the bring-up rule requires stopping. No journey config was written because the stage 0 participantId never existed."
+}
