@@ -1,0 +1,34 @@
+{
+  "schema": "reploid.functional-gpu-reservation/v1",
+  "approved": true,
+  "authority": "Operator-adopted review in session: a changed configuration needs its applicable qualification; coordinator directive to requalify archive 2df37d88 with prefill chunk 16 in placements A and B",
+  "id": "chunked-prefill-qualification-3a2-20261014",
+  "observedAt": "2026-10-14T12:46:23.628119+00:00",
+  "sharedMachineNotes": "Public co-tenants remain on amd-host and intel-host and are not addressed. Bounded stop conditions: any new i915 fence expiration, GPU hang or engine reset on intel-host stops the campaign. Functional numerical route with retained driver caches; not cold-start, isolation or throughput acceptance.",
+  "scope": "Three physical hosts, 55 unchanged independent F64 prefixes; stop on first numerical failure. Same archive, reference, tolerance, deadlines and limits as campaign 2; only prefillTokenChunkSize changes (256 to 16) and, for B, which machine runs partitions 1 and 2.",
+  "order": [
+    "Mac-stage0",
+    "AMD-stage1",
+    "Intel-stage2"
+  ],
+  "maxGpuBufferBytes": 1420000000,
+  "deadlines": {
+    "stageMs": 300000,
+    "cleanupMs": 10000,
+    "observationMs": 2000
+  },
+  "nativeHostLimits": {
+    "memoryHighBytes": 10737418240,
+    "memoryMaxBytes": 12884901888,
+    "swapBytes": 0,
+    "supervisorDeadlineMs": 1740000,
+    "scopeDeadlineSeconds": 1800
+  },
+  "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+  "preparation": "Expected identity is a fresh load-only chunk-16 observation (identity-observation/mac-stage-0.json; no token executed), checked to differ from the retained chunk-256 observation only in the chunk, the resolved runtime session id and derived hashes. Attempt a1 froze a hand-rebuilt identity and the live harness refused it before any token. Process preflights, endpoints and output are fresh, and the harness re-verifies live execution identities, providers and plan before token execution.",
+  "ownershipCheck": {
+    "mac-host": "Mac delivery server from attempt a1 reused (loopback 29850/29851); attempt a1 browser owner closed; tunnels 29994/29995 reused",
+    "amd-host": "public contributors 4103868 and 4121371 running unchanged; attempt a1 scopes stopped; no campaign scopes, ports or owned processes",
+    "intel-host": "public contributors 297260 and 299769 running unchanged; attempt a1 scopes stopped; no campaign scopes, ports or owned processes; no i915 events since 08:43 local"
+  }
+}

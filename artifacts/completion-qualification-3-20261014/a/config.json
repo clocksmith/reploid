@@ -1,0 +1,180 @@
+{
+  "schema": "reploid.ordered-qualification-capture/v1",
+  "launchReady": true,
+  "expectations": {
+    "path": "/var/tmp/reploid-completion-qualification-3-20261014/a/expectations.json",
+    "hash": "sha256:b98531acc3c89557d47144e9a4973353a8e311c7338848f51d47d7af92883784"
+  },
+  "root": "/var/tmp/reploid-completion-candidate-20261013",
+  "runtimeDirectory": "/var/tmp/reploid-completion-candidate-20261013/vendor/doppler/0.6.28",
+  "packageVersion": "0.6.28",
+  "model": {
+    "id": "qwen-3-5-0-8b-q4k-ehaf16",
+    "name": "Qwen 3.5 0.8B",
+    "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "source": {
+      "baseUrl": "https://huggingface.co/clocksmith/rdrr/resolve/80d7716270b6371d541de979eff3370edaf34e13/models/qwen-3-5-0-8b-q4k-ehaf16/",
+      "files": [
+        {
+          "path": "manifest.json",
+          "role": "model-manifest",
+          "sizeBytes": 214138,
+          "hashAlgorithm": "sha256",
+          "hash": "edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "sizeBytes": 9088480,
+          "hashAlgorithm": "sha256",
+          "hash": "8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4"
+        },
+        {
+          "path": "qwen-0-8b-pieces.json",
+          "role": "model-piece-index",
+          "sizeBytes": 34259,
+          "hashAlgorithm": "sha256",
+          "hash": "02e7f90a322ed4c395e0d33f49ceae9f190f5a9dca7e9ca6f58f75c12b03ad94",
+          "url": "/config/model-pieces/qwen-0-8b-pieces.json"
+        }
+      ]
+    },
+    "provider": "doppler",
+    "contextLength": 262144,
+    "quantization": "q4k",
+    "size": "Q4K",
+    "adapters": [],
+    "packageName": "doppler-gpu",
+    "packageVersion": "0.6.28",
+    "generation": {
+      "maxTokens": 1024,
+      "temperature": 0,
+      "topK": 1,
+      "topP": 1,
+      "stopSequences": [],
+      "useChatTemplate": true,
+      "repetitionPenalty": 1,
+      "repetitionPenaltyWindow": 0,
+      "maxSeqLen": 4096
+    }
+  },
+  "outputPath": "/var/tmp/reploid-completion-qualification-3-20261014/a/output/reference.json",
+  "gpuReservation": {
+    "schema": "reploid.functional-gpu-reservation/v1",
+    "approved": true,
+    "authority": "Operator-adopted review in session: a changed configuration needs its applicable qualification; coordinator directive to requalify archive 2df37d88 with prefill chunk 16 in placements A and B",
+    "id": "chunked-prefill-qualification-3a-20261014",
+    "observedAt": "2026-10-14T12:42:38.000889+00:00",
+    "sharedMachineNotes": "Public co-tenants remain on amd-host and intel-host and are not addressed. Bounded stop conditions: any new i915 fence expiration, GPU hang or engine reset on intel-host stops the campaign. Functional numerical route with retained driver caches; not cold-start, isolation or throughput acceptance.",
+    "scope": "Three physical hosts, 55 unchanged independent F64 prefixes; stop on first numerical failure. Same archive, reference, tolerance, deadlines and limits as campaign 2; only prefillTokenChunkSize changes (256 to 16) and, for B, which machine runs partitions 1 and 2.",
+    "order": [
+      "Mac-stage0",
+      "AMD-stage1",
+      "Intel-stage2"
+    ],
+    "maxGpuBufferBytes": 1420000000,
+    "deadlines": {
+      "stageMs": 300000,
+      "cleanupMs": 10000,
+      "observationMs": 2000
+    },
+    "nativeHostLimits": {
+      "memoryHighBytes": 10737418240,
+      "memoryMaxBytes": 12884901888,
+      "swapBytes": 0,
+      "supervisorDeadlineMs": 1740000,
+      "scopeDeadlineSeconds": 1800
+    },
+    "runtimeArchiveSha256": "2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "preparation": "Expected identities are the retained load-only observations rebuilt with Doppler's createInitialExecutionIdentityV2 and prefillTokenChunkSize 16; no additional load-only GPU run. Process preflights, endpoints and output are fresh, and the harness re-verifies live execution identities, providers and plan before token execution.",
+    "ownershipCheck": {
+      "mac-host": "campaign ports free, no owned campaign processes",
+      "amd-host": "public contributors 4103868 and 4121371 running unchanged; no campaign scopes or ports; load1 1.71; 66 GiB available",
+      "intel-host": "public contributors 297260 and 299769 running unchanged; no campaign scopes or ports; load1 1.31; 26 GiB available; GPU idle (0 MHz)"
+    }
+  },
+  "executors": [
+    {
+      "executorId": "mac-stage-0",
+      "kind": "browser-cdp",
+      "endpoint": "http://127.0.0.1:29993",
+      "baseUrl": "http://127.0.0.1:29850/config/partition-policy.json",
+      "runtimeBaseUrl": "http://127.0.0.1:29850/vendor/doppler/0.6.28/src/",
+      "modelSource": "http://127.0.0.1:29851/",
+      "preflight": {
+        "path": "/var/tmp/reploid-completion-qualification-3-20261014/a/mac-preflight.json",
+        "hash": "sha256:403e9a9d5695afd43446f4ea2c79b809efc60eb0b46a40f67aa570dd5dda733d"
+      }
+    },
+    {
+      "executorId": "amd-stage-1",
+      "kind": "native-inspector",
+      "endpoint": "ws://127.0.0.1:29994/cb16355e-96c1-425d-9f48-cd3b24f01719",
+      "baseUrl": "http://127.0.0.1:29850/config/partition-policy.json",
+      "runtimeBaseUrl": "file:///var/tmp/reploid-completion-candidate-20261013/installed/reploid/node_modules/doppler-gpu/src/",
+      "modelSource": "http://127.0.0.1:29851/",
+      "preflight": {
+        "path": "/var/tmp/reploid-completion-qualification-3-20261014/a/amd-preflight.json",
+        "hash": "sha256:4e44e4ce994c612d5ccf1830fd432613db1e98d196a03f0b0e98d92170ea0831"
+      }
+    },
+    {
+      "executorId": "suby-stage-2",
+      "kind": "native-inspector",
+      "endpoint": "ws://127.0.0.1:29995/6c7fc5a3-e0f9-4d56-a838-a8d70ad00d1e",
+      "baseUrl": "http://127.0.0.1:29850/config/partition-policy.json",
+      "runtimeBaseUrl": "file:///var/tmp/reploid-completion-candidate-20261013/installed/reploid/node_modules/doppler-gpu/src/",
+      "modelSource": "http://127.0.0.1:29851/",
+      "preflight": {
+        "path": "/var/tmp/reploid-completion-qualification-3-20261014/a/suby-preflight.json",
+        "hash": "sha256:7e2a8fe1ce2bfe5dfb47dd747c5bef1a07d57e0e2266c054ad8abf916e86240f"
+      }
+    }
+  ],
+  "reference": {
+    "path": "/var/tmp/reploid-completion-candidate-20261013/approved-reference.json",
+    "hash": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6"
+  },
+  "manifest": {
+    "path": "/var/tmp/reploid-completion-candidate-20261013/manifest.json",
+    "hash": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934"
+  },
+  "graph": {
+    "path": "/var/tmp/reploid-completion-candidate-20261013/execution.json",
+    "hash": "sha256:8e33eb44bdf90e96eb6c3072796107cb0f28e28f6c59ab76a0d2055dc009fcbb"
+  },
+  "archive": {
+    "path": "/var/tmp/reploid-completion-candidate-20261013/archive.tgz",
+    "hash": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8"
+  },
+  "policy": {
+    "path": "/var/tmp/reploid-completion-qualification-3-20261014/a/partition-policy.json",
+    "hash": "sha256:59853ba4cadb435fe3163208dfaa643d9559a225bf5b1ff953bfbb5c0b17046d"
+  },
+  "pairedBinding": {
+    "path": "/var/tmp/reploid-completion-candidate-20261013/paired-binding.json",
+    "hash": "sha256:6db44221af5062ab41e1fdefa8bc130a061b558f6c03bd0465c323aa265e6ce8"
+  },
+  "requests": {
+    "path": "/var/tmp/reploid-completion-candidate-20261013/original-requests.json",
+    "hash": "sha256:794960332f164cb2506cc25b3d3adbde2492bf7aad120f300dd0149294c0d19e"
+  },
+  "delivery": {
+    "path": "/var/tmp/reploid-completion-candidate-20261013/snapshot-binding.json",
+    "hash": "sha256:3f6d98a0dbf9f83a11e87f28b6483291618c9073756604b5e6e3c609736ecdf6"
+  },
+  "requestContracts": [
+    {
+      "path": "/var/tmp/reploid-completion-candidate-20261013/request-0-contract.json",
+      "hash": "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9"
+    },
+    {
+      "path": "/var/tmp/reploid-completion-candidate-20261013/request-1-contract.json",
+      "hash": "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2"
+    },
+    {
+      "path": "/var/tmp/reploid-completion-candidate-20261013/request-2-contract.json",
+      "hash": "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+    }
+  ]
+}

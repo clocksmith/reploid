@@ -1,0 +1,46 @@
+{
+  "schema": "reploid.owned-diagnostic-settlement/v1",
+  "at": "2026-10-14T13:20:38.569323+00:00",
+  "scope": "Owned diagnostic shutdown after a completed run; public contributors preserved",
+  "hosts": {
+    "amd-host": {
+      "providerExit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-10-14T13:19:08.439Z"
+      },
+      "memoryPeakBytes": 828313600,
+      "memoryEvents": "no high, max or oom events",
+      "providerReleased": true,
+      "ownedScopesInactive": true,
+      "ownedPortsClosed": true,
+      "ownedProcesses": 0,
+      "publicContributorsUnchanged": true
+    },
+    "intel-host": {
+      "providerExit": {
+        "code": 0,
+        "signal": null,
+        "at": "2026-10-14T13:19:04.253Z"
+      },
+      "memoryPeakBytes": 1237135360,
+      "memoryEvents": "no high, max or oom events",
+      "providerReleased": true,
+      "ownedScopesInactive": true,
+      "ownedPortsClosed": true,
+      "ownedProcesses": 0,
+      "publicContributorsUnchanged": true
+    },
+    "mac-host": {
+      "browserOwnerClosed": true,
+      "deliveryServerAndTunnelsStopped": true
+    }
+  },
+  "i915": "No i915 fence expiration, GPU hang or engine reset line on intel-host from 08:43 local through settlement (guard.sh, and journalctl -k at settlement)",
+  "reportHashes": {
+    "contract.json": "sha256:70eeb6e9f33397dff1ccbb508696beeb7a2f989b5dbc00c2c5b47c670a4da9c5",
+    "partition-0.json": "sha256:fd78dffe4dd22fce60257b7cdba4d8815a930978bb3245b05824f6a2d0a9816e",
+    "partition-1.json": "sha256:12b9fc6a079eeffea88010d998ccc800c4073397b774aca13e2a5efd5dca9d02",
+    "partition-2.json": "sha256:53e7a276c25b88b258c2614d9e4874bd4a37ab209f2fdbb9ae53912240b37406"
+  }
+}

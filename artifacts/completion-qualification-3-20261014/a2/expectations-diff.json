@@ -1,0 +1,31 @@
+{
+  "schema": "reploid.expectations-diff/v1",
+  "originalExpectations": {
+    "path": "artifacts/completion-qualification-2-20261013/expectations.json",
+    "hash": "sha256:2a0bdaea2f54e02bf43c75ae6b02adc37f4ba0016b93c93c038332e23e76f0b7"
+  },
+  "freshExpectations": {
+    "path": "artifacts/completion-qualification-3-20261014/a2/expectations.json",
+    "hash": "sha256:4627b822473014135fafb6572b44df382456ac726b2fa42b8d4de2e84bf05342"
+  },
+  "changedFields": [
+    {
+      "path": ".placements[0].executionId",
+      "campaign2": "sha256:958bf4ceb9aa028551e467664805160dcbf1903cb962d8921db887149a9bbc27",
+      "campaign3": "sha256:c4819f1785474acbe737fb75f7574b3d193f85612deae0a831524671c5d7852c"
+    },
+    {
+      "path": ".placements[1].executionId",
+      "campaign2": "sha256:958bf4ceb9aa028551e467664805160dcbf1903cb962d8921db887149a9bbc27",
+      "campaign3": "sha256:c4819f1785474acbe737fb75f7574b3d193f85612deae0a831524671c5d7852c"
+    },
+    {
+      "path": ".placements[2].executionId",
+      "campaign2": "sha256:958bf4ceb9aa028551e467664805160dcbf1903cb962d8921db887149a9bbc27",
+      "campaign3": "sha256:c4819f1785474acbe737fb75f7574b3d193f85612deae0a831524671c5d7852c"
+    }
+  ],
+  "changedPaths": [
+    ".placements"
+  ]
+}
