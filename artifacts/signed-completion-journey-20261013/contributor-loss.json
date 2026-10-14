@@ -1,7 +1,7 @@
 {
   "schema": "reploid.signed-completion-contributor-loss/v1",
   "scope": "Stop one native stage contributor through the configured callback while an ordered answer streams; observe the requester report, ownership settlement, absence of continuation and an explicit retry after capacity returns.",
-  "prompt": "Count from 1 to 500 in order, one integer per line. No commentary.",
+  "prompt": "Count from 1 to 40 in order, one integer per line. No commentary.",
   "lossAfterCharacters": 24,
   "acceptedLossCodes": ["CONNECTION_LOST"],
   "expectedLossLabel": "A computer disconnected. Retry this answer.",
