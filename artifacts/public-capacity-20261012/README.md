@@ -6,14 +6,14 @@ model, precision, placement policy or production source change.
 
 ## First failed boundary
 
-Fresh public discovery found two ready nodes on x@128, while Suby's browser and
+Fresh public discovery found two ready nodes on amd-host, while Suby's browser and
 native nodes were connected but failed at tokenizer loading. Both Suby logs
 reported missing `tokenizer.json`. All four nodes had compute permission but
-file supply was disabled. x@128's approved model directory contains the pinned
+file supply was disabled. amd-host's approved model directory contains the pinned
 tokenizer, SHA-256 `8fc3b6de02de5a8e21d3867aba335e2d9a3c2263201f55daaed1feab3541bea4`.
 The initial discovery observations are retained separately from readiness.
 
-The user explicitly approved model-file sharing on x@128's native node, within
+The user explicitly approved model-file sharing on amd-host's native node, within
 the existing 4 GiB transfer allowance. Its idle process stopped and logged
 owned-device destruction. It restarted from the same installed application with
 `--share-files --contribute`, retaining its approved directory, cache and identity.
@@ -27,11 +27,11 @@ compute or discovery, and no direct weight-download fallback was introduced.
 307,887,776 verified bytes, layers 12–23 and resident weight bytes 285,497,344.
 Its model directory began without the missing model data; verified pieces came
 from the authorized peer supplier. Previously retained manifest/index metadata
-remained. [x@128 state](x-native-settled.json) records layers 0–11 and source hashes
+remained. [amd-host state](x-native-settled.json) records layers 0–11 and source hashes
 for the unchanged installed host. Supply at that snapshot was 1,244,221,280 bytes,
 below 4,294,967,296, with no pending transfer.
 
-The idle x@128 browser node was stopped temporarily, making its former output
+The idle amd-host browser node was stopped temporarily, making its former output
 partition unavailable. Existing automatic placement selected prepared Suby
 capacity. The [ordinary requester harness](conversation.mjs) opened
 `https://replo.id/` in fresh Chromium storage, without room invitations or manual
@@ -45,7 +45,7 @@ deployed UI. [Receipt](conversation.json):
 - Zero requester HTTP weight-file requests. This run did not independently walk
   OPFS; it does not claim a new exhaustive requester-storage audit.
 
-The authoritative participant IDs are x@128
+The authoritative participant IDs are amd-host
 `peer:688e732256ab83155c54f72e` and Suby `peer:57adcc49bae5ed5eefe8fbf1`.
 Both calls reached completion. No generation or tensor values were supplied by
 the harness. This is a narrow useful-answer check, not general factual quality.
@@ -69,8 +69,8 @@ controller failure timed out and is retained as
 
 | Computer | Browser node PID | Native node PID | File supply |
 | --- | ---: | ---: | --- |
-| x@128 | 848860 | 803750 | Native only, explicitly approved |
-| clocksmith@suby | 4037818 | 4031894 | Off |
+| amd-host | 848860 | 803750 | Native only, explicitly approved |
+| intel-host | 4037818 | 4031894 | Off |
 
 All use the public rendezvous for `replo.id`. The observed placement has one
 input owner and three ready output replicas; four nodes do not mean a four-way

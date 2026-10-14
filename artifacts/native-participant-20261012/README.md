@@ -13,7 +13,7 @@ neither was reported as successful acceptance.
 
 ## Physical opening
 
-On x@128 AMD/Vulkan, installed Doppler 0.6.27 opened assigned layers 12–23 of the
+On amd-host AMD/Vulkan, installed Doppler 0.6.27 opened assigned layers 12–23 of the
 catalog's Qwen3.5 0.8B. It verified 75 requested pieces (307,887,776 bytes), retained
 285,497,344 weight bytes and reached 497,336,720 accounted allocated bytes, below
 the unchanged 1,420,000,000-byte limit. No generation occurred in this opening

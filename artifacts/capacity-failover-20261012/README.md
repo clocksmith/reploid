@@ -12,11 +12,11 @@ The public bundle was `baaaa699e6738a968c500e060993a3139f8b7f79016d10b0b0f998f97
 using accepted Doppler 0.6.27. Model/plan/package identities are retained in the receipts.
 Opening used verified pinned manifests, **not qualified signed Capsule inference**.
 
-- At 15:28:09 UTC, x@128's native input compute stopped with zero active/unsettled
+- At 15:28:09 UTC, amd-host's native input compute stopped with zero active/unsettled
   reservations; its separately authorized file supplier stayed on. Suby's native
   output automatically selected input ownership and acquired missing verified pieces.
 - A fresh public requester, without invitations or selected participants, completed
-  `$36` then `$48` using Suby native input and x@128 browser output. Both approval
+  `$36` then `$48` using Suby native input and amd-host browser output. Both approval
   records name the actual pair, model and complete input history. No HTTP weight
   request was observed. The input owner recorded two settled reservations, zero
   active reservations and zero unsettled owners. This is an observed recovery, not
@@ -101,8 +101,8 @@ https://replo.id/. Final observed processes:
 
 | Machine | Native | Browser |
 |---|---:|---:|
-| x@128 | 1535668 | 1550690 |
-| clocksmith@suby | 4086709 | 4088018 |
+| amd-host | 1535668 | 1550690 |
+| intel-host | 4086709 | 4088018 |
 
 Native final observations are ready, active=0, unsettledOwners=0. Browser observations
 are Ready, but retain a peer-connection warning; do not interpret these snapshots

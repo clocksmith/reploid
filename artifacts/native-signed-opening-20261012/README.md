@@ -66,7 +66,7 @@ remain scoped to manifest opening.
 
 ## Full regression and physical manifest control
 
-At Reploid `b7699a57`, the canonical x@128 Node 22.22.1 sweep passed
+At Reploid `b7699a57`, the canonical amd-host Node 22.22.1 sweep passed
 **3,156 tests across 291 files**, with 29 tests / three files skipped:
 
 ```sh
@@ -87,7 +87,7 @@ verification of all 1,905 assets. The immutable local browser identity is
 No public deployment occurred.
 
 The retained `manifest-regression-controller.mjs` drove the ordinary requester
-against a Suby browser input partition and x@128 native output partition at
+against a Suby browser input partition and amd-host native output partition at
 source `e83049df`, with the unchanged accepted Doppler 0.6.27 archive. Automatic
 discovery, approval of both actual recipients, a $36 answer, and a
 history-dependent $48 follow-up completed. Other conversations stayed unchanged.

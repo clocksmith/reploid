@@ -1,0 +1,155 @@
+{
+  "schema": "address-redaction-manifest/v1",
+  "aliases": [
+    "amd-host",
+    "intel-host"
+  ],
+  "scope": "user@host login forms missed by artifacts/address-redaction-20261013",
+  "note": "Redacted copies are derived files. Hash bindings elsewhere in this repository refer to the original bytes.",
+  "files": [
+    {
+      "path": "artifacts/attachment-standalone-20261012/README.md",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:714fac76b47659251f5adfde77895ecec7840d0c5a91c84168a2b77a72579e67",
+      "redactedSha256": "sha256:1b9f109e2f915c7d91d8ea44bf639379ef0ac8f381add0d2dbce359872b12239",
+      "originalBytes": 1227,
+      "redactedBytes": 1230
+    },
+    {
+      "path": "artifacts/capacity-failover-20261012/README.md",
+      "kind": "text",
+      "replacements": 4,
+      "originalSha256": "sha256:91b50b1ef040c917cb3df6afbd6b4bb568b4328844686eef3ece236a12974ad3",
+      "redactedSha256": "sha256:b8f29f42c277bef150a7d185b992d167ca0eb3f1fb2821050ce679ee23317be3",
+      "originalBytes": 7284,
+      "redactedBytes": 7288
+    },
+    {
+      "path": "artifacts/checklist-history-20261013/README.md",
+      "kind": "text",
+      "replacements": 6,
+      "originalSha256": "sha256:4e8abf0aca3af898ea466efac8dd8d5b7acc3fdbbfd38459eddd48f1af5e578b",
+      "redactedSha256": "sha256:10cfb0512b8128e4ab4ab84b179407a39108e974447e380eda5ef7c72387b5b4",
+      "originalBytes": 57309,
+      "redactedBytes": 57327
+    },
+    {
+      "path": "artifacts/live-conversation-20261012/README.md",
+      "kind": "text",
+      "replacements": 3,
+      "originalSha256": "sha256:65e2ee3cb03465ab317169f749a259b019443a0eb6ea2eb33ce1c600cd94d80b",
+      "redactedSha256": "sha256:5192b253f0edd03b6214d4d76dd736e3a1e341368888f17f50b14e9b83e0c73b",
+      "originalBytes": 18075,
+      "redactedBytes": 18084
+    },
+    {
+      "path": "artifacts/multiline-attachments-20261012/README.md",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:58e4c56668289abe230a568f990763a03b31706060c96b827b64497486ce608f",
+      "redactedSha256": "sha256:3382313a27b9dafecbb3e1646842beff584ff1d60a612858a9dea7a4e670bc5d",
+      "originalBytes": 2262,
+      "redactedBytes": 2265
+    },
+    {
+      "path": "artifacts/native-files-20261012/README.md",
+      "kind": "text",
+      "replacements": 4,
+      "originalSha256": "sha256:65521f14ff81b8f50dc3bc49d372f05ca976cfca3ef916052991d4b01922644e",
+      "redactedSha256": "sha256:662640832352966d6a4ad7d40ecbb16385846c21bcb94866a2b3c13d7d8c2f96",
+      "originalBytes": 9238,
+      "redactedBytes": 9250
+    },
+    {
+      "path": "artifacts/native-files-20261012/cold-compute/raw-log-identity.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:ae264f5fc9ce8560ded058b536b5a613a877d1732f17ca6c9503efc3a73d2e9e",
+      "redactedSha256": "sha256:8babdb7653521a5ef6a756c803a46ee81e3a7984eeb7ce5f2b49db3e3822d6f9",
+      "originalBytes": 320,
+      "redactedBytes": 323
+    },
+    {
+      "path": "artifacts/native-installed-execution-20261012/raw-log-identity.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:17a32ae6a10c3abcdfb406fc63c4ed6308befa353441f36d52f0f89f82a2c8b2",
+      "redactedSha256": "sha256:9fc985b35c28cbe428684f7d9c7198833f4035e53785239b73136406f4958495",
+      "originalBytes": 311,
+      "redactedBytes": 314
+    },
+    {
+      "path": "artifacts/native-participant-20261012/README.md",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:563f2dfb4c39387cd5e1995c8e9c586d5112272b188971d21a131b4d70a5f6d2",
+      "redactedSha256": "sha256:b455aea53b95c82521607d15c6453a4a440814936ac1c984a2f823573c8909ec",
+      "originalBytes": 6865,
+      "redactedBytes": 6868
+    },
+    {
+      "path": "artifacts/native-signed-opening-20261012/README.md",
+      "kind": "text",
+      "replacements": 2,
+      "originalSha256": "sha256:178781a1bdbdbbab3cfb94eba2f5669800c157ad2baf593f4a94fc4cff1a2c21",
+      "redactedSha256": "sha256:e9a55037843209f59e7ce825fd0776c14f8d61bc997fca487f7b8cd75f9dae9e",
+      "originalBytes": 6591,
+      "redactedBytes": 6597
+    },
+    {
+      "path": "artifacts/paired-candidate-delivery-20261012/README.md",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:c80d958b69755b8fed4b39180329dee0e00323ed63bfbce0c17425ef267b8254",
+      "redactedSha256": "sha256:3eb988fc68d54d520cc2c234f112ab822664b7c6dea12f47b4f786a8bf71c34f",
+      "originalBytes": 2790,
+      "redactedBytes": 2793
+    },
+    {
+      "path": "artifacts/public-capacity-20261012/README.md",
+      "kind": "text",
+      "replacements": 8,
+      "originalSha256": "sha256:cf6daa792f71cb8521735b87085d462b21327bbbdfd68ee32892f482af049473",
+      "redactedSha256": "sha256:af11193644a360efc9d3173de2a39337a325f947888ea0f2f4f1086e2a30e5a6",
+      "originalBytes": 4892,
+      "redactedBytes": 4908
+    },
+    {
+      "path": "artifacts/supply-budget-persistence-20261012/migration-approval.json",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:945a8e6c618ad6f1853db4f40c365cca1cbb059f8fa105375201c4026f558697",
+      "redactedSha256": "sha256:4dbc08eca791ac40e14c813d33dbe14d9cd116a25ac1d93da6ef8981ced4eb1d",
+      "originalBytes": 607,
+      "redactedBytes": 610
+    },
+    {
+      "path": "artifacts/unified-network-20261012/README.md",
+      "kind": "text",
+      "replacements": 2,
+      "originalSha256": "sha256:6bafd4abbcec03cbce3ca43689544cd14943c5fea7b2568f622e4e08616f660d",
+      "redactedSha256": "sha256:b9885a3d309afc5e424a9cdc1ae0989bbd67e9a816d83b125e40d5fd4601ef03",
+      "originalBytes": 4918,
+      "redactedBytes": 4924
+    },
+    {
+      "path": "docs/roadmap/history.md",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:c42f94d2b38d57c5b47e49f072e0a7edf12d267dd0439974e37f94867cc5f9d1",
+      "redactedSha256": "sha256:13a6bf741136a394655df321d414e3dcf4654327d9d9dffcbad2ef2a1f9f0088",
+      "originalBytes": 43338,
+      "redactedBytes": 43341
+    },
+    {
+      "path": "docs/roadmap/requirements.md",
+      "kind": "text",
+      "replacements": 1,
+      "originalSha256": "sha256:d51c3d6a48a42b235944147193f393ef92f8bd5e2e337fd50502df151d4ed296",
+      "redactedSha256": "sha256:0b5ce89469edddc50c8e19217fef133cb6b67d23ea228afadee9a7d9a84ca5e0",
+      "originalBytes": 109509,
+      "redactedBytes": 109512
+    }
+  ]
+}
