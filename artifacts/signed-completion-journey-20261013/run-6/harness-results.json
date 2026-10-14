@@ -1,0 +1,643 @@
+{
+ "schema": "reploid.signed-completion-journey-run-6-results/v1",
+ "scope": "contributor-loss harness only (harness e82bbe8f, H6 fix); application, delivery and installs as run 5 (final-5)",
+ "report": "reports/contributor-loss-2026-10-14T07-41-03-238Z.json",
+ "ok": true,
+ "status": "automated checks passed; retried answer awaits manual review",
+ "checks": {
+  "lossInjected": {
+   "pass": true,
+   "failures": []
+  },
+  "lossReported": {
+   "pass": true,
+   "failures": []
+  },
+  "ownershipExplicit": {
+   "pass": true,
+   "failures": []
+  },
+  "noSilentContinuation": {
+   "pass": true,
+   "failures": []
+  },
+  "explicitRetry": {
+   "pass": true,
+   "failures": []
+  },
+  "selectiveAcquisition": {
+   "pass": true,
+   "failures": []
+  },
+  "timing": {
+   "pass": true,
+   "failures": []
+  }
+ },
+ "loss": {
+  "injected": {
+   "method": "SIGKILL to every process of the owned native systemd scope (abrupt, unannounced contributor loss)",
+   "unit": "scj-run6-amd-native-1",
+   "stoppedAt": "2026-10-14T07:43:00.785485373Z",
+   "visibleCharactersBefore": 24
+  },
+  "requesterVisible": {
+   "code": "CONNECTION_LOST",
+   "storedError": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+   "renderedLabel": "A computer disconnected. Retry this answer.",
+   "renderedTechnical": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+   "failedAt": "2026-10-14T07:43:16.514Z",
+   "secondsAfterKill": 15.7
+  },
+  "coordinatorReceiptSource": "unknownAttempts",
+  "coordinatorReceipt": {
+   "identity": {
+    "schema": "reploid.partition-attempt/v2",
+    "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+    "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+    "requesterId": "peer:530b918abefd5d0577bfba65",
+    "placementGeneration": 0,
+    "route": {
+     "schema": "reploid.partition-route/v1",
+     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+     "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+     "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+     "stages": [
+      {
+       "index": 0,
+       "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+       "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+       "residentId": "scj-run6-stage-0-resident",
+       "executionId": "scj-run6-stage-0-ordinary"
+      },
+      {
+       "index": 1,
+       "participantId": "peer:9af15d884eba51b0c0540e2a",
+       "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+       "residentId": "scj-run6-stage-1-resident",
+       "executionId": "scj-run6-stage-1-ordinary"
+      },
+      {
+       "index": 2,
+       "participantId": "peer:09610aefbd15a133d7af2b57",
+       "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+       "residentId": "scj-run6-stage-2-resident",
+       "executionId": "scj-run6-stage-2-ordinary"
+      }
+     ],
+     "activation": {
+      "schema": "doppler.activation-tensor/v2",
+      "dtype": "f32",
+      "hiddenSize": 1024,
+      "precision": "two-f32",
+      "components": 2,
+      "elementStrideBytes": 8
+     }
+    }
+   },
+   "phase": "cleanup-failed",
+   "reservations": [
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+     "index": 0,
+     "phase": "reserved",
+     "reservedAt": 1791963666662,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 0,
+     "status": "reserved"
+    },
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:9af15d884eba51b0c0540e2a",
+     "index": 1,
+     "phase": "reserved",
+     "reservedAt": 1791963666711,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 1,
+     "status": "reserved"
+    },
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:09610aefbd15a133d7af2b57",
+     "index": 2,
+     "phase": "reserved",
+     "reservedAt": 1791963666735,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 2,
+     "status": "reserved"
+    }
+   ],
+   "cleanup": [
+    {
+     "partitionIndex": 0,
+     "status": "settled",
+     "error": null
+    },
+    {
+     "partitionIndex": 1,
+     "status": "unknown",
+     "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+     "code": "CONNECTION_LOST"
+    },
+    {
+     "partitionIndex": 2,
+     "status": "settled",
+     "error": null
+    }
+   ],
+   "cleanupSettledAt": null,
+   "failure": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+  }
+ },
+ "unknownAttempts": [
+  {
+   "identity": {
+    "schema": "reploid.partition-attempt/v2",
+    "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+    "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+    "requesterId": "peer:530b918abefd5d0577bfba65",
+    "placementGeneration": 0,
+    "route": {
+     "schema": "reploid.partition-route/v1",
+     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+     "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+     "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+     "stages": [
+      {
+       "index": 0,
+       "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+       "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+       "residentId": "scj-run6-stage-0-resident",
+       "executionId": "scj-run6-stage-0-ordinary"
+      },
+      {
+       "index": 1,
+       "participantId": "peer:9af15d884eba51b0c0540e2a",
+       "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+       "residentId": "scj-run6-stage-1-resident",
+       "executionId": "scj-run6-stage-1-ordinary"
+      },
+      {
+       "index": 2,
+       "participantId": "peer:09610aefbd15a133d7af2b57",
+       "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+       "residentId": "scj-run6-stage-2-resident",
+       "executionId": "scj-run6-stage-2-ordinary"
+      }
+     ],
+     "activation": {
+      "schema": "doppler.activation-tensor/v2",
+      "dtype": "f32",
+      "hiddenSize": 1024,
+      "precision": "two-f32",
+      "components": 2,
+      "elementStrideBytes": 8
+     }
+    }
+   },
+   "phase": "cleanup-failed",
+   "reservations": [
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+     "index": 0,
+     "phase": "reserved",
+     "reservedAt": 1791963666662,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 0,
+     "status": "reserved"
+    },
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:9af15d884eba51b0c0540e2a",
+     "index": 1,
+     "phase": "reserved",
+     "reservedAt": 1791963666711,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 1,
+     "status": "reserved"
+    },
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:09610aefbd15a133d7af2b57",
+     "index": 2,
+     "phase": "reserved",
+     "reservedAt": 1791963666735,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 2,
+     "status": "reserved"
+    }
+   ],
+   "cleanup": [
+    {
+     "partitionIndex": 0,
+     "status": "settled",
+     "error": null
+    },
+    {
+     "partitionIndex": 1,
+     "status": "unknown",
+     "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+     "code": "CONNECTION_LOST"
+    },
+    {
+     "partitionIndex": 2,
+     "status": "settled",
+     "error": null
+    }
+   ],
+   "cleanupSettledAt": null,
+   "failure": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+  }
+ ],
+ "capacityReturn": {
+  "restoreMethod": "new owned bounded systemd scope with the same identity, cache, ledger, checkpoint store and ordered config",
+  "restoredUnit": "scj-run6-amd-native-2",
+  "restoredScopeActiveAt": "2026-10-14T07:43:22Z",
+  "restoreReturnedAt": "2026-10-14T07:43:26.112Z",
+  "capacityReturnedAt": "2026-10-14T07:43:27.980Z",
+  "secondsAfterRestoreReturned": 1.9,
+  "secondsAfterScopeStart": 6.0,
+  "routeEvidence": "coordinator samples: old route retired by 07:43:19.8Z (stage-1 transport df201392, ~19 s after the kill, unsettledOwners 0, unknownAttempts 1); new route with the restored native transport 1e79691d executing the retry by 07:43:29.5Z (logs/coordinator-samples-loss.jsonl)"
+ },
+ "retry": {
+  "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+  "retryOf": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+  "clickedAt": "2026-10-14T07:43:27.980Z",
+  "status": "completed",
+  "stopReason": "eos-token",
+  "answer": "1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\n31\n32\n33\n34\n35\n36\n37\n38\n39\n40",
+  "answerExact": true
+ },
+ "timing": [
+  {
+   "attempt": "02f93e3a",
+   "attemptMs": 400024,
+   "firstVisibleTextMs": 41349,
+   "stages": [
+    {
+     "index": 0,
+     "steps": 111,
+     "msPerStep": 454
+    },
+    {
+     "index": 1,
+     "steps": 111,
+     "msPerStep": 444
+    },
+    {
+     "index": 2,
+     "steps": 111,
+     "msPerStep": 2697
+    }
+   ]
+  },
+  {
+   "attempt": "e4eccdca",
+   "attemptMs": 130173,
+   "firstVisibleTextMs": null,
+   "stages": [
+    {
+     "index": 0,
+     "steps": 24,
+     "msPerStep": 653
+    },
+    {
+     "index": 1,
+     "steps": 24,
+     "msPerStep": 510
+    },
+    {
+     "index": 2,
+     "steps": 24,
+     "msPerStep": 3562
+    }
+   ]
+  }
+ ],
+ "selectiveAcquisition": {
+  "weightRequests": 0,
+  "custodyBefore": {
+   "receivedBytes": 0,
+   "receipts": 0
+  },
+  "custodyAfter": {
+   "receivedBytes": 0,
+   "receipts": 0
+  }
+ },
+ "manualReview": "The retried answer is the exact count 1..40 with natural EOS; answerUsefulness stays null for the independent reviewer."
+}

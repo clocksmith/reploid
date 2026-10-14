@@ -1,0 +1,32 @@
+{
+ "current": {
+  "amd-host": "scj-run6-amd-native-2",
+  "intel-host": "scj-run6-intel-native-1"
+ },
+ "counter": {
+  "amd-host": 2,
+  "intel-host": 1
+ },
+ "share": {
+  "amd-host": "noshare",
+  "intel-host": "noshare"
+ },
+ "history": [
+  {
+   "action": "stop",
+   "machine": "amd-host",
+   "unit": "scj-run6-amd-native-1",
+   "stoppedAt": "2026-10-14T07:43:00.785485373Z",
+   "pids": "2110524 ",
+   "scopeAfter": "inactive",
+   "at": "2026-10-14T07:43:01.790Z"
+  },
+  {
+   "action": "restore",
+   "machine": "amd-host",
+   "unit": "scj-run6-amd-native-2",
+   "restoredAt": "2026-10-14T07:43:26.112Z",
+   "share": "noshare"
+  }
+ ]
+}

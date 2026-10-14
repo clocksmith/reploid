@@ -1,0 +1,14 @@
+{
+ "schema": "reploid.signed-completion-journey-run-6-settings/v1",
+ "decidedBy": "coordinator (run-6 instruction: run-5 settings)",
+ "scope": "contributor-loss harness only, harness at e82bbe8f (H6 fix); application bytes, delivery, installs and other harness files as in run 5",
+ "timeouts.answerMs": 900000,
+ "nativeScopeRuntimeMaxSec": 2700,
+ "nativeScopeMemory": "MemoryHigh=10737418240 MemoryMax=12884901888 MemorySwapMax=0",
+ "nativeScopes": "fresh scopes immediately before the harness",
+ "restore": "only through the harness's own restore; no restore outside the harness",
+ "delivery": { "export": "/var/tmp/reploid-signed-completion-app-5-20261013/app", "bundle": "sha256:3c1fab715e5074b0d573bb726f91b790229672ae9d27bef19c9c80935750fbc2", "nativeInstall": "/var/tmp/reploid-signed-completion-5-20261013/reploid", "nativeDescriptor": "1fecc004..." },
+ "signedState": { "amd-host": "/var/tmp/reploid-signed-native-metadata-20261012", "intel-host": "/var/tmp/reploid-signed-completion-journey-run1-20261013/intel-state", "mac-host stage 0 profile": "/var/tmp/reploid-signed-completion-journey-run2-20261013/mac-stage0-profile" },
+ "publicContributors": { "amd-host": [4103868, 4121371], "intel-host": [297260, 299769] },
+ "releaseExpiry": "2026-10-15T02:14:39Z"
+}

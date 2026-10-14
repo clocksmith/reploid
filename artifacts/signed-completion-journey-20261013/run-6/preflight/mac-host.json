@@ -1,0 +1,91 @@
+{
+ "schema": "reploid.run-1-host-snapshot/v1",
+ "machine": "mac-host",
+ "at": "2026-10-14T07:38:26.687931+00:00",
+ "loadavg": "{ 3.47 2.65 2.06 }",
+ "memoryBytes": 25769803776,
+ "memoryPressure": [
+  "System-wide memory free percentage: 53%"
+ ],
+ "processes": [
+  {
+   "pid": 33755,
+   "ppid": 33752,
+   "elapsed": "06:54:19",
+   "owned": false,
+   "args": "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-"
+  },
+  {
+   "pid": 78844,
+   "ppid": 18519,
+   "elapsed": "12:57:32",
+   "owned": false,
+   "args": "ssh [login-redacted]"
+  },
+  {
+   "pid": 29039,
+   "ppid": 53390,
+   "elapsed": "03-05:07:39",
+   "owned": false,
+   "args": "ssh [login-redacted]"
+  },
+  {
+   "pid": 29113,
+   "ppid": 26990,
+   "elapsed": "03-05:07:26",
+   "owned": false,
+   "args": "ssh [login-redacted]"
+  },
+  {
+   "pid": 35273,
+   "ppid": 34586,
+   "elapsed": "08-16:18:41",
+   "owned": false,
+   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+  },
+  {
+   "pid": 46688,
+   "ppid": 46363,
+   "elapsed": "01-11:32:50",
+   "owned": false,
+   "args": "node /Users/xyz/.nvm/versions/node/v22.20.0/bin/codex"
+  },
+  {
+   "pid": 13551,
+   "ppid": 13228,
+   "elapsed": "07:56:49",
+   "owned": false,
+   "args": "ssh [login-redacted]"
+  },
+  {
+   "pid": 33752,
+   "ppid": 35010,
+   "elapsed": "06:54:21",
+   "owned": false,
+   "args": "node /var/tmp/nyc_applications_driver_20261013.mjs"
+  }
+ ],
+ "ports": {
+  "29670": {
+   "listening": false,
+   "rows": []
+  },
+  "29671": {
+   "listening": false,
+   "rows": []
+  },
+  "29672": {
+   "listening": false,
+   "rows": []
+  },
+  "29673": {
+   "listening": false,
+   "rows": []
+  },
+  "29674": {
+   "listening": false,
+   "rows": []
+  }
+ },
+ "scope": "Read-only snapshot; hostnames not recorded; processes not owned by this run are listed for comparison only"
+}

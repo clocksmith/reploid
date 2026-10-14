@@ -1,0 +1,519 @@
+{
+ "at": "2026-10-14T07:50:49.131Z",
+ "phase": "ready",
+ "error": null,
+ "unsettledOwners": 0,
+ "unknownAttempts": [
+  {
+   "identity": {
+    "schema": "reploid.partition-attempt/v2",
+    "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+    "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+    "requesterId": "peer:530b918abefd5d0577bfba65",
+    "placementGeneration": 0,
+    "route": {
+     "schema": "reploid.partition-route/v1",
+     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+     "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+     "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+     "stages": [
+      {
+       "index": 0,
+       "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+       "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+       "residentId": "scj-run6-stage-0-resident",
+       "executionId": "scj-run6-stage-0-ordinary"
+      },
+      {
+       "index": 1,
+       "participantId": "peer:9af15d884eba51b0c0540e2a",
+       "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+       "residentId": "scj-run6-stage-1-resident",
+       "executionId": "scj-run6-stage-1-ordinary"
+      },
+      {
+       "index": 2,
+       "participantId": "peer:09610aefbd15a133d7af2b57",
+       "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+       "residentId": "scj-run6-stage-2-resident",
+       "executionId": "scj-run6-stage-2-ordinary"
+      }
+     ],
+     "activation": {
+      "schema": "doppler.activation-tensor/v2",
+      "dtype": "f32",
+      "hiddenSize": 1024,
+      "precision": "two-f32",
+      "components": 2,
+      "elementStrideBytes": 8
+     }
+    }
+   },
+   "phase": "cleanup-failed",
+   "reservations": [
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+     "index": 0,
+     "phase": "reserved",
+     "reservedAt": 1791963666662,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 0,
+     "status": "reserved"
+    },
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:9af15d884eba51b0c0540e2a",
+     "index": 1,
+     "phase": "reserved",
+     "reservedAt": 1791963666711,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 1,
+     "status": "reserved"
+    },
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "e4eccdca-8b31-49c0-83dd-a6c44b20a32a",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "df201392-00c5-4780-be19-5aa227e0e7e6",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:09610aefbd15a133d7af2b57",
+     "index": 2,
+     "phase": "reserved",
+     "reservedAt": 1791963666735,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 2,
+     "status": "reserved"
+    }
+   ],
+   "cleanup": [
+    {
+     "partitionIndex": 0,
+     "status": "settled",
+     "error": null
+    },
+    {
+     "partitionIndex": 1,
+     "status": "unknown",
+     "error": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed.",
+     "code": "CONNECTION_LOST"
+    },
+    {
+     "partitionIndex": 2,
+     "status": "settled",
+     "error": null
+    }
+   ],
+   "cleanupSettledAt": null,
+   "failure": "A contributor disconnected. The attempt was interrupted; remote cleanup is not confirmed."
+  }
+ ],
+ "attempts": [
+  {
+   "identity": {
+    "schema": "reploid.partition-attempt/v2",
+    "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+    "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+    "requesterId": "peer:530b918abefd5d0577bfba65",
+    "placementGeneration": 0,
+    "route": {
+     "schema": "reploid.partition-route/v1",
+     "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+     "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+     "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+     "stages": [
+      {
+       "index": 0,
+       "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+       "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+       "residentId": "scj-run6-stage-0-resident",
+       "executionId": "scj-run6-stage-0-ordinary"
+      },
+      {
+       "index": 1,
+       "participantId": "peer:9af15d884eba51b0c0540e2a",
+       "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+       "residentId": "scj-run6-stage-1-resident",
+       "executionId": "scj-run6-stage-1-ordinary"
+      },
+      {
+       "index": 2,
+       "participantId": "peer:09610aefbd15a133d7af2b57",
+       "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+       "residentId": "scj-run6-stage-2-resident",
+       "executionId": "scj-run6-stage-2-ordinary"
+      }
+     ],
+     "activation": {
+      "schema": "doppler.activation-tensor/v2",
+      "dtype": "f32",
+      "hiddenSize": 1024,
+      "precision": "two-f32",
+      "components": 2,
+      "elementStrideBytes": 8
+     }
+    }
+   },
+   "phase": "completed",
+   "reservations": [
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+     "index": 0,
+     "phase": "reserved",
+     "reservedAt": 1791963808161,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 0,
+     "status": "reserved"
+    },
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:9af15d884eba51b0c0540e2a",
+     "index": 1,
+     "phase": "reserved",
+     "reservedAt": 1791963808210,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 1,
+     "status": "reserved"
+    },
+    {
+     "identity": {
+      "schema": "reploid.partition-attempt/v2",
+      "threadId": "576b4203-600f-4e43-820c-b9d03894b780",
+      "attemptId": "02f93e3a-8b78-49c3-a2c3-33ce307f37de",
+      "requesterId": "peer:530b918abefd5d0577bfba65",
+      "placementGeneration": 0,
+      "route": {
+       "schema": "reploid.partition-route/v1",
+       "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+       "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+       "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+       "stages": [
+        {
+         "index": 0,
+         "participantId": "peer:7cce6f3afaa1272f1eb74eb1",
+         "transportId": "6ed9fd8a-aeb8-4027-9c76-c88f0b1766c1",
+         "residentId": "scj-run6-stage-0-resident",
+         "executionId": "scj-run6-stage-0-ordinary"
+        },
+        {
+         "index": 1,
+         "participantId": "peer:9af15d884eba51b0c0540e2a",
+         "transportId": "1e79691d-92b0-49e2-9155-826f6745ccbf",
+         "residentId": "scj-run6-stage-1-resident",
+         "executionId": "scj-run6-stage-1-ordinary"
+        },
+        {
+         "index": 2,
+         "participantId": "peer:09610aefbd15a133d7af2b57",
+         "transportId": "a80a60cb-9077-4f1b-9d7f-9a085e6ff924",
+         "residentId": "scj-run6-stage-2-resident",
+         "executionId": "scj-run6-stage-2-ordinary"
+        }
+       ],
+       "activation": {
+        "schema": "doppler.activation-tensor/v2",
+        "dtype": "f32",
+        "hiddenSize": 1024,
+        "precision": "two-f32",
+        "components": 2,
+        "elementStrideBytes": 8
+       }
+      }
+     },
+     "participantId": "peer:09610aefbd15a133d7af2b57",
+     "index": 2,
+     "phase": "reserved",
+     "reservedAt": 1791963808237,
+     "settlingAt": null,
+     "settledAt": null,
+     "failure": null,
+     "resources": {
+      "attemptSlots": 1,
+      "maxPromptTokens": 4096,
+      "maxTokens": 4096,
+      "maxActivationBytes": 33554432,
+      "scope": "application-attempt-limits"
+     },
+     "partitionIndex": 2,
+     "status": "reserved"
+    }
+   ],
+   "cleanup": [
+    {
+     "partitionIndex": 0,
+     "status": "settled",
+     "error": null
+    },
+    {
+     "partitionIndex": 1,
+     "status": "settled",
+     "error": null
+    },
+    {
+     "partitionIndex": 2,
+     "status": "settled",
+     "error": null
+    }
+   ],
+   "cleanupSettledAt": 1791964208024,
+   "failure": null
+  }
+ ]
+}
