@@ -61,11 +61,18 @@ Every step passed:
   commit and contains the flag; the local `--help` exits 0, lists it and changes no file.
 - **Verification Worker.** It passed all seven scripts this pass ran, with no new scripts.
 
-**Host installs are pending.** The descriptor changed, so `amd-host` and
-`intel-host` need this tarball at `/var/tmp/reploid-signed-completion-5-20261013/reploid`.
-That step was not done because no SSH destination for either host was available.
-This Mac has no SSH alias for them, and destinations are not kept in files. The
-`final-3/` installs are untouched.
+**Installed on both hosts** (`install-5/`). The descriptor changed, so the
+tarball was installed at `/var/tmp/reploid-signed-completion-5-20261013/reploid`
+on `amd-host` and `intel-host`, following the `install-3/` procedure. On both hosts:
+
+- the tarball and archive hashes match;
+- all 1,984 runtime files equal the archive;
+- the installed descriptor is `1fecc004…`;
+- ordered plan admission passes for stages 0-2;
+- the native modules are as expected;
+- `--help` exits 0 and lists `--room-token-file`.
+
+The public contributor processes were untouched. The `final-3/` installs remain in place.
 
 ## `final-4/` (Reploid `2d434709`, superseded by `final-5/`)
 
@@ -319,15 +326,17 @@ own authority and application produce.
   - `81261b37` added `final-3/` and `install-3/`, which installed the `final-3/` tarball `fcacf463…`;
   - `99a5f825` added `final-4/` (its native members equal `fcacf463…`; no reinstall).
 
-  `final-5/` changes the native descriptor, so the hosts need its tarball
-  `d99a07e3…`; `install-5/` does not exist yet. The checkout's local
+  `final-5/` changes the native descriptor; `install-5/` records its install on
+  both hosts (tarball `d99a07e3…`, descriptor `1fecc004…`). The checkout's local
   `info/exclude` (line 22) lists this folder; new files need `git add -f`.
 
 ## Not established
 
 Signed opening, GPU execution, peer acquisition, ordered route selection at run
-time, conversations, cancellation, settlement, performance, installation on the
-three hosts and any public eligibility.
+time, conversations, cancellation, settlement, performance and any public
+eligibility. These remain for journey run 5. Of the installs, only the two native
+installs of `final-5/` (`install-5/`) are established; serving the `final-5/`
+browser payload on `mac-host` is not part of this step.
 
 ## Superseded first pass (Capsule `-b`)
 
