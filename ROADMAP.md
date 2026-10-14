@@ -4,6 +4,8 @@
 
 Qwen3.8-Flash-Next is the flagship engineering target, not Reploid's identity. Reusable model support leads toward persistent permissioned work and independently evaluated improvement. Those later capabilities are not additional launch prerequisites.
 
+**Product priority:** useful answers at interactive latency, available repeatedly through automatically selected capacity. More participating computers, larger model names and stronger contracts are not substitutes for that experience. Ordinary performance work proceeds alongside installed correctness and lifecycle acceptance; it does not wait for speculative execution.
+
 ## Current milestone
 
 | Field | Current recorded evidence and action |
@@ -27,7 +29,7 @@ Each launch delivers a complete usable capability. Keep the accepted site live w
 | --- | --- |
 | **1. Dependable distributed chat** | Qwen 3.5 0.8B Q4K on configured prepared capacity; automatic eligible-route selection without requester stage assignment. Signed selective acquisition, answers/follow-ups, durable history/reload, permissions, bounded independent conversations, isolated cancellation, contributor-loss reporting, explicit retry and settlement. Publish proven device/context/concurrency limits. Flash-Next is not a dependency. |
 | **2. Useful optional contribution** | Cached-only, bounded acquisition and explicit seeding through the public app; persistent allowances across tabs/reloads, resumed transfers and conversations preserved when contribution stops. May precede Flash-Next on a compatible accepted release. |
-| **3. Concurrent prepared service** | Add autonomous cold stage assignment, demand-driven preparation, useful replicas, cross-route fairness and greater measured concurrency. Preserve Launch 1 cancellation, departure and retry behavior; expose bounded queues and unavailable capacity. |
+| **3. Concurrent prepared service** | Add autonomous cold stage assignment, demand-driven preparation, useful replicas, cross-route fairness and greater measured concurrency. Prefer the fastest eligible complete service for the workload; unused slow devices may remain requesters or storage contributors. Preserve Launch 1 cancellation, departure and retry behavior; expose bounded queues and unavailable capacity. |
 | **4. Flash-Next access** | Exact conversion/runtime, reference accuracy, useful answers, distributed execution and the same conversation/lifecycle gates. Keep the existing model available; expand proven hardware/context limits separately. |
 | **5. Larger and more efficient service** | Qualify each additional model, device combination and capacity increase. Speculation, transferable state and finer expert placement require preserved correctness and measured benefit; none gates earlier launches. |
 
@@ -42,6 +44,17 @@ Each launch delivers a complete usable capability. Keep the accepted site live w
 ## Execution order and ownership
 
 Finish correct installed execution and complete conversations together, exercising acquisition, permissions, cancellation and recovery through that same application. Prepare Flash-Next's reference and missing operators during repair. Extend placement and progressive contribution through existing owners. Begin measurement collection now; comparative economic conclusions require dependable execution.
+
+Within those launches, prioritize these outcomes through the existing task entries:
+
+| Outcome | Next implementation and proof |
+| --- | --- |
+| Fast ordinary answers | DR-5 / DR-6: measure the installed path, separating queueing, prefill, decode, output head, transfers and durable publication. Doppler repairs the dominant compute/dispatch boundary; Reploid repairs the dominant placement/transport boundary. Compare batching, fewer synchronization points and reduced readback only where measurements justify them, under unchanged correctness gates. |
+| Helpful placement | DR-6: compare eligible whole-request and uneven multistage routes, including the output head's device. Include preparation and queue costs; adding a slower device must not displace a faster feasible route without a recorded capacity, fairness or availability benefit. Never migrate an active attempt. |
+| Useful model access | REP-7 / ALL-7: score complete chat answers, follow-ups and later coding/API tasks against independent expected outcomes. Runtime parity alone cannot pass answer quality; larger models qualify through the same user journeys. |
+| Sustained shared service | REP-4 / DR-6: keep weights resident, isolate conversations, bound waiting and prepare replicas for measured bottlenecks. Demonstrate that another user can arrive or cancel without breaking existing work, and measure availability through contributor churn. |
+
+These are priorities, not new tracking IDs or passed gates. Use the existing canonical requirements; preserve cumulative launches and their separate activation boundaries.
 
 Doppler owns computation, sampling and inference state. Reploid owns discovery, placement, permissions, reservations, contribution and conversations. Doe remains an optional execution provider; unrelated compiler campaigns cannot gate release.
 
@@ -81,6 +94,8 @@ Canonical ID: [REP-5](docs/roadmap/requirements.md#rep-5). The progressive stora
 
 Assign complete compatible routes using measured links, memory, residency, demand and permissions. Keep complete experts within resident layer groups across slower links; finer expert placement remains experimental. Replicate only when it completes a missing route, removes a bottleneck, protects independent replacement capacity or serves another useful request.
 
+Optimize time to useful published output and complete-request cost, not peer count or equal layer counts. A slow device contributes compute when its capacity is needed or it improves the admitted workload; otherwise leave it idle or use separately authorized storage. Freeze placement for each attempt and reassess between attempts.
+
 Canonical ID: [DR-6](docs/roadmap/requirements.md#dr-6), including MESH-01 and the retained 12/20/100 targets. Configured 2–7-stage source composition is complete in its declared scope; autonomous cold assignment, wider physical capacity and fair shared-device admission remain unqualified. Preparation stays separate from requesting.
 
 ## 7. Progressive contribution
@@ -109,6 +124,8 @@ Canonical IDs: [DR-1](docs/roadmap/requirements.md#dr-1), [ALL-1](docs/roadmap/r
 Collect preparation time, retained memory, network transfers, idle power where measurable, failures and human intervention during engineering runs now. Later compare useful availability, throughput and complete cost against feasible rentals/APIs, hybrid-memory execution and conventional coordination on identical machines. Include Flash-Next's conventional host-memory offload baseline.
 
 Count donated resources, compensation, replication, recovery and rejected demand; report unknown costs. Freeze workload, useful-answer criteria, concurrency, latency requirements, advantage margin and regression limits before comparison. Affordable persistent access remains a hypothesis. A workload win does not imply universal superiority.
+
+Keep one scorecard for the declared supported configuration: useful-answer pass rate, p50/p95 time to first durably published output, p95 visible output gap, accepted published tokens per second, completed requests within the latency budget, sustained availability, recovery and complete resource cost. Separate cold acquisition, warm loading and resident service. Compare the same model and machines where possible; separately compare task outcomes within equal resource budgets. Count failures and rejected demand. A claimed advantage needs a predeclared consequential gain with uncertainty reported and no breach of the quality, reliability or latency regression limits.
 
 Comparison acceptance stays in DR-6. The following canonical IDs remain explicitly optional or later, without becoming community-release dependencies:
 
