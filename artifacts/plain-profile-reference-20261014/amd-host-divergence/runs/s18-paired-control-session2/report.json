@@ -1,0 +1,889 @@
+{
+ "schema": "reploid.plain-substitution-check/v1",
+ "label": "paired control, second session",
+ "startedAt": "2026-10-14T21:20:02.804Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "referenceSha256": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+ "referenceModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+ "manifestIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "manifestMatchesReference": false,
+ "config": {
+  "label": "paired control, second session",
+  "runtimeConfig": {
+   "inference": {
+    "compute": {
+     "activationDtype": "f32"
+    },
+    "generation": {
+     "disableMultiTokenDecode": false
+    },
+    "session": {
+     "attentionDecodeOnline": null,
+     "compute": {
+      "defaults": {
+       "accumDtype": "f32",
+       "activationDtype": "f32",
+       "mathDtype": "f32",
+       "outputDtype": "f32"
+      }
+     },
+     "decodeLoop": {
+      "batchSize": 4,
+      "disableCommandBatching": false,
+      "readbackInterval": 8,
+      "readbackMode": "sequential",
+      "ringStaging": 1,
+      "ringStop": 1,
+      "ringTokens": 1,
+      "stopCheckMode": "batch",
+      "submitLatencyThresholdMs": null
+     },
+     "fusedFfnQ4K": null,
+     "intermediatePrecision": "two-f32",
+     "kvcache": {
+      "kvDtype": "f16",
+      "layout": "contiguous",
+      "maxSeqLen": 4096,
+      "pageSize": 256,
+      "quantization": {
+       "bitWidth": 4,
+       "mode": "none",
+       "prodMode": false
+      },
+      "tiering": {
+       "coldDtype": "f16",
+       "coldPageSize": 256,
+       "compression": {
+        "bitWidth": 4,
+        "blockSize": 1,
+        "mode": "none",
+        "prodMode": false
+       },
+       "gating": {
+        "minAluBwRatio": 0,
+        "mode": "auto"
+       },
+       "hotWindow": 1024,
+       "mode": "off"
+      }
+     },
+     "linearRecurrentStatePrecision": "two-f32",
+     "lmHeadArgmaxQ4K": null,
+     "perLayerInputs": {
+      "gpuUpload": {
+       "mode": "per_step_slices",
+       "stagingRows": 2
+      },
+      "hotCache": {
+       "maxBytes": 134217728,
+       "maxTokens": 1024,
+       "mode": "prepared_tokens",
+       "outputDtype": "f32"
+      },
+      "materialization": "auto",
+      "prefetch": {
+       "mode": "next_token",
+       "rowsAhead": 1
+      },
+      "rowCache": {
+       "decodedDtype": "f32",
+       "maxBytes": 134217728,
+       "maxRows": 256,
+       "mode": "lru"
+      }
+     },
+     "prefillChunkLayers": 1,
+     "prefillChunkSubmitMode": "async",
+     "prefillTokenChunkSize": 16,
+     "retainQ4KMaterialization": false,
+     "skipEmbeddingKVCacheWrites": false,
+     "speculation": {
+      "mode": "self",
+      "rollbackOnReject": true,
+      "threshold": null,
+      "tokens": 1,
+      "verify": "greedy"
+     },
+     "useFlashPrefillAttention": false,
+     "useFusedGateUpGelu": false,
+     "useFusedQKVSplitQKNorm": false,
+     "useFusedQKVSplitQKNormRoPE": false,
+     "useFusedRmsnormWideTile": false,
+     "useGreedyLmHeadArgmaxFusion": false,
+     "useLargeBatchF16F32FusedGateUp": false,
+     "useLinearAttentionABProjectionFusion": false,
+     "useLinearAttentionFusedDecodeCore": false,
+     "useLinearAttentionQKVZProjectionFusion": false,
+     "useOrtFlashPrefillAttention": false,
+     "usePostAttnNormFusedGateUp": false,
+     "usePostFfnNextInputRMSNormPairFusion": false,
+     "useSandwichRMSNormPairFusion": false,
+     "useTiledQ4KPrefill": false,
+     "useWideTileQ4KDecode": false,
+     "useWideTileQ4KPrefill": false,
+     "useWideTileResidualFusion": false
+    }
+   }
+  }
+ },
+ "configSha256": "sha256:924af4dc4a9794868b06b49c5a7110e24fc9e2c17486e4fe09965f641f3cd692",
+ "tolerance": 0.001,
+ "requiredSteps": 55,
+ "requestContractSha256": [
+  "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9",
+  "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2",
+  "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+ ],
+ "speed": {
+  "promptTokens": 56,
+  "passes": [
+   {
+    "prefillMs": 17679.868747,
+    "decode": {
+     "count": 64,
+     "totalMs": 38572.30995900004,
+     "medianMs": 583.3317150000003,
+     "p90Ms": 726.6710569999996,
+     "minMs": 530.9000349999988,
+     "maxMs": 834.5522160000037
+    }
+   },
+   {
+    "prefillMs": 17027.748428000006,
+    "decode": {
+     "count": 64,
+     "totalMs": 38505.78876600003,
+     "medianMs": 579.2306970000063,
+     "p90Ms": 731.3249480000086,
+     "minMs": 526.2573789999878,
+     "maxMs": 796.6292089999915
+    }
+   }
+  ],
+  "longPrompt": {
+   "promptTokens": 184,
+   "prefillMs": 57152.38864899997
+  },
+  "checkRequest2Decode": {
+   "count": 50,
+   "totalMs": 38415.473959000024,
+   "medianMs": 754.8596850000031,
+   "p90Ms": 843.6454900000244,
+   "minMs": 713.3245659999957,
+   "maxMs": 991.1552749999973
+  },
+  "summary": {
+   "prompt56Ms": 17027.748428000006,
+   "prompt184Ms": 57152.38864899997,
+   "decodeMedianMs": 579.2306970000063
+  }
+ },
+ "requests": [
+  {
+   "attempt": 0,
+   "promptTokens": 19,
+   "promptMatchesFrozenPrefix": true,
+   "steps": [
+    {
+     "step": 0,
+     "maxDifference": 8.399647413170896e-7,
+     "maxDifferenceAt": 38493,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 9419,
+     "referenceTokenId": 9419,
+     "tokenMatches": true,
+     "elapsedMs": 5947.525059000007
+    },
+    {
+     "step": 1,
+     "maxDifference": 6.15752007604442e-7,
+     "maxDifferenceAt": 11,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 248046,
+     "referenceTokenId": 248046,
+     "tokenMatches": true,
+     "elapsedMs": 645.0189479999972
+    }
+   ],
+   "maxDifference": 8.399647413170896e-7,
+   "failedSteps": []
+  },
+  {
+   "attempt": 1,
+   "promptTokens": 21,
+   "promptMatchesFrozenPrefix": true,
+   "steps": [
+    {
+     "step": 0,
+     "maxDifference": 7.122407730264513e-7,
+     "maxDifferenceAt": 32897,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 19,
+     "referenceTokenId": 19,
+     "tokenMatches": true,
+     "elapsedMs": 6480.243640999994
+    },
+    {
+     "step": 1,
+     "maxDifference": 8.902515347131157e-7,
+     "maxDifferenceAt": 318,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 248046,
+     "referenceTokenId": 248046,
+     "tokenMatches": true,
+     "elapsedMs": 584.7382249999937
+    }
+   ],
+   "maxDifference": 8.902515347131157e-7,
+   "failedSteps": []
+  },
+  {
+   "attempt": 2,
+   "promptTokens": 184,
+   "promptMatchesFrozenPrefix": true,
+   "steps": [
+    {
+     "step": 0,
+     "maxDifference": 9.465929977636733e-7,
+     "maxDifferenceAt": 1919,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 57014.671395
+    },
+    {
+     "step": 1,
+     "maxDifference": 9.511217982094422e-7,
+     "maxDifferenceAt": 13,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 773.1859570000088
+    },
+    {
+     "step": 2,
+     "maxDifference": 8.68015469279726e-7,
+     "maxDifferenceAt": 40,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 17,
+     "referenceTokenId": 17,
+     "tokenMatches": true,
+     "elapsedMs": 713.3245659999957
+    },
+    {
+     "step": 3,
+     "maxDifference": 7.162583912645459e-7,
+     "maxDifferenceAt": 13,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 713.8660660000169
+    },
+    {
+     "step": 4,
+     "maxDifference": 8.71407298319582e-7,
+     "maxDifferenceAt": 17,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 18,
+     "referenceTokenId": 18,
+     "tokenMatches": true,
+     "elapsedMs": 719.0382470000186
+    },
+    {
+     "step": 5,
+     "maxDifference": 5.736278545498408e-7,
+     "maxDifferenceAt": 198,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 715.9046969999908
+    },
+    {
+     "step": 6,
+     "maxDifference": 7.928766692089084e-7,
+     "maxDifferenceAt": 1076,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 19,
+     "referenceTokenId": 19,
+     "tokenMatches": true,
+     "elapsedMs": 724.2523849999998
+    },
+    {
+     "step": 7,
+     "maxDifference": 7.735741682779462e-7,
+     "maxDifferenceAt": 271,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 717.4213440000021
+    },
+    {
+     "step": 8,
+     "maxDifference": 8.880480919515321e-7,
+     "maxDifferenceAt": 1076,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 20,
+     "referenceTokenId": 20,
+     "tokenMatches": true,
+     "elapsedMs": 843.6454900000244
+    },
+    {
+     "step": 9,
+     "maxDifference": 7.18186271342347e-7,
+     "maxDifferenceAt": 220,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 720.9264199999743
+    },
+    {
+     "step": 10,
+     "maxDifference": 6.088153909900029e-7,
+     "maxDifferenceAt": 1076,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 21,
+     "referenceTokenId": 21,
+     "tokenMatches": true,
+     "elapsedMs": 725.4676920000056
+    },
+    {
+     "step": 11,
+     "maxDifference": 8.808601243970315e-7,
+     "maxDifferenceAt": 271,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 740.8216599999869
+    },
+    {
+     "step": 12,
+     "maxDifference": 7.976590090663649e-7,
+     "maxDifferenceAt": 22,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 22,
+     "referenceTokenId": 22,
+     "tokenMatches": true,
+     "elapsedMs": 723.7652490000182
+    },
+    {
+     "step": 13,
+     "maxDifference": 9.029354934853018e-7,
+     "maxDifferenceAt": 198,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 732.909679000004
+    },
+    {
+     "step": 14,
+     "maxDifference": 8.974647514037315e-7,
+     "maxDifferenceAt": 220,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 23,
+     "referenceTokenId": 23,
+     "tokenMatches": true,
+     "elapsedMs": 731.5157199999958
+    },
+    {
+     "step": 15,
+     "maxDifference": 6.479467806741468e-7,
+     "maxDifferenceAt": 248046,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 732.4145030000072
+    },
+    {
+     "step": 16,
+     "maxDifference": 9.431464889075869e-7,
+     "maxDifferenceAt": 248069,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 24,
+     "referenceTokenId": 24,
+     "tokenMatches": true,
+     "elapsedMs": 846.92756500002
+    },
+    {
+     "step": 17,
+     "maxDifference": 6.020213518809214e-7,
+     "maxDifferenceAt": 248046,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 733.2246769999911
+    },
+    {
+     "step": 18,
+     "maxDifference": 4.76104393243304e-7,
+     "maxDifferenceAt": 27733,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 733.7150010000041
+    },
+    {
+     "step": 19,
+     "maxDifference": 6.868741131427214e-7,
+     "maxDifferenceAt": 220,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 15,
+     "referenceTokenId": 15,
+     "tokenMatches": true,
+     "elapsedMs": 829.0610030000098
+    },
+    {
+     "step": 20,
+     "maxDifference": 8.416379735365354e-7,
+     "maxDifferenceAt": 271,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 734.8828400000057
+    },
+    {
+     "step": 21,
+     "maxDifference": 4.7671555236661334e-7,
+     "maxDifferenceAt": 4277,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 739.5456709999999
+    },
+    {
+     "step": 22,
+     "maxDifference": 7.527730794265608e-7,
+     "maxDifferenceAt": 16,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 803.242407999991
+    },
+    {
+     "step": 23,
+     "maxDifference": 5.66631417342478e-7,
+     "maxDifferenceAt": 271,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 740.0951739999873
+    },
+    {
+     "step": 24,
+     "maxDifference": 5.008885572976851e-7,
+     "maxDifferenceAt": 220,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 742.7443480000074
+    },
+    {
+     "step": 25,
+     "maxDifference": 7.055716224613207e-7,
+     "maxDifferenceAt": 15,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 17,
+     "referenceTokenId": 17,
+     "tokenMatches": true,
+     "elapsedMs": 742.435112999985
+    },
+    {
+     "step": 26,
+     "maxDifference": 4.758145006888981e-7,
+     "maxDifferenceAt": 478,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 749.80098
+    },
+    {
+     "step": 27,
+     "maxDifference": 7.735567919553432e-7,
+     "maxDifferenceAt": 1076,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 991.1552749999973
+    },
+    {
+     "step": 28,
+     "maxDifference": 7.37632763758711e-7,
+     "maxDifferenceAt": 16,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 18,
+     "referenceTokenId": 18,
+     "tokenMatches": true,
+     "elapsedMs": 746.7244960000098
+    },
+    {
+     "step": 29,
+     "maxDifference": 7.353005955224035e-7,
+     "maxDifferenceAt": 271,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 750.3351419999963
+    },
+    {
+     "step": 30,
+     "maxDifference": 4.943657643252664e-7,
+     "maxDifferenceAt": 16,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 902.6521690000081
+    },
+    {
+     "step": 31,
+     "maxDifference": 8.45685566019938e-7,
+     "maxDifferenceAt": 198,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 19,
+     "referenceTokenId": 19,
+     "tokenMatches": true,
+     "elapsedMs": 751.5915289999975
+    },
+    {
+     "step": 32,
+     "maxDifference": 5.022872180404647e-7,
+     "maxDifferenceAt": 271,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 756.2913879999833
+    },
+    {
+     "step": 33,
+     "maxDifference": 4.989301132241053e-7,
+     "maxDifferenceAt": 16,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 895.5362979999918
+    },
+    {
+     "step": 34,
+     "maxDifference": 8.834450042627395e-7,
+     "maxDifferenceAt": 21,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 20,
+     "referenceTokenId": 20,
+     "tokenMatches": true,
+     "elapsedMs": 755.2715930000122
+    },
+    {
+     "step": 35,
+     "maxDifference": 7.852569972044421e-7,
+     "maxDifferenceAt": 271,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 754.8596850000031
+    },
+    {
+     "step": 36,
+     "maxDifference": 4.765196788270032e-7,
+     "maxDifferenceAt": 16077,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 800.5299830000149
+    },
+    {
+     "step": 37,
+     "maxDifference": 9.196834902525097e-7,
+     "maxDifferenceAt": 20,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 21,
+     "referenceTokenId": 21,
+     "tokenMatches": true,
+     "elapsedMs": 760.9977350000117
+    },
+    {
+     "step": 38,
+     "maxDifference": 7.017729615199642e-7,
+     "maxDifferenceAt": 198,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 764.3063090000069
+    },
+    {
+     "step": 39,
+     "maxDifference": 4.763602685642354e-7,
+     "maxDifferenceAt": 32228,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 765.0567239999946
+    },
+    {
+     "step": 40,
+     "maxDifference": 6.057156873851e-7,
+     "maxDifferenceAt": 23,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 22,
+     "referenceTokenId": 22,
+     "tokenMatches": true,
+     "elapsedMs": 767.1616619999986
+    },
+    {
+     "step": 41,
+     "maxDifference": 6.90009414938686e-7,
+     "maxDifferenceAt": 198,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 765.711535999988
+    },
+    {
+     "step": 42,
+     "maxDifference": 6.659978630807473e-7,
+     "maxDifferenceAt": 16,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 770.1112509999948
+    },
+    {
+     "step": 43,
+     "maxDifference": 8.981626429260814e-7,
+     "maxDifferenceAt": 220,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 23,
+     "referenceTokenId": 23,
+     "tokenMatches": true,
+     "elapsedMs": 770.8232720000087
+    },
+    {
+     "step": 44,
+     "maxDifference": 8.844390428919269e-7,
+     "maxDifferenceAt": 198,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 847.8682549999794
+    },
+    {
+     "step": 45,
+     "maxDifference": 8.330828507041588e-7,
+     "maxDifferenceAt": 16,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 773.2215399999986
+    },
+    {
+     "step": 46,
+     "maxDifference": 8.883623330291357e-7,
+     "maxDifferenceAt": 198,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 24,
+     "referenceTokenId": 24,
+     "tokenMatches": true,
+     "elapsedMs": 777.0839220000198
+    },
+    {
+     "step": 47,
+     "maxDifference": 6.82579010202744e-7,
+     "maxDifferenceAt": 271,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 775.55686099999
+    },
+    {
+     "step": 48,
+     "maxDifference": 4.766864023508788e-7,
+     "maxDifferenceAt": 57,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 17,
+     "referenceTokenId": 17,
+     "tokenMatches": true,
+     "elapsedMs": 785.5676549999916
+    },
+    {
+     "step": 49,
+     "maxDifference": 9.520044947919359e-7,
+     "maxDifferenceAt": 198,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 15,
+     "referenceTokenId": 15,
+     "tokenMatches": true,
+     "elapsedMs": 776.746570999996
+    },
+    {
+     "step": 50,
+     "maxDifference": 9.168414152327387e-7,
+     "maxDifferenceAt": 198,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 248046,
+     "referenceTokenId": 248046,
+     "tokenMatches": true,
+     "elapsedMs": 786.1786529999808
+    }
+   ],
+   "maxDifference": 9.520044947919359e-7,
+   "failedSteps": []
+  }
+ ],
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true
+ },
+ "summary": {
+  "comparedSteps": 55,
+  "withinTolerance": 55,
+  "tokenMatches": 55,
+  "maxDifference": 9.520044947919359e-7,
+  "valuesOverTolerance": 0,
+  "passed": true
+ },
+ "finishedAt": "2026-10-14T21:24:41.842Z"
+}

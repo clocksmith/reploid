@@ -1,0 +1,45 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.8ms
+[653.3ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[653.4ms][Config] Using manifest-first config (source of truth)
+[658.2ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[658.2ms][Pipeline] Vision capable: imageTokenId=248056
+[659.4ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[659.7ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[660.3ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[773.7ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[885.4ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[885.9ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[889.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[890.1ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[944.6ms][ShardCache] Custom shard loader configured
+[944.9ms][Loader] Initializing...
+[981.4ms][HeapManager] Allocated segment 0: 1024MB
+[981.6ms][HeapManager] Segmented heap: 1GB per segment
+[981.6ms][HeapManager] Initialized with strategy: SEGMENTED
+[981.7ms][Loader] Initialized (f16, subgroups)
+[982.2ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[992.4ms][Loader] [0.0s] Memory (start): | RSS=495.63 MB (heap=197.65 MB/200.15 MB, external=2.14 GB, arrayBuffers=1.14 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[992.9ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1142.5ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1142.8ms][Loader] Layers: 0-23
+[1329.1ms][Loader] Layers: 24 complete (0.19s)
+[1367.1ms][Loader] Complete: 890.16 MB in 0.37s (2.33 GB/s)
+[1368.1ms][Loader] [0.4s] Memory (complete): | RSS=604.54 MB (heap=215.78 MB/233.65 MB, external=1.20 GB, arrayBuffers=1.20 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1377.9ms][Pipeline] Model loaded successfully (730ms)
+[1407.5ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[1413.9ms][KernelSelect] matmul variant=f16w_f32a reason=default
+[1476.2ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[1689.6ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[1724.7ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[1763.7ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[1781.6ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+{"label":"plain + paired prefill chunking (16 tokens, 1 layer per recorder)","speedPass":0,"prefillMs":335.0508100000002,"decodeMedianMs":29.13812900000039}
+{"label":"plain + paired prefill chunking (16 tokens, 1 layer per recorder)","speedPass":1,"prefillMs":201.10233000000017,"decodeMedianMs":27.407390000000305}
+{"label":"plain + paired prefill chunking (16 tokens, 1 layer per recorder)","attempt":0,"promptTokens":19,"maxDifference":0.0005454648660014882,"failedSteps":0}
+{"label":"plain + paired prefill chunking (16 tokens, 1 layer per recorder)","attempt":1,"promptTokens":21,"maxDifference":0.0006218545628309258,"failedSteps":0}
+{"label":"plain + paired prefill chunking (16 tokens, 1 layer per recorder)","attempt":2,"promptTokens":184,"maxDifference":0.002426283699820786,"failedSteps":28}
+{"label":"plain + paired prefill chunking (16 tokens, 1 layer per recorder)","comparedSteps":55,"withinTolerance":27,"tokenMatches":55,"maxDifference":0.002426283699820786,"valuesOverTolerance":14121,"passed":false,"prompt56Ms":201.10233000000017,"prompt184Ms":482.96255999999994,"decodeMedianMs":27.407390000000305}
+[8800.4ms][ExpertCache] Cache cleared
+[8801.7ms][Pipeline] Unloaded

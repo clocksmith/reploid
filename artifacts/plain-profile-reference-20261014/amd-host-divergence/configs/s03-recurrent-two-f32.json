@@ -1,0 +1,6 @@
+{
+ "label": "plain + two-F32 recurrent state",
+ "sessionOverrides": {
+  "linearRecurrentStatePrecision": "two-f32"
+ }
+}

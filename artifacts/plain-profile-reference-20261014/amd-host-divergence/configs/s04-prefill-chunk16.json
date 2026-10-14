@@ -1,0 +1,7 @@
+{
+ "label": "plain + paired prefill chunking (16 tokens, 1 layer per recorder)",
+ "sessionOverrides": {
+  "prefillTokenChunkSize": 16,
+  "prefillChunkLayers": 1
+ }
+}

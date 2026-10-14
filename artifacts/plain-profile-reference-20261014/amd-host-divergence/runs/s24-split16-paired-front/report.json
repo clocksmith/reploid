@@ -1,0 +1,1026 @@
+{
+ "schema": "reploid.plain-substitution-check/v1",
+ "label": "paired layers 0-15, plain layers 16-23 + head",
+ "startedAt": "2026-10-14T21:40:04.948Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "referenceSha256": "sha256:ad26dfbc38c5b890f48da2f1e4313dac9295e39e12f688411a10bf614d22fdd6",
+ "referenceModelIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+ "manifestIdentity": "sha256:edeb69dd65cbb26971abf773a95bf6dc219a82942c0951d65e1893d442b607c9",
+ "manifestMatchesReference": true,
+ "config": {
+  "label": "paired layers 0-15, plain layers 16-23 + head",
+  "split": {
+   "splitLayer": 16,
+   "front": {
+    "modelDir": "/var/tmp/doppler-cold-compile-model-20261013",
+    "runtimeConfig": {
+     "inference": {
+      "compute": {
+       "activationDtype": "f32"
+      },
+      "generation": {
+       "disableMultiTokenDecode": false
+      },
+      "session": {
+       "attentionDecodeOnline": null,
+       "compute": {
+        "defaults": {
+         "accumDtype": "f32",
+         "activationDtype": "f32",
+         "mathDtype": "f32",
+         "outputDtype": "f32"
+        }
+       },
+       "decodeLoop": {
+        "batchSize": 4,
+        "disableCommandBatching": false,
+        "readbackInterval": 8,
+        "readbackMode": "sequential",
+        "ringStaging": 1,
+        "ringStop": 1,
+        "ringTokens": 1,
+        "stopCheckMode": "batch",
+        "submitLatencyThresholdMs": null
+       },
+       "fusedFfnQ4K": null,
+       "intermediatePrecision": "two-f32",
+       "kvcache": {
+        "kvDtype": "f16",
+        "layout": "contiguous",
+        "maxSeqLen": 4096,
+        "pageSize": 256,
+        "quantization": {
+         "bitWidth": 4,
+         "mode": "none",
+         "prodMode": false
+        },
+        "tiering": {
+         "coldDtype": "f16",
+         "coldPageSize": 256,
+         "compression": {
+          "bitWidth": 4,
+          "blockSize": 1,
+          "mode": "none",
+          "prodMode": false
+         },
+         "gating": {
+          "minAluBwRatio": 0,
+          "mode": "auto"
+         },
+         "hotWindow": 1024,
+         "mode": "off"
+        }
+       },
+       "linearRecurrentStatePrecision": "two-f32",
+       "lmHeadArgmaxQ4K": null,
+       "perLayerInputs": {
+        "gpuUpload": {
+         "mode": "per_step_slices",
+         "stagingRows": 2
+        },
+        "hotCache": {
+         "maxBytes": 134217728,
+         "maxTokens": 1024,
+         "mode": "prepared_tokens",
+         "outputDtype": "f32"
+        },
+        "materialization": "auto",
+        "prefetch": {
+         "mode": "next_token",
+         "rowsAhead": 1
+        },
+        "rowCache": {
+         "decodedDtype": "f32",
+         "maxBytes": 134217728,
+         "maxRows": 256,
+         "mode": "lru"
+        }
+       },
+       "prefillChunkLayers": 1,
+       "prefillChunkSubmitMode": "async",
+       "prefillTokenChunkSize": 16,
+       "retainQ4KMaterialization": false,
+       "skipEmbeddingKVCacheWrites": false,
+       "speculation": {
+        "mode": "self",
+        "rollbackOnReject": true,
+        "threshold": null,
+        "tokens": 1,
+        "verify": "greedy"
+       },
+       "useFlashPrefillAttention": false,
+       "useFusedGateUpGelu": false,
+       "useFusedQKVSplitQKNorm": false,
+       "useFusedQKVSplitQKNormRoPE": false,
+       "useFusedRmsnormWideTile": false,
+       "useGreedyLmHeadArgmaxFusion": false,
+       "useLargeBatchF16F32FusedGateUp": false,
+       "useLinearAttentionABProjectionFusion": false,
+       "useLinearAttentionFusedDecodeCore": false,
+       "useLinearAttentionQKVZProjectionFusion": false,
+       "useOrtFlashPrefillAttention": false,
+       "usePostAttnNormFusedGateUp": false,
+       "usePostFfnNextInputRMSNormPairFusion": false,
+       "useSandwichRMSNormPairFusion": false,
+       "useTiledQ4KPrefill": false,
+       "useWideTileQ4KDecode": false,
+       "useWideTileQ4KPrefill": false,
+       "useWideTileResidualFusion": false
+      }
+     }
+    }
+   }
+  }
+ },
+ "configSha256": "sha256:1836da41393dae0b9631ef037f15e384ef8a3e3ce2b6e480a7e88553c6086c80",
+ "tolerance": 0.001,
+ "requiredSteps": 55,
+ "requestContractSha256": [
+  "sha256:ba2a4668d6affb85faf05221d6263a5b29b55d26c8f89a4f107cbacb717599a9",
+  "sha256:3cc051de10f77e945c6a62b66cccb22f0c15e55bf11196c6f71aeda4174ba5a2",
+  "sha256:8b21b154357efa8c9d1c853ffe36c5ce9d9e32e684b496db9031bc59fa6fe836"
+ ],
+ "speed": {
+  "promptTokens": 56,
+  "passes": [
+   {
+    "prefillMs": 11938.124629,
+    "decode": {
+     "count": 64,
+     "totalMs": 25072.491660999985,
+     "medianMs": 362.4148260000002,
+     "p90Ms": 494.86727099999916,
+     "minMs": 329.28868499999953,
+     "maxMs": 668.5046330000005
+    }
+   },
+   {
+    "prefillMs": 11934.503922999997,
+    "decode": {
+     "count": 64,
+     "totalMs": 24583.452391999897,
+     "medianMs": 355.79688099999476,
+     "p90Ms": 509.97126800000115,
+     "minMs": 322.05406799999764,
+     "maxMs": 704.1971840000042
+    }
+   }
+  ],
+  "longPrompt": {
+   "promptTokens": 184,
+   "prefillMs": 38299.188647
+  },
+  "checkRequest2Decode": {
+   "count": 50,
+   "totalMs": 25366.203671000083,
+   "medianMs": 476.2328700000071,
+   "p90Ms": 644.3162500000035,
+   "minMs": 447.668365000005,
+   "maxMs": 831.6946520000056
+  },
+  "summary": {
+   "prompt56Ms": 11934.503922999997,
+   "prompt184Ms": 38299.188647,
+   "decodeMedianMs": 355.79688099999476
+  }
+ },
+ "requests": [
+  {
+   "attempt": 0,
+   "promptTokens": 19,
+   "promptMatchesFrozenPrefix": true,
+   "steps": [
+    {
+     "step": 0,
+     "maxDifference": 0.00006183723723651724,
+     "maxDifferenceAt": 8225,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 9419,
+     "referenceTokenId": 9419,
+     "tokenMatches": true,
+     "elapsedMs": 3747.819392000005
+    },
+    {
+     "step": 1,
+     "maxDifference": 0.00005978382382365588,
+     "maxDifferenceAt": 24799,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 248046,
+     "referenceTokenId": 248046,
+     "tokenMatches": true,
+     "elapsedMs": 444.97213100000226
+    }
+   ],
+   "maxDifference": 0.00006183723723651724,
+   "failedSteps": []
+  },
+  {
+   "attempt": 1,
+   "promptTokens": 21,
+   "promptMatchesFrozenPrefix": true,
+   "steps": [
+    {
+     "step": 0,
+     "maxDifference": 0.00005297846553958818,
+     "maxDifferenceAt": 61448,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 19,
+     "referenceTokenId": 19,
+     "tokenMatches": true,
+     "elapsedMs": 4313.420551000003
+    },
+    {
+     "step": 1,
+     "maxDifference": 0.0004817321211731951,
+     "maxDifferenceAt": 248044,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 248046,
+     "referenceTokenId": 248046,
+     "tokenMatches": true,
+     "elapsedMs": 291.77679999999236
+    }
+   ],
+   "maxDifference": 0.0004817321211731951,
+   "failedSteps": []
+  },
+  {
+   "attempt": 2,
+   "promptTokens": 184,
+   "promptMatchesFrozenPrefix": true,
+   "steps": [
+    {
+     "step": 0,
+     "maxDifference": 0.00023374566986911205,
+     "maxDifferenceAt": 3870,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 38055.966675
+    },
+    {
+     "step": 1,
+     "maxDifference": 0.00015456140510838878,
+     "maxDifferenceAt": 3870,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 785.047676000002
+    },
+    {
+     "step": 2,
+     "maxDifference": 0.00017134756365866366,
+     "maxDifferenceAt": 3870,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 17,
+     "referenceTokenId": 17,
+     "tokenMatches": true,
+     "elapsedMs": 449.9230840000091
+    },
+    {
+     "step": 3,
+     "maxDifference": 0.00007276604067918413,
+     "maxDifferenceAt": 43367,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 447.668365000005
+    },
+    {
+     "step": 4,
+     "maxDifference": 0.0004357265374217434,
+     "maxDifferenceAt": 33,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 18,
+     "referenceTokenId": 18,
+     "tokenMatches": true,
+     "elapsedMs": 448.313421999992
+    },
+    {
+     "step": 5,
+     "maxDifference": 0.00004116908767493044,
+     "maxDifferenceAt": 18,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 454.1264450000017
+    },
+    {
+     "step": 6,
+     "maxDifference": 0.00010035438795696905,
+     "maxDifferenceAt": 33,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 19,
+     "referenceTokenId": 19,
+     "tokenMatches": true,
+     "elapsedMs": 600.5900279999914
+    },
+    {
+     "step": 7,
+     "maxDifference": 0.00008777479974431124,
+     "maxDifferenceAt": 12403,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 453.0666679999995
+    },
+    {
+     "step": 8,
+     "maxDifference": 0.00007715062716684429,
+     "maxDifferenceAt": 115460,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 20,
+     "referenceTokenId": 20,
+     "tokenMatches": true,
+     "elapsedMs": 450.7813710000046
+    },
+    {
+     "step": 9,
+     "maxDifference": 0.000049579146895961657,
+     "maxDifferenceAt": 6530,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 457.4531130000105
+    },
+    {
+     "step": 10,
+     "maxDifference": 0.000058021744780090145,
+     "maxDifferenceAt": 23891,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 21,
+     "referenceTokenId": 21,
+     "tokenMatches": true,
+     "elapsedMs": 750.3837349999958
+    },
+    {
+     "step": 11,
+     "maxDifference": 0.00009559690860139192,
+     "maxDifferenceAt": 27872,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 455.2761409999948
+    },
+    {
+     "step": 12,
+     "maxDifference": 0.00011850018063874757,
+     "maxDifferenceAt": 25942,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 22,
+     "referenceTokenId": 22,
+     "tokenMatches": true,
+     "elapsedMs": 453.7278740000038
+    },
+    {
+     "step": 13,
+     "maxDifference": 0.00016525383641546876,
+     "maxDifferenceAt": 95789,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 460.5765190000093
+    },
+    {
+     "step": 14,
+     "maxDifference": 0.00009857315044725645,
+     "maxDifferenceAt": 200609,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 23,
+     "referenceTokenId": 23,
+     "tokenMatches": true,
+     "elapsedMs": 458.6170260000072
+    },
+    {
+     "step": 15,
+     "maxDifference": 0.00012638472379578047,
+     "maxDifferenceAt": 695,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 588.0775989999966
+    },
+    {
+     "step": 16,
+     "maxDifference": 0.00009698135068614278,
+     "maxDifferenceAt": 10191,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 24,
+     "referenceTokenId": 24,
+     "tokenMatches": true,
+     "elapsedMs": 458.830357999992
+    },
+    {
+     "step": 17,
+     "maxDifference": 0.00014961187206274928,
+     "maxDifferenceAt": 24,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 459.70902399999613
+    },
+    {
+     "step": 18,
+     "maxDifference": 0.00016125095845698212,
+     "maxDifferenceAt": 100965,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 460.95407000000705
+    },
+    {
+     "step": 19,
+     "maxDifference": 0.00015766433364916566,
+     "maxDifferenceAt": 47,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 15,
+     "referenceTokenId": 15,
+     "tokenMatches": true,
+     "elapsedMs": 747.0813809999963
+    },
+    {
+     "step": 20,
+     "maxDifference": 0.00016154840484228217,
+     "maxDifferenceAt": 57868,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 462.31431300000986
+    },
+    {
+     "step": 21,
+     "maxDifference": 0.00009802387040380722,
+     "maxDifferenceAt": 55369,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 464.1531379999942
+    },
+    {
+     "step": 22,
+     "maxDifference": 0.00019758751323006862,
+     "maxDifferenceAt": 54556,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 465.70691599999554
+    },
+    {
+     "step": 23,
+     "maxDifference": 0.00007286662311756231,
+     "maxDifferenceAt": 695,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 472.1094509999966
+    },
+    {
+     "step": 24,
+     "maxDifference": 0.00010453540838284425,
+     "maxDifferenceAt": 13607,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 472.6851360000146
+    },
+    {
+     "step": 25,
+     "maxDifference": 0.00008397923327674306,
+     "maxDifferenceAt": 73,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 17,
+     "referenceTokenId": 17,
+     "tokenMatches": true,
+     "elapsedMs": 468.108161000011
+    },
+    {
+     "step": 26,
+     "maxDifference": 0.00019863753914961535,
+     "maxDifferenceAt": 150190,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 470.8251909999817
+    },
+    {
+     "step": 27,
+     "maxDifference": 0.0001682862429618348,
+     "maxDifferenceAt": 82548,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 468.67439800000284
+    },
+    {
+     "step": 28,
+     "maxDifference": 0.00010988858793936629,
+     "maxDifferenceAt": 16,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 18,
+     "referenceTokenId": 18,
+     "tokenMatches": true,
+     "elapsedMs": 476.2328700000071
+    },
+    {
+     "step": 29,
+     "maxDifference": 0.00008314964448175033,
+     "maxDifferenceAt": 695,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 470.77568700001575
+    },
+    {
+     "step": 30,
+     "maxDifference": 0.00016244909267104646,
+     "maxDifferenceAt": 82548,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 472.20315699998173
+    },
+    {
+     "step": 31,
+     "maxDifference": 0.00010653933001769644,
+     "maxDifferenceAt": 304,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 19,
+     "referenceTokenId": 19,
+     "tokenMatches": true,
+     "elapsedMs": 476.3546900000074
+    },
+    {
+     "step": 32,
+     "maxDifference": 0.00035012553739077745,
+     "maxDifferenceAt": 20832,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 479.8738209999865
+    },
+    {
+     "step": 33,
+     "maxDifference": 0.000660039117648753,
+     "maxDifferenceAt": 20174,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 479.1309210000036
+    },
+    {
+     "step": 34,
+     "maxDifference": 0.000532741573781248,
+     "maxDifferenceAt": 13421,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 20,
+     "referenceTokenId": 20,
+     "tokenMatches": true,
+     "elapsedMs": 648.6136800000095
+    },
+    {
+     "step": 35,
+     "maxDifference": 0.00023611580858240444,
+     "maxDifferenceAt": 151297,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 477.5905980000098
+    },
+    {
+     "step": 36,
+     "maxDifference": 0.00033218834302406464,
+     "maxDifferenceAt": 20174,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 479.34521400000085
+    },
+    {
+     "step": 37,
+     "maxDifference": 0.00035300192970266764,
+     "maxDifferenceAt": 33869,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 21,
+     "referenceTokenId": 21,
+     "tokenMatches": true,
+     "elapsedMs": 480.48867900000187
+    },
+    {
+     "step": 38,
+     "maxDifference": 0.00032081568524766624,
+     "maxDifferenceAt": 15626,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 831.6946520000056
+    },
+    {
+     "step": 39,
+     "maxDifference": 0.0001412405479568335,
+     "maxDifferenceAt": 212753,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 481.3639690000273
+    },
+    {
+     "step": 40,
+     "maxDifference": 0.00024005541110838635,
+     "maxDifferenceAt": 18,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 22,
+     "referenceTokenId": 22,
+     "tokenMatches": true,
+     "elapsedMs": 484.66201300002285
+    },
+    {
+     "step": 41,
+     "maxDifference": 0.00018483464499219338,
+     "maxDifferenceAt": 2280,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 482.4158499999903
+    },
+    {
+     "step": 42,
+     "maxDifference": 0.00010060671035372337,
+     "maxDifferenceAt": 149646,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 483.176403999998
+    },
+    {
+     "step": 43,
+     "maxDifference": 0.00015025864014717172,
+     "maxDifferenceAt": 34016,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 23,
+     "referenceTokenId": 23,
+     "tokenMatches": true,
+     "elapsedMs": 486.74389599999995
+    },
+    {
+     "step": 44,
+     "maxDifference": 0.00012491256288527097,
+     "maxDifferenceAt": 40131,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 486.5930819999776
+    },
+    {
+     "step": 45,
+     "maxDifference": 0.00008495358740745473,
+     "maxDifferenceAt": 3260,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 16,
+     "referenceTokenId": 16,
+     "tokenMatches": true,
+     "elapsedMs": 488.5314350000117
+    },
+    {
+     "step": 46,
+     "maxDifference": 0.00010983133210196172,
+     "maxDifferenceAt": 20,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 24,
+     "referenceTokenId": 24,
+     "tokenMatches": true,
+     "elapsedMs": 488.50934299998335
+    },
+    {
+     "step": 47,
+     "maxDifference": 0.00007645851588433672,
+     "maxDifferenceAt": 5018,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 198,
+     "referenceTokenId": 198,
+     "tokenMatches": true,
+     "elapsedMs": 491.65076200000476
+    },
+    {
+     "step": 48,
+     "maxDifference": 0.00011359875790395435,
+     "maxDifferenceAt": 97799,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 17,
+     "referenceTokenId": 17,
+     "tokenMatches": true,
+     "elapsedMs": 644.3162500000035
+    },
+    {
+     "step": 49,
+     "maxDifference": 0.00008648840672442759,
+     "maxDifferenceAt": 2983,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 15,
+     "referenceTokenId": 15,
+     "tokenMatches": true,
+     "elapsedMs": 495.09216699999524
+    },
+    {
+     "step": 50,
+     "maxDifference": 0.0001040169238262223,
+     "maxDifferenceAt": 3870,
+     "valuesOverTolerance": 0,
+     "finite": true,
+     "withinTolerance": true,
+     "tokenId": 248046,
+     "referenceTokenId": 248046,
+     "tokenMatches": true,
+     "elapsedMs": 496.06392800001777
+    }
+   ],
+   "maxDifference": 0.000660039117648753,
+   "failedSteps": []
+  }
+ ],
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true
+ },
+ "splitFrontManifestIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "splitPlans": {
+  "front": {
+   "schema": "doppler.layer-partition-contract/v2",
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "totalLayers": 24,
+   "hiddenSize": 1024,
+   "vocabSize": 248320,
+   "splitLayer": 16,
+   "activationDtype": "f32",
+   "activationPrecision": "two-f32",
+   "activationComponents": 2,
+   "activationElementStrideBytes": 8,
+   "partitions": [
+    {
+     "index": 0,
+     "layerRange": [
+      0,
+      15
+     ],
+     "layerCount": 16,
+     "hasEmbedding": true,
+     "hasLmHead": false,
+     "inputContract": {
+      "type": "token-ids",
+      "rank": 2,
+      "shapeDescription": "[batchSize, seqLen]",
+      "dtype": "i32"
+     },
+     "outputContract": {
+      "type": "activation-tensor",
+      "rank": 3,
+      "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+      "hiddenSize": 1024,
+      "dtype": "f32",
+      "precision": "two-f32",
+      "components": 2,
+      "elementStrideBytes": 8
+     }
+    },
+    {
+     "index": 1,
+     "layerRange": [
+      16,
+      23
+     ],
+     "layerCount": 8,
+     "hasEmbedding": false,
+     "hasLmHead": true,
+     "inputContract": {
+      "type": "activation-tensor",
+      "rank": 3,
+      "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+      "hiddenSize": 1024,
+      "dtype": "f32",
+      "precision": "two-f32",
+      "components": 2,
+      "elementStrideBytes": 8
+     },
+     "outputContract": {
+      "type": "logits",
+      "rank": 3,
+      "shapeDescription": "[batchSize, seqLen, vocabSize]",
+      "vocabSize": 248320,
+      "dtype": "f32"
+     }
+    }
+   ]
+  },
+  "back": {
+   "schema": "doppler.layer-partition-contract/v1",
+   "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+   "totalLayers": 24,
+   "hiddenSize": 1024,
+   "vocabSize": 248320,
+   "splitLayer": 16,
+   "activationDtype": "f32",
+   "partitions": [
+    {
+     "index": 0,
+     "layerRange": [
+      0,
+      15
+     ],
+     "layerCount": 16,
+     "hasEmbedding": true,
+     "hasLmHead": false,
+     "inputContract": {
+      "type": "token-ids",
+      "rank": 2,
+      "shapeDescription": "[batchSize, seqLen]",
+      "dtype": "i32"
+     },
+     "outputContract": {
+      "type": "activation-tensor",
+      "rank": 3,
+      "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+      "hiddenSize": 1024,
+      "dtype": "f32"
+     }
+    },
+    {
+     "index": 1,
+     "layerRange": [
+      16,
+      23
+     ],
+     "layerCount": 8,
+     "hasEmbedding": false,
+     "hasLmHead": true,
+     "inputContract": {
+      "type": "activation-tensor",
+      "rank": 3,
+      "shapeDescription": "[batchSize, seqLen, hiddenSize]",
+      "hiddenSize": 1024,
+      "dtype": "f32"
+     },
+     "outputContract": {
+      "type": "logits",
+      "rank": 3,
+      "shapeDescription": "[batchSize, seqLen, vocabSize]",
+      "vocabSize": 248320,
+      "dtype": "f32"
+     }
+    }
+   ]
+  }
+ },
+ "summary": {
+  "comparedSteps": 55,
+  "withinTolerance": 55,
+  "tokenMatches": 55,
+  "maxDifference": 0.000660039117648753,
+  "valuesOverTolerance": 0,
+  "passed": true
+ },
+ "splitBoundary": {
+  "narrowedValues": 716800
+ },
+ "finishedAt": "2026-10-14T21:43:10.051Z"
+}

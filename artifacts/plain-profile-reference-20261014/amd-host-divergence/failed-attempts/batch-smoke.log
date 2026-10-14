@@ -1,0 +1,4 @@
+batch smoke start 2026-10-14T20:59:59Z amdgpu-errors 50
+public-native cpu 100.0
+s05-hybrid-identity exit=0 seconds=10 at 21:00:09 amdgpu-errors 50
+batch smoke done 2026-10-14T21:00:09Z

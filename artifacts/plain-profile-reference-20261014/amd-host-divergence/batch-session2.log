@@ -1,0 +1,10 @@
+batch session2 start 2026-10-14T21:19:34Z amdgpu-errors 50
+public-native cpu 160.0
+s17-plain-control-session2 exit=0 seconds=9 at 21:19:44 amdgpu-errors 50
+public-native cpu 150.0
+s15-kv-f64-except-layer23 exit=0 seconds=9 at 21:19:53 amdgpu-errors 50
+public-native cpu 110.0
+s16-kv-f64-first-half exit=0 seconds=9 at 21:20:02 amdgpu-errors 50
+public-native cpu 120.0
+s18-paired-control-session2 exit=0 seconds=280 at 21:24:42 amdgpu-errors 50
+batch session2 done 2026-10-14T21:24:42Z

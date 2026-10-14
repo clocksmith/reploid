@@ -1,0 +1,46 @@
+Warning: maxDynamicUniformBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+Warning: maxDynamicStorageBuffersPerPipelineLayout artificially reduced from 500000 to 16 to fit dynamic offset allocation limit.
+[GPU] amd rdna-3, f16/subgroups, 4.0GB, submit probe: 0.7ms
+[595.6ms][Pipeline] Execution v1 enabled (steps=35, kernelPathInline=yes, pipelineInline=no)
+[595.8ms][Config] Using manifest-first config (source of truth)
+[600.1ms][Pipeline] Resolved session applied (qwen-3-5-0-8b-q4k-ehaf16): batchSize=4, stopCheckMode=batch, readbackInterval=8, disableCommandBatching=false
+[600.2ms][Pipeline] Vision capable: imageTokenId=248056
+[601.3ms][Pipeline] KernelPath: qwen-3-5-0-8b-q4k-ehaf16-execution-inline (15 decode steps, 11 kernels, source=execution-v1)
+[601.6ms][Pipeline] 24L/1024H/8heads (256dim), kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[602.2ms][Tokenizer] Loading bundled tokenizer from tokenizer.json
+[720.8ms][Tokenizer] HuggingFace model.type="BPE", using type="bpe"
+[868.7ms][Tokenizer] Loaded HuggingFace 248070 tokens (bpe), 26 special patterns, 247587 merges
+[869.1ms][Pipeline] Tokenizer vocabSize=248070 differs from model=248320, using model size
+[872.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=4096, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=4096
+[873.0ms][Pipeline] Execution plan: active=primary, dtype=f32, kernelPath=qwen-3-5-0-8b-q4k-ehaf16-execution-inline
+[916.3ms][ShardCache] Custom shard loader configured
+[916.6ms][Loader] Initializing...
+[961.4ms][HeapManager] Allocated segment 0: 1024MB
+[972.8ms][HeapManager] Segmented heap: 1GB per segment
+[972.9ms][HeapManager] Initialized with strategy: SEGMENTED
+[973.1ms][Loader] Initialized (f16, subgroups)
+[973.6ms][Loader] Loading: qwen-3-5-0-8b-q4k-ehaf16
+[974.3ms][Loader] [0.0s] Memory (start): | RSS=494.82 MB (heap=197.16 MB/203.15 MB, external=2.14 GB, arrayBuffers=1.14 GB) | GPU=0 B (0 active, 0 pooled, peak=0 B) | ShardCache=0 B (0 shards) | Layers=0, GPUBuffers=0
+[974.7ms][Loader] Dense model on discrete GPU - performance limited. Consider MoE model.
+[1133.5ms][Loader] Embeddings tensor loaded: name=model.language_model.embed_tokens.weight, hasShape=true, shape=[248320,1024], isWeightBuffer=true
+[1133.8ms][Loader] Layers: 0-23
+[1261.9ms][Loader] Layers: 24 complete (0.13s)
+[1309.6ms][Loader] Complete: 890.16 MB in 0.33s (2.61 GB/s)
+[1310.5ms][Loader] [0.3s] Memory (complete): | RSS=559.66 MB (heap=216.10 MB/249.90 MB, external=1.15 GB, arrayBuffers=1.14 GB) | GPU=893.10 MB (345 active, 0 pooled, peak=893.10 MB) | ShardCache=0 B (0 shards) | Layers=24, GPUBuffers=345
+[1319.9ms][Pipeline] Model loaded successfully (730ms)
+[1349.0ms][KernelSelect] matmul variant=q4_fused_widetile reason=path_override
+[1354.6ms][KernelSelect] matmul variant=f16w_f32a_tiled reason=default
+[1414.9ms][KernelSelect] attention variant=prefill_head256_f16kv reason=path_override:tiled_small
+[1583.1ms][KernelSelect] matmul variant=q4_fused_batched_multicol_shared reason=path_override
+[1616.9ms][KernelSelect] matmul variant=q4_fused_gemv reason=path_override
+[1623.2ms][KernelSelect] matmul variant=gemv_subgroup reason=gemv
+[1639.5ms][KernelSelect] attention variant=decode_online_f16kv reason=path_override:subgroup
+{"label":"plain control, third session","speedPass":0,"prefillMs":287.3084039999999,"decodeMedianMs":29.22801699999991}
+{"label":"plain control, third session","speedPass":1,"prefillMs":173.90170500000022,"decodeMedianMs":27.74276699999973}
+[5879.0ms][KernelSelect] matmul variant=f16w_f32a reason=default
+{"label":"plain control, third session","attempt":0,"promptTokens":19,"maxDifference":0.0005488027261089101,"failedSteps":0}
+{"label":"plain control, third session","attempt":1,"promptTokens":21,"maxDifference":0.0006218545628309258,"failedSteps":0}
+{"label":"plain control, third session","attempt":2,"promptTokens":184,"maxDifference":0.0034951507058513798,"failedSteps":27}
+{"label":"plain control, third session","comparedSteps":55,"withinTolerance":28,"tokenMatches":55,"maxDifference":0.0034951507058513798,"valuesOverTolerance":25151,"passed":false,"prompt56Ms":173.90170500000022,"prompt184Ms":327.9888859999992,"decodeMedianMs":27.74276699999973}
+[8491.5ms][ExpertCache] Cache cleared
+[8492.9ms][Pipeline] Unloaded
