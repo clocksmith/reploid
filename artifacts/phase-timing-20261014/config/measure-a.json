@@ -1,0 +1,30 @@
+{
+ "schema": "reploid.phase-timing-measure-config/v1",
+ "placement": "a",
+ "route": [
+  "mac-host browser stage 0 (layers 0-7, embedding)",
+  "amd-host native stage 1 (layers 8-15)",
+  "intel-host native stage 2 (layers 16-23, final norm and output head, sampling)"
+ ],
+ "origin": "http://127.0.0.1:29670/",
+ "descriptorPath": "/config/browser-bundle-manifest.json",
+ "browserBundle": "sha256:40be63a8710f9ff09c7359ddaababe3180b879314a97f72c3b8974799d0a7c6d",
+ "roomFile": "/var/tmp/reploid-phase-timing-run-20261014/private-room.json",
+ "promptsFile": "/Users/xyz/deco/reploid/artifacts/phase-timing-20261014/config/prompts.json",
+ "answersDirectory": "/Users/xyz/deco/reploid/artifacts/phase-timing-20261014/answers",
+ "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+ "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+ "requester": {
+  "machine": "mac-host",
+  "origin": "http://127.0.0.1:29670/",
+  "connect": {
+   "kind": "launch",
+   "channel": "chrome",
+   "headless": true,
+   "remoteDebuggingPort": 29672
+  }
+ },
+ "readyMs": 300000,
+ "answerMs": 1800000,
+ "pollMs": 250
+}

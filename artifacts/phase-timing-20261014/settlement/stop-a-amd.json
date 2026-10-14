@@ -1,0 +1,1 @@
+{"unit":"ptm-a-amd-native-1","pids":"848534 ","memoryPeakBytes":"1142833152","sigtermAt":"2026-10-14T12:25:55.941150415Z","waitedSeconds":1,"activeAfter":"inactive","journal":"ptm-a-amd-native-1.scope: Consumed 14min 4.576s CPU time over 11min 35.803s wall clock time, 1G memory peak."}

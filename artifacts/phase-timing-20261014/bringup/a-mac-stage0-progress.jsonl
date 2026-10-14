@@ -1,0 +1,4 @@
+{"at":"2026-10-14T12:15:02.085Z","phase":"loading","error":null,"progress":{"stage":"acquiring","path":"pieces.json","message":"Reusing pieces.json"},"unsettledOwners":0,"placement":null}
+{"at":"2026-10-14T12:15:04.305Z","phase":"loading","error":null,"progress":{"stage":"acquiring","path":"artifacts/program/wgsl/gather_split8_f16_vec4_f32_out-57d5326f08951af3.wgsl","message":"Reusing artifacts/program/wgsl/gather_split8_f16_vec4_f32_out-57d5326f08951af3.wgsl"},"unsettledOwners":0,"placement":null}
+{"at":"2026-10-14T12:15:06.515Z","phase":"loading","error":null,"progress":{"stage":"acquiring","path":"artifacts/program-bundle.json","message":"Reusing artifacts/program-bundle.json"},"unsettledOwners":0,"placement":null}
+{"at":"2026-10-14T12:17:34.588Z","phase":"ready","error":null,"progress":null,"unsettledOwners":0,"placement":null}
