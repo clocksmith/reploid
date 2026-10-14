@@ -1,0 +1,195 @@
+{
+ "schema": "reploid.speed-isolation/v1",
+ "mode": "paired-profile",
+ "maxTokens": 16,
+ "startedAt": "2026-10-14T20:14:03.031Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "inputs": {
+  "catalogSha256": "89ac4bfef47444e51de5218313b0c6dd45dc28b1c0c9a73f813886e927d301af",
+  "policySha256": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+  "archivePackageVersion": "0.6.28",
+  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+  "splitLayers": [
+   8,
+   16
+  ],
+  "generation": {
+   "maxTokens": 16,
+   "maxSeqLen": 4096,
+   "temperature": 0,
+   "topP": 1,
+   "topK": 1,
+   "repetitionPenalty": 1,
+   "repetitionPenaltyWindow": 0,
+   "presencePenalty": 0,
+   "useChatTemplate": true,
+   "suppressTokenIds": [],
+   "stopSequences": []
+  },
+  "capsuleRuntimeConfigSha256": "5b3597fc5cb3c8ca473cdfa447852b51ec52c56e12605989d9698acf8732f412",
+  "manifestDecodeLoop": {
+   "batchSize": 4,
+   "stopCheckMode": "batch",
+   "readbackInterval": 8,
+   "readbackMode": "sequential",
+   "submitLatencyThresholdMs": null,
+   "ringTokens": 1,
+   "ringStop": 1,
+   "ringStaging": 1,
+   "disableCommandBatching": false
+  }
+ },
+ "verification": {
+  "modelArtifacts": {
+   "checked": 20,
+   "allMatch": true,
+   "absent": [
+    "pieces.json"
+   ]
+  }
+ },
+ "turns": [
+  {
+   "label": "turn-1",
+   "promptTokens": 56,
+   "profiledSteps": 16,
+   "wall": {
+    "count": 16,
+    "totalMs": 9288.167687000005,
+    "medianMs": 577.449026000002,
+    "p90Ms": 622.1877559999994,
+    "minMs": 536.511598000001,
+    "maxMs": 669.1147749999982
+   },
+   "gpuPerStepMs": 453.6279040000006,
+   "kernels": [
+    {
+     "label": "gated_delta_recurrent",
+     "totalMs": 2124.480512000001,
+     "count": 16,
+     "perStepMs": 132.78003200000006
+    },
+    {
+     "label": "matmul",
+     "totalMs": 1853.161472000002,
+     "count": 16,
+     "perStepMs": 115.82259200000013
+    },
+    {
+     "label": "attention",
+     "totalMs": 1495.6625920000004,
+     "count": 16,
+     "perStepMs": 93.47891200000002
+    },
+    {
+     "label": "qwen_linear_attention_prepare",
+     "totalMs": 675.6761599999998,
+     "count": 16,
+     "perStepMs": 42.229759999999985
+    },
+    {
+     "label": "rmsnorm",
+     "totalMs": 578.1585920000005,
+     "count": 16,
+     "perStepMs": 36.13491200000003
+    },
+    {
+     "label": "paired_pointwise",
+     "totalMs": 319.0947840000001,
+     "count": 16,
+     "perStepMs": 19.943424000000007
+    },
+    {
+     "label": "gated_delta_conv",
+     "totalMs": 193.92102400000002,
+     "count": 16,
+     "perStepMs": 12.120064000000001
+    },
+    {
+     "label": "rope_qk",
+     "totalMs": 16.318464000000002,
+     "count": 16,
+     "perStepMs": 1.0199040000000001
+    },
+    {
+     "label": "split_qg",
+     "totalMs": 0.98304,
+     "count": 16,
+     "perStepMs": 0.06144
+    },
+    {
+     "label": "cast",
+     "totalMs": 0.589824,
+     "count": 16,
+     "perStepMs": 0.036864
+    }
+   ],
+   "firstStepSample": "{\"step\":1,\"timings\":{\"rmsnorm\":35.52051200000002,\"matmul\":115.6710400000001,\"gated_delta_conv\":12.12416,\"qwen_linear_attention_prepare\":42.59839999999999,\"gated_delta_recurrent\":133.03808000000006,\"paired_pointwise\":19.922944000000005,\"split_qg\":0,\"rope_qk\":1.114112,\"cast\":0,\"attention\":82.706432},\"totalMs\":442.6956800000002,\"recorderStats\":{\"opCount\":492,\"opLabelCounts\":{},\"dispatches\":[],\"computePassCount\":492,\"tempBufferCount\":0,\"pooledBufferCount\":0,\"submitted\":true,\"submissionCount\":1}}",
+   "statsKeys": [
+    "prefillTimeMs",
+    "decodeTimeMs",
+    "ttftMs",
+    "loadTiming",
+    "pipelineLoadTiming",
+    "prefillTokens",
+    "decodeTokens",
+    "memoryUsageBytes",
+    "tokensGenerated",
+    "totalTimeMs",
+    "decodeRecordMs",
+    "decodeRecordOps",
+    "decodeRecordPasses",
+    "decodeRecordOpLabels",
+    "decodeSubmitWaitMs",
+    "decodeReadbackWaitMs",
+    "decodeReadbackMapWaitMs",
+    "decodeReadbackCleanupMs",
+    "decodeReadbackCopyMs",
+    "prefillRecordMs",
+    "prefillRecordOps",
+    "prefillRecordPasses",
+    "prefillRecordOpLabels",
+    "prefillSubmitWaitMs",
+    "prefillProfileSteps",
+    "decodeProfileSteps",
+    "executionPlan",
+    "kernelPathId",
+    "kernelPathSource",
+    "operatorDiagnostics",
+    "attentionInputs",
+    "decodeMode",
+    "batchGuardReason",
+    "singleTokenSubmitWaitMs",
+    "singleTokenReadbackWaitMs",
+    "singleTokenReadbackMapWaitMs",
+    "singleTokenReadbackCleanupMs",
+    "singleTokenReadbackCopyMs",
+    "singleTokenOrchestrationMs",
+    "plePreparedTokenCacheHits",
+    "plePreparedTokenCacheMisses",
+    "plePreparedTokenCacheEntries",
+    "plePreparedTokenCacheBytes",
+    "pleHotVocabularyHits",
+    "pleHotVocabularyMisses",
+    "modelLoadMs",
+    "gpuTimePrefillMs",
+    "gpuTimeDecodeMs",
+    "batching",
+    "uniformCache"
+   ]
+  }
+ ],
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true,
+  "hasSubgroups": true
+ },
+ "finishedAt": "2026-10-14T20:14:31.201Z"
+}

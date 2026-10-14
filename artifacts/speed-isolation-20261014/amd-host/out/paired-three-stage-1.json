@@ -1,0 +1,192 @@
+{
+ "schema": "reploid.speed-isolation/v1",
+ "mode": "paired-three-stage",
+ "maxTokens": 128,
+ "startedAt": "2026-10-14T20:08:36.989Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "inputs": {
+  "catalogSha256": "89ac4bfef47444e51de5218313b0c6dd45dc28b1c0c9a73f813886e927d301af",
+  "policySha256": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+  "archivePackageVersion": "0.6.28",
+  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+  "splitLayers": [
+   8,
+   16
+  ],
+  "generation": {
+   "maxTokens": 128,
+   "maxSeqLen": 4096,
+   "temperature": 0,
+   "topP": 1,
+   "topK": 1,
+   "repetitionPenalty": 1,
+   "repetitionPenaltyWindow": 0,
+   "presencePenalty": 0,
+   "useChatTemplate": true,
+   "suppressTokenIds": [],
+   "stopSequences": []
+  },
+  "capsuleRuntimeConfigSha256": "5b3597fc5cb3c8ca473cdfa447852b51ec52c56e12605989d9698acf8732f412",
+  "manifestDecodeLoop": {
+   "batchSize": 4,
+   "stopCheckMode": "batch",
+   "readbackInterval": 8,
+   "readbackMode": "sequential",
+   "submitLatencyThresholdMs": null,
+   "ringTokens": 1,
+   "ringStop": 1,
+   "ringStaging": 1,
+   "disableCommandBatching": false
+  }
+ },
+ "verification": {
+  "modelArtifacts": {
+   "checked": 20,
+   "allMatch": true,
+   "absent": [
+    "pieces.json"
+   ]
+  }
+ },
+ "turns": [
+  {
+   "label": "turn-1",
+   "promptTokens": 56,
+   "tokens": 100,
+   "stopReason": "eos-token",
+   "prefill": {
+    "totalMs": 17033.830974,
+    "stageMs": [
+     5772.148427,
+     5566.675369,
+     5694.302147999999
+    ],
+    "frameMs": 0.6851130000004559
+   },
+   "decode": {
+    "step": {
+     "count": 99,
+     "totalMs": 63605.40294200004,
+     "medianMs": 622.0875550000055,
+     "p90Ms": 757.6610440000077,
+     "minMs": 544.7084439999999,
+     "maxMs": 806.300820000004
+    },
+    "stages": [
+     {
+      "count": 99,
+      "totalMs": 19790.051237999953,
+      "medianMs": 192.7061160000012,
+      "p90Ms": 233.43950400000176,
+      "minMs": 160.459176999997,
+      "maxMs": 325.2515530000019
+     },
+     {
+      "count": 99,
+      "totalMs": 18734.80314699994,
+      "medianMs": 182.19995399999607,
+      "p90Ms": 202.22596699999121,
+      "minMs": 159.16517000000022,
+      "maxMs": 331.9050089999946
+     },
+     {
+      "count": 99,
+      "totalMs": 25047.23813100003,
+      "medianMs": 244.18130499999825,
+      "p90Ms": 265.7967709999939,
+      "minMs": 221.38394700000208,
+      "maxMs": 401.239834
+     }
+    ],
+    "frames": {
+     "count": 99,
+     "totalMs": 31.076659000009386,
+     "medianMs": 0.2714590000032331,
+     "p90Ms": 0.5070600000035483,
+     "minMs": 0.20734800001082476,
+     "maxMs": 1.0109149999916553
+    }
+   },
+   "decodeTokensPerSecond": 1.5564715483411886
+  },
+  {
+   "label": "turn-2-follow-up",
+   "promptTokens": 189,
+   "tokens": 12,
+   "stopReason": "eos-token",
+   "prefill": {
+    "totalMs": 57951.341057,
+    "stageMs": [
+     19274.30524100001,
+     19375.507997000008,
+     19300.825612
+    ],
+    "frameMs": 0.6795540000020992
+   },
+   "decode": {
+    "step": {
+     "count": 11,
+     "totalMs": 8396.222414999967,
+     "medianMs": 737.096716,
+     "p90Ms": 878.6373129999847,
+     "minMs": 731.0333669999964,
+     "maxMs": 883.3402639999986
+    },
+    "stages": [
+     {
+      "count": 11,
+      "totalMs": 2622.105481000035,
+      "medianMs": 225.48024899998563,
+      "p90Ms": 226.77395299999625,
+      "minMs": 221.76904400001513,
+      "maxMs": 373.1806940000097
+     },
+     {
+      "count": 11,
+      "totalMs": 2460.596831999981,
+      "medianMs": 223.31401400000323,
+      "p90Ms": 226.34280000001309,
+      "minMs": 221.14609900000505,
+      "maxMs": 226.50526800000807
+     },
+     {
+      "count": 11,
+      "totalMs": 3310.3305520000577,
+      "medianMs": 285.77337599999737,
+      "p90Ms": 307.84120500000427,
+      "minMs": 284.3705230000196,
+      "maxMs": 429.66108700001496
+     }
+    ],
+    "frames": {
+     "count": 11,
+     "totalMs": 3.0147340000257827,
+     "medianMs": 0.27610899999854155,
+     "p90Ms": 0.3519899999664631,
+     "minMs": 0.22427000003517605,
+     "maxMs": 0.352141000010306
+    }
+   },
+   "decodeTokensPerSecond": 1.3101129837090009
+  }
+ ],
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true,
+  "hasSubgroups": true
+ },
+ "loadMs": 912.5370089999999,
+ "cleanup": [
+  "fulfilled",
+  "fulfilled",
+  "fulfilled"
+ ],
+ "finishedAt": "2026-10-14T20:11:06.047Z"
+}

@@ -1,0 +1,113 @@
+{
+ "schema": "reploid.speed-isolation/v1",
+ "mode": "ordinary-per-token",
+ "maxTokens": 128,
+ "startedAt": "2026-10-14T20:05:47.433Z",
+ "machine": "amd-host",
+ "dopplerVersion": "0.6.28",
+ "inputs": {
+  "catalogSha256": "89ac4bfef47444e51de5218313b0c6dd45dc28b1c0c9a73f813886e927d301af",
+  "policySha256": "5a6f974f34b1cba00aff269857c3fe53728782317477bede684a0e11f2b6a235",
+  "capsuleId": "qwen-3-5-0-8b-q4k-ehaf16-capsule-v3-171132d428ce64eaf706c637ee22fea0103f50a21e39e9899cac5d91b5f94234",
+  "archivePackageVersion": "0.6.28",
+  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+  "splitLayers": [
+   8,
+   16
+  ],
+  "generation": {
+   "maxTokens": 128,
+   "maxSeqLen": 4096,
+   "temperature": 0,
+   "topP": 1,
+   "topK": 1,
+   "repetitionPenalty": 1,
+   "repetitionPenaltyWindow": 0,
+   "presencePenalty": 0,
+   "useChatTemplate": true,
+   "suppressTokenIds": [],
+   "stopSequences": []
+  },
+  "capsuleRuntimeConfigSha256": "5b3597fc5cb3c8ca473cdfa447852b51ec52c56e12605989d9698acf8732f412",
+  "manifestDecodeLoop": {
+   "batchSize": 4,
+   "stopCheckMode": "batch",
+   "readbackInterval": 8,
+   "readbackMode": "sequential",
+   "submitLatencyThresholdMs": null,
+   "ringTokens": 1,
+   "ringStop": 1,
+   "ringStaging": 1,
+   "disableCommandBatching": false
+  },
+  "ordinaryRuntime": "ordinary manifest defaults (no runtimeConfig override)"
+ },
+ "verification": {
+  "modelArtifacts": {
+   "checked": 20,
+   "allMatch": true,
+   "absent": [
+    "pieces.json"
+   ]
+  },
+  "ordinaryManifest": {
+   "identity": "sha256:18fe30e2c65c47bfdaa1f6714ced9fa90ed8c482a8d57b95cf0cdd4490e842e9",
+   "sameShardsAsCapsule": true,
+   "decodeLoop": {
+    "batchSize": 4,
+    "stopCheckMode": "batch",
+    "readbackInterval": 8,
+    "readbackMode": "sequential",
+    "submitLatencyThresholdMs": null,
+    "ringTokens": 1,
+    "ringStop": 1,
+    "ringStaging": 1,
+    "disableCommandBatching": false
+   }
+  }
+ },
+ "turns": [
+  {
+   "label": "turn-1",
+   "promptTokens": 56,
+   "tokens": 128,
+   "prefillMs": 312.11714200000006,
+   "decode": {
+    "count": 127,
+    "totalMs": 4133.107038999997,
+    "medianMs": 28.632192999999916,
+    "p90Ms": 31.445380999999998,
+    "minMs": 26.474983999999495,
+    "maxMs": 354.4170470000008
+   },
+   "decodeTokensPerSecond": 30.72748873949502
+  },
+  {
+   "label": "turn-2-follow-up",
+   "promptTokens": 189,
+   "tokens": 128,
+   "prefillMs": 365.32058400000005,
+   "decode": {
+    "count": 127,
+    "totalMs": 3634.218021000009,
+    "medianMs": 26.618172000000413,
+    "p90Ms": 28.402226999999584,
+    "minMs": 25.70454400000017,
+    "maxMs": 219.9976569999999
+   },
+   "decodeTokensPerSecond": 34.9456194609519
+  }
+ ],
+ "gpu": {
+  "adapter": {
+   "vendor": "amd",
+   "architecture": "rdna-3",
+   "device": "radeon-8060s-graphics-radv-strix-halo-",
+   "description": "radv: Mesa 26.0.3-1ubuntu1"
+  },
+  "hasF16": true,
+  "hasSubgroups": true
+ },
+ "loadMs": 817.2006879999997,
+ "finishedAt": "2026-10-14T20:05:58.024Z"
+}
