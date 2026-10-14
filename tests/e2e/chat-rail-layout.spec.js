@@ -7,7 +7,7 @@ test.beforeEach(async ({ page }) => {
   await page.route('http://127.0.0.1:5198/**', async route => {
     const pathname = new URL(route.request().url()).pathname;
     if (pathname === '/') {
-      const layers = ['tokens.css', 'primitives.css', 'components.css', 'components/materials.css', 'components/conversation.css', 'components/interaction.css', 'components/optical.css'];
+      const layers = ['tokens.css', 'primitives.css', 'components/base.css', 'components.css', 'components/materials.css', 'components/conversation.css', 'components/interaction.css', 'components/optical.css'];
       return route.fulfill({ contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles/rd.css">'
         + layers.map(file => `<link rel="stylesheet" href="/styles/poolday/${file}">`).join('') + '<main class="pool-home" data-pool-route-id="home"></main>' });
     }

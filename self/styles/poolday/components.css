@@ -157,9 +157,6 @@ html[data-pool-route-id] { scrollbar-gutter: stable; }
   width: 100%; min-height: 0; padding: var(--pool-space-md); resize: vertical;
   font: inherit; font-size: var(--pool-px-16); line-height: var(--pool-type-leading-snug);
 }
-.pool-work-shell .pool-work-composer textarea:focus {
-  border-color: var(--pool-surface-focus);
-}
 .pool-work-shell .pool-work-composer [data-work-goal] { min-height: calc(var(--pool-px-48) * 3); }
 .pool-work-inputs { padding: var(--pool-space-md) 0; border-block: var(--pool-border-hairline) solid var(--pool-surface-line); }
 .pool-work-inputs input { display: block; max-width: 100%; margin-top: var(--pool-space-sm); }
@@ -431,18 +428,15 @@ html[data-pool-route-id] { scrollbar-gutter: stable; }
 .pool-home input,
 .pool-home select,
 .pool-home textarea {
-  border-color: color-mix(in srgb, var(--pool-hue-cyan), var(--pool-surface-ink) 34%);
+  border-color: transparent;
   border-radius: var(--pool-px-4);
-  background:
-    linear-gradient(var(--pool-tint-white-96), var(--pool-tint-white-88)) padding-box,
-    linear-gradient(126deg, var(--pool-tint-teal-18), var(--pool-tint-violet-12)) border-box;
-  box-shadow: inset 0 var(--pool-px-1) 0 var(--pool-tint-white-74);
+  background: var(--pool-surface-inset);
+  box-shadow: var(--pool-surface-shadow-inset);
 }
 
 .pool-home input:focus,
 .pool-home select:focus,
 .pool-home textarea:focus {
-  border-color: color-mix(in srgb, var(--pool-hue-cyan), var(--pool-surface-ink) 18%);
   outline: var(--pool-px-2) solid color-mix(in srgb, var(--pool-hue-cyan), transparent 72%);
   outline-offset: var(--pool-px-2);
 }
@@ -625,7 +619,7 @@ body[data-pool-route-id='home'] #app {
   min-width: var(--pool-px-r7-4);
   padding: 0 var(--pool-px-11);
   border: var(--pool-border-thin) solid color-mix(in srgb, var(--pool-surface-ink), transparent 82%);
-  background: color-mix(in srgb, var(--pool-surface-page), white 34%);
+  background: color-mix(in srgb, var(--pool-surface-page), var(--pool-hue-white) 34%);
   box-shadow: 0 var(--pool-px-6) var(--pool-px-16) var(--pool-tint-black-6);
   font-size: var(--pool-px-r0-66);
   font-weight: var(--pool-type-weight-bold);
@@ -702,7 +696,7 @@ body[data-pool-route-id='home'] #app {
   max-width: calc(100vw - var(--pool-px-16));
   padding: var(--pool-px-8) var(--pool-px-5);
   border-right: var(--pool-px-1) solid color-mix(in srgb, var(--pool-surface-ink), transparent 88%);
-  background: color-mix(in srgb, var(--pool-surface-page), white 38%);
+  background: color-mix(in srgb, var(--pool-surface-page), var(--pool-hue-white) 38%);
   box-shadow: var(--pool-px-5) 0 var(--pool-px-20) var(--pool-tint-black-3);
   color: var(--pool-surface-ink);
   overflow: visible;
@@ -2350,7 +2344,7 @@ body[data-pool-route-id='home'] #app {
   right: var(--pool-space-lg);
   max-width: min(var(--pool-px-r18), calc(100% - var(--pool-space-lg)));
   padding: var(--pool-px-8) var(--pool-px-12);
-  border: var(--pool-border-hairline) solid var(--pool-tint-black-14);
+  border: var(--pool-border-hairline) solid transparent;
   border-radius: var(--pool-px-999);
   background: var(--pool-tint-white-84);
   box-shadow: 0 var(--pool-px-8) var(--pool-px-22) var(--pool-tint-black-5);
@@ -3326,7 +3320,7 @@ body[data-pool-route-id='home'] #app {
 .pool-lane-chip {
   min-height: var(--pool-px-28);
   padding: 0 var(--pool-px-12);
-  border: var(--pool-px-1) solid var(--pool-tint-fern-14);
+  border: var(--pool-px-1) solid transparent;
   border-radius: var(--pool-px-999);
   background: var(--pool-tint-white-72);
   color: var(--pool-tint-pine-72);
@@ -3335,7 +3329,6 @@ body[data-pool-route-id='home'] #app {
 }
 
 .pool-lane-chip.is-active {
-  border-color: var(--pool-tint-teal-46);
   background: var(--pool-tint-teal-12);
   color: var(--pool-tint-pine-92);
 }
@@ -4105,7 +4098,7 @@ body[data-pool-route-id='home'] #app {
   min-height: var(--pool-px-r5-6);
   height: auto;
   padding: var(--pool-space-sm);
-  border: var(--pool-border-thin) solid color-mix(in srgb, var(--pool-hue-cyan), var(--pool-surface-ink) 34%);
+  border: var(--pool-border-thin) solid transparent;
   border-radius: var(--pool-px-8);
   background: var(--pool-tint-white-94);
   font-family: var(--pool-type-mono-family);
@@ -4516,7 +4509,7 @@ body[data-pool-route-id='home'] #app {
 .pool-home .pool-home-stage--focused .pool-home-ask-input {
   min-height: var(--pool-px-48);
   padding: var(--pool-space-md);
-  border: var(--pool-border-thin) solid var(--pool-surface-control-line);
+  border: var(--pool-border-thin) solid transparent;
   border-radius: var(--pool-radius-control);
   background: var(--pool-surface-inset);
   color: var(--pool-surface-ink);
@@ -4534,7 +4527,6 @@ body[data-pool-route-id='home'] #app {
 .pool-home input:focus-visible,
 .pool-home select:focus-visible,
 .pool-home textarea:focus-visible {
-  border-color: var(--pool-surface-focus);
   outline: var(--pool-px-2) solid var(--pool-surface-focus);
   outline-offset: var(--pool-px-3);
 }
@@ -4729,7 +4721,7 @@ body[data-pool-route-id='home'] #app {
   min-height: var(--pool-px-44);
   margin-inline-end: var(--pool-space-sm);
   padding: var(--pool-space-xs) var(--pool-space-sm);
-  border: var(--pool-border-thin) solid var(--pool-surface-control-line);
+  border: var(--pool-border-thin) solid transparent;
   border-radius: var(--pool-px-6);
   background: var(--pool-surface-raised);
   color: var(--pool-surface-ink);

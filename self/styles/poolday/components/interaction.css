@@ -19,14 +19,14 @@
 .network-sharing-row strong span { display: block; margin-top: var(--pool-space-xs); }
 .network-switch {
   position: relative; flex: none; width: var(--pool-px-64); height: var(--pool-px-44);
-  padding: var(--pool-space-xs); border: var(--pool-border-hairline) solid var(--pool-surface-line);
+  padding: var(--pool-space-xs); border: var(--pool-border-hairline) solid transparent;
   border-radius: var(--pool-px-64); background: var(--pool-surface-inset);
   box-shadow: var(--pool-surface-shadow-inset); cursor: pointer;
 }
 .network-switch > span {
   position: absolute; top: 50%; left: var(--pool-space-xs);
   width: var(--pool-px-32); height: var(--pool-px-32); transform: translateY(-50%);
-  border: var(--pool-border-hairline) solid var(--pool-surface-line);
+  border: var(--pool-border-hairline) solid transparent;
   border-radius: 50%; background: var(--pool-surface-marble); box-shadow: var(--pool-surface-shadow-raised);
   pointer-events: none; transition: left var(--pool-motion-time-240) ease-in-out;
 }
@@ -139,7 +139,7 @@
 .network-inspector::backdrop { background: var(--pool-tint-black-56); }
 .network-inspector-tabs { display: flex; flex-wrap: wrap; gap: var(--pool-space-xs); margin-block: var(--pool-space-md); }
 .network-inspector-tabs button { flex: 1; min-width: var(--pool-px-44); padding: var(--pool-space-sm); box-shadow: none; background: none; border-color: transparent; }
-.network-inspector-tabs button[aria-pressed="true"] { background: var(--pool-surface-inset); border-color: var(--pool-surface-line); }
+.network-inspector-tabs button[aria-pressed="true"] { background: var(--pool-surface-inset); box-shadow: var(--pool-surface-shadow-inset); }
 .network-inspector section { display: grid; gap: var(--pool-space-md); }
 .network-inspector :is(h3, h4, p) { margin: 0; }
 .network-inspector :is(pre, code, dd) { overflow-wrap: anywhere; white-space: pre-wrap; }

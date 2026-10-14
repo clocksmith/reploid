@@ -539,6 +539,7 @@
     "styles/boot.css",
     "styles/capsule.css",
     "styles/poolday/components.css",
+    "styles/poolday/components/base.css",
     "styles/poolday/components/conversation.css",
     "styles/poolday/components/interaction.css",
     "styles/poolday/components/materials.css",

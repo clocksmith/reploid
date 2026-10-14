@@ -37,11 +37,11 @@ describe('RD stylesheet ownership', () => {
     expect(rd).toContain('/* === RD PRIMITIVES === */');
     expect(rd).toContain('/* === RD COMPONENTS === */');
     expect(rd).toContain('--fg:');
-    expect(rd).toContain('.panel {');
-    expect(rd).toContain('.btn {');
+    expect(rd).toMatch(/^\.panel\b/m);
+    expect(rd).toMatch(/^\.btn\b/m);
   });
 
-  it('keeps Poolday visuals as an extension of rd.css', () => {
+  it('keeps Poolday visuals independent of rd.css', () => {
     const rd = readRepoFile('self/styles/rd.css');
     const boot = readRepoFile('self/styles/boot.css');
     const stylesRoot = path.resolve(__dirname, '../../self/styles');
@@ -55,9 +55,11 @@ describe('RD stylesheet ownership', () => {
     const index = readRepoFile('self/index.html');
     const poolEntry = readRepoFile('self/pool-entry.html');
 
-    expect(rd).not.toContain('.pool-home');
+    // rd.css and boot.css mention Poolday only to exclude its subtree from every selector.
+    const poolExclusion = ':where(:not(.pool-home, .pool-home *))';
+    expect(rd.replaceAll(poolExclusion, '')).not.toContain('.pool-home');
     expect(rd).not.toContain('--pool-');
-    expect(boot).not.toContain('.pool-home');
+    expect(boot.replaceAll(poolExclusion, '')).not.toContain('.pool-home');
     expect(poolday).toContain('.pool-home');
     expect(poolday).toContain('.pool-shape-action');
     expect(poolday).toContain('.pool-shape-action--circle');
