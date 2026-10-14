@@ -5,13 +5,17 @@ import type { PartitionGrantAuthority } from './partition-grants.js';
 import type { PartitionChannelLimits, PartitionChannelReceipt } from '../../transport/partition-data-channel.js';
 export interface OrderedPartitionPeerState {
   ready: boolean; participantId: string; unsettled: number; retainedOutputBytes: number;
+  /** Serving side only: attempts this contributor settled locally whose retirement acknowledgment
+   * could not be delivered because its coordinator's channel was lost. */
+  undeliveredRetirements?: number;
   descriptor: ReturnType<OrderedDopplerResidentSession['getDescriptor']> | null; receipt: PartitionChannelReceipt;
 }
 export interface OrderedPartitionPeer extends OrderedStageDevice {
   getState(): OrderedPartitionPeerState;
   refresh(options?: { signal?: AbortSignal }): Promise<OrderedPartitionPeerState>;
   subscribe(listener: (state: OrderedPartitionPeerState) => void): () => void;
-  /** Unknown remote cleanup stays charged; closing a channel is not settlement. */
+  /** Unknown remote cleanup stays charged on the coordinator; closing a channel is not settlement. A serving
+   * contributor whose coordinator channel was lost settles its own resident and retires the channel. */
   close(): Promise<void>;
 }
 export interface OrderedPartitionPeerOptions {

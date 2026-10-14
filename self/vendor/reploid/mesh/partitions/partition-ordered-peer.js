@@ -20,6 +20,7 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     : localParticipantId === coordinatorId && remoteParticipantId === stage.participantId, 'Ordered channel participant mismatch');
   const ready = validatePartitionRoute(runtime, plan, route); ready.catch(() => {});
   const confirmed = new Map(), retirementReceipts = new Map();
+  let undeliveredRetirements = 0;
   const active = new Map(), reservations = new Map(), settlements = new Map(), pendingOutputs = new Map(), outputCharacters = new Map(), listeners = new Set();
   let closed = false, retiring = false, remoteRetiring = false, closing = null, descriptor = null, outputBytes = 0;
   let channelClosed;
@@ -225,7 +226,8 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
   });
   const getState = () => ({ ready: !closed && !retiring && channel.readyState === 'open' && descriptor?.ready === true,
     participantId: remoteParticipantId, descriptor: structuredClone(descriptor), receipt: endpoint.getReceipt(),
-    retainedOutputBytes: outputBytes, unsettled: serving ? new Set([...reservations.keys(), ...retirementReceipts.keys()]).size : active.size });
+    retainedOutputBytes: outputBytes, unsettled: serving ? new Set([...reservations.keys(), ...retirementReceipts.keys()]).size : active.size,
+    ...(serving ? { undeliveredRetirements } : {}) });
   const notify = () => { for (const listener of listeners) { try { listener(getState()); } catch {} } };
   const closeAttempt = async ({ identity }) => {
     identity = canonicalRouteAttemptBinding(identity);
@@ -268,13 +270,20 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     try { await receiver.close(); } catch (error) { failures.push(error); }
     if (serving) {
       for (const [id, request] of retirementReceipts) {
+        let settled = false;
         try {
-          await settleLocal(request.identity);
+          await settleLocal(request.identity); settled = true;
           const result = await endpoint.request({ ...request, operation: 'retired' }, new Uint8Array());
           assert(result.settled === true && result.partitionIndex === index
             && sameRouteAttemptIdentity(result.identity, request.identity), 'Ordered retirement acknowledgment mismatch');
           retirementReceipts.delete(id);
-        } catch (error) { failures.push(error); }
+        } catch (error) {
+          // This contributor released its own resident above. After its coordinator's channel is
+          // lost, no acknowledgment can ever be delivered on it, so it must not keep the route
+          // channel charged; the coordinator records that attempt's cleanup as unknown.
+          if (settled && closed && error?.code === 'CONNECTION_LOST') { retirementReceipts.delete(id); undeliveredRetirements++; }
+          else failures.push(error);
+        }
       }
     }
     // A coordinator closing concurrently with a retirement response must not

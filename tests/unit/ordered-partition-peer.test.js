@@ -246,6 +246,19 @@ it.each(['attempt', 'generation', 'signature'])('rejects changed %s retirement e
     expect(f.peers[0].server.getState().unsettled).toBe(1);
   } finally { await f.close(); }
 });
+it('after its coordinator channel is lost, a serving stage settles locally and retires instead of staying charged', async () => {
+  const f = await fixture();
+  try {
+    await directStep(f);
+    // The coordinator side loses the channel (for example a stalled network path); both ends close.
+    f.pairs[0][0].close();
+    await f.peers[0].server.close();
+    expect(f.f.stages[1].closeAttempt).toHaveBeenCalledTimes(1);
+    expect(f.peers[0].server.getState()).toMatchObject({ unsettled: 0, undeliveredRetirements: 1 });
+    // The coordinator can never confirm it, so its side keeps the owner as unknown.
+    expect(f.peers[0].client.getState().unsettled).toBe(1);
+  } finally { await f.close(); }
+});
 it('lost retirement acknowledgment remains charged and exact duplicate receipt settles on retry', async () => {
   const f = await fixture();
   try {
