@@ -255,6 +255,8 @@ async function createPeerPackArtifactStore({ authorization, index, inventories, 
       const suppliers = adverts.filter((advert) => advert.artifacts.some((item) => item.artifactId === input.artifactId
         && item.chunkIndexes.includes(chunk.index)));
       let received = false;
+      let tried = 0;
+      let undelivered = 0;
       for (const advert of suppliers) {
         current();
         if (advert.expiresAt <= now() || (peerBytes.get(advert.peerId) || 0) + chunk.sizeBytes > advert.maxBytes) continue;
@@ -264,6 +266,8 @@ async function createPeerPackArtifactStore({ authorization, index, inventories, 
         const observation = { peerId: advert.peerId, artifactId: input.artifactId, chunkIndex: chunk.index,
           reservedBytes: chunk.sizeBytes, receivedBytes: 0, status: 'pending', requestHash: null };
         attempts.push(observation);
+        tried += 1;
+        let delivered = false;
         try {
           const request = await sign({ schema: `${PREFIX}-request/v1`, authorizationHash: ctx.authorizationHash,
             transferId: ctx.grant.transferId, attempt: ctx.grant.attempt, requesterPeerId: ctx.grant.requester.peerId,
@@ -281,6 +285,7 @@ async function createPeerPackArtifactStore({ authorization, index, inventories, 
             response = await boundedTransfer(requestChunk, advert.peerId, request, acquisition.signal,
               Math.min(ctx.grant.limits.requestTimeoutMs, advert.expiresAt - now(), ctx.grant.expiresAt - now()));
           } finally { inFlightBytes -= chunk.sizeBytes; }
+          delivered = true;
           observation.receivedBytes = response?.bytes instanceof Uint8Array ? response.bytes.byteLength : 0;
           receivedBytes += observation.receivedBytes;
           assert(response?.bytes instanceof Uint8Array && response.bytes.byteLength === chunk.sizeBytes, 'response size mismatch');
@@ -317,10 +322,17 @@ async function createPeerPackArtifactStore({ authorization, index, inventories, 
         } catch (error) {
           observation.status = 'rejected';
           observation.error = String(error.message || error);
+          if (!delivered) undelivered += 1;
           current();
         }
       }
-      assert(received, `no authorized supplier completed ${input.artifactId} chunk ${chunk.index}`);
+      if (!received) {
+        const error = new Error(`Pack custody: no authorized supplier completed ${input.artifactId} chunk ${chunk.index}`);
+        // No supplier delivered bytes (a stall, a disconnect or a refusal), so nothing invalid
+        // arrived and a later grant may resume from the verified checkpoints.
+        if (tried > 0 && undelivered === tried) error.code = 'CUSTODY_SUPPLIER_UNAVAILABLE';
+        throw error;
+      }
     }
     let nextChunk = 0;
     let failure = null;

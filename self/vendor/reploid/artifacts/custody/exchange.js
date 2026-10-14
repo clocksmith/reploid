@@ -12,6 +12,9 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     return state;
   };
   const peers = new Map(), pending = new Map(), suppliers = new Map(), channels = new Map(), channelWaiters = new Map();
+  const offerWaiters = new Set();
+  // A supplier that delivered nothing (silent past a deadline or disconnected) may answer a later grant.
+  const unavailable = message => Object.assign(new Error(message), { code: 'CUSTODY_SUPPLIER_UNAVAILABLE' });
   const lifetime = new AbortController();
   const operations = new Set(), supplyOperations = new Set();
   const ownSupply = operation => {
@@ -46,7 +49,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     if (closed || channels.has(peer) || channels.size >= policy.maxPeers || !connected().has(peer)) { channel.close(); return; }
     let bus;
     const ready = new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => { channel.close(); reject(new Error('Custody channel open timed out')); }, policy.channel.timeoutMs);
+      const timeout = setTimeout(() => { channel.close(); reject(unavailable('Custody channel open timed out')); }, policy.channel.timeoutMs);
       const open = () => {
         clearTimeout(timeout);
         try {
@@ -59,7 +62,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         } catch (error) { channel.close(); reject(error); }
       };
       if (channel.readyState === 'open') open(); else channel.addEventListener('open', open, { once: true });
-      channel.addEventListener('close', () => { clearTimeout(timeout); reject(new Error('Custody peer disconnected')); }, { once: true });
+      channel.addEventListener('close', () => { clearTimeout(timeout); reject(unavailable('Custody peer disconnected')); }, { once: true });
     });
     const entry = { ready, close: () => { bus?.close(); channel.close(); } };
     channels.set(peer, entry); ready.catch(() => {});
@@ -77,7 +80,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       ready = channelWaiters.get(peer)?.ready;
       if (!ready) {
         ready = new Promise((resolve, reject) => {
-          const timer = setTimeout(() => finish(new Error('Custody channel open timed out')), policy.channel.timeoutMs);
+          const timer = setTimeout(() => finish(unavailable('Custody channel open timed out')), policy.channel.timeoutMs);
           const finish = (error, result) => {
             clearTimeout(timer); channelWaiters.delete(peer);
             if (error) reject(error); else resolve(result);
@@ -86,7 +89,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
         });
         channelWaiters.get(peer).ready = ready;
         if (!transport.sendToPeer(peer, 'reploid:custody-request', { channel: true })) {
-          channelWaiters.get(peer).finish(new Error('File peer disconnected'));
+          channelWaiters.get(peer).finish(unavailable('File peer disconnected'));
         }
       }
     }
@@ -109,6 +112,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     if (!connected().has(peer) || !peers.has(peer) && peers.size >= policy.maxPeers) return;
     const first = !peers.has(peer);
     peers.set(peer, structuredClone(message.artifacts)); if (first) announce(peer); notify();
+    for (const wake of offerWaiters) wake();
   });
   transport.onMessage('reploid:custody-response', (peer, message) => {
     const entry = pending.get(message?.id);
@@ -216,10 +220,10 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       if (error) reject(error); else resolve(result);
     };
     const abort = () => finish(signal.reason);
-    const timer = setTimeout(() => finish(new Error('File offer timed out')), policy.channel.timeoutMs);
+    const timer = setTimeout(() => finish(unavailable('File offer timed out')), policy.channel.timeoutMs);
     pending.set(id, { peer, finish }); signal.addEventListener('abort', abort, { once: true });
     if (!transport.sendToPeer(peer, 'reploid:custody-request', { id, artifact, range, maxExpiresAt,
-      requester: { peerId: identity.peerId, publicKey: identity.publicKey } })) finish(new Error('File peer disconnected'));
+      requester: { peerId: identity.peerId, publicKey: identity.publicKey } })) finish(unavailable('File peer disconnected'));
   });
   const acquireFrom = async (peer, source, combined, range, reserveDownload) => {
       const artifact = rangeDescriptor(source, range);
@@ -278,6 +282,20 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
     return [...peers.entries()].filter(([peer, files]) => ids.has(peer) && files.some(item => key(item) === key(artifact)))
       .map(([peer]) => peer).slice(0, policy.maxAcquisitionAttempts);
   };
+  // Waits at most one channel timeout for an eligible supplier to offer the file again, for
+  // example after its connection is re-established; resolves to the eligible suppliers, possibly none.
+  const reoffered = (artifact, excluded, signal) => new Promise((resolve, reject) => {
+    const eligible = () => candidates(artifact).filter(peer => !excluded.has(peer));
+    const done = (error, value) => {
+      clearTimeout(timer); offerWaiters.delete(check); signal.removeEventListener('abort', abort);
+      if (error) reject(error); else resolve(value);
+    };
+    const check = () => { const ids = eligible(); if (ids.length) done(null, ids); };
+    const abort = () => done(signal.reason);
+    const timer = setTimeout(() => done(null, eligible()), policy.channel.timeoutMs);
+    offerWaiters.add(check); signal.addEventListener('abort', abort, { once: true });
+    if (signal.aborted) abort(); else check();
+  });
   return Object.freeze({
     announce,
     getState: () => { connected(); return { sharing: supply, suppliedBytes: Math.max(reserved, ports.supplyBudget?.getState()?.reservedBytes || 0), pending: acquiring, peers: [...peers.keys()] }; },
@@ -306,15 +324,25 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       if (!eligible.length) throw new Error('No authorized peer offers this file');
       acquiring++;
       const operation = (async () => {
-        const failures = [];
-        for (const peer of eligible) {
+        // At most maxAcquisitionAttempts grants, each fresh. A supplier that delivered nothing may be
+        // asked again (least-tried first); one that sent invalid data or refused is not. Verified chunks
+        // resume from checkpoints, and every requested chunk is charged, retries included.
+        const failures = [], tries = new Map(), excluded = new Set();
+        let suppliers = eligible;
+        while (suppliers.length) {
           combined.throwIfAborted();
+          const peer = suppliers.reduce((best, id) => ((tries.get(id) || 0) < (tries.get(best) || 0) ? id : best));
+          tries.set(peer, (tries.get(peer) || 0) + 1);
           try { return await acquireFrom(peer, descriptor, combined, range, reserveDownload); }
           catch (error) {
             combined.throwIfAborted();
             if (error.code === 'CUSTODY_LOCAL_COMMIT_FAILED' || error.code?.startsWith('CUSTODY_BUDGET_')) throw error;
             failures.push(error);
+            if (error.code !== 'CUSTODY_SUPPLIER_UNAVAILABLE') excluded.add(peer);
           }
+          if (failures.length >= policy.maxAcquisitionAttempts) break;
+          suppliers = candidates(descriptor).filter(peer => !excluded.has(peer));
+          if (!suppliers.length && failures.at(-1).code === 'CUSTODY_SUPPLIER_UNAVAILABLE') suppliers = await reoffered(descriptor, excluded, combined);
         }
         if (failures.length === 1) throw failures[0];
         throw new AggregateError(failures, 'Available file suppliers failed: ' + failures.map(error => error.message).join('; '));
@@ -328,6 +356,7 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
       closed = true; stopSupply(); lifetime.abort(new Error('File exchange closed')); unsub();
       for (const entry of pending.values()) entry.finish(lifetime.signal.reason);
       for (const entry of channelWaiters.values()) entry.finish(lifetime.signal.reason);
+      offerWaiters.clear();
       for (const channel of channels.values()) channel.close();
       peers.clear(); channels.clear();
       return Promise.allSettled([...operations]);
