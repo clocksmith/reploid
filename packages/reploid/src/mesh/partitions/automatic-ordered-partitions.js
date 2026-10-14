@@ -308,7 +308,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
   async function tick() {
     if (closed) return;
     if (ticking) return ticking;
-    ticking = (async () => { await discovery.refresh(); await reassess(); await reconcile(); notify(); })();
+    // Without autoStage the tick is exactly the Launch 1 sequence: refresh, then reconcile.
+    ticking = (async () => { await discovery.refresh(); if (auto) await reassess(); await reconcile(); notify(); })();
     try { await ticking; } catch (cause) { error = cause.message; notify(); }
     finally { ticking = null; }
   }

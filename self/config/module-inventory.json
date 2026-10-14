@@ -15218,7 +15218,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:5e7e8b769b4bbf56ba37800cef03d8ca6fc7c76ae807515e1a7968535b2035b1",
+      "sha256": "sha256:6d3b62e5397d0cb33becd5e0c63a1bda396fd4f2f2ab8c0cd0b0e330bdced546",
       "imports": [
         "./partition-chat.js",
         "./partition-contract.js",
