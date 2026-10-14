@@ -101,7 +101,8 @@ export async function automaticOrderedMesh({ modelFields = {} } = {}) {
       peers: () => visible[slot].map(i => ({ id: `transport-${i}`, localTransportId: `transport-${slot}` })),
       createNetwork: options => createPartitionNetwork({ ...options, transport, verifyPeer: async peer => identities[Number(peer.split('-').at(-1))].peerId }), loadProgram }));
   }
-  return { model, meshes, states, loads, opens, traffic, identities,
+  // runtime is the injected numerical runtime every loaded stage shares.
+  return { model, meshes, states, loads, opens, traffic, identities, runtime: base.runtime,
     async prepare() { for (const i of [1,2,4,0,3]) await meshes[i].contribute(model.id, true); },
     select(requester, coordinator) { return meshes[requester].getModels().find(row => row.partition?.route.stages[0].participantId === identities[coordinator].peerId); },
     gate(slot, threadId, step=1) {

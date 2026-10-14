@@ -6,7 +6,9 @@ const epoch = value => typeof value === 'string' && /^[a-f0-9]{32}$/.test(value)
 const schema = 'reploid.canonical-workspace-history/v1';
 
 /** One transactional workspace writer. Legacy bytes are imported once and kept
- * verbatim; canonical text lives only in authenticated publication records. */
+ * verbatim; published text lives only in authenticated publication records.
+ * An attempt's `publicationMode: 'canonical'` marks requester-published output,
+ * canonical two-stage or ordinary ordered; the persisted value is not renamed. */
 export async function openCanonicalWorkspaceHistory({ store, key, meshId, participantId, writerEpoch,
   expectedWriterEpoch, legacy, maxWorkspaceBytes, maxThreads, publicationOptions }) {
   assert(store?.schema === 'reploid.transactional-chat-store/v1' && typeof store.transact === 'function'

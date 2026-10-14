@@ -46,9 +46,11 @@ const memoryStorage = () => {
   return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, String(value)), removeItem: key => values.delete(key) };
 };
 // The arguments initPoolHome passes (self/ui/pool-home/index.js:36). swarmNetworkOptions only names the
-// fixture room; the swarm still connects through the product autoconnect owner.
-function openProduct(ordered) {
-  const host = createProductSession({ storage: memoryStorage(), operationNetwork: null, canonical: null, ordered,
+// fixture room; the swarm still connects through the product autoconnect owner. The pinned package
+// (0.6.27) exposes no metadataDigest, so ordered sessions here keep ordinary history.
+async function openProduct(ordered) {
+  const host = await createProductSession({ storage: memoryStorage(), operationNetwork: null, canonical: null, ordered,
+    historyPorts: { loadRuntime: async () => runtime },
     networkOptions: () => ({}),
     swarmNetworkOptions: () => ({ autoConnect: true, discoveryScope: 'public', config: resolveConfig({ overrides: { mesh: { roomId: 'mesh' } } }) }) });
   cleanups.push(() => host.close());
@@ -76,7 +78,7 @@ it('admits ordered Send from the shipped product session under the authenticated
   const f = await automaticOrderedMesh({ modelFields: { provider: 'doppler' } }); cleanups.push(() => f.close());
   ports.identity = f.identities[5]; ports.partitions = f.meshes[5];
   await f.prepare(); await vi.waitFor(() => expect(f.select(5, 0)).toBeTruthy(), { timeout: 5000 });
-  const host = openProduct(weightlessRequester);
+  const host = await openProduct(weightlessRequester);
   const model = await readyModel(host.chat, row => row.partition?.coordinatorId === f.identities[0].peerId);
   expect(ports.bound).toEqual([f.identities[5].peerId]);
   const threadId = host.chat.createThread({ model });
@@ -106,7 +108,7 @@ it('still rejects ordered Send for a placeholder, unauthenticated or different r
   // The partition owner binds requester 6 while the swarm authenticated requester 5.
   ports.identity = f.identities[5]; ports.partitions = f.meshes[6];
   await f.prepare(); await vi.waitFor(() => expect(f.select(6, 3)).toBeTruthy(), { timeout: 5000 });
-  const host = openProduct(weightlessRequester);
+  const host = await openProduct(weightlessRequester);
   const model = await readyModel(host.chat, row => row.partition?.coordinatorId === f.identities[3].peerId);
   const dispatched = () => f.states.filter(state => state.resident)
     .reduce((total, state) => total + state.resident.tokenize.mock.calls.length + state.resident.reserve.mock.calls.length, 0);
@@ -231,7 +233,7 @@ it('keeps two-stage Send working from the product session; it never relied on a 
   const f = await twoStageMesh(); cleanups.push(() => f.close());
   ports.identity = f.identities[0]; ports.partitions = f.meshes[0];
   await f.meshes[1].contribute(f.model.id, true); await f.meshes[2].contribute(f.model.id, true);
-  const host = openProduct(null);
+  const host = await openProduct(null);
   const model = await readyModel(host.chat, row => row.partition && row.partition.schema === undefined);
   const placeholder = createChatSession({ storage: null, swarm: host.swarm, partitions: host.swarm.partitions });
   cleanups.push(() => placeholder.close());

@@ -20,6 +20,13 @@ const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
 const STORAGE_KEY = 'reploid.chat-workspace:v1';
+/** The stable local owner of this browser profile's conversations. Ordinary and
+ * requester-owned transactional history share it, so saved history migrates
+ * unchanged; each attempt separately binds the authenticated requester peer. */
+export const LOCAL_HISTORY_IDENTITY = Object.freeze({ meshId: 'reploid-local-mesh', participantId: 'local-user' });
+// Only published output enters a transactional history.
+const publishable = (publication, model) => publication === 'canonical' ? !!(model.partition && model.canonical)
+  : model.partition?.schema === 'reploid.partition-selection/v2';
 
 // Requesters and contributors use one artifact catalog.
 export const CANONICAL_CHAT_MODELS = LOCAL_DOPPLER_MODELS;
@@ -35,9 +42,12 @@ export function createChatSession({
   bindPublicationAuthorization = null,
   // History owner. Ordered disclosure binds requesterIdentity, the host's authenticated swarm peer;
   // omitted, the workspace uses participantId, so this placeholder can never verify one.
-  participantId = 'local-user',
+  participantId = LOCAL_HISTORY_IDENTITY.participantId,
   requesterIdentity,
-  meshId = 'reploid-local-mesh',
+  meshId = LOCAL_HISTORY_IDENTITY.meshId,
+  // How this session saves history: transactional (canonical or ordered publication),
+  // ordinary, or refused because another tab owns it. Reported in state as-is.
+  history = null,
   models = CANONICAL_CHAT_MODELS,
   now = Date.now,
   id = () => crypto.randomUUID()
@@ -58,6 +68,8 @@ export function createChatSession({
     }
   };
 
+  const historyState = Object.freeze(copy(history ?? (canonicalHistory
+    ? { mode: 'transactional', publication: 'canonical', reason: null } : { mode: 'ordinary', publication: null, reason: null })));
   // Catalog identity is resolved once; discovery snapshots cannot mutate it.
   models = copy(models);
   const comparisons = new Map();
@@ -92,6 +104,7 @@ export function createChatSession({
     partitionModels: partitions?.getModels() || []
   }).map(model => {
     const local = execution.getLocalState();
+    if (canonicalHistory && !publishable(historyState.publication, model)) return { ...model, availability: 'unavailable', localReady: false };
     return local?.ready && local.modelIdentity === model.identity && !(model.adapters?.length)
       ? { ...model, availability: 'ready', localReady: true } : model;
   }));
@@ -128,7 +141,8 @@ export function createChatSession({
       localModel: execution.getLocalState(),
       network: copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null }),
       scheduler: execution.getState(),
-      placements: projectChatPlacements(wsState.threads)
+      placements: projectChatPlacements(wsState.threads),
+      history: historyState
     });
   };
 
