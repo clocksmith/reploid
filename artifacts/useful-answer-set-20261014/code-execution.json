@@ -1,0 +1,197 @@
+{
+ "schema": "reploid.useful-answer-set.code-execution/v1",
+ "machine": "mac-host",
+ "timeoutSeconds": 10,
+ "python": "3.14.2",
+ "node": "v22.20.0",
+ "cases": [
+  {
+   "item": "code-double-evens",
+   "arm": "q4k",
+   "turn": 1,
+   "language": "js",
+   "source": "answer",
+   "note": "answer code; probe also gives the turn-2 input",
+   "program": "function doubleEvens(numbers) {\n  // Filter keeps only even numbers, then doubles them\n  return numbers.filter(n => n % 2 === 0).map(n => n * 2);\n}\n\n// Result for [1, 2, 3, 4]\nconsole.log(doubleEvens([1, 2, 3, 4])); \n// Output: [2, 4, 6, 8]\n\nconsole.log(\"probe\", JSON.stringify(doubleEvens([1, 2, 3, 4])), JSON.stringify(doubleEvens([-2, 3, 6])));\n",
+   "exitCode": 0,
+   "stdout": "[ 4, 8 ]\nprobe [4,8] [-4,12]\n",
+   "stderrTail": []
+  },
+  {
+   "item": "code-double-evens",
+   "arm": "bf16",
+   "turn": 1,
+   "language": "js",
+   "source": "answer",
+   "note": "answer code; probe also gives the turn-2 input",
+   "program": "function doubleEvens(numbers) {\n  return numbers\n    .filter(n => n % 2 === 0)\n    .map(n => n * 2);\n}\n\nconsole.log(doubleEvens([1, 2, 3, 4])); // [4, 8]\n\nconsole.log(\"probe\", JSON.stringify(doubleEvens([1, 2, 3, 4])), JSON.stringify(doubleEvens([-2, 3, 6])));\n",
+   "exitCode": 0,
+   "stdout": "[ 4, 8 ]\nprobe [4,8] [-4,12]\n",
+   "stderrTail": []
+  },
+  {
+   "item": "code-sum-squares",
+   "arm": "q4k",
+   "turn": 1,
+   "language": "py",
+   "source": "answer",
+   "note": "answer code",
+   "program": "def sum_of_squares(nums):\n    \"\"\"\n    Returns the sum of the squares of the numbers in the input list.\n    \n    Parameters:\n        nums (list): A list of numbers (integers or floats).\n    \n    Returns:\n        float: The sum of the squares of the numbers.\n    \"\"\"\n    return sum(x ** 2 for x in nums)\n\nr = sum_of_squares([1, 2, 3]); print(\"probe\", repr(r), type(r).__name__)\n",
+   "exitCode": 0,
+   "stdout": "probe 14 int\n",
+   "stderrTail": []
+  },
+  {
+   "item": "code-sum-squares",
+   "arm": "bf16",
+   "turn": 1,
+   "language": "py",
+   "source": "answer",
+   "note": "answer code",
+   "program": "def sum_of_squares(nums):\n    \"\"\"\n    Returns the sum of the squares of the elements in the list.\n\n    Example:\n        sum_of_squares([1, 2, 3])  # returns 14\n    \"\"\"\n    return sum(x ** 2 for x in nums)\n\n\n# Example usage:\nprint(sum_of_squares([1, 2, 3]))  # Output: 14\n\nr = sum_of_squares([1, 2, 3]); print(\"probe\", repr(r), type(r).__name__)\n",
+   "exitCode": 0,
+   "stdout": "14\nprobe 14 int\n",
+   "stderrTail": []
+  },
+  {
+   "item": "code-reverse-string",
+   "arm": "q4k",
+   "turn": 1,
+   "language": "js",
+   "source": "answer",
+   "note": "answer code",
+   "program": "/**\n * Reverses a string.\n * \n * @param {string} str - The string to reverse.\n * @returns {string} The reversed string.\n */\nfunction reverseString(str) {\n  return str.split('').reverse().join('');\n}\n\n// Example usage\nconsole.log(reverseString(\"stressed\")); \n// Output: \"edresst\"\n\nconsole.log(\"probe\", JSON.stringify(reverseString(\"stressed\")));\n",
+   "exitCode": 0,
+   "stdout": "desserts\nprobe \"desserts\"\n",
+   "stderrTail": []
+  },
+  {
+   "item": "code-reverse-string",
+   "arm": "bf16",
+   "turn": 1,
+   "language": "js",
+   "source": "answer",
+   "note": "answer code",
+   "program": "function reverseString(str) {\n  return str.split('').reverse().join('');\n}\n\nconsole.log(reverseString(\"stressed\"));\n// Output: \"edreessst\"\n\nconsole.log(\"probe\", JSON.stringify(reverseString(\"stressed\")));\n",
+   "exitCode": 0,
+   "stdout": "desserts\nprobe \"desserts\"\n",
+   "stderrTail": []
+  },
+  {
+   "item": "code-count-vowels",
+   "arm": "q4k",
+   "turn": 1,
+   "language": "py",
+   "source": "answer",
+   "note": "answer code (its own example call runs first)",
+   "program": "def count_vowels(s):\n    \"\"\"\n    Counts the vowels 'a', 'e', 'i', 'o', 'u' in a string.\n    \n    Parameters:\n        s (str): The input string to analyze.\n    \n    Returns:\n        int: The count of vowels found in the string.\n    \"\"\"\n    vowels = {'a', 'e', 'i', 'o', 'u'}\n    return len(s.lower().is_vowel())\n\n# Example usage:\nprint(count_vowels(\"education\"))  # Output: 4\n\nprint(\"probe\", count_vowels(\"education\"))\n",
+   "exitCode": 1,
+   "stdout": "",
+   "stderrTail": [
+    "    return len(s.lower().is_vowel())",
+    "               ^^^^^^^^^^^^^^^^^^",
+    "AttributeError: 'str' object has no attribute 'is_vowel'. Did you mean: 'islower'?"
+   ]
+  },
+  {
+   "item": "code-count-vowels",
+   "arm": "bf16",
+   "turn": 1,
+   "language": "py",
+   "source": "answer",
+   "note": "answer code",
+   "program": "def count_vowels(s):\n    \"\"\"\n    Count the number of vowels (a, e, i, o, u) in a string.\n    \n    Parameters:\n        s (str): The input string to count vowels in.\n    \n    Returns:\n        int: The total count of vowels.\n    \"\"\"\n    vowels = set(\"aeiouAEIOU\")\n    return len(s.lower().isalpha() and s.lower() in vowels)\n\nprint(\"probe\", count_vowels(\"education\"))\n",
+   "exitCode": 1,
+   "stdout": "",
+   "stderrTail": [
+    "  File \"<case dir>/main.py\", line 12, in count_vowels",
+    "    return len(s.lower().isalpha() and s.lower() in vowels)",
+    "TypeError: object of type 'bool' has no len()"
+   ]
+  },
+  {
+   "item": "fu-palindrome",
+   "arm": "q4k",
+   "turn": 1,
+   "language": "py",
+   "source": "answer",
+   "note": "turn-1 answer code, unfenced",
+   "program": "def is_palindrome(s):\n    \"\"\"\n    Checks if a string reads the same forwards and backwards, ignoring case.\n    Returns True if the string is a palindrome, False otherwise.\n    \"\"\"\n    # Convert to lowercase and remove non-alphanumeric characters to handle spaces and punctuation\n    cleaned = ''.join(c.lower() for c in s if c.isalnum())\n    \n    # Check if the cleaned string is the same forwards and backwards\n    return cleaned == cleaned[::-1]\nprint(\"probe\", is_palindrome(\"Racecar\"), is_palindrome(\"racecar\"), is_palindrome(\"hello\"), is_palindrome(\"ab!a\"))\n",
+   "exitCode": 0,
+   "stdout": "probe True True False True\n",
+   "stderrTail": []
+  },
+  {
+   "item": "fu-palindrome",
+   "arm": "bf16",
+   "turn": 1,
+   "language": "py",
+   "source": "answer",
+   "note": "turn-1 answer code, unfenced",
+   "program": "def is_palindrome(s):\n    \"\"\"\n    Checks if a string reads the same forwards and backwards, ignoring case.\n    \n    Parameters:\n        s (str): The input string to check.\n    \n    Returns:\n        bool: True if the string is a palindrome, False otherwise.\n    \"\"\"\n    return s == s[::-1]\nprint(\"probe\", is_palindrome(\"Racecar\"), is_palindrome(\"racecar\"), is_palindrome(\"hello\"), is_palindrome(\"ab!a\"))\n",
+   "exitCode": 0,
+   "stdout": "probe False True False False\n",
+   "stderrTail": []
+  },
+  {
+   "item": "expl-list-tuple",
+   "arm": "bf16",
+   "turn": 1,
+   "language": "py",
+   "source": "answer",
+   "note": "the example block in the answer",
+   "program": "# List\nmy_list = [1, 2, 3]\nmy_list.append(4)  # my_list becomes [1, 2, 3, 4]\nmy_list.pop(1)    # my_list becomes [1, 3, 4]\n\n# Tuple\nmy_tuple = (1, 2, 3)\nmy_tuple_copy = tuple(my_tuple)  # my_tuple_copy is [1, 2, 3], but my_tuple is unchanged\n\nprint(\"probe\", my_list, my_tuple, my_tuple_copy, type(my_tuple_copy).__name__, my_tuple[0], [v for v in my_tuple])\n",
+   "exitCode": 0,
+   "stdout": "probe [1, 3, 4] (1, 2, 3) (1, 2, 3) tuple 1 [1, 2, 3]\n",
+   "stderrTail": []
+  },
+  {
+   "item": "expl-list-tuple",
+   "arm": "q4k",
+   "turn": 1,
+   "language": "py",
+   "source": "quoted",
+   "note": "snippets quoted from the answer, plus the operations it says fail",
+   "program": "my_list = [1, 2, 3]\nmy_list.append(4)\nprint(\"append\", my_list)\nmy_tuple = (1, 2, 3)\nprint(\"index\", my_tuple[0])\nprint(\"iterate\", [v for v in my_tuple])\nmixed = [1, \"two\", 3]\nprint(\"mixed\", mixed, [type(v).__name__ for v in mixed])\ntry:\n    my_tuple.append(4)\nexcept AttributeError as error:\n    print(\"tuple append\", type(error).__name__)\ntry:\n    my_tuple[0] = 9\nexcept TypeError as error:\n    print(\"tuple assign\", type(error).__name__)\n",
+   "exitCode": 0,
+   "stdout": "append [1, 2, 3, 4]\nindex 1\niterate [1, 2, 3]\nmixed [1, 'two', 3] ['int', 'str', 'int']\ntuple append AttributeError\ntuple assign TypeError\n",
+   "stderrTail": []
+  },
+  {
+   "item": "code-python-slice",
+   "arm": null,
+   "turn": null,
+   "language": "py",
+   "source": "question",
+   "note": "the question program",
+   "program": "x = [1, 2, 3, 4, 5]\nprint(x[1:4])\n",
+   "exitCode": 0,
+   "stdout": "[2, 3, 4]\n",
+   "stderrTail": []
+  },
+  {
+   "item": "code-js-default-sort",
+   "arm": null,
+   "turn": null,
+   "language": "js",
+   "source": "question",
+   "note": "the question program",
+   "program": "const nums = [5, 1, 10];\nnums.sort();\nconsole.log(nums);\n",
+   "exitCode": 0,
+   "stdout": "[ 1, 10, 5 ]\n",
+   "stderrTail": []
+  },
+  {
+   "item": "ground-truth",
+   "arm": null,
+   "turn": null,
+   "language": "py",
+   "source": "computation",
+   "note": "reference computations",
+   "program": "print(\"17*24\", 17 * 24)\nprint(\"15% of 80\", 0.15 * 80)\nprint(\"5 mi km\", 5 * 1.609344)\nprint(\"100F C\", (100 - 32) * 5 / 9)\nprint(\"80 less 25%\", 80 * 0.75)\nprint(\"2.5 h s\", 2.5 * 3600)\nprint(\"area\", 8 * 5, \"perimeter\", 2 * (8 + 5))\nprint(\"cookies\", 20 - 4, (20 - 4) / 8)\nprint(\"vowels education\", sum(c in \"aeiou\" for c in \"education\"))\nprint(\"reverse stressed\", \"stressed\"[::-1])\nprint(\"racecar reversed\", \"racecar\"[::-1], \"Racecar\"[::-1])\nprint(\"17 prime\", all(17 % d for d in range(2, 17)))\nprint(\"68*5/9\", 68 * 5 / 9, \"340/9\", 340 / 9)\n",
+   "exitCode": 0,
+   "stdout": "17*24 408\n15% of 80 12.0\n5 mi km 8.04672\n100F C 37.77777777777778\n80 less 25% 60.0\n2.5 h s 9000.0\narea 40 perimeter 26\ncookies 16 2.0\nvowels education 5\nreverse stressed desserts\nracecar reversed racecar racecaR\n17 prime True\n68*5/9 37.77777777777778 340/9 37.77777777777778\n",
+   "stderrTail": []
+  }
+ ]
+}

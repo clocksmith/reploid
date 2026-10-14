@@ -185,3 +185,149 @@ Measured runtimes: Q4_K 451.2 s and bf16 451.4 s, each including model load and 
 - `scripts/`: the four scripts listed above.
 
 Component: acceptance evidence for Reploid Launch 1 model quality (artifact only). Intent: preserved. Acceptance evidence: the commands above. Boundary effects: none. No application, Doppler, existing evidence or `/var/tmp` install was modified.
+
+## Whole-answer assessment (added 2026-10-14)
+
+This section adds a second, separately labeled measure. The mechanical scores above are unchanged.
+
+A mechanical pass shows that the asked point is right. It does not show that the whole answer is right: 16 passing answers also contain false statements. This assessment grades everything each answer asserts or does. It covers every item, both arms and both turns of two-turn items: 92 answers, 547 graded elements.
+
+**The grader is a model reviewer:** Claude Opus 5.5 (`claude-opus-5-5`), the same agent that wrote the set. There was no independent human panel, and no second reviewer checked the grades.
+
+### Method
+
+For each answer I list every element and grade it correct, incorrect or unverified, with a one-line basis and a source. There are five kinds of element:
+- **fact:** each factual statement.
+- **example:** each stated output, value or worked step.
+- **code-executed:** what the answer's code actually did when run.
+- **code-general:** each claim about what the code does in general, such as docstrings, comments, descriptions, types or "this handles X".
+- **instruction:** each requirement in the prompt, such as format, length, language, a function name or an explicit requirement.
+
+Sources:
+- **Cited reference.** For example RFC 9110 §15.5.5, MDN, the Python docs, WMO 30-year normals, the AUA stone guideline, or Hooton et al. 2018.
+- **Stated computation.**
+- **Execution.**
+- **Comparison with the prompt or answer text.**
+- **General knowledge, stating the specific fact.** For example, Austen died in 1817; Apollo 11 landed in the Sea of Tranquility.
+
+Rules:
+- **Unverified means not established.** It never counts as correct, and the basis says why.
+- **Code is run, never from inside the repo.** `scripts/run-answer-code.py` runs each answer's code in a fresh directory under an isolated scratch directory outside the repository. It uses Python 3.14.2 `-I` or Node v22.20.0, a 10 s timeout, and only PATH and HOME in the environment. It records the program, probe inputs, stdout, exit status and stderr in `code-execution.json`.
+- **An execution proves only the inputs it ran.** Running code verifies behavior on those inputs. A general claim about short code counts as correct only when it follows directly from cited language semantics. Claims about handling classes of input or edge cases stay unverified unless exercised. An executed counterexample makes a claim incorrect.
+- **Values are graded separately from the instruction.** A requirement that asks for a value ("show its result") counts as followed when a value is given. The value's correctness is a separate element.
+- **Answer status.** An answer is **whole-answer correct** only if every element is correct. Otherwise it **has an incorrect element**, or, with nothing incorrect, it is **unverified**. An item takes the worst status of its turns.
+
+Every element in `whole-answer-assessment.json` records:
+- its kind, claim, grade, basis and sources;
+- for executions, the command, inputs, stdout, exit status and environment;
+- the reviewer.
+
+`scripts/whole-answer-summary.py` checks the assessment and writes `whole-answer-summary.json`. It checks that:
+- every run answer is assessed once, against its exact text;
+- every grade is valid;
+- every execution record matches `code-execution.json`;
+- every status follows from its grades.
+
+### Results by item, beside the mechanical score
+
+The mechanical column covers the 38 mechanical items. The whole-answer columns cover all 40 items, including the two rubric items.
+
+| Category | Items | Q4_K mechanical | Q4_K whole-answer correct | Q4_K has incorrect | Q4_K unverified only | bf16 mechanical | bf16 whole-answer correct | bf16 has incorrect | bf16 unverified only |
+|---|---|---|---|---|---|---|---|---|---|
+| Factual | 6 | 6/6 | 1 | 5 | 0 | 6/6 | 0 | 6 | 0 |
+| Explanation | 5 | 3/3 | 1 | 4 | 0 | 3/3 | 0 | 5 | 0 |
+| Code | 6 | 2/6 | 1 | 5 | 0 | 4/6 | 3 | 3 | 0 |
+| Arithmetic | 6 | 6/6 | 5 | 1 | 0 | 6/6 | 4 | 2 | 0 |
+| Follow-up | 6 | 4/6 | 2 | 4 | 0 | 5/6 | 2 | 4 | 0 |
+| Rewrite | 5 | 5/5 | 3 | 2 | 0 | 5/5 | 4 | 0 | 1 |
+| Format | 6 | 6/6 | 4 | 1 | 1 | 6/6 | 4 | 1 | 1 |
+| **Overall** | **40** | **32/38** | **17 (42.5%)** | **22** | **1** | **35/38** | **17 (42.5%)** | **21** | **2** |
+
+No answer failed the mechanical checks and then turned out whole-answer correct. Of the mechanical passes, 15 (Q4_K) and 18 (bf16) are not whole-answer correct.
+
+### Results by answer
+
+There are 46 answers per arm, counting each turn. The follow-up category has 12 answers per arm. `fu-double-evens` turn 1 is the same generated answer as `code-double-evens`, so it is counted twice.
+
+| | Q4_K | bf16 |
+|---|---|---|
+| Whole-answer correct | 20 | 21 |
+| Any incorrect element | 24 | 23 |
+| Any unverified element | 5 | 5 |
+| Any instruction violation | 2 | 3 |
+| Elements graded / incorrect / unverified | 278 / 70 / 10 | 269 / 55 / 7 |
+
+Incorrect elements by category:
+
+| Category | Q4_K | bf16 |
+|---|---|---|
+| Factual | 15 of 37 | 10 of 39 |
+| Explanation | 32 of 75 | 21 of 64 |
+| Code | 11 of 40 | 7 of 36 |
+| Arithmetic | 1 of 22 | 3 of 27 |
+| Follow-up | 8 of 55 | 13 of 55 |
+| Rewrite | 2 of 29 | 0 of 27 |
+| Format | 1 of 20 | 1 of 21 |
+
+### Main failure patterns
+
+- **False supporting facts around a correct answer.** All 12 factual answers name the right fact, but 11 add false statements. Only Q4_K's gold answer is clean. Examples:
+  - Q4_K: Canberra "on the banks of the Murray River"; Austen died in 1840; "11 femoral bones".
+  - bf16: Apollo 11 landed at "the Moon's south pole"; Canberra is the "second-largest city in the world".
+  - Both arms call HTTP "the standard protocol" for all internet data.
+- **Long explanations accumulate errors.** 9 of 10 explanation answers have incorrect elements. The worst answers:
+  - Both leap-year answers have 10 incorrect elements each. Q4_K credits Ptolemy with the Gregorian calendar. bf16 gives the yearly excess as 0.0422 days and calls the Julian year shorter than the solar year.
+  - Q4_K's list/tuple answer says tuples cannot be indexed or iterated. Execution shows `my_tuple[0]` returns 1.
+  - Both 404 answers give false meanings or remedies: "the server is down", "check your internet connection", "the browser has successfully loaded the page".
+- **Code: wrong stated outputs, broken code, contradicted docstrings.**
+  - **Correct code, wrong stated result.** Both string reversals actually return "desserts" (stated: "edresst" and "edreessst"), and Q4_K's `doubleEvens` returns `[4, 8]`.
+  - **Broken code.** Both `count_vowels` functions crash.
+  - **Contradicted docstrings.** Q4_K's `sum_of_squares` docstring promises a float but the function returns int 14. bf16's palindrome docstring says it ignores case, but the function returns False for "Racecar".
+  - **Answers that contradict their own code.** bf16 answers True for "Racecar" although its own function returns False. Q4_K answers False although its own function returns True.
+- **Arithmetic is the cleanest category.** Every final answer is right. The errors are in the working and wording:
+  - bf16 works 17 × 24 to 368 before stating 408, and adds "37.78 °C is the precise answer if you need an integer".
+  - Q4_K calls 20 + 4 "factors".
+- **Wrong glosses in translations.** bf16 glosses "¡Gracias!" as "Hello, thank you!" and calls "Gracias por" a more formal form. Q4_K offers "Dejame gracias" as "I'm sorry".
+- **Instruction violations are rare.** There are five:
+  - Neither haiku is 5-7-5: Q4_K is 5-3-5, bf16 4-5-5.
+  - Neither `count_vowels` counts vowels.
+  - bf16's palindrome function ignores the "ignoring case" requirement.
+- **Unverified-only answers.** Three answers have nothing incorrect but contain claims I could not establish:
+  - both water-benefit bullet lists (skin and hair, blood pressure and heart disease);
+  - bf16's polite rewrite, which says the phrasing shows "respect for the recipient's time".
+- **Rewrites are mostly clean.** bf16's are all correct except that one unverified claim. Q4_K's library summary states wrong opening hours, and its polite rewrite misdescribes one of its own changes.
+
+### Limits
+
+- **One model reviewer, no human panel.** The reviewer is the model that wrote the set and the mechanical checks. No second reviewer checked the grades, so the grades may share the reviewer's blind spots.
+- **Strictness is a judgment.** Some grades depend on how strictly an element is read. Examples:
+  - HTTP as "the standard protocol for the internet" is graded incorrect as an overgeneralization.
+  - The haiku requirement is read as 5-7-5.
+  - Q4_K's palindrome dropping punctuation is unverified, because the request does not say whether punctuation counts.
+  - Conventional style advice in rewrites is graded correct.
+  - Short-code general behavior is graded correct from cited language documentation rather than exhaustive tests.
+- **Element granularity is the reviewer's choice.** Tables are graded by row, and repeated statements are graded once. Element counts therefore compare answers only roughly.
+- **Unverified elements could be either.** Some unverified claims may be true, such as the effect of water on blood pressure. Some correct grades rest on general knowledge rather than a fetched source; no web sources were fetched.
+- **Same scope as before.** Like the mechanical scores, this covers one greedy run per arm on the CPU arms, not the GPU route.
+- **No decision.** This sets no threshold and makes no release decision.
+
+### Commands
+
+`S` is the session scratchpad. `code-exec` must be an empty directory outside the repository.
+
+```
+python3 -I scripts/run-answer-code.py q4k-run.json bf16-run.json $S/uas/code-exec code-execution.json
+python3 -I scripts/whole-answer-summary.py answer-set.json q4k-run.json bf16-run.json results.json code-execution.json whole-answer-assessment.json whole-answer-summary.json
+```
+
+`whole-answer-assessment.json` was written by me from a scratch authoring file. The summary script validates it; it does not generate the grades.
+
+### Added files
+
+- `whole-answer-assessment.json`: one entry per answer (item, arm, turn), each holding:
+  - the exact answer text;
+  - every graded element with its grade, basis, sources, execution records and reviewer;
+  - the status and the failing elements.
+- `whole-answer-summary.json`: per-item statuses beside the mechanical verdicts; counts by category and overall for both arms, at item and answer level; and the lists of mechanical passes that are not whole-answer correct.
+- `code-execution.json`: every program run, with stdout, exit status and stderr.
+- `scripts/run-answer-code.py` and `scripts/whole-answer-summary.py`.
