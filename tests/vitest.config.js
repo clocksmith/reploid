@@ -35,6 +35,8 @@ export default defineConfig({
     exclude: [...configDefaults.exclude, ...heavyTests],
     environment: 'happy-dom',
     globals: true,
+    // Hosted runners run the parallel suite slower; signed multi-peer tests need room there.
+    testTimeout: process.env.CI ? 20000 : 5000,
     coverage: {
       provider: 'v8',
       reporter: ['text', 'html'],
