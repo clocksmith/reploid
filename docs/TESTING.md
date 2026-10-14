@@ -72,7 +72,7 @@ Multi-module workflow tests with realistic state management.
 
 **18 test files covering:**
 - Core cognitive loop: `agent-loop.test.js`, `fsm.test.js`, `rsi-loop.test.js`
-- LLM & inference: `llm-client.test.js`, `neural-compiler-lora.test.js`, `gepa-optimizer.test.js`, `doppler-inference.test.js`
+- LLM & inference: `llm-client.test.js`, `neural-compiler-lora.test.js`, `gepa-optimizer.test.js`
 - Memory & state: `prompt-memory.test.js`, `reflection-system.test.js`, `replay-engine.test.js`, `vfs.test.js`
 - Persistence: `long-session.test.js`, `genesis-snapshot.test.js`
 - Tool execution: `tool-runner.test.js`
