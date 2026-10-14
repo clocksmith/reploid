@@ -7,7 +7,7 @@ import { assertPartition as assert, canonicalPartitionJson, canonicalPartitionBi
 /** Conversation adapter for a fixed, explicitly prepared local A and authenticated remote B. */
 export function createPartitionChat({ runtime, local, remote, authority, model, plan, planId, limits, grantTtlMs, canonical = null, ordered = null, authorizeRequester = null, now = Date.now }) {
   if (ordered !== null) {
-    assert(canonical === null, 'Ordered chat does not enable canonical publication');
+    assert(canonical === null, 'Ordered chat does not enable canonical decoding; it publishes through the requester-owned writer');
     return createOrderedPartitionChat({ runtime, authority, model, plan, planId, limits, grantTtlMs, ordered, authorizeRequester, now });
   }
   assert(local.index === 0 && local.id === authority.participantId && remote.id !== local.id,

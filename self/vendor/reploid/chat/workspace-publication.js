@@ -1,6 +1,10 @@
-/** Durable conversation publication. Doppler validates model/cursor contracts;
- * the host authenticates commits and supplies a genuinely transactional store. */
+/** Durable conversation publication. Doppler validates canonical model/cursor
+ * contracts; ordinary ordered routes publish their final-stage steps through the
+ * same transaction owner. The host authenticates commits and supplies a
+ * genuinely transactional store. */
 import defaults from './publication-policy.json' with { type: 'json' };
+import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA, ORDERED_PUBLICATION_SCHEMA, validateOrderedPublicationAttempt,
+  validateOrderedGenerationBounds, validateOrderedPublication } from '../mesh/partitions/partition-ordered-publication.js';
 
 const reject = message => { throw Object.assign(new Error(message), { code: 'PUBLICATION_REJECTED' }); };
 const assert = (ok, message) => { if (!ok) reject(message); };
@@ -13,10 +17,15 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
   assert(typeof conversationId === 'string' && conversationId && conversationId.length <= 256 && epoch(writerEpoch), 'Invalid publication owner identity');
   assert(store?.schema === 'reploid.transactional-chat-store/v1' && typeof store.transact === 'function'
     && typeof store.read === 'function', 'Transactional history adapter required');
-  for (const method of ['metadataDigest', 'validateResidentAttemptIdentity', 'canonicalGenerationIdentity',
-    'validateExecutionPublication', 'validateAdmissionPublication']) {
-    assert(typeof doppler?.[method] === 'function', `Canonical Doppler contract required: ${method}`);
-  }
+  assert(typeof doppler?.metadataDigest === 'function', 'Publication digest contract required: metadataDigest');
+  // Canonical decoding is one record contract, not a precondition of the writer.
+  const canonicalContract = () => {
+    for (const method of ['validateResidentAttemptIdentity', 'canonicalGenerationIdentity',
+      'validateExecutionPublication', 'validateAdmissionPublication']) {
+      assert(typeof doppler[method] === 'function', `Canonical Doppler contract required: ${method}`);
+    }
+  };
+  const orderedAttempt = identity => identity?.schema === ORDERED_PUBLICATION_ATTEMPT_SCHEMA;
   assert(typeof authenticateCommit === 'function' && typeof authorize === 'function', 'Current authorization and authenticated commit ports required');
   assert(typeof requireCommitEvidence === 'boolean', 'Invalid commit evidence policy');
   const limits = copy(policy);
@@ -56,6 +65,13 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
   const key = value => JSON.stringify([value.coordinatorEpoch, value.attemptId, value.sequence]);
   const admissionOnly = value => value.schema === 'doppler.admission-publication/v1';
   const validatePublication = (value, attempt) => {
+    if (orderedAttempt(attempt.identity)) {
+      assert(value?.schema === ORDERED_PUBLICATION_SCHEMA, 'Publication kind differs from its admitted attempt');
+      return validateOrderedPublication(value, attempt.identity, attempt.generationPolicy, attempt.vocabSize,
+        attempt.cursor, doppler.metadataDigest);
+    }
+    assert(value?.schema !== ORDERED_PUBLICATION_SCHEMA, 'Publication kind differs from its admitted attempt');
+    canonicalContract();
     if (admissionOnly(value)) {
       assert(attempt.cursor === null && attempt.nextSequence === 0, 'Admission-only publication cannot follow execution');
       return doppler.validateAdmissionPublication(value, attempt.identity, attempt.generationPolicy, attempt.vocabSize);
@@ -129,12 +145,22 @@ export function createConversationPublication({ conversationId, writerEpoch, sto
       });
     },
     async admitAttempt({ identity, generationPolicy, executionIdentity, vocabSize, deadlineAt }) {
-      const attempt = doppler.validateResidentAttemptIdentity(identity);
-      const generation = doppler.canonicalGenerationIdentity(generationPolicy, executionIdentity, vocabSize);
-      assert(attempt.publisherEpoch === writerEpoch && attempt.generationId === generation.generationId,
-        'Attempt generation or publisher binding mismatch');
+      let attempt, admittedPolicy;
+      if (orderedAttempt(identity)) {
+        attempt = validateOrderedPublicationAttempt(identity);
+        admittedPolicy = validateOrderedGenerationBounds(generationPolicy);
+        assert(attempt.publisherEpoch === writerEpoch && executionIdentity === attempt.generationDigest
+          && Number.isSafeInteger(vocabSize) && vocabSize > 0, 'Attempt generation or publisher binding mismatch');
+      } else {
+        canonicalContract();
+        attempt = doppler.validateResidentAttemptIdentity(identity);
+        const generation = doppler.canonicalGenerationIdentity(generationPolicy, executionIdentity, vocabSize);
+        assert(attempt.publisherEpoch === writerEpoch && attempt.generationId === generation.generationId,
+          'Attempt generation or publisher binding mismatch');
+        admittedPolicy = generation.policy;
+      }
       assert(Number.isSafeInteger(deadlineAt) && deadlineAt > now(), 'Finite future attempt deadline required');
-      const binding = { identity: attempt, generationPolicy: generation.policy, executionIdentity, vocabSize, deadlineAt,
+      const binding = { identity: attempt, generationPolicy: admittedPolicy, executionIdentity, vocabSize, deadlineAt,
         ...(requireCommitEvidence ? { requireCommitEvidence: true } : {}) };
       const digest = doppler.metadataDigest('reploid.publication-admission/v1', binding);
       return write(history => {

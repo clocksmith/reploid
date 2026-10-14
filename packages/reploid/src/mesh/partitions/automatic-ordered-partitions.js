@@ -4,6 +4,8 @@ import { selectPartitionRoute, selectPartitionExecution } from './partition-plac
 import { ORDERED_PARTITION_CHANNEL } from './partition-route-network.js';
 import { createPartitionPeer } from './partition-peer.js';
 import { createPartitionEntry } from './partition-entry.js';
+import { createEntryPublicationScope, entryPublicationPort } from './partition-entry-publication.js';
+import { ORDERED_PUBLICATION_CONTEXT_SCHEMA } from './partition-ordered-publication.js';
 import { summarizePartitionExecution } from './partition-summary.js';
 import { createPartitionChat } from './partition-chat.js';
 import { createPartitionGrantAuthority, orderedPartitionDisclosure } from './partition-grants.js';
@@ -200,14 +202,30 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       await service.refresh({ signal });
       return { ready: !!offer && !stopping && phase === 'ready', descriptor: { models: service.getModels() } };
     },
-    async generate(input, { signal, onDelta, onUsage, onActivity }) {
+    async generate(input, { signal, onDelta, onUsage, onActivity, publication, onPublished }) {
       assert(equal(admissions.get(input.attemptId), input), 'Local ordered input is not approved');
+      assert((publication !== undefined) === (input.publication !== undefined), 'Local ordered publication requires its requester context');
       const model = service.getModels().find(row => equal(row.partition?.route, input.route) && row.availability === 'ready');
       assert(model, 'Approved local ordered route unavailable');
-      const result = await service.generate({ meshId, participantId: identity.peerId, threadId: input.threadId,
-        attemptId: input.attemptId, placementGeneration: input.placementGeneration, disclosureExpiresAt: input.disclosureExpiresAt, model, messages: structuredClone(input.messages), ...(input.generationRequest ? {generationRequest: input.generationRequest} : {}),
-        permissions: { sharingScope: 'approved-partition-path' } }, { signal,
-        requestApproval: async () => equal(admissions.get(input.attemptId), input), onActivity: value => onActivity?.(value), onUsage: value => onUsage?.({schema:value.schema,inputTokens:value.inputTokens,outputTokens:value.outputTokens}), onDelta: event => onDelta?.(event.text) });
+      // The same requester-owned scope as a remote entry, without a channel.
+      const scope = publication === undefined ? null : createEntryPublicationScope({ request: input, owner: publication, onPublished,
+        authorize: () => equal(admissions.get(input.attemptId), input),
+        maxControlBytes: config.inputChannel?.maxControlBytes, maxOutputCharacters: config.inputLimits.maxOutputCharacters });
+      let failure = null, result;
+      try {
+        result = await service.generate({ meshId, participantId: identity.peerId, threadId: input.threadId,
+          attemptId: input.attemptId, placementGeneration: input.placementGeneration, disclosureExpiresAt: input.disclosureExpiresAt, model, messages: structuredClone(input.messages), ...(input.generationRequest ? {generationRequest: input.generationRequest} : {}),
+          ...(scope ? { publication: structuredClone(input.publication) } : {}), permissions: { sharingScope: 'approved-partition-path' } }, { signal,
+          ...(scope ? { publication: entryPublicationPort((method, body) => scope.call(method, body)) } : {}),
+          requestApproval: async () => equal(admissions.get(input.attemptId), input), onActivity: value => onActivity?.(value), onUsage: value => onUsage?.({schema:value.schema,inputTokens:value.inputTokens,outputTokens:value.outputTokens}), onDelta: event => onDelta?.(event.text) });
+        if (scope) {
+          const projection = scope.getProjection();
+          assert(projection.count > 0 && projection.terminal && result.content === projection.content, 'Local result differs from durable publication');
+        }
+      } catch (error) { failure = error; }
+      try { await scope?.close({ cancel: failure !== null }); }
+      catch (error) { failure = failure ? new AggregateError([failure, error], 'Local ordered execution and publication cancellation failed') : error; }
+      if (failure) throw failure;
       return { content: result.content, ...(result.usage ? {usage: result.usage} : {}), execution: summarizePartitionExecution(result.execution) };
     }
   };
@@ -247,7 +265,9 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       const requested = generationRequest(request.generationRequest);
       assert(!requested || requested.maxOutputTokens <= config.limits.maxTokens, 'Caller token limit exceeds route budget');
       request = structuredClone(request);
-      assert(!closed && request.canonical === undefined && controls.publication === undefined, 'Ordered automatic entry requires ordinary execution');
+      const published = controls.publication !== undefined;
+      assert(!closed && request.canonical === undefined && (!published || typeof controls.onPublished === 'function'
+        && /^[a-f0-9]{32}$/.test(controls.publisherEpoch)), 'Ordered automatic entry requires ordinary execution and, when publishing, the requester-owned writer');
       const signal = controls.signal ? AbortSignal.any([lifetime.signal, controls.signal]) : lifetime.signal;
       signal.throwIfAborted();
       const observed = discovery.getSnapshot();
@@ -273,12 +293,14 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       const input = { schema: 'reploid.partition-input/v3', operation: 'generate', meshId, requesterId: identity.peerId,
         coordinatorId: route.stages[0].participantId, route, modelId: model.id, modelIdentity: model.identity, planId: route.planId,
         ...(controls.onActivity ? {activity:'reploid.partition-activity/v1'} : {}),
-        threadId: request.threadId, attemptId: request.attemptId, placementGeneration: identityBinding.placementGeneration, disclosureExpiresAt: expiresAt, messages: request.messages, ...(requested ? {generationRequest: requested} : {}) };
+        threadId: request.threadId, attemptId: request.attemptId, placementGeneration: identityBinding.placementGeneration, disclosureExpiresAt: expiresAt, messages: request.messages, ...(requested ? {generationRequest: requested} : {}),
+        ...(published ? { publication: { schema: ORDERED_PUBLICATION_CONTEXT_SCHEMA, publisherEpoch: controls.publisherEpoch, deadlineAt: expiresAt } } : {}) };
       assert(!admissions.has(input.attemptId), 'Ordered requester attempt already admitted'); admissions.set(input.attemptId, structuredClone(input));
       let sequence = 0;
       try {
         controls.onState?.({ threadId: request.threadId, attemptId: request.attemptId, status: 'executing', execution: { placement: 'ordered-layer-partition', identity: identityBinding } });
-        const result = await entry.generate(input, { signal, ...(controls.onActivity ? {onActivity: activity => controls.onActivity({threadId:request.threadId,attemptId:request.attemptId,...activity})} : {}), onUsage: usage => controls.onUsage?.({threadId: request.threadId, attemptId: request.attemptId, ...usage}), onDelta: text => controls.onDelta?.({ threadId: request.threadId,
+        const result = await entry.generate(input, { signal, ...(published ? { publication: controls.publication, onPublished: controls.onPublished } : {}),
+          ...(controls.onActivity ? {onActivity: activity => controls.onActivity({threadId:request.threadId,attemptId:request.attemptId,...activity})} : {}), onUsage: usage => controls.onUsage?.({threadId: request.threadId, attemptId: request.attemptId, ...usage}), onDelta: text => controls.onDelta?.({ threadId: request.threadId,
           attemptId: request.attemptId, sequence: sequence++, text }) });
         return { ...result, threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: model.identity,
           adapterIdentities: [], execution: { ...result.execution, selection: selected } };

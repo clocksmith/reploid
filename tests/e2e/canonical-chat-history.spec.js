@@ -267,7 +267,7 @@ test('opt-in host opens async history and drafts while legacy storage stays byte
       oldDraftsUntouched: drafts === localStorage.getItem('reploid.chat-workspace:v1:drafts') };
   });
   expect(result).toEqual({ imported: 'unsent legacy draft', restored: 'durable new draft', status: 'failed', dispatches: 0,
-    failure: 'Canonical history requires a prepared canonical partition route', oldWorkspaceUntouched: true, oldDraftsUntouched: true });
+    failure: 'Canonical history requires a prepared canonical or ordered partition route', oldWorkspaceUntouched: true, oldDraftsUntouched: true });
 });
 
 

@@ -3,6 +3,9 @@ import { createSigningIdentity } from '../../packages/reploid/src/artifacts/iden
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
 import { createChatWorkspace } from '../../packages/reploid/src/chat/workspace.js';
 import { fixture as stagesFixture } from '../fixtures/ordered-partition-ports.js';
+import { createHash } from 'node:crypto';
+import { canonicalPartitionJson } from '../../packages/reploid/src/mesh/partitions/partition-contract.js';
+import { createConversationPublication } from '../../packages/reploid/src/chat/workspace-publication.js';
 
 const discoveryOwners = vi.hoisted(() => []);
 vi.mock('../../packages/reploid/src/mesh/partitions/partition-discovery.js', () => ({
@@ -27,7 +30,7 @@ async function fixture(index = 0) {
       planId: f.route.planId, stageCount: 3 }, reservations: { active: 0, availableSlots: 2, closed: false } }) });
   f.stages[0].tokenize = vi.fn(async () => ({ modelIdentity: model.identity, tokenIds: [1, 2], generation: f.request.generation }));
   const policy = { pollMs: 60000, maxPeers: 8, connectTimeoutMs: 1000, grantMs: 60000,
-    maxStageOffersPerPeer: 4, limits: f.limits, receiver: { maxAttempts: 32, maxSteps: 10 },
+    maxStageOffersPerPeer: 4, limits: f.limits, receiver: { maxAttempts: 32, maxSteps: 10 }, inputChannel: { maxControlBytes: 131072 },
     inputLimits: { maxInputCharacters: 4096, maxOutputCharacters: 128, maxAttempts: 32, maxConcurrentAttempts: 2, descriptorTtlMs: 60000 } };
   const networks = [], entry = { id: f.route.stages[0].participantId,
     refresh: vi.fn(async () => ({ ready: true, descriptor: { models: [fullModel()] } })),
@@ -302,5 +305,49 @@ describe('explicit ordered automatic participation (injected discovery and numer
   });
   it('rejects ambiguous canonical/ordered modes without opening resources', async () => {
     expect(() => createAutomaticPartitions({ ordered: {}, canonical: {} })).toThrow('distinct');
+  });
+});
+
+describe('ordered automatic requester with the requester-owned transactional writer', () => {
+  const writerEpoch = '7'.repeat(32);
+  const metadataDigest = (schema, body) => 'sha256:' + createHash('sha256').update(schema + '\0' + canonicalPartitionJson(body)).digest('hex');
+  async function writer() {
+    let durable = null, tail = Promise.resolve();
+    const store = { schema: 'reploid.transactional-chat-store/v1', records: () => durable?.records ?? [],
+      async read() { await tail; return structuredClone(durable); },
+      transact(_key, reducer) {
+        const task = tail.then(() => { const next = reducer(structuredClone(durable)); durable = structuredClone(next.state); return structuredClone(next.result); });
+        tail = task.catch(() => {}); return task;
+      } };
+    const owner = createConversationPublication({ conversationId: 'local', writerEpoch, store, doppler: { metadataDigest },
+      authenticateCommit: async () => false, authorize: () => true, requireCommitEvidence: true });
+    await owner.claimWriter(null);
+    return { owner, store };
+  }
+  it('publishes a local stage-zero route through the same requester scope before any text is delivered', async () => {
+    const f = await fixture(); f.runtime.metadataDigest = metadataDigest; await f.mesh.contribute('model', true);
+    const w = await writer(), projected = [], deltas = [];
+    const result = await f.mesh.generate({ model: f.mesh.getModels()[0], messages: [{ role: 'user', content: 'hello' }], threadId: 'local', attemptId: 'local' },
+      { requestApproval: async () => true, publication: w.owner, publisherEpoch: writerEpoch,
+        onPublished: async record => { projected.push(record.publication.delta.text); }, onDelta: event => deltas.push(event.text) });
+    expect(result.content).toBe('012'); expect(deltas).toEqual([]); expect(projected).toEqual(['0', '1', '2']);
+    expect(w.store.records().map(row => row.publication.sequence)).toEqual([0, 1, 2]);
+    expect((await w.owner.reconcile()).attempts[0]).toMatchObject({ status: 'completed',
+      identity: { schema: 'reploid.ordered-publication-attempt/v1', requesterId: f.identity.peerId, route: f.route } });
+    expect(f.networks[0].connect).not.toHaveBeenCalled();
+  });
+  it('carries the requester context and owner to a remote entry, and refuses publication without its projection port', async () => {
+    const f = await fixture(null); f.discovery.capabilities = f.capabilities(true);
+    const w = await writer(), onPublished = vi.fn(), approval = vi.fn(async () => true);
+    const request = { model: f.fullModel(), messages: [{ role: 'user', content: 'hello' }], threadId: 'local', attemptId: 'remote' };
+    await expect(f.mesh.generate(request, { requestApproval: approval, publication: w.owner, publisherEpoch: writerEpoch }))
+      .rejects.toThrow('requester-owned writer');
+    expect(approval).not.toHaveBeenCalled();
+    await f.mesh.generate(request, { signal: new AbortController().signal, requestApproval: approval,
+      publication: w.owner, publisherEpoch: writerEpoch, onPublished });
+    const [input, controls] = f.entry.generate.mock.calls[0];
+    expect(input.publication).toEqual({ schema: 'reploid.ordered-publication-context/v1', publisherEpoch: writerEpoch,
+      deadlineAt: approval.mock.calls[0][0].expiresAt });
+    expect(controls.publication).toBe(w.owner); expect(controls.onPublished).toBe(onPublished);
   });
 });

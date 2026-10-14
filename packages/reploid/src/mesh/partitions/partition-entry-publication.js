@@ -1,11 +1,23 @@
 import { assertPartition as assert, canonicalPartitionJson, samePartitionIdentity,
-  validatePartitionIdentity } from './partition-contract.js';
+  validatePartitionIdentity, canonicalRouteAttemptBinding } from './partition-contract.js';
+import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA, validateOrderedPublicationContext } from './partition-ordered-publication.js';
 
 export const ENTRY_PUBLICATION_SCHEMA = 'reploid.partition-publication/v1';
 const same = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
 const epoch = value => typeof value === 'string' && /^[a-f0-9]{32}$/.test(value);
 const digest = value => typeof value === 'string' && /^sha256:[a-f0-9]{64}$/.test(value);
 const methods = ['head', 'admit', 'publish', 'cancel'];
+const orderedInput = request => request?.schema === 'reploid.partition-input/v3';
+const orderedKeys = ['meshId', 'requesterId', 'coordinatorId', 'modelId', 'modelIdentity', 'planId', 'threadId',
+  'attemptId', 'placementGeneration'];
+/** The owner interface a coordinator calls; the requester's scope answers it. */
+export function entryPublicationPort(call) {
+  assert(typeof call === 'function', 'Publication call port required');
+  return Object.freeze({ requiresCommitEvidence: true,
+    reconcile: () => call('head', {}), admitAttempt: body => call('admit', body),
+    publish: (value, { evidence } = {}) => call('publish', { publication: value, evidence }),
+    cancel: (attemptId, coordinatorEpoch) => call('cancel', { attemptId, coordinatorEpoch }) });
+}
 export function validateEntryPublicationContext(value, request) {
   assert(value?.schema === 'reploid.partition-publication-context/v1' && epoch(value.publisherEpoch)
     && epoch(value.coordinatorEpoch) && digest(value.routeId) && digest(value.generation?.generationId)
@@ -23,8 +35,15 @@ export function validateEntryPublicationContext(value, request) {
 /** A publication request travels on the already authenticated requester/A channel.
  * It never conveys another conversation's history, a tensor or a raw text delta. */
 export function entryPublicationEnvelope(request, method, body) {
-  validatePartitionIdentity(request);
   assert(methods.includes(method), 'Unknown publication method');
+  if (orderedInput(request)) {
+    canonicalRouteAttemptBinding({ schema: 'reploid.partition-attempt/v2', route: request.route, threadId: request.threadId,
+      attemptId: request.attemptId, requesterId: request.requesterId, placementGeneration: request.placementGeneration });
+    return { schema: ENTRY_PUBLICATION_SCHEMA, operation: 'publication', method,
+      ...Object.fromEntries(orderedKeys.map(key => [key, request[key]])), route: structuredClone(request.route),
+      publication: validateOrderedPublicationContext(request.publication), body: structuredClone(body) };
+  }
+  validatePartitionIdentity(request);
   const { meshId, requesterId, participantA, participantB, modelId, modelIdentity, planId,
     threadId, attemptId, placementGeneration, canonical } = request;
   return { schema: ENTRY_PUBLICATION_SCHEMA, operation: 'publication', method, meshId, requesterId,
@@ -32,6 +51,14 @@ export function entryPublicationEnvelope(request, method, body) {
     canonical: structuredClone(canonical), body: structuredClone(body) };
 }
 export function matchingEntryPublication(message, request) {
+  if (orderedInput(request)) {
+    try {
+      return request.publication !== undefined && message?.schema === ENTRY_PUBLICATION_SCHEMA && message.operation === 'publication'
+        && methods.includes(message.method) && orderedKeys.every(key => message[key] === request[key])
+        && message.canonical === undefined && message.participantA === undefined && message.participantB === undefined
+        && same(message.route, request.route) && same(message.publication, request.publication);
+    } catch { return false; }
+  }
   return request?.schema === 'reploid.partition-input/v2' && message.schema === ENTRY_PUBLICATION_SCHEMA
     && message.operation === 'publication' && methods.includes(message.method)
     && message.meshId === request.meshId && samePartitionIdentity(message, request)
@@ -50,18 +77,32 @@ export function createEntryPublicationScope({ request, owner, authorize, onPubli
     assert(new TextEncoder().encode(json).byteLength <= maxControlBytes, 'Publication control budget exhausted');
     return JSON.parse(json);
   };
-  const selected = copy(request), context = validateEntryPublicationContext(selected.canonical, selected);
-  let closed = false, admitted = null, content = '', count = 0, terminal = false;
+  const selected = copy(request), ordered = orderedInput(selected);
+  const context = ordered ? validateOrderedPublicationContext(selected.publication) : validateEntryPublicationContext(selected.canonical, selected);
+  let closed = false, admitted = null, admittedPolicy = null, content = '', count = 0, terminal = false;
   const projections = new Map(), pending = new Set();
   let cancellation = null;
   const permit = async method => {
     assert(!closed && await authorize(method) === true && !closed, 'Publication delivery authority closed or revoked');
   };
-  const identityMatches = identity => identity?.attemptId === selected.attemptId
+  // An ordered coordinator chooses its epoch at admission; canonical routes advertise it.
+  const coordinatorEpoch = () => ordered ? admitted?.coordinatorEpoch : context.coordinatorEpoch;
+  const sequenceLimit = () => ordered ? admittedPolicy.maxTokens : Math.max(1, context.generation.policy.maxGeneratedTokens);
+  const identityMatches = identity => ordered
+    ? identity?.schema === ORDERED_PUBLICATION_ATTEMPT_SCHEMA && identity.attemptId === selected.attemptId
+      && identity.threadId === selected.threadId && identity.requesterId === selected.requesterId
+      && identity.placementGeneration === selected.placementGeneration && identity.publisherEpoch === context.publisherEpoch
+      && epoch(identity.coordinatorEpoch) && same(identity.route, selected.route)
+    : identity?.attemptId === selected.attemptId
     && identity.requesterId === selected.requesterId && identity.publisherEpoch === context.publisherEpoch
     && identity.coordinatorEpoch === context.coordinatorEpoch && identity.routeId === context.routeId
     && identity.generationId === context.generation.generationId && identity.routeKind === 'two-stage-layer'
     && same(identity.stages, context.stages);
+  const admissionMatches = value => identityMatches(value.identity) && (ordered
+    ? value.executionIdentity === value.identity.generationDigest && Number.isSafeInteger(value.vocabSize) && value.vocabSize > 0
+      && Number.isSafeInteger(value.generationPolicy?.maxTokens) && value.generationPolicy.maxTokens > 0
+    : same(value.generationPolicy, context.generation.policy)
+      && value.executionIdentity === context.generation.executionIdentity && value.vocabSize === context.vocabSize);
   const call = async (method, body) => {
       assert(methods.includes(method), 'Unknown publication method');
       const value = copy(body); // Snapshot before any asynchronous authorization or storage.
@@ -70,31 +111,28 @@ export function createEntryPublicationScope({ request, owner, authorize, onPubli
         assert(same(value, {}), 'Unexpected publication head input');
         const state = await owner.reconcile(); await permit(method);
         return copy({ head: state.head, attempts: state.attempts.filter(item => item.identity.attemptId === selected.attemptId
-          && item.identity.coordinatorEpoch === context.coordinatorEpoch).map(item => ({ identity: item.identity })) });
+          && (ordered || item.identity.coordinatorEpoch === context.coordinatorEpoch)).map(item => ({ identity: item.identity })) });
       }
       if (method === 'admit') {
-        assert(identityMatches(value.identity) && same(value.generationPolicy, context.generation.policy)
-          && value.executionIdentity === context.generation.executionIdentity && value.vocabSize === context.vocabSize
-          && value.deadlineAt === context.deadlineAt && (!admitted || same(admitted, value.identity)),
-        'Publication admission differs from approved context');
-        const result = await owner.admitAttempt(value); admitted = value.identity;
+        assert(admissionMatches(value) && value.deadlineAt === context.deadlineAt && (!admitted || same(admitted, value.identity)),
+          'Publication admission differs from approved context');
+        const result = await owner.admitAttempt(value); admitted = value.identity; admittedPolicy = value.generationPolicy;
         await permit(method); return copy(result);
       }
       assert(admitted, 'Publication attempt has not been admitted');
       if (method === 'cancel') {
-        assert(same(value, { attemptId: selected.attemptId, coordinatorEpoch: context.coordinatorEpoch }),
+        assert(same(value, { attemptId: selected.attemptId, coordinatorEpoch: coordinatorEpoch() }),
           'Cancellation differs from admitted attempt');
         const result = await owner.cancel(value.attemptId, value.coordinatorEpoch);
         await permit(method); return copy(result);
       }
       const publication = value.publication;
-      assert(publication?.attemptId === selected.attemptId && publication.coordinatorEpoch === context.coordinatorEpoch
+      assert(publication?.attemptId === selected.attemptId && publication.coordinatorEpoch === coordinatorEpoch()
         && Number.isSafeInteger(publication.sequence) && publication.sequence >= 0
-        && publication.sequence < Math.max(1, context.generation.policy.maxGeneratedTokens)
-        && Array.isArray(value.evidence), 'Publication differs from admitted attempt');
+        && publication.sequence < sequenceLimit() && Array.isArray(value.evidence), 'Publication differs from admitted attempt');
       const receipt = copy(await owner.publish(publication, { evidence: value.evidence }));
       assert(receipt.conversationId === selected.threadId && receipt.writerEpoch === context.publisherEpoch
-        && receipt.attemptId === selected.attemptId && receipt.coordinatorEpoch === context.coordinatorEpoch
+        && receipt.attemptId === selected.attemptId && receipt.coordinatorEpoch === coordinatorEpoch()
         && receipt.sequence === publication.sequence && receipt.publicationDigest === publication.publicationDigest,
       'Durable publication receipt identity mismatch');
       await permit(method);
@@ -121,7 +159,7 @@ export function createEntryPublicationScope({ request, owner, authorize, onPubli
       closed = true;
       await Promise.allSettled([...pending]);
       if (cancel && admitted) {
-        if (!cancellation) cancellation = Promise.resolve().then(() => owner.cancel(selected.attemptId, context.coordinatorEpoch));
+        if (!cancellation) cancellation = Promise.resolve().then(() => owner.cancel(selected.attemptId, coordinatorEpoch()));
         try { await cancellation; } catch (error) { cancellation = null; throw error; }
       }
     },
