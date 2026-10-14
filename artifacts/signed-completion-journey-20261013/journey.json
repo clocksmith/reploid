@@ -1,0 +1,39 @@
+{
+  "schema": "reploid.signed-completion-journey/v1",
+  "scope": "Useful plain coding conversation, reload, concurrent independent tabs, isolated cancellation and explicit retry through the installed signed application on the frozen ordered route; attachments and document tasks excluded.",
+  "questions": [
+    "Write a short JavaScript function doubleEvens(numbers) that returns a new array containing only even input numbers, doubled, using filter and map. Show its result for [1, 2, 3, 4].",
+    "Using that same function, what is returned for [-2, 3, 6]? Answer only with the array."
+  ],
+  "draft": "Unsent follow-up: explain the two array operations.",
+  "concurrency": {
+    "cancelPrompt": "Count from 1 to 500 in order, one integer per line. No commentary.",
+    "survivorPrompt": "Count from 1 to 20 in order, one integer per line. No commentary.",
+    "survivorNumbers": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20],
+    "cancelAfterCharacters": 24
+  },
+  "retry": {
+    "prompt": "Count from 1 to 60 in order, one integer per line. No commentary.",
+    "interruptAfterCharacters": 24,
+    "failure": "reload of the requester tab while the answer streams"
+  },
+  "reviewCriteria": [
+    "The first answer supplies a complete JavaScript function that filters even values then doubles them, using filter and map, without changing the input array.",
+    "The first example evaluates to [4, 8]; any explanation must agree with the code and must not falsely claim filter/map mutate the input.",
+    "The actual first answer is retained verbatim in the second request's ordered history. No ideal assistant answer is inserted.",
+    "The follow-up answer is the array [-4, 12], consistent with the requested function. Assess factual correctness separately from natural completion.",
+    "Every completed attempt finishes with observed natural EOS on the frozen ordered route: its distinct stage contributors equal the frozen route, every stage is admitted and executes every step, and every cleanup row settles. No hidden local, whole-request or two-device fallback qualifies.",
+    "At least one nonempty incomplete first-answer prefix is visibly rendered before the complete answer, with stable message identity and preserved prefix.",
+    "Copy response places the exact stored first answer on the actual clipboard.",
+    "After reload and selecting the existing thread, the draft, message IDs/content and attempt IDs/status remain unchanged; no new running attempt appears during rediscovery and the declared observation period.",
+    "Independent tabs execute simultaneously within the served route admission limit; stopping one settles it on every stage while each neighbour completes its exact count.",
+    "A reload-interrupted answer keeps its partial text, is not redispatched, and an explicit Retry starts exactly one new authorized attempt that completes."
+  ],
+  "modelPolicy": "Use the exact separately frozen signed candidate, existing generation settings and allocation limits; do not alter model, sampling or precision for this journey.",
+  "userActions": { "turns": 2, "sendsPerConcurrentTab": 1, "retryPrompt": 1, "explicitRetries": 1 },
+  "automaticRetries": 0,
+  "postRediscoveryObservationMs": 3000,
+  "semanticAcceptance": "Independent manual review of both complete answers; lifecycle and clipboard success never auto-pass coding correctness.",
+  "reference": "artifacts/signed-host-opener-20261012/requester-return-control/plain-chat.json is the two-device precedent; its two-contributor criterion is generalized here to the frozen ordered route.",
+  "kind": "useful-plain-chat"
+}

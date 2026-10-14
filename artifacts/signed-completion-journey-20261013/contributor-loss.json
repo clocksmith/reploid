@@ -1,0 +1,18 @@
+{
+  "schema": "reploid.signed-completion-contributor-loss/v1",
+  "scope": "Stop one native stage contributor through the configured callback while an ordered answer streams; observe the requester report, ownership settlement, absence of continuation and an explicit retry after capacity returns.",
+  "prompt": "Count from 1 to 500 in order, one integer per line. No commentary.",
+  "lossAfterCharacters": 24,
+  "acceptedLossCodes": ["CONNECTION_LOST"],
+  "expectedLossLabel": "A computer disconnected. Retry this answer.",
+  "postFailureObservationMs": 5000,
+  "automaticRetries": 0,
+  "reviewCriteria": [
+    "The retried answer completes the requested count; correctness of the count is reviewed separately from lifecycle acceptance.",
+    "The requester-visible report states that a contributor was lost, not only that the answer could not finish."
+  ],
+  "codeReferences": {
+    "acceptedLossCodes": "packages/reploid/src/transport/partition-errors.json (CONNECTION_LOST is the only category that reports a disconnected contributor)",
+    "expectedLossLabel": "self/ui/pool-home/message-list.js:10"
+  }
+}
