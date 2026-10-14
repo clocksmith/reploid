@@ -891,8 +891,8 @@
     },
     {
       "path": "mesh/partitions/partition-summary.js",
-      "bytes": 5235,
-      "sha256": "37d7eaf1875e32a866682dc1a121746600a1fe8d4412e8970f21c46a0a80f657"
+      "bytes": 7339,
+      "sha256": "cbfb528204ce79fee90ac8aa88737e9106470e97552683d69c79f12251de2906"
     },
     {
       "path": "mesh/partitions/resident-error-codes.json",

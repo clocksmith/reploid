@@ -33,12 +33,28 @@ export function receipt({ attemptId, participants = THREE, phase = 'completed', 
     cleanup: rows ?? participants.map((_, partitionIndex) => ({ partitionIndex, status: 'settled', error: null })),
     cleanupSettledAt: rows?.some(row => row.status !== 'settled') ? null : 1760000000000 };
 }
-export function summary({ attemptId, threadId, requester = PEERS.requester, participants = THREE, steps = 4 }) {
+// Phase timing as partition-summary.js summarizeOrderedPhases produces it: step 0
+// is the prompt, the remaining steps decode; every stage reports Doppler metrics.
+export function phases({ participants = THREE, steps = 4, promptTokens = 37 } = {}) {
+  const runtime = (scale, aggregate) => Object.fromEntries(['executionMs', 'inputUploadMs', 'encodeMs', 'submitWaitMs',
+    'activationReadbackMs', 'logitsMs', 'gpuKernelsMs', 'logitsReadbackMs', 'samplingMs'].map(key => {
+    const value = key === 'gpuKernelsMs' ? null : scale;
+    if (!aggregate) return [key, value];
+    return [key, value === null ? { count: 0, total: 0, min: null, max: null } : { count: steps - 1, total: value * (steps - 1), min: value, max: value }];
+  }));
+  return { prompt: { inputTokens: promptTokens, stages: participants.map((_, partitionIndex) => ({ partitionIndex, elapsedMs: 5 * (partitionIndex + 1),
+    runtime: runtime(4 * (partitionIndex + 1), false) })) },
+  decode: { steps: steps - 1, stages: participants.map((_, partitionIndex) => ({ partitionIndex,
+    elapsedMs: { count: steps - 1, total: 2.5 * (partitionIndex + 1) * (steps - 1), min: 2.5 * (partitionIndex + 1), max: 2.5 * (partitionIndex + 1) },
+    runtime: runtime(2 * (partitionIndex + 1), true) })) } };
+}
+export function summary({ attemptId, threadId, requester = PEERS.requester, participants = THREE, steps = 4, withPhases = true }) {
   const route = routeOf(participants);
   return { schema: 'reploid.mesh.partition-summary/v2',
     identity: { schema: 'reploid.partition-attempt/v2', threadId, attemptId, requesterId: requester, placementGeneration: 0, route },
     activationBytes: 98304, stopReason: 'eos-token', settlement: receipt({ attemptId, participants }),
     stepSummary: { count: steps, stages: participants.map((_, partitionIndex) => ({ partitionIndex, steps, stepMs: { count: steps, total: 12.5 * (partitionIndex + 1) } })),
+      ...(withPhases ? { phases: phases({ participants, steps }) } : {}),
       detail: 'aggregate; no per-step trace transferred' }, selection: { transportId: 'transport-0' } };
 }
 export function authorization(route, requester) {

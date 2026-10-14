@@ -1,5 +1,36 @@
 import { canonicalRouteAttemptBinding, sameRouteAttemptIdentity } from './partition-contract.js';
 
+// Doppler resident stage metrics (PartitionTiming plus execution, readback and
+// sampling). Contributors report them; only finite non-negative numbers count.
+const STAGE_RUNTIME_KEYS = Object.freeze(['executionMs', 'inputUploadMs', 'encodeMs', 'submitWaitMs',
+  'activationReadbackMs', 'logitsMs', 'gpuKernelsMs', 'logitsReadbackMs', 'samplingMs']);
+const measuredMs = value => typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+
+/** Step 0 carries the whole prompt (prefill and the first sampled token); later
+ * steps decode one token each. Keep them apart so prompt length, prefill and
+ * decode are never averaged together. */
+function summarizeOrderedPhases(steps) {
+  const aggregate = () => ({ count: 0, total: 0, min: null, max: null });
+  const add = (row, value) => {
+    if (value === null) return;
+    row.count++; row.total += value;
+    row.min = row.min === null ? value : Math.min(row.min, value); row.max = row.max === null ? value : Math.max(row.max, value);
+  };
+  const first = steps[0];
+  const prompt = first ? { inputTokens: Number.isSafeInteger(first.inputTokenCount) ? first.inputTokenCount : null,
+    stages: (first.stages || []).map(stage => ({ partitionIndex: stage.partitionIndex, elapsedMs: measuredMs(stage.elapsedMs),
+      runtime: Object.fromEntries(STAGE_RUNTIME_KEYS.map(key => [key, measuredMs(stage.metrics?.[key])])) })) } : null;
+  const decodeStages = new Map();
+  for (const step of steps.slice(1)) for (const stage of step.stages || []) {
+    const row = decodeStages.get(stage.partitionIndex) || { partitionIndex: stage.partitionIndex, elapsedMs: aggregate(),
+      runtime: Object.fromEntries(STAGE_RUNTIME_KEYS.map(key => [key, aggregate()])) };
+    add(row.elapsedMs, measuredMs(stage.elapsedMs));
+    for (const key of STAGE_RUNTIME_KEYS) add(row.runtime[key], measuredMs(stage.metrics?.[key]));
+    decodeStages.set(stage.partitionIndex, row);
+  }
+  return { prompt, decode: { steps: Math.max(steps.length - 1, 0), stages: [...decodeStages.values()] } };
+}
+
 /** Fixed-size timing projection for a completed requester response. Detailed
  * per-step observations belong to the executing runner, not its control frame. */
 export function summarizePartitionExecution(execution) {
@@ -15,7 +46,8 @@ export function summarizePartitionExecution(execution) {
     }
     return structuredClone({ schema: 'reploid.mesh.partition-summary/v2', identity: execution.identity,
       activationBytes: execution.activationBytes, stopReason: execution.stopReason, settlement: execution.settlement,
-      stepSummary: { count: execution.steps?.length || 0, stages: [...stages.values()], detail: 'aggregate; no per-step trace transferred' } });
+      stepSummary: { count: execution.steps?.length || 0, stages: [...stages.values()],
+        phases: summarizeOrderedPhases(execution.steps || []), detail: 'aggregate; no per-step trace transferred' } });
   }
   if (execution.schema === 'reploid.mesh.canonical-partition-execution/v1') {
     // Signed records are already retained by the requester transaction owner.
