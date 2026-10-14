@@ -16,6 +16,13 @@ product. Use uncluttered workflows, brief copy, shared components
 and tokens, accessible light/dark themes, responsive scrolling, and futuristic,
 subtly neumorphic styling.
 
+The initial consumer product is earned everyday AI access: contribute useful
+capacity, then redeem service credits from any device. Funded Community Access
+and optional top-ups coexist with earned access. The
+[product specification](docs/product-specification.md) defines owner control,
+disclosure, nonexpiring credits, quotes and separate financial acceptance.
+Consumer chat leads; coding and vertical specialization follow later.
+
 ## Invariants
 
 - Participation provides an otherwise unavailable capability, better results,
@@ -74,4 +81,4 @@ Related: [GOALS.md](GOALS.md), [CATSCAN.md](CATSCAN.md).
 <a id="development-checks"></a>
 <a id="recorded-evidence"></a>
 
-*Last updated: September 2026*
+*Last updated: October 2026*

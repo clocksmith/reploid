@@ -2,6 +2,21 @@
 
 ## Mission & Thesis
 
+Earn on your computer; use AI from any device. The initial product gives people
+everyday questions, explanations, summaries and retrieval-backed answers with
+supporting citations through prepared shared capacity. People may use funded
+Community Access, earn credits for useful validated contributions, or buy top-ups
+without subscriptions. Contribution stays optional; requesting needs no weights
+or cluster management. The [product specification](docs/product-specification.md)
+defines this intent, including nonexpiring balances, quoted service, owner limits
+and separately qualified financial accounting.
+
+First prove bounded overnight contribution and useful next-day redemption from a
+phone, showing what was earned and spent and the owner's actual resource cost.
+Consumer chat leads; developer APIs use the same capacity and accounting later.
+Coding and vertical specialization follow. Complete-answer quality, latency and
+economics require their own evidence; numerical parity alone is insufficient.
+
 Reploid's goal is to coordinate and evolve distributed intelligence. Its
 peer-to-peer network of agents combines participating devices' model storage,
 GPU memory, WebGPU computation, and problem-solving capabilities to solve useful
@@ -59,7 +74,10 @@ qualify execution or authorize adoption; those remain application/operator contr
 ## Current implementation sequence
 
 [ROADMAP.md](ROADMAP.md) owns the active cross-repository checklist: dependable
-distributed chat, qualification and delivery, then durable independent jobs.
+distributed chat as the technical foundation, then the complete initial consumer
+product with everyday utility, access, earning, owner control and measured costs.
+The existing five cumulative launches retain their numbers. Durable independent
+jobs and evaluated improvement remain later capabilities.
 Other plans retain design contracts and historical evidence, not parallel queues.
 
 ## Operating Loops
@@ -113,4 +131,4 @@ Authority and qualification: [INTENT.md](INTENT.md), [CATSCAN.md](CATSCAN.md),
 [GOVERNANCE_DETAILS.md](docs/GOVERNANCE_DETAILS.md), and the
 [claim index](docs/status/surface-claim-index.json).
 
-*Last updated: September 2026*
+*Last updated: October 2026*
