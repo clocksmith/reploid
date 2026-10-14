@@ -2165,7 +2165,7 @@
     {
       "path": "self/host/chat-session.js",
       "owner": "self",
-      "sha256": "sha256:b54356a8626f704e63713e90cfdb114172749ecbdb9346a056f16d042e5e3dd1",
+      "sha256": "sha256:c459f8486e41690f080ee852f9e12d46b449c0a5810935b1e7dbf08f1dd09bb0",
       "imports": [
         "../config/doppler-local-models.js",
         "../config/work-profile.json",
@@ -2462,7 +2462,7 @@
     {
       "path": "self/host/work-swarm.js",
       "owner": "self",
-      "sha256": "sha256:388055b1b7feca64a055b2674240357421eaf715e31a8232e8209ddd0fbffbb0",
+      "sha256": "sha256:3604cf412b323266a4d76d0edb49db8af4c6801caeb8fc3cfe84a2ffeeba54a6",
       "imports": [
         "../capabilities/communication/library-adapter.js",
         "../config/doppler-local-models.js",
@@ -3317,7 +3317,7 @@
     {
       "path": "ui/pool-home/remote-permission.js",
       "owner": "ui",
-      "sha256": "sha256:b1e91f737c83622c15724733dc1979bc7b4ba7b838cfe5b83e3890f18772c7b1",
+      "sha256": "sha256:fde03e359765aa7dc44874ddfeb166c86e90bd771981468fcdb0d9dcdd0d5817",
       "imports": [
         "../components/attachments.js"
       ]
@@ -14935,7 +14935,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/exchange.js",
       "owner": "vendor",
-      "sha256": "sha256:77f7d95d03e840c75176b0fa00f30cf09dc0b68493db8b043cfd22490b4b2127",
+      "sha256": "sha256:96d39aba3a40130c4c1dad6b95a8261127e11b75fa816495a9e40677bff7f91c",
       "imports": []
     },
     {
@@ -14947,7 +14947,7 @@
     {
       "path": "vendor/reploid/artifacts/custody/runtime.js",
       "owner": "vendor",
-      "sha256": "sha256:a9c3f7485f95a06d8f6d08ac01ebc768386af301e1ea3f9c9d105840e6d16414",
+      "sha256": "sha256:98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e",
       "imports": [
         "./exchange.js",
         "./piece-acquisition.js"
@@ -15020,7 +15020,7 @@
     {
       "path": "vendor/reploid/chat/remote-permission.js",
       "owner": "vendor",
-      "sha256": "sha256:a1d7cf25e84f1bc797aa3caac63284430a108c620e14e0bacb940f04c5b9e7c8",
+      "sha256": "sha256:f3ad2024d7472fa11904fd2b6a0f1e0305b6094ebc389571c5923a9efcc6bf7e",
       "imports": []
     },
     {
@@ -15060,7 +15060,7 @@
     {
       "path": "vendor/reploid/chat/workspace.js",
       "owner": "vendor",
-      "sha256": "sha256:0035167ce50340993941e0d63d6b43fa07383d92d99aa05cb6eec409e7a5c8fd",
+      "sha256": "sha256:3124108d7d30ea05f378eee72bd9c9bb81057638e4fc368339f975f6d7c7013d",
       "imports": [
         "../mesh/partitions/partition-contract.js",
         "../mesh/partitions/partition-ordered-publication.js",
@@ -15218,7 +15218,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-ordered-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:6d3b62e5397d0cb33becd5e0c63a1bda396fd4f2f2ab8c0cd0b0e330bdced546",
+      "sha256": "sha256:3204350fcbfc943dc045f25296f3b65faceade75efda443e7e8a0fafdf6ebb61",
       "imports": [
         "./partition-chat.js",
         "./partition-contract.js",
@@ -15240,7 +15240,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/automatic-partitions.js",
       "owner": "vendor",
-      "sha256": "sha256:497a8b38592b98f2873fabb4f4c3c7534e96faa7d276259741c72e7e6381925a",
+      "sha256": "sha256:f9b19e3f34f9b41914115e9970f8070d51d76c81f53a4051ba7dd8a8b78e1ed1",
       "imports": [
         "./automatic-ordered-partitions.js",
         "./partition-chat.js",
@@ -15390,7 +15390,7 @@
     {
       "path": "vendor/reploid/mesh/partitions/partition-ordered-peer.js",
       "owner": "vendor",
-      "sha256": "sha256:b591e6b63c0a55b9683257141b865ca3343bd517bf1b7a6d5d116a383007ce6f",
+      "sha256": "sha256:7227b0b64ea69a1b2e905a3adbac37983607aedfc3c95944ad59aeefb8a99793",
       "imports": [
         "../../transport/partition-data-channel.js",
         "./partition-contract.js",
