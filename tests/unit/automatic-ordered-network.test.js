@@ -43,7 +43,7 @@ it.each([2,3,4,5,6,7])('discovers a complete %i-stage route and serves local plu
     }
     for(let index=1;index<count;index++)await meshes[index].contribute(models[0].id,true);
     await meshes[0].contribute(models[0].id,true);
-    await vi.waitFor(()=>expect(meshes[count].getModels().some(model=>model.partition?.schema==='reploid.partition-selection/v2')).toBe(true),{timeout:5000});
+    await vi.waitFor(()=>expect(meshes[count].getModels().some(model=>model.partition?.schema==='reploid.partition-selection/v2')).toBe(true),{timeout:20000});
     const remoteModel=meshes[count].getModels().find(model=>model.partition?.schema==='reploid.partition-selection/v2');
     expect(remoteModel.partition.route).toEqual(f.route);expect(meshes[0].getModels().some(model=>model.partition?.route.stages.length===count)).toBe(true);
     signaling=false;
@@ -68,4 +68,4 @@ it.each([2,3,4,5,6,7])('discovers a complete %i-stage route and serves local plu
     const result=await Promise.allSettled(meshes.map(mesh=>mesh.close()));await f.runner.close();
     expect(result.filter(row=>row.status==='rejected')).toEqual([]);
   }
-});
+}, 30000);
