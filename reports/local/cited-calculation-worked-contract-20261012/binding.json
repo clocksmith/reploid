@@ -1,7 +1,7 @@
 {
   "schema": "reploid.worked-tool-contract-run/v1",
   "frozenRevision": "3251d780",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "command": [
     "nice",
     "-n",

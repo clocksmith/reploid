@@ -1,7 +1,7 @@
 {
   "schema": "reploid.source-scoped-selection-run/v1",
   "frozenRevision": "e90882f1",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "sourcePid": 4185688,
   "wrapperPid": 4185686,
   "status": "completed",

@@ -1,6 +1,6 @@
 {
   "schema": "reploid.cited-calculation-run/v1",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "revision": "f7757a818ae24ba61519c6f13d848f64e4d019de",
   "frozenRevision": "82603086",
   "command": [

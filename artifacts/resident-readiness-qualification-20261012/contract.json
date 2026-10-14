@@ -61,7 +61,7 @@
   "commands": {
     "remoteServer": "DOPPLER_CHAT_MODEL_DIR=/var/tmp/doppler-paired-first-20261012/model node delivery-server.js",
     "localServer": "DOPPLER_CHAT_MODEL_DIR=/Users/xyz/deco/doppler/reports/local/paired-intermediates-20261012/model-0.6.28/model node delivery-server.js",
-    "tunnel": "ssh -N -L127.0.0.1:29429:127.0.0.1:29429 x@128.tail995236.ts.net",
+    "tunnel": "ssh -N -L127.0.0.1:29429:127.0.0.1:29429 amd-host",
     "nativeDirection0": "sh supervise-native.sh 0 cold-readiness",
     "controllerDirection0": "sh run-native-reference.sh 0",
     "nativeDirection1": "sh supervise-native.sh 1 reference",

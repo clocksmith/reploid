@@ -1,6 +1,6 @@
 {
   "processId": 1686365,
-  "host": "128.tail995236.ts.net",
+  "host": "amd-host",
   "nodeSourceSha256": "4c4d4ce76618dd4b09f64be0491adb034373632314c9062237bc21ad00ec1e5d",
   "observed": {
     "native-initialized": {

@@ -2,7 +2,7 @@
   "schema": "reploid.typed-request-run/v1",
   "frozenRevision": "b0a26f38",
   "publishedRevision": "e0191b71",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "sourcePid": 307600,
   "wrapperPid": 307599,
   "status": "completed",

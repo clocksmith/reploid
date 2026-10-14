@@ -25,7 +25,7 @@ for name,role in [('run-native-reference.sh','mac'),('supervise-native.sh','nati
  s=s.replace('cd '+str(new),'cd '+str(new)+'\npython3 verify-launch.py '+role+' "${1:?direction0or1required}"');p.write_text(s);p.chmod(0o755)
 for d in [0,1]:
  e=json.loads((here.parent/f'direction-{d}-expectations.json').read_text());e['testDeliveryHash']='sha256:'+delivery;e['providers'][mac['host']]=mac['provider'];e['browserVersions'][mac['host']]=mac['browser']
- host='x@128.tail995236.ts.net:node-dawn';raw=native['providerObservation']['rawAdapter'];e['providers'][host]={'adapter':{k:(v or ('unknown' if k!='description' else '')) for k,v in raw.items()}}
+ host='amd-host:node-dawn';raw=native['providerObservation']['rawAdapter'];e['providers'][host]={'adapter':{k:(v or ('unknown' if k!='description' else '')) for k,v in raw.items()}}
  n=e['nativeHosts'][host];n['testDeliveryHash']=e['testDeliveryHash'];n['provider']=native['providerObservation']['nativeProvider'];n['node']=native['observedIdentity']['node'];n['nativeDeliverySha256']=native['observedIdentity']['fixture']['nativeDeliverySha256']
  e['partitionPlan']=plan['plan'];e['legacyPlanId']=plan['legacyPlanId'];e['preflightBinding']={'providerSha256':sha(new/'provider-preflight.json'),'planSha256':sha(new/'plan-preflight.json'),'launchPreflightSha256':sha(new/'launch-preflight.json'),'notApplicationRelease':True}
  e['expectationBasis']={'scope':'Fresh Mac and native pre-output adapter-only observations, unchanged independently frozen reference and producer','priorRejectedExpectationsSha256':sha(here.parent/f'direction-{d}-expectations.json')}

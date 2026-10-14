@@ -1,6 +1,6 @@
 {
   "executorId": "suby-stage-2",
-  "platform": "clocksmith@suby.tail995236.ts.net:node-dawn",
+  "platform": "intel-host:node-dawn",
   "endpoint": "ws://127.0.0.1:29995/c21d0291-7c43-4458-bf18-35b7abf1270e",
   "pid": 972625,
   "executableIdentity": {

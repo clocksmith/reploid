@@ -1,7 +1,7 @@
 {
   "schema": "reploid.available-typed-run/v1",
   "frozenRevision": "9375da21",
-  "host": "x@128.tail995236.ts.net",
+  "host": "amd-host",
   "sourcePid": 596858,
   "wrapperPid": 596857,
   "status": "completed",

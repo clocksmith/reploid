@@ -8,7 +8,7 @@
     },
     {
       "pid": 75321,
-      "command": "ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:29329:127.0.0.1:29329 x@128.tail995236.ts.net",
+      "command": "ssh -N -o ExitOnForwardFailure=yes -L 127.0.0.1:29329:127.0.0.1:29329 amd-host",
       "signal": "SIGTERM"
     }
   ]

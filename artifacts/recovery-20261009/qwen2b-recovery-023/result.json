@@ -25,7 +25,7 @@
     "integrity": "sha512-j/9kGjf6d91EC4eH8maKbaTeP3Zg3G1kYC5tFPLO+VdiwY9I3Ht6URchpLrZbhZalAv6qJ5MCsZa6QNMNVcKwQ=="
   },
   "browserIdentity": "sha256:2fc93cfd19e7178b36e5473b63ea09533f39605be4d2ff00a96afcaa78e037ad",
-  "peer": "x@128.tail995236.ts.net",
+  "peer": "amd-host",
   "modelDirectory": "/Users/xyz/deco/doppler/models/local/qwen-3-5-2b-q4k-ehaf16",
   "referenceSource": "/Users/xyz/deco/reploid/tests/fixtures/distributed-reference.json.gz",
   "referenceBinding": null,

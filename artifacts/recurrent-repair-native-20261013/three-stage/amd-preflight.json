@@ -1,6 +1,6 @@
 {
   "executorId": "amd-stage-1",
-  "platform": "x@128.tail995236.ts.net:node-dawn",
+  "platform": "amd-host:node-dawn",
   "endpoint": "ws://127.0.0.1:29994/8e5d40ad-dae9-49a7-867d-097ad73366ec",
   "pid": 3048968,
   "executableIdentity": {

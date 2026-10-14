@@ -57,7 +57,7 @@
       }
     ]
   },
-  "peer": "x@128.tail995236.ts.net",
+  "peer": "amd-host",
   "controllingSession": "Mac primary agent; owned profiles and tunnel, existing public contributor preserved",
   "interference": "CPU source-model control ran concurrently on 128. GPU busy was zero before launch. No performance claim.",
   "files": [

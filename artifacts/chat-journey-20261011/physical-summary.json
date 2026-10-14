@@ -1,5 +1,5 @@
 {
-  "peer": "clocksmith@suby.tail995236.ts.net",
+  "peer": "intel-host",
   "legacyEvidenceHostLabel": "linux-128 means Suby in this run; outer runner binds actual SSH peer",
   "requesterWeightRequests": 0,
   "contributorOriginRequests": 0,

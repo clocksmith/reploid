@@ -30,7 +30,7 @@
   "physicalHosts": [
     {
       "id": "mac-requester",
-      "sshHost": "xyz@xys-macbook-air.tail995236.ts.net",
+      "sshHost": "mac-host",
       "platform": "Darwin arm64",
       "browser": "Google Chrome 155.0.8059.39",
       "modelWeightsDownloaded": false
