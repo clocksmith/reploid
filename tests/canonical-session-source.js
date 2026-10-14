@@ -41,7 +41,7 @@ const partitions = { getModels: () => [model], subscribe: () => () => {},
       signal: controls.signal, onDelta: () => {} });
     return { ...result, threadId: request.threadId, attemptId: request.attemptId, modelId: model.id, modelIdentity: hash, adapterIdentities: [] };
   } };
-const ids = ['thread-a', 'user', 'a', 'response', 'grant'];
+const ids = ['thread-a', 'user', 'a', 'response'];
 const session = createChatSession({ storage: { getItem() { throw Error('legacy storage must not be read/written'); } },
   meshId: 'mesh', participantId: 'requester', models: [model], partitions, canonicalHistory: history,
   bindPublicationAuthorization: fn => { authorize = fn; }, id: () => ids.shift() });
@@ -55,10 +55,11 @@ const unsubscribe = session.subscribe(value => { if (value.activeThread?.attempt
 const completing = session.send(thread, 'question');
 const pending = await entered;
 assert.equal(pending.ephemeral, true); assert.equal(pending.persistedStatus, 'queued');
-await session.approve(thread, pending.id, pending.approval.id, true, { remember: true });
+// No stored remote contributor permission yet: the request is held until the one-time grant releases it.
+const permission = await session.grantRemotePermission(pending.approval.permissionNeed);
 assert.equal((await completing).status, 'completed');
 assert.equal(session.getState().activeThread.messages.at(-1).content, '34');
-await session.revokeGrant(thread, 'grant'); unsubscribe();
+session.revokeRemotePermission(permission.id); unsubscribe();
 await session.close();
 assert.equal(calls, 1);
 authorize = () => false;
@@ -67,6 +68,7 @@ const reopened = createChatSession({ storage: null, meshId: 'mesh', participantI
   canonicalHistory: reopenedHistory, bindPublicationAuthorization: fn => { authorize = fn; } });
 assert.equal(reopened.getState().threads[0].messages.at(-1).content, '34'); assert.equal(calls, 1);
 assert.equal(reopened.getDraft(null).text, 'new unsent draft');
-assert.equal(reopened.getState().threads[0].grants[0].revokedAt !== null, true);
+assert.equal(reopened.getState().threads[0].attempts[0].authorization.kind, 'permission');
+assert.equal(reopened.getState().threads[0].attempts[0].authorization.permissionId, permission.id);
 await reopened.close(); await f.runner.close();
-console.log('actual host session: saved approval, stage recipient binding, durable drafts, actual signed output, revoked-grant history reopen without dispatch pass');
+console.log('actual host session: one-time permission, stage recipient binding, durable drafts, actual signed output, permission-cited history reopen without dispatch pass');

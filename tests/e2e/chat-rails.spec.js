@@ -68,30 +68,31 @@ for (const width of [1440, 390, 320]) for (const theme of ['light', 'dark']) {
     await checkComposer(page, '[data-composer-send]');
     await page.locator('[data-composer-input]').fill('hi');
     await page.getByRole('button', { name: 'Send', exact: true }).click();
-    // Send shows the review; nothing is disclosed until Approve.
-    const review = page.locator('[data-chat-approval]');
-    await expect(review).toBeVisible(); await expect(review).toBeInViewport();
-    await expect(review.locator('[data-permission-recipient]')).toHaveText('Recipients: Computer 1 (initial layers), Computer 2 (final layers) · Qwen 3.5 0.8B');
-    await expect(review.locator('[data-permission-scope]')).toContainText('Sends this message. Computer 1 receives the text');
-    await expect(page.locator('[data-composer-area]')).toBeInViewport();
-    for (const name of ['Approve', 'Decline']) await expect(review.getByRole('button', { name, exact: true })).toBeInViewport({ ratio: 1 });
-    expect(await page.evaluate(() => chatFixture.session.getState().activeThread.attempts[0].status)).toBe('approval');
-    await page.screenshot({ path: info.outputPath('review.png'), fullPage: true });
-    await review.getByRole('button', { name: 'Approve', exact: true }).click();
+    // The first remote request explains the contributor permission once; nothing is created or sent until Allow.
+    const permission = page.locator('[data-remote-permission]');
+    await expect(permission).toBeVisible(); await expect(permission).toBeInViewport();
+    await expect(permission.locator('[data-remote-permission-title]')).toHaveText("Answer with contributors' computers?");
+    await expect(permission.locator('[data-remote-permission-who]')).toHaveText('The first computer receives the text. The second receives the same content as model tokens, which read back as text, plus intermediate results.');
+    for (const name of ['Allow', 'Keep answers local']) await expect(permission.getByRole('button', { name, exact: true })).toBeInViewport({ ratio: 1 });
+    expect(await page.evaluate(() => chatFixture.previews.length)).toBe(0);
+    await page.screenshot({ path: info.outputPath('permission.png'), fullPage: true });
+    await permission.getByRole('button', { name: 'Allow', exact: true }).click();
     await expect(page.locator('.is-assistant .chat-message-content')).toContainText('Hello.');
     const state = await page.evaluate(() => chatFixture.session.getState());
-    expect(state.activeThread.attempts[0].authorization).toMatchObject({ kind: 'once', source: 'approval',
-      recipients: ['peer:' + 'a'.repeat(24), 'peer:' + 'b'.repeat(24)] });
+    expect(state.activeThread.attempts[0].authorization).toMatchObject({ kind: 'permission', source: 'permission',
+      permissionId: state.remotePermissions[0].id, recipients: ['peer:' + 'a'.repeat(24), 'peer:' + 'b'.repeat(24)] });
     expect(state.activeThread.grants).toEqual([]);
-    await expect(review).toBeHidden();
+    expect(await page.evaluate(() => chatFixture.phases.includes('approval'))).toBe(false);
+    await expect(permission).toBeHidden();
     const user = await page.locator('.chat-message-row.is-user').boundingBox();
     const assistant = await page.locator('.chat-message-row.is-assistant').boundingBox();
     expect(user.height).toBeLessThanOrEqual(100); expect(user.width).toBeLessThan(assistant.width);
     await page.screenshot({ path: info.outputPath('conversation.png'), fullPage: true });
     await page.evaluate(() => { chatFixture.hold = true; });
     await page.locator('[data-composer-input]').fill('Continue'); await page.locator('[data-composer-input]').press('Enter');
-    await review.getByRole('button', { name: 'Approve', exact: true }).click();
+    // Follow-ups are sent under the stored permission with no dialog.
     await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
+    await expect(permission).toBeHidden();
     await checkComposer(page, '[data-composer-stop]');
     await page.getByRole('button', { name: 'Stop', exact: true }).click();
     await expect(page.locator('.is-assistant').last()).toContainText('Stopped.');

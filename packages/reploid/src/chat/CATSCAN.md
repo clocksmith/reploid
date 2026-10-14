@@ -23,9 +23,9 @@ Compose custody/whole-request jobs; file possession grants no execution.
 - Restore history and mark unfinished attempts interrupted; never silently resend.
 - One requester-owned transactional writer commits canonical and ordered records; known rejections never fence.
 - Permissions precede placement. Model and adapter identity remain exact.
-- A synchronous host port may bind Send/Retry to its verified disclosure; otherwise
-  approval records the displayed recipients, which must equal verified ones.
-  Persist evidence, never live capability or future authority.
+- Host ports authorize remote disclosure: per-send, or stored permissions whose
+  exact scope covers it; otherwise nothing is sent. Records cite the permission
+  and dispatched recipients, never live capability.
 - Reusable disclosure grants bind verified recipient, mesh, thread, model,
   adapters and scope. Persist before use; revocation cancels affected attempts and
   prevents reuse. Grants authorize no contribution/supply/evaluation/adoption.

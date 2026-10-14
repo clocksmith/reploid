@@ -56,9 +56,11 @@ function host(f, storage = null) {
   cleanup.push(() => session.close());
   return session;
 }
-function approve(session, threadId, remember = true) {
+// The host holds a remote request until its one-time contributor permission exists; granting it continues
+// every held request the permission covers. Later covered requests never wait.
+function approve(session, threadId) {
   const attempt = session.getState().threads.find(t => t.id === threadId).attempts.at(-1);
-  session.approve(threadId, attempt.id, attempt.approval.id, true, { remember });
+  if (attempt.approval?.permissionNeed) return session.grantRemotePermission(attempt.approval.permissionNeed);
 }
 
 describe('Reploid partition APIs with injected Doppler sessions', () => {
@@ -235,7 +237,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     expect(await receiver.verify(grant, request, { settlement: true })).toBe(true);
   });
 
-  it('streams two conversations through the host, reuses resident weights and remembers scoped disclosure', async () => {
+  it('streams two conversations through the host, reuses resident weights and sends follow-ups under the stored permission', async () => {
     const f = await fixture(); await Promise.all([f.local.prepare({ approved: true }), f.supplier.prepare({ approved: true })]);
     await f.chat.refresh(); const session = host(f);
     const selection = f.chat.getModels()[0];
@@ -251,8 +253,11 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     const order = f.factory.log.steps.filter(s => s.index === 0).map(s => s.threadId);
     expect(new Set(order.slice(0, 2))).toEqual(new Set([a, b]));
     expect(order).toEqual([...order.slice(0, 2), ...order.slice(0, 2), ...order.slice(0, 2)]);
-    expect((await session.send(a, '20')).status).toBe('completed');
-    expect(session.getState().threads[0].attempts[1].authorization.kind).toBe('thread-grant');
+    const statuses = []; const stop = session.subscribe(state => statuses.push(state.threads[0].attempts.at(-1)?.status));
+    expect((await session.send(a, '20')).status).toBe('completed'); stop();
+    expect(statuses).not.toContain('approval');
+    expect(session.getState().threads[0].attempts[1].authorization).toMatchObject({ kind: 'permission', source: 'permission',
+      permissionId: session.getState().remotePermissions[0].id, recipients: [f.a.peerId, f.b.peerId] });
     expect(f.factory.log.tokenizations.at(-1)).toEqual([{ role: 'user', content: '1' }, { role: 'assistant', content: '2 3 4 ' }, { role: 'user', content: '20' }]);
     expect(f.factory.log.closes).toEqual([]);
     expect(f.remote.getState().receipt.sentFrames).toBeGreaterThan(9);
@@ -309,7 +314,7 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     expect(f.factory.log.steps).toEqual([]);
   });
 
-  it('revokes a live conversation and waits for remote settlement without mixing another attempt', async () => {
+  it('revoking leaves a live answer running; Stop settles it remotely and the next request waits for permission', async () => {
     const entered = gate(), release = gate();
     let held = true;
     cleanup.push(() => release.resolve());
@@ -320,14 +325,18 @@ describe('Reploid partition APIs with injected Doppler sessions', () => {
     await f.chat.refresh(); const session = host(f), id = session.createThread({ model: f.chat.getModels()[0] });
     const first = session.send(id, '1');
     await vi.waitFor(() => expect(session.getState().activeThread.attempts[0].approval).toBeTruthy());
-    approve(session, id); await entered.promise;
-    session.revokeGrant(id, session.getState().activeThread.grants[0].id);
+    await approve(session, id); await entered.promise;
+    session.revokeRemotePermission(session.getState().remotePermissions[0].id);
+    await new Promise(resolve => setTimeout(resolve, 20));
+    expect(session.getState().activeThread.attempts[0].status).toBe('executing');
+    session.cancel(id);
     await vi.waitFor(() => expect(session.getState().activeThread.attempts[0].status).toBe('cancelling'));
     release.resolve(); expect((await first).status).toBe('cancelled');
     expect(f.factory.log.settlements.filter(s => s.index === 1)).toHaveLength(1);
-    const next = session.send(id, '10');
-    await vi.waitFor(() => expect(session.getState().activeThread.attempts[1].approval).toBeTruthy());
-    approve(session, id); expect((await next).status).toBe('completed');
+    const steps = f.factory.log.steps.length, next = session.send(id, '10');
+    await vi.waitFor(() => expect(session.getState().activeThread.attempts[1].approval?.permissionNeed).toBeTruthy());
+    expect(f.factory.log.steps).toHaveLength(steps);
+    await approve(session, id); expect((await next).status).toBe('completed');
     expect(session.getState().activeThread.messages.at(-1).content).toBe('11 12 13 ');
   });
 

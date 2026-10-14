@@ -4,20 +4,28 @@ import { canonicalPartitionJson } from '../mesh/partitions/partition-contract.js
 import { ORDERED_PUBLICATION_ATTEMPT_SCHEMA } from '../mesh/partitions/partition-ordered-publication.js';
 import defaults from './policy.json' with { type: 'json' };
 import { disclosureRecipients, disclosureScope, matchingThreadGrant, validateThreadGrants } from './thread-grants.js';
+import { remotePermissionCovers, remotePermissionNeed } from './remote-permission.js';
 
 const copy = value => structuredClone(value);
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
 const activeStatuses = new Set(['queued', 'loading', 'executing', 'approval', 'cancelling']);
 // Disclosures whose durable output the requester's transaction owner publishes.
 const publishedDisclosures = new Set(['partition-activations-and-tokens', 'ordered-partition-activations-and-tokens']);
+const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model and verified recipients';
 
 // participantId owns history. requesterIdentity is the host-authenticated peer identity that execution
 // binds into ordered requester disclosure; null until authenticated. Hosts whose participant is that peer keep the default.
+// remotePermissions, when supplied, returns the host's stored remote contributor permissions
+// (remote-permission.js); every remote disclosure then requires one that covers it.
 export function createChatWorkspace({ meshId, participantId, store, execute, requesterIdentity = () => participantId,
-  policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
+  remotePermissions = null, policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
   assert(typeof meshId === 'string' && meshId && typeof participantId === 'string' && participantId, 'Mesh and participant identities required');
   assert(typeof store?.load === 'function' && typeof store?.save === 'function' && typeof execute === 'function'
-    && typeof requesterIdentity === 'function', 'Workspace host ports required');
+    && typeof requesterIdentity === 'function' && (remotePermissions === null || typeof remotePermissions === 'function'), 'Workspace host ports required');
+  const covering = need => need && (remotePermissions?.() || []).find(permission => remotePermissionCovers(permission, need)) || null;
+  // The authorization cites the permission and names the verified route this attempt is dispatched to.
+  const permitted = (scope, preview, permission) => ({ kind: 'permission', grantId: null, permissionId: permission.id,
+    peerId: preview.peerId, ...copy(scope), source: 'permission', recipients: disclosureRecipients(scope, preview), expiresAt: preview.expiresAt });
   const requester = () => {
     const value = requesterIdentity();
     assert(value === null || typeof value === 'string' && value, 'Invalid requester identity');
@@ -222,10 +230,18 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
               await persist(); controller.signal.throwIfAborted();
               return true;
             }
-            // Partition review requires verified recipients; unverified stages are never offered for approval.
-            assert(scope || !request.model.partition, 'Peer disclosure does not match the selected model and verified recipients');
+            // Unverified partition recipients are never offered; with a permission port, no unverified recipient is.
+            assert(scope || !request.model.partition && !remotePermissions, DISCLOSURE_MISMATCH);
+            const need = remotePermissions ? remotePermissionNeed({ sharingScope: request.permissions.sharingScope,
+              disclosure: scope.disclosure, model: request.model }) : null, permission = covering(need);
+            if (permission) {
+              attempt.authorization = permitted(scope, preview, permission);
+              await persist(); controller.signal.throwIfAborted();
+              return live() && preview.expiresAt > now();
+            }
+            // Outside every stored permission: nothing is sent until one covers it (resumePermitted) or it is declined.
             attempt.status = 'approval';
-            attempt.approval = { ...copy(preview), reusable: !!scope, recipients: disclosureRecipients(scope, preview) };
+            attempt.approval = { ...copy(preview), reusable: !!scope, ...(need ? { permissionNeed: need } : {}) };
             return new Promise(resolve => {
               const expiry = setTimeout(() => finish(false), Math.min(limits.attemptTimeoutMs, preview.expiresAt - now()));
               const finish = accepted => {
@@ -307,7 +323,8 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       } else if (auth.disclosure !== 'partition-activations-and-tokens' || identity.stages?.[0]?.participantId !== auth.participantA
         || identity.stages?.[1]?.participantId !== auth.recipientIdentity) return false;
       if (auth.kind === 'thread-grant') return thread.grants.some(grant => grant.id === auth.grantId && grant.revokedAt === null);
-      return auth.kind === 'once' && auth.expiresAt > now();
+      // Revoking a permission stops new disclosures only; an admitted answer continues until stopped.
+      return ['once', 'permission'].includes(auth.kind) && auth.expiresAt > now();
     },
     subscribe(listener) { listeners.add(listener); listener(snapshot()); return () => listeners.delete(listener); },
     createThread({ model, purpose = '', members = [], permissions = {}, systemContext = null }) {
@@ -350,14 +367,13 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       assert(!thread.closed && attempt?.id === attemptId && ['cancelled', 'failed', 'interrupted'].includes(attempt.status), 'Only the latest interrupted or unsuccessful response can be retried');
       return start(thread, attempt.request, attempt.userMessageId, attempt.id, true, authorizeDisclosure);
     },
-    approve(threadId, attemptId, previewId, accepted, { remember = false, recipients } = {}) {
+    approve(threadId, attemptId, previewId, accepted, { remember = false } = {}) {
       current(); const thread = find(threadId), attempt = thread.attempts.at(-1), run = runs.get(threadId);
       assert(attempt?.id === attemptId && attempt.approval?.id === previewId && run?.approval, 'Approval no longer matches this attempt');
       assert(!run.deciding, 'Approval is already being recorded');
       if (accepted !== true) { run.controller.abort(new Error('Disclosure declined')); return; }
-      // A reviewer states the recipients it displayed. Any other list approves nothing and leaves the review pending.
-      assert(recipients === undefined || Array.isArray(recipients)
-        && JSON.stringify(recipients) === JSON.stringify(attempt.approval.recipients), 'Approval no longer matches the displayed recipients');
+      // With a permission port, only a stored permission authorizes remote disclosure (resumePermitted).
+      assert(!remotePermissions, 'Remote disclosure requires the remote contributor permission');
       const allowed = accepted === true && attempt.approval.expiresAt > now() && !run.controller.signal.aborted;
       if (allowed) {
         const scope = disclosureScope(attempt.request, attempt.approval, requester());
@@ -370,7 +386,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
         }
         attempt.authorization = { kind: remember ? 'thread-grant' : 'once', grantId: grant?.id || null,
           peerId: attempt.approval.peerId, recipientIdentity: attempt.approval.recipientIdentity || null,
-          ...copy(scope), source: 'approval', recipients: copy(attempt.approval.recipients), expiresAt: attempt.approval.expiresAt };
+          ...copy(scope), source: 'approval', recipients: disclosureRecipients(scope, attempt.approval), expiresAt: attempt.approval.expiresAt };
         run.deciding = true;
         const fail = error => { if (grant) thread.grants.pop(); attempt.authorization = null; run.approval?.(false); run.deciding = false; throw error; };
         try {
@@ -384,6 +400,24 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
       }
       if (!run.approval) return; // A state observer may have revoked the grant or cancelled.
       run.approval(allowed && !run.controller.signal.aborted);
+    },
+    /** Continues every waiting attempt that a stored permission now covers; others stay waiting and send nothing. */
+    resumePermitted() {
+      current(); const resumed = [];
+      for (const thread of threads) {
+        const attempt = thread.attempts.at(-1), run = runs.get(thread.id), permission = covering(attempt?.approval?.permissionNeed);
+        if (!permission || !run?.approval || run.deciding || run.controller.signal.aborted || attempt.approval.expiresAt <= now()) continue;
+        const scope = disclosureScope(attempt.request, attempt.approval, requester());
+        if (!scope) continue;
+        attempt.authorization = permitted(scope, attempt.approval, permission); run.deciding = true;
+        const settle = () => { run.deciding = false; run.approval?.(!run.controller.signal.aborted && attempt.approval?.expiresAt > now()); };
+        const fail = error => { attempt.authorization = null; run.deciding = false; run.approval?.(false); throw error; };
+        try {
+          const saved = persist();
+          resumed.push(transactional ? saved.then(settle, fail) : (settle(), undefined));
+        } catch (error) { fail(error); }
+      }
+      return transactional ? Promise.all(resumed).then(() => resumed.length) : resumed.length;
     },
     revokeGrant(threadId, grantId) {
       assert(!closed, 'Workspace is closed');

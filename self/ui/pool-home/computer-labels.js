@@ -22,8 +22,6 @@ function collect(state, registry) {
         ...(route?.stages || []).map(stage => stage.participantId)]) {
         if (id && id !== (execution?.identity?.requesterId || execution?.requesterId) && !own.has(id)) ids.add(id);
       }
-      // Reviewed recipients of a pending approval need the same stable names the ribbon shows later.
-      for (const id of attempt.approval?.recipients || []) if (id && !own.has(id)) ids.add(id);
     }
   }
   const canonical = new Set([...ids].map(id => groups.find(group => group.includes(id))?.[0] || id));

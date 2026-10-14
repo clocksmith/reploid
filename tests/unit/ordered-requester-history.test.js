@@ -81,7 +81,8 @@ async function openProduct(storage, history, { autoConnect = true } = {}) {
   cleanups.push(() => host.close());
   return host;
 }
-// Approves a recipient review if this build shows one; otherwise Send proceeds on its own permission.
+// A fresh profile holds its first remote request until the one-time contributor permission is granted;
+// later requests proceed on that stored permission.
 async function send(chat, threadId, text) {
   const completion = chat.send(threadId, text), approved = new Set();
   let settled = false;
@@ -90,7 +91,7 @@ async function send(chat, threadId, text) {
     const attempt = chat.getState().threads.find(row => row.id === threadId)?.attempts.at(-1);
     if (attempt?.status === 'approval' && attempt.approval && !approved.has(attempt.approval.id)) {
       approved.add(attempt.approval.id);
-      chat.approve(threadId, attempt.id, attempt.approval.id, true, { recipients: attempt.approval.recipients });
+      await chat.grantRemotePermission(attempt.approval.permissionNeed);
     }
     await new Promise(resolve => setTimeout(resolve, 5));
   }

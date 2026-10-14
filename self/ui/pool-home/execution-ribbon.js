@@ -18,26 +18,22 @@ const orderedTiming = (execution, index) => {
 
 export function projectExecutionRibbon(state) {
   const thread = state.activeThread, attempt = thread?.attempts.at(-1), execution = attempt?.execution;
-  // A pending approval names the verified recipients this attempt would disclose to: a proposal
-  // for review, never placement. The execution receipt replaces it once admitted.
-  const proposal = !execution && attempt?.status === 'approval' && attempt.approval?.recipients?.length ? attempt.approval : null;
-  const routeOf = value => value?.schema === 'reploid.partition-route/v1' && Array.isArray(value.stages) ? value : null;
-  const executed = execution?.identity?.schema === 'reploid.partition-attempt/v2' ? routeOf(execution.identity.route) : null;
-  const ordered = proposal ? routeOf(proposal.route) : executed;
-  const requester = (proposal ? state.network?.consumer?.peerId : executed ? execution.identity.requesterId : execution?.requesterId)
-    || state.participantId || 'This device';
+  const ordered = execution?.identity?.schema === 'reploid.partition-attempt/v2'
+    && execution.identity.route?.schema === 'reploid.partition-route/v1' && Array.isArray(execution.identity.route.stages)
+    ? execution.identity.route : null;
+  const requester = (ordered ? execution.identity.requesterId : execution?.requesterId) || state.participantId || 'This device';
   const local = execution?.placement === 'local-webgpu';
-  const split = !!ordered || execution?.placement === 'two-device-layer-partition' || !!proposal?.participantA;
-  // Selected/discovered models are not proof of placement. Use this attempt's receipt or reviewed approval only.
-  const ids = proposal ? [...proposal.recipients] : ordered ? ordered.stages.map(stage => stage.participantId) : local ? [requester]
-    : split ? [execution.participantA, execution.participantB].filter(Boolean) : execution?.peerId ? [execution.peerId] : [];
+  const split = !!ordered || execution?.placement === 'two-device-layer-partition';
+  // Selected/discovered models are not proof of placement. Use this attempt's receipt only.
+  const ids = ordered ? ordered.stages.map(stage => stage.participantId) : local ? [requester] : split ? [execution.participantA, execution.participantB].filter(Boolean)
+    : execution?.peerId ? [execution.peerId] : [];
   const layer = Number.isSafeInteger(execution?.splitLayer) ? execution.splitLayer : null;
   const executors = ids.map((id, i) => ({ id, label: id === requester ? 'This device' : computerLabel(state, id),
     layers: ordered ? `Stage ${i + 1} of ${ids.length}` : split ? layer === null ? 'Not reported' : i === 0 ? `0–${layer - 1}` : `${layer} onward` : 'Whole model',
     contribution: ordered ? i === 0 ? 'Initial layers; relays output' : i === ids.length - 1 ? 'Final layers; produces output' : 'Intermediate layers'
       : split ? i === 0 ? 'Initial layers; relays output' : 'Final layers; produces output' : 'Whole-model execution',
     timing: ordered ? orderedTiming(execution, i) : null,
-    duration: ordered ? orderedTiming(execution, i)?.total ?? null : split ? sum(execution?.steps, i === 0 ? 'localStepMs' : 'remoteStepMs') : null }));
+    duration: ordered ? orderedTiming(execution, i)?.total ?? null : split ? sum(execution.steps, i === 0 ? 'localStepMs' : 'remoteStepMs') : null }));
   const active = attempt && !terminal.has(attempt.status);
   let status = attempt?.status || 'idle';
   // Discovery reports availability, never the health of an assigned execution channel.
@@ -51,11 +47,10 @@ export function projectExecutionRibbon(state) {
   const availability = ready.length ? `${ready.length} model${ready.length === 1 ? '' : 's'} ready`
     : downloading ? 'Downloading model' + (measured(progress) ? ` ${Math.round(progress * 100)}%` : '')
     : preparing ? 'Preparing model' : state.network?.paused ? 'Disconnected' : state.network?.connecting || ['connecting', 'retrying'].includes(state.network?.consumer?.connectionState) ? 'Finding capacity' : 'No model ready';
-  const labels = { idle: availability, queued: 'Queued', loading: 'Loading', executing: 'Executing', approval: 'Awaiting approval',
+  const labels = { idle: availability, queued: 'Queued', loading: 'Loading', executing: 'Executing', approval: 'Permission needed',
     completed: 'Complete', failed: 'Failed', cancelled: 'Stopped', cancelling: 'Stopping', interrupted: 'Interrupted', disconnected: 'Disconnected', recovering: 'Recovering' };
   const response = thread?.messages.find(message => message.id === attempt?.responseId)?.content || '';
   return { key: attempt ? `${thread.id}:${attempt.id}` : null, thread, attempt, execution, requester, local, split, ordered: !!ordered, executors,
-    proposed: !!proposal,
     planId: ordered?.planId || execution?.planId,
     requesterExecutes: executors.some(node => node.id === requester),
     model: executors.length ? thread.model.name : null, status, statusLabel: labels[status] || status,
@@ -74,19 +69,17 @@ export function renderExecutionRibbon() {
 export function routeMarkup(view) {
   const nodeMarkup = (label, caption = '', pending = false) => `<span class="execution-ribbon-node${pending ? ' is-unassigned' : ''}"><span class="execution-ribbon-participant">${escape(label)}</span><small>${escape(caption)}</small></span>`;
   const requester = nodeMarkup('You', 'Request / output');
-  // No invented route: only an admitted receipt or the reviewed recipients of a pending approval.
-  if (!view.executors.length) return '';
-  const wire = `<span class="execution-ribbon-wire${view.proposed ? ' is-unassigned' : ''}" aria-hidden="true"></span>`;
-  const nodes = view.executors.map(node => nodeMarkup(node.label, node.id === view.requester ? 'Request / output' : '', view.proposed)).join(wire);
+  if (!view.executors.length) return ''; // No invented route before admission.
+  const nodes = view.executors.map(node => nodeMarkup(node.label, node.id === view.requester ? 'Request / output' : '')).join('<span class="execution-ribbon-wire" aria-hidden="true"></span>');
   const group = `<span class="execution-ribbon-executors"><small class="execution-ribbon-model">${escape(view.model)}</small><span class="execution-ribbon-machines">${nodes}</span></span>`;
   // In a split, output returns B → A → requester through the same participants.
-  return view.requesterExecutes ? group : `${requester}${wire}${group}`;
+  return view.requesterExecutes ? group
+    : `${requester}<span class="execution-ribbon-wire" aria-hidden="true"></span>${group}`;
 }
 
 export function detailMarkup(view) {
   const { attempt, execution, executors } = view;
   return `${attempt?.error ? `<p role="alert">${escape(attempt.error)}</p>` : ''}
-    ${view.proposed ? '<p>Proposed for this request. Nothing from this conversation is sent until you approve.</p>' : ''}
     <dl><dt>Requester / output recipient</dt><dd>${escape(view.requester)}</dd>
     <dt>Model</dt><dd>${escape(view.model || 'No executor assigned')}</dd>
     <dt>Attempt duration</dt><dd>${ms(view.totalMs)}${view.totalMs === null && view.active ? ' · in progress' : ''}</dd>
@@ -121,8 +114,7 @@ export function bindExecutionRibbon(root, { onInspect = () => {}, labelSession =
       const view = projectExecutionRibbon(withComputerLabels(state, labelSession)), changed = view.key !== key;
       if (changed) { key = view.key; lastResponse = view.response; stopPulse(); }
       find('[data-ribbon-status]').textContent = view.statusLabel;
-      trigger.setAttribute('aria-label', `${view.statusLabel}. ${view.model ? view.model + (view.proposed ? ' proposed on ' : ' on ')
-        + view.executors.map(node => node.label).join(' and ') : 'No executor assigned'}. Execution details`);
+      trigger.setAttribute('aria-label', `${view.statusLabel}. ${view.model ? view.model + ' on ' + view.executors.map(node => node.label).join(' and ') : 'No executor assigned'}. Execution details`);
       ribbon.dataset.state = view.status;
       if (!changed && view.active && view.response.length > lastResponse.length && view.response.startsWith(lastResponse)) {
         drawPulse();

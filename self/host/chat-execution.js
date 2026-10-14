@@ -1,5 +1,5 @@
 /** Adapt identified chat attempts to existing execution ports; own only the scheduler we create. */
-import { createChatScheduler } from '../vendor/reploid/chat/index.js';
+import { createChatScheduler, remoteDisclosureKind } from '../vendor/reploid/chat/index.js';
 import { createWorkResidentProvider } from '../providers/work-resident-provider.js';
 import { createWorkAdapterResolver } from '../providers/work-adapter.js';
 import { createWorkNetworkProvider } from '../providers/work-network-provider.js';
@@ -9,6 +9,8 @@ const assert = (ok, message) => { if (!ok) throw new Error(message); };
 
 export function createChatExecution({ service, swarm, partitions, scheduler, models, getModels, profile, onChange = () => {} }) {
   let local = null;
+  // The same routing execute() applies: partitions always leave this device; local scope or a ready local copy stays.
+  const runsHere = (model, sharingScope) => !model.partition && (sharingScope === 'local' || (local?.ready && local.modelIdentity === model.identity));
   const resolveAdapter = createWorkAdapterResolver({ models });
 
   const sessionScheduler = scheduler || createChatScheduler({
@@ -52,7 +54,7 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
       return partitions.generate(request, controls);
     }
 
-    if (request.permissions?.sharingScope === 'local' || (local?.ready && local.modelIdentity === model.identity)) {
+    if (runsHere(model, request.permissions?.sharingScope)) {
       const maxOutputTokens = Math.min(
         request.maxOutputTokens || profile.generation?.maxTokens || 1024,
         4096
@@ -120,6 +122,8 @@ export function createChatExecution({ service, swarm, partitions, scheduler, mod
   let closing = null;
   return Object.freeze({
     execute,
+    /** The disclosure a request for this model would make, or null when it runs on this device. */
+    remoteDisclosure: (model, sharingScope) => runsHere(model, sharingScope) ? null : remoteDisclosureKind(model),
     prepareLocal: model => sessionScheduler.prepare(model),
     getLocalState: () => local ? structuredClone(local) : null,
     getState: () => structuredClone(sessionScheduler.getState()),

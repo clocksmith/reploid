@@ -3,7 +3,7 @@
  * and Poolday peer execution. Manages multithreaded conversations, persistent scopes,
  * fair device scheduling, and truthful execution placement.
  */
-import { createChatWorkspace } from '../vendor/reploid/chat/index.js';
+import { createChatWorkspace, createRemotePermission, remotePermissionCovers, remotePermissionNeed, validateRemotePermission } from '../vendor/reploid/chat/index.js';
 import { createReploidDopplerRuntimeService } from '../infrastructure/doppler-runtime-service.js';
 import { createChatExecution } from './chat-execution.js';
 import { projectChatCatalog, projectChatPlacements } from './chat-view.js';
@@ -27,6 +27,14 @@ export const LOCAL_HISTORY_IDENTITY = Object.freeze({ meshId: 'reploid-local-mes
 // Only published output enters a transactional history.
 const publishable = (publication, model) => publication === 'canonical' ? !!(model.partition && model.canonical)
   : model.partition?.schema === 'reploid.partition-selection/v2';
+// Remote contributor permissions, including revoked ones (the latest MAX_PERMISSIONS records).
+const PERMISSION_KEY = 'reploid.remote-permissions:v1', MAX_PERMISSIONS = 16;
+function loadPermissions(storage) {
+  try {
+    const rows = JSON.parse(storage?.getItem?.(PERMISSION_KEY) ?? '[]');
+    return Array.isArray(rows) ? rows.flatMap(row => { try { return [validateRemotePermission(row)]; } catch { return []; } }).slice(-MAX_PERMISSIONS) : [];
+  } catch { return []; } // Unreadable storage holds no permission: nothing is sent until granted again.
+}
 
 // Requesters and contributors use one artifact catalog.
 export const CANONICAL_CHAT_MODELS = LOCAL_DOPPLER_MODELS;
@@ -79,6 +87,11 @@ export function createChatSession({
 
   let peerModels = [];
   let discovering = false;
+  let remotePermissions = loadPermissions(storage);
+  const savePermissions = next => {
+    storage?.setItem?.(PERMISSION_KEY, JSON.stringify(next));
+    remotePermissions = next;
+  };
 
   const execution = createChatExecution({ service, swarm, partitions, scheduler, models,
     getModels: () => [...models, ...peerModels, ...(partitions?.getModels() || [])], profile, onChange: () => notifyAll() });
@@ -87,6 +100,8 @@ export function createChatSession({
     meshId,
     participantId,
     requesterIdentity,
+    // Every remote disclosure needs a stored permission that covers it; see remote-permission.js.
+    remotePermissions: () => remotePermissions,
     store,
     execute: execution.execute,
     now,
@@ -142,7 +157,8 @@ export function createChatSession({
       network: copy({ ...(swarm?.getState?.() || { sharing: false, consumer: null }), files: swarm?.getFileState?.() || null }),
       scheduler: execution.getState(),
       placements: projectChatPlacements(wsState.threads),
-      history: historyState
+      history: historyState,
+      remotePermissions: copy(remotePermissions)
     });
   };
 
@@ -266,6 +282,33 @@ export function createChatSession({
       return workspace.approve(threadId, attemptId, previewId, accepted, options);
     },
     revokeGrant(threadId, grantId) { assertOpen(); return workspace.revokeGrant(threadId, grantId); },
+    /** The permission a request for this model and sharing scope still needs, or null (runs here or already covered). */
+    remotePermissionNeeded({ model, sharingScope = 'mesh' }) {
+      const disclosure = model && execution.remoteDisclosure(model, sharingScope);
+      if (!disclosure) return null;
+      const need = remotePermissionNeed({ sharingScope, disclosure, model });
+      return remotePermissions.some(permission => remotePermissionCovers(permission, need)) ? null : need;
+    },
+    /** Stores the one-time permission for `need` and the verified catalog, then continues waiting attempts it covers. */
+    async grantRemotePermission(need) {
+      assertOpen();
+      const model = getCatalogModels().find(item => item.identity === need?.modelIdentity && item.id === need?.modelId);
+      assert(model && Array.isArray(need.adapterIdentities) && need.adapterIdentities.every(identity => (model.adapters || [])
+        .some(adapter => adapter.identity === identity)), 'Choose a catalog model before allowing remote contributors');
+      const permission = createRemotePermission({ id: crypto.randomUUID(), need, catalog: models, grantedAt: now() });
+      savePermissions([...remotePermissions, permission].slice(-MAX_PERMISSIONS));
+      try { await workspace.resumePermitted(); } finally { notifyAll(); }
+      return copy(permission);
+    },
+    /** Stops new remote disclosures under this permission. Answers already admitted continue until stopped. */
+    revokeRemotePermission(permissionId) {
+      assertOpen();
+      assert(remotePermissions.some(permission => permission.id === permissionId), 'Remote permission not found');
+      // Fail closed: this session stops using it even if saving the revocation fails.
+      remotePermissions = remotePermissions.map(permission => permission.id === permissionId && permission.revokedAt === null
+        ? { ...permission, revokedAt: now() } : permission);
+      try { storage?.setItem?.(PERMISSION_KEY, JSON.stringify(remotePermissions)); } finally { notifyAll(); }
+    },
     renameThread(threadId, title) { assertOpen(); return workspace.renameThread(threadId, title); },
     archiveThread(threadId) { assertOpen(); return workspace.closeThread(threadId); },
     restoreThread(threadId) { assertOpen(); return workspace.reopenThread(threadId); },

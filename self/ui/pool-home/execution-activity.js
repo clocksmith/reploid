@@ -22,8 +22,7 @@ export function projectExecutionActivity(state) {
 
 export function updateExecutionActivity(root, state) {
   const view = projectExecutionActivity(state);
-  // A proposed route is reviewed in the approval panel; activity reports only admitted execution.
-  root.hidden = !view.attempt || !view.nodes.length || view.proposed;
+  root.hidden = !view.attempt || !view.nodes.length;
   if (root.hidden) return;
   root.querySelector('summary').textContent = `${view.status === 'executing' ? 'Generating' : view.statusLabel} · ${view.nodes.length} computer${view.nodes.length === 1 ? '' : 's'}`;
   const measured = view.nodes.every(node => node.share !== null);
