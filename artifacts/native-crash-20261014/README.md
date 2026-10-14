@@ -99,3 +99,22 @@ ANV stores a shader's NIR in the cache before its backend compile, and the compi
 Retained on `intel-host` under `/var/tmp/native-crash-analysis-20261014/`: the unpacked Oct 13
 report and core, the debug files, the symbolized stack, the replay events and both private
 caches.
+
+## Audit of the shared cache with full pipeline preparation (2026-10-14, 21:03Z)
+
+Doppler `9830aaec` creates every pipeline a paired resident stage can request before the stage
+reports ready. [cache-audit.mjs](cache-audit.mjs) ran that source on `intel-host`, opening the
+three deployed paired stages (installed final-9 catalog, Capsule runtime config) with no token
+executed. It used a private copy of the shared Mesa cache, taken at 20:55Z, in a bounded scope
+with core dumps enabled.
+
+**Result: all three stages opened.** They prepared 22, 20 and 22 pipelines, 24 distinct, with no
+lazy remainder, in 277 ms, 0.3 ms and 15 ms. Those times mean cache hits; within one process,
+later stages reuse pipelines already created. There was no crash, and the i915 count stayed at
+54 ([cache-audit-20261014.json](cache-audit-20261014.json)).
+
+So the shared cache holds no crashing entry for any pipeline the deployed paired stages use. This
+does not explain native 16's crash, which left no core. Either no such entry existed at 18:15Z,
+or one existed and is gone, or the crash happened outside pipeline creation. With full
+preparation, an entry like the reproduced one would now stop a stage at startup instead of
+mid-answer.
