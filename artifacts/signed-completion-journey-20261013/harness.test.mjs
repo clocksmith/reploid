@@ -47,35 +47,44 @@ test('model choice fails clearly when the control is ambiguous or the select sta
   assert.ok(!calls.some(([kind]) => kind === 'selectOption'));
 });
 
-/** Send creates the attempt; the review (request-approval.js) must be read before Approve is clicked. */
-function fakeReviewPage({ reviewShown = true } = {}) {
-  const calls = [], shown = { threadId: 't1', attemptId: 'a1', previewId: 'p1', recipientIds: ['peer:a', 'peer:b', 'peer:c'],
-    recipientsText: 'Recipients: Computer 1 (stage 1 of 3), Computer 2 (stage 2 of 3), Computer 3 (stage 3 of 3)',
-    scopeText: 'Sends this message. Computer 1 receives the text; Computer 2 and Computer 3 receive the same content as model tokens, which read back as text, and intermediate results.',
-    contentLabel: 'Review 1 message', contentText: 'user:\nquestion' };
+/** A fresh profile's first remote Send shows the one-time permission (remote-permission.js); a permitted one sends at once. */
+function fakeSendPage({ asked = true } = {}) {
+  const calls = [], need = { sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', modelId: 'm',
+    modelIdentity: 'sha256:' + 'a'.repeat(64), adapterIdentities: [] };
+  const shown = { need, title: "Answer with contributors' computers?", what: 'what is sent', who: 'who receives it', scope: 'asked once' };
+  const stored = { id: 'stored', sharingScope: 'mesh', disclosure: need.disclosure, modelIdentities: [need.modelIdentity], revokedAt: null };
+  let allowed = false;
   const locator = selector => ({
     fill: async text => calls.push(['fill', selector, text]),
-    click: async () => calls.push(['click', selector]),
-    waitFor: async ({ state } = {}) => {
-      calls.push(['waitFor', selector, state ?? 'visible']);
-      if (selector === SELECTORS.review && !reviewShown) throw Error('Timeout 1000ms exceeded');
-    },
-    evaluate: async (fn, selectors) => { calls.push(['read', selector]); assert.equal(selectors, SELECTORS); return structuredClone(shown); }
+    click: async () => { calls.push(['click', selector]); if (selector === SELECTORS.permissionAllow) allowed = true; },
+    waitFor: async () => calls.push(['waitFor', selector]),
+    evaluate: async (fn, selectors) => {
+      calls.push(['read', selector]);
+      assert.doesNotThrow(() => structuredClone(selectors), 'evaluate arguments must be serializable');
+      return structuredClone(shown);
+    }
   });
-  return { page: { locator }, calls, shown };
+  const waitForFunction = async (fn, selectors) => {
+    assert.deepEqual(Object.keys(selectors).sort(), ['composerInput', 'permission']);
+    return { jsonValue: async () => asked ? 'asked' : 'sent' };
+  };
+  const observe = async () => ({ remotePermissions: allowed ? [stored] : [] });
+  return { page: { locator, waitForFunction }, calls, shown, stored, observe };
 }
-test('send records the displayed review, then clicks Approve; it never approves an unseen review', async () => {
-  const { page, calls, shown } = fakeReviewPage();
-  const record = await send(page, 'question', 1000);
-  assert.deepEqual(Object.fromEntries(Object.keys(shown).map(key => [key, record[key]])), shown);
-  assert.ok(record.shownAt <= record.approvedAt);
-  const read = calls.findIndex(([kind]) => kind === 'read'), approve = calls.findIndex(([kind, selector]) => kind === 'click' && selector === SELECTORS.approve);
-  const sent = calls.findIndex(([kind, selector]) => kind === 'click' && selector === SELECTORS.send);
-  assert.ok(sent >= 0 && read > sent && approve > read, 'Send, then read the review, then Approve');
-  assert.equal(SELECTORS.approve, '[data-chat-approval] [data-approval-approve]');
-  const hidden = fakeReviewPage({ reviewShown: false });
-  await assert.rejects(send(hidden.page, 'question', 1000), /Timeout/);
-  assert.ok(!hidden.calls.some(([kind, selector]) => kind === 'click' && selector === SELECTORS.approve));
+test('send records the one-time permission screen and the stored permission, then never asks a permitted profile', async () => {
+  const first = fakeSendPage();
+  const record = await send(first.page, 'question', 1000, { observe: first.observe });
+  assert.deepEqual(JSON.parse(JSON.stringify(record)), record, 'send returns a JSON record');
+  assert.deepEqual(Object.fromEntries(Object.keys(first.shown).map(key => [key, record.permission[key]])), first.shown);
+  assert.deepEqual(record.permission.stored, first.stored);
+  const order = kind => first.calls.findIndex(([name, selector]) => name === 'click' && selector === kind);
+  const read = first.calls.findIndex(([name]) => name === 'read');
+  assert.ok(order(SELECTORS.send) >= 0 && read > order(SELECTORS.send) && order(SELECTORS.permissionAllow) > read,
+    'Send, then read the permission screen, then Allow');
+  const later = fakeSendPage({ asked: false });
+  assert.deepEqual(Object.keys(await send(later.page, 'follow-up', 1000, { observe: later.observe })), ['sentAt', 'permission']);
+  assert.ok(!later.calls.some(([name, selector]) => name === 'click' && selector === SELECTORS.permissionAllow));
+  assert.equal(SELECTORS.permissionAllow, '[data-remote-permission] [data-remote-permission-allow]');
 });
 
 const MiB = 1048576, ORIGIN = 'http://127.0.0.1:29670';

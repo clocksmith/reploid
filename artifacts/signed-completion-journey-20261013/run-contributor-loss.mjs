@@ -8,7 +8,7 @@ import { compilePatterns, observeChat, observeCustody, observeNetwork } from './
 import { assessContributorLoss } from './loss-checks.mjs';
 import { buildTimingRecord } from './timing.mjs';
 import { SELECTORS, TERMINAL, startRun, openBrowser, findPage, appUrl, servedDescriptor, trackRequests, waitFor, openApp,
-  chooseOrderedModel, send, approveReview, selectThread, followAttempt, waitForAttempt, attemptIds, sleep, now } from './harness.mjs';
+  chooseOrderedModel, send, allowPermissionIfAsked, selectThread, followAttempt, waitForAttempt, attemptIds, sleep, now } from './harness.mjs';
 
 const { config, room, fixture, report, save } = await startRun('contributor-loss', './contributor-loss.json');
 const { freeze, timeouts } = config, poll = config.observation.pollMs, selectionId = orderedSelectionId(freeze);
@@ -20,7 +20,7 @@ if (typeof stopContributor !== 'function' || typeof restoreContributor !== 'func
 const stage = Object.freeze({ machine: target.machine, stage: target.index, participantId: target.participantId,
   orderedConfig: target.orderedConfig, nativeArtifact: freeze.nativeArtifacts[target.machine] });
 Object.assign(report, { scope: fixture.scope, lossTarget: { machine: target.machine, stage: target.index, participantId: target.participantId },
-  modelFileRequests: [], streamSamples: [], terminalSamples: [], postFailureSamples: [], preRetrySamples: [], timing: [], reviews: [] });
+  modelFileRequests: [], streamSamples: [], terminalSamples: [], postFailureSamples: [], preRetrySamples: [], timing: [], permissions: [] });
 
 async function callControl(name, fn, timeKey) {
   const result = await fn(stage);
@@ -53,7 +53,8 @@ try {
 
   // A conversation in progress: wait for a visible streamed prefix, then stop the stage.
   const oldIds = attemptIds(await observeChat(page)), sentAt = now();
-  report.reviews.push(await send(page, fixture.prompt, timeouts.readyMs));
+  const { permission } = await send(page, fixture.prompt, timeouts.readyMs);
+  if (permission) report.permissions.push(permission);
   const streaming = await waitForAttempt(page, { oldIds, timeout: timeouts.answerMs, poll, label: 'Streaming before loss',
     predicate: ({ attempt, response }) => attempt.status === 'executing' && response.content.length >= fixture.lossAfterCharacters });
   report.failedAttemptId = streaming.attempt.id; report.beforeLoss = streaming.thread; report.sentAt = sentAt;
@@ -110,7 +111,8 @@ try {
   const retryOldIds = new Set(report.failed.attempts.map(item => item.id));
   report.retry = { clickedAt: now(), samples: [] };
   await page.locator(SELECTORS.retry(report.failedAttemptId)).click();
-  report.reviews.push(await approveReview(page, timeouts.readyMs));
+  const retryPermission = await allowPermissionIfAsked(page, timeouts.readyMs); // none expected: already permitted
+  if (retryPermission) report.permissions.push(retryPermission);
   const retried = await followAttempt(page, { oldIds: retryOldIds, timeout: timeouts.answerMs, poll, samples: report.retry.samples, modelIdentity: freeze.modelIdentity });
   report.retry.final = retried.thread;
   report.timing.push(buildTimingRecord({ thread: retried.thread, attemptId: retried.attempt.id, samples: report.retry.samples, sentAt: report.retry.clickedAt, pollMs: poll }));

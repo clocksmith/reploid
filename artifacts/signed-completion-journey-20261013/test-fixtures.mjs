@@ -1,8 +1,8 @@
 // Synthetic fixtures in the ordered shapes the application emits:
 // summary v2 (packages/reploid/src/mesh/partitions/partition-summary.js:16-18), route stages
 // (partition-contract.js:72-92), cleanup rows {partitionIndex,status,error} (partition-route-execution.js:57-77),
-// ordered approval of the displayed recipients (packages/reploid/src/chat/workspace.js approve, thread-grants.js
-// disclosureRecipients) and the review the harness records before Approve (harness.mjs approveReview).
+// authorizations citing the one-time contributor permission (packages/reploid/src/chat/workspace.js permitted,
+// remote-permission.js) and the permission screen the harness records (harness.mjs allowPermission).
 import { buildTimingRecord } from './timing.mjs';
 import { orderedSelectionId } from './config.mjs';
 import failureMessages from '../../packages/reploid/src/transport/partition-errors.json' with { type: 'json' };
@@ -58,22 +58,27 @@ export function summary({ attemptId, threadId, requester = PEERS.requester, part
       ...(withPhases ? { phases: phases({ participants, steps }) } : {}),
       detail: 'aggregate; no per-step trace transferred' }, selection: { transportId: 'transport-0' } };
 }
+const permissionId = requester => `permission-${requester.slice(-4)}`;
 export function authorization(route, requester) {
-  return { kind: 'once', grantId: null, peerId: route.stages[0].participantId, recipientIdentity: route.stages[0].participantId,
+  return { kind: 'permission', grantId: null, permissionId: permissionId(requester), peerId: route.stages[0].participantId,
+    recipientIdentity: route.stages[0].participantId,
     disclosure: 'ordered-partition-activations-and-tokens', planId: route.planId, route: structuredClone(route), requesterIdentity: requester,
-    modelId: freeze.modelId, modelIdentity: freeze.modelIdentity, adapterIdentities: [], sharingScope: 'mesh', source: 'approval',
+    modelId: freeze.modelId, modelIdentity: freeze.modelIdentity, adapterIdentities: [], sharingScope: 'mesh', source: 'permission',
     recipients: route.stages.map(stage => stage.participantId), expiresAt: 1760000900000 };
 }
-// The review as request-approval.js renders it for a three-stage route; \u00b7 keeps this folder ASCII.
-export function review({ attemptId, threadId, messages = [{ role: 'user', content: 'question' }], participants = THREE }) {
-  const earlier = messages.filter(message => message.role !== 'system').length - 1, n = participants.length;
-  return { threadId, attemptId, previewId: `preview-${attemptId}`, recipientIds: [...participants],
-    recipientsText: `Recipients: ${participants.map((_, index) => `Computer ${index + 1} (stage ${index + 1} of ${n})`).join(', ')} \u00b7 Qwen 3.5 0.8B`,
-    scopeText: `Sends this message${earlier ? ` and ${earlier} earlier message${earlier === 1 ? '' : 's'}` : ''}. Computer 1 receives the text; `
-      + 'Computer 2 and Computer 3 receive the same content as model tokens, which read back as text, and intermediate results. Approval applies to this request only.',
-    contentLabel: `Review ${messages.length} message${messages.length === 1 ? '' : 's'}`,
-    contentText: messages.map(message => `${message.role}:\n${message.content}`).join(''),
-    shownAt: '2026-10-13T11:59:59.000Z', approvedAt: '2026-10-13T11:59:59.500Z' };
+// The one-time permission screen as self/ui/pool-home/remote-permission.js renders it for an ordered route,
+// and the permission the application stored after Allow. One per fresh requester profile.
+export function permission(requester) {
+  const need = { sharingScope: 'mesh', disclosure: 'ordered-partition-activations-and-tokens', modelId: freeze.modelId,
+    modelIdentity: freeze.modelIdentity, adapterIdentities: [] };
+  return { need, title: "Answer with contributors' computers?",
+    what: "To answer, this conversation is sent to contributors' computers on this network: your message, earlier messages in the thread, and the context prompt when it is on.",
+    who: 'The first computer receives the text. The other computers receive the same content as model tokens, which read back as text, plus intermediate results.',
+    scope: 'You are asked once. Later questions and follow-ups are sent the same way until you turn this off in Settings.',
+    shownAt: '2026-10-13T11:59:58.000Z', allowedAt: '2026-10-13T11:59:59.000Z',
+    stored: { schema: 'reploid.remote-permission/v1', id: permissionId(requester), sharingScope: 'mesh',
+      disclosure: 'ordered-partition-activations-and-tokens', modelIdentities: [freeze.modelIdentity], adapterIdentities: [],
+      grantedAt: 1759999999000, revokedAt: null } };
 }
 export function attempt({ id, threadId, requester = PEERS.requester, status = 'completed', retryOf = null, error = null, request = undefined }) {
   const execution = summary({ attemptId: id, threadId, requester });
@@ -141,8 +146,7 @@ export function journeyReport(fixture) {
     retry: { failedAttemptId: 'af', contentBeforeFailure: count(8), failed: failedThread, final: finalRetry, custodyAfter: custody(),
       returnSamples: [0, 1].map(() => ({ runningIds: [], attemptCount: 1 })) },
     coordinator: { receipts: [receipt({ attemptId: 'ac', phase: 'cancelled' }), receipt({ attemptId: 'af', phase: 'cancelled' }), receipt({ attemptId: 'a1' })] },
-    reviews: [review({ attemptId: 'a1', threadId: 't1' }), review({ attemptId: 'a2', threadId: 't1', messages: a2.request.messages }),
-      review({ attemptId: 'ac', threadId: 'tc' }), review({ attemptId: 'as', threadId: 'ts' }), review({ attemptId: 'ar', threadId: 'tr' })],
+    permissions: [PEERS.requester, PEERS.tabA, PEERS.tabB, PEERS.tabR].map(permission),
     timing
   };
 }
@@ -172,7 +176,7 @@ export function lossReport(fixture) {
     preRetrySamples: [0, 1].map(() => ({ ...still })), capacityReturned: true, capacityReturnedAt: '2026-10-13T12:02:00.000Z',
     retry: { clickedAt: '2026-10-13T12:02:01.000Z', final, samples: [] },
     weights: [], custodyBefore: custody(), custodyAfter: custody(),
-    reviews: [review({ attemptId: 'al', threadId: 'tl' }), review({ attemptId: 'ar2', threadId: 'tl' })],
+    permissions: [permission(PEERS.requester)],
     timing: [buildTimingRecord({ thread: final, attemptId: 'ar2', samples: [sample('ar2', count(2))], sentAt: SENT, pollMs: 100 })]
   };
 }

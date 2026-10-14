@@ -71,7 +71,8 @@ export function observeChat(page) {
       storageMode: Object.hasOwn(state, 'ephemeralExecutions') ? 'transactional' : 'legacy',
       threads: state.threads, selectedId: state.selectedId, runningIds: state.runningIds, storageError: state.storageError,
       drafts: Object.fromEntries([null, ...state.threads.map(thread => thread.id)].map(id => [id ?? 'new', this.getDraft(id)])),
-      requesterPeerId: state.network?.consumer?.peerId ?? null
+      requesterPeerId: state.network?.consumer?.peerId ?? null,
+      remotePermissions: state.remotePermissions ?? []
     };
   }`));
 }

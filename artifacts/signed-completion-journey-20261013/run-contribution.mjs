@@ -12,7 +12,7 @@ import { TERMINAL, startRun, openBrowser, appUrl, trackRequests, transferBytes, 
 const { config, room, fixture, report, save } = await startRun('storage-contribution', './contribution.json');
 const { freeze, timeouts, storage } = config, poll = config.observation.pollMs, selectionId = orderedSelectionId(freeze);
 const patterns = compilePatterns(config.modelFiles.pathPatterns), mib = value => value * 1048576;
-Object.assign(report, { scope: fixture.scope, modelFileRequests: [], stepErrors: {}, reviews: [] });
+Object.assign(report, { scope: fixture.scope, modelFileRequests: [], stepErrors: {}, permissions: [] });
 const supplierBrowser = await openBrowser(config.browsers.storageSupplier);
 const acquirerBrowser = await openBrowser(config.browsers.storageAcquirer);
 const contexts = [], tabNames = new Map();
@@ -60,7 +60,8 @@ async function step(name, run) {
 async function startChat(page) {
   await chooseOrderedModel(page, selectionId, timeouts.readyMs);
   const oldIds = attemptIds(await observeChat(page));
-  report.reviews.push(await send(page, fixture.chatPrompt, timeouts.readyMs));
+  const { permission } = await send(page, fixture.chatPrompt, timeouts.readyMs);
+  if (permission) report.permissions.push(permission);
   return { oldIds, ...await waitForAttempt(page, { oldIds, timeout: timeouts.answerMs, poll, label: 'Chat streaming',
     predicate: ({ attempt, response }) => attempt.status === 'executing' && response.content.length >= fixture.chatStartedAfterCharacters }) };
 }

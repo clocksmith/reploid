@@ -98,7 +98,7 @@ export function assessContributorLoss(report, fixture, freeze) {
     require(last && last.id !== report.failedAttemptId && last.retryOf === report.failedAttemptId && final.attempts.length === report.failed.attempts.length + 1,
       'Explicit retry did not start exactly one new attempt linked to the failure');
     require(isDeepStrictEqual(final?.messages?.slice(0, report.failed?.messages?.length), report.failed?.messages), 'Retry changed earlier messages or the preserved partial answer');
-    failures.push(...completedAttemptFailures(final, last, freeze, 'Retry'), ...approvalFailures(last, freeze, 'Retry', report.reviews));
+    failures.push(...completedAttemptFailures(final, last, freeze, 'Retry'), ...approvalFailures(last, freeze, 'Retry', report.permissions));
     return failures;
   });
 
