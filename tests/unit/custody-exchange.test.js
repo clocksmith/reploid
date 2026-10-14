@@ -14,12 +14,12 @@ function channelPair() {
   });
   return channels;
 }
-async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {}, supplyBudgets = [], sendResult = () => true, onSupplier = () => {} } = {}) {
+async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, maxSupplyBytes = 100, commitArtifact, onChange = () => {}, clockOffsets = [], grantMs = [], supplierGrant = () => {}, supplyBudgets = [], sendResult = () => true, onSupplier = () => {}, timeoutMs = 1000, down = new Set() } = {}) {
   const bytes = new Uint8Array([1, 2, 3, 4, 5]), stores = Array.from({ length: count }, () => new Map()), callbacks = [], owners = [], receipts = [], requests = [];
   const file = { path: 'shard.bin', role: 'model-weights', sizeBytes: 5, hash: (await sha256Hex(bytes)).slice(7), hashAlgorithm: 'sha256' };
   const policy = { maxTransfers: 2, maxPeers, maxAcquisitionAttempts: 4, maxSupplyBytes, maxArtifactBytes: 20, maxInventoryFiles: 128, grantMs: 5000,
     channel: { maxFrameBytes: 128, maxControlBytes: 4096, maxChunkBytes: 2,
-      maxBufferedBytes: 8192, maxPendingRequests: 2, maxTransferBytes: 1048576, timeoutMs: 1000 } };
+      maxBufferedBytes: 8192, maxPendingRequests: 2, maxTransferBytes: 1048576, timeoutMs } };
   const reads = vi.fn(async () => bytes.slice());
   for (let i = 0; i < count; i++) {
     const pair = await createSigningKeyPair();
@@ -27,7 +27,9 @@ async function fixture({ afterCheckpoint = () => {}, count = 2, maxPeers = 16, m
     const supplyBudget = supplyBudgets[i] || { getState: () => ({ reservedBytes: durableReserved, maxBytes: maxSupplyBytes }),
       async reserve(bytes) { if (durableReserved + bytes > maxSupplyBytes) throw new Error('File contribution limit reached'); durableReserved += bytes; return this.getState(); } };
     const checkpoints = new Map();
-    const transport = { getConnectedPeers: () => stores.map((_, index) => ({ id: String(index) })).filter(peer => peer.id !== String(i)),
+    // A peer id in `down` is disconnected from everyone until it is removed again.
+    const transport = { getConnectedPeers: () => stores.map((_, index) => ({ id: String(index) }))
+      .filter(peer => peer.id !== String(i) && !down.has(peer.id) && !down.has(String(i))),
       onMessage: (type, handler) => stores[i].set(type, handler),
       sendToPeer: (peer, type, payload) => {
         if (!sendResult(i, peer, type, payload)) return false;
@@ -407,4 +409,80 @@ it('retains failed chunk reservations when retrying another authorized supplier'
     expect(await a.acquire(f.file,{signal:new AbortController().signal,reserveDownload:async bytes=>{reserved+=bytes;}})).toEqual(f.bytes);
     expect(reserved).toBeGreaterThan(5);expect(f.receipts.some(r=>r.failure)).toBe(true);
   } finally {await f.close();}
+});
+
+// A supplier whose first answer for one chunk never arrives, as during a network stall.
+const stallOnce = (chunkIndex, onStall = () => {}) => {
+  let stalled = false;
+  return supplier => {
+    const serve = supplier.serve.bind(supplier);
+    vi.spyOn(supplier, 'serve').mockImplementation(request => {
+      if (request.chunkIndex !== chunkIndex || stalled) return serve(request);
+      stalled = true; onStall(); return new Promise(() => {});
+    });
+  };
+};
+
+it('asks a stalled supplier again under a fresh grant and resumes from verified checkpoints', async () => {
+  let reserved = 0;
+  const f = await fixture({ timeoutMs: 200, onSupplier: stallOnce(2) }), [a, b] = f.owners;
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    expect(await a.acquire(f.file, { signal: new AbortController().signal, reserveDownload: async bytes => { reserved += bytes; } })).toEqual(f.bytes);
+    expect(f.requests).toHaveLength(2);
+    expect(f.receipts).toHaveLength(2);
+    expect(f.receipts[0].failure).toBe('Pack custody: no authorized supplier completed shard.bin chunk 2');
+    expect(f.receipts[0].attempts.find(item => item.chunkIndex === 2).error).toBe('Pack custody: supplier timeout');
+    expect(f.receipts[1]).toMatchObject({ cacheBytes: 4, receivedBytes: 1, source: 'cache-and-peer' });
+    expect(f.receipts[0].transferId).not.toBe(f.receipts[1].transferId);
+    // The stalled chunk stays charged; verified checkpoint hits are not charged again.
+    expect(reserved).toBe(6);
+  } finally { f.close(); }
+});
+
+it('waits for a disconnected supplier to offer the file again before asking it under a fresh grant', async () => {
+  const down = new Set();
+  const f = await fixture({ down, onSupplier: stallOnce(2, () => down.add('1')) }), [a, b] = f.owners;
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    const acquisition = a.acquire(f.file, { signal: new AbortController().signal });
+    await vi.waitFor(() => expect(f.receipts).toHaveLength(1), { timeout: 2000 });
+    expect(a.has(f.file)).toBe(false);
+    down.delete('1'); b.announce();
+    expect(await acquisition).toEqual(f.bytes);
+    expect(f.requests).toHaveLength(2);
+    expect(f.receipts[1]).toMatchObject({ cacheBytes: 4, receivedBytes: 1 });
+  } finally { f.close(); }
+});
+
+it('does not ask a supplier again after it delivered invalid bytes', async () => {
+  const f = await fixture({ onSupplier: supplier => {
+    const serve = supplier.serve.bind(supplier);
+    vi.spyOn(supplier, 'serve').mockImplementation(async request => {
+      const response = await serve(request);
+      return { ...response, bytes: response.bytes.map(value => value ^ 1) };
+    });
+  } }), [a, b] = f.owners;
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    await expect(a.acquire(f.file, { signal: new AbortController().signal })).rejects.toThrow('no authorized supplier completed shard.bin');
+    expect(f.requests).toHaveLength(1);
+    expect(f.receipts).toHaveLength(1);
+    expect(f.receipts[0].attempts.some(item => item.error === 'Pack custody: chunk integrity mismatch')).toBe(true);
+  } finally { f.close(); }
+});
+
+it('stops after the configured number of grants when a supplier never answers', async () => {
+  const f = await fixture({ timeoutMs: 100, onSupplier: supplier => {
+    vi.spyOn(supplier, 'serve').mockImplementation(() => new Promise(() => {}));
+  } }), [a, b] = f.owners;
+  try {
+    b.offer([f.file]); await vi.waitFor(() => expect(a.has(f.file)).toBe(true));
+    const error = await a.acquire(f.file, { signal: new AbortController().signal }).catch(cause => cause);
+    expect(error).toBeInstanceOf(AggregateError);
+    expect(error.errors).toHaveLength(4);
+    expect(error.errors.every(cause => cause.code === 'CUSTODY_SUPPLIER_UNAVAILABLE')).toBe(true);
+    expect(f.requests).toHaveLength(4);
+    expect(a.getState().pending).toBe(0);
+  } finally { f.close(); }
 });

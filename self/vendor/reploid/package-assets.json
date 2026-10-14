@@ -236,13 +236,13 @@
     },
     {
       "path": "artifacts/custody/exchange.d.ts",
-      "bytes": 2888,
-      "sha256": "469c9c2e5f4c534b69ea97b66330dc8ac82f485376f14de6d1ad5a773da4aa5f"
+      "bytes": 3180,
+      "sha256": "57eb99c82e5dfab66c7bb96cc55b8ef3cacaa13e04f044ac4cf28568ec2a0900"
     },
     {
       "path": "artifacts/custody/exchange.js",
-      "bytes": 20943,
-      "sha256": "297885ccd665364ff0b528d230fee5666796d18c3ca10ec2132f4b7848dfcce8"
+      "bytes": 23131,
+      "sha256": "96d39aba3a40130c4c1dad6b95a8261127e11b75fa816495a9e40677bff7f91c"
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",
@@ -261,8 +261,8 @@
     },
     {
       "path": "artifacts/custody/runtime.js",
-      "bytes": 21885,
-      "sha256": "a9c3f7485f95a06d8f6d08ac01ebc768386af301e1ea3f9c9d105840e6d16414"
+      "bytes": 22399,
+      "sha256": "98c476930471585ad9092f1d03e3e3d2233b31fcc7e8307c366867c4af5e914e"
     },
     {
       "path": "artifacts/custody/supply-budget.js",
