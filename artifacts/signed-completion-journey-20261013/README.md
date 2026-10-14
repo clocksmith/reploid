@@ -2,6 +2,29 @@
 
 Acceptance tooling for the installed signed application on the frozen ordered three-stage route (`doppler.layer-partition-contract/v3`, split layers 8 and 16): `mac-host` browser contributor at stage 0, `amd-host` native contributor at stage 1, `intel-host` native contributor at stage 2. A requester browser chooses the model and sends; Reploid selects the route. Physical runs 1 and 2 are recorded in `run-1/` and `run-2/` (start with `run-2/harness-results.json`). The run-2 fixes described below were verified by unit tests only; no browser, server, GPU, contributor or SSH session was started for them.
 
+## Results: Launch 1 journey and Launch 2 contribution pass automated acceptance (runs 5 and 6)
+
+Candidate: signed delivery `final-5` (Reploid `95641fe7`, browser bundle `3c1fab71…`, native descriptor `1fecc004…` installed on `amd-host` and `intel-host`), Doppler 0.6.28 candidate archive `2df37d88…`, Capsule `-c` release sequence 2 `923ac7e6…` signed by the **test** authority. Same route in every run: `mac-host` browser stage 0, `amd-host` native stage 1, `intel-host` native stage 2.
+
+| Harness | Run | Automated checks | Evidence |
+|---|---|---|---|
+| Requester journey (Launch 1) | 5 | 13/13: open, model choice, recipient approval, selective acquisition (0 weight requests), streaming, completion, follow-up, copy, reload, two concurrent requesters, isolated cancellation, explicit retry, timing | `run-5/harness-results.json` |
+| Contributor loss (Launch 1) | 6 | 7/7: SIGKILL of the stage-1 native while streaming; the person sees "A computer disconnected. Retry this answer." (`CONNECTION_LOST`) 15.7 s later; the lost stage stays unknown in the coordinator's `unknownAttempts`; capacity returns 1.9 s after the restore call returns (about 6 s after the restored native starts); the explicit Retry completes the count with natural EOS | `run-6/harness-results.json` |
+| Contribution (Launch 2) | 5 | 7/7: sharing a 4.93 MB verified subset within a 5 MiB allowance while chatting; another computer acquiring 32 of those pieces from the sharer; cached-only and reload with 0 requests and an unchanged ledger; competing tabs refused with exact charges; interrupted resume with exact charges; stop settling an in-flight transfer without cancelling the conversation | `run-5/harness-results.json` |
+
+Run 4 found the contributor-loss defects that `95641fe7` fixes (loss reported as `CLEANUP_FAILED`; capacity never returned). Run 5's loss checks failed only on a harness defect, fixed in `e82bbe8f`. Every run settled cleanly; public contributors were never touched; run files contain aliases only.
+
+**Measured limits on this route (published for Launch 1):**
+- Devices: one Mac browser stage, one AMD Linux native stage, one Intel Linux native stage.
+- Concurrency: 2 simultaneous independent requesters.
+- Longest completed answer: 171 decode steps, in 608 s.
+- Decode time per step: Intel stage 2.65–3.56 s; Mac and AMD stages 0.44–0.66 s each. About 3.5 s per generated token end to end. The Intel stage is the bottleneck. The one follow-up answer, which includes prefill of the earlier exchange, averaged 4.3 / 1.9 / 18.2 s per step over 12 steps.
+- Context: only short conversations are established (a follow-up after one exchange). Prompt token counts are not recorded in this evidence. DR-5's long-prompt workload (1,627 decode steps in the earlier two-stage control) would take about 95 minutes per answer at this rate, so it is not qualified here.
+
+**Not established by these runs:**
+- Answer usefulness. `manualReview` is open, and two answers state wrong example outputs: `[2,4,6,8]` for `[4,8]`, and `[-6,12,18]` for `[-4,12]`. The three-host capture passed all 55 prefixes within 0.001 of the reference, so these look like the model's own errors, not distribution errors.
+- Production signing and public promotion. Only the test authority signed this candidate; the public pin stays Doppler 0.6.27.
+
 Component: acceptance tooling. Intent: preserved, with one recorded contract decision (below). Acceptance evidence: `node --test` over this folder ([unit-tests.txt](unit-tests.txt)). Boundary effects: `server/native-participant.js` gained `--room-token-file` (see "Native contributor launch"); no other application source and no `run-1/` or `run-2/` evidence was modified.
 
 ---
