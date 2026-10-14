@@ -104,7 +104,8 @@ describe('shared device admission (opt-in)', () => {
 });
 
 describe('automatic owner with shared device admission (opt-in)', () => {
-  it('hands one device budget to the resident it prepares and advertises device-limited capacity', async () => {
+  it.each([[undefined, {}], [{ maxQueued: 2, maxQueuedPerRequester: 1, maxWaitMs: 1000 }, { queued: 0, maxQueued: 2 }]])(
+    'hands one device budget to the resident it prepares and advertises device-limited capacity (queue %o)', async (queue, advertised) => {
     const peer = await createSigningIdentity({ algorithm: 'ECDSA' });
     const stage = { ...stages[1], participantId: peer.peerId }, residents = [];
     const loadProgram = vi.fn(async (_model, index, controls) => {
@@ -125,14 +126,14 @@ describe('automatic owner with shared device admission (opt-in)', () => {
         receiver: { maxAttempts: 32, maxSteps: 10 }, inputChannel: {}, inputLimits: { descriptorTtlMs: 60000 } },
       createNetwork: () => ({ close: vi.fn(async () => {}), retire: vi.fn(async () => {}), connect: vi.fn() }),
       ordered: { stage, maxRouteBytes: 32768, maxRoutes: 4, maxSelectionSteps: 256,
-        orchestration: { admission: { maxBytes: WEIGHTS + ATTEMPT, maxConcurrentAttempts: 2, attemptBytes: ATTEMPT } } } });
+        orchestration: { admission: { maxBytes: WEIGHTS + ATTEMPT, maxConcurrentAttempts: 2, attemptBytes: ATTEMPT, ...(queue ? { queue } : {}) } } } });
     cleanups.push(() => mesh.close());
     await mesh.contribute('m', true);
     expect(loadProgram.mock.calls[0][2].device.getState()).toMatchObject({ residents: 1, residentBytes: WEIGHTS });
     // Two local slots, but the device budget holds one attempt next to the weights.
-    expect(discoveryOwners.at(-1).options.describe().capacity).toEqual({ active: 0, availableSlots: 1, closed: false });
+    expect(discoveryOwners.at(-1).options.describe().capacity).toEqual({ active: 0, availableSlots: 1, closed: false, ...advertised });
     const only = identity('only'); only.route = { ...route, stages: route.stages.map(row => row.index === 1 ? stage : row) };
     await residents[0].reserve({ identity: only, partitionIndex: 1 });
-    expect(discoveryOwners.at(-1).options.describe().capacity).toEqual({ active: 1, availableSlots: 0, closed: false });
+    expect(discoveryOwners.at(-1).options.describe().capacity).toEqual({ active: 1, availableSlots: 0, closed: false, ...advertised });
   });
 });

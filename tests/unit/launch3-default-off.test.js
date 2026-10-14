@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { createSigningIdentity } from '../../packages/reploid/src/artifacts/identity.js';
 import { createAutomaticPartitions } from '../../packages/reploid/src/mesh/partitions/automatic-partitions.js';
+import { createResidentPartition } from '../../packages/reploid/src/mesh/partitions/resident-partition.js';
 import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '../../self/host/work-partition-plan.js';
 import { getOrderedParticipation } from '../../self/host/product-context.js';
 import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
@@ -87,6 +88,26 @@ describe('Launch 3 mechanisms are off by default (Launch 1 candidate behavior)',
     expect(c.loadProgram.mock.calls[0][2]).not.toHaveProperty('device');
     expect(c.loadProgram.mock.calls[0][2]).not.toHaveProperty('attemptBytes');
     expect(c.discovery.options.describe().capacity).toEqual({ active: 0, availableSlots: 2, closed: false });
+  });
+
+  it('a full ordered resident without a shared device refuses immediately with the Launch 1 error, never queues', async () => {
+    const sha = 'sha256:' + 'a'.repeat(64), stage = { index: 1, participantId: 'p1', transportId: 't1', residentId: 'r1', executionId: 'e1' };
+    const plan = { schema: 'doppler.layer-partition-contract/v3', modelId: 'm', stageCount: 2, partitions: [0, 1].map(index => ({ index, layerRange: [index, index] })) };
+    const activation = { schema: 'doppler.activation-tensor/v1', dtype: 'f32', precision: 'f32', components: 1, elementStrideBytes: 4, hiddenSize: 8 };
+    const resident = createResidentPartition({ runtime: { openResidentPartition: async () => ({ getDescriptor: () => ({ schema: 'doppler.resident-partition/v2',
+      ready: true, modelId: 'm', modelIdentity: sha, planId: sha, index: 1, stageCount: 2, layerRange: [1, 1], residentWeightBytes: 1, generationDigest: sha }),
+    getRecoveryCapabilities: () => ({ schema: 'doppler.resident-recovery/v1', inputReplay: false, checkpointExport: false, checkpointImport: false }),
+    tokenize() {}, executeStage() {}, closeAttempt: async () => {}, close: async () => {} }) }, model: { id: 'm', identity: sha, generation: {} },
+    plan, planId: sha, index: 1, participantId: 'p1', limits: { maxAttempts: 8, maxConcurrentAttempts: 1 },
+    ordered: { runtime: { hashLayerPartitionPlan: () => sha, hashPartitionGeneration: () => sha, getPartitionActivationContract: () => activation }, stage } });
+    cleanups.push(() => resident.close());
+    await resident.prepare({ approved: true });
+    const identity = attemptId => ({ schema: 'reploid.partition-attempt/v2', threadId: attemptId, attemptId, requesterId: 'q', placementGeneration: 0,
+      route: { schema: 'reploid.partition-route/v1', modelId: 'm', modelIdentity: sha, planId: sha, activation,
+        stages: [{ index: 0, participantId: 'p0', transportId: 't0', residentId: 'r0', executionId: 'e0' }, stage] } });
+    await resident.reserve({ identity: identity('a'), partitionIndex: 1 });
+    await expect(resident.reserve({ identity: identity('b'), partitionIndex: 1 })).rejects.toThrow('Contributor reservation capacity exhausted');
+    expect(resident.getState().reservations).not.toHaveProperty('device');
   });
 
   it('host configuration without orchestration binds exactly the Launch 1 ordered options', () => {

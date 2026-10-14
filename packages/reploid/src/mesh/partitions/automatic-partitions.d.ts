@@ -92,7 +92,9 @@ export interface OrderedOrchestration {
   routeRanking?: { margin: number; smoothing: number; maxObservations: number;
     workload: { promptTokens: number; expectedTokens: number } };
   /** One budget for this host's device: resident weights once, plus `attemptBytes` and one slot per admitted attempt. */
-  admission?: { maxBytes: number; maxConcurrentAttempts: number; attemptBytes: number };
+  admission?: { maxBytes: number; maxConcurrentAttempts: number; attemptBytes: number;
+    /** Fair bounded waiting; advertised as `capacity.queued` and `capacity.maxQueued`. */
+    queue?: import('./partition-device-admission.js').DeviceAdmissionQueue };
 }
 export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionState,
   'placementDecision' | 'reservations' | 'attempts' | 'descriptor'> {

@@ -83,6 +83,11 @@ it('browser binds an operator auto choice to the authenticated transport only wi
   await browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ admission }))).connect();
   expect(ports.options.ordered.orchestration).toEqual({ admission });
   expect(() => browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ admission: { ...admission, maxBytes: 1420000001 } })))).toThrow('orchestration');
+  // A queued reservation must be answered before the execution channel's 300 s request timeout.
+  const queued = { ...admission, queue: { maxQueued: 4, maxQueuedPerRequester: 1, maxWaitMs: 60000 } };
+  await browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ admission: queued }))).connect();
+  expect(ports.options.ordered.orchestration).toEqual({ admission: queued });
+  expect(() => browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ admission: { ...queued, queue: { ...queued.queue, maxWaitMs: 300000 } } })))).toThrow('orchestration');
   // The library's chosen stage still passes the host's explicit stage validation before loading.
   await expect(Promise.resolve().then(() => ports.options.loadProgram({ ...model, id: 'different' }, 1, {}))).rejects.toThrow('assigned');
   for (const [stageValue, policyValue] of [[auto, null], [JSON.stringify(stage()), policy],
