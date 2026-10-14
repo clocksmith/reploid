@@ -656,13 +656,13 @@
     },
     {
       "path": "mesh/partitions/automatic-ordered-partitions.js",
-      "bytes": 23181,
-      "sha256": "37af0d7c54c24dd55ec6f29aa3f012a7ad9e9885303920b2f11f43fd73778647"
+      "bytes": 23818,
+      "sha256": "ca2e33bb120452e5190411bef9d51e3abe5477d301b28cb1b4e48f903028a2f3"
     },
     {
       "path": "mesh/partitions/automatic-partitions.d.ts",
-      "bytes": 6569,
-      "sha256": "80ecadf2976796e318bbb9319294f9411dc9fa1cf4e8cf7dfb69b95406250b7f"
+      "bytes": 6723,
+      "sha256": "0c355d2a5b69c8170cc4bf611e61da05b79fafc8f0c956ac3a3260d1eb8a779d"
     },
     {
       "path": "mesh/partitions/automatic-partitions.js",
@@ -801,8 +801,8 @@
     },
     {
       "path": "mesh/partitions/partition-ordered-peer.js",
-      "bytes": 25444,
-      "sha256": "14c13520053b7b77cb20cbdcc6fc2943666fa5d94c2397605bc727c7a31c84e4"
+      "bytes": 25677,
+      "sha256": "b591e6b63c0a55b9683257141b865ca3343bd517bf1b7a6d5d116a383007ce6f"
     },
     {
       "path": "mesh/partitions/partition-peer.d.ts",
@@ -836,13 +836,13 @@
     },
     {
       "path": "mesh/partitions/partition-route-execution.d.ts",
-      "bytes": 4958,
-      "sha256": "fa44ac056e8854f32a21060907cf5414e312aa4e136154601e09c23b85637f60"
+      "bytes": 5001,
+      "sha256": "721fd236c15cefd85073f38df2014b9805d3a251b89a4d08327b8ec353d6f30c"
     },
     {
       "path": "mesh/partitions/partition-route-execution.js",
-      "bytes": 18403,
-      "sha256": "95d848643da22b35c43368b7f71a2fa965a33722a923f6f4726bdca4631a0f6e"
+      "bytes": 19545,
+      "sha256": "3fa7e75854fdcbd23b7ccafbaf824ec2f97ae96905ba586ecb345ba8023c3d1e"
     },
     {
       "path": "mesh/partitions/partition-route-network.d.ts",

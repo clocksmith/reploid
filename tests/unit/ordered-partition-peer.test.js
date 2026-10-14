@@ -114,8 +114,11 @@ it('retains unknown ownership after channel loss and rejects stale cleanup ident
     const changed = structuredClone(f.request.identity); changed.route.stages[1].residentId = 'other';
     await expect(f.peers[0].client.closeAttempt({ identity: changed })).rejects.toThrow('identity collision');
     f.pairs[0][0].close();
-    await expect(f.peers[0].client.closeAttempt({ identity: f.request.identity })).rejects.toThrow();
+    await expect(f.peers[0].client.closeAttempt({ identity: f.request.identity })).rejects.toMatchObject({ code: 'CONNECTION_LOST' });
     expect(f.peers[0].client.getState().unsettled).toBe(1);
+    // Closing the dead port completes; it can never confirm, so the owner stays counted.
+    await f.peers[0].client.close();
+    expect(f.peers[0].client.getState()).toMatchObject({ ready: false, unsettled: 1 });
   } finally { await f.close(); }
 });
 it('does not advertise a descriptor without actual stage capability', async () => {

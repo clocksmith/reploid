@@ -86,6 +86,8 @@ export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionS
   reservations: import('./resident-partition.js').OrderedResidentState['reservations'] | null;
   descriptor: import('./resident-partition.js').OrderedResidentState['descriptor'];
   attempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
+  /** Receipts of retired routes whose cleanup was never confirmed. */
+  unknownAttempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
 }
 export interface OrderedAutomaticPartitions extends Omit<AutomaticPartitions, 'getState'> {
   getState(): OrderedAutomaticPartitionState;

@@ -113,6 +113,8 @@ try {
   report.body = page ? (await page.locator('body').innerText().catch(() => '')).slice(-5000) : null;
   report.finalState = page ? await observeChat(page).catch(() => null) : null;
 } finally {
+  // Custody after the loss is evidence of its own; a failed retry must not discard it.
+  report.custodyAfter ??= page ? await observeCustody(page).catch(() => null) : null;
   report.weights = report.modelFileRequests.filter(row => row.weight).map(row => row.url);
   if (report.failed) report.timing.push(buildTimingRecord({ thread: report.failed, attemptId: report.failedAttemptId, samples: [], pollMs: poll }));
   report.assessment = assessContributorLoss(report, fixture, freeze);

@@ -2,8 +2,12 @@
 import { canonicalPartitionJson, partitionActivationContract,
   matchingPartitionActivation, validatePartitionRoute, canonicalRouteAttemptBinding,
   sameRouteAttemptIdentity } from './partition-contract.js';
+import failureMessages from '../../transport/partition-errors.json' with { type: 'json' };
 
 const assert = (ok, message) => { if (!ok) throw new Error(message); };
+// A stage port reports CONNECTION_LOST only after its authenticated channel has
+// closed. No later retry through this route can confirm that stage's cleanup.
+const connectionLost = error => error?.code === 'CONNECTION_LOST';
 const positive = value => Number.isSafeInteger(value) && value > 0;
 const clone = value => structuredClone(value);
 const same = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
@@ -64,14 +68,21 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
           item.owned.delete(index);
           item.receipt.cleanup[index] = { partitionIndex: index, status: 'settled', error: null };
         } catch (error) {
-          item.receipt.cleanup[index] = { partitionIndex: index, status: 'unknown', error: String(error?.message || error) };
+          // A lost stage stays unknown in this receipt; it is never reported as
+          // settled. It stops being retryable debt because its channel is gone.
+          const lost = connectionLost(error);
+          if (lost) { item.owned.delete(index); item.lost.add(index); }
+          item.receipt.cleanup[index] = { partitionIndex: index, status: 'unknown', error: String(error?.message || error),
+            ...(lost ? { code: 'CONNECTION_LOST' } : {}) };
           throw error;
         }
       }));
-      item.receipt.phase = item.owned.size ? 'cleanup-failed' : item.outcome;
-      item.receipt.cleanupSettledAt = item.owned.size ? null : Date.now();
+      const unknown = item.owned.size + item.lost.size > 0;
+      item.receipt.phase = unknown ? 'cleanup-failed' : item.outcome;
+      item.receipt.cleanupSettledAt = unknown ? null : Date.now();
       const errors = results.filter(result => result.status === 'rejected').map(result => result.reason);
-      if (errors.length) throw Object.assign(new AggregateError(errors, 'Ordered route cleanup remains unsettled'), { code: 'CLEANUP_FAILED' });
+      if (errors.length) throw Object.assign(new AggregateError(errors, 'Ordered route cleanup remains unsettled'),
+        { code: item.owned.size ? 'CLEANUP_FAILED' : 'CONNECTION_LOST' });
     })();
     try { return await item.cleaning; } finally { item.cleaning = null; }
   }
@@ -107,7 +118,7 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
     const combined = signal ? AbortSignal.any([signal, controller.signal]) : controller.signal;
     const receipt = { identity: binding, phase: 'admitting', reservations: [], cleanup: [], cleanupSettledAt: null, failure: null };
     const completion = Promise.withResolvers();
-    const item = { binding, controller, receipt, owned: new Set(), running: true, settled: completion.promise,
+    const item = { binding, controller, receipt, owned: new Set(), lost: new Set(), running: true, settled: completion.promise,
       outcome: 'completed', cleaning: null };
     attempts.set(binding.attemptId, item);
     let input = [...tokenIds], position = 0, content = '', logits = null, stopReason = 'length', activationBytes = 0;
@@ -247,14 +258,19 @@ export function createOrderedPartitionExecution({ runtime, plan: suppliedPlan, r
       throw error;
     } finally {
       try { await cleanup(item); }
-      catch (error) { throw Object.assign(new AggregateError(failure ? [failure, error] : [error],
-        'Ordered route cleanup remains unsettled'), { code: 'CLEANUP_FAILED' }); }
+      catch (error) {
+        // Report a disconnected contributor as such when loss is the only reason
+        // cleanup is unconfirmed; any retryable cleanup failure keeps CLEANUP_FAILED.
+        const lost = error.code === 'CONNECTION_LOST';
+        throw Object.assign(new AggregateError(failure ? [failure, error] : [error],
+          lost ? failureMessages.CONNECTION_LOST : 'Ordered route cleanup remains unsettled'), { code: lost ? 'CONNECTION_LOST' : 'CLEANUP_FAILED' }); }
       finally { item.running = false; completion.resolve(); }
     }
   }
   return Object.freeze({ plan, route, execute,
     getState: () => ({ closed, active: [...attempts.values()].filter(item => item.running).length,
       unsettled: [...attempts.values()].filter(item => !item.running && item.owned.size).length,
+      unknown: [...attempts.values()].filter(item => item.lost.size).length,
       attempts: clone([...attempts.values()].map(item => item.receipt)) }),
     async retryCleanup(attemptId) {
       const item = attempts.get(attemptId);

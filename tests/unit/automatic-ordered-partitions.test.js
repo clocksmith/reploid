@@ -195,6 +195,35 @@ describe('explicit ordered automatic participation (injected discovery and numer
     f.stages[0].closeAttempt.mockResolvedValue();
     await f.mesh.stop(); expect(f.stages[0].close).toHaveBeenCalledOnce();
   });
+  it('reports a lost stage as CONNECTION_LOST, keeps its receipt unknown and forms a fresh route on restored capacity', async () => {
+    vi.useFakeTimers();
+    try {
+      const f = await fixture(); await f.mesh.contribute('model', true);
+      const reserve = f.stages[1].reserve.getMockImplementation(), execute = f.stages[1].executeStage.getMockImplementation();
+      const lost = () => Object.assign(Error('contributor disconnected'), { code: 'CONNECTION_LOST' });
+      f.stages[1].executeStage.mockRejectedValueOnce(lost()); f.stages[1].closeAttempt.mockRejectedValue(lost());
+      const request = id => ({ model: f.mesh.getModels()[0], messages: [{ role: 'user', content: id }], threadId: id, attemptId: id });
+      await expect(f.mesh.generate(request('lost'), { requestApproval: async () => true })).rejects.toMatchObject({ code: 'CONNECTION_LOST' });
+      // The killed process is gone; the restarted one joins with a fresh transport session.
+      const ready = f.stages[1].getState();
+      f.stages[1].getState = () => ({ ...ready, ready: false });
+      const restored = { id: 'node-1', index: 1, transportId: 'transport-1b', residentId: 'resident-1', executionId: 'execution-1',
+        reserve: vi.fn(reserve), executeStage: vi.fn(execute), closeAttempt: vi.fn(async () => {}), close: vi.fn(async () => {}),
+        refresh: vi.fn(async () => ({ ready: true })), subscribe: () => () => {}, getState: () => ready };
+      const connect = f.networks[1].connect.getMockImplementation();
+      f.networks[1].connect.mockImplementation(async (transportId, options) => transportId === 'transport-1b' ? restored : connect(transportId, options));
+      f.route.stages[1].transportId = 'transport-1b';
+      f.discovery.refresh.mockImplementation(async () => { f.discovery.capabilities = f.capabilities(); });
+      await vi.advanceTimersByTimeAsync(60000);
+      const state = f.mesh.getState();
+      expect(state).toMatchObject({ phase: 'ready', error: null, unsettledOwners: 0 });
+      expect(state.unknownAttempts.map(row => [row.identity.attemptId, row.phase, row.cleanup[1].code])).toEqual([['lost', 'cleanup-failed', 'CONNECTION_LOST']]);
+      expect(f.mesh.getModels()[0].partition.route.stages[1].transportId).toBe('transport-1b');
+      expect((await f.mesh.generate(request('retry'), { requestApproval: async () => true })).content).toBe('012');
+      expect(f.stages[1].closeAttempt).toHaveBeenCalledOnce();
+      await f.mesh.stop(); expect(f.mesh.getState()).toMatchObject({ phase: 'idle', unsettledOwners: 0 });
+    } finally { vi.useRealTimers(); }
+  });
   it('retains registered cleanup for malformed loader returns and retries failed disposal', async () => {
     const f = await fixture(1), owner = { close: vi.fn().mockRejectedValueOnce(Error('cleanup unknown')).mockResolvedValue() };
     f.loadProgram.mockImplementation(async (_model,_index,controls) => { controls.registerCleanup(owner); return {}; });

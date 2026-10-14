@@ -257,7 +257,12 @@ export function createOrderedPartitionPeer({ channel, localParticipantId, remote
     // Attempt known cleanup while the channel remains usable. Channel closure alone is not remote settlement.
     const failures = [];
     if (!serving) for (const request of active.values()) {
-      try { await closeAttempt({ identity: request.identity }); } catch (error) { failures.push(error); }
+      try { await closeAttempt({ identity: request.identity }); }
+      catch (error) {
+        // After channel loss no retry can confirm this owner. It stays counted in
+        // `unsettled` as unknown; it does not keep the dead port open forever.
+        if (!closed || error?.code !== 'CONNECTION_LOST') failures.push(error);
+      }
     }
     descriptor = null;
     try { await receiver.close(); } catch (error) { failures.push(error); }
