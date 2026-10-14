@@ -69,6 +69,11 @@ it('browser binds an operator auto choice to the authenticated transport only wi
   const storage = (stageValue, policyValue) => ({ setItem() {}, getItem: key => key === orderedPolicy.stageStorageKey ? stageValue
     : key === orderedPolicy.orchestrationStorageKey ? policyValue : null });
   const auto = JSON.stringify({ modelId: 'ordered', assignment: 'auto' }), policy = JSON.stringify({ autoStage: { dwellMs: 60000 } });
+  const replicas = { queueBound: 2, bottleneckRatio: 1.5 };
+  await browserSwarm(storage(auto, JSON.stringify({ autoStage: { dwellMs: 60000 }, replicas }))).connect();
+  expect(ports.options.ordered.orchestration).toEqual({ autoStage: { dwellMs: 60000, transportId: 'actual-rtc' }, replicas });
+  // Replicas are an automatic contributor's policy; an operator-assigned stage cannot enable them.
+  expect(() => browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ replicas })))).toThrow('orchestration');
   await browserSwarm(storage(auto, policy)).connect();
   expect(ports.options.ordered).toEqual({ stage: null, maxRouteBytes: orderedPolicy.limits.maxRouteBytes,
     maxSelectionSteps: orderedPolicy.limits.maxSelectionSteps, maxRoutes: orderedPolicy.limits.maxRoutes,

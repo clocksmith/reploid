@@ -80,6 +80,7 @@ describe('Launch 3 mechanisms are off by default (Launch 1 candidate behavior)',
     expect(c.replica.executeStage).not.toHaveBeenCalled();
     expect(c.mesh.getState().placementDecision.reason).toBe('retain-prepared-route');
     expect(c.mesh.getState()).not.toHaveProperty('routeObservations');
+    expect(Object.keys(c.discovery.options.describe())).toEqual(['schema', 'participantId', 'phase', 'models', 'capacity']);
   });
 
   it('without a shared device, each resident admits by its own slots and loaders receive no device', async () => {

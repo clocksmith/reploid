@@ -95,6 +95,9 @@ export interface OrderedOrchestration {
   admission?: { maxBytes: number; maxConcurrentAttempts: number; attemptBytes: number;
     /** Fair bounded waiting; advertised as `capacity.queued` and `capacity.maxQueued`. */
     queue?: import('./partition-device-admission.js').DeviceAdmissionQueue };
+  /** Requires `autoStage`. With every stage supplied, join or move to a stage whose advertised queue exceeds
+   * `queueBound` or whose ranked measured decode cost is at least `bottleneckRatio` times every other stage's. */
+  replicas?: { queueBound: number; bottleneckRatio: number };
 }
 export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionState,
   'placementDecision' | 'reservations' | 'attempts' | 'descriptor'> {
@@ -106,7 +109,8 @@ export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionS
   /** Receipts of retired routes whose cleanup was never confirmed. */
   unknownAttempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
   /** Present only with `orchestration.autoStage`: the latest own-stage decision. */
-  assignment?: (import('./partition-stage-assignment.js').StageAssignmentDecision & { decidedAt: number }) | null;
+  assignment?: (import('./partition-stage-assignment.js').StageAssignmentDecision & { decidedAt: number;
+    demand?: import('./partition-stage-assignment.js').StageDemand }) | null;
   /** Present only with `orchestration.routeRanking`. */
   routeObservations?: import('./partition-route-ranking.js').RouteObservation[];
 }

@@ -81,7 +81,9 @@ const ORCHESTRATION_POLICIES = Object.freeze({
     // A queued reservation must be answered before the execution channel's request timeout.
     && (value.queue === undefined || exactKeys(value.queue, ['maxQueued', 'maxQueuedPerRequester', 'maxWaitMs'])
       && positiveInteger(value.queue.maxQueued) && positiveInteger(value.queue.maxQueuedPerRequester)
-      && positiveInteger(value.queue.maxWaitMs) && value.queue.maxWaitMs < partitionPolicy.executionChannel.timeoutMs)
+      && positiveInteger(value.queue.maxWaitMs) && value.queue.maxWaitMs < partitionPolicy.executionChannel.timeoutMs),
+  replicas: value => exactKeys(value, ['queueBound', 'bottleneckRatio']) && Number.isSafeInteger(value.queueBound)
+    && value.queueBound >= 0 && typeof value.bottleneckRatio === 'number' && Number.isFinite(value.bottleneckRatio) && value.bottleneckRatio > 1
 });
 const isAutoStage = stage => stage?.assignment === 'auto';
 
@@ -100,7 +102,8 @@ export function snapshotWorkOrderedParticipation(ordered, canonical, models) {
       throw new Error('Ordered orchestration policy must name known, explicitly bounded mechanisms');
     }
   }
-  if (isAutoStage(copy.stage) !== (copy.orchestration?.autoStage !== undefined)) {
+  if (isAutoStage(copy.stage) !== (copy.orchestration?.autoStage !== undefined)
+    || copy.orchestration?.replicas !== undefined && !isAutoStage(copy.stage)) {
     throw new Error('Automatic ordered stage requires both the operator auto choice and its orchestration policy');
   }
   if (isAutoStage(copy.stage)) {

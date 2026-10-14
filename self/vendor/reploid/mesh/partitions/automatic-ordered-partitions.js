@@ -11,7 +11,7 @@ import { summarizePartitionExecution } from './partition-summary.js';
 import { createPartitionChat } from './partition-chat.js';
 import { createPartitionGrantAuthority, orderedPartitionDisclosure } from './partition-grants.js';
 import { assertPartition as assert, canonicalPartitionJson, canonicalPartitionRoute, validatePartitionRoute, PARTITION_ROUTE_SCHEMA } from './partition-contract.js';
-import { planStageAssignment, STAGE_ASSIGNMENT_SCHEMA } from './partition-stage-assignment.js';
+import { planStageAssignment, stageDemand, STAGE_ASSIGNMENT_SCHEMA, STAGE_COSTS_SCHEMA } from './partition-stage-assignment.js';
 import { createDeviceAdmission } from './partition-device-admission.js';
 
 const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
@@ -22,13 +22,15 @@ const equal = (a, b) => canonicalPartitionJson(a) === canonicalPartitionJson(b);
  * its stage from observed offers and move only while idle; with `routeRanking`,
  * a coordinator ranks complete routes by measured phases for new attempts only;
  * with `admission`, every resident this owner prepares charges one device budget,
- * optionally behind a fair bounded queue. */
+ * optionally behind a fair bounded queue; with `replicas`, an automatic contributor
+ * joins or moves to a stage whose queue or measured cost makes another replica useful. */
 export function createAutomaticOrderedPartitions({ identity, meshId, models, policy, peers, createNetwork,
   loadProgram, ordered, onChange = () => {} }) {
   const config = structuredClone(policy), catalog = structuredClone(models), options = structuredClone(ordered);
   let stage = options.stage ?? null;
   const orchestration = options.orchestration ?? null, auto = orchestration?.autoStage ?? null;
   const ranking = orchestration?.routeRanking ?? null, admission = orchestration?.admission ?? null;
+  const replicas = orchestration?.replicas ?? null;
   assert(identity?.peerId && typeof peers === 'function' && typeof createNetwork === 'function' && typeof loadProgram === 'function'
     && ['pollMs', 'maxPeers', 'connectTimeoutMs', 'grantMs', 'maxStageOffersPerPeer'].every(key => Number.isSafeInteger(config[key]) && config[key] > 0)
     && ['maxRouteBytes', 'maxSelectionSteps', 'maxRoutes'].every(key => Number.isSafeInteger(options[key]) && options[key] > 0),
@@ -37,7 +39,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     && ['transportId', 'residentId', 'executionId'].every(key => typeof stage[key] === 'string' && stage[key].length > 0),
   'Actual local stage identity required');
   assert(orchestration === null || orchestration && typeof orchestration === 'object' && !Array.isArray(orchestration)
-    && Object.keys(orchestration).every(key => ['autoStage', 'routeRanking', 'admission'].includes(key)), 'Unknown ordered orchestration policy');
+    && Object.keys(orchestration).every(key => ['autoStage', 'routeRanking', 'admission', 'replicas'].includes(key)), 'Unknown ordered orchestration policy');
   assert(auto === null || stage === null && typeof auto.transportId === 'string' && auto.transportId.length > 0
     && Number.isSafeInteger(auto.dwellMs) && auto.dwellMs >= 0, 'Automatic stage assignment requires an authenticated transport and explicit dwell');
   assert(ranking === null || typeof ranking.margin === 'number' && ranking.margin >= 0 && ranking.margin < 1
@@ -46,6 +48,9 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
   'Measured route preference requires an explicit margin and workload');
   // Bounded, smoothed per (plan, participant, stage) costs from attempts this coordinator completed.
   const observations = ranking ? createRouteObservations({ maxEntries: ranking.maxObservations, smoothing: ranking.smoothing }) : null;
+  assert(replicas === null || auto !== null && Number.isSafeInteger(replicas.queueBound) && replicas.queueBound >= 0
+    && typeof replicas.bottleneckRatio === 'number' && replicas.bottleneckRatio > 1,
+  'Useful replicas require automatic stage assignment and explicit demand bounds');
   assert(admission === null || Number.isSafeInteger(admission.attemptBytes) && admission.attemptBytes > 0,
     'Shared device admission requires an explicit attempt allocation');
   // One owner prepares at most one resident at a time on this host's device; moves reuse this budget.
@@ -85,10 +90,14 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     // adds the full route selection; other active routes keep their own owners.
     const entry = current()?.chat.getModels()[0];
     if (inventory.length && entry && offer && phase === 'ready') inventory[0] = { ...inventory[0], ...entry };
+    const route = ranking && offer && phase === 'ready' ? current()?.route : null;
     return { schema: 'reploid.partition-capability/v2', participantId: identity.peerId,
       phase, models: inventory, capacity: residentCapacity(),
       ...(auto && offer ? { assignment: { schema: STAGE_ASSIGNMENT_SCHEMA, modelId: offer.id, modelIdentity: offer.identity,
-        index: stage?.index ?? null } } : {}) };
+        index: stage?.index ?? null } } : {}),
+      // A ranking coordinator shares its measured per-stage decode cost so automatic contributors can see bottlenecks.
+      ...(route ? { stageCosts: { schema: STAGE_COSTS_SCHEMA, modelId: offer.id, modelIdentity: offer.identity, planId: route.planId,
+        decodeMs: route.stages.map(row => observations.get(route.planId, row.participantId, row.index)?.decodeMs ?? null) } } : {}) };
   }
   // With ranking, the preferred route is listed first so entry refreshes resolve new attempts to it.
   const routeOwners = () => ranking && current() ? [current(), ...[...routes.values()].filter(row => row !== current())] : [...routes.values()];
@@ -265,8 +274,14 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
   // Fresh allocation labels per preparation; participant and transport come from the host binding.
   const autoIdentity = index => ({ index, participantId: identity.peerId, transportId: auto.transportId,
     residentId: 'auto-' + hex(), executionId: 'auto-' + hex() });
-  const plan = current => planStageAssignment({ participantId: identity.peerId, model: offer, stageCount: offer.partitionPlan.stageCount,
-    capabilities: discovery.getSnapshot(), now: Date.now(), current, maxOffersPerPeer: config.maxStageOffersPerPeer });
+  function plan(current) {
+    const capabilities = discovery.getSnapshot(), now = Date.now(), stageCount = offer.partitionPlan.stageCount;
+    const demand = replicas ? stageDemand({ model: offer, stageCount, capabilities, now, maxOffersPerPeer: config.maxStageOffersPerPeer,
+      queueBound: replicas.queueBound, bottleneckRatio: replicas.bottleneckRatio }) : null;
+    const decision = planStageAssignment({ participantId: identity.peerId, model: offer, stageCount, capabilities, now, current,
+      maxOffersPerPeer: config.maxStageOffersPerPeer, demand });
+    return { ...decision, decidedAt: now, ...(demand ? { demand } : {}) };
+  }
   // Idle: no admitted, queued, pending or unsettled attempt on this resident or any of its routes.
   function idle() {
     const state = program.resident.getState();
@@ -278,7 +293,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     if (!auto || !offer || !program || phase !== 'ready' || stopping || closed || moving
       || Date.now() - readyAt < auto.dwellMs || !idle()) return;
     const next = plan(stage.index);
-    assignment = { ...next, decidedAt: Date.now() };
+    assignment = next;
     if (!next.move) return;
     // Synchronously refuse new admissions before any await; nothing is active to move.
     moving = (async () => program.resident.drain?.())().catch(() => {});
@@ -358,7 +373,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
         notify(); await discovery.refresh();
         if (!offer || stopping || closed) return;
         const next = plan(null);
-        assignment = { ...next, decidedAt: Date.now() }; stage = autoIdentity(next.index);
+        assignment = next; stage = autoIdentity(next.index);
       }
       await prepare(); if (offer && !stopping && phase === 'ready') await tick();
     },
