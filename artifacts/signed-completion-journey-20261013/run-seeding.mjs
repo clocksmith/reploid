@@ -7,7 +7,7 @@ import { orderedSelectionId } from './config.mjs';
 import { compilePatterns, observeChat, observeCustody, observeNetwork, observeOffer } from './observe.mjs';
 import { assessSeeding } from './seeding-checks.mjs';
 import { TERMINAL, startRun, openBrowser, appUrl, trackRequests, waitFor, openApp, chooseOrderedModel, send, followAttempt,
-  waitForAttempt, attemptIds, startFileContribution, stopFileContribution, readLedger, openDevicePane, SELECTORS, sleep, now } from './harness.mjs';
+  waitForAttempt, attemptIds, startFileContribution, stopFileContribution, stopFileContributionNow, readLedger, openDevicePane, SELECTORS, sleep, now } from './harness.mjs';
 
 const { config, room, fixture, report, save } = await startRun('full-seeding', './seeding.json');
 const { freeze, timeouts, storage } = config, poll = config.observation.pollMs, selectionId = orderedSelectionId(freeze);
@@ -71,8 +71,17 @@ async function catalogFiles(origin) {
   for (const shard of manifest.shards) files.push({ path: shard.filename, role: 'model-weights', sizeBytes: shard.size, hash: shard.hash });
   return files;
 }
+// Receipt hashes are SHA-256 of the transferred bytes; the catalog names weights by the manifest's
+// algorithm (BLAKE3), so weights are matched by artifact path and size (seeding-checks.mjs).
 const peerTransfers = custody => (custody?.receipts || []).map(receipt => ({ transferId: receipt.transferId, bytes: receipt.reservedBytes,
-  finished: !receipt.failure, hashes: (receipt.completed || []).map(item => item.hash) }));
+  finished: !receipt.failure, hashes: (receipt.completed || []).map(item => item.hash),
+  artifacts: (receipt.completed || []).map(item => ({ artifactId: item.artifactId, sizeBytes: item.sizeBytes })) }));
+// A failed transfer's own receipt: why each rejected chunk attempt failed (runtime.js attempts).
+const failedTransfers = custody => (custody?.receipts || []).filter(receipt => receipt.failure).map(receipt => ({
+  transferId: receipt.transferId, failure: receipt.failure, reservedBytes: receipt.reservedBytes, receivedBytes: receipt.receivedBytes,
+  cacheBytes: receipt.cacheBytes, elapsedMs: receipt.elapsedMs,
+  rejected: (receipt.attempts || []).filter(item => item.status !== 'accepted').map(item => ({ peerId: item.peerId,
+    artifactId: item.artifactId, chunkIndex: item.chunkIndex, status: item.status, error: item.error ?? null })) }));
 async function startChat(page) {
   await chooseOrderedModel(page, selectionId, timeouts.readyMs);
   const oldIds = attemptIds(await observeChat(page));
@@ -132,16 +141,20 @@ try {
     const acquirer = await freshContext(acquirerBrowser, 'whole-acquirer'), page = await openTab(acquirer, 'whole-acquirer-main', acquirerOrigin);
     await waitFor(async () => (await filesOf(page))?.peers?.includes(report.seed.transportId), { timeout: timeouts.transferMs, poll, label: 'Seeder offer discovery' });
     const suppliedBefore = (await filesOf(seederPage)).suppliedBytes, since = now();
-    await startFileContribution(page, { modelId: freeze.modelId, mode: 'full-model', allowanceMiB: storage.seedingAllowanceMiB });
-    const files = await outcome(page, timeouts.seedingMs);
+    const startedAt = await startFileContribution(page, { modelId: freeze.modelId, mode: 'full-model', allowanceMiB: storage.seedingAllowanceMiB });
+    const files = await outcome(page, timeouts.seedingMs), finishedAt = now(), custody = await observeCustody(page);
     report.peer = { seeder: { machine: config.browsers.storageSupplier.machine, transportId: report.seed.transportId, suppliedBefore,
       suppliedAfter: (await filesOf(seederPage)).suppliedBytes },
-    acquirer: { machine: config.browsers.storageAcquirer.machine, files, offered: (await observeOffer(page)).offered,
-      receipts: peerTransfers(await observeCustody(page)), ledger: await readLedger(page), requests: rowsOf('whole-acquirer-main', since) } };
+    acquirer: { machine: config.browsers.storageAcquirer.machine, startedAt, finishedAt, files, offered: (await observeOffer(page)).offered,
+      receipts: peerTransfers(custody), failedTransfers: failedTransfers(custody), ledger: await readLedger(page),
+      requests: rowsOf('whole-acquirer-main', since) } };
     await stopFileContribution(page); await stopped(page);
   });
 
-  // (c) Reload the seeder's only tab; cached-only rebuilds the whole inventory with no download.
+  // (c) Reload the seeder's only tab and resume the same full-model grant: the whole inventory is rebuilt
+  // from verified cached bytes with no download and no new charge. Cached-only is not used here: by
+  // design it offers a bounded subset of verified pieces (work-model-files.js maxSubsetBytes) and never
+  // implies whole-model retention; run-contribution.mjs covers it.
   await step('reloadRebuildsWhole', async () => {
     if (!report.seed?.files?.sharing) throw Error('Prerequisite seeding step did not share');
     const before = { offered: (await observeOffer(seederPage)).offered, ledger: await readLedger(seederPage) };
@@ -149,7 +162,7 @@ try {
     await seederPage.reload({ waitUntil: 'domcontentloaded' });
     await waitFor(() => observeCustody(seederPage).catch(() => null), { timeout: timeouts.readyMs, poll, label: 'Custody owner' });
     const since = now();
-    await startFileContribution(seederPage, { modelId: freeze.modelId, mode: 'cached-only' });
+    await startFileContribution(seederPage, { modelId: freeze.modelId, mode: 'full-model', allowanceMiB: storage.seedingAllowanceMiB });
     const files = await outcome(seederPage);
     const quiet = Date.now(); while (Date.now() - quiet < fixture.cachedOnlyObservationMs) await sleep(250);
     report.reload = { before, after: { files, offered: (await observeOffer(seederPage)).offered, ledger: await readLedger(seederPage),
@@ -173,19 +186,43 @@ try {
     await stopFileContribution(page).catch(() => null);
   });
 
-  // (f) Stop a seed while whole files transfer and the person's conversation streams.
+  // (f) Stop a seed while whole files transfer and the person's conversation streams. A local origin
+  // delivers a 64 MiB weight file in about half a second, faster than page-state polling (run 7
+  // attempt c) or the Stop click itself (attempt d). So this page's downloads are throttled to
+  // `stopDownloadBytesPerSecond` by CDP network emulation (harness only; the application is unchanged),
+  // and the request tracker triggers the stop: the ledger is read at the first model-file request and
+  // Stop is clicked at the first weight-file request, without the actionability wait that the moving
+  // progress text stretches to the whole transfer. In flight means requested no later than the click
+  // completed and unfinished then, or aborted after the click, from the tracked request rows.
   await step('stopSettlesSeeding', async () => {
     const owner = await freshContext(seederBrowser, 'seed-stop'), page = await openTab(owner, 'seed-stop-main', seederOrigin);
+    const network = await owner.context.newCDPSession(page);
+    await network.send('Network.enable');
+    await network.send('Network.emulateNetworkConditions', { offline: false, latency: 0,
+      downloadThroughput: fixture.stopDownloadBytesPerSecond, uploadThroughput: -1 });
     const chat = await startChat(page), samples = [];
     const record = async () => samples.push({ at: now(), attemptStatus: (await observeChat(page)).threads.flatMap(thread => thread.attempts)
       .find(item => item.id === chat.attempt.id)?.status ?? null });
-    await startFileContribution(page, { modelId: freeze.modelId, mode: 'full-model', allowanceMiB: storage.seedingAllowanceMiB });
-    const inFlight = await waitFor(async () => {
+    const ours = row => row.page === 'seed-stop-main';
+    const firstFile = owner.tracker.next(ours), firstWeight = owner.tracker.next(row => ours(row) && row.weight);
+    let timer;
+    const deadline = new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Whole file in flight deadline')), timeouts.transferMs); });
+    let ledgerBefore, firstWeightRow, clickStartedAt, stopClickedAt;
+    try {
       await record();
-      const files = await filesOf(page), pending = rowsOf('seed-stop-main').filter(row => row.weight && !row.finished && !row.failed).length;
-      return files?.preparing && pending > 0 ? { pendingWeightRequests: pending, progress: files.progress } : null;
-    }, { timeout: timeouts.transferMs, poll, label: 'Whole file in flight' });
-    const ledgerBefore = await readLedger(page), stopClickedAt = await stopFileContribution(page);
+      await startFileContribution(page, { modelId: freeze.modelId, mode: 'full-model', allowanceMiB: storage.seedingAllowanceMiB });
+      await Promise.race([firstFile, deadline]);
+      ledgerBefore = await readLedger(page);
+      firstWeightRow = await Promise.race([firstWeight, deadline]);
+      clickStartedAt = now(); stopClickedAt = await stopFileContributionNow(page);
+    } finally { clearTimeout(timer); deadline.catch(() => {}); }
+    await record();
+    // A weight request the stop aborted (failed after the click) was in flight, whenever the page handled the click.
+    const pendingRows = rowsOf('seed-stop-main').filter(row => row.weight && row.at <= stopClickedAt
+      && (!(row.finishedAt && row.finishedAt < stopClickedAt) || (row.failed && row.finishedAt >= clickStartedAt)));
+    const inFlight = { firstWeightAt: firstWeightRow.at, clickStartedAt, stopClickedAt, throttleBytesPerSecond: fixture.stopDownloadBytesPerSecond,
+      pendingWeightRequests: pendingRows.length, pending: pendingRows.map(row => ({ url: row.url, at: row.at, finishedAt: row.finishedAt,
+        failed: row.failed, failure: row.failure ?? null })) };
     const filesAfter = await stopped(page), settledAt = now();
     report.stop = { inFlight, ledgerBefore, stopClickedAt, filesAfter, settledAt, ledgerAfter: await readLedger(page),
       chat: { attemptId: chat.attempt.id, samples, final: null } };

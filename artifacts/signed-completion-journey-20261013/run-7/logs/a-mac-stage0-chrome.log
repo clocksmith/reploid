@@ -1,0 +1,83 @@
+
+DevTools listening on ws://127.0.0.1:29671/devtools/browser/7e7b2a66-f694-48bf-b8f9-71699f43d9a5
+Trying to load the allocator multiple times. This is *not* supported.
+[51531:30992376:1014/095705.240792:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[51531:30992473:1014/095705.240999:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[51531:30992376:1014/095705.243466:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[51531:30992473:1014/095705.243504:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[51531:30992376:1014/095705.244466:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[51531:30992473:1014/095705.244503:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[51531:30992376:1014/095705.244728:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[51531:30992473:1014/095705.244754:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[51531:30992376:1014/095705.244831:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+[51531:30992473:1014/095705.244860:ERROR:ui/display/mac/cv_display_link_mac.mm:188] CVDisplayLinkCreateWithCGDisplay failed. CVReturn: -6670
+Created TensorFlow Lite XNNPACK delegate for CPU.
+[51524:30992361:1014/095707.482684:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[51582:30993069:1014/095723.996173:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake-all --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[51582:30993069:1014/095723.997059:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1295790, parent pid: 51524
+[51582:30993069:1014/095723.999944:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 6144446464B (5.722GiB) / 494384795648B (460.432GiB)
+[51582:30993069:1014/095723.999984:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 6144446464B (5.722GiB) / 494384795648B (460.432GiB)
+[51582:30993069:1014/095724.000081:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[51584:30993077:1014/095724.017012:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=157.0.8089.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[51584:30993077:1014/095724.017575:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1295790, parent pid: 1
+[51584:30993077:1014/095724.019553:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 6144438272B (5.722GiB) / 494384795648B (460.432GiB)
+[51584:30993077:1014/095724.019588:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 6144438272B (5.722GiB) / 494384795648B (460.432GiB)
+[51584:30993077:1014/095724.019698:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[51582:30993069:1014/095724.020187:VERBOSE1:chrome/updater/crash_reporter.cc:123] Crash handler launched and ready.
+[51582:30993069:1014/095724.020874:VERBOSE1:chrome/updater/crash_client.cc:109] Found 0 completed crash reports
+[51582:30993069:1014/095724.020971:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports
+[51582:30993069:1014/095724.021075:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)
+[51582:30993069:1014/095724.021091:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)
+[51582:30993069:1014/095724.021103:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)
+[51582:30993069:1014/095724.021148:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)
+[51582:30993069:1014/095724.021230:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/Chrome-headless/Crashpad/settings.dat: No such file or directory (2)
+[51582:30993069:1014/095724.021246:VERBOSE1:chrome/updater/updater.cc:107] Crash reporting initialized.
+[51582:30993085:1014/095724.021550:VERBOSE1:chrome/updater/app/app_wakeall.cc:58] Launching `/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake`
+[51585:30993091:1014/095724.035220:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[51585:30993091:1014/095724.035742:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1295790, parent pid: 51582
+[51585:30993091:1014/095724.037455:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 6144413696B (5.722GiB) / 494384795648B (460.432GiB)
+[51585:30993091:1014/095724.037481:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 6144413696B (5.722GiB) / 494384795648B (460.432GiB)
+[51585:30993091:1014/095724.037536:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[51587:30993095:1014/095724.050936:VERBOSE1:chrome/updater/updater.cc:375] Version: 157.0.8089.0, opt, ARM_64, command line: /Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --crash-handler --database=/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/Crashpad --url=https://clients2.google.com/cr/report --annotation=prod=Update4 --annotation=ver=157.0.8089.0 --handshake-fd=6 --enable-logging --vmodule=*/components/update_client/*=2,*/chrome/enterprise_companion/*=2,*/chrome/updater/*=2
+[51587:30993095:1014/095724.051395:VERBOSE1:chrome/updater/updater.cc:378] OS version: 26.6.2, arch: arm64, System uptime (seconds): 1295790, parent pid: 1
+[51587:30993095:1014/095724.053084:VERBOSE1:chrome/updater/updater.cc:383] Available disk space in install directory (/Users/xyz/Library/Application Support/Google/GoogleUpdater): 6144413696B (5.722GiB) / 494384795648B (460.432GiB)
+[51587:30993095:1014/095724.053118:VERBOSE1:chrome/updater/updater.cc:387] Available disk space in temporary directory (/var/folders/85/l5dptg296tlfx03cd_k7h0l80000gn/T/): 6144413696B (5.722GiB) / 494384795648B (460.432GiB)
+[51587:30993095:1014/095724.053231:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS START event to the history log
+[51585:30993091:1014/095724.053633:VERBOSE1:chrome/updater/crash_reporter.cc:123] Crash handler launched and ready.
+[51585:30993091:1014/095724.054225:VERBOSE1:chrome/updater/crash_client.cc:109] Found 0 completed crash reports
+[51585:30993091:1014/095724.054303:VERBOSE1:chrome/updater/crash_client.cc:132] Found 0 pending crash reports
+[51585:30993091:1014/095724.054388:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/RLZ/Crashpad/settings.dat: No such file or directory (2)
+[51585:30993091:1014/095724.054404:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2025.2.1/Crashpad/settings.dat: No such file or directory (2)
+[51585:30993091:1014/095724.054414:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/consentOptions/Crashpad/settings.dat: No such file or directory (2)
+[51585:30993091:1014/095724.054448:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/AndroidStudio2024.3.2/Crashpad/settings.dat: No such file or directory (2)
+[51585:30993091:1014/095724.054512:ERROR:third_party/crashpad/crashpad/util/file/file_io_posix.cc:145] open /Users/xyz/Library/Application Support/Google/Chrome-headless/Crashpad/settings.dat: No such file or directory (2)
+[51585:30993091:1014/095724.054526:VERBOSE1:chrome/updater/updater.cc:107] Crash reporting initialized.
+[51585:30993091:1014/095724.054692:VERBOSE1:chrome/updater/ipc/update_service_internal_proxy_mojo.cc:61] Run
+[51524:30992361:1014/095735.334161:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[51585:30993091:1014/095746.712704:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0
+[51585:30993091:1014/095746.713473:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[51585:30993091:1014/095746.713516:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--wake) returned 0.
+[51587:30993095:1014/095746.717067:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[51587:30993095:1014/095746.717142:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--crash-handler) returned 0.
+[51582:30993085:1014/095746.967008:VERBOSE1:chrome/updater/app/app_wakeall.cc:68] `/Users/xyz/Library/Application Support/Google/GoogleUpdater/157.0.8089.0/GoogleUpdater.app/Contents/MacOS/GoogleUpdater --wake` exited 0
+[51582:30993069:1014/095746.967161:VERBOSE1:chrome/updater/app/app.cc:52] Shutdown: 0
+[51582:30993069:1014/095746.967617:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[51582:30993069:1014/095746.970084:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--wake-all) returned 0.
+[51584:30993077:1014/095746.972206:VERBOSE2:chrome/updater/event_history.cc:266] Emitted a UPDATER_PROCESS END event to the history log
+[51584:30993077:1014/095746.972246:VERBOSE1:chrome/updater/updater.cc:420] UpdaterMain (--crash-handler) returned 0.
+Created TensorFlow Lite XNNPACK delegate for CPU.
+[51524:30992361:1014/095823.205616:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[51538:30993714:1014/095836.718941:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:50980 (any)
+[51538:30993714:1014/095836.719304:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:62689 (any)
+[51538:30993714:1014/100015.233949:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:55958 (any)
+[51524:30992361:1014/100020.884930:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[51524:30992361:1014/100338.600227:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[51538:30993714:1014/101002.578323:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:50490 (any)
+[51538:30993714:1014/101012.312930:ERROR:third_party/webrtc/p2p/base/stun_port.cc:124] Binding request timed out from [0:0:0:x:x:x:x:x]:58019 (any)
+[51524:30992361:1014/101034.527269:ERROR:google_apis/gcm/engine/registration_request.cc:291] Registration response error message: DEPRECATED_ENDPOINT
+[51538:30993714:1014/101646.507547:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport12->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[51538:30992494:1014/101646.551653:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[51538:30992494:1014/101646.575614:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[51538:30993714:1014/101648.210098:ERROR:third_party/webrtc/media/sctp/dcsctp_transport.cc:560] DcSctpTransport13->OnAborted(error=PEER_REPORTED, message=User-Initiated Abort, reason=Close called).
+[51538:30992494:1014/101648.254902:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12
+[51538:30992494:1014/101648.277568:ERROR:third_party/blink/renderer/modules/peerconnection/rtc_data_channel.cc:718] DataChannel error: "User-Initiated Abort, reason=Close called", code: 12

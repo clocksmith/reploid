@@ -337,6 +337,15 @@ export async function stopFileContribution(page) {
   return now();
 }
 
+/** Stop while the controls are re-rendering: a real mouse click on the already open toggle without
+ * waiting for layout stability. A transfer's progress text moves the toggle on every update, so the
+ * actionability wait otherwise lasts until the transfer ends (run 7 attempts e and f). */
+export async function stopFileContributionNow(page) {
+  if (await page.locator(SELECTORS.fileToggle).getAttribute('aria-checked') !== 'true') return null;
+  await page.locator(SELECTORS.fileToggle).click({ force: true });
+  return now();
+}
+
 /** The application's own ledger reader (self/infrastructure/custody-supply-budget.js:49), existing ledgers only. */
 export function readLedger(page) {
   return page.evaluate(async () => {

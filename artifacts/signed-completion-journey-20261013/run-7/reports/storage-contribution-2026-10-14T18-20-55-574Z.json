@@ -1,0 +1,47 @@
+{
+  "schema": "reploid.signed-completion-journey-report/v1",
+  "harness": "storage-contribution",
+  "startedAt": "2026-10-14T18:20:55.574Z",
+  "configSha256": "6f111a7118931a27e51e98ac01e20eed005e68701188c427bc3d6782f45b52a1",
+  "fixtureSha256": "9a4c9f00183edd673c2087b81f19e99e5730f09101ff73dbeb95cb4f4ae4b988",
+  "freeze": {
+    "browserBundle": "sha256:32eb747d86d9d6584986632ce439a6136573b28a1d97bbad784478303dba5764",
+    "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [
+      8,
+      16
+    ],
+    "nativeArtifacts": {
+      "amd-host": "sha256:430d26f85993756c59909c57fc25512b00a583262acd16a0d722f7e3c76a0917",
+      "intel-host": "sha256:430d26f85993756c59909c57fc25512b00a583262acd16a0d722f7e3c76a0917"
+    },
+    "route": [
+      {
+        "index": 0,
+        "machine": "mac-host",
+        "host": "browser",
+        "participantId": "peer:4ec7f1bcf0a802c41c49e274"
+      },
+      {
+        "index": 1,
+        "machine": "intel-host",
+        "host": "native",
+        "participantId": "peer:09610aefbd15a133d7af2b57",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run7-20261014/intel-host-stage-1.json"
+      },
+      {
+        "index": 2,
+        "machine": "amd-host",
+        "host": "native",
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run7-20261014/amd-host-stage-2.json"
+      }
+    ]
+  },
+  "ok": false,
+  "errors": []
+}

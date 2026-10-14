@@ -1,0 +1,1 @@
+{"unit":"scj-run7-intel-acquirer-3","stoppedAt":"2026-10-14T19:04:58Z","memoryPeakBytes":"371085312","activeAfter":"inactive"}

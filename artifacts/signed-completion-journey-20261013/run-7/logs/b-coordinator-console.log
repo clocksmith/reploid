@@ -1,0 +1,796 @@
+2026-10-14T14:20:52.260Z attached http://127.0.0.1:29670/
+2026-10-14T14:20:53.013Z info [INFO] [WebRTCSwarm] Peer joined: 275b4bf9-77af-4f37-be3e-0ef214dc725f
+2026-10-14T14:20:53.035Z info [INFO] [WebRTCSwarm] Received offer from: 275b4bf9-77af-4f37-be3e-0ef214dc725f
+2026-10-14T14:20:53.069Z info [INFO] [WebRTCSwarm] Data channel opened with 275b4bf9-77af-4f37-be3e-0ef214dc725f
+2026-10-14T14:20:56.117Z log [78397.1ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1080, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1080
+2026-10-14T14:21:23.075Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 2ms
+2026-10-14T14:21:23.099Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 27ms
+2026-10-14T14:21:23.099Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 27ms
+2026-10-14T14:21:53.078Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 5ms
+2026-10-14T14:21:53.269Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 195ms
+2026-10-14T14:21:53.269Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 196ms
+2026-10-14T14:22:23.098Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 25ms
+2026-10-14T14:22:23.099Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 26ms
+2026-10-14T14:22:23.106Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 31ms
+2026-10-14T14:22:53.072Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 1ms
+2026-10-14T14:22:53.119Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 49ms
+2026-10-14T14:22:53.128Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 58ms
+2026-10-14T14:23:23.079Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 6ms
+2026-10-14T14:23:23.090Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 17ms
+2026-10-14T14:23:23.207Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 135ms
+2026-10-14T14:23:53.083Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 10ms
+2026-10-14T14:23:53.179Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 106ms
+2026-10-14T14:23:54.751Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 1675ms
+2026-10-14T14:24:23.090Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 18ms
+2026-10-14T14:24:23.094Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 22ms
+2026-10-14T14:24:23.099Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 27ms
+2026-10-14T14:24:53.088Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 15ms
+2026-10-14T14:24:53.094Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 18ms
+2026-10-14T14:24:53.095Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 18ms
+2026-10-14T14:25:23.078Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 4ms
+2026-10-14T14:25:23.136Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 63ms
+2026-10-14T14:25:23.154Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 82ms
+2026-10-14T14:25:53.076Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 3ms
+2026-10-14T14:25:53.091Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 18ms
+2026-10-14T14:25:53.135Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 61ms
+2026-10-14T14:26:23.097Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 23ms
+2026-10-14T14:26:23.098Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 24ms
+2026-10-14T14:26:23.098Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 24ms
+2026-10-14T14:26:29.518Z log [411796.7ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1213, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1213
+2026-10-14T14:26:53.077Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 3ms
+2026-10-14T14:26:53.114Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 40ms
+2026-10-14T14:26:53.147Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 73ms
+2026-10-14T14:27:23.077Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 3ms
+2026-10-14T14:27:23.155Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 79ms
+2026-10-14T14:27:23.297Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 222ms
+2026-10-14T14:27:53.112Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 40ms
+2026-10-14T14:27:53.532Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 458ms
+2026-10-14T14:27:53.546Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 471ms
+2026-10-14T14:28:23.104Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 32ms
+2026-10-14T14:28:23.105Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 32ms
+2026-10-14T14:28:23.109Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 37ms
+2026-10-14T14:28:53.080Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 6ms
+2026-10-14T14:28:53.106Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 32ms
+2026-10-14T14:28:53.106Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 33ms
+2026-10-14T14:29:23.090Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 17ms
+2026-10-14T14:29:23.091Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 17ms
+2026-10-14T14:29:23.107Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 34ms
+2026-10-14T14:29:53.090Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 17ms
+2026-10-14T14:29:53.095Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 21ms
+2026-10-14T14:29:53.235Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 161ms
+2026-10-14T14:30:23.078Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 5ms
+2026-10-14T14:30:23.290Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 215ms
+2026-10-14T14:30:23.291Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 216ms
+2026-10-14T14:30:53.077Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 4ms
+2026-10-14T14:30:53.153Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 77ms
+2026-10-14T14:30:53.154Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 78ms
+2026-10-14T14:31:23.076Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 3ms
+2026-10-14T14:31:23.200Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 127ms
+2026-10-14T14:31:23.729Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 655ms
+2026-10-14T14:31:53.082Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 6ms
+2026-10-14T14:31:53.193Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 117ms
+2026-10-14T14:31:53.216Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 138ms
+2026-10-14T14:32:11.723Z error [ERROR] [WebRTCSwarm] Data channel error with 275b4bf9-77af-4f37-be3e-0ef214dc725f: RTCErrorEvent
+2026-10-14T14:32:11.725Z info [INFO] [WebRTCSwarm] Data channel closed with 275b4bf9-77af-4f37-be3e-0ef214dc725f
+2026-10-14T14:32:11.735Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T14:32:11.751Z info [INFO] [WebRTCSwarm] Peer left: 275b4bf9-77af-4f37-be3e-0ef214dc725f
+2026-10-14T14:32:12.056Z info [INFO] [WebRTCSwarm] Peer joined: 275b4bf9-77af-4f37-be3e-0ef214dc725f
+2026-10-14T14:32:12.080Z info [INFO] [WebRTCSwarm] Received offer from: 275b4bf9-77af-4f37-be3e-0ef214dc725f
+2026-10-14T14:32:12.108Z info [INFO] [WebRTCSwarm] Data channel opened with 275b4bf9-77af-4f37-be3e-0ef214dc725f
+2026-10-14T14:32:12.757Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T14:32:12.761Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T14:32:12.771Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 3
+2026-10-14T14:32:12.771Z debug [DEBUG] [WebRTCSwarm] Already connected to 03b1fbde-f545-48d1-aa62-c2635c1ead9f, skipping
+2026-10-14T14:32:12.771Z debug [DEBUG] [WebRTCSwarm] Already connected to 18125bc1-888b-4eab-a915-c7ec849a0255, skipping
+2026-10-14T14:32:12.772Z debug [DEBUG] [WebRTCSwarm] Already connected to 275b4bf9-77af-4f37-be3e-0ef214dc725f, skipping
+2026-10-14T14:32:13.162Z info [INFO] [WebRTCSwarm] Peer left: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:32:13.162Z info [INFO] [WebRTCSwarm] Peer left: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:32:13.321Z info [INFO] [WebRTCSwarm] Peer joined: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:32:13.816Z info [INFO] [WebRTCSwarm] Peer joined: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:32:18.535Z info [INFO] [WebRTCSwarm] Peer joined: 6d2dcdf9-dabc-4499-8344-08e5d0151c90
+2026-10-14T14:32:18.559Z info [INFO] [WebRTCSwarm] Received offer from: 6d2dcdf9-dabc-4499-8344-08e5d0151c90
+2026-10-14T14:32:18.596Z info [INFO] [WebRTCSwarm] Data channel opened with 6d2dcdf9-dabc-4499-8344-08e5d0151c90
+2026-10-14T14:32:21.663Z info [INFO] [WebRTCSwarm] Peer joined: 67b711b5-7d9b-4044-aec1-9cbc73bc60e0
+2026-10-14T14:32:21.688Z info [INFO] [WebRTCSwarm] Received offer from: 67b711b5-7d9b-4044-aec1-9cbc73bc60e0
+2026-10-14T14:32:21.734Z info [INFO] [WebRTCSwarm] Data channel opened with 67b711b5-7d9b-4044-aec1-9cbc73bc60e0
+2026-10-14T14:32:25.293Z log [767571.3ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1056, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1056
+2026-10-14T14:32:33.143Z log [775421.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1055, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1055
+2026-10-14T14:32:51.742Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 13ms
+2026-10-14T14:32:51.742Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 13ms
+2026-10-14T14:32:51.742Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 14ms
+2026-10-14T14:32:51.928Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 199ms
+2026-10-14T14:32:51.929Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 199ms
+2026-10-14T14:33:21.734Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 3ms
+2026-10-14T14:33:21.734Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 4ms
+2026-10-14T14:33:21.735Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 6ms
+2026-10-14T14:33:21.870Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 140ms
+2026-10-14T14:33:21.874Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 144ms
+2026-10-14T14:33:51.734Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 4ms
+2026-10-14T14:33:51.734Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 4ms
+2026-10-14T14:33:51.735Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 5ms
+2026-10-14T14:33:51.923Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 194ms
+2026-10-14T14:33:53.003Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 1273ms
+2026-10-14T14:34:21.734Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 5ms
+2026-10-14T14:34:21.734Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 5ms
+2026-10-14T14:34:21.734Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 6ms
+2026-10-14T14:34:21.916Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 187ms
+2026-10-14T14:34:22.326Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 597ms
+2026-10-14T14:34:51.734Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 4ms
+2026-10-14T14:34:51.734Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 4ms
+2026-10-14T14:34:51.734Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 4ms
+2026-10-14T14:34:52.176Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 447ms
+2026-10-14T14:34:52.355Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 626ms
+2026-10-14T14:35:21.731Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 2ms
+2026-10-14T14:35:21.731Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 2ms
+2026-10-14T14:35:21.733Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 5ms
+2026-10-14T14:35:21.780Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 52ms
+2026-10-14T14:35:21.954Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 226ms
+2026-10-14T14:35:51.737Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 5ms
+2026-10-14T14:35:51.738Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 6ms
+2026-10-14T14:35:51.739Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 6ms
+2026-10-14T14:35:52.411Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 680ms
+2026-10-14T14:35:52.420Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 692ms
+2026-10-14T14:36:21.743Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 13ms
+2026-10-14T14:36:21.744Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 13ms
+2026-10-14T14:36:21.744Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 14ms
+2026-10-14T14:36:22.161Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 432ms
+2026-10-14T14:36:22.161Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 432ms
+2026-10-14T14:36:51.734Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 5ms
+2026-10-14T14:36:51.740Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 8ms
+2026-10-14T14:36:51.741Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 8ms
+2026-10-14T14:36:53.512Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 1783ms
+2026-10-14T14:36:54.455Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 2724ms
+2026-10-14T14:37:21.739Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 8ms
+2026-10-14T14:37:21.739Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 10ms
+2026-10-14T14:37:21.739Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 10ms
+2026-10-14T14:37:22.103Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 373ms
+2026-10-14T14:37:22.104Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 373ms
+2026-10-14T14:37:51.733Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 3ms
+2026-10-14T14:37:51.734Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 3ms
+2026-10-14T14:37:51.734Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 5ms
+2026-10-14T14:37:52.690Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 962ms
+2026-10-14T14:37:55.049Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 3321ms
+2026-10-14T14:38:21.733Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 3ms
+2026-10-14T14:38:21.734Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 3ms
+2026-10-14T14:38:21.734Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 4ms
+2026-10-14T14:38:21.828Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 98ms
+2026-10-14T14:38:21.829Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 98ms
+2026-10-14T14:38:51.733Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 3ms
+2026-10-14T14:38:51.734Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 3ms
+2026-10-14T14:38:51.734Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 4ms
+2026-10-14T14:38:51.757Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 28ms
+2026-10-14T14:38:51.844Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 113ms
+2026-10-14T14:39:21.736Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 3ms
+2026-10-14T14:39:21.737Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 4ms
+2026-10-14T14:39:21.737Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 4ms
+2026-10-14T14:39:21.759Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 30ms
+2026-10-14T14:39:21.891Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 161ms
+2026-10-14T14:39:28.562Z info [INFO] [WebRTCSwarm] Peer joined: 003e1a5e-f006-445f-aaa3-9a10e82acb7c
+2026-10-14T14:39:28.591Z info [INFO] [WebRTCSwarm] Received offer from: 003e1a5e-f006-445f-aaa3-9a10e82acb7c
+2026-10-14T14:39:28.652Z info [INFO] [WebRTCSwarm] Data channel opened with 003e1a5e-f006-445f-aaa3-9a10e82acb7c
+2026-10-14T14:39:31.641Z log [1193919.0ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1055, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1055
+2026-10-14T14:39:58.640Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 3ms
+2026-10-14T14:39:58.640Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 3ms
+2026-10-14T14:39:58.641Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 5ms
+2026-10-14T14:39:58.649Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 11ms
+2026-10-14T14:39:58.660Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 24ms
+2026-10-14T14:39:58.660Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 24ms
+2026-10-14T14:40:28.648Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 5ms
+2026-10-14T14:40:28.648Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 6ms
+2026-10-14T14:40:28.658Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 16ms
+2026-10-14T14:40:28.663Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 21ms
+2026-10-14T14:40:28.706Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 62ms
+2026-10-14T14:40:28.713Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 69ms
+2026-10-14T14:40:58.639Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 3ms
+2026-10-14T14:40:58.639Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 3ms
+2026-10-14T14:40:58.640Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 3ms
+2026-10-14T14:40:58.642Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 7ms
+2026-10-14T14:40:58.670Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 34ms
+2026-10-14T14:40:58.670Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 34ms
+2026-10-14T14:41:11.383Z error [ERROR] [WebRTCSwarm] Data channel error with 003e1a5e-f006-445f-aaa3-9a10e82acb7c: RTCErrorEvent
+2026-10-14T14:41:11.383Z info [INFO] [WebRTCSwarm] Data channel closed with 003e1a5e-f006-445f-aaa3-9a10e82acb7c
+2026-10-14T14:41:11.390Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T14:41:11.427Z info [INFO] [WebRTCSwarm] Peer left: 003e1a5e-f006-445f-aaa3-9a10e82acb7c
+2026-10-14T14:41:11.728Z info [INFO] [WebRTCSwarm] Peer joined: 003e1a5e-f006-445f-aaa3-9a10e82acb7c
+2026-10-14T14:41:11.763Z info [INFO] [WebRTCSwarm] Received offer from: 003e1a5e-f006-445f-aaa3-9a10e82acb7c
+2026-10-14T14:41:11.793Z info [INFO] [WebRTCSwarm] Data channel opened with 003e1a5e-f006-445f-aaa3-9a10e82acb7c
+2026-10-14T14:41:12.408Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T14:41:12.413Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T14:41:12.422Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 6
+2026-10-14T14:41:12.422Z debug [DEBUG] [WebRTCSwarm] Already connected to 18125bc1-888b-4eab-a915-c7ec849a0255, skipping
+2026-10-14T14:41:12.423Z debug [DEBUG] [WebRTCSwarm] Already connected to 03b1fbde-f545-48d1-aa62-c2635c1ead9f, skipping
+2026-10-14T14:41:12.423Z debug [DEBUG] [WebRTCSwarm] Already connected to 003e1a5e-f006-445f-aaa3-9a10e82acb7c, skipping
+2026-10-14T14:41:12.423Z debug [DEBUG] [WebRTCSwarm] Already connected to 275b4bf9-77af-4f37-be3e-0ef214dc725f, skipping
+2026-10-14T14:41:12.423Z debug [DEBUG] [WebRTCSwarm] Already connected to 6d2dcdf9-dabc-4499-8344-08e5d0151c90, skipping
+2026-10-14T14:41:12.424Z debug [DEBUG] [WebRTCSwarm] Already connected to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0, skipping
+2026-10-14T14:41:12.490Z info [INFO] [WebRTCSwarm] Peer left: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:41:12.498Z info [INFO] [WebRTCSwarm] Peer left: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:41:12.499Z info [INFO] [WebRTCSwarm] Peer joined: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:41:12.516Z info [INFO] [WebRTCSwarm] Peer joined: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:41:17.941Z log [1300218.6ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1055, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1055
+2026-10-14T14:41:42.444Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 18ms
+2026-10-14T14:41:42.444Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 20ms
+2026-10-14T14:41:42.445Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 20ms
+2026-10-14T14:41:42.445Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 21ms
+2026-10-14T14:41:42.454Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 32ms
+2026-10-14T14:41:42.455Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 32ms
+2026-10-14T14:42:12.436Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 11ms
+2026-10-14T14:42:12.438Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 13ms
+2026-10-14T14:42:12.438Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 14ms
+2026-10-14T14:42:12.439Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 16ms
+2026-10-14T14:42:12.469Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 46ms
+2026-10-14T14:42:12.469Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 46ms
+2026-10-14T14:42:42.429Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 6ms
+2026-10-14T14:42:42.431Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 9ms
+2026-10-14T14:42:42.432Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 10ms
+2026-10-14T14:42:42.432Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 11ms
+2026-10-14T14:42:42.439Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 19ms
+2026-10-14T14:42:42.442Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 22ms
+2026-10-14T14:43:12.439Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 14ms
+2026-10-14T14:43:12.440Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 16ms
+2026-10-14T14:43:12.440Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 16ms
+2026-10-14T14:43:12.440Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 17ms
+2026-10-14T14:43:12.472Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 49ms
+2026-10-14T14:43:12.472Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 49ms
+2026-10-14T14:43:42.437Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 14ms
+2026-10-14T14:43:42.439Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 16ms
+2026-10-14T14:43:42.439Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 17ms
+2026-10-14T14:43:42.440Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 19ms
+2026-10-14T14:43:42.449Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 27ms
+2026-10-14T14:43:42.461Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 39ms
+2026-10-14T14:44:12.432Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 8ms
+2026-10-14T14:44:12.434Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 11ms
+2026-10-14T14:44:12.434Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 12ms
+2026-10-14T14:44:12.435Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 13ms
+2026-10-14T14:44:12.447Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 25ms
+2026-10-14T14:44:12.584Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 154ms
+2026-10-14T14:44:42.444Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 9ms
+2026-10-14T14:44:42.449Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 14ms
+2026-10-14T14:44:42.450Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 14ms
+2026-10-14T14:44:42.450Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 15ms
+2026-10-14T14:44:42.465Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 32ms
+2026-10-14T14:44:42.471Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 37ms
+2026-10-14T14:45:12.446Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 9ms
+2026-10-14T14:45:12.449Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 13ms
+2026-10-14T14:45:12.449Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 13ms
+2026-10-14T14:45:12.450Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 13ms
+2026-10-14T14:45:12.474Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 37ms
+2026-10-14T14:45:12.474Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 38ms
+2026-10-14T14:45:42.454Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 17ms
+2026-10-14T14:45:42.456Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 19ms
+2026-10-14T14:45:42.457Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 21ms
+2026-10-14T14:45:42.457Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 21ms
+2026-10-14T14:45:42.476Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 41ms
+2026-10-14T14:45:42.534Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 96ms
+2026-10-14T14:46:12.441Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 5ms
+2026-10-14T14:46:12.442Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 6ms
+2026-10-14T14:46:12.443Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 8ms
+2026-10-14T14:46:12.443Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 8ms
+2026-10-14T14:46:12.464Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 29ms
+2026-10-14T14:46:13.099Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 664ms
+2026-10-14T14:46:42.441Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 6ms
+2026-10-14T14:46:42.442Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 7ms
+2026-10-14T14:46:42.443Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 8ms
+2026-10-14T14:46:42.447Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 12ms
+2026-10-14T14:46:42.454Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 20ms
+2026-10-14T14:46:42.454Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 20ms
+2026-10-14T14:47:12.443Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 7ms
+2026-10-14T14:47:12.444Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 9ms
+2026-10-14T14:47:12.445Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 9ms
+2026-10-14T14:47:12.445Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 9ms
+2026-10-14T14:47:12.486Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 51ms
+2026-10-14T14:47:12.566Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 129ms
+2026-10-14T14:47:42.441Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 5ms
+2026-10-14T14:47:42.444Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 7ms
+2026-10-14T14:47:42.444Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 8ms
+2026-10-14T14:47:42.446Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 9ms
+2026-10-14T14:47:42.458Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 23ms
+2026-10-14T14:47:42.558Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 122ms
+2026-10-14T14:48:12.443Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 6ms
+2026-10-14T14:48:12.444Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 8ms
+2026-10-14T14:48:12.444Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 9ms
+2026-10-14T14:48:12.445Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 9ms
+2026-10-14T14:48:12.467Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 31ms
+2026-10-14T14:48:12.467Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 31ms
+2026-10-14T14:48:42.446Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 7ms
+2026-10-14T14:48:42.449Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 10ms
+2026-10-14T14:48:42.450Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 11ms
+2026-10-14T14:48:42.450Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 13ms
+2026-10-14T14:48:42.461Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 25ms
+2026-10-14T14:48:42.461Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 25ms
+2026-10-14T14:49:12.446Z debug [DEBUG] [WebRTCSwarm] Latency to 003e1a5e-f006-445f-aaa3-9a10e82acb7c: 8ms
+2026-10-14T14:49:12.447Z debug [DEBUG] [WebRTCSwarm] Latency to 6d2dcdf9-dabc-4499-8344-08e5d0151c90: 9ms
+2026-10-14T14:49:12.447Z debug [DEBUG] [WebRTCSwarm] Latency to 67b711b5-7d9b-4044-aec1-9cbc73bc60e0: 11ms
+2026-10-14T14:49:12.447Z debug [DEBUG] [WebRTCSwarm] Latency to 275b4bf9-77af-4f37-be3e-0ef214dc725f: 11ms
+2026-10-14T14:49:12.466Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 31ms
+2026-10-14T14:49:12.490Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 54ms
+2026-10-14T14:49:34.771Z info [INFO] [WebRTCSwarm] Peer left: 275b4bf9-77af-4f37-be3e-0ef214dc725f
+2026-10-14T14:49:34.860Z info [INFO] [WebRTCSwarm] Peer left: 6d2dcdf9-dabc-4499-8344-08e5d0151c90
+2026-10-14T14:49:34.945Z info [INFO] [WebRTCSwarm] Peer left: 67b711b5-7d9b-4044-aec1-9cbc73bc60e0
+2026-10-14T14:49:35.021Z info [INFO] [WebRTCSwarm] Peer left: 003e1a5e-f006-445f-aaa3-9a10e82acb7c
+2026-10-14T14:49:42.487Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 47ms
+2026-10-14T14:49:42.678Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 236ms
+2026-10-14T14:49:50.695Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T14:49:51.727Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T14:49:51.730Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T14:49:51.741Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 2
+2026-10-14T14:49:51.742Z debug [DEBUG] [WebRTCSwarm] Already connected to 18125bc1-888b-4eab-a915-c7ec849a0255, skipping
+2026-10-14T14:49:51.742Z debug [DEBUG] [WebRTCSwarm] Already connected to 03b1fbde-f545-48d1-aa62-c2635c1ead9f, skipping
+2026-10-14T14:49:51.877Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T14:49:52.898Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T14:49:52.900Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T14:49:52.908Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 2
+2026-10-14T14:49:52.908Z debug [DEBUG] [WebRTCSwarm] Already connected to 18125bc1-888b-4eab-a915-c7ec849a0255, skipping
+2026-10-14T14:49:52.908Z debug [DEBUG] [WebRTCSwarm] Already connected to 03b1fbde-f545-48d1-aa62-c2635c1ead9f, skipping
+2026-10-14T14:49:53.320Z info [INFO] [WebRTCSwarm] Peer left: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:49:53.368Z info [INFO] [WebRTCSwarm] Peer joined: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:49:53.401Z info [INFO] [WebRTCSwarm] Peer left: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:49:53.431Z info [INFO] [WebRTCSwarm] Peer joined: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:50:22.934Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 21ms
+2026-10-14T14:50:23.460Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 546ms
+2026-10-14T14:50:29.153Z info [INFO] [WebRTCSwarm] Peer joined: 0b6f2803-d6b2-40db-a079-6fef52f2e4a4
+2026-10-14T14:50:29.181Z info [INFO] [WebRTCSwarm] Received offer from: 0b6f2803-d6b2-40db-a079-6fef52f2e4a4
+2026-10-14T14:50:29.211Z info [INFO] [WebRTCSwarm] Data channel opened with 0b6f2803-d6b2-40db-a079-6fef52f2e4a4
+2026-10-14T14:50:32.283Z log [1854545.9ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1043, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1043
+2026-10-14T14:50:59.217Z debug [DEBUG] [WebRTCSwarm] Latency to 0b6f2803-d6b2-40db-a079-6fef52f2e4a4: 3ms
+2026-10-14T14:50:59.253Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 39ms
+2026-10-14T14:50:59.253Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 39ms
+2026-10-14T14:51:03.489Z error [ERROR] [WebRTCSwarm] Data channel error with 0b6f2803-d6b2-40db-a079-6fef52f2e4a4: RTCErrorEvent
+2026-10-14T14:51:03.491Z info [INFO] [WebRTCSwarm] Data channel closed with 0b6f2803-d6b2-40db-a079-6fef52f2e4a4
+2026-10-14T14:51:03.496Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T14:51:03.520Z info [INFO] [WebRTCSwarm] Peer left: 0b6f2803-d6b2-40db-a079-6fef52f2e4a4
+2026-10-14T14:51:04.515Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T14:51:04.517Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T14:51:04.526Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 2
+2026-10-14T14:51:04.526Z debug [DEBUG] [WebRTCSwarm] Already connected to 18125bc1-888b-4eab-a915-c7ec849a0255, skipping
+2026-10-14T14:51:04.526Z debug [DEBUG] [WebRTCSwarm] Already connected to 03b1fbde-f545-48d1-aa62-c2635c1ead9f, skipping
+2026-10-14T14:51:04.543Z info [INFO] [WebRTCSwarm] Peer left: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:51:04.601Z info [INFO] [WebRTCSwarm] Peer left: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:51:04.601Z info [INFO] [WebRTCSwarm] Peer joined: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:51:04.694Z info [INFO] [WebRTCSwarm] Peer joined: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:51:26.058Z info [INFO] [WebRTCSwarm] Peer joined: 14586b36-70fb-409f-a293-98929aad20b1
+2026-10-14T14:51:26.086Z info [INFO] [WebRTCSwarm] Received offer from: 14586b36-70fb-409f-a293-98929aad20b1
+2026-10-14T14:51:26.095Z info [INFO] [WebRTCSwarm] Data channel opened with 14586b36-70fb-409f-a293-98929aad20b1
+2026-10-14T14:51:29.135Z log [1911398.3ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1043, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1043
+2026-10-14T14:51:56.106Z debug [DEBUG] [WebRTCSwarm] Latency to 14586b36-70fb-409f-a293-98929aad20b1: 8ms
+2026-10-14T14:51:56.126Z debug [DEBUG] [WebRTCSwarm] Latency to 03b1fbde-f545-48d1-aa62-c2635c1ead9f: 25ms
+2026-10-14T14:51:56.164Z debug [DEBUG] [WebRTCSwarm] Latency to 18125bc1-888b-4eab-a915-c7ec849a0255: 68ms
+2026-10-14T14:51:57.704Z error [ERROR] [WebRTCSwarm] Data channel error with 14586b36-70fb-409f-a293-98929aad20b1: RTCErrorEvent
+2026-10-14T14:51:57.704Z info [INFO] [WebRTCSwarm] Data channel closed with 14586b36-70fb-409f-a293-98929aad20b1
+2026-10-14T14:51:57.710Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T14:51:57.736Z info [INFO] [WebRTCSwarm] Peer left: 14586b36-70fb-409f-a293-98929aad20b1
+2026-10-14T14:51:57.972Z info [INFO] [WebRTCSwarm] Peer joined: 14586b36-70fb-409f-a293-98929aad20b1
+2026-10-14T14:51:57.998Z info [INFO] [WebRTCSwarm] Received offer from: 14586b36-70fb-409f-a293-98929aad20b1
+2026-10-14T14:51:58.019Z info [INFO] [WebRTCSwarm] Peer left: 14586b36-70fb-409f-a293-98929aad20b1
+2026-10-14T14:51:58.124Z info [INFO] [WebRTCSwarm] Peer left: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:51:58.261Z info [INFO] [WebRTCSwarm] Peer left: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:51:58.740Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T14:51:58.742Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T14:51:58.751Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 0
+2026-10-14T14:51:58.751Z info [INFO] [WebRTCSwarm] Peer joined: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:51:58.751Z warning [WARN] [WebRTCSwarm] Cannot send to 14586b36-70fb-409f-a293-98929aad20b1: not connected
+2026-10-14T14:51:58.889Z info [INFO] [WebRTCSwarm] Peer joined: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:51:58.890Z warning [WARN] [WebRTCSwarm] Cannot send to 14586b36-70fb-409f-a293-98929aad20b1: not connected
+2026-10-14T14:52:13.103Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T14:52:14.138Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T14:52:14.153Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T14:52:14.164Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 2
+2026-10-14T14:52:14.164Z debug [DEBUG] [WebRTCSwarm] Already connected to 18125bc1-888b-4eab-a915-c7ec849a0255, skipping
+2026-10-14T14:52:14.164Z debug [DEBUG] [WebRTCSwarm] Already connected to 03b1fbde-f545-48d1-aa62-c2635c1ead9f, skipping
+2026-10-14T14:52:21.332Z error [ERROR] [WebRTCSwarm] Data channel error with 18125bc1-888b-4eab-a915-c7ec849a0255: RTCErrorEvent
+2026-10-14T14:52:21.332Z info [INFO] [WebRTCSwarm] Data channel closed with 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:52:21.341Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T14:52:21.364Z info [INFO] [WebRTCSwarm] Peer left: 18125bc1-888b-4eab-a915-c7ec849a0255
+2026-10-14T14:52:22.371Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T14:52:22.375Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T14:52:22.388Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 0
+2026-10-14T14:52:22.415Z info [INFO] [WebRTCSwarm] Peer joined: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:52:23.158Z info [INFO] [WebRTCSwarm] Peer left: 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:52:23.158Z info [INFO] [WebRTCSwarm] Data channel closed with 03b1fbde-f545-48d1-aa62-c2635c1ead9f
+2026-10-14T14:52:23.172Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T14:52:24.196Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T14:52:24.199Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T14:52:24.211Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 0
+2026-10-14T14:52:25.374Z info [INFO] [WebRTCSwarm] Peer joined: f0475a3d-524a-4e6d-bc03-a980328f8092
+2026-10-14T14:52:25.464Z info [INFO] [WebRTCSwarm] Received offer from: f0475a3d-524a-4e6d-bc03-a980328f8092
+2026-10-14T14:52:25.858Z info [INFO] [WebRTCSwarm] Data channel opened with f0475a3d-524a-4e6d-bc03-a980328f8092
+2026-10-14T14:52:34.486Z info [INFO] [WebRTCSwarm] Peer joined: 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T14:52:34.528Z info [INFO] [WebRTCSwarm] Received offer from: 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T14:52:34.831Z info [INFO] [WebRTCSwarm] Data channel opened with 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T14:52:59.419Z info [INFO] [WebRTCSwarm] Peer joined: 712281f7-a2c5-4624-b1ff-375b54a57dda
+2026-10-14T14:52:59.440Z info [INFO] [WebRTCSwarm] Received offer from: 712281f7-a2c5-4624-b1ff-375b54a57dda
+2026-10-14T14:52:59.473Z info [INFO] [WebRTCSwarm] Data channel opened with 712281f7-a2c5-4624-b1ff-375b54a57dda
+2026-10-14T14:53:02.469Z log [2004731.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1055, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1055
+2026-10-14T14:53:29.493Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 17ms
+2026-10-14T14:53:29.494Z debug [DEBUG] [WebRTCSwarm] Latency to f0475a3d-524a-4e6d-bc03-a980328f8092: 18ms
+2026-10-14T14:53:29.511Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 33ms
+2026-10-14T14:53:59.481Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 5ms
+2026-10-14T14:53:59.634Z debug [DEBUG] [WebRTCSwarm] Latency to f0475a3d-524a-4e6d-bc03-a980328f8092: 155ms
+2026-10-14T14:53:59.635Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 155ms
+2026-10-14T14:54:29.479Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 3ms
+2026-10-14T14:54:29.494Z debug [DEBUG] [WebRTCSwarm] Latency to f0475a3d-524a-4e6d-bc03-a980328f8092: 17ms
+2026-10-14T14:54:29.561Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 85ms
+2026-10-14T14:54:41.800Z info [INFO] [WebRTCSwarm] Peer left: f0475a3d-524a-4e6d-bc03-a980328f8092
+2026-10-14T14:54:58.460Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T14:54:58.947Z info [INFO] [WebRTCSwarm] Peer left: 712281f7-a2c5-4624-b1ff-375b54a57dda
+2026-10-14T14:54:58.953Z info [INFO] [WebRTCSwarm] Peer joined: 712281f7-a2c5-4624-b1ff-375b54a57dda
+2026-10-14T14:54:59.145Z info [INFO] [WebRTCSwarm] Peer left: 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T14:54:59.185Z info [INFO] [WebRTCSwarm] Peer joined: 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T14:54:59.482Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T14:54:59.485Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 2ms
+2026-10-14T14:54:59.486Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T14:54:59.497Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 2
+2026-10-14T14:54:59.497Z debug [DEBUG] [WebRTCSwarm] Already connected to 712281f7-a2c5-4624-b1ff-375b54a57dda, skipping
+2026-10-14T14:54:59.497Z debug [DEBUG] [WebRTCSwarm] Already connected to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3, skipping
+2026-10-14T14:54:59.667Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 185ms
+2026-10-14T14:55:04.813Z info [INFO] [WebRTCSwarm] Peer joined: aae3d662-a36d-4190-8e5c-173830ceea93
+2026-10-14T14:55:04.866Z info [INFO] [WebRTCSwarm] Received offer from: aae3d662-a36d-4190-8e5c-173830ceea93
+2026-10-14T14:55:05.152Z info [INFO] [WebRTCSwarm] Data channel opened with aae3d662-a36d-4190-8e5c-173830ceea93
+2026-10-14T14:55:16.208Z log [2138469.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1055, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1055
+2026-10-14T14:55:35.165Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 7ms
+2026-10-14T14:55:35.179Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 23ms
+2026-10-14T14:55:35.284Z debug [DEBUG] [WebRTCSwarm] Latency to aae3d662-a36d-4190-8e5c-173830ceea93: 128ms
+2026-10-14T14:56:05.161Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 6ms
+2026-10-14T14:56:05.178Z debug [DEBUG] [WebRTCSwarm] Latency to aae3d662-a36d-4190-8e5c-173830ceea93: 23ms
+2026-10-14T14:56:05.180Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 26ms
+2026-10-14T14:56:35.164Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 7ms
+2026-10-14T14:56:35.177Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 22ms
+2026-10-14T14:56:35.177Z debug [DEBUG] [WebRTCSwarm] Latency to aae3d662-a36d-4190-8e5c-173830ceea93: 22ms
+2026-10-14T14:57:05.158Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 3ms
+2026-10-14T14:57:05.233Z debug [DEBUG] [WebRTCSwarm] Latency to aae3d662-a36d-4190-8e5c-173830ceea93: 78ms
+2026-10-14T14:57:05.268Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 113ms
+2026-10-14T14:57:35.158Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 3ms
+2026-10-14T14:57:35.173Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 18ms
+2026-10-14T14:57:35.173Z debug [DEBUG] [WebRTCSwarm] Latency to aae3d662-a36d-4190-8e5c-173830ceea93: 19ms
+2026-10-14T14:58:05.163Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 6ms
+2026-10-14T14:58:05.183Z debug [DEBUG] [WebRTCSwarm] Latency to aae3d662-a36d-4190-8e5c-173830ceea93: 28ms
+2026-10-14T14:58:05.199Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 44ms
+2026-10-14T14:58:35.162Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 6ms
+2026-10-14T14:58:35.181Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 25ms
+2026-10-14T14:58:35.181Z debug [DEBUG] [WebRTCSwarm] Latency to aae3d662-a36d-4190-8e5c-173830ceea93: 25ms
+2026-10-14T14:59:05.161Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 4ms
+2026-10-14T14:59:05.170Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 13ms
+2026-10-14T14:59:05.170Z debug [DEBUG] [WebRTCSwarm] Latency to aae3d662-a36d-4190-8e5c-173830ceea93: 13ms
+2026-10-14T14:59:35.160Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 4ms
+2026-10-14T14:59:35.177Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 21ms
+2026-10-14T14:59:35.177Z debug [DEBUG] [WebRTCSwarm] Latency to aae3d662-a36d-4190-8e5c-173830ceea93: 21ms
+2026-10-14T15:00:05.166Z debug [DEBUG] [WebRTCSwarm] Latency to 712281f7-a2c5-4624-b1ff-375b54a57dda: 7ms
+2026-10-14T15:00:05.171Z debug [DEBUG] [WebRTCSwarm] Latency to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: 14ms
+2026-10-14T15:00:05.174Z debug [DEBUG] [WebRTCSwarm] Latency to aae3d662-a36d-4190-8e5c-173830ceea93: 18ms
+2026-10-14T15:00:27.504Z error [ERROR] [WebRTCSwarm] Data channel error with 712281f7-a2c5-4624-b1ff-375b54a57dda: RTCErrorEvent
+2026-10-14T15:00:27.504Z info [INFO] [WebRTCSwarm] Data channel closed with 712281f7-a2c5-4624-b1ff-375b54a57dda
+2026-10-14T15:00:27.511Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:00:27.528Z info [INFO] [WebRTCSwarm] Peer left: 712281f7-a2c5-4624-b1ff-375b54a57dda
+2026-10-14T15:00:28.525Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:00:28.527Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:00:28.533Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 2
+2026-10-14T15:00:28.534Z debug [DEBUG] [WebRTCSwarm] Already connected to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3, skipping
+2026-10-14T15:00:28.534Z debug [DEBUG] [WebRTCSwarm] Already connected to aae3d662-a36d-4190-8e5c-173830ceea93, skipping
+2026-10-14T15:00:28.534Z info [INFO] [WebRTCSwarm] Peer left: 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T15:00:28.534Z info [INFO] [WebRTCSwarm] Peer left: aae3d662-a36d-4190-8e5c-173830ceea93
+2026-10-14T15:00:28.558Z info [INFO] [WebRTCSwarm] Peer joined: 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T15:00:28.735Z info [INFO] [WebRTCSwarm] Peer joined: aae3d662-a36d-4190-8e5c-173830ceea93
+2026-10-14T15:00:48.714Z error [ERROR] [WebRTCSwarm] Data channel error with aae3d662-a36d-4190-8e5c-173830ceea93: RTCErrorEvent
+2026-10-14T15:00:48.714Z info [INFO] [WebRTCSwarm] Data channel closed with aae3d662-a36d-4190-8e5c-173830ceea93
+2026-10-14T15:00:48.722Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:00:48.742Z info [INFO] [WebRTCSwarm] Peer left: aae3d662-a36d-4190-8e5c-173830ceea93
+2026-10-14T15:00:49.763Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:00:49.767Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:00:49.783Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 1
+2026-10-14T15:00:49.784Z debug [DEBUG] [WebRTCSwarm] Already connected to 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3, skipping
+2026-10-14T15:00:49.816Z info [INFO] [WebRTCSwarm] Peer left: 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T15:00:49.839Z info [INFO] [WebRTCSwarm] Peer joined: 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T15:00:50.161Z error [ERROR] [WebRTCSwarm] Data channel error with 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3: RTCErrorEvent
+2026-10-14T15:00:50.161Z info [INFO] [WebRTCSwarm] Data channel closed with 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T15:00:50.170Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:00:50.198Z info [INFO] [WebRTCSwarm] Peer left: 955d4dba-e5a5-4ad4-b16a-ea7cabec22d3
+2026-10-14T15:00:51.198Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:00:51.202Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:00:51.214Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 0
+2026-10-14T15:00:51.818Z info [INFO] [WebRTCSwarm] Peer joined: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:00:51.841Z info [INFO] [WebRTCSwarm] Received offer from: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:00:52.135Z info [INFO] [WebRTCSwarm] Data channel opened with 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:01:02.639Z info [INFO] [WebRTCSwarm] Peer joined: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:01:02.676Z info [INFO] [WebRTCSwarm] Received offer from: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:01:02.942Z info [INFO] [WebRTCSwarm] Data channel opened with 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:01:32.975Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 38ms
+2026-10-14T15:01:32.978Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 41ms
+2026-10-14T15:01:37.861Z info [INFO] [WebRTCSwarm] Peer joined: b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:01:38.060Z info [INFO] [WebRTCSwarm] Received offer from: b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:01:38.084Z info [INFO] [WebRTCSwarm] Data channel opened with b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:01:43.932Z log [2526192.2ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1055, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1055
+2026-10-14T15:02:08.132Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 14ms
+2026-10-14T15:02:08.132Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 15ms
+2026-10-14T15:02:08.135Z debug [DEBUG] [WebRTCSwarm] Latency to b0446514-6013-4cb6-8f5b-553627993fca: 18ms
+2026-10-14T15:02:38.091Z debug [DEBUG] [WebRTCSwarm] Latency to b0446514-6013-4cb6-8f5b-553627993fca: 5ms
+2026-10-14T15:02:38.140Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 54ms
+2026-10-14T15:02:38.140Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 54ms
+2026-10-14T15:03:08.118Z debug [DEBUG] [WebRTCSwarm] Latency to b0446514-6013-4cb6-8f5b-553627993fca: 33ms
+2026-10-14T15:03:08.119Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 33ms
+2026-10-14T15:03:08.240Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 155ms
+2026-10-14T15:03:38.087Z debug [DEBUG] [WebRTCSwarm] Latency to b0446514-6013-4cb6-8f5b-553627993fca: 2ms
+2026-10-14T15:03:38.095Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 11ms
+2026-10-14T15:03:38.138Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 54ms
+2026-10-14T15:04:08.120Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 16ms
+2026-10-14T15:04:08.122Z debug [DEBUG] [WebRTCSwarm] Latency to b0446514-6013-4cb6-8f5b-553627993fca: 17ms
+2026-10-14T15:04:08.132Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 27ms
+2026-10-14T15:04:21.354Z info [INFO] [WebRTCSwarm] Peer joined: 207b99e5-42f6-46c8-9c65-5bf264750a7e
+2026-10-14T15:04:21.482Z info [INFO] [WebRTCSwarm] Received offer from: 207b99e5-42f6-46c8-9c65-5bf264750a7e
+2026-10-14T15:04:21.650Z info [INFO] [WebRTCSwarm] Data channel opened with 207b99e5-42f6-46c8-9c65-5bf264750a7e
+2026-10-14T15:04:49.040Z error [ERROR] [WebRTCSwarm] Data channel error with b0446514-6013-4cb6-8f5b-553627993fca: RTCErrorEvent
+2026-10-14T15:04:49.040Z info [INFO] [WebRTCSwarm] Data channel closed with b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:04:49.044Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:04:49.060Z info [INFO] [WebRTCSwarm] Peer left: b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:04:49.405Z info [INFO] [WebRTCSwarm] Peer joined: b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:04:49.438Z info [INFO] [WebRTCSwarm] Received offer from: b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:04:49.457Z info [INFO] [WebRTCSwarm] Data channel opened with b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:04:50.060Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:04:50.062Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:04:50.069Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 3
+2026-10-14T15:04:50.069Z debug [DEBUG] [WebRTCSwarm] Already connected to 0fd79251-38ce-4f5d-a1be-674bc172920a, skipping
+2026-10-14T15:04:50.069Z debug [DEBUG] [WebRTCSwarm] Already connected to 207b99e5-42f6-46c8-9c65-5bf264750a7e, skipping
+2026-10-14T15:04:50.069Z debug [DEBUG] [WebRTCSwarm] Already connected to b0446514-6013-4cb6-8f5b-553627993fca, skipping
+2026-10-14T15:04:50.089Z info [INFO] [WebRTCSwarm] Peer joined: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:04:50.136Z info [INFO] [WebRTCSwarm] Peer left: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:04:50.152Z info [INFO] [WebRTCSwarm] Peer joined: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:04:50.302Z info [INFO] [WebRTCSwarm] Peer left: 207b99e5-42f6-46c8-9c65-5bf264750a7e
+2026-10-14T15:04:50.399Z info [INFO] [WebRTCSwarm] Peer joined: 207b99e5-42f6-46c8-9c65-5bf264750a7e
+2026-10-14T15:04:53.330Z error [ERROR] [WebRTCSwarm] Data channel error with b0446514-6013-4cb6-8f5b-553627993fca: RTCErrorEvent
+2026-10-14T15:04:53.331Z info [INFO] [WebRTCSwarm] Data channel closed with b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:04:53.336Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:04:53.356Z info [INFO] [WebRTCSwarm] Peer left: b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:04:53.558Z info [INFO] [WebRTCSwarm] Peer joined: b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:04:53.575Z info [INFO] [WebRTCSwarm] Received offer from: b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:04:53.592Z info [INFO] [WebRTCSwarm] Data channel opened with b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:04:54.350Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:04:54.352Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:04:54.358Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 4
+2026-10-14T15:04:54.358Z debug [DEBUG] [WebRTCSwarm] Already connected to 239270ac-86a3-4142-a5de-5d5c49080c1d, skipping
+2026-10-14T15:04:54.358Z debug [DEBUG] [WebRTCSwarm] Already connected to 0fd79251-38ce-4f5d-a1be-674bc172920a, skipping
+2026-10-14T15:04:54.358Z debug [DEBUG] [WebRTCSwarm] Already connected to 207b99e5-42f6-46c8-9c65-5bf264750a7e, skipping
+2026-10-14T15:04:54.358Z debug [DEBUG] [WebRTCSwarm] Already connected to b0446514-6013-4cb6-8f5b-553627993fca, skipping
+2026-10-14T15:04:54.363Z info [INFO] [WebRTCSwarm] Peer left: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:04:54.387Z info [INFO] [WebRTCSwarm] Peer left: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:04:54.388Z info [INFO] [WebRTCSwarm] Peer joined: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:04:54.415Z info [INFO] [WebRTCSwarm] Peer joined: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:04:54.719Z info [INFO] [WebRTCSwarm] Peer left: 207b99e5-42f6-46c8-9c65-5bf264750a7e
+2026-10-14T15:04:55.093Z info [INFO] [WebRTCSwarm] Peer joined: 207b99e5-42f6-46c8-9c65-5bf264750a7e
+2026-10-14T15:04:56.301Z info [INFO] [WebRTCSwarm] Peer joined: d92b6d9c-5750-4050-8778-85f5db533b68
+2026-10-14T15:04:56.331Z info [INFO] [WebRTCSwarm] Received offer from: d92b6d9c-5750-4050-8778-85f5db533b68
+2026-10-14T15:04:56.358Z info [INFO] [WebRTCSwarm] Data channel opened with d92b6d9c-5750-4050-8778-85f5db533b68
+2026-10-14T15:04:59.282Z log [2721541.6ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1055, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1055
+2026-10-14T15:05:26.369Z debug [DEBUG] [WebRTCSwarm] Latency to b0446514-6013-4cb6-8f5b-553627993fca: 7ms
+2026-10-14T15:05:26.374Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 14ms
+2026-10-14T15:05:26.383Z debug [DEBUG] [WebRTCSwarm] Latency to 207b99e5-42f6-46c8-9c65-5bf264750a7e: 22ms
+2026-10-14T15:05:26.383Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 22ms
+2026-10-14T15:05:26.390Z debug [DEBUG] [WebRTCSwarm] Latency to d92b6d9c-5750-4050-8778-85f5db533b68: 29ms
+2026-10-14T15:05:56.367Z debug [DEBUG] [WebRTCSwarm] Latency to b0446514-6013-4cb6-8f5b-553627993fca: 7ms
+2026-10-14T15:05:56.376Z debug [DEBUG] [WebRTCSwarm] Latency to 207b99e5-42f6-46c8-9c65-5bf264750a7e: 17ms
+2026-10-14T15:05:56.376Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 17ms
+2026-10-14T15:05:56.376Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 17ms
+2026-10-14T15:05:56.382Z debug [DEBUG] [WebRTCSwarm] Latency to d92b6d9c-5750-4050-8778-85f5db533b68: 23ms
+2026-10-14T15:06:26.366Z debug [DEBUG] [WebRTCSwarm] Latency to b0446514-6013-4cb6-8f5b-553627993fca: 4ms
+2026-10-14T15:06:26.382Z debug [DEBUG] [WebRTCSwarm] Latency to 207b99e5-42f6-46c8-9c65-5bf264750a7e: 22ms
+2026-10-14T15:06:26.383Z debug [DEBUG] [WebRTCSwarm] Latency to d92b6d9c-5750-4050-8778-85f5db533b68: 22ms
+2026-10-14T15:06:26.524Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 163ms
+2026-10-14T15:06:26.539Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 175ms
+2026-10-14T15:06:56.363Z debug [DEBUG] [WebRTCSwarm] Latency to b0446514-6013-4cb6-8f5b-553627993fca: 5ms
+2026-10-14T15:06:56.377Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 18ms
+2026-10-14T15:06:56.377Z debug [DEBUG] [WebRTCSwarm] Latency to 207b99e5-42f6-46c8-9c65-5bf264750a7e: 18ms
+2026-10-14T15:06:56.377Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 18ms
+2026-10-14T15:06:56.378Z debug [DEBUG] [WebRTCSwarm] Latency to d92b6d9c-5750-4050-8778-85f5db533b68: 20ms
+2026-10-14T15:07:26.363Z debug [DEBUG] [WebRTCSwarm] Latency to b0446514-6013-4cb6-8f5b-553627993fca: 3ms
+2026-10-14T15:07:26.376Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 16ms
+2026-10-14T15:07:26.376Z debug [DEBUG] [WebRTCSwarm] Latency to 207b99e5-42f6-46c8-9c65-5bf264750a7e: 16ms
+2026-10-14T15:07:26.376Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 16ms
+2026-10-14T15:07:26.380Z debug [DEBUG] [WebRTCSwarm] Latency to d92b6d9c-5750-4050-8778-85f5db533b68: 21ms
+2026-10-14T15:07:32.907Z info [INFO] [WebRTCSwarm] Peer joined: a4883449-b69d-4cd1-9f48-c6a6b3033793
+2026-10-14T15:07:32.936Z info [INFO] [WebRTCSwarm] Received offer from: a4883449-b69d-4cd1-9f48-c6a6b3033793
+2026-10-14T15:07:32.979Z info [INFO] [WebRTCSwarm] Data channel opened with a4883449-b69d-4cd1-9f48-c6a6b3033793
+2026-10-14T15:07:35.794Z error [ERROR] [WebRTCSwarm] Data channel error with b0446514-6013-4cb6-8f5b-553627993fca: RTCErrorEvent
+2026-10-14T15:07:35.794Z info [INFO] [WebRTCSwarm] Data channel closed with b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:07:35.800Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:07:35.817Z info [INFO] [WebRTCSwarm] Peer left: b0446514-6013-4cb6-8f5b-553627993fca
+2026-10-14T15:07:36.239Z error [ERROR] [WebRTCSwarm] Data channel error with 207b99e5-42f6-46c8-9c65-5bf264750a7e: RTCErrorEvent
+2026-10-14T15:07:36.239Z info [INFO] [WebRTCSwarm] Data channel closed with 207b99e5-42f6-46c8-9c65-5bf264750a7e
+2026-10-14T15:07:36.246Z info [INFO] [WebRTCSwarm] Peer left: 207b99e5-42f6-46c8-9c65-5bf264750a7e
+2026-10-14T15:07:36.282Z error [ERROR] [WebRTCSwarm] Data channel error with d92b6d9c-5750-4050-8778-85f5db533b68: RTCErrorEvent
+2026-10-14T15:07:36.282Z info [INFO] [WebRTCSwarm] Data channel closed with d92b6d9c-5750-4050-8778-85f5db533b68
+2026-10-14T15:07:36.296Z info [INFO] [WebRTCSwarm] Peer left: d92b6d9c-5750-4050-8778-85f5db533b68
+2026-10-14T15:07:36.322Z error [ERROR] [WebRTCSwarm] Data channel error with a4883449-b69d-4cd1-9f48-c6a6b3033793: RTCErrorEvent
+2026-10-14T15:07:36.323Z info [INFO] [WebRTCSwarm] Data channel closed with a4883449-b69d-4cd1-9f48-c6a6b3033793
+2026-10-14T15:07:36.340Z info [INFO] [WebRTCSwarm] Peer left: a4883449-b69d-4cd1-9f48-c6a6b3033793
+2026-10-14T15:07:36.696Z info [INFO] [WebRTCSwarm] Peer joined: 1cc0d66e-6987-40e6-9b89-6c78c5c822ed
+2026-10-14T15:07:36.720Z info [INFO] [WebRTCSwarm] Received offer from: 1cc0d66e-6987-40e6-9b89-6c78c5c822ed
+2026-10-14T15:07:36.740Z info [INFO] [WebRTCSwarm] Data channel opened with 1cc0d66e-6987-40e6-9b89-6c78c5c822ed
+2026-10-14T15:07:36.812Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:07:36.814Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:07:36.820Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 3
+2026-10-14T15:07:36.820Z debug [DEBUG] [WebRTCSwarm] Already connected to 239270ac-86a3-4142-a5de-5d5c49080c1d, skipping
+2026-10-14T15:07:36.820Z debug [DEBUG] [WebRTCSwarm] Already connected to 0fd79251-38ce-4f5d-a1be-674bc172920a, skipping
+2026-10-14T15:07:36.820Z debug [DEBUG] [WebRTCSwarm] Already connected to 1cc0d66e-6987-40e6-9b89-6c78c5c822ed, skipping
+2026-10-14T15:07:36.825Z info [INFO] [WebRTCSwarm] Peer left: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:07:36.834Z info [INFO] [WebRTCSwarm] Peer joined: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:07:36.965Z info [INFO] [WebRTCSwarm] Peer left: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:07:36.986Z info [INFO] [WebRTCSwarm] Peer joined: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:07:40.453Z error [ERROR] [WebRTCSwarm] Data channel error with 1cc0d66e-6987-40e6-9b89-6c78c5c822ed: RTCErrorEvent
+2026-10-14T15:07:40.454Z info [INFO] [WebRTCSwarm] Data channel closed with 1cc0d66e-6987-40e6-9b89-6c78c5c822ed
+2026-10-14T15:07:40.459Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:07:40.477Z info [INFO] [WebRTCSwarm] Peer left: 1cc0d66e-6987-40e6-9b89-6c78c5c822ed
+2026-10-14T15:07:40.645Z info [INFO] [WebRTCSwarm] Peer joined: 1cc0d66e-6987-40e6-9b89-6c78c5c822ed
+2026-10-14T15:07:40.667Z info [INFO] [WebRTCSwarm] Received offer from: 1cc0d66e-6987-40e6-9b89-6c78c5c822ed
+2026-10-14T15:07:40.687Z info [INFO] [WebRTCSwarm] Data channel opened with 1cc0d66e-6987-40e6-9b89-6c78c5c822ed
+2026-10-14T15:07:41.485Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:07:41.489Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:07:41.499Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 3
+2026-10-14T15:07:41.499Z debug [DEBUG] [WebRTCSwarm] Already connected to 239270ac-86a3-4142-a5de-5d5c49080c1d, skipping
+2026-10-14T15:07:41.500Z debug [DEBUG] [WebRTCSwarm] Already connected to 0fd79251-38ce-4f5d-a1be-674bc172920a, skipping
+2026-10-14T15:07:41.500Z debug [DEBUG] [WebRTCSwarm] Already connected to 1cc0d66e-6987-40e6-9b89-6c78c5c822ed, skipping
+2026-10-14T15:07:41.727Z info [INFO] [WebRTCSwarm] Peer left: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:07:41.741Z info [INFO] [WebRTCSwarm] Peer joined: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:07:41.778Z info [INFO] [WebRTCSwarm] Peer left: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:07:41.794Z info [INFO] [WebRTCSwarm] Peer joined: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:08:11.515Z debug [DEBUG] [WebRTCSwarm] Latency to 1cc0d66e-6987-40e6-9b89-6c78c5c822ed: 9ms
+2026-10-14T15:08:11.517Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 14ms
+2026-10-14T15:08:11.518Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 14ms
+2026-10-14T15:08:41.508Z debug [DEBUG] [WebRTCSwarm] Latency to 1cc0d66e-6987-40e6-9b89-6c78c5c822ed: 5ms
+2026-10-14T15:08:41.515Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 12ms
+2026-10-14T15:08:41.551Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 47ms
+2026-10-14T15:09:11.506Z debug [DEBUG] [WebRTCSwarm] Latency to 1cc0d66e-6987-40e6-9b89-6c78c5c822ed: 4ms
+2026-10-14T15:09:11.513Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 12ms
+2026-10-14T15:09:11.515Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 14ms
+2026-10-14T15:09:41.505Z debug [DEBUG] [WebRTCSwarm] Latency to 1cc0d66e-6987-40e6-9b89-6c78c5c822ed: 3ms
+2026-10-14T15:09:41.515Z debug [DEBUG] [WebRTCSwarm] Latency to 0fd79251-38ce-4f5d-a1be-674bc172920a: 14ms
+2026-10-14T15:09:41.515Z debug [DEBUG] [WebRTCSwarm] Latency to 239270ac-86a3-4142-a5de-5d5c49080c1d: 14ms
+2026-10-14T15:09:42.261Z error [ERROR] [WebRTCSwarm] Data channel error with 1cc0d66e-6987-40e6-9b89-6c78c5c822ed: RTCErrorEvent
+2026-10-14T15:09:42.266Z info [INFO] [WebRTCSwarm] Data channel closed with 1cc0d66e-6987-40e6-9b89-6c78c5c822ed
+2026-10-14T15:09:42.273Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:09:42.282Z info [INFO] [WebRTCSwarm] Peer left: 1cc0d66e-6987-40e6-9b89-6c78c5c822ed
+2026-10-14T15:09:43.288Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:09:43.291Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:09:43.299Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 1
+2026-10-14T15:09:43.299Z debug [DEBUG] [WebRTCSwarm] Already connected to 0fd79251-38ce-4f5d-a1be-674bc172920a, skipping
+2026-10-14T15:09:43.299Z info [INFO] [WebRTCSwarm] Peer left: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:09:43.300Z info [INFO] [WebRTCSwarm] Peer joined: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:09:43.319Z info [INFO] [WebRTCSwarm] Peer joined: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:10:01.358Z error [ERROR] [WebRTCSwarm] Data channel error with 239270ac-86a3-4142-a5de-5d5c49080c1d: RTCErrorEvent
+2026-10-14T15:10:01.359Z info [INFO] [WebRTCSwarm] Data channel closed with 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:10:01.367Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:10:01.388Z info [INFO] [WebRTCSwarm] Peer left: 239270ac-86a3-4142-a5de-5d5c49080c1d
+2026-10-14T15:10:02.358Z info [INFO] [WebRTCSwarm] Peer left: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:10:02.401Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:10:02.403Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:10:02.418Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 1
+2026-10-14T15:10:02.418Z debug [DEBUG] [WebRTCSwarm] Already connected to 0fd79251-38ce-4f5d-a1be-674bc172920a, skipping
+2026-10-14T15:10:02.906Z info [INFO] [WebRTCSwarm] Data channel closed with 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:10:02.919Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:10:02.950Z info [INFO] [WebRTCSwarm] Peer left: 0fd79251-38ce-4f5d-a1be-674bc172920a
+2026-10-14T15:10:03.947Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:10:03.949Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:10:03.962Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 0
+2026-10-14T15:10:04.542Z info [INFO] [WebRTCSwarm] Peer joined: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:10:04.570Z info [INFO] [WebRTCSwarm] Received offer from: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:10:04.833Z info [INFO] [WebRTCSwarm] Data channel opened with c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:10:13.446Z info [INFO] [WebRTCSwarm] Peer joined: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:10:13.489Z info [INFO] [WebRTCSwarm] Received offer from: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:10:13.751Z info [INFO] [WebRTCSwarm] Data channel opened with a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:10:43.768Z info [INFO] [WebRTCSwarm] Peer joined: cc9fb135-0491-4927-8438-618c7b8328f5
+2026-10-14T15:10:43.788Z debug [DEBUG] [WebRTCSwarm] Latency to c190aa73-a72b-4852-96d2-c79317466565: 41ms
+2026-10-14T15:10:43.791Z info [INFO] [WebRTCSwarm] Received offer from: cc9fb135-0491-4927-8438-618c7b8328f5
+2026-10-14T15:10:43.814Z info [INFO] [WebRTCSwarm] Data channel opened with cc9fb135-0491-4927-8438-618c7b8328f5
+2026-10-14T15:10:43.849Z debug [DEBUG] [WebRTCSwarm] Latency to a3d71926-8535-44df-b906-88363d506954: 102ms
+2026-10-14T15:10:44.579Z info [INFO] [WebRTCSwarm] Peer joined: 81aab882-d57d-4909-8ca2-b51816afe267
+2026-10-14T15:10:44.606Z info [INFO] [WebRTCSwarm] Received offer from: 81aab882-d57d-4909-8ca2-b51816afe267
+2026-10-14T15:10:44.631Z info [INFO] [WebRTCSwarm] Data channel opened with 81aab882-d57d-4909-8ca2-b51816afe267
+2026-10-14T15:10:47.653Z log [3069910.3ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1055, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1055
+2026-10-14T15:11:14.636Z debug [DEBUG] [WebRTCSwarm] Latency to cc9fb135-0491-4927-8438-618c7b8328f5: 2ms
+2026-10-14T15:11:14.649Z debug [DEBUG] [WebRTCSwarm] Latency to a3d71926-8535-44df-b906-88363d506954: 15ms
+2026-10-14T15:11:14.650Z debug [DEBUG] [WebRTCSwarm] Latency to 81aab882-d57d-4909-8ca2-b51816afe267: 16ms
+2026-10-14T15:11:14.691Z debug [DEBUG] [WebRTCSwarm] Latency to c190aa73-a72b-4852-96d2-c79317466565: 57ms
+2026-10-14T15:11:44.639Z debug [DEBUG] [WebRTCSwarm] Latency to cc9fb135-0491-4927-8438-618c7b8328f5: 7ms
+2026-10-14T15:11:44.646Z debug [DEBUG] [WebRTCSwarm] Latency to a3d71926-8535-44df-b906-88363d506954: 14ms
+2026-10-14T15:11:44.646Z debug [DEBUG] [WebRTCSwarm] Latency to c190aa73-a72b-4852-96d2-c79317466565: 14ms
+2026-10-14T15:11:44.661Z debug [DEBUG] [WebRTCSwarm] Latency to 81aab882-d57d-4909-8ca2-b51816afe267: 29ms
+2026-10-14T15:12:14.636Z debug [DEBUG] [WebRTCSwarm] Latency to cc9fb135-0491-4927-8438-618c7b8328f5: 4ms
+2026-10-14T15:12:14.642Z debug [DEBUG] [WebRTCSwarm] Latency to c190aa73-a72b-4852-96d2-c79317466565: 11ms
+2026-10-14T15:12:14.656Z debug [DEBUG] [WebRTCSwarm] Latency to 81aab882-d57d-4909-8ca2-b51816afe267: 24ms
+2026-10-14T15:12:14.687Z debug [DEBUG] [WebRTCSwarm] Latency to a3d71926-8535-44df-b906-88363d506954: 55ms
+2026-10-14T15:12:44.630Z debug [DEBUG] [WebRTCSwarm] Latency to cc9fb135-0491-4927-8438-618c7b8328f5: 2ms
+2026-10-14T15:12:44.640Z debug [DEBUG] [WebRTCSwarm] Latency to c190aa73-a72b-4852-96d2-c79317466565: 13ms
+2026-10-14T15:12:44.642Z debug [DEBUG] [WebRTCSwarm] Latency to a3d71926-8535-44df-b906-88363d506954: 16ms
+2026-10-14T15:12:44.650Z debug [DEBUG] [WebRTCSwarm] Latency to 81aab882-d57d-4909-8ca2-b51816afe267: 23ms
+2026-10-14T15:13:14.630Z debug [DEBUG] [WebRTCSwarm] Latency to cc9fb135-0491-4927-8438-618c7b8328f5: 4ms
+2026-10-14T15:13:14.630Z debug [DEBUG] [WebRTCSwarm] Latency to 81aab882-d57d-4909-8ca2-b51816afe267: 5ms
+2026-10-14T15:13:14.645Z debug [DEBUG] [WebRTCSwarm] Latency to c190aa73-a72b-4852-96d2-c79317466565: 20ms
+2026-10-14T15:13:14.730Z debug [DEBUG] [WebRTCSwarm] Latency to a3d71926-8535-44df-b906-88363d506954: 104ms
+2026-10-14T15:13:18.612Z info [INFO] [WebRTCSwarm] Peer joined: fac32f21-6f41-4a33-ad26-ae6ee9dadf21
+2026-10-14T15:13:18.637Z info [INFO] [WebRTCSwarm] Received offer from: fac32f21-6f41-4a33-ad26-ae6ee9dadf21
+2026-10-14T15:13:18.688Z info [INFO] [WebRTCSwarm] Data channel opened with fac32f21-6f41-4a33-ad26-ae6ee9dadf21
+2026-10-14T15:13:21.613Z info [INFO] [WebRTCSwarm] Peer joined: 9e73432d-8f83-4a9c-82e5-e7e51d930374
+2026-10-14T15:13:21.643Z info [INFO] [WebRTCSwarm] Received offer from: 9e73432d-8f83-4a9c-82e5-e7e51d930374
+2026-10-14T15:13:21.676Z info [INFO] [WebRTCSwarm] Data channel opened with 9e73432d-8f83-4a9c-82e5-e7e51d930374
+2026-10-14T15:13:24.564Z log [3226828.4ms][Pipeline] KV cache allocated: kvDtype=f16, maxSeqLen=1055, layout=contiguous, modelMaxSeqLen=262144, requestedKvDtype=f16, requestedMaxSeqLen=1055
+2026-10-14T15:13:41.795Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:13:42.914Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:13:42.917Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:13:42.932Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 6
+2026-10-14T15:13:42.933Z info [INFO] [WebRTCSwarm] Connecting to peer: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:13:42.983Z info [INFO] [WebRTCSwarm] Connecting to peer: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:13:42.984Z debug [DEBUG] [WebRTCSwarm] Already connected to cc9fb135-0491-4927-8438-618c7b8328f5, skipping
+2026-10-14T15:13:42.984Z debug [DEBUG] [WebRTCSwarm] Already connected to 81aab882-d57d-4909-8ca2-b51816afe267, skipping
+2026-10-14T15:13:42.984Z debug [DEBUG] [WebRTCSwarm] Already connected to fac32f21-6f41-4a33-ad26-ae6ee9dadf21, skipping
+2026-10-14T15:13:42.984Z debug [DEBUG] [WebRTCSwarm] Already connected to 9e73432d-8f83-4a9c-82e5-e7e51d930374, skipping
+2026-10-14T15:13:43.017Z error [ERROR] [WebRTCSwarm] Data channel error with cc9fb135-0491-4927-8438-618c7b8328f5: RTCErrorEvent
+2026-10-14T15:13:43.018Z info [INFO] [WebRTCSwarm] Data channel closed with cc9fb135-0491-4927-8438-618c7b8328f5
+2026-10-14T15:13:43.031Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:13:43.065Z info [INFO] [WebRTCSwarm] Peer left: cc9fb135-0491-4927-8438-618c7b8328f5
+2026-10-14T15:13:43.098Z error [ERROR] [WebRTCSwarm] Data channel error with 81aab882-d57d-4909-8ca2-b51816afe267: RTCErrorEvent
+2026-10-14T15:13:43.099Z info [INFO] [WebRTCSwarm] Data channel closed with 81aab882-d57d-4909-8ca2-b51816afe267
+2026-10-14T15:13:43.127Z info [INFO] [WebRTCSwarm] Peer left: 81aab882-d57d-4909-8ca2-b51816afe267
+2026-10-14T15:13:43.163Z info [INFO] [WebRTCSwarm] Peer left: 9e73432d-8f83-4a9c-82e5-e7e51d930374
+2026-10-14T15:13:43.164Z error [ERROR] [WebRTCSwarm] Data channel error with fac32f21-6f41-4a33-ad26-ae6ee9dadf21: RTCErrorEvent
+2026-10-14T15:13:43.164Z info [INFO] [WebRTCSwarm] Data channel closed with fac32f21-6f41-4a33-ad26-ae6ee9dadf21
+2026-10-14T15:13:43.199Z info [INFO] [WebRTCSwarm] Peer left: fac32f21-6f41-4a33-ad26-ae6ee9dadf21
+2026-10-14T15:13:43.211Z error [ERROR] [WebRTCSwarm] Data channel error with 9e73432d-8f83-4a9c-82e5-e7e51d930374: RTCErrorEvent
+2026-10-14T15:13:43.211Z info [INFO] [WebRTCSwarm] Data channel closed with 9e73432d-8f83-4a9c-82e5-e7e51d930374
+2026-10-14T15:13:43.248Z info [INFO] [WebRTCSwarm] Peer joined: 9e73432d-8f83-4a9c-82e5-e7e51d930374
+2026-10-14T15:13:43.248Z warning [WARN] [WebRTCSwarm] Cannot send to c190aa73-a72b-4852-96d2-c79317466565: not connected
+2026-10-14T15:13:43.248Z warning [WARN] [WebRTCSwarm] Cannot send to a3d71926-8535-44df-b906-88363d506954: not connected
+2026-10-14T15:13:43.260Z info [INFO] [WebRTCSwarm] Peer left: 9e73432d-8f83-4a9c-82e5-e7e51d930374
+2026-10-14T15:13:44.062Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:13:44.107Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:13:44.117Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 2
+2026-10-14T15:13:44.117Z info [INFO] [WebRTCSwarm] Closing stale connection to c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:13:44.127Z info [INFO] [WebRTCSwarm] Connecting to peer: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:13:44.129Z info [INFO] [WebRTCSwarm] Closing stale connection to a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:13:44.139Z info [INFO] [WebRTCSwarm] Connecting to peer: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:14:12.830Z info [INFO] [WebRTCSwarm] Peer left: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:14:13.241Z info [INFO] [WebRTCSwarm] Peer left: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:14:13.336Z info [INFO] [WebRTCSwarm] Peer joined: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:14:13.336Z warning [WARN] [WebRTCSwarm] Cannot send to c190aa73-a72b-4852-96d2-c79317466565: not connected
+2026-10-14T15:14:13.337Z warning [WARN] [WebRTCSwarm] Cannot send to a3d71926-8535-44df-b906-88363d506954: not connected
+2026-10-14T15:14:13.403Z info [INFO] [WebRTCSwarm] Peer joined: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:14:13.403Z warning [WARN] [WebRTCSwarm] Cannot send to c190aa73-a72b-4852-96d2-c79317466565: not connected
+2026-10-14T15:14:13.403Z warning [WARN] [WebRTCSwarm] Cannot send to a3d71926-8535-44df-b906-88363d506954: not connected
+2026-10-14T15:14:14.131Z warning [WARN] [WebRTCSwarm] Cannot send to c190aa73-a72b-4852-96d2-c79317466565: not connected
+2026-10-14T15:14:14.132Z warning [WARN] [WebRTCSwarm] Cannot send to a3d71926-8535-44df-b906-88363d506954: not connected
+2026-10-14T15:14:14.143Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:14:15.187Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:14:15.191Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:14:15.206Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 2
+2026-10-14T15:14:15.206Z info [INFO] [WebRTCSwarm] Connecting to peer: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:14:15.208Z info [INFO] [WebRTCSwarm] Connecting to peer: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:14:44.431Z info [INFO] [WebRTCSwarm] Peer left: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:14:44.466Z info [INFO] [WebRTCSwarm] Peer joined: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:14:44.466Z warning [WARN] [WebRTCSwarm] Cannot send to c190aa73-a72b-4852-96d2-c79317466565: not connected
+2026-10-14T15:14:44.466Z warning [WARN] [WebRTCSwarm] Cannot send to a3d71926-8535-44df-b906-88363d506954: not connected
+2026-10-14T15:14:44.511Z info [INFO] [WebRTCSwarm] Received offer from: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:14:44.602Z info [INFO] [WebRTCSwarm] Peer left: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:14:44.676Z info [INFO] [WebRTCSwarm] Peer joined: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:14:44.677Z warning [WARN] [WebRTCSwarm] Cannot send to a3d71926-8535-44df-b906-88363d506954: not connected
+2026-10-14T15:14:44.677Z warning [WARN] [WebRTCSwarm] Cannot send to c190aa73-a72b-4852-96d2-c79317466565: not connected
+2026-10-14T15:14:44.719Z info [INFO] [WebRTCSwarm] Received offer from: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:14:44.720Z info [INFO] [WebRTCSwarm] Data channel opened with c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:14:44.720Z warning [WARN] [WebRTCSwarm] Cannot send to a3d71926-8535-44df-b906-88363d506954: not connected
+2026-10-14T15:14:44.720Z warning [WARN] [WebRTCSwarm] Cannot send to a3d71926-8535-44df-b906-88363d506954: not connected
+2026-10-14T15:14:45.089Z info [INFO] [WebRTCSwarm] Data channel opened with a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:15:15.116Z debug [DEBUG] [WebRTCSwarm] Latency to a3d71926-8535-44df-b906-88363d506954: 25ms
+2026-10-14T15:15:15.125Z debug [DEBUG] [WebRTCSwarm] Latency to c190aa73-a72b-4852-96d2-c79317466565: 35ms
+2026-10-14T15:15:45.146Z debug [DEBUG] [WebRTCSwarm] Latency to a3d71926-8535-44df-b906-88363d506954: 55ms
+2026-10-14T15:15:45.147Z debug [DEBUG] [WebRTCSwarm] Latency to c190aa73-a72b-4852-96d2-c79317466565: 55ms
+2026-10-14T15:16:15.126Z debug [DEBUG] [WebRTCSwarm] Latency to a3d71926-8535-44df-b906-88363d506954: 36ms
+2026-10-14T15:16:15.196Z debug [DEBUG] [WebRTCSwarm] Latency to c190aa73-a72b-4852-96d2-c79317466565: 106ms
+2026-10-14T15:16:30.783Z error [ERROR] [WebRTCSwarm] Data channel error with c190aa73-a72b-4852-96d2-c79317466565: RTCErrorEvent
+2026-10-14T15:16:30.783Z info [INFO] [WebRTCSwarm] Data channel closed with c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:16:30.792Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:16:30.814Z info [INFO] [WebRTCSwarm] Peer left: c190aa73-a72b-4852-96d2-c79317466565
+2026-10-14T15:16:31.835Z info [INFO] [WebRTCSwarm] Connecting to ws://127.0.0.1:29670/swarm?scope=private&roomId=reploid-swarm-scj-run7-75331ac8f3b0
+2026-10-14T15:16:31.837Z debug [DEBUG] [WebRTCSwarm] Received welcome from signaling server
+2026-10-14T15:16:31.854Z info [INFO] [WebRTCSwarm] Joined room reploid-swarm-scj-run7-75331ac8f3b0, existing peers: 1
+2026-10-14T15:16:31.854Z debug [DEBUG] [WebRTCSwarm] Already connected to a3d71926-8535-44df-b906-88363d506954, skipping
+2026-10-14T15:16:31.885Z info [INFO] [WebRTCSwarm] Peer left: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:16:31.930Z info [INFO] [WebRTCSwarm] Peer joined: a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:16:32.489Z error [ERROR] [WebRTCSwarm] Data channel error with a3d71926-8535-44df-b906-88363d506954: RTCErrorEvent
+2026-10-14T15:16:32.489Z info [INFO] [WebRTCSwarm] Data channel closed with a3d71926-8535-44df-b906-88363d506954
+2026-10-14T15:16:32.501Z info [INFO] [WebRTCSwarm] Reconnecting in 1000ms (attempt 1)
+2026-10-14T15:16:32.533Z info [INFO] [WebRTCSwarm] Peer left: a3d71926-8535-44df-b906-88363d506954

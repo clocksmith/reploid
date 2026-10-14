@@ -1,0 +1,17 @@
+2026-10-14T14:12:52.457Z attached http://127.0.0.1:29670/
+2026-10-14T14:13:02.660Z debug [DEBUG] [WebRTCSwarm] Latency to 9bc02ff7-98d0-48b8-a77d-2e21497e2f20: 9ms
+2026-10-14T14:13:02.663Z debug [DEBUG] [WebRTCSwarm] Latency to 8d6cdbfe-533d-4b92-bcc3-e499420f0d29: 12ms
+2026-10-14T14:13:32.662Z debug [DEBUG] [WebRTCSwarm] Latency to 9bc02ff7-98d0-48b8-a77d-2e21497e2f20: 11ms
+2026-10-14T14:13:32.753Z debug [DEBUG] [WebRTCSwarm] Latency to 8d6cdbfe-533d-4b92-bcc3-e499420f0d29: 103ms
+2026-10-14T14:14:02.665Z debug [DEBUG] [WebRTCSwarm] Latency to 9bc02ff7-98d0-48b8-a77d-2e21497e2f20: 14ms
+2026-10-14T14:14:02.674Z debug [DEBUG] [WebRTCSwarm] Latency to 8d6cdbfe-533d-4b92-bcc3-e499420f0d29: 23ms
+2026-10-14T14:14:32.684Z debug [DEBUG] [WebRTCSwarm] Latency to 9bc02ff7-98d0-48b8-a77d-2e21497e2f20: 32ms
+2026-10-14T14:14:32.686Z debug [DEBUG] [WebRTCSwarm] Latency to 8d6cdbfe-533d-4b92-bcc3-e499420f0d29: 34ms
+2026-10-14T14:15:02.674Z debug [DEBUG] [WebRTCSwarm] Latency to 9bc02ff7-98d0-48b8-a77d-2e21497e2f20: 22ms
+2026-10-14T14:15:02.727Z debug [DEBUG] [WebRTCSwarm] Latency to 8d6cdbfe-533d-4b92-bcc3-e499420f0d29: 75ms
+2026-10-14T14:15:32.672Z debug [DEBUG] [WebRTCSwarm] Latency to 8d6cdbfe-533d-4b92-bcc3-e499420f0d29: 19ms
+2026-10-14T14:15:32.673Z debug [DEBUG] [WebRTCSwarm] Latency to 9bc02ff7-98d0-48b8-a77d-2e21497e2f20: 20ms
+2026-10-14T14:16:02.670Z debug [DEBUG] [WebRTCSwarm] Latency to 9bc02ff7-98d0-48b8-a77d-2e21497e2f20: 18ms
+2026-10-14T14:16:02.671Z debug [DEBUG] [WebRTCSwarm] Latency to 8d6cdbfe-533d-4b92-bcc3-e499420f0d29: 21ms
+2026-10-14T14:16:32.751Z debug [DEBUG] [WebRTCSwarm] Latency to 9bc02ff7-98d0-48b8-a77d-2e21497e2f20: 99ms
+2026-10-14T14:16:32.855Z debug [DEBUG] [WebRTCSwarm] Latency to 8d6cdbfe-533d-4b92-bcc3-e499420f0d29: 204ms

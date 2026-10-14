@@ -1,0 +1,16 @@
+== amd-host scj-run7-amd-native-1
+active=active
+ActiveEnterTimestamp=Wed 2026-10-14 09:57:17 EDT
+RuntimeMaxUSec=45min
+pids=2078485 
+{"event":"partition-state","phase":"ready","error":null,"offering":true,"modelId":"qwen-3-
+journal-token-hits 0
+pid 2078485 argv-token-hits 0
+== intel-host scj-run7-intel-native-1
+active=active
+RuntimeMaxUSec=45min
+ActiveEnterTimestamp=Wed 2026-10-14 09:57:28 EDT
+pids=1450440 
+{"event":"partition-state","phase":"ready","error":null,"offering":true,"modelId":"qwen-3-
+journal-token-hits 0
+pid 1450440 argv-token-hits 0

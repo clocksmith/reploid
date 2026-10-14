@@ -1,0 +1,12 @@
+{
+ "schema": "reploid.run-7-browser-signed-state/v1",
+ "machine": "mac-host",
+ "at": "2026-10-14T16:16:18.156Z",
+ "releaseCheckpoints": [
+  {
+   "namespace": "sha256:ce08ba3fdaeac42b54c2b4f963f69519cd7b39cce14a66b682ed9f1583fe233b",
+   "sequence": 4,
+   "digest": "sha256:7f62c19a88165fded22d857860da729cb82f02a69f30e6f48765f35f1195ee45"
+  }
+ ]
+}

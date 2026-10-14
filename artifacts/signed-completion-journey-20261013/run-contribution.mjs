@@ -4,7 +4,7 @@
 // and their checks then fail closed. Steps that need a fresh acquisition ledger use a fresh
 // browser context, because a ledger's cap is immutable once created (work-model-files.js:355).
 import { orderedSelectionId } from './config.mjs';
-import { compilePatterns, observeChat, observeConnectionOwner, observeCustody, observeNetwork, observeOffer, observeSupplierOffers } from './observe.mjs';
+import { classifyRequest, compilePatterns, observeChat, observeConnectionOwner, observeCustody, observeNetwork, observeOffer, observeSupplierOffers, rangeBytes } from './observe.mjs';
 import { assessContribution, SINGLE_OWNER_REFUSAL, MIN_INTERRUPTED_PIECE_BYTES } from './contribution-checks.mjs';
 import { TERMINAL, startRun, openBrowser, appUrl, trackRequests, transferBytes, transferKey, waitFor, withDeadline, openApp, chooseOrderedModel,
   send, followAttempt, waitForAttempt, attemptIds, startFileContribution, stopFileContribution, readLedger, classifyInterruption, closeOtherTabs, sleep, now } from './harness.mjs';
@@ -166,21 +166,52 @@ try {
     for (const page of [supplierPage, acquirerPage].filter(Boolean)) { await stopFileContribution(page); await shareSettled(page); }
   });
 
-  // (f) Stop file contribution while a transfer is in flight and a conversation streams.
+  // (f) Stop file contribution while a transfer is in flight and a conversation streams. The local origin
+  // delivers the whole 64 MiB allowance in about 3 s, which page-state polling missed in run 7 attempt e (and
+  // the step then left its tab offering pieces to the later steps). Network throttling (attempts h to j)
+  // slowed every page observation and click in step with the download, so instead the harness holds the
+  // first piece request of at least MIN_INTERRUPTED_PIECE_BYTES at the browser (a slow origin, harness only)
+  // until Stop has been clicked, then releases it. In flight means that held request, pending at the click;
+  // the stop must abort it. A failed step still stops this tab's contribution.
   await step('stopSettles', async () => {
     const owner = await freshContext(supplierBrowser, 'stop'), page = await openTab(owner, 'stop-main', supplierOrigin);
+    let release, heldUrl = null;
+    const released = new Promise(resolve => { release = resolve; });
+    await owner.context.route(url => classifyRequest(url.href, patterns).weight, async (route, request) => {
+      if (!heldUrl && rangeBytes(request.headers().range ?? null) >= MIN_INTERRUPTED_PIECE_BYTES) {
+        heldUrl = request.url(); await released;
+      }
+      await route.continue().catch(() => {});
+    });
     const chat = await startChat(page), samples = [];
     const record = async () => samples.push({ at: now(), attemptStatus: await chatStatus(page, chat.attempt.id) });
-    await startFileContribution(page, { modelId: freeze.modelId, mode: 'bounded-acquisition', allowanceMiB: storage.stopAllowanceMiB });
-    const inFlightAtStop = await waitFor(async () => {
+    const large = owner.tracker.next(row => row.page === 'stop-main' && row.weight && row.declaredBytes >= MIN_INTERRUPTED_PIECE_BYTES);
+    let stopClickedAt = null, timer;
+    try {
       await record();
-      const files = await filesOf(page), pendingHttp = rowsOf('stop-main').filter(row => !row.finished && !row.failed).length;
-      return files?.preparing && pendingHttp + (files.pending || 0) > 0 ? { filesPreparing: true, pendingRequests: pendingHttp + (files.pending || 0), progress: files.progress } : null;
-    }, { timeout: timeouts.transferMs, poll, label: 'In-flight acquisition' });
-    const budgetBefore = await readLedger(page);
-    await record();
-    const stopClickedAt = await stopFileContribution(page);
-    report.stop = { inFlightAtStop, budgetBefore, stopClickedAt, chat: { attemptId: chat.attempt.id, final: null, samples } };
+      await startFileContribution(page, { modelId: freeze.modelId, mode: 'bounded-acquisition', allowanceMiB: storage.stopAllowanceMiB });
+      const deadline = new Promise((_, reject) => { timer = setTimeout(() => reject(Error('In-flight acquisition deadline')), timeouts.transferMs); });
+      deadline.catch(() => {});
+      const largeRow = await Promise.race([large, deadline]);
+      const budgetBefore = await readLedger(page), files = await filesOf(page);
+      await record();
+      const clickStartedAt = now();
+      stopClickedAt = await stopFileContribution(page);
+      const pendingRows = rowsOf('stop-main').filter(row => row.at <= stopClickedAt
+        && (!(row.finishedAt && row.finishedAt < stopClickedAt) || (row.failed && row.finishedAt >= clickStartedAt)));
+      const inFlightAtStop = { filesPreparing: !!files?.preparing, pendingRequests: pendingRows.length + (files?.pending || 0),
+        custodyPending: files?.pending || 0, progress: files?.progress ?? null, heldLargePiece: { url: heldUrl, at: largeRow.at },
+        clickStartedAt, pending: pendingRows.map(row => ({ url: row.url, range: row.range, at: row.at })) };
+      report.stop = { inFlightAtStop, budgetBefore, stopClickedAt, chat: { attemptId: chat.attempt.id, final: null, samples } };
+    } finally {
+      clearTimeout(timer);
+      if (!stopClickedAt) await stopFileContribution(page).catch(() => null);
+      release();
+    }
+    // The held request's outcome after release: the stop must have aborted it.
+    await sleep(500);
+    report.stop && (report.stop.heldOutcome = rowsOf('stop-main').filter(row => row.url === heldUrl?.split('?')[0] && row.declaredBytes >= MIN_INTERRUPTED_PIECE_BYTES)
+      .map(row => ({ at: row.at, finished: row.finished, failed: row.failed, failure: row.failure ?? null, finishedAt: row.finishedAt })));
     const filesAfter = await waitFor(async () => { await record(); const files = await filesOf(page);
       return files && !files.preparing && !files.stopping && !files.sharing ? files : null; }, { timeout: timeouts.settlementMs, poll, label: 'Stop settlement' });
     const settledAt = now();
