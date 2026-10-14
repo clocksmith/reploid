@@ -68,3 +68,31 @@ exclusion of that separate model surface; no qualification is assigned to it.
 `chat-package-install.json` verifies all 1,984 npm/runtime browser files against
 the exact archive. Catalog signing, browser/native packaging and application
 execution remain pending.
+
+## Captured outcome and qualification boundary
+
+The exact installed route completed all 55 numerical comparisons, maximum
+absolute logit error `9.520044947919359e-7` at unchanged `0.001`. All three attempts
+on each resident closed; resident/context/provider settlement passed. GPU peaks
+were 705,193,152 / 196,760,720 / 339,500,176 bytes (Mac / AMD / Intel), below the
+unchanged cap. Longest stage operation was 185,936 ms, below 300,000 ms.
+The controller exited zero and both native providers exited zero. Captured
+activation payload totaled 4,521,984 logical bytes; protocol overhead and peer
+weight acquisition are not measured here. AMD shared-device power is recorded;
+Intel energy sensors denied access. These are functional runs with public
+co-tenants and retained caches, not isolated performance acceptance.
+
+**Report qualification remains blocked.** The unchanged offline producer rejected
+`orderedContract.executionGraphHash`: `freeze-before.js` bound the serialized
+graph-file SHA256 (`8e33eb44…`) instead of the already-observed execution-identity
+graph digest (`9e28445d…`). `report-binding-rejection.json` preserves both domains
+and exact frozen expectations. `freeze.js` now selects the correct field from
+pre-run opening observation. Original expectations, raw capture, reference,
+runtime archive, producer and tolerances remain untouched. A fresh correctly
+bound qualification is required before signed eligibility; the numerical and
+cleanup observations above are not erased or mislabeled as runtime failure.
+
+The next application step remains signed opening on supported configured prepared
+capacity with automatic requester route selection, complete conversations and
+lifecycle tests. Autonomous cold preparation/replication is Launch 3; storage
+contribution is Launch 2, with compatibility exercised alongside actual chat.
