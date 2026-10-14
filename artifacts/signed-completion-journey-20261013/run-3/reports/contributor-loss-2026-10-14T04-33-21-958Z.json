@@ -1,0 +1,509 @@
+{
+  "schema": "reploid.signed-completion-journey-report/v1",
+  "harness": "contributor-loss",
+  "startedAt": "2026-10-14T04:33:21.959Z",
+  "configSha256": "ee3f71ccfedeb47d0b0f98514a9a8763b7afa85923c098dbc861acfecef25b28",
+  "fixtureSha256": "7dd06aa4488c8e79b4e5aa8b4dbe804d39bc71a9bfaa3ceafab970c343d0edc1",
+  "freeze": {
+    "browserBundle": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d",
+    "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [
+      8,
+      16
+    ],
+    "nativeArtifacts": {
+      "amd-host": "sha256:fcacf463ede679feffaf7de9115e7d7bf02729e4ca85c9cab650500f0c6e2017",
+      "intel-host": "sha256:fcacf463ede679feffaf7de9115e7d7bf02729e4ca85c9cab650500f0c6e2017"
+    },
+    "route": [
+      {
+        "index": 0,
+        "machine": "mac-host",
+        "host": "browser",
+        "participantId": "peer:a8a4f314d29f7b7013520808"
+      },
+      {
+        "index": 1,
+        "machine": "amd-host",
+        "host": "native",
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run3-20261013/amd-host-stage-1.json"
+      },
+      {
+        "index": 2,
+        "machine": "intel-host",
+        "host": "native",
+        "participantId": "peer:09610aefbd15a133d7af2b57",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run3-20261013/intel-host-stage-2.json"
+      }
+    ]
+  },
+  "ok": false,
+  "errors": [],
+  "scope": "Stop one native stage contributor through the configured callback while an ordered answer streams; observe the requester report, ownership settlement, absence of continuation and an explicit retry after capacity returns.",
+  "lossTarget": {
+    "machine": "amd-host",
+    "stage": 1,
+    "participantId": "peer:9af15d884eba51b0c0540e2a"
+  },
+  "modelFileRequests": [],
+  "streamSamples": [],
+  "terminalSamples": [],
+  "postFailureSamples": [],
+  "preRetrySamples": [],
+  "timing": [],
+  "servedDescriptor": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d",
+  "modelChoice": {
+    "selectedValue": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+  },
+  "custodyBefore": {
+    "state": {
+      "sharing": false,
+      "suppliedBytes": 0,
+      "pending": 0,
+      "peers": [
+        "6cc29a30-b657-438b-9f87-85f370f78762",
+        "566e6888-a661-484c-8fca-6e1ae6fb0273",
+        "1300a004-965c-4e9c-b5fe-660e349eb000"
+      ],
+      "model": null,
+      "mode": null,
+      "acquisitionBudget": null,
+      "acquisitionBudgetError": null,
+      "supplyBudgetError": null,
+      "preparing": false,
+      "stopping": false,
+      "error": "",
+      "progress": null,
+      "receivedBytes": 0,
+      "verifiedFiles": [],
+      "limits": {
+        "storedBytes": 3221225472,
+        "supplyBytes": 4294967296,
+        "downloadBytes": 67108864,
+        "maxDownloadBytes": 4294967296,
+        "subsetBytes": 67108864
+      }
+    },
+    "receipts": []
+  },
+  "failure": "Error: Streaming before loss: attempt ended failed: Peer disclosure does not match the selected model and verified recipients\n    at waitFor.timeout.timeout (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:240:101)\n    at async waitFor (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:165:19)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contributor-loss.mjs:57:21",
+  "body": "7\n7\nThreads\nQwen 3.5 0.8B\nConversation\nCount from 1 to 500 in order, one integer per line. No commentary.\nfailed\n…\nCount from 1 to 500 in order, one integer per line. No commentary.\n\nThis answer could not finish.\n\nTechnical details\nRetry response\nStarts a new attempt; keeps this response.\nMessage\nAttach files",
+  "finalState": {
+    "schema": "reploid.chat-owner-observation/v1",
+    "source": "existing host getState/getDraft",
+    "storageMode": "legacy",
+    "threads": [
+      {
+        "id": "43992dff-97d3-47b3-a018-10f97eab56bc",
+        "model": {
+          "id": "qwen-3-5-0-8b-q4k-ehaf16",
+          "name": "Qwen 3.5 0.8B",
+          "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "index": 0,
+          "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "residentId": "scj-run3-stage-0-resident",
+          "executionId": "scj-run3-stage-0-ordinary",
+          "activation": {
+            "schema": "doppler.activation-tensor/v2",
+            "dtype": "f32",
+            "hiddenSize": 1024,
+            "precision": "two-f32",
+            "components": 2,
+            "elementStrideBytes": 8
+          },
+          "availability": "ready",
+          "adapters": [],
+          "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+          "partition": {
+            "schema": "reploid.partition-selection/v2",
+            "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+            "coordinatorId": "peer:a8a4f314d29f7b7013520808",
+            "route": {
+              "schema": "reploid.partition-route/v1",
+              "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+              "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+              "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+              "stages": [
+                {
+                  "index": 0,
+                  "participantId": "peer:a8a4f314d29f7b7013520808",
+                  "transportId": "6cc29a30-b657-438b-9f87-85f370f78762",
+                  "residentId": "scj-run3-stage-0-resident",
+                  "executionId": "scj-run3-stage-0-ordinary"
+                },
+                {
+                  "index": 1,
+                  "participantId": "peer:9af15d884eba51b0c0540e2a",
+                  "transportId": "1300a004-965c-4e9c-b5fe-660e349eb000",
+                  "residentId": "scj-run3-stage-1-resident",
+                  "executionId": "scj-run3-stage-1-ordinary"
+                },
+                {
+                  "index": 2,
+                  "participantId": "peer:09610aefbd15a133d7af2b57",
+                  "transportId": "566e6888-a661-484c-8fca-6e1ae6fb0273",
+                  "residentId": "scj-run3-stage-2-resident",
+                  "executionId": "scj-run3-stage-2-ordinary"
+                }
+              ],
+              "activation": {
+                "schema": "doppler.activation-tensor/v2",
+                "dtype": "f32",
+                "hiddenSize": 1024,
+                "precision": "two-f32",
+                "components": 2,
+                "elementStrideBytes": 8
+              }
+            }
+          },
+          "provider": "doppler",
+          "contextLength": 4096,
+          "quantization": "q4k",
+          "size": "Q4K",
+          "recommended": true,
+          "textGeneration": {
+            "schema": "reploid.text-generation/v1",
+            "usage": "raw-model-tokens/v1"
+          },
+          "providerIds": [
+            "peer:a8a4f314d29f7b7013520808",
+            "peer:9af15d884eba51b0c0540e2a",
+            "peer:09610aefbd15a133d7af2b57"
+          ],
+          "placement": "ordered-layer-partition"
+        },
+        "purpose": "",
+        "systemContext": {
+          "content": "",
+          "metadata": {
+            "policyId": "reploid.compact-context/v1",
+            "enabled": false,
+            "maxWords": 16,
+            "wordCount": 0,
+            "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+            "mode": null
+          }
+        },
+        "members": [
+          "local-user"
+        ],
+        "permissions": {
+          "sharingScope": "mesh"
+        },
+        "grants": [],
+        "messages": [
+          {
+            "id": "80969983-8f6b-439b-bf9f-9a7b8d7d7d06",
+            "role": "user",
+            "content": "Count from 1 to 500 in order, one integer per line. No commentary.",
+            "status": "completed"
+          },
+          {
+            "id": "909acec6-4f18-48f9-990e-401af69c3c0a",
+            "attemptId": "3d01fe97-cfe6-48a7-8ff2-835f7a97c408",
+            "role": "assistant",
+            "content": "",
+            "status": "failed"
+          }
+        ],
+        "attempts": [
+          {
+            "id": "3d01fe97-cfe6-48a7-8ff2-835f7a97c408",
+            "threadId": "43992dff-97d3-47b3-a018-10f97eab56bc",
+            "userMessageId": "80969983-8f6b-439b-bf9f-9a7b8d7d7d06",
+            "responseId": "909acec6-4f18-48f9-990e-401af69c3c0a",
+            "retryOf": null,
+            "status": "failed",
+            "createdAt": 1791952405100,
+            "finishedAt": 1791952405267,
+            "error": "Peer disclosure does not match the selected model and verified recipients",
+            "approval": null,
+            "execution": null,
+            "authorization": null,
+            "request": {
+              "model": {
+                "id": "qwen-3-5-0-8b-q4k-ehaf16",
+                "name": "Qwen 3.5 0.8B",
+                "identity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "index": 0,
+                "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "residentId": "scj-run3-stage-0-resident",
+                "executionId": "scj-run3-stage-0-ordinary",
+                "activation": {
+                  "schema": "doppler.activation-tensor/v2",
+                  "dtype": "f32",
+                  "hiddenSize": 1024,
+                  "precision": "two-f32",
+                  "components": 2,
+                  "elementStrideBytes": 8
+                },
+                "availability": "ready",
+                "adapters": [],
+                "selectionId": "qwen-3-5-0-8b-q4k-ehaf16/partition/sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                "partition": {
+                  "schema": "reploid.partition-selection/v2",
+                  "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                  "coordinatorId": "peer:a8a4f314d29f7b7013520808",
+                  "route": {
+                    "schema": "reploid.partition-route/v1",
+                    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+                    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+                    "stages": [
+                      {
+                        "index": 0,
+                        "participantId": "peer:a8a4f314d29f7b7013520808",
+                        "transportId": "6cc29a30-b657-438b-9f87-85f370f78762",
+                        "residentId": "scj-run3-stage-0-resident",
+                        "executionId": "scj-run3-stage-0-ordinary"
+                      },
+                      {
+                        "index": 1,
+                        "participantId": "peer:9af15d884eba51b0c0540e2a",
+                        "transportId": "1300a004-965c-4e9c-b5fe-660e349eb000",
+                        "residentId": "scj-run3-stage-1-resident",
+                        "executionId": "scj-run3-stage-1-ordinary"
+                      },
+                      {
+                        "index": 2,
+                        "participantId": "peer:09610aefbd15a133d7af2b57",
+                        "transportId": "566e6888-a661-484c-8fca-6e1ae6fb0273",
+                        "residentId": "scj-run3-stage-2-resident",
+                        "executionId": "scj-run3-stage-2-ordinary"
+                      }
+                    ],
+                    "activation": {
+                      "schema": "doppler.activation-tensor/v2",
+                      "dtype": "f32",
+                      "hiddenSize": 1024,
+                      "precision": "two-f32",
+                      "components": 2,
+                      "elementStrideBytes": 8
+                    }
+                  }
+                },
+                "provider": "doppler",
+                "contextLength": 4096,
+                "quantization": "q4k",
+                "size": "Q4K",
+                "recommended": true,
+                "textGeneration": {
+                  "schema": "reploid.text-generation/v1",
+                  "usage": "raw-model-tokens/v1"
+                },
+                "providerIds": [
+                  "peer:a8a4f314d29f7b7013520808",
+                  "peer:9af15d884eba51b0c0540e2a",
+                  "peer:09610aefbd15a133d7af2b57"
+                ],
+                "placement": "ordered-layer-partition"
+              },
+              "permissions": {
+                "sharingScope": "mesh"
+              },
+              "members": [
+                "local-user"
+              ],
+              "messages": [
+                {
+                  "role": "user",
+                  "content": "Count from 1 to 500 in order, one integer per line. No commentary."
+                }
+              ]
+            },
+            "systemContext": {
+              "content": "",
+              "metadata": {
+                "policyId": "reploid.compact-context/v1",
+                "enabled": false,
+                "maxWords": 16,
+                "wordCount": 0,
+                "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+                "mode": null
+              }
+            }
+          }
+        ],
+        "closed": false,
+        "createdAt": 1791952405095
+      }
+    ],
+    "selectedId": "43992dff-97d3-47b3-a018-10f97eab56bc",
+    "runningIds": [],
+    "storageError": null,
+    "drafts": {
+      "new": {
+        "text": "",
+        "files": []
+      },
+      "43992dff-97d3-47b3-a018-10f97eab56bc": {
+        "text": "",
+        "files": []
+      }
+    },
+    "requesterPeerId": "peer:209d09ef4ce513ffebfd5a32"
+  },
+  "weights": [],
+  "assessment": {
+    "automatedPass": false,
+    "failures": [
+      "lossInjected: Contributor was not stopped while the conversation was streaming",
+      "lossInjected: Injected stop callback did not report its method and time",
+      "lossReported: Requester error does not report contributor loss (observed unclassified: none)",
+      "lossReported: Rendered failure status does not report contributor loss (none)",
+      "ownershipExplicit: Requester attempt did not settle as failed",
+      "ownershipExplicit: Requester error is not an explicit partition failure category",
+      "ownershipExplicit: Coordinator cleanup rows do not cover every stage exactly once",
+      "ownershipExplicit: Coordinator phase contradicts its cleanup rows",
+      "ownershipExplicit: Coordinator receipt lacks the failure cause",
+      "noSilentContinuation: Failed attempt lost the partial answer visible before the loss",
+      "noSilentContinuation: Post-failure observations missing",
+      "noSilentContinuation: Post-failure observation interval incomplete",
+      "explicitRetry: Capacity did not return before the deadline",
+      "explicitRetry: Injected restore callback did not report its method",
+      "explicitRetry: Retry was requested before capacity returned",
+      "explicitRetry: Explicit retry did not start exactly one new attempt linked to the failure",
+      "explicitRetry: Retry not complete",
+      "explicitRetry: Retry natural EOS unobserved",
+      "explicitRetry: Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "explicitRetry: Retry ordered route identity unobserved",
+      "explicitRetry: Retry route binds a different model or plan than the freeze",
+      "explicitRetry: Retry distinct route contributors (0) differ from the frozen route (3)",
+      "explicitRetry: Retry route stages differ from the frozen stage order",
+      "explicitRetry: Retry requester was assigned a stage",
+      "explicitRetry: Retry cleanup rows do not cover every stage exactly once",
+      "explicitRetry: Retry cleanup not confirmed: a cleanup row is unsettled",
+      "explicitRetry: Retry settlement phase not completed",
+      "explicitRetry: Retry not every stage was admitted",
+      "explicitRetry: Retry not every stage executed every step",
+      "explicitRetry: Retry recipients were not approved by this attempt's Send or Retry",
+      "explicitRetry: Retry approval does not cover ordered activations and tokens",
+      "explicitRetry: Retry approved recipients differ from the frozen route",
+      "explicitRetry: Retry approval is not addressed to the stage 0 coordinator",
+      "explicitRetry: Retry approval binds another model or plan",
+      "explicitRetry: Retry executed route differs from the approved route",
+      "explicitRetry: Retry requester approved itself as a stage",
+      "selectiveAcquisition: Requester received or retained weights, or custody evidence is missing",
+      "timing: Retry timing record missing"
+    ],
+    "checks": {
+      "lossInjected": {
+        "pass": false,
+        "failures": [
+          "Contributor was not stopped while the conversation was streaming",
+          "Injected stop callback did not report its method and time"
+        ],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190"
+        ]
+      },
+      "lossReported": {
+        "pass": false,
+        "failures": [
+          "Requester error does not report contributor loss (observed unclassified: none)",
+          "Rendered failure status does not report contributor loss (none)"
+        ],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "ROADMAP.md:28",
+          "REP-7 docs/roadmap/requirements.md:148"
+        ]
+      },
+      "ownershipExplicit": {
+        "pass": false,
+        "failures": [
+          "Requester attempt did not settle as failed",
+          "Requester error is not an explicit partition failure category",
+          "Coordinator cleanup rows do not cover every stage exactly once",
+          "Coordinator phase contradicts its cleanup rows",
+          "Coordinator receipt lacks the failure cause"
+        ],
+        "requirements": [
+          "REP-6 docs/roadmap/requirements.md:406",
+          "REP-4 docs/roadmap/requirements.md:272",
+          "ROADMAP.md:28"
+        ]
+      },
+      "noSilentContinuation": {
+        "pass": false,
+        "failures": [
+          "Failed attempt lost the partial answer visible before the loss",
+          "Post-failure observations missing",
+          "Post-failure observation interval incomplete"
+        ],
+        "requirements": [
+          "REP-6 docs/roadmap/requirements.md:406",
+          "DR-5 docs/roadmap/requirements.md:190"
+        ]
+      },
+      "explicitRetry": {
+        "pass": false,
+        "failures": [
+          "Capacity did not return before the deadline",
+          "Injected restore callback did not report its method",
+          "Retry was requested before capacity returned",
+          "Explicit retry did not start exactly one new attempt linked to the failure",
+          "Retry not complete",
+          "Retry natural EOS unobserved",
+          "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+          "Retry ordered route identity unobserved",
+          "Retry route binds a different model or plan than the freeze",
+          "Retry distinct route contributors (0) differ from the frozen route (3)",
+          "Retry route stages differ from the frozen stage order",
+          "Retry requester was assigned a stage",
+          "Retry cleanup rows do not cover every stage exactly once",
+          "Retry cleanup not confirmed: a cleanup row is unsettled",
+          "Retry settlement phase not completed",
+          "Retry not every stage was admitted",
+          "Retry not every stage executed every step",
+          "Retry recipients were not approved by this attempt's Send or Retry",
+          "Retry approval does not cover ordered activations and tokens",
+          "Retry approved recipients differ from the frozen route",
+          "Retry approval is not addressed to the stage 0 coordinator",
+          "Retry approval binds another model or plan",
+          "Retry executed route differs from the approved route",
+          "Retry requester approved itself as a stage"
+        ],
+        "requirements": [
+          "DR-5 docs/roadmap/requirements.md:190",
+          "REP-6 docs/roadmap/requirements.md:406"
+        ]
+      },
+      "selectiveAcquisition": {
+        "pass": false,
+        "failures": [
+          "Requester received or retained weights, or custody evidence is missing"
+        ],
+        "requirements": [
+          "REP-7 docs/roadmap/requirements.md:133"
+        ]
+      },
+      "timing": {
+        "pass": false,
+        "failures": [
+          "Retry timing record missing"
+        ],
+        "requirements": [
+          "ROADMAP.md:14"
+        ]
+      }
+    },
+    "observedErrorCode": null,
+    "manualReview": {
+      "answerUsefulness": null,
+      "criteria": [
+        "The retried answer completes the requested count; correctness of the count is reviewed separately from lifecycle acceptance.",
+        "The requester-visible report states that a contributor was lost, not only that the answer could not finish."
+      ],
+      "reviewer": null
+    }
+  },
+  "status": "automated acceptance failed",
+  "requesterClosedWhileActive": false,
+  "finishedAt": "2026-10-14T04:33:25.349Z"
+}

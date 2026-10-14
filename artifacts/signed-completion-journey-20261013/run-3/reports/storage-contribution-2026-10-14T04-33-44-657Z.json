@@ -1,0 +1,2990 @@
+{
+  "schema": "reploid.signed-completion-journey-report/v1",
+  "harness": "storage-contribution",
+  "startedAt": "2026-10-14T04:33:44.657Z",
+  "configSha256": "ee3f71ccfedeb47d0b0f98514a9a8763b7afa85923c098dbc861acfecef25b28",
+  "fixtureSha256": "45ff304949926b993b8874740a6173953d1d58a5dab3dc3b5dfe08f098b0dabd",
+  "freeze": {
+    "browserBundle": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d",
+    "runtimeArchive": "sha256:2df37d88f592b523bb90c4c79840354fd301af9803a7d9009e1c8939561c71f8",
+    "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf",
+    "planSchema": "doppler.layer-partition-contract/v3",
+    "splitLayers": [
+      8,
+      16
+    ],
+    "nativeArtifacts": {
+      "amd-host": "sha256:fcacf463ede679feffaf7de9115e7d7bf02729e4ca85c9cab650500f0c6e2017",
+      "intel-host": "sha256:fcacf463ede679feffaf7de9115e7d7bf02729e4ca85c9cab650500f0c6e2017"
+    },
+    "route": [
+      {
+        "index": 0,
+        "machine": "mac-host",
+        "host": "browser",
+        "participantId": "peer:a8a4f314d29f7b7013520808"
+      },
+      {
+        "index": 1,
+        "machine": "amd-host",
+        "host": "native",
+        "participantId": "peer:9af15d884eba51b0c0540e2a",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run3-20261013/amd-host-stage-1.json"
+      },
+      {
+        "index": 2,
+        "machine": "intel-host",
+        "host": "native",
+        "participantId": "peer:09610aefbd15a133d7af2b57",
+        "orderedConfig": "/var/tmp/reploid-signed-completion-journey-run3-20261013/intel-host-stage-2.json"
+      }
+    ]
+  },
+  "ok": false,
+  "errors": [],
+  "scope": "Launch 2 optional storage contribution through the existing file controls alongside ordered chat: bounded sharing while chatting, peer acquisition by another computer, reload, competing tabs, interrupted acquisition, cached-only mode and stopping.",
+  "modelFileRequests": [
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.059Z",
+      "url": "http://127.0.0.1:29670/config/model-manifests/6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934.json",
+      "weight": false,
+      "range": null,
+      "declaredBytes": null,
+      "responseBytes": 222286,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.078Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.180Z",
+      "url": "http://127.0.0.1:29670/config/model-pieces/e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb.json",
+      "weight": false,
+      "range": null,
+      "declaredBytes": null,
+      "responseBytes": 94223,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.197Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.235Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=0-63",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.246Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.253Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=64-575",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.261Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.274Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=576-639",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.281Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.290Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=640-1151",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.299Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.310Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=1152-1215",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.317Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.327Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=1216-1727",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.336Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.352Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=1728-1791",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.361Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.372Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=1792-2303",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.378Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.388Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=2304-2367",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.395Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.405Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=2368-2879",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.412Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.427Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=2880-2943",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.434Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.444Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=2944-3455",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.451Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.465Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=3456-3519",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.472Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.483Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=3520-4031",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.489Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.500Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=4032-4095",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.507Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.517Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=4096-4607",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.524Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.535Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=4608-4671",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.541Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.552Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=4672-5183",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.560Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.573Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=5184-5247",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.580Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.592Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=5248-5759",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.599Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.609Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=5760-5823",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.616Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.627Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=5824-6335",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.638Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.651Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=6336-6399",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.658Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.670Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=6400-6911",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.677Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.694Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=6912-6975",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.711Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.722Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=6976-7487",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.729Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.741Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=7488-7551",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.748Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.759Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=7552-8063",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.766Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.777Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=8064-8127",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.784Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.798Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=8128-8639",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.806Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.817Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=8640-8703",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.824Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.836Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=8704-9215",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.843Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.855Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=9216-9279",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.861Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.873Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=9280-9791",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.880Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.892Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=9792-9855",
+      "declaredBytes": 64,
+      "responseBytes": 64,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.900Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.917Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin",
+      "weight": true,
+      "range": "bytes=9856-10367",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.926Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.955Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=38807680-38809727",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.963Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.975Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=38809728-38858879",
+      "declaredBytes": 49152,
+      "responseBytes": 49152,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:52.983Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:52.995Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=38858880-38858911",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.002Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.015Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=38858912-38891679",
+      "declaredBytes": 32768,
+      "responseBytes": 32768,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.023Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.037Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=38891680-38924447",
+      "declaredBytes": 32768,
+      "responseBytes": 32768,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.044Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.056Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=38924448-42463391",
+      "declaredBytes": 3538944,
+      "responseBytes": 3538944,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.128Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.155Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=42463392-43643039",
+      "declaredBytes": 1179648,
+      "responseBytes": 1179648,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.195Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.214Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=51015840-51017887",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.224Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.237Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=51017888-51019935",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.244Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.261Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=51019936-51069087",
+      "declaredBytes": 49152,
+      "responseBytes": 49152,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.270Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.283Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=51069088-51069119",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.290Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.307Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=63226048-63228095",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.314Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.335Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=63228096-63230143",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.343Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.358Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=63279296-63279327",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.366Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.386Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=8327392-8329439",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.393Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.407Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=8329440-8331487",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.417Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.432Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=14524640-14526687",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.436Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.448Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=14526688-14527199",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.455Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.488Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=16001760-16002271",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.494Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.505Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=18656480-18658527",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.509Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.520Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=18707680-18707711",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.524Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.539Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=30864640-30866687",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.543Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.553Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=30866688-30868735",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.557Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.567Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=30917888-30917919",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.571Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.585Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=43074848-43076895",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.589Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.612Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=43076896-43078943",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.616Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.627Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=43128096-43128127",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.632Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.646Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=55285056-55287103",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.651Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.661Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=55287104-55289151",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.665Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.678Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=61484352-61484863",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.682Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.693Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=62959424-62959935",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.698Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.713Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=65665344-65665375",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.718Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.733Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin",
+      "weight": true,
+      "range": "bytes=10766688-10766719",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.737Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.752Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin",
+      "weight": true,
+      "range": "bytes=22976896-22976927",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.757Z"
+    },
+    {
+      "label": "contention",
+      "page": "contention-0",
+      "at": "2026-10-14T04:33:53.772Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin",
+      "weight": true,
+      "range": "bytes=41333152-41333663",
+      "declaredBytes": 512,
+      "responseBytes": 512,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:33:53.777Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:33:56.612Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=33554432-38807679",
+      "declaredBytes": 5253248,
+      "responseBytes": null,
+      "finished": false,
+      "failed": false,
+      "finishedAt": null
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:57.086Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=33554432-38807679",
+      "declaredBytes": 5253248,
+      "responseBytes": 2959820,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:57.170Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:57.773Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=43643040-44822687",
+      "declaredBytes": 1179648,
+      "responseBytes": 1179648,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:57.795Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:57.946Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=51069120-51101887",
+      "declaredBytes": 32768,
+      "responseBytes": 32768,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:57.951Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:57.964Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=51101888-51134655",
+      "declaredBytes": 32768,
+      "responseBytes": 32768,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:57.969Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:58.060Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=63230144-63279295",
+      "declaredBytes": 49152,
+      "responseBytes": 49152,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:58.065Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:58.114Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=63279328-63312095",
+      "declaredBytes": 32768,
+      "responseBytes": 32768,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:58.121Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:58.133Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin",
+      "weight": true,
+      "range": "bytes=63312096-63344863",
+      "declaredBytes": 32768,
+      "responseBytes": 32768,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:58.137Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:58.385Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=18658528-18707679",
+      "declaredBytes": 49152,
+      "responseBytes": 49152,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:58.392Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:58.776Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=61482304-61484351",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:58.780Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:58.885Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin",
+      "weight": true,
+      "range": "bytes=65614144-65616191",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:58.890Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:58.942Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin",
+      "weight": true,
+      "range": "bytes=10713440-10715487",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:58.947Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:58.959Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin",
+      "weight": true,
+      "range": "bytes=10715488-10717535",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:58.972Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:59.042Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin",
+      "weight": true,
+      "range": "bytes=22923648-22925695",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:59.047Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:59.059Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin",
+      "weight": true,
+      "range": "bytes=22925696-22927743",
+      "declaredBytes": 2048,
+      "responseBytes": 2048,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:59.064Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:59.127Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin",
+      "weight": true,
+      "range": "bytes=45514144-45514175",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:59.133Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:59.150Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin",
+      "weight": true,
+      "range": "bytes=57724352-57724383",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:59.155Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:59.174Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00010.bin",
+      "weight": true,
+      "range": "bytes=2825696-2825727",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:59.179Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:59.194Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00010.bin",
+      "weight": true,
+      "range": "bytes=15035904-15035935",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:59.198Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:59.226Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00010.bin",
+      "weight": true,
+      "range": "bytes=47900192-47900223",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:59.231Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:59.248Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00010.bin",
+      "weight": true,
+      "range": "bytes=60110400-60110431",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:59.252Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:59.268Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00011.bin",
+      "weight": true,
+      "range": "bytes=5211744-5211775",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:59.272Z"
+    },
+    {
+      "label": "interrupt",
+      "page": "interrupt-main",
+      "at": "2026-10-14T04:35:59.293Z",
+      "url": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00011.bin",
+      "weight": true,
+      "range": "bytes=27748992-27749023",
+      "declaredBytes": 32,
+      "responseBytes": 32,
+      "finished": true,
+      "failed": false,
+      "finishedAt": "2026-10-14T04:35:59.297Z"
+    }
+  ],
+  "stepErrors": {
+    "sharedWhileChatting": "Error: Chat streaming: attempt ended failed: Peer disclosure does not match the selected model and verified recipients\n    at waitFor.timeout.timeout (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:240:101)\n    at async waitFor (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:165:19)\n    at async startChat (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:53:23)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:66:18\n    at async step (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:47:9)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:63:3",
+    "peerAcquisition": "Error: Prerequisite sharing step did not share\n    at file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:81:46\n    at step (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:47:15)\n    at file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:80:9",
+    "cachedOnly": "Error: Prerequisite sharing step did not share\n    at file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:99:46\n    at step (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:47:15)\n    at file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:98:9",
+    "reloadPreserved": "Error: Prerequisite sharing step did not share\n    at file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:131:46\n    at step (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:47:15)\n    at file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:130:9",
+    "stopSettles": "Error: Chat streaming: attempt ended failed: Peer disclosure does not match the selected model and verified recipients\n    at waitFor.timeout.timeout (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:240:101)\n    at async waitFor (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/harness.mjs:165:19)\n    at async startChat (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:53:23)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:152:18\n    at async step (file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:47:9)\n    at async file:///Users/xyz/deco/reploid/artifacts/signed-completion-journey-20261013/run-contribution.mjs:150:3"
+  },
+  "contention": {
+    "allowanceBytes": 5242880,
+    "ledgerBefore": null,
+    "ledgerSamples": [
+      {
+        "maxBytes": 5242880,
+        "reservedBytes": 317725
+      },
+      {
+        "maxBytes": 5242880,
+        "reservedBytes": 5242877
+      }
+    ],
+    "ledgerAfter": {
+      "maxBytes": 5242880,
+      "reservedBytes": 5242877
+    },
+    "owner": {
+      "name": "contention-0",
+      "profile": "contention",
+      "consumerPeerId": "peer:9bcdddb751cbe280531265a5",
+      "budget": {
+        "schema": "reploid.custody-acquisition-budget/v1",
+        "maxBytes": 5242880,
+        "reservedBytes": 5242877
+      },
+      "outcome": {
+        "sharing": true,
+        "error": ""
+      },
+      "transfers": [
+        {
+          "key": "http://127.0.0.1:29670/config/model-manifests/6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934.json#whole",
+          "bytes": 222286,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/config/model-pieces/e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb.json#whole",
+          "bytes": 94223,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=0-63",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=64-575",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=576-639",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=640-1151",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=1152-1215",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=1216-1727",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=1728-1791",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=1792-2303",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=2304-2367",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=2368-2879",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=2880-2943",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=2944-3455",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=3456-3519",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=3520-4031",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=4032-4095",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=4096-4607",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=4608-4671",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=4672-5183",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=5184-5247",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=5248-5759",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=5760-5823",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=5824-6335",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=6336-6399",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=6400-6911",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=6912-6975",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=6976-7487",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=7488-7551",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=7552-8063",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=8064-8127",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=8128-8639",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=8640-8703",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=8704-9215",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=9216-9279",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=9280-9791",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=9792-9855",
+          "bytes": 64,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00000.bin#bytes=9856-10367",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=38807680-38809727",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=38809728-38858879",
+          "bytes": 49152,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=38858880-38858911",
+          "bytes": 32,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=38858912-38891679",
+          "bytes": 32768,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=38891680-38924447",
+          "bytes": 32768,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=38924448-42463391",
+          "bytes": 3538944,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=42463392-43643039",
+          "bytes": 1179648,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=51015840-51017887",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=51017888-51019935",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=51019936-51069087",
+          "bytes": 49152,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=51069088-51069119",
+          "bytes": 32,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=63226048-63228095",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=63228096-63230143",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=63279296-63279327",
+          "bytes": 32,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=8327392-8329439",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=8329440-8331487",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=14524640-14526687",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=14526688-14527199",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=16001760-16002271",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=18656480-18658527",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=18707680-18707711",
+          "bytes": 32,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=30864640-30866687",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=30866688-30868735",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=30917888-30917919",
+          "bytes": 32,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=43074848-43076895",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=43076896-43078943",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=43128096-43128127",
+          "bytes": 32,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=55285056-55287103",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=55287104-55289151",
+          "bytes": 2048,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=61484352-61484863",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=62959424-62959935",
+          "bytes": 512,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=65665344-65665375",
+          "bytes": 32,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin#bytes=10766688-10766719",
+          "bytes": 32,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin#bytes=22976896-22976927",
+          "bytes": 32,
+          "finished": true
+        },
+        {
+          "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin#bytes=41333152-41333663",
+          "bytes": 512,
+          "finished": true
+        }
+      ]
+    },
+    "second": {
+      "name": "contention-1",
+      "profile": "contention",
+      "samples": [
+        {
+          "at": "2026-10-14T04:33:51.714Z",
+          "phase": "opened",
+          "consumerPeerId": null,
+          "error": "Another tab owns this peer connection",
+          "custodyOwner": false,
+          "filesSharing": false,
+          "filesPreparing": false
+        },
+        {
+          "at": "2026-10-14T04:33:52.049Z",
+          "phase": "after-start",
+          "consumerPeerId": null,
+          "error": "Another tab owns this peer connection",
+          "custodyOwner": false,
+          "filesSharing": false,
+          "filesPreparing": false
+        },
+        {
+          "at": "2026-10-14T04:33:53.954Z",
+          "phase": "after-acquisition",
+          "consumerPeerId": null,
+          "error": "Another tab owns this peer connection",
+          "custodyOwner": false,
+          "filesSharing": false,
+          "filesPreparing": false
+        }
+      ],
+      "refusal": "Another tab owns this peer connection",
+      "fileAttempt": {
+        "clickedAt": "2026-10-14T04:33:52.049Z",
+        "harnessError": null
+      },
+      "ledgerAfter": {
+        "maxBytes": 5242880,
+        "reservedBytes": 5242877
+      },
+      "transfers": []
+    }
+  },
+  "interruption": {
+    "minimumInFlightBytes": 1048576,
+    "ledgerBefore": null,
+    "reloadAt": "2026-10-14T04:33:56.613Z",
+    "inFlightAtReload": {
+      "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=33554432-38807679",
+      "bytes": 5253248,
+      "weight": true,
+      "startedAt": "2026-10-14T04:33:56.612Z",
+      "outcome": "unsettled",
+      "failure": null,
+      "finishedAt": null
+    },
+    "completedBefore": [],
+    "completedDuringInterruption": [],
+    "interrupted": [
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=33554432-38807679",
+        "bytes": 5253248
+      }
+    ],
+    "unattributed": [],
+    "resumed": [
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=33554432-38807679",
+        "bytes": 5253248,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=43643040-44822687",
+        "bytes": 1179648,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=51069120-51101887",
+        "bytes": 32768,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=51101888-51134655",
+        "bytes": 32768,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=63230144-63279295",
+        "bytes": 49152,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=63279328-63312095",
+        "bytes": 32768,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00007.bin#bytes=63312096-63344863",
+        "bytes": 32768,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=18658528-18707679",
+        "bytes": 49152,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=61482304-61484351",
+        "bytes": 2048,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00008.bin#bytes=65614144-65616191",
+        "bytes": 2048,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin#bytes=10713440-10715487",
+        "bytes": 2048,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin#bytes=10715488-10717535",
+        "bytes": 2048,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin#bytes=22923648-22925695",
+        "bytes": 2048,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin#bytes=22925696-22927743",
+        "bytes": 2048,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin#bytes=45514144-45514175",
+        "bytes": 32,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00009.bin#bytes=57724352-57724383",
+        "bytes": 32,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00010.bin#bytes=2825696-2825727",
+        "bytes": 32,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00010.bin#bytes=15035904-15035935",
+        "bytes": 32,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00010.bin#bytes=47900192-47900223",
+        "bytes": 32,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00010.bin#bytes=60110400-60110431",
+        "bytes": 32,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00011.bin#bytes=5211744-5211775",
+        "bytes": 32,
+        "finished": true
+      },
+      {
+        "key": "http://127.0.0.1:29670/qualification/capsule/artifacts/model/shard_00011.bin#bytes=27748992-27749023",
+        "bytes": 32,
+        "finished": true
+      },
+      {
+        "key": "peer:64146669-a911-4b63-83ab-a8e3f63063e3",
+        "bytes": 49152,
+        "finished": true,
+        "hashes": [
+          "sha256:8532be368d38ceda4a8e73dfca6887132438c93b64fa85944308f9229771194d"
+        ]
+      },
+      {
+        "key": "peer:a69079d0-5351-47a8-abf7-a140af27e867",
+        "bytes": 32,
+        "finished": true,
+        "hashes": [
+          "sha256:5e6f47b27f0b4ca99c9fddf295920af06833a97a1b811d0b48f1099b94791ffa"
+        ]
+      },
+      {
+        "key": "peer:421790b9-d3fd-41ea-98bd-eec1c54ff38c",
+        "bytes": 32768,
+        "finished": true,
+        "hashes": [
+          "sha256:d4af3819f61156064936670fbb31b09c974c77b178dd709870598ac62785fc0b"
+        ]
+      },
+      {
+        "key": "peer:46382440-3841-40ed-9e11-699a826d19bc",
+        "bytes": 32768,
+        "finished": true,
+        "hashes": [
+          "sha256:175aa01c8440c351ed2f3bd1647384a1fb163fbacfe0f356581e0e36315573f0"
+        ]
+      },
+      {
+        "key": "peer:a7396411-b464-4b25-b748-852c4de2253c",
+        "bytes": 1179648,
+        "finished": true,
+        "hashes": [
+          "sha256:c985358f050edeb4cc2e9031a53b85152abe5249a4d45107f2194df081a05435"
+        ]
+      },
+      {
+        "key": "peer:54de599e-5bfa-4e18-a811-fa95100fb545",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:da68f473ae96aaee742fbf8b642390ba8ea56fe2efd09fae2b2cf5a810aa64d8"
+        ]
+      },
+      {
+        "key": "peer:e85bdd7e-3f9b-473b-b2b5-c424b678bedd",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:b41688f61d9bf908d697a41505d6b7052daf032a38ea9b2b6764e72d19d7496c"
+        ]
+      },
+      {
+        "key": "peer:08d7ba7b-8d02-4b0d-a4c8-2bdf2ed98046",
+        "bytes": 49152,
+        "finished": true,
+        "hashes": [
+          "sha256:eaa15ab235334864e578088252cbcc852343e2b5d57f2670a4e6cad45b2c4606"
+        ]
+      },
+      {
+        "key": "peer:e4cefb01-70cf-4700-8fa5-b0f8c5843b1b",
+        "bytes": 32,
+        "finished": true,
+        "hashes": [
+          "sha256:7a41951f2ae859b158287199669e3d2d5e6baa5376cbe79e8aa4e94a59d3736c"
+        ]
+      },
+      {
+        "key": "peer:0217cfc3-f210-4461-ae66-1ef417798912",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:721d0e92a79066ef3a479a1174a0a782e8cfe9d685e6c68cdbf360816760f192"
+        ]
+      },
+      {
+        "key": "peer:47d874f0-eb5f-4992-a068-3e518412474b",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:8044d758efbd94717016fa1d07643a8d36315e92b02cb8e5a16c954807531786"
+        ]
+      },
+      {
+        "key": "peer:c335b187-7106-4b54-b57f-da60b6ab1833",
+        "bytes": 32,
+        "finished": true,
+        "hashes": [
+          "sha256:7b077c5cf6c6aafa6de39b466a076c5849e35614222573c8582319c982907462"
+        ]
+      },
+      {
+        "key": "peer:b9fc3d3f-0730-416f-8ed0-5f6a1c195d45",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:218216ce1dffe828723c2392ec0be5db6f8cb446eb7b9a6e6a20f7915a5a7d86"
+        ]
+      },
+      {
+        "key": "peer:19981e69-43ff-47e9-9288-ac87657e963c",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:835405ecbd6cd0a7b1073ca7ba42b394a59f7774d791ccd11be15397352bf3fb"
+        ]
+      },
+      {
+        "key": "peer:5e6b55c0-dcb0-487b-9842-4be0d8ac0164",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:a9ca44fc2684f6f444bdfdc01249a347b20d7442201d88e20203c3dd360a32c2"
+        ]
+      },
+      {
+        "key": "peer:460e50c2-b9ea-4237-9c97-c1eb84d6c607",
+        "bytes": 512,
+        "finished": true,
+        "hashes": [
+          "sha256:c565f958e3aa67f1caab9d7480581fb90bc45f3f1ca7fe308e63a49aa8f1c569"
+        ]
+      },
+      {
+        "key": "peer:14d7e666-79be-421e-961c-b29bc689e953",
+        "bytes": 512,
+        "finished": true,
+        "hashes": [
+          "sha256:0c45d7b9597caca2909df66a596be21a304de3c125f3ce82bf717141e0d9a6da"
+        ]
+      },
+      {
+        "key": "peer:cc01a07f-8517-4fab-b132-01f7fe03f1d0",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:5022c3e3430ce818546bd3b56057c9123af99068b8bd4930cc535923696e7c15"
+        ]
+      },
+      {
+        "key": "peer:0d9e1c01-b6f4-46ba-a060-42c02c3a243f",
+        "bytes": 32,
+        "finished": true,
+        "hashes": [
+          "sha256:a28e1651682345a5b674a52aa31162d4064b857d4c1eaa40c6db0952e4bf195d"
+        ]
+      },
+      {
+        "key": "peer:0ba4ba02-e022-4c03-b688-066ab0571d33",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:c0f1f48babab620e8ce2b913210a334dc863335544723a8d1dca054291142d9a"
+        ]
+      },
+      {
+        "key": "peer:8783db5f-6909-4f97-a520-535312610992",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:71c9ab5aae66dabf0ed795839dab92893a5b60356ef65560702210e942bd2afe"
+        ]
+      },
+      {
+        "key": "peer:fa9dd713-9959-4397-8fb7-bacfd22729e8",
+        "bytes": 32,
+        "finished": true,
+        "hashes": [
+          "sha256:5b2bc7de3af498c9d837ffb3bc15beab5f96b4f201e7050968d4dbec89212b9f"
+        ]
+      },
+      {
+        "key": "peer:278abb68-3509-4347-aa31-a959f3191d42",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:eb2b3b7b6f54615f445027f37e29abb68e21169a431bf45cf6a38c66ded5abd7"
+        ]
+      },
+      {
+        "key": "peer:e740bcbc-2b8e-40f9-bb42-f5d0b0d1534f",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:41a7bd653d8dbfcb850812f18d24f7077b3c45f787528ab0c63b45c684d53bfb"
+        ]
+      },
+      {
+        "key": "peer:377e119d-0675-41fc-b5e5-cae242f77cdc",
+        "bytes": 32,
+        "finished": true,
+        "hashes": [
+          "sha256:b3a535ecf19c3ac1310cfa04f7d02474001eae2ddb12e619de95bc2d221f06b4"
+        ]
+      },
+      {
+        "key": "peer:ea0a8257-f633-46c0-9cd0-19579e8e8c1c",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:0f190bb981678412f62420ece76985f8de9fa25c03e48585fce5b59f8e553572"
+        ]
+      },
+      {
+        "key": "peer:ed7c2a7d-3a47-47d5-b91b-f81c1adee641",
+        "bytes": 2048,
+        "finished": true,
+        "hashes": [
+          "sha256:2b471438de7aaea8088624de3e7dfe89c74b97915aedcac33764a276799aeb67"
+        ]
+      },
+      {
+        "key": "peer:79b2baf5-4ed7-400e-ae2f-c5ccef267b84",
+        "bytes": 512,
+        "finished": true,
+        "hashes": [
+          "sha256:db8d1727e4c14fd559453ac016f236d162af5488151cc703b79076319172ead9"
+        ]
+      },
+      {
+        "key": "peer:ffd719a5-28d4-4ea2-8fdd-8fc99b3f2902",
+        "bytes": 512,
+        "finished": true,
+        "hashes": [
+          "sha256:3bc74bbe463b56783346d8261c216039e4155b1459ae0ccac8fcf5f5238d306e"
+        ]
+      },
+      {
+        "key": "peer:c88ac51d-69e1-408e-86ad-a040cd041835",
+        "bytes": 32,
+        "finished": true,
+        "hashes": [
+          "sha256:63c0a0e20bc2bf012dea9ffa823c56d756f61e65d1520287f79b186c9951e3df"
+        ]
+      },
+      {
+        "key": "peer:40da704d-0fef-4aa6-a33b-dc2a76961737",
+        "bytes": 32,
+        "finished": true,
+        "hashes": [
+          "sha256:f06b0f5435a9c4ede8373cc21f395639170df643d99fbfc86c927b90e290ce89"
+        ]
+      },
+      {
+        "key": "peer:47288eea-1d81-45aa-8aff-a7351b05983f",
+        "bytes": 32,
+        "finished": true,
+        "hashes": [
+          "sha256:8ee466e96b663c1141d54ef6f45b5123743c8898b92ada20cc88e2544952d68a"
+        ]
+      }
+    ],
+    "ledgerFinal": {
+      "maxBytes": 13631488,
+      "reservedBytes": 13631485
+    },
+    "final": {
+      "sharing": true,
+      "error": "",
+      "offered": [
+        {
+          "path": "manifest.json",
+          "role": "model-manifest",
+          "hashAlgorithm": "sha256",
+          "hash": "6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+          "sizeBytes": 222286,
+          "url": "http://127.0.0.1:29670/config/model-manifests/6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934.json"
+        },
+        {
+          "path": "pieces.json",
+          "role": "model-piece-index",
+          "hashAlgorithm": "sha256",
+          "hash": "e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb",
+          "sizeBytes": 94223,
+          "url": "http://127.0.0.1:29670/config/model-pieces/e64afdf50d990992a8f7e8989693281b22bd7f695655669323f99ade2d0397bb.json"
+        },
+        {
+          "path": "piece-ad78e0805c16a73f70c722e837d1d342df3d9714bea32d353d976e155dd73494.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "ad78e0805c16a73f70c722e837d1d342df3d9714bea32d353d976e155dd73494"
+        },
+        {
+          "path": "piece-b92121af2866c2e156749dc12e27d5f873abb1595291be3a7465c8c65fd6e439.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "b92121af2866c2e156749dc12e27d5f873abb1595291be3a7465c8c65fd6e439"
+        },
+        {
+          "path": "piece-6b98f67f72af6b686d48e04ae972dc7196de67a56acb1656adedf85ad6a9a445.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "6b98f67f72af6b686d48e04ae972dc7196de67a56acb1656adedf85ad6a9a445"
+        },
+        {
+          "path": "piece-217499c58672166cf95bfd31fe8b523ef297067083cd36273036cda227ce3e49.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "217499c58672166cf95bfd31fe8b523ef297067083cd36273036cda227ce3e49"
+        },
+        {
+          "path": "piece-9a3d672593b3f5754a75efb8c9b477e09ffe485e068ce126193dfde35c28f8f7.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "9a3d672593b3f5754a75efb8c9b477e09ffe485e068ce126193dfde35c28f8f7"
+        },
+        {
+          "path": "piece-3e02b6f8f862b0e7740f559d026e0973583f4561b9cfb7c19846e2c3a5ff2a85.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "3e02b6f8f862b0e7740f559d026e0973583f4561b9cfb7c19846e2c3a5ff2a85"
+        },
+        {
+          "path": "piece-9d4defc1eb81850001cd0c92c99caa7155e39c763a50a84d71b80d634a6da021.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "9d4defc1eb81850001cd0c92c99caa7155e39c763a50a84d71b80d634a6da021"
+        },
+        {
+          "path": "piece-c75ae5a92ba026377745dce2af9a726b07f2a04874c4c10e6a0a828543fd677f.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "c75ae5a92ba026377745dce2af9a726b07f2a04874c4c10e6a0a828543fd677f"
+        },
+        {
+          "path": "piece-13f858129e2070b8205419299d39591a2148f2d573f6664ea8e9b19086b26b13.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "13f858129e2070b8205419299d39591a2148f2d573f6664ea8e9b19086b26b13"
+        },
+        {
+          "path": "piece-402169bf7d9f4203cc30a0d4febcdb6a8051b035f26b4eb91c56d760f9a6eace.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "402169bf7d9f4203cc30a0d4febcdb6a8051b035f26b4eb91c56d760f9a6eace"
+        },
+        {
+          "path": "piece-f7e51e8a5df7606167533f0fa946478a8920499de060b56b85d9f0bf7f4bcc20.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "f7e51e8a5df7606167533f0fa946478a8920499de060b56b85d9f0bf7f4bcc20"
+        },
+        {
+          "path": "piece-2dadd9a67ff349e42809f71ba1740fdd47a2f5ecdd6e1e9b7dd8a0a9faa21bbd.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "2dadd9a67ff349e42809f71ba1740fdd47a2f5ecdd6e1e9b7dd8a0a9faa21bbd"
+        },
+        {
+          "path": "piece-ef6347f3b8c4383000fad94f82754c9d0389744bf28e2262c8c17a2d7b1b7edb.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "ef6347f3b8c4383000fad94f82754c9d0389744bf28e2262c8c17a2d7b1b7edb"
+        },
+        {
+          "path": "piece-aa7a8705d87959ff7460c8f1cf1b44b4ceda4ca38dd8dfad66c12832aa0d07af.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "aa7a8705d87959ff7460c8f1cf1b44b4ceda4ca38dd8dfad66c12832aa0d07af"
+        },
+        {
+          "path": "piece-b63f4fd41f33846b5f16079772a649a6b7c3b8f16540f5b7478c4b1ea38281fb.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "b63f4fd41f33846b5f16079772a649a6b7c3b8f16540f5b7478c4b1ea38281fb"
+        },
+        {
+          "path": "piece-9109d92911338e459138e9d3a7c5e24cd9e75e16ce24609c3aa09476c0eaac56.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "9109d92911338e459138e9d3a7c5e24cd9e75e16ce24609c3aa09476c0eaac56"
+        },
+        {
+          "path": "piece-1c0e0c201309df081cbfe9a37018164714a96bc7cdf09473ed0fcfd1f515a555.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "1c0e0c201309df081cbfe9a37018164714a96bc7cdf09473ed0fcfd1f515a555"
+        },
+        {
+          "path": "piece-48555b69ec651735cef37e17a5e0f58ec9098486303768d51b054141133719ec.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "48555b69ec651735cef37e17a5e0f58ec9098486303768d51b054141133719ec"
+        },
+        {
+          "path": "piece-a99ca626fc00b801b40180b3bec9f94375aa0cd7adc6f5945ea6bd62b4457735.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "a99ca626fc00b801b40180b3bec9f94375aa0cd7adc6f5945ea6bd62b4457735"
+        },
+        {
+          "path": "piece-b7ea8b8b24815ec8fcd37411c372f93b3b1f5ee59b1b03d4d4dc2f8dc7402c3d.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "b7ea8b8b24815ec8fcd37411c372f93b3b1f5ee59b1b03d4d4dc2f8dc7402c3d"
+        },
+        {
+          "path": "piece-363f6671046f1606cb2c34d2d8cfb0a33f5f74608545c41294064d2af227d898.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "363f6671046f1606cb2c34d2d8cfb0a33f5f74608545c41294064d2af227d898"
+        },
+        {
+          "path": "piece-632aea705ef377ce6e17ef541425d68a980c67aedd7999ec9b135639a88f08a1.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "632aea705ef377ce6e17ef541425d68a980c67aedd7999ec9b135639a88f08a1"
+        },
+        {
+          "path": "piece-bfa39c8f7e8186c359a2d4ddd6acc2f39f903ea4d8ab0067f7496ea904e9513a.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "bfa39c8f7e8186c359a2d4ddd6acc2f39f903ea4d8ab0067f7496ea904e9513a"
+        },
+        {
+          "path": "piece-1168a137d2e429ecd17ddc70ee2293e461e67581f4470e6f08fe08ce9cf1e309.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "1168a137d2e429ecd17ddc70ee2293e461e67581f4470e6f08fe08ce9cf1e309"
+        },
+        {
+          "path": "piece-2dec02d96b4a2c31333cffa07c93daadbda2d24fc441dd370c2d199fcf01985e.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "2dec02d96b4a2c31333cffa07c93daadbda2d24fc441dd370c2d199fcf01985e"
+        },
+        {
+          "path": "piece-7968c5890c77aee9b882c9b2bd0b0f568e449ef1ddf35d83df86b6dd04e9bb09.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "7968c5890c77aee9b882c9b2bd0b0f568e449ef1ddf35d83df86b6dd04e9bb09"
+        },
+        {
+          "path": "piece-280e3591b7b6b7fe0692fbbf60d636f2265384fe84952ddc1cc4c3d8985223b9.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "280e3591b7b6b7fe0692fbbf60d636f2265384fe84952ddc1cc4c3d8985223b9"
+        },
+        {
+          "path": "piece-e73ad334202b4c9c503b2121f97ff8602e5118577afdf0d35a6bcd305f8d1b4b.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "e73ad334202b4c9c503b2121f97ff8602e5118577afdf0d35a6bcd305f8d1b4b"
+        },
+        {
+          "path": "piece-11652a04f265548e03cb0b510d3dddc7fe31ceb45f8b6634684d7b87e377b9a4.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "11652a04f265548e03cb0b510d3dddc7fe31ceb45f8b6634684d7b87e377b9a4"
+        },
+        {
+          "path": "piece-ea06571e986de0d7cbad53ae0226764a855f3cf218ac488f59d72de108b2ecda.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "ea06571e986de0d7cbad53ae0226764a855f3cf218ac488f59d72de108b2ecda"
+        },
+        {
+          "path": "piece-e09b1aab34e374be90dc3f843caf1106b65b3f17353c36aa2535f9defd7d4441.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "e09b1aab34e374be90dc3f843caf1106b65b3f17353c36aa2535f9defd7d4441"
+        },
+        {
+          "path": "piece-fe1c4024ab6f07dfa5e369925fba4795b01a94072008d6c8abb4112c5d4f8056.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "fe1c4024ab6f07dfa5e369925fba4795b01a94072008d6c8abb4112c5d4f8056"
+        },
+        {
+          "path": "piece-13876faa9c6085de480e5f45506475ca258ac9d1fa6b3fff04f1d2ecf22b3f66.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "13876faa9c6085de480e5f45506475ca258ac9d1fa6b3fff04f1d2ecf22b3f66"
+        },
+        {
+          "path": "piece-998d531602505ffdae165c0dfb32a603815e5aec75a88677fd1f7b5e45cbc91b.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "998d531602505ffdae165c0dfb32a603815e5aec75a88677fd1f7b5e45cbc91b"
+        },
+        {
+          "path": "piece-25567d3d581e54f94e55bc4a93b889559d9c57ace05d777af1e5fd45acf94295.bin",
+          "role": "model-weights",
+          "sizeBytes": 64,
+          "hashAlgorithm": "sha256",
+          "hash": "25567d3d581e54f94e55bc4a93b889559d9c57ace05d777af1e5fd45acf94295"
+        },
+        {
+          "path": "piece-a04e8ced547c18d69af69cf4ff72863a2dff96a8e9948fc107c701c07f4dcd67.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "a04e8ced547c18d69af69cf4ff72863a2dff96a8e9948fc107c701c07f4dcd67"
+        },
+        {
+          "path": "piece-62898d1adfecb290541532c2a7fa81c9642b0ac94e697b30a5f83b4c8bad97ac.bin",
+          "role": "model-weights",
+          "sizeBytes": 5253248,
+          "hashAlgorithm": "sha256",
+          "hash": "62898d1adfecb290541532c2a7fa81c9642b0ac94e697b30a5f83b4c8bad97ac"
+        },
+        {
+          "path": "piece-ef788e502a4813797b82059518a964afaa6fa87563a2b305479655ea5eb92a56.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "ef788e502a4813797b82059518a964afaa6fa87563a2b305479655ea5eb92a56"
+        },
+        {
+          "path": "piece-8532be368d38ceda4a8e73dfca6887132438c93b64fa85944308f9229771194d.bin",
+          "role": "model-weights",
+          "sizeBytes": 49152,
+          "hashAlgorithm": "sha256",
+          "hash": "8532be368d38ceda4a8e73dfca6887132438c93b64fa85944308f9229771194d"
+        },
+        {
+          "path": "piece-5e6f47b27f0b4ca99c9fddf295920af06833a97a1b811d0b48f1099b94791ffa.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "5e6f47b27f0b4ca99c9fddf295920af06833a97a1b811d0b48f1099b94791ffa"
+        },
+        {
+          "path": "piece-d4af3819f61156064936670fbb31b09c974c77b178dd709870598ac62785fc0b.bin",
+          "role": "model-weights",
+          "sizeBytes": 32768,
+          "hashAlgorithm": "sha256",
+          "hash": "d4af3819f61156064936670fbb31b09c974c77b178dd709870598ac62785fc0b"
+        },
+        {
+          "path": "piece-175aa01c8440c351ed2f3bd1647384a1fb163fbacfe0f356581e0e36315573f0.bin",
+          "role": "model-weights",
+          "sizeBytes": 32768,
+          "hashAlgorithm": "sha256",
+          "hash": "175aa01c8440c351ed2f3bd1647384a1fb163fbacfe0f356581e0e36315573f0"
+        },
+        {
+          "path": "piece-c985358f050edeb4cc2e9031a53b85152abe5249a4d45107f2194df081a05435.bin",
+          "role": "model-weights",
+          "sizeBytes": 1179648,
+          "hashAlgorithm": "sha256",
+          "hash": "c985358f050edeb4cc2e9031a53b85152abe5249a4d45107f2194df081a05435"
+        },
+        {
+          "path": "piece-1d0738a2e4500748bdc585f405711f4cb4eecf3b909acaf3543cdff715543541.bin",
+          "role": "model-weights",
+          "sizeBytes": 1179648,
+          "hashAlgorithm": "sha256",
+          "hash": "1d0738a2e4500748bdc585f405711f4cb4eecf3b909acaf3543cdff715543541"
+        },
+        {
+          "path": "piece-da68f473ae96aaee742fbf8b642390ba8ea56fe2efd09fae2b2cf5a810aa64d8.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "da68f473ae96aaee742fbf8b642390ba8ea56fe2efd09fae2b2cf5a810aa64d8"
+        },
+        {
+          "path": "piece-b41688f61d9bf908d697a41505d6b7052daf032a38ea9b2b6764e72d19d7496c.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "b41688f61d9bf908d697a41505d6b7052daf032a38ea9b2b6764e72d19d7496c"
+        },
+        {
+          "path": "piece-eaa15ab235334864e578088252cbcc852343e2b5d57f2670a4e6cad45b2c4606.bin",
+          "role": "model-weights",
+          "sizeBytes": 49152,
+          "hashAlgorithm": "sha256",
+          "hash": "eaa15ab235334864e578088252cbcc852343e2b5d57f2670a4e6cad45b2c4606"
+        },
+        {
+          "path": "piece-7a41951f2ae859b158287199669e3d2d5e6baa5376cbe79e8aa4e94a59d3736c.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "7a41951f2ae859b158287199669e3d2d5e6baa5376cbe79e8aa4e94a59d3736c"
+        },
+        {
+          "path": "piece-b3c67a1d8bea0da42b2d46f934fde4cc424c2e3e4577e4cddbc99287c1f9d2a6.bin",
+          "role": "model-weights",
+          "sizeBytes": 32768,
+          "hashAlgorithm": "sha256",
+          "hash": "b3c67a1d8bea0da42b2d46f934fde4cc424c2e3e4577e4cddbc99287c1f9d2a6"
+        },
+        {
+          "path": "piece-3457b90bbf0b5d266c120bfc5d18f38dd63ea97ea10441d7cf81a8502a0133ac.bin",
+          "role": "model-weights",
+          "sizeBytes": 32768,
+          "hashAlgorithm": "sha256",
+          "hash": "3457b90bbf0b5d266c120bfc5d18f38dd63ea97ea10441d7cf81a8502a0133ac"
+        },
+        {
+          "path": "piece-721d0e92a79066ef3a479a1174a0a782e8cfe9d685e6c68cdbf360816760f192.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "721d0e92a79066ef3a479a1174a0a782e8cfe9d685e6c68cdbf360816760f192"
+        },
+        {
+          "path": "piece-8044d758efbd94717016fa1d07643a8d36315e92b02cb8e5a16c954807531786.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "8044d758efbd94717016fa1d07643a8d36315e92b02cb8e5a16c954807531786"
+        },
+        {
+          "path": "piece-e78c05608f0ea4ce1d1a384f84d43b16eb428ac4251e7fc7ae90991b95297169.bin",
+          "role": "model-weights",
+          "sizeBytes": 49152,
+          "hashAlgorithm": "sha256",
+          "hash": "e78c05608f0ea4ce1d1a384f84d43b16eb428ac4251e7fc7ae90991b95297169"
+        },
+        {
+          "path": "piece-7b077c5cf6c6aafa6de39b466a076c5849e35614222573c8582319c982907462.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "7b077c5cf6c6aafa6de39b466a076c5849e35614222573c8582319c982907462"
+        },
+        {
+          "path": "piece-b90c550cb26ad6cd01d7a47116baa4e4924708ac10d7a8ae10f7d169927ffc81.bin",
+          "role": "model-weights",
+          "sizeBytes": 32768,
+          "hashAlgorithm": "sha256",
+          "hash": "b90c550cb26ad6cd01d7a47116baa4e4924708ac10d7a8ae10f7d169927ffc81"
+        },
+        {
+          "path": "piece-88712718b7c0a6c5af9620beefc30a88569a7941b109900f864f3f0752735281.bin",
+          "role": "model-weights",
+          "sizeBytes": 32768,
+          "hashAlgorithm": "sha256",
+          "hash": "88712718b7c0a6c5af9620beefc30a88569a7941b109900f864f3f0752735281"
+        },
+        {
+          "path": "piece-218216ce1dffe828723c2392ec0be5db6f8cb446eb7b9a6e6a20f7915a5a7d86.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "218216ce1dffe828723c2392ec0be5db6f8cb446eb7b9a6e6a20f7915a5a7d86"
+        },
+        {
+          "path": "piece-835405ecbd6cd0a7b1073ca7ba42b394a59f7774d791ccd11be15397352bf3fb.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "835405ecbd6cd0a7b1073ca7ba42b394a59f7774d791ccd11be15397352bf3fb"
+        },
+        {
+          "path": "piece-a9ca44fc2684f6f444bdfdc01249a347b20d7442201d88e20203c3dd360a32c2.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "a9ca44fc2684f6f444bdfdc01249a347b20d7442201d88e20203c3dd360a32c2"
+        },
+        {
+          "path": "piece-c565f958e3aa67f1caab9d7480581fb90bc45f3f1ca7fe308e63a49aa8f1c569.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "c565f958e3aa67f1caab9d7480581fb90bc45f3f1ca7fe308e63a49aa8f1c569"
+        },
+        {
+          "path": "piece-0c45d7b9597caca2909df66a596be21a304de3c125f3ce82bf717141e0d9a6da.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "0c45d7b9597caca2909df66a596be21a304de3c125f3ce82bf717141e0d9a6da"
+        },
+        {
+          "path": "piece-5022c3e3430ce818546bd3b56057c9123af99068b8bd4930cc535923696e7c15.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "5022c3e3430ce818546bd3b56057c9123af99068b8bd4930cc535923696e7c15"
+        },
+        {
+          "path": "piece-be1b45cb8518250c0996dea097125f534984f506797855d9e7b1b5b81fad5e3a.bin",
+          "role": "model-weights",
+          "sizeBytes": 49152,
+          "hashAlgorithm": "sha256",
+          "hash": "be1b45cb8518250c0996dea097125f534984f506797855d9e7b1b5b81fad5e3a"
+        },
+        {
+          "path": "piece-a28e1651682345a5b674a52aa31162d4064b857d4c1eaa40c6db0952e4bf195d.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "a28e1651682345a5b674a52aa31162d4064b857d4c1eaa40c6db0952e4bf195d"
+        },
+        {
+          "path": "piece-c0f1f48babab620e8ce2b913210a334dc863335544723a8d1dca054291142d9a.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "c0f1f48babab620e8ce2b913210a334dc863335544723a8d1dca054291142d9a"
+        },
+        {
+          "path": "piece-71c9ab5aae66dabf0ed795839dab92893a5b60356ef65560702210e942bd2afe.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "71c9ab5aae66dabf0ed795839dab92893a5b60356ef65560702210e942bd2afe"
+        },
+        {
+          "path": "piece-5b2bc7de3af498c9d837ffb3bc15beab5f96b4f201e7050968d4dbec89212b9f.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "5b2bc7de3af498c9d837ffb3bc15beab5f96b4f201e7050968d4dbec89212b9f"
+        },
+        {
+          "path": "piece-eb2b3b7b6f54615f445027f37e29abb68e21169a431bf45cf6a38c66ded5abd7.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "eb2b3b7b6f54615f445027f37e29abb68e21169a431bf45cf6a38c66ded5abd7"
+        },
+        {
+          "path": "piece-41a7bd653d8dbfcb850812f18d24f7077b3c45f787528ab0c63b45c684d53bfb.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "41a7bd653d8dbfcb850812f18d24f7077b3c45f787528ab0c63b45c684d53bfb"
+        },
+        {
+          "path": "piece-b3a535ecf19c3ac1310cfa04f7d02474001eae2ddb12e619de95bc2d221f06b4.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "b3a535ecf19c3ac1310cfa04f7d02474001eae2ddb12e619de95bc2d221f06b4"
+        },
+        {
+          "path": "piece-0f190bb981678412f62420ece76985f8de9fa25c03e48585fce5b59f8e553572.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "0f190bb981678412f62420ece76985f8de9fa25c03e48585fce5b59f8e553572"
+        },
+        {
+          "path": "piece-2b471438de7aaea8088624de3e7dfe89c74b97915aedcac33764a276799aeb67.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "2b471438de7aaea8088624de3e7dfe89c74b97915aedcac33764a276799aeb67"
+        },
+        {
+          "path": "piece-31ffac7529f8808ae5f5d00b9e2396a2df11cf1f39b587117a44bb6578ee20f6.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "31ffac7529f8808ae5f5d00b9e2396a2df11cf1f39b587117a44bb6578ee20f6"
+        },
+        {
+          "path": "piece-db8d1727e4c14fd559453ac016f236d162af5488151cc703b79076319172ead9.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "db8d1727e4c14fd559453ac016f236d162af5488151cc703b79076319172ead9"
+        },
+        {
+          "path": "piece-3bc74bbe463b56783346d8261c216039e4155b1459ae0ccac8fcf5f5238d306e.bin",
+          "role": "model-weights",
+          "sizeBytes": 512,
+          "hashAlgorithm": "sha256",
+          "hash": "3bc74bbe463b56783346d8261c216039e4155b1459ae0ccac8fcf5f5238d306e"
+        },
+        {
+          "path": "piece-dc778dfd7a078807c16faa48fc604c0881c421b7ba8da04ec9d80496923af999.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "dc778dfd7a078807c16faa48fc604c0881c421b7ba8da04ec9d80496923af999"
+        },
+        {
+          "path": "piece-63c0a0e20bc2bf012dea9ffa823c56d756f61e65d1520287f79b186c9951e3df.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "63c0a0e20bc2bf012dea9ffa823c56d756f61e65d1520287f79b186c9951e3df"
+        },
+        {
+          "path": "piece-f356b1aac8ce945b5f8460a712fe2dc3191b8b03f3822b2127daa3e183e7800a.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "f356b1aac8ce945b5f8460a712fe2dc3191b8b03f3822b2127daa3e183e7800a"
+        },
+        {
+          "path": "piece-742f47bd0c90c6e1d0e4d5f48f021f8d870623e1604e823088ec911fd24030ac.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "742f47bd0c90c6e1d0e4d5f48f021f8d870623e1604e823088ec911fd24030ac"
+        },
+        {
+          "path": "piece-f06b0f5435a9c4ede8373cc21f395639170df643d99fbfc86c927b90e290ce89.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "f06b0f5435a9c4ede8373cc21f395639170df643d99fbfc86c927b90e290ce89"
+        },
+        {
+          "path": "piece-552ee4178db3f351fe24d0f5e139a189b6f55fbd61bcb5b83a0785799676816e.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "552ee4178db3f351fe24d0f5e139a189b6f55fbd61bcb5b83a0785799676816e"
+        },
+        {
+          "path": "piece-3ba919a143d4c8cf03b56aef7fdaa8e60331c1e9d6bff23b3c611ebac0ebbe9a.bin",
+          "role": "model-weights",
+          "sizeBytes": 2048,
+          "hashAlgorithm": "sha256",
+          "hash": "3ba919a143d4c8cf03b56aef7fdaa8e60331c1e9d6bff23b3c611ebac0ebbe9a"
+        },
+        {
+          "path": "piece-8ee466e96b663c1141d54ef6f45b5123743c8898b92ada20cc88e2544952d68a.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "8ee466e96b663c1141d54ef6f45b5123743c8898b92ada20cc88e2544952d68a"
+        },
+        {
+          "path": "piece-f16ce731f8613c53593b42a6b472aaf9ae73c1950116e38878ef245041d98820.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "f16ce731f8613c53593b42a6b472aaf9ae73c1950116e38878ef245041d98820"
+        },
+        {
+          "path": "piece-8a54d96044fc0c65df88c1a0c0adf6b27f3e4b9b718cb6dd2bec7ae360980d8a.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "8a54d96044fc0c65df88c1a0c0adf6b27f3e4b9b718cb6dd2bec7ae360980d8a"
+        },
+        {
+          "path": "piece-e0be2088131126c83bd4796e7864800a849883c442f155385dbdb9de41e68adc.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "e0be2088131126c83bd4796e7864800a849883c442f155385dbdb9de41e68adc"
+        },
+        {
+          "path": "piece-fd925560871ece70e27faf56c0a7e5ca73241e80bf726220f2585af251841921.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "fd925560871ece70e27faf56c0a7e5ca73241e80bf726220f2585af251841921"
+        },
+        {
+          "path": "piece-ade1d5e63aa37328b2ff70df2faf4e5cfa7c196a38badc0ed05bb3c5aa7d7f93.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "ade1d5e63aa37328b2ff70df2faf4e5cfa7c196a38badc0ed05bb3c5aa7d7f93"
+        },
+        {
+          "path": "piece-13ef24bd930e8b26e32a0efe8e9f7b918f60f741a3561c694226f342cdae76e0.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "13ef24bd930e8b26e32a0efe8e9f7b918f60f741a3561c694226f342cdae76e0"
+        },
+        {
+          "path": "piece-698988a1bc83d838f096828f5611474374fdc339c018f5e74e44f05993dca6cd.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "698988a1bc83d838f096828f5611474374fdc339c018f5e74e44f05993dca6cd"
+        },
+        {
+          "path": "piece-f4051a8bd9a0e23d21a2f78774cf0a63aa5540fd86b80f683a7ca987f12945ab.bin",
+          "role": "model-weights",
+          "sizeBytes": 32,
+          "hashAlgorithm": "sha256",
+          "hash": "f4051a8bd9a0e23d21a2f78774cf0a63aa5540fd86b80f683a7ca987f12945ab"
+        }
+      ]
+    }
+  },
+  "assessment": {
+    "automatedPass": false,
+    "failures": [
+      "sharedWhileChatting: Subset was not acquired in bounded-acquisition mode",
+      "sharedWhileChatting: File contribution is not sharing",
+      "sharedWhileChatting: No verified piece is offered",
+      "sharedWhileChatting: Offered subset exceeds the approved allowance or subset limit",
+      "sharedWhileChatting: Acquisition allowance missing, renewed or overspent",
+      "sharedWhileChatting: File contribution did not overlap an active conversation",
+      "sharedWhileChatting: Sharer conversation not complete",
+      "sharedWhileChatting: Sharer conversation natural EOS unobserved",
+      "sharedWhileChatting: Sharer conversation ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "sharedWhileChatting: Sharer conversation ordered route identity unobserved",
+      "sharedWhileChatting: Sharer conversation route binds a different model or plan than the freeze",
+      "sharedWhileChatting: Sharer conversation distinct route contributors (0) differ from the frozen route (3)",
+      "sharedWhileChatting: Sharer conversation route stages differ from the frozen stage order",
+      "sharedWhileChatting: Sharer conversation requester was assigned a stage",
+      "sharedWhileChatting: Sharer conversation cleanup rows do not cover every stage exactly once",
+      "sharedWhileChatting: Sharer conversation cleanup not confirmed: a cleanup row is unsettled",
+      "sharedWhileChatting: Sharer conversation settlement phase not completed",
+      "sharedWhileChatting: Sharer conversation not every stage was admitted",
+      "sharedWhileChatting: Sharer conversation not every stage executed every step",
+      "peerAcquisition: Acquirer is not another computer",
+      "peerAcquisition: Sharer transport identity unobserved",
+      "peerAcquisition: Acquirer completed none of the shared pieces",
+      "peerAcquisition: Acquirer fetched weights over HTTP during peer acquisition",
+      "peerAcquisition: Sharer supply accounting does not cover the transferred pieces",
+      "reloadPreserved: Reload was observed while another tab of the sharer profile was open",
+      "reloadPreserved: No verified inventory before reload",
+      "reloadPreserved: Consumed allowance unobserved before or after reload",
+      "reloadPreserved: Reload reset consumed allowance",
+      "reloadPreserved: Inventory was not rebuilt from the cache alone",
+      "interruptedResume: No transfer had completed before the interruption",
+      "interruptedResume: Ledger charged more than the observed transfers (double charge)",
+      "cachedOnly: Cached-only tab was opened while another tab of the sharer profile was open",
+      "cachedOnly: Next tab of the sharer profile did not connect normally; the single-owner lock was not released",
+      "cachedOnly: Cached-only mode was not selected",
+      "cachedOnly: Cached-only mode issued model-file acquisition requests",
+      "cachedOnly: Cached-only observation window incomplete",
+      "cachedOnly: Cached-only mode created a custody acquisition",
+      "cachedOnly: Cached-only mode changed the acquisition ledger",
+      "cachedOnly: Cached-only mode left a transfer pending",
+      "cachedOnly: No verified sharer inventory was observed before the sharer tab closed",
+      "cachedOnly: Cached-only inventory was not restored only from the verified local cache",
+      "stopSettles: No acquisition was in flight when contribution stopped",
+      "stopSettles: Stopped contribution did not settle its transfers",
+      "stopSettles: Stopping refunded, renewed or lost incurred charges",
+      "stopSettles: Acquisition continued after contribution settled",
+      "stopSettles: Conversation was not active when contribution stopped",
+      "stopSettles: Conversation after stop not complete",
+      "stopSettles: Conversation after stop natural EOS unobserved",
+      "stopSettles: Conversation after stop ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "stopSettles: Conversation after stop ordered route identity unobserved",
+      "stopSettles: Conversation after stop route binds a different model or plan than the freeze",
+      "stopSettles: Conversation after stop distinct route contributors (0) differ from the frozen route (3)",
+      "stopSettles: Conversation after stop route stages differ from the frozen stage order",
+      "stopSettles: Conversation after stop requester was assigned a stage",
+      "stopSettles: Conversation after stop cleanup rows do not cover every stage exactly once",
+      "stopSettles: Conversation after stop cleanup not confirmed: a cleanup row is unsettled",
+      "stopSettles: Conversation after stop settlement phase not completed",
+      "stopSettles: Conversation after stop not every stage was admitted",
+      "stopSettles: Conversation after stop not every stage executed every step"
+    ],
+    "checks": {
+      "sharedWhileChatting": {
+        "pass": false,
+        "failures": [
+          "Subset was not acquired in bounded-acquisition mode",
+          "File contribution is not sharing",
+          "No verified piece is offered",
+          "Offered subset exceeds the approved allowance or subset limit",
+          "Acquisition allowance missing, renewed or overspent",
+          "File contribution did not overlap an active conversation",
+          "Sharer conversation not complete",
+          "Sharer conversation natural EOS unobserved",
+          "Sharer conversation ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+          "Sharer conversation ordered route identity unobserved",
+          "Sharer conversation route binds a different model or plan than the freeze",
+          "Sharer conversation distinct route contributors (0) differ from the frozen route (3)",
+          "Sharer conversation route stages differ from the frozen stage order",
+          "Sharer conversation requester was assigned a stage",
+          "Sharer conversation cleanup rows do not cover every stage exactly once",
+          "Sharer conversation cleanup not confirmed: a cleanup row is unsettled",
+          "Sharer conversation settlement phase not completed",
+          "Sharer conversation not every stage was admitted",
+          "Sharer conversation not every stage executed every step"
+        ],
+        "requirements": [
+          "REP-5 docs/roadmap/requirements.md:304,321",
+          "ROADMAP.md:29,88"
+        ]
+      },
+      "peerAcquisition": {
+        "pass": false,
+        "failures": [
+          "Acquirer is not another computer",
+          "Sharer transport identity unobserved",
+          "Acquirer completed none of the shared pieces",
+          "Acquirer fetched weights over HTTP during peer acquisition",
+          "Sharer supply accounting does not cover the transferred pieces"
+        ],
+        "requirements": [
+          "REP-5 docs/roadmap/requirements.md:302,312"
+        ]
+      },
+      "reloadPreserved": {
+        "pass": false,
+        "failures": [
+          "Reload was observed while another tab of the sharer profile was open",
+          "No verified inventory before reload",
+          "Consumed allowance unobserved before or after reload",
+          "Reload reset consumed allowance",
+          "Inventory was not rebuilt from the cache alone"
+        ],
+        "requirements": [
+          "REP-5 docs/roadmap/requirements.md:321,323",
+          "ROADMAP.md:29,92"
+        ]
+      },
+      "competingTabs": {
+        "pass": true,
+        "failures": [],
+        "requirements": [
+          "REP-5 docs/roadmap/requirements.md:321",
+          "ROADMAP.md:29,92"
+        ]
+      },
+      "interruptedResume": {
+        "pass": false,
+        "failures": [
+          "No transfer had completed before the interruption",
+          "Ledger charged more than the observed transfers (double charge)"
+        ],
+        "requirements": [
+          "REP-5 docs/roadmap/requirements.md:321,323",
+          "REP-4 docs/roadmap/requirements.md:272"
+        ]
+      },
+      "cachedOnly": {
+        "pass": false,
+        "failures": [
+          "Cached-only tab was opened while another tab of the sharer profile was open",
+          "Next tab of the sharer profile did not connect normally; the single-owner lock was not released",
+          "Cached-only mode was not selected",
+          "Cached-only mode issued model-file acquisition requests",
+          "Cached-only observation window incomplete",
+          "Cached-only mode created a custody acquisition",
+          "Cached-only mode changed the acquisition ledger",
+          "Cached-only mode left a transfer pending",
+          "No verified sharer inventory was observed before the sharer tab closed",
+          "Cached-only inventory was not restored only from the verified local cache"
+        ],
+        "requirements": [
+          "REP-5 docs/roadmap/requirements.md:320",
+          "ROADMAP.md:92"
+        ]
+      },
+      "stopSettles": {
+        "pass": false,
+        "failures": [
+          "No acquisition was in flight when contribution stopped",
+          "Stopped contribution did not settle its transfers",
+          "Stopping refunded, renewed or lost incurred charges",
+          "Acquisition continued after contribution settled",
+          "Conversation was not active when contribution stopped",
+          "Conversation after stop not complete",
+          "Conversation after stop natural EOS unobserved",
+          "Conversation after stop ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+          "Conversation after stop ordered route identity unobserved",
+          "Conversation after stop route binds a different model or plan than the freeze",
+          "Conversation after stop distinct route contributors (0) differ from the frozen route (3)",
+          "Conversation after stop route stages differ from the frozen stage order",
+          "Conversation after stop requester was assigned a stage",
+          "Conversation after stop cleanup rows do not cover every stage exactly once",
+          "Conversation after stop cleanup not confirmed: a cleanup row is unsettled",
+          "Conversation after stop settlement phase not completed",
+          "Conversation after stop not every stage was admitted",
+          "Conversation after stop not every stage executed every step"
+        ],
+        "requirements": [
+          "ROADMAP.md:29,93",
+          "REP-4 docs/roadmap/requirements.md:272",
+          "REP-1 docs/roadmap/requirements.md:393"
+        ]
+      }
+    }
+  },
+  "status": "automated contribution acceptance failed",
+  "finishedAt": "2026-10-14T04:35:59.458Z"
+}
