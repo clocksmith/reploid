@@ -6,19 +6,27 @@ import { isWorkOrderedModel } from './work-partition-plan.js';
 import orderedPolicy from '../config/ordered-participation.json' with { type: 'json' };
 
 /** Ordered mode follows the installed catalog with versioned limits. Only this instance's
- * operator storage may assign a stage; links, invitations and discovery never do. Host
- * composition validates the stage and binds it to the authenticated participant. */
+ * operator storage may assign a stage or choose `{ modelId, assignment: 'auto' }`; links,
+ * invitations and discovery never do. Deliberate Launch 3 boundary change: `auto` authorizes
+ * this contributor's own policy to pick a stage from observed ready offers. It is off unless the
+ * operator also stores its orchestration policy. Host composition validates both and binds the
+ * stage to the authenticated participant. */
 export const getOrderedParticipation = (storage, models = LOCAL_DOPPLER_MODELS) => {
-  const saved = storage?.getItem(orderedPolicy.stageStorageKey, { legacyFallback: false }) ?? null;
-  if (saved === null && !models.some(isWorkOrderedModel)) return null;
-  let stage = null;
-  if (saved !== null) {
-    try { stage = JSON.parse(saved); } catch { throw new Error('Operator ordered stage assignment is not valid JSON'); }
-    if (!stage || typeof stage !== 'object' || Array.isArray(stage)) {
-      throw new Error('Operator ordered stage assignment must be one explicit stage object');
+  const read = (key, label) => {
+    const saved = storage?.getItem(key, { legacyFallback: false }) ?? null;
+    if (saved === null) return null;
+    let value;
+    try { value = JSON.parse(saved); } catch { throw new Error(`Operator ordered ${label} is not valid JSON`); }
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      throw new Error(label === 'stage assignment' ? 'Operator ordered stage assignment must be one explicit stage object'
+        : 'Operator ordered orchestration must be one explicit policy object');
     }
-  }
-  return { stage, ...orderedPolicy.limits };
+    return value;
+  };
+  const stage = read(orderedPolicy.stageStorageKey, 'stage assignment');
+  if (stage === null && !models.some(isWorkOrderedModel)) return null;
+  const orchestration = read(orderedPolicy.orchestrationStorageKey, 'orchestration');
+  return { stage, ...orderedPolicy.limits, ...(orchestration ? { orchestration } : {}) };
 };
 
 export const getPeerRoomId = () => {

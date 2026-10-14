@@ -12,7 +12,7 @@ Boot surfaces from trusted seeds.
   (sharing-scope/disclosure-kind/model-catalog) or thread grant.
 - Separates helpers/swarms/previews/isolation/evaluation/activation from Packs.
 - Tasks validate; repositories version; providers execute; views are immutable.
-- Excludes policy, module semantics and recovery-root mutation.
+- Excludes policy/module semantics/recovery-root mutation.
 
 ## Scope
 
@@ -27,19 +27,20 @@ Outputs: [VFS](seed-vfs.js), [startup](start-reploid.js).
 ## Invariants
 - Explicit seed identity/destination.
 - Never substitute missing/unverified modules.
-- Disconnect prevents rejoin. Discovery grants no compute/disclosure/files/improvement authority.
+- Disconnect prevents rejoin. Discovery grants no compute/disclosure/files/improvement/stage authority;
+  only operator configuration assigns stages or chooses `auto` (own-policy choice).
 - Partition network owners expose open/close; closure requires settled channels.
 - Received files cannot grant permissions or prove correctness.
 - Viewing/stopping threads cannot change another's objective/grants/execution.
 - Candidate delivery grants no evaluation/adoption authority.
-- Peer operations require current authorization, exact identities and evidence.
+- Peer operations require current authorization/exact identities/evidence.
   Uncovered requests send nothing until granted; revocation spares admitted
   answers, which never change route.
   Ordered catalogs with metadataDigest open one tab's transactional history, else report ordinary.
 - File contribution requires separate bounded consent. Explicit compute may acquire
   selected files, not redistribute. Discovery never downloads weights.
 - Doppler storage verifies files; inventories cannot select code.
-  Resident leases include adapter application/evidence/removal and cancellation settlement.
+  Resident leases include adapter application/evidence/removal/cancellation settlement.
 - Candidates cannot read protected tests or self-activate; attempts pin versions, retaining rollback sources.
 - Version objectives/measures outside isolation; changed objectives require reevaluation.
 

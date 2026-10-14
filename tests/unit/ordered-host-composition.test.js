@@ -64,6 +64,23 @@ it.each([null, 'operator'])('browser host context binds %s stage with versioned 
   expect(ports.options.policy.limits.maxStages).toBe(orderedPolicy.limits.maxStages);
   expect(ports.options.policy.maxStageOffersPerPeer).toBe(orderedPolicy.limits.maxStageOffersPerPeer);
 });
+it('browser binds an operator auto choice to the authenticated transport only with its orchestration policy', async () => {
+  await setup();
+  const storage = (stageValue, policyValue) => ({ setItem() {}, getItem: key => key === orderedPolicy.stageStorageKey ? stageValue
+    : key === orderedPolicy.orchestrationStorageKey ? policyValue : null });
+  const auto = JSON.stringify({ modelId: 'ordered', assignment: 'auto' }), policy = JSON.stringify({ autoStage: { dwellMs: 60000 } });
+  await browserSwarm(storage(auto, policy)).connect();
+  expect(ports.options.ordered).toEqual({ stage: null, maxRouteBytes: orderedPolicy.limits.maxRouteBytes,
+    maxSelectionSteps: orderedPolicy.limits.maxSelectionSteps, maxRoutes: orderedPolicy.limits.maxRoutes,
+    orchestration: { autoStage: { dwellMs: 60000, transportId: 'actual-rtc' } } });
+  // The library's chosen stage still passes the host's explicit stage validation before loading.
+  await expect(Promise.resolve().then(() => ports.options.loadProgram({ ...model, id: 'different' }, 1, {}))).rejects.toThrow('assigned');
+  for (const [stageValue, policyValue] of [[auto, null], [JSON.stringify(stage()), policy],
+    [auto, JSON.stringify({ autoStage: { dwellMs: -1 } })], [auto, JSON.stringify({ autoStage: { dwellMs: 1 }, unknown: {} })],
+    [JSON.stringify({ modelId: 'ordered', assignment: 'auto', index: 2 }), policy]]) {
+    expect(() => browserSwarm(storage(stageValue, policyValue))).toThrow(/orchestration|declared model plan/);
+  }
+});
 it('browser rejects invalid or unauthenticated operator stages with descriptive errors', async () => {
   await setup();
   for (const change of [{index:3}, {modelId:'absent'}, {executionId:''}, {route:'chosen-by-link'}]) {

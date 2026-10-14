@@ -1,6 +1,7 @@
 {
   "schema": "reploid.ordered-participation/v1",
   "stageStorageKey": "reploid.ordered-stage.v1",
+  "orchestrationStorageKey": "reploid.ordered-orchestration.v1",
   "limits": {
     "maxStages": 7,
     "maxStageOffersPerPeer": 4,

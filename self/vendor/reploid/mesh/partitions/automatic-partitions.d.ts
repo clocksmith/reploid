@@ -61,7 +61,9 @@ export interface OrderedAutomaticPartitionOptions extends Omit<AutomaticPartitio
   canonical?: null;
   /** Null stage is a weightless requester. Hosts declare actual allocation identity and geometry. */
   ordered: { stage: import('./partition-contract.js').PartitionRouteStage | null;
-    maxRouteBytes: number; maxSelectionSteps: number; maxRoutes: number };
+    maxRouteBytes: number; maxSelectionSteps: number; maxRoutes: number;
+    /** Launch 3 mechanisms; each is off unless its member is present. */
+    orchestration?: OrderedOrchestration };
   policy: Omit<AutomaticPartitionPolicy, 'limits'> & {
     maxStageOffersPerPeer: number; limits: import('./partition-route-execution.js').OrderedRouteLimits };
   createNetwork: {
@@ -79,6 +81,11 @@ export interface OrderedAutomaticPartitionOptions extends Omit<AutomaticPartitio
       resident: import('./resident-partition.js').OrderedResidentPartition; getReceipt?(): unknown }>;
   onChange?(state: OrderedAutomaticPartitionState & { progress?: unknown }): void;
 }
+export interface OrderedOrchestration {
+  /** The operator chose `auto`: this contributor's own policy picks its stage (stage must be null).
+   * It re-evaluates only while idle and at least `dwellMs` after becoming ready. */
+  autoStage?: { transportId: string; dwellMs: number };
+}
 export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionState,
   'placementDecision' | 'reservations' | 'attempts' | 'descriptor'> {
   placementDecision: { route: import('./partition-contract.js').PartitionRoute | null; reason: string;
@@ -88,6 +95,8 @@ export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionS
   attempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
   /** Receipts of retired routes whose cleanup was never confirmed. */
   unknownAttempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
+  /** Present only with `orchestration.autoStage`: the latest own-stage decision. */
+  assignment?: (import('./partition-stage-assignment.js').StageAssignmentDecision & { decidedAt: number }) | null;
 }
 export interface OrderedAutomaticPartitions extends Omit<AutomaticPartitions, 'getState'> {
   getState(): OrderedAutomaticPartitionState;
