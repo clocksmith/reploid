@@ -77,7 +77,7 @@ describe('Remote request review before disclosure', () => {
     expect(view.find('[data-composer-stop]').hidden).toBe(true);
     expect(first.recipientIds).toEqual(STAGES);
     expect(first.recipients).toBe('Recipients: Computer 1 (stage 1 of 3), Computer 2 (stage 2 of 3), Computer 3 (stage 3 of 3) · Ordered model');
-    expect(first.scope).toBe('Sends this message. Computer 1 receives the text; Computer 2 and Computer 3 receive it as model tokens and intermediate results. Approval applies to this request only.');
+    expect(first.scope).toBe('Sends this message. Computer 1 receives the text; Computer 2 and Computer 3 receive the same content as model tokens, which read back as text, and intermediate results. Approval applies to this request only.');
     expect(first.content).toContain('Summarize my notes');
     expect(first.recipients + first.scope).not.toMatch(/peer:|transport-|\d+\.\d+\.\d+\.\d+/);
 

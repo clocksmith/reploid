@@ -51,7 +51,7 @@ test('model choice fails clearly when the control is ambiguous or the select sta
 function fakeReviewPage({ reviewShown = true } = {}) {
   const calls = [], shown = { threadId: 't1', attemptId: 'a1', previewId: 'p1', recipientIds: ['peer:a', 'peer:b', 'peer:c'],
     recipientsText: 'Recipients: Computer 1 (stage 1 of 3), Computer 2 (stage 2 of 3), Computer 3 (stage 3 of 3)',
-    scopeText: 'Sends this message. Computer 1 receives the text; Computer 2 and Computer 3 receive it as model tokens and intermediate results.',
+    scopeText: 'Sends this message. Computer 1 receives the text; Computer 2 and Computer 3 receive the same content as model tokens, which read back as text, and intermediate results.',
     contentLabel: 'Review 1 message', contentText: 'user:\nquestion' };
   const locator = selector => ({
     fill: async text => calls.push(['fill', selector, text]),
