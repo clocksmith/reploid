@@ -120,6 +120,19 @@ const parentLinkTarget = (value) => {
 
 const escapeTable = (value) => String(value || '').replace(/\|/g, '\\|').replace(/\s+/g, ' ').trim();
 
+// Charter text is copied into docs/, so local links must be re-expressed relative to the
+// index; links with a scheme or a bare anchor are left unchanged.
+const rebaseLocalLinks = (text, fromDirectory, toDirectory) => String(text || '')
+  .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, label, rawTarget) => {
+    const target = rawTarget.trim();
+    if (!target || /^(?:[a-z]+:|#)/i.test(target)) return match;
+    const suffixAt = target.search(/[?#]/);
+    const pathPart = suffixAt === -1 ? target : target.slice(0, suffixAt);
+    const suffix = suffixAt === -1 ? '' : target.slice(suffixAt);
+    const rebased = path.relative(toDirectory, path.resolve(fromDirectory, pathPart)).split(path.sep).join('/');
+    return `[${label}](${rebased || '.'}${suffix})`;
+  });
+
 export function renderComponentIndex(charters, { root = PROJECT_ROOT } = {}) {
   const byPath = new Map(charters.map((charter) => [path.resolve(charter.filePath), charter]));
   const rows = [...charters].sort((left, right) => {
@@ -149,7 +162,8 @@ export function renderComponentIndex(charters, { root = PROJECT_ROOT } = {}) {
       ? path.resolve(path.dirname(charter.filePath), linkPath(parentTarget))
       : null;
     const parent = parentPath ? byPath.get(parentPath)?.component || 'Invalid parent' : 'None';
-    lines.push(`| ${escapeTable(charter.component)} | [\`${relative}\`](${linkFromIndex}) | ${escapeTable(parent)} | ${escapeTable(charter.fields.Target)} |`);
+    const target = rebaseLocalLinks(charter.fields.Target, path.dirname(charter.filePath), path.join(root, 'docs'));
+    lines.push(`| ${escapeTable(charter.component)} | [\`${relative}\`](${linkFromIndex}) | ${escapeTable(parent)} | ${escapeTable(target)} |`);
   }
 
   lines.push('', '*Generated from CATSCAN.md files.*', '');

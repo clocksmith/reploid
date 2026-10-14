@@ -8,6 +8,7 @@ import {
   PROJECT_ROOT,
   catscanChainForPath,
   loadCatscans,
+  renderComponentIndex,
   validateCatscanRepository
 } from '../../scripts/verify-catscan.js';
 
@@ -60,6 +61,21 @@ describe('CATSCAN component charters', () => {
       'X Operator Workbench',
       'Zero Proposal Interface'
     ]));
+  });
+
+  it('rebases charter Target links so they resolve from the generated index', () => {
+    const root = path.join(os.tmpdir(), 'reploid-catscan-links');
+    const charter = (filePath, target) => ({ filePath: path.join(root, filePath), component: filePath,
+      fields: { Parent: 'none', Target: target } });
+    const index = renderComponentIndex([
+      charter('CATSCAN.md', 'See [the spec](docs/product-specification.md#scope) and [site](https://example.org).'),
+      charter('self/ui/CATSCAN.md', 'Follow [the view](view.js) and [this](#local).')
+    ], { root });
+
+    expect(index).toContain('[the spec](product-specification.md#scope)');
+    expect(index).toContain('[site](https://example.org)');
+    expect(index).toContain('[the view](../self/ui/view.js)');
+    expect(index).toContain('[this](#local)');
   });
 
   it('resolves the complete root-to-file charter chain in order', async () => {

@@ -5,7 +5,7 @@ Recursive authority charters discovered from the repository root.
 
 | Component | Charter | Parent | Target |
 | --- | --- | --- | --- |
-| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Coordinate/evolve distributed intelligence expanding capability or improving results, reliability or total resource cost. |
+| Reploid | [`CATSCAN.md`](../CATSCAN.md) | None | Coordinate/evolve distributed intelligence improving capability, results, reliability or total resource cost. Initial product: [contributed capacity earns everyday AI access](product-specification.md). |
 | Deployment Configuration | [`deploy/CATSCAN.md`](../deploy/CATSCAN.md) | Reploid | Declare reproducible deployment inputs and service boundaries. |
 | Documentation | [`docs/CATSCAN.md`](CATSCAN.md) | Reploid | Keep product intent, contracts, mechanisms, claims, and current evidence discoverable without conflating their authority. |
 | Browser Runtime | [`self/CATSCAN.md`](../self/CATSCAN.md) | Reploid | Boot the selected Reploid surface in a browser with explicit configuration, recoverable state, and inspectable authority boundaries. |
