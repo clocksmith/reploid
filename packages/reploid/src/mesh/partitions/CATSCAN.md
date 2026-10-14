@@ -31,11 +31,11 @@ Session: [resident integration contract](../../../../../docs/chat-mvp.md#residen
 - Bind model, plan, thread, attempt, participants and token position.
 - Discovery grants no authority; advertise capacity, never conversation identities.
 - Signed reservations are authoritative. Release slots only after confirmed runtime cleanup.
-- Bound receipts by attempt budgets; distinguish cleanup failure from settlement.
+- Bound receipts by attempt budgets; distinguish cleanup failure, channel-lost unknowns, settlement.
   Admission limits aren't physical-memory measurements.
 - Busy replicas never move conversations. Recovery requires fresh identities
   unless Doppler supports continuation. Duplicates never advance state twice.
-- Cancellation settles the named attempts, preserving shared weights and independent threads.
+- Cancellation settles named attempts, preserving shared weights and independent threads.
 - FIFO execution leases share weights: legacy routes lease a token traversal;
   ordered routes lease each stage independently. Weightless requesters bind
   requester identity and placement generation.

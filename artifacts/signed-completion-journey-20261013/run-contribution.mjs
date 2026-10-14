@@ -76,15 +76,23 @@ try {
     supplierPage = await openTab(supplier, supplierName, supplierOrigin);
     const chat = await startChat(supplierPage), samples = [];
     const startedAt = await startFileContribution(supplierPage, { modelId: freeze.modelId, mode: 'bounded-acquisition', allowanceMiB: storage.sharingAllowanceMiB });
-    let files;
-    await waitFor(async () => {
-      const attemptStatus = await chatStatus(supplierPage, chat.attempt.id); files = await filesOf(supplierPage);
-      samples.push({ at: now(), attemptStatus, filesPreparing: !!files?.preparing, filesSharing: !!files?.sharing });
-      return TERMINAL.has(attemptStatus) && files && !files.preparing && (files.sharing || files.error);
-    }, { timeout: timeouts.answerMs, poll, label: 'Sharing and chat outcome' });
-    const final = (await observeChat(supplierPage)).threads.find(thread => thread.id === chat.thread.id);
+    // Sharing evidence is recorded as soon as sharing settles, so a slow or failed
+    // conversation fails only its own requirement, not the steps that need the offer.
     report.share = { machine: config.browsers.storageSupplier.machine, mode: 'bounded-acquisition', allowanceBytes: mib(storage.sharingAllowanceMiB),
-      startedAt, samples, files, ...await observeOffer(supplierPage), chat: { attemptId: chat.attempt.id, final } };
+      startedAt, samples, files: null, chat: { attemptId: chat.attempt.id, final: null } };
+    const sample = async () => {
+      const attemptStatus = await chatStatus(supplierPage, chat.attempt.id), files = await filesOf(supplierPage);
+      samples.push({ at: now(), attemptStatus, filesPreparing: !!files?.preparing, filesSharing: !!files?.sharing });
+      return { attemptStatus, files };
+    };
+    try {
+      report.share.files = await waitFor(async () => { const { files } = await sample();
+        return files && !files.preparing && (files.sharing || files.error) ? files : null; }, { timeout: timeouts.transferMs, poll, label: 'Sharing outcome' });
+      Object.assign(report.share, await observeOffer(supplierPage)); await save();
+      await waitFor(async () => TERMINAL.has((await sample()).attemptStatus), { timeout: timeouts.answerMs, poll, label: 'Sharer conversation outcome' });
+    } finally {
+      report.share.chat.final = (await observeChat(supplierPage).catch(() => null))?.threads.find(thread => thread.id === chat.thread.id) ?? null;
+    }
   });
 
   // (b) Another computer acquires the offered pieces from the sharer.
@@ -171,13 +179,23 @@ try {
     const budgetBefore = await readLedger(page);
     await record();
     const stopClickedAt = await stopFileContribution(page);
+    report.stop = { inFlightAtStop, budgetBefore, stopClickedAt, chat: { attemptId: chat.attempt.id, final: null, samples } };
     const filesAfter = await waitFor(async () => { await record(); const files = await filesOf(page);
       return files && !files.preparing && !files.stopping && !files.sharing ? files : null; }, { timeout: timeouts.settlementMs, poll, label: 'Stop settlement' });
     const settledAt = now();
-    const { thread } = await followAttempt(page, { oldIds: chat.oldIds, timeout: timeouts.answerMs, poll, samples: [],
-      onSample: ({ attempt }) => { samples.push({ at: now(), attemptStatus: attempt.status }); } });
-    report.stop = { inFlightAtStop, budgetBefore, budgetAfter: await readLedger(page), filesAfter, stopClickedAt, settledAt,
-      requestsAfterSettled: rowsOf('stop-main', settledAt).length, chat: { attemptId: chat.attempt.id, final: thread, samples } };
+    // Settlement evidence is recorded before waiting for the conversation; a chat
+    // deadline must not discard what the stop itself observed.
+    Object.assign(report.stop, { budgetAfter: await readLedger(page), filesAfter, settledAt, requestsAfterSettled: rowsOf('stop-main', settledAt).length });
+    await save();
+    try {
+      const { thread } = await followAttempt(page, { oldIds: chat.oldIds, timeout: timeouts.answerMs, poll, samples: [],
+        onSample: ({ attempt }) => { samples.push({ at: now(), attemptStatus: attempt.status }); } });
+      report.stop.chat.final = thread;
+    } finally {
+      report.stop.chat.final ??= (await observeChat(page).catch(() => null))?.threads.flatMap(thread => thread.attempts.some(item => item.id === chat.attempt.id) ? [thread] : [])[0] ?? null;
+      // Requests are counted over the whole conversation wait, as before.
+      report.stop.requestsAfterSettled = rowsOf('stop-main', settledAt).length;
+    }
   });
 
   // (d) Two tabs of ONE fresh profile compete for its one allowance. Contract: one connected tab per

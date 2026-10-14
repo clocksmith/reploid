@@ -30,6 +30,9 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
   let offer = null, program = null, execution = null, controller = null, loading = null, ticking = null;
   let phase = 'idle', error = null, progress = null, decision = null, currentKey = null, closed = false, stopping = null, closing = null;
   let discovery, entries;
+  // Receipts whose cleanup stayed unknown outlive their retired route, bounded
+  // by the attempt budget; retiring a route never turns them into settlement.
+  const unknownAttempts = [];
   const current = () => routes.get(currentKey);
   const getModels = () => [...discovery.getModels(), ...(offer && phase === 'ready' ? current()?.chat.getModels() || [] : [])]
     .filter(model => model.partition?.schema === 'reploid.partition-selection/v2' && !model.canonical);
@@ -37,7 +40,8 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     placement: current()?.route.stages.map(row => row.participantId) ?? null, placementDecision: structuredClone(decision),
     capabilities: discovery.getSnapshot(), descriptor: program?.resident.getState().descriptor ?? null,
     reservations: program?.resident.getState().reservations ?? null, acquisition: program?.getReceipt?.() ?? null,
-    models: getModels(), attempts: [...routes.values()].flatMap(row => row.chat.getState().attempts), unsettledOwners: debt.size });
+    models: getModels(), attempts: [...routes.values()].flatMap(row => row.chat.getState().attempts), unsettledOwners: debt.size,
+    unknownAttempts: structuredClone(unknownAttempts) });
   const notify = () => { onChange(getState()); for (const listener of listeners) listener(getModels()); };
   const residentCapacity = () => program ? (({ active, availableSlots, closed }) => ({ active, availableSlots, closed }))(
     program.resident.getState().reservations) : { active: 0, availableSlots: 0, closed: true };
@@ -76,10 +80,17 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     if (closedOwners.has(owner)) { debt.delete(owner); return; }
     debt.add(owner); await owner.close(); debt.delete(owner); closedOwners.add(owner);
   }
+  async function closeChat(chat) {
+    await closeOwner(chat);
+    for (const receipt of chat.getState().attempts.filter(row => row.phase === 'cleanup-failed')) {
+      if (unknownAttempts.some(row => row.identity.attemptId === receipt.identity.attemptId)) continue;
+      unknownAttempts.push(receipt); if (unknownAttempts.length > config.limits.maxAttempts) unknownAttempts.shift();
+    }
+  }
   async function retire() {
     // Chat settles its private attempts before channels and shared weights retire.
     const chats = [...routes.values()].map(row => row.chat);
-    const settled = await Promise.allSettled(chats.map(closeOwner));
+    const settled = await Promise.allSettled(chats.map(closeChat));
     if (settled.some(row => row.status === 'rejected')) throw new AggregateError(settled.filter(row => row.status === 'rejected').map(row => row.reason), 'Ordered chat settlement failed');
     routes.clear(); currentKey = null;
     if (execution) { await closeOwner(execution); execution = null; }
@@ -142,7 +153,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
     for (const [key, owner] of routes) {
       const state = owner.chat.getState();
       if (owner.ports.every(port => port.getState().ready) || state.active || state.pendingInputs) continue;
-      await closeOwner(owner.chat);
+      await closeChat(owner.chat);
       for (const row of owner.route.stages.slice(1)) await execution.retire(row.transportId, { route: owner.route });
       routes.delete(key); if (currentKey === key) currentKey = null;
     }

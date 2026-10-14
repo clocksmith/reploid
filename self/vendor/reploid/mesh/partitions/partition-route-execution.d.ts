@@ -38,7 +38,7 @@ export interface OrderedRouteRequest {
 }
 export interface OrderedRouteReceipt {
   identity: RouteAttemptBinding; phase: 'admitting' | 'executing' | 'settling' | 'cleanup-failed' | 'completed' | 'cancelled' | 'failed';
-  reservations: OrderedReservation[]; cleanup: Array<{ partitionIndex: number; status: 'settled' | 'unknown'; error: string | null }>;
+  reservations: OrderedReservation[]; cleanup: Array<{ partitionIndex: number; status: 'settled' | 'unknown'; error: string | null; code?: 'CONNECTION_LOST' }>;
   cleanupSettledAt: number | null; failure: string | null;
 }
 export interface OrderedRouteResult {
@@ -50,7 +50,7 @@ export interface OrderedRouteResult {
 export interface OrderedRouteRunner {
   plan: OrderedExecutionPlan; route: PartitionRoute;
   execute(request: OrderedRouteRequest): Promise<OrderedRouteResult>;
-  getState(): { closed: boolean; active: number; unsettled: number; attempts: OrderedRouteReceipt[] };
+  getState(): { closed: boolean; active: number; unsettled: number; unknown: number; attempts: OrderedRouteReceipt[] };
   retryCleanup(attemptId: string): Promise<void>;
   close(): Promise<void>;
 }

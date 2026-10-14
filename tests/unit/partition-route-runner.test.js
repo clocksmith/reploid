@@ -37,6 +37,28 @@ describe('ordered ordinary route (injected numerical execution)', () => {
     expect(f.stages.map(stage => stage.closeAttempt.mock.calls.length)).toEqual([1, 2, 1]);
     expect((await f.runner.execute(another(f, 'third'))).content).toBe('012');
   });
+  it('reports a disconnected stage as CONNECTION_LOST and records it unknown without retrying it forever', async () => {
+    const f = fixture(3, 1), lost = () => Object.assign(Error('contributor disconnected'), { code: 'CONNECTION_LOST' });
+    f.stages[1].executeStage.mockRejectedValueOnce(lost());
+    f.stages[1].closeAttempt.mockRejectedValue(lost());
+    await expect(f.runner.execute(f.request)).rejects.toMatchObject({ code: 'CONNECTION_LOST' });
+    const [receipt] = f.runner.getState().attempts;
+    expect(receipt).toMatchObject({ phase: 'cleanup-failed', cleanupSettledAt: null });
+    expect(receipt.cleanup.map(row => [row.status, row.code])).toEqual([['settled', undefined], ['unknown', 'CONNECTION_LOST'], ['settled', undefined]]);
+    expect(f.runner.getState()).toMatchObject({ active: 0, unsettled: 0, unknown: 1 });
+    await f.runner.retryCleanup('attempt'); await f.runner.close();
+    expect(f.stages.map(stage => stage.closeAttempt.mock.calls.length)).toEqual([1, 1, 1]);
+  });
+  it('keeps CLEANUP_FAILED when a reachable stage also leaves cleanup unsettled', async () => {
+    const f = fixture(3, 1), lost = Object.assign(Error('contributor disconnected'), { code: 'CONNECTION_LOST' });
+    f.stages[1].closeAttempt.mockRejectedValue(lost);
+    f.stages[2].closeAttempt.mockRejectedValueOnce(Error('cleanup unsettled'));
+    await expect(f.runner.execute(f.request)).rejects.toMatchObject({ code: 'CLEANUP_FAILED' });
+    expect(f.runner.getState()).toMatchObject({ unsettled: 1, unknown: 1 });
+    await f.runner.retryCleanup('attempt');
+    expect(f.runner.getState()).toMatchObject({ unsettled: 0, unknown: 1 });
+    expect(f.runner.getState().attempts[0]).toMatchObject({ phase: 'cleanup-failed', cleanupSettledAt: null });
+  });
   it.each(['toStage', 'bytes'])('rejects altered middle edge %s before the next stage runs', async field => {
     const f = fixture(4);
     f.transport.transferActivation.mockImplementation(async frame => {
