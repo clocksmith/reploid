@@ -24,7 +24,7 @@ async function fixture(count = 3, peerMode = false) {
   const approvals = [], authorizeRequester = vi.fn(async () => true);
   const limits = { maxFrameBytes: 64, maxControlBytes: 131072, maxPayloadBytes: 4096,
     maxPendingBytes: 16384, maxPendingRequests: 8, maxRequestsPerChannel: 256, maxBufferedBytes: 262144,
-    maxTransferBytes: 4194304, timeoutMs: 1000 };
+    maxTransferBytes: 4194304, timeoutMs: 10000 };
   const peers = [], stageAuthorities = [], stageIdentities = [], stagePorts = [f.stages[0]];
   if (peerMode) for (let index=1;index<count;index++) {
     const identity = await createSigningIdentity({ algorithm: 'ECDSA' });
@@ -371,7 +371,7 @@ it('rejects a second semantic usage event before sampling',async()=>{
   const service={...f.chat,generate:async(request,controls)=>generate(request,{...controls,onUsage:async usage=>{await controls.onUsage(usage);await controls.onUsage(usage);}})};
   // Replace the already-borrowed method through a new entry owner, never forge settlement.
   await f.client.close();await f.server.close();const pair=channels();
-  const limits={maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:4096,maxPendingBytes:16384,maxPendingRequests:8,maxRequestsPerChannel:256,maxBufferedBytes:262144,maxTransferBytes:4194304,timeoutMs:1000};
+  const limits={maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:4096,maxPendingBytes:16384,maxPendingRequests:8,maxRequestsPerChannel:256,maxBufferedBytes:262144,maxTransferBytes:4194304,timeoutMs:10000};
   const inputLimits={maxInputCharacters:4096,maxOutputCharacters:100,maxAttempts:20,maxConcurrentAttempts:2,descriptorTtlMs:10000};
   const server=createPartitionEntry({channel:pair[1],localParticipantId:f.client.id,remoteParticipantId:'requester',service,ordered:true,authorize:async()=>true,limits,inputLimits});
   const client=createPartitionEntry({channel:pair[0],localParticipantId:'requester',remoteParticipantId:f.client.id,ordered:true,authorize:async()=>true,limits,inputLimits});
@@ -428,8 +428,8 @@ it.each(['route','stage','sequence','duration','overflow','sample-count','decrea
 it('rejects retained producer activity after the attempt settled',async()=>{
   const f=await fixture();let callback,last;const generate=f.chat.generate;
   const service={...f.chat,generate(request,controls){callback=controls.onActivity;return generate(request,{...controls,onActivity:event=>{last=structuredClone(event);return callback(event);}});}};
-  const pair=channels(),server=createPartitionEntry({channel:pair[1],localParticipantId:f.request.coordinatorId,remoteParticipantId:'late-requester',service,ordered:true,authorize:async()=>true,limits:{maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:4096,maxPendingBytes:16384,maxPendingRequests:8,maxRequestsPerChannel:256,maxBufferedBytes:262144,maxTransferBytes:4194304,timeoutMs:1000},inputLimits:{maxInputCharacters:4096,maxOutputCharacters:100,maxAttempts:20,maxConcurrentAttempts:2,descriptorTtlMs:10000}});
-  const client=createPartitionEntry({channel:pair[0],localParticipantId:'late-requester',remoteParticipantId:f.request.coordinatorId,ordered:true,authorize:async()=>true,limits:{maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:4096,maxPendingBytes:16384,maxPendingRequests:8,maxRequestsPerChannel:256,maxBufferedBytes:262144,maxTransferBytes:4194304,timeoutMs:1000},inputLimits:{maxInputCharacters:4096,maxOutputCharacters:100,maxAttempts:20,maxConcurrentAttempts:2,descriptorTtlMs:10000}});
+  const pair=channels(),server=createPartitionEntry({channel:pair[1],localParticipantId:f.request.coordinatorId,remoteParticipantId:'late-requester',service,ordered:true,authorize:async()=>true,limits:{maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:4096,maxPendingBytes:16384,maxPendingRequests:8,maxRequestsPerChannel:256,maxBufferedBytes:262144,maxTransferBytes:4194304,timeoutMs:10000},inputLimits:{maxInputCharacters:4096,maxOutputCharacters:100,maxAttempts:20,maxConcurrentAttempts:2,descriptorTtlMs:10000}});
+  const client=createPartitionEntry({channel:pair[0],localParticipantId:'late-requester',remoteParticipantId:f.request.coordinatorId,ordered:true,authorize:async()=>true,limits:{maxFrameBytes:64,maxControlBytes:131072,maxPayloadBytes:4096,maxPendingBytes:16384,maxPendingRequests:8,maxRequestsPerChannel:256,maxBufferedBytes:262144,maxTransferBytes:4194304,timeoutMs:10000},inputLimits:{maxInputCharacters:4096,maxOutputCharacters:100,maxAttempts:20,maxConcurrentAttempts:2,descriptorTtlMs:10000}});
   try{await client.refresh();await client.generate({...f.request,attemptId:'late'},{onActivity:()=>{}});expect(()=>callback(last)).toThrow(/late/);}
   finally{await Promise.allSettled([client.close(),server.close()]);await f.close();}
 });

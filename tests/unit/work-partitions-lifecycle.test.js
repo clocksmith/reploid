@@ -47,6 +47,7 @@ it('requires a session cleanup owner before constructing a signed factory', () =
   expect(createFactory).not.toHaveBeenCalled();
 });
 
+// Imports the real Doppler package entries, which can exceed the default 5 s under suite load.
 it('uses composed public openers while the low-level entry requires explicit runtime ports', async () => {
   const raw = await vi.importActual('doppler-gpu');
   const native = await vi.importActual('doppler-gpu/host');
@@ -58,7 +59,7 @@ it('uses composed public openers while the low-level entry requires explicit run
     await expect(host.openCapsule({}, { modelLoadOptions: {} })).rejects.toThrow(
       'prohibits modelLoadOptions because signed TargetPlan policy is authoritative');
   }
-});
+}, 30000);
 
 describe.each(['browser', 'native'])('%s resident opening', host => {
 const loadWorkPartition = (files, selected, index, controls) => host === 'browser'
