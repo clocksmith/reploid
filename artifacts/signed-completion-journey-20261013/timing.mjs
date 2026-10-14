@@ -17,8 +17,9 @@ export const TIMING_SOURCES = Object.freeze({
   scheduler: 'packages/reploid/src/chat/scheduler.js:26,72-73 records queuedMs/loadMs/executionMs only for local scheduling; '
     + 'self/host/chat-execution.js:48-51 sends partition models straight to partitions.generate; chat-execution.js:29 discards observations',
   transport: 'partition-summary.js:43-45 aggregates transportTiming for v1 two-device summaries only; the ordered v2 summary (partition-summary.js:16-18) carries none',
-  persistence: 'packages/reploid/src/chat/workspace.js:63-94 saves ordinary history synchronously inside persist() and exposes no timing; '
-    + 'partition-ordered-chat.js:45-46 keeps ordered routes on ordinary history'
+  persistence: 'ordered routes commit each step through the requester transaction owner '
+    + '(packages/reploid/src/mesh/partitions/partition-ordered-chat.js:136, owner.publish) before delivery or the next step; '
+    + 'neither that commit nor ordinary history (packages/reploid/src/chat/workspace.js persist()) exposes timing'
 });
 
 // Only these boundaries may be declared not-observable. An observable boundary
