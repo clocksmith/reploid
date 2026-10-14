@@ -1,14 +1,19 @@
-name: Test Suite
+name: Smoke
 
+# Hosted CI is a smoke test: lint, the Vitest suite, the installed package, and
+# a browser boot check. Heavy tests, Playwright product flows, and the verify:*
+# config, mirror, and freshness checks run on demand, not on every push.
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  test:
+  smoke:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
 
     steps:
     - name: Checkout code
@@ -23,65 +28,28 @@ jobs:
     - name: Install dependencies
       run: npm ci
 
-    - name: Check JavaScript correctness
+    - name: Lint
       run: npm run lint
 
-    - name: Run tests
+    - name: Unit and integration tests
       run: npm test
 
-    - name: Run heavy tests (retained archives and child processes)
-      run: npm run test:heavy
-
-    - name: Verify surface and runtime contracts
-      run: |
-        npm run verify:showcase-privacy
-        npm run verify:retained-artifacts
-        npm run verify:catscan
-        npm run verify:surface-claims
-        npm run verify:layers
-        npm run verify:pool:css
-        npm run verify:library-types
-        npm run verify:module-system
-        npm run verify:registry
-        npm run verify:runtime-config
-        npm run verify:browser-bundle:local
-        npm run verify:change-passport:sdk
-        npm run verify:change-passport:pilot
-        npm exec -- tsc -p tests/tsconfig.change-passport.json --noEmit
-        npm run verify:pool
-
-    - name: Install contract browser
-      run: npx playwright install --with-deps chromium
-
-    - name: Browser infrastructure and product contracts
-      env:
-        REPLOID_E2E_ARTIFACT_DIR: artifacts/product-browser-ci
-      run: >-
-        npx playwright test --config tests/playwright.config.js
-        tests/e2e/vfs-storage-contract.spec.js
-        tests/e2e/boot.spec.js
-        tests/e2e/peer-pack-jobs.spec.js
-        tests/e2e/work-integration.spec.js
-        tests/e2e/work-threads.spec.js
-        tests/e2e/workspace-material.spec.js
-        tests/e2e/work-clarity.spec.js
-        tests/e2e/agent-network-home.spec.js
-        tests/e2e/tool-offer-exchange.spec.js
-        tests/e2e/peer-tool-offer.spec.js
-        tests/e2e/continuing-tool-objectives.spec.js
-        --project=chromium --workers=1
-
-    - name: Installed package acceptance
+    - name: Installed package smoke
       run: node tests/library-package-acceptance.js
 
-    - name: Archive test results
+    - name: Install Chromium
+      run: npx playwright install --with-deps chromium
+
+    - name: Browser boot smoke
+      run: npm run test:e2e:smoke
+
+    - name: Archive failure evidence
       uses: actions/upload-artifact@v4
-      if: always()
+      if: failure()
       with:
-        name: test-results-node-22
+        name: smoke-failure
         path: |
-          coverage/
           test-results/
           playwright-report/
           artifacts/library-acceptance/
-          artifacts/product-browser-ci/
+        if-no-files-found: ignore

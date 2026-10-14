@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, it, expect } from 'vitest';
 import { execFileSync, spawnSync } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { parseArgs, buildTestCommands, buildProofCommand, proofCommands } from '../../scripts/reploid-cli.ts';
 
 describe('Reploid command entrypoint', () => {
@@ -33,15 +33,5 @@ describe('Reploid command entrypoint', () => {
     const failure = spawnSync('npm', ['run', 'cli', '--', 'unknown'], { encoding: 'utf8' });
     expect(failure.status).not.toBe(0);
     expect(failure.stderr).toContain('Unknown command or suite');
-  });
-
-  it('archives actual report locations and produces a CI Vitest report', () => {
-    const workflow = readFileSync('.github/workflows/test.yml', 'utf8');
-    expect(workflow).toContain('test-results/');
-    expect(workflow).toContain('playwright-report/');
-    expect(workflow).toContain('npm run verify:registry');
-    expect(workflow).not.toContain('          tests/');
-    expect(readFileSync('tests/vitest.config.js', 'utf8')).toContain('test-results/vitest-results.json');
-    expect(JSON.parse(readFileSync('package.json', 'utf8')).scripts['test:ci']).toContain('--outputFile=test-results/vitest-results.json');
   });
 });

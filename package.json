@@ -32,6 +32,7 @@
     "test:unit": "npx tsx scripts/reploid-cli.ts test --unit",
     "test:integration": "npx tsx scripts/reploid-cli.ts test --integration",
     "test:heavy": "vitest run --config tests/vitest.heavy.config.js",
+    "test:e2e:smoke": "playwright test --config tests/playwright.config.js tests/e2e/boot.spec.js --project=chromium --workers=1 --grep \"loads with product modes|has Reploid selected by default|shows all three product modes\"",
     "test:doppler-consumer": "node tests/fixtures/doppler-installed-generation.js",
     "test:agent-peer": "node tests/agent-peer-acceptance.js",
     "test:e2e": "npx tsx scripts/reploid-cli.ts test --e2e",
