@@ -1,0 +1,200 @@
+{
+ "schema": "reploid.signed-completion-journey-run-3-bringup/v1",
+ "outcome": "passed: all three contributors opened the signed Capsule, verified release history and reached ready; route mac-host -> amd-host -> intel-host formed",
+ "machines": "mac-host, amd-host, intel-host are aliases; no hostnames are recorded",
+ "candidate": {
+  "application": "/var/tmp/reploid-signed-completion-app-3-20261013/app (Reploid 9b42f5ee export)",
+  "browserBundle": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d (served, observed)",
+  "nativePackage": "sha256:fcacf463... at /var/tmp/reploid-signed-completion-3-20261013/reploid; installed native-participant.js a48bd76c..., swarm.js ae1d9239... (observed on both hosts)"
+ },
+ "roomToken": {
+  "natives": "--room-token-file <run dir>/room-token (mode 0600, owner = contributor user, 64 bytes); --room-token never passed. Token written over ssh stdin, never on a command line. Observed: 0 token hits in each native node argv and in each user journal after launch; no --room-token warning in either log.",
+  "operatorSlip": "My post-launch verification ran a remote shell whose own command line contained the token for about a second on each native host (the native processes did not); nothing was written to a file.",
+  "browsers": "room URL navigated over CDP only"
+ },
+ "processesStarted": {
+  "mac-host": [
+   {
+    "alias": "app-server",
+    "pid": 55746,
+    "bind": "127.0.0.1:29670"
+   },
+   {
+    "alias": "tunnel-amd",
+    "pid": 55749
+   },
+   {
+    "alias": "tunnel-intel",
+    "pid": 55750,
+    "forwards": "adds mac 127.0.0.1:29674 -> intel 127.0.0.1:29674"
+   },
+   {
+    "alias": "stage0-browser",
+    "pid": 55784,
+    "command": "Chrome 155 --headless=new, CDP 127.0.0.1:29671, reused run-2 profile /var/tmp/reploid-signed-completion-journey-run2-20261013/mac-stage0-profile, instance scj-run2-stage0"
+   },
+   {
+    "alias": "supplier-browser",
+    "pid": 56134,
+    "command": "Chrome 155 --headless=new --disable-gpu, CDP 127.0.0.1:29673, new run-3 profile"
+   },
+   {
+    "alias": "requester-profiles",
+    "launchedBy": "harness openRequesterProfile (temporary user data directories, removed at close; none left)"
+   }
+  ],
+  "amd-host": [
+   {
+    "alias": "amd-native-1",
+    "scope": "scj-run3-amd-native-1.scope",
+    "pid": 53728,
+    "share": false,
+    "window": "04:28:07Z-04:37:09Z",
+    "limits": "MemoryHigh=10737418240 MemoryMax=12884901888 MemorySwapMax=0 RuntimeMaxSec=1800 (observed)"
+   }
+  ],
+  "intel-host": [
+   {
+    "alias": "intel-native-1",
+    "scope": "scj-run3-intel-native-1.scope",
+    "pid": 1260801,
+    "share": false,
+    "window": "04:28:12Z-04:37:10Z",
+    "limits": "same"
+   },
+   {
+    "alias": "intel-acquirer-browser",
+    "scope": "scj-run3-intel-acquirer.scope",
+    "command": "google-chrome 136 --headless=new --disable-gpu, CDP 127.0.0.1:29674, new run-3 profile",
+    "limits": "same"
+   }
+  ],
+  "state": {
+   "amd-host": "/var/tmp/reploid-signed-native-metadata-20261012 (reused)",
+   "intel-host": "/var/tmp/reploid-signed-completion-journey-run1-20261013/intel-state (reused)"
+  }
+ },
+ "contributors": {
+  "mac-host": {
+   "participantId": "peer:a8a4f314d29f7b7013520808",
+   "note": "same profile and instance as run 2, but a different peer identity in this new room (run 2 was peer:15923429...)",
+   "stageKey": {
+    "before": {
+     "stage": {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "index": 0,
+      "residentId": "scj-run2-stage-0-resident",
+      "executionId": "scj-run2-stage-0-ordinary"
+     }
+    },
+    "after": {
+     "stage": {
+      "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+      "index": 0,
+      "residentId": "scj-run3-stage-0-resident",
+      "executionId": "scj-run3-stage-0-ordinary"
+     }
+    }
+   },
+   "gpu": {
+    "vendor": "apple",
+    "architecture": "metal-3",
+    "description": ""
+   },
+   "openingMode": "signed-capsule",
+   "checkpoint": {
+    "sequence": 2,
+    "digest": "sha256:923ac7e602b3075a17f9e540eb0abfd436eaf1de41bebf8b6f15bdaee604b45f"
+   },
+   "authorization": {
+    "mode": "managed",
+    "verifiedAtUtc": "2026-10-14T04:28:44.303Z",
+    "eventExpired": false,
+    "unseenRevocations": "unknown",
+    "retainedLocalUse": null
+   },
+   "descriptor": {
+    "index": 0,
+    "layerRange": [
+     0,
+     7
+    ],
+    "residentWeightBytes": 603512832,
+    "ready": true,
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+   },
+   "custody": {
+    "queueMs": 0,
+    "peerTransferMs": 0,
+    "cacheReadMs": 59409.000000715256,
+    "peerBytes": 0,
+    "cacheBytes": 4883410368,
+    "transfers": 0,
+    "failures": 0
+   },
+   "memory": {
+    "liveBytes": 605663504,
+    "peakBytes": 622440768,
+    "maxBytes": 1420000000,
+    "rejected": 0
+   },
+   "readyAt": "2026-10-14T04:29:49.955Z"
+  },
+  "amd-host": {
+   "participantId": "peer:9af15d884eba51b0c0540e2a",
+   "transitions": [
+    [
+     10,
+     "loading"
+    ],
+    [
+     14,
+     "loading"
+    ],
+    [
+     51,
+     "ready"
+    ]
+   ],
+   "openingMode": "signed-capsule",
+   "layers": [
+    8,
+    15
+   ],
+   "checkpoint": "sequence 2 923ac7e6... before and after",
+   "ledger": "1458219861 of 4294967296 before and after (no supply this run)"
+  },
+  "intel-host": {
+   "participantId": "peer:09610aefbd15a133d7af2b57",
+   "transitions": [
+    [
+     13,
+     "loading"
+    ],
+    [
+     19,
+     "loading"
+    ],
+    [
+     82,
+     "ready"
+    ]
+   ],
+   "openingMode": "signed-capsule",
+   "layers": [
+    16,
+    23
+   ],
+   "checkpoint": "sequence 2 923ac7e6... before and after",
+   "ledger": "0 of 4294967296 before and after"
+  }
+ },
+ "route": {
+  "placement": [
+   "peer:a8a4f314d29f7b7013520808",
+   "peer:9af15d884eba51b0c0540e2a",
+   "peer:09610aefbd15a133d7af2b57"
+  ],
+  "formedBy": "2026-10-14T04:29:49.955Z"
+ }
+}

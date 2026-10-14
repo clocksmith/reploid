@@ -1,0 +1,18 @@
+{
+ "schema": "reploid.run-3-disclosure-check/v1",
+ "catalogModels": 1,
+ "route": [
+  "peer:a8a4f314d29f7b7013520808",
+  "peer:9af15d884eba51b0c0540e2a",
+  "peer:09610aefbd15a133d7af2b57"
+ ],
+ "productRouteParticipant": {
+  "participantId": "local-user",
+  "scope": null
+ },
+ "requesterPeerIdentity": {
+  "participantId": "peer:44433fcb26a67d3eccc0e160",
+  "scope": "accepted",
+  "disclosure": "ordered-partition-activations-and-tokens"
+ }
+}

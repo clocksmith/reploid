@@ -1,0 +1,367 @@
+{
+ "schema": "reploid.signed-completion-journey-run-3-results/v1",
+ "candidate": "Reploid 9b42f5ee delivery final-3 (native fcacf463..., browser bundle 9f380ebf...), harness 9b42f5ee, checkout 81261b37",
+ "harnesses": {
+  "contributor-loss": {
+   "report": "reports/contributor-loss-2026-10-14T04-33-21-958Z.json",
+   "ok": false,
+   "startedAt": "2026-10-14T04:33:21.959Z",
+   "finishedAt": "2026-10-14T04:33:25.349Z",
+   "failure": "Error: Streaming before loss: attempt ended failed: Peer disclosure does not match the selected model and verified recipients",
+   "stepErrors": {},
+   "checks": {
+    "lossInjected": {
+     "pass": false,
+     "failures": [
+      "Contributor was not stopped while the conversation was streaming",
+      "Injected stop callback did not report its method and time"
+     ]
+    },
+    "lossReported": {
+     "pass": false,
+     "failures": [
+      "Requester error does not report contributor loss (observed unclassified: none)",
+      "Rendered failure status does not report contributor loss (none)"
+     ]
+    },
+    "ownershipExplicit": {
+     "pass": false,
+     "failures": [
+      "Requester attempt did not settle as failed",
+      "Requester error is not an explicit partition failure category",
+      "Coordinator cleanup rows do not cover every stage exactly once",
+      "Coordinator phase contradicts its cleanup rows",
+      "Coordinator receipt lacks the failure cause"
+     ]
+    },
+    "noSilentContinuation": {
+     "pass": false,
+     "failures": [
+      "Failed attempt lost the partial answer visible before the loss",
+      "Post-failure observations missing",
+      "Post-failure observation interval incomplete"
+     ]
+    },
+    "explicitRetry": {
+     "pass": false,
+     "failures": [
+      "Capacity did not return before the deadline",
+      "Injected restore callback did not report its method",
+      "Retry was requested before capacity returned",
+      "Explicit retry did not start exactly one new attempt linked to the failure",
+      "Retry not complete",
+      "Retry natural EOS unobserved",
+      "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Retry ordered route identity unobserved",
+      "Retry route binds a different model or plan than the freeze",
+      "Retry distinct route contributors (0) differ from the frozen route (3)",
+      "Retry route stages differ from the frozen stage order",
+      "Retry requester was assigned a stage",
+      "Retry cleanup rows do not cover every stage exactly once",
+      "Retry cleanup not confirmed: a cleanup row is unsettled",
+      "Retry settlement phase not completed",
+      "Retry not every stage was admitted",
+      "Retry not every stage executed every step",
+      "Retry recipients were not approved by this attempt's Send or Retry",
+      "Retry approval does not cover ordered activations and tokens",
+      "Retry approved recipients differ from the frozen route",
+      "Retry approval is not addressed to the stage 0 coordinator",
+      "Retry approval binds another model or plan",
+      "Retry executed route differs from the approved route",
+      "Retry requester approved itself as a stage"
+     ]
+    },
+    "selectiveAcquisition": {
+     "pass": false,
+     "failures": [
+      "Requester received or retained weights, or custody evidence is missing"
+     ]
+    },
+    "timing": {
+     "pass": false,
+     "failures": [
+      "Retry timing record missing"
+     ]
+    }
+   }
+  },
+  "requester-journey": {
+   "report": "reports/requester-journey-2026-10-14T04-30-11-209Z.json",
+   "ok": false,
+   "startedAt": "2026-10-14T04:30:11.209Z",
+   "finishedAt": "2026-10-14T04:30:16.539Z",
+   "failure": "Error: Peer disclosure does not match the selected model and verified recipients",
+   "stepErrors": {},
+   "checks": {
+    "open": {
+     "pass": true,
+     "failures": []
+    },
+    "modelChoice": {
+     "pass": true,
+     "failures": []
+    },
+    "recipientApproval": {
+     "pass": false,
+     "failures": [
+      "Turn1 recipients were not approved by this attempt's Send or Retry",
+      "Turn1 approval does not cover ordered activations and tokens",
+      "Turn1 approved recipients differ from the frozen route",
+      "Turn1 approval is not addressed to the stage 0 coordinator",
+      "Turn1 approval binds another model or plan",
+      "Turn1 executed route differs from the approved route",
+      "Turn1 requester approved itself as a stage"
+     ]
+    },
+    "selectiveAcquisition": {
+     "pass": false,
+     "failures": [
+      "Requester received or retained weights, or custody evidence is missing",
+      "A concurrent requester tab received weights or lacks custody evidence",
+      "Retry requester tab received weights or lacks custody evidence"
+     ]
+    },
+    "streaming": {
+     "pass": false,
+     "failures": [
+      "Two completed turns required"
+     ]
+    },
+    "completion": {
+     "pass": false,
+     "failures": [
+      "Two completed turns required"
+     ]
+    },
+    "followUp": {
+     "pass": false,
+     "failures": [
+      "Two completed turns required"
+     ]
+    },
+    "copy": {
+     "pass": false,
+     "failures": [
+      "Two completed turns required"
+     ]
+    },
+    "reload": {
+     "pass": false,
+     "failures": [
+      "Reload changed messages or attempts",
+      "Reload lost unsent draft",
+      "New/changed attempt observed after reload, or return observations missing",
+      "Bounded redispatch observation incomplete"
+     ]
+    },
+    "concurrency": {
+     "pass": false,
+     "failures": [
+      "Expected 2 concurrent independent requesters",
+      "Concurrent requests exceed the served route admission limit",
+      "Concurrent requests were never executing simultaneously",
+      "Exactly one cancelled tab and the rest surviving tabs required"
+     ]
+    },
+    "isolatedCancellation": {
+     "pass": false,
+     "failures": [
+      "Stopped request did not settle as a requester cancellation",
+      "Stopped request did not preserve its visible partial answer",
+      "Coordinator did not settle every stage of the cancelled attempt",
+      "No surviving neighbour observed"
+     ]
+    },
+    "explicitRetry": {
+     "pass": false,
+     "failures": [
+      "No unsuccessful attempt (other than a user stop) preceded the retry",
+      "Failed attempt did not retain its partial answer",
+      "An attempt was redispatched before the explicit retry",
+      "Explicit retry did not start exactly one new attempt linked to the failure",
+      "Retry not complete",
+      "Retry natural EOS unobserved",
+      "Retry ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Retry ordered route identity unobserved",
+      "Retry route binds a different model or plan than the freeze",
+      "Retry distinct route contributors (0) differ from the frozen route (3)",
+      "Retry route stages differ from the frozen stage order",
+      "Retry requester was assigned a stage",
+      "Retry cleanup rows do not cover every stage exactly once",
+      "Retry cleanup not confirmed: a cleanup row is unsettled",
+      "Retry settlement phase not completed",
+      "Retry not every stage was admitted",
+      "Retry not every stage executed every step",
+      "Retry recipients were not approved by this attempt's Send or Retry",
+      "Retry approval does not cover ordered activations and tokens",
+      "Retry approved recipients differ from the frozen route",
+      "Retry approval is not addressed to the stage 0 coordinator",
+      "Retry approval binds another model or plan",
+      "Retry executed route differs from the approved route",
+      "Retry requester approved itself as a stage",
+      "Coordinator did not settle every stage of the failed attempt"
+     ]
+    },
+    "timing": {
+     "pass": false,
+     "failures": [
+      "A completed answer lacks an attempt identity for timing",
+      "timing f44a4a1f-feb7-4591-91aa-913315feea73: requester.firstVisibleTextMs observable boundary missing",
+      "timing f44a4a1f-feb7-4591-91aa-913315feea73: coordinator.activationBytes observable boundary missing",
+      "timing f44a4a1f-feb7-4591-91aa-913315feea73: per-stage coordinator timing does not cover every route stage",
+      "timing f44a4a1f-feb7-4591-91aa-913315feea73: decode step count missing"
+     ]
+    }
+   }
+  },
+  "storage-contribution": {
+   "report": "reports/storage-contribution-2026-10-14T04-33-44-657Z.json",
+   "ok": false,
+   "startedAt": "2026-10-14T04:33:44.657Z",
+   "finishedAt": "2026-10-14T04:35:59.458Z",
+   "failure": null,
+   "stepErrors": {
+    "sharedWhileChatting": "Error: Chat streaming: attempt ended failed: Peer disclosure does not match the selected model and verified recipients",
+    "peerAcquisition": "Error: Prerequisite sharing step did not share",
+    "cachedOnly": "Error: Prerequisite sharing step did not share",
+    "reloadPreserved": "Error: Prerequisite sharing step did not share",
+    "stopSettles": "Error: Chat streaming: attempt ended failed: Peer disclosure does not match the selected model and verified recipients"
+   },
+   "checks": {
+    "sharedWhileChatting": {
+     "pass": false,
+     "failures": [
+      "Subset was not acquired in bounded-acquisition mode",
+      "File contribution is not sharing",
+      "No verified piece is offered",
+      "Offered subset exceeds the approved allowance or subset limit",
+      "Acquisition allowance missing, renewed or overspent",
+      "File contribution did not overlap an active conversation",
+      "Sharer conversation not complete",
+      "Sharer conversation natural EOS unobserved",
+      "Sharer conversation ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Sharer conversation ordered route identity unobserved",
+      "Sharer conversation route binds a different model or plan than the freeze",
+      "Sharer conversation distinct route contributors (0) differ from the frozen route (3)",
+      "Sharer conversation route stages differ from the frozen stage order",
+      "Sharer conversation requester was assigned a stage",
+      "Sharer conversation cleanup rows do not cover every stage exactly once",
+      "Sharer conversation cleanup not confirmed: a cleanup row is unsettled",
+      "Sharer conversation settlement phase not completed",
+      "Sharer conversation not every stage was admitted",
+      "Sharer conversation not every stage executed every step"
+     ]
+    },
+    "peerAcquisition": {
+     "pass": false,
+     "failures": [
+      "Acquirer is not another computer",
+      "Sharer transport identity unobserved",
+      "Acquirer completed none of the shared pieces",
+      "Acquirer fetched weights over HTTP during peer acquisition",
+      "Sharer supply accounting does not cover the transferred pieces"
+     ]
+    },
+    "reloadPreserved": {
+     "pass": false,
+     "failures": [
+      "Reload was observed while another tab of the sharer profile was open",
+      "No verified inventory before reload",
+      "Consumed allowance unobserved before or after reload",
+      "Reload reset consumed allowance",
+      "Inventory was not rebuilt from the cache alone"
+     ]
+    },
+    "competingTabs": {
+     "pass": true,
+     "failures": []
+    },
+    "interruptedResume": {
+     "pass": false,
+     "failures": [
+      "No transfer had completed before the interruption",
+      "Ledger charged more than the observed transfers (double charge)"
+     ]
+    },
+    "cachedOnly": {
+     "pass": false,
+     "failures": [
+      "Cached-only tab was opened while another tab of the sharer profile was open",
+      "Next tab of the sharer profile did not connect normally; the single-owner lock was not released",
+      "Cached-only mode was not selected",
+      "Cached-only mode issued model-file acquisition requests",
+      "Cached-only observation window incomplete",
+      "Cached-only mode created a custody acquisition",
+      "Cached-only mode changed the acquisition ledger",
+      "Cached-only mode left a transfer pending",
+      "No verified sharer inventory was observed before the sharer tab closed",
+      "Cached-only inventory was not restored only from the verified local cache"
+     ]
+    },
+    "stopSettles": {
+     "pass": false,
+     "failures": [
+      "No acquisition was in flight when contribution stopped",
+      "Stopped contribution did not settle its transfers",
+      "Stopping refunded, renewed or lost incurred charges",
+      "Acquisition continued after contribution settled",
+      "Conversation was not active when contribution stopped",
+      "Conversation after stop not complete",
+      "Conversation after stop natural EOS unobserved",
+      "Conversation after stop ordered execution summary unobserved (hidden local, whole-request or two-device fallback)",
+      "Conversation after stop ordered route identity unobserved",
+      "Conversation after stop route binds a different model or plan than the freeze",
+      "Conversation after stop distinct route contributors (0) differ from the frozen route (3)",
+      "Conversation after stop route stages differ from the frozen stage order",
+      "Conversation after stop requester was assigned a stage",
+      "Conversation after stop cleanup rows do not cover every stage exactly once",
+      "Conversation after stop cleanup not confirmed: a cleanup row is unsettled",
+      "Conversation after stop settlement phase not completed",
+      "Conversation after stop not every stage was admitted",
+      "Conversation after stop not every stage executed every step"
+     ]
+    }
+   }
+  }
+ },
+ "applicationDefects": [
+  {
+   "id": "A1",
+   "what": "Every ordered conversation sent from the browser product route fails at Send authorization before dispatch: \"Peer disclosure does not match the selected model and verified recipients\".",
+   "codePath": [
+    "self/host/product-session.js:44 createChatSession(chatOptions) passes no participantId for the non-canonical product route",
+    "self/host/chat-session.js:36 participantId defaults to 'local-user' and is given to createChatWorkspace (:71-73)",
+    "packages/reploid/src/chat/workspace.js:186 disclosureScope(request, preview, participantId)",
+    "packages/reploid/src/chat/thread-grants.js:14 orderedScope returns null unless requesterIdentity is a peer:<24 hex> identity; :19-20 it also rebuilds the disclosure with requesterId = that participant, while the coordinator builds the preview with requesterId = the requester swarm identity (packages/reploid/src/mesh/partitions/automatic-ordered-partitions.js:251-252)",
+    "packages/reploid/src/chat/workspace.js:188-189 with Send authorization present, assert(scope) fails and the attempt settles failed"
+   ],
+   "observed": "Requester turn 1, loss streaming attempt, and contribution (a)/(f) chats all failed with exactly this error within ~110 ms of Send; requester peer identity peer:44433fcb... (network.consumer.peerId); attempt.authorization null, execution null.",
+   "reproduction": "bringup/disclosure-check.json: with the export modules and this run route, disclosureScope returns null for participant local-user and accepts for the requester peer identity.",
+   "blocks": [
+    "requester: recipientApproval, selectiveAcquisition (later custody snapshots), streaming, completion, followUp, copy, reload, concurrency, isolatedCancellation, explicitRetry, timing",
+    "contributor-loss: all seven checks (no streaming conversation to interrupt; loss never injected)",
+    "contribution: sharedWhileChatting and stopSettles directly; peerAcquisition, cachedOnly and reloadPreserved through their sharing prerequisite"
+   ]
+  }
+ ],
+ "harnessDefects": [
+  {
+   "id": "H4",
+   "what": "interruptedResume runs after competingTabs, whose owner tab keeps offering its bounded-acquisition pieces; the interrupt tab acquires the metadata and small pieces from that peer before the reload, and the step never reads pre-reload custody, so those transfers are unobserved.",
+   "where": "artifacts/signed-completion-journey-20261013/run-contribution.mjs:175-201 (contention owner left sharing), :144-146 (withdraw covers only supplier and acquirer pages), :224-225 (assumes no peer transfers before the reload)",
+   "evidence": "interruption: only the 5253248-byte target appears over HTTP before the reload (completedBefore 0, completedDuringInterruption 0, no manifest or piece-index request); ledgerFinal 13631485 vs observed interrupted+resumed 13302560 (gap 328925, about the metadata plus small pieces). The interruption itself worked: target outcome unsettled at the reload, re-acquired after the resume.",
+   "consequence": "interruptedResume failures \"No transfer had completed before the interruption\" and \"Ledger charged more than the observed transfers (double charge)\" are not evidence of an application double charge (inferred from the accounting above, not separately observed)."
+  }
+ ],
+ "passed": {
+  "requester": [
+   "open",
+   "modelChoice"
+  ],
+  "contribution": [
+   "competingTabs"
+  ]
+ },
+ "competingTabsEvidence": "second tab of one profile refused with exactly \"Another tab owns this peer connection\" at every sample, no consumer identity, no custody owner, 0 transfers; owner charged 5242877 of 5242880 bytes for 73 observed transfers totalling 5242877 bytes",
+ "notExercised": "Send-as-approval of a dispatched attempt, streaming, follow-up, Copy, reload, concurrent independent requesters, isolated cancellation, explicit retry, contributor loss and recovery, sharing while chatting, peer acquisition, cached-only, reload preservation, stop settlement. REP-7 Approve/Decline wording stays an open manual-review item."
+}

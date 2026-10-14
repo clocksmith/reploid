@@ -1,0 +1,2 @@
+{"ok":false,"failures":56,"weights":0,"failure":"Error: Peer disclosure does not match the selected model and verified recipients"}
+exit=1
