@@ -1,0 +1,52 @@
+{
+  "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
+  "files": {
+    "check-room-token-file.js": "07a62291580bed7ab6b815087eb6d0db5d90704b7f953996b2c109ef4351b5c4"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/check-room-token-file.js:13: Dynamic property write detected: [installedRoot, packageDirectory, checkout, commit, output] - verify input sanitization",
+      "Warning in /testing/check-room-token-file.js:30: Dynamic property write detected: [label] - verify input sanitization",
+      "Warning in /testing/check-room-token-file.js:16: Suspicious variable name: exec - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791951893532,
+        "path": "/testing/check-room-token-file.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [installedRoot, packageDirectory, checkout, commit, output] - verify input sanitization",
+        "line": 13,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791951893532,
+        "path": "/testing/check-room-token-file.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [label] - verify input sanitization",
+        "line": 30,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791951893532,
+        "path": "/testing/check-room-token-file.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 16,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [],
+      "complexityWarnings": [],
+      "filesAnalyzed": 1
+    }
+  }
+}
