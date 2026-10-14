@@ -62,16 +62,19 @@ layout and limits, with no dispatch. It ran against a private copy of the shared
 (`MESA_SHADER_CACHE_DIR`; the shared cache was not changed) in bounded scopes. Every run
 crashed with exit 139 at pipeline creation, 65-101 ms after start. The i915 count stayed at 54.
 
-**Cold compile (running at the time of writing).** Compiling the same pipeline into an empty private cache needed more than 10 GiB of memory on this host: it was throttled at the 10 GiB soft limit of its bounded scope (12 GiB hard limit) and had not finished after 9 minutes. ANV stores a shader's NIR in the cache before its backend compile and the compiled binary only after it. A compile that is killed or never finishes therefore leaves NIR without a binary, and later processes take the NIR-reload path that crashes. Whether that is how the shared entry arose is not yet shown. Two reload runs follow the cold run against the same private cache.
+**Cold compile, then reload: Mesa poisons its own cache.** The same pipeline was compiled into an empty private cache under the standard bounded scope (10 GiB soft, 12 GiB hard, no swap, 1,200 s). It sat at about 10.2 GiB, throttled at the soft limit (no OOM), and had not finished when the runtime cap ended it (exit 143). Two reload runs against that same cache, which nothing else had written, both crashed at pipeline creation within 0.1 s (exit 139). The i915 count stayed at 54.
+
+ANV stores a shader's NIR in the cache before its backend compile, and the compiled binary only after the compile finishes. A compile that is stopped partway leaves NIR without a binary. Every later process that needs that pipeline then takes the NIR-reload path and dies in `read_load_const`. This needs no disk corruption and no concurrent writer. Campaigns routinely stop natives with SIGTERM or runtime caps, and this one shader's cold compile on Intel did not finish within 20 minutes at 10 GiB, so interrupted compiles are an ordinary event here.
 
 ## What this does and does not show
 
-- **Shown:** on this host, creating at least one Doppler pipeline from the shared Mesa cache
-  crashes node deterministically inside Mesa. Doppler creates pipelines lazily, on first use
+- **Shown:** on this host (Mesa 24.2.8 ANV), an interrupted compile leaves a cache entry that
+  crashes node deterministically on reload, and the shared cache already holds one such entry. Doppler creates pipelines lazily, on first use
   of each kernel variant (`src/gpu/kernels/pipeline-cache.js`), and only the paired recurrent
   pipelines are prepared before readiness (Doppler `0ac64fa2`). So a native can still be
   creating pipelines while it is serving.
-- **Not shown: native 16's own crash site.** No core exists. Contribution reruns h, i and l
+- **Not shown: native 16's own crash site.** No core exists, so whether it hit a poisoned entry for
+  one of its own pipelines is a hypothesis. Contribution reruns h, i and l
   sent the same stop-step prompt to Intel natives without crashing, so if a cached pipeline
   was involved, it was not one that every such run needs.
 
