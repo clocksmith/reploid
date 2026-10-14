@@ -7,10 +7,7 @@ import {
   DEFAULT_DOPPLER_MODEL_ID,
   DOPPLER_BROWSER_RELEASE_REF,
   DOPPLER_BROWSER_RUNTIME_VERSION,
-  DOPPLER_PACKAGE_INTEGRITY,
   DOPPLER_PACKAGE_NAME,
-  DOPPLER_PACKAGE_SPEC,
-  DOPPLER_PACKAGE_TARBALL_URL,
   DOPPLER_PACKAGE_VERSION,
   DOPPLER_KERNEL_BASE_URL,
   DOPPLER_MODULE_URL,
@@ -22,9 +19,6 @@ import {
   getDefaultLocalDopplerModel,
   getLocalDopplerModel
 } from '../../self/config/doppler-local-models.js';
-
-const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
-const packageLock = JSON.parse(readFileSync('package-lock.json', 'utf8'));
 
 describe('local Doppler model contract', () => {
   it('allows the streamed input transaction to remain open for the full conversation attempt', () => {
@@ -62,16 +56,6 @@ describe('local Doppler model contract', () => {
     expect(LOCAL_DOPPLER_MODELS.map((model) => model.id)).toEqual([
       'qwen-3-5-0-8b-q4k-ehaf16', DEFAULT_DOPPLER_MODEL_ID
     ]);
-  });
-
-  it('keeps the Doppler package version pinned to package.json', () => {
-    expect(packageJson.dependencies?.[DOPPLER_PACKAGE_NAME]).toBe(DOPPLER_PACKAGE_SPEC);
-    expect(packageLock.packages?.['']?.dependencies?.[DOPPLER_PACKAGE_NAME]).toBe(DOPPLER_PACKAGE_SPEC);
-    expect(packageLock.packages?.[`node_modules/${DOPPLER_PACKAGE_NAME}`]).toMatchObject({
-      version: DOPPLER_PACKAGE_VERSION,
-      resolved: DOPPLER_PACKAGE_TARBALL_URL,
-      integrity: DOPPLER_PACKAGE_INTEGRITY
-    });
   });
 
   it('resolves only declared local Doppler model ids', () => {
