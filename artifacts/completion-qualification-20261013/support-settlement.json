@@ -1,0 +1,40 @@
+{
+  "schema": "reploid.owned-diagnostic-settlement/v1",
+  "derived": "Alias-only record; raw receipts are in operator-private storage.",
+  "at": "2026-10-14T01:09:20.553368+00:00",
+  "scope": "Owned diagnostic shutdown after supervisor-deadline interruption; public contributors preserved",
+  "hosts": {
+    "amd-host": {
+      "providerExit": {
+        "signal": "SIGTERM",
+        "at": "2026-10-14T00:54:48.514Z",
+        "cause": "supervisor deadline"
+      },
+      "memoryPeakBytes": 749600768,
+      "memoryEvents": "no high, max or oom events",
+      "ownedScopesInactive": true,
+      "ownedPortsClosed": true,
+      "publicContributorsUnchanged": true
+    },
+    "intel-host": {
+      "providerExit": {
+        "signal": "SIGTERM",
+        "at": "2026-10-14T00:54:53.021Z",
+        "cause": "supervisor deadline"
+      },
+      "memoryPeakBytes": 1652568064,
+      "memoryEvents": "no high, max or oom events",
+      "ownedScopesInactive": true,
+      "ownedPortsClosed": true,
+      "publicContributorsUnchanged": true
+    }
+  },
+  "mac-host": {
+    "ownedChromium": "closed by its owner deadline",
+    "deliveryServer": "stopped by SIGTERM to the verified owned process",
+    "inspectorTunnels": "stopped by SIGTERM to the verified owned processes",
+    "ownedPortsClosed": true
+  },
+  "gpuSettlement": "The Mac resident closed normally with all three attempts closed. The AMD and Intel providers were terminated before their residents closed; process exit does not establish normal GPU settlement, so ownership for this attempt is recorded as unknown on both.",
+  "previousUnknownGpuSettlement": "Not inferred cleared by this campaign"
+}

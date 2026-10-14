@@ -1,0 +1,19 @@
+{
+  "schema": "reploid.expectations-diff/v1",
+  "originalExpectations": {
+    "path": "artifacts/completion-candidate-20261013/expectations.json",
+    "hash": "sha256:286755b16c9111ff4461b17068255a6c30aed880c0abb6ef1137a323f894d679"
+  },
+  "freshExpectations": {
+    "path": "artifacts/completion-qualification-20261013/expectations.json",
+    "hash": "sha256:11bdc21244f884570bf841f7f04f872a7a67582ed875cc0c4c0adceb8ed63f75"
+  },
+  "changedFields": [
+    {
+      "path": ".orderedContract.executionGraphHash",
+      "original": "sha256:8e33eb44bdf90e96eb6c3072796107cb0f28e28f6c59ab76a0d2055dc009fcbb",
+      "fresh": "sha256:9e28445d798247290e44150f244b87e5ee1f8d97754baf3ed434bf95440549cf"
+    }
+  ],
+  "onlyGraphDigestChanged": true
+}
