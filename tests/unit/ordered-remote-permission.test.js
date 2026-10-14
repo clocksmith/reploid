@@ -72,7 +72,7 @@ it('nothing leaves before permission: no input, token context, activation, reser
 
 it('a permitted request is sent with no approval step; each record cites the permission and the route it was dispatched to', async () => {
   const { f, app, stored, statuses, thread } = await open(), id = thread();
-  stored.push(createRemotePermission({ id: 'remote', grantedAt: Date.now(), need: { sharingScope: 'mesh',
+  stored.push(createRemotePermission({ id: 'remote', grantedAt: Date.now(), need: { networkId: 'mesh', sharingScope: 'mesh',
     disclosure: 'ordered-partition-activations-and-tokens', modelId: f.model.id, modelIdentity: f.model.identity, adapterIdentities: [] } }));
   const first = await app.send(id, prompt);
   expect(first.authorization).toMatchObject({ kind: 'permission', source: 'permission', permissionId: 'remote',
@@ -93,7 +93,7 @@ it('a permitted request is sent with no approval step; each record cites the per
 
 it('revocation stops new disclosures and leaves an admitted answer running', async () => {
   const { f, app, stored, thread } = await open(), id = thread();
-  stored.push(createRemotePermission({ id: 'remote', grantedAt: Date.now(), need: { sharingScope: 'mesh',
+  stored.push(createRemotePermission({ id: 'remote', grantedAt: Date.now(), need: { networkId: 'mesh', sharingScope: 'mesh',
     disclosure: 'ordered-partition-activations-and-tokens', modelId: f.model.id, modelIdentity: f.model.identity, adapterIdentities: [] } }));
   const gate = f.gate(2, id, 1), running = app.send(id, prompt);
   await gate.entered;

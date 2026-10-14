@@ -9,7 +9,7 @@ import { createRemotePermission, remoteDisclosureKind, remotePermissionCovers, r
 const digest = c => 'sha256:' + c.repeat(64), PEER = 'peer:' + 'b'.repeat(24);
 const modelA = { id: 'model-a', name: 'Model A', identity: digest('a') }, modelB = { id: 'model-b', name: 'Model B', identity: digest('b') };
 const adapter = { id: 'adapter', identity: digest('c') };
-const need = (overrides = {}) => ({ sharingScope: 'mesh', disclosure: 'public', modelId: modelA.id, modelIdentity: modelA.identity, adapterIdentities: [], ...overrides });
+const need = (overrides = {}) => ({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'public', modelId: modelA.id, modelIdentity: modelA.identity, adapterIdentities: [], ...overrides });
 const granted = (overrides = {}) => createRemotePermission({ id: 'permission-1', need: need(), catalog: [modelA], grantedAt: 1, ...overrides });
 
 describe('remote permission scope', () => {
@@ -40,8 +40,18 @@ describe('remote permission scope', () => {
     expect(remoteDisclosureKind(modelA)).toBe('public');
     expect(remoteDisclosureKind({ partition: { participantA: PEER } })).toBe('partition-activations-and-tokens');
     expect(remoteDisclosureKind({ partition: { schema: 'reploid.partition-selection/v2' } })).toBe('ordered-partition-activations-and-tokens');
-    expect(remotePermissionNeed({ sharingScope: 'mesh', disclosure: 'public', model: { ...modelA, adapters: [adapter] } }))
+    expect(remotePermissionNeed({ networkId: 'mesh', sharingScope: 'mesh', disclosure: 'public', model: { ...modelA, adapters: [adapter] } }))
       .toEqual(need({ adapterIdentities: [adapter.identity] }));
+    expect(() => remotePermissionNeed({ sharingScope: 'mesh', disclosure: 'public', model: modelA })).toThrow('network the request is sent on');
+  });
+  it('covers only the network it was granted on; another network asks again', () => {
+    const permission = granted();
+    expect(permission.networkId).toBe('mesh');
+    expect(remotePermissionCovers(permission, need())).toBe(true);
+    expect(remotePermissionCovers(permission, need({ networkId: 'other-room' }))).toBe(false);
+    expect(() => validateRemotePermission({ ...permission, networkId: '' })).toThrow('Invalid remote contributor permission');
+    const { networkId: _dropped, ...earlier } = permission;
+    expect(() => validateRemotePermission({ ...earlier, schema: 'reploid.remote-permission/v1' })).toThrow('Invalid remote contributor permission');
   });
 });
 

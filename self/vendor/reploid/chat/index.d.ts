@@ -124,6 +124,8 @@ export interface ChatWorkspaceOptions {
   requesterIdentity?: () => string | null;
   /** The host's stored remote contributor permissions. When supplied, every remote disclosure needs one that covers it. */
   remotePermissions?: (() => readonly RemotePermission[]) | null;
+  /** The network (room) a remote request is sent on; permissions cover only the network they were granted on. Defaults to meshId. */
+  networkId?: () => string;
   store: { load(): unknown; save(state: unknown): void };
   execute(request: ChatRequest & ChatEnvelope & { meshId: string; participantId: string }, controls: ChatControls): Promise<ChatResult>;
   policy?: ChatPolicy; now?: () => number; id?: () => string;

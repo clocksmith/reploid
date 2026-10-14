@@ -88,6 +88,8 @@ export function createChatSession({
   let peerModels = [];
   let discovering = false;
   let remotePermissions = loadPermissions(storage);
+  // The room this session's swarm joins; without a swarm, the history mesh.
+  const currentNetwork = () => swarm?.getNetworkId?.() || meshId;
   const savePermissions = next => {
     storage?.setItem?.(PERMISSION_KEY, JSON.stringify(next));
     remotePermissions = next;
@@ -102,6 +104,8 @@ export function createChatSession({
     requesterIdentity,
     // Every remote disclosure needs a stored permission that covers it; see remote-permission.js.
     remotePermissions: () => remotePermissions,
+    // Permissions are bound to the network (room) they were granted on.
+    networkId: currentNetwork,
     store,
     execute: execution.execute,
     now,
@@ -158,7 +162,7 @@ export function createChatSession({
       scheduler: execution.getState(),
       placements: projectChatPlacements(wsState.threads),
       history: historyState,
-      remotePermissions: copy(remotePermissions)
+      remotePermissions: copy(remotePermissions), remoteNetworkId: currentNetwork()
     });
   };
 
@@ -286,7 +290,7 @@ export function createChatSession({
     remotePermissionNeeded({ model, sharingScope = 'mesh' }) {
       const disclosure = model && execution.remoteDisclosure(model, sharingScope);
       if (!disclosure) return null;
-      const need = remotePermissionNeed({ sharingScope, disclosure, model });
+      const need = remotePermissionNeed({ networkId: currentNetwork(), sharingScope, disclosure, model });
       return remotePermissions.some(permission => remotePermissionCovers(permission, need)) ? null : need;
     },
     /** Stores the one-time permission for `need` and the verified catalog, then continues waiting attempts it covers. */

@@ -18,10 +18,11 @@ const DISCLOSURE_MISMATCH = 'Peer disclosure does not match the selected model a
 // remotePermissions, when supplied, returns the host's stored remote contributor permissions
 // (remote-permission.js); every remote disclosure then requires one that covers it.
 export function createChatWorkspace({ meshId, participantId, store, execute, requesterIdentity = () => participantId,
-  remotePermissions = null, policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
+  remotePermissions = null, networkId = () => meshId, policy = defaults, now = Date.now, id = () => crypto.randomUUID() }) {
   assert(typeof meshId === 'string' && meshId && typeof participantId === 'string' && participantId, 'Mesh and participant identities required');
   assert(typeof store?.load === 'function' && typeof store?.save === 'function' && typeof execute === 'function'
-    && typeof requesterIdentity === 'function' && (remotePermissions === null || typeof remotePermissions === 'function'), 'Workspace host ports required');
+    && typeof requesterIdentity === 'function' && (remotePermissions === null || typeof remotePermissions === 'function')
+    && typeof networkId === 'function', 'Workspace host ports required');
   const covering = need => need && (remotePermissions?.() || []).find(permission => remotePermissionCovers(permission, need)) || null;
   // The authorization cites the permission and names the verified route this attempt is dispatched to.
   const permitted = (scope, preview, permission) => ({ kind: 'permission', grantId: null, permissionId: permission.id,
@@ -244,7 +245,7 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
             }
             // Unverified partition recipients are never offered; with a permission port, no unverified recipient is.
             assert(scope || !request.model.partition && !remotePermissions, DISCLOSURE_MISMATCH);
-            const need = remotePermissions ? remotePermissionNeed({ sharingScope: request.permissions.sharingScope,
+            const need = remotePermissions ? remotePermissionNeed({ networkId: networkId(), sharingScope: request.permissions.sharingScope,
               disclosure: scope.disclosure, model: request.model }) : null, permission = covering(need);
             if (permission) {
               attempt.authorization = permitted(scope, preview, permission);
