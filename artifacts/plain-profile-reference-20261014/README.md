@@ -193,22 +193,24 @@ stays plain:
      K only at a 1% margin.
    - All other plain F32 error, including the recurrent state and the LM head, stays below 2.3e-5 once
      the caches are exact.
-2. **The stored values can only be exact if everything upstream of them runs paired.** The stored
-   F16 values are a rounding of values that depend on every earlier layer.
-   - Corrections local to the plain path all fail: the two-F32 recurrent state, prefill chunking,
-     and a paired prompt with plain decode. Prior CPU counterfactuals agree: even F64 arithmetic
+2. **Bit-exact stored values need upstream values accurate enough to round identically.** The
+   stored F16 values are a rounding of values that depend on every earlier layer; passing the
+   0.001 logits gate may need less than bit-exactness (the K-only and layers 3-19 substitutions
+   pass), so cheaper ways to produce sufficiently accurate K/V are not ruled out by these runs.
+   - Every correction tested that is local to the plain path failed: the two-F32 recurrent state,
+     prefill chunking, and a paired prompt with plain decode. Prior CPU counterfactuals agree: even F64 arithmetic
      with nearest-F32 storage of each global intermediate buffer and two-F32 recurrent state fails
      24 of 51 request-2 prefixes (Doppler `artifacts/selective-materialization-20261012`).
-   - **The narrowest passing correction measured is paired arithmetic for layers 0-15**, with layers
+   - **The cheapest passing configuration tested is paired arithmetic for layers 0-15**, with layers
      16-23 and the LM head plain. Its 6.60e-4 maximum is a thin margin on one GPU. Paired layers
      0-19 pass with 1.72e-4.
-3. **No narrow correction keeps most of the plain path's speed.** The narrowest passing placement
-   costs:
+3. **No tested correction keeps most of the plain path's speed.** The cheapest passing configuration
+   tested costs:
    - decode: 356 ms per token, against 27.9 plain (12.8x) and 575-585 paired (61% of paired);
    - 56-token prompt: 11.9 s, against 0.17 plain and 17.1 paired;
    - 184-token prompt: 38.3 s, against 0.33 plain and 57 paired.
-4. **Paired bottlenecks that are therefore necessary.** Every paired kernel family remains on the
-   critical path inside the paired region:
+4. **Paired bottlenecks on the tested passing configurations.** Every paired kernel family remains
+   on the critical path inside the paired region:
    - the recurrent gated delta (12 of 18 linear layers);
    - matrix multiplies (about 44% of decode weight volume);
    - attention (layers 3, 7, 11 and 15);
