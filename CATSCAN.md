@@ -6,6 +6,8 @@ Parent: none
 
 Coordinate/evolve distributed intelligence expanding capability or improving
 results, reliability or total resource cost.
+The initial product enables useful contributed capacity to earn everyday AI
+access, as specified in [the product specification](docs/product-specification.md).
 
 ## Authority
 
@@ -52,9 +54,10 @@ Outputs:
 ## Non-goals
 
 Activity/extraction/adoption as capability proof; infrastructure/model output
-as biological truth; commercial completion gates.
+as biological truth; treating runtime or resource-settlement acceptance as proof
+of financial accounting, useful answers or commercial service acceptance.
 
 ## Freedom
 Preserve boundaries and acceptance.
 
-*Last updated: September 2026*
+*Last updated: October 2026*
