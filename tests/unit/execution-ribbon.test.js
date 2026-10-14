@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { projectExecutionRibbon, renderExecutionRibbon, bindExecutionRibbon } from '../../self/ui/pool-home/execution-ribbon.js';
+import { projectExecutionRibbon, renderExecutionRibbon, bindExecutionRibbon, routeMarkup, detailMarkup } from '../../self/ui/pool-home/execution-ribbon.js';
 
 function snapshot(execution = null, status = 'executing', response = '') {
   return { participantId: 'requester', network: { consumer: { connectionState: 'connected', peers: [{ peerId: 'unrelated-peer' }] } },
@@ -51,6 +51,20 @@ describe('Execution ribbon evidence projection', () => {
     expect(projectExecutionRibbon(state).statusLabel).toBe('Downloading model 42%');
     state.activeThread = snapshot(null, 'executing').activeThread;
     expect(projectExecutionRibbon(state).statusLabel).toBe('Executing');
+  });
+  it('shows a pending approval\'s verified recipients only as a proposal, never as placement', () => {
+    const route = { schema: 'reploid.partition-route/v1', stages: ['a', 'b', 'c'].map((id, index) => ({ index, participantId: `stage-${id}` })) };
+    const state = snapshot(null, 'approval');
+    state.network.consumer.peerId = 'requester';
+    state.activeThread.attempts[0].approval = { id: 'preview', route, recipients: ['stage-a', 'stage-b', 'stage-c'] };
+    const view = projectExecutionRibbon(state);
+    expect(view).toMatchObject({ proposed: true, ordered: true, statusLabel: 'Awaiting approval', model: 'Test model' });
+    expect(view.executors.map(node => [node.id, node.layers])).toEqual([['stage-a', 'Stage 1 of 3'], ['stage-b', 'Stage 2 of 3'], ['stage-c', 'Stage 3 of 3']]);
+    expect(routeMarkup(view)).toContain('is-unassigned'); expect(detailMarkup(view)).toContain('Nothing from this conversation is sent until you approve');
+    // An unverified preview (no recipients) and an admitted receipt are not proposals.
+    delete state.activeThread.attempts[0].approval.recipients;
+    expect(projectExecutionRibbon(state)).toMatchObject({ proposed: false, executors: [] });
+    expect(projectExecutionRibbon(snapshot(split)).proposed).toBe(false);
   });
   it('distinguishes local execution from whole-request peer execution', () => {
     expect(projectExecutionRibbon(snapshot({ placement: 'local-webgpu' })).executors[0].id).toBe('requester');

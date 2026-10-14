@@ -215,9 +215,9 @@ export function createChatSession({
       assertOpen();
       workspace.select(threadId);
     },
-    send(threadId, content, attachments = [], { allowPeerExecution = false } = {}) {
+    // Remote disclosure waits in the workspace's 'approval' state until approve() records the displayed recipients.
+    send(threadId, content, attachments = []) {
       assertOpen();
-      assert(typeof allowPeerExecution === 'boolean', 'Invalid peer execution authorization');
       assert(threadId, 'threadId required');
       assert(Array.isArray(attachments) && attachments.length <= profile.files.maxInputs, 'Too many attachments');
       let total = 0;
@@ -228,9 +228,7 @@ export function createChatSession({
         assert(bytes <= profile.files.maxFileBytes, 'Attachment exceeds the file allowance');
       });
       assert(total <= profile.files.maxInputBytes, 'Attachments exceed the input allowance');
-      return workspace.send(threadId, attachmentInput(content, attachments), {
-        authorizeDisclosure: allowPeerExecution ? () => true : null
-      });
+      return workspace.send(threadId, attachmentInput(content, attachments));
     },
     cancel(threadId) {
       assertOpen();
@@ -245,10 +243,9 @@ export function createChatSession({
         workspace.cancel(tid);
       }
     },
-    retry(threadId, attemptId, { allowPeerExecution = false } = {}) {
+    retry(threadId, attemptId) {
       assertOpen();
-      assert(typeof allowPeerExecution === 'boolean', 'Invalid peer execution authorization');
-      return workspace.retry(threadId, attemptId, { authorizeDisclosure: allowPeerExecution ? () => true : null });
+      return workspace.retry(threadId, attemptId);
     },
     approve(threadId, attemptId, previewId, accepted, options) {
       assertOpen();

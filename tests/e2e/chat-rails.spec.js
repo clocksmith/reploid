@@ -68,18 +68,29 @@ for (const width of [1440, 390, 320]) for (const theme of ['light', 'dark']) {
     await checkComposer(page, '[data-composer-send]');
     await page.locator('[data-composer-input]').fill('hi');
     await page.getByRole('button', { name: 'Send', exact: true }).click();
+    // Send shows the review; nothing is disclosed until Approve.
+    const review = page.locator('[data-chat-approval]');
+    await expect(review).toBeVisible(); await expect(review).toBeInViewport();
+    await expect(review.locator('[data-permission-recipient]')).toHaveText('Recipients: Computer 1 (initial layers), Computer 2 (final layers) · Qwen 3.5 0.8B');
+    await expect(review.locator('[data-permission-scope]')).toContainText('Sends this message. Computer 1 receives the text');
+    await expect(page.locator('[data-composer-area]')).toBeInViewport();
+    for (const name of ['Approve', 'Decline']) await expect(review.getByRole('button', { name, exact: true })).toBeInViewport({ ratio: 1 });
+    expect(await page.evaluate(() => chatFixture.session.getState().activeThread.attempts[0].status)).toBe('approval');
+    await page.screenshot({ path: info.outputPath('review.png'), fullPage: true });
+    await review.getByRole('button', { name: 'Approve', exact: true }).click();
     await expect(page.locator('.is-assistant .chat-message-content')).toContainText('Hello.');
-    expect(await page.evaluate(() => chatFixture.phases.includes('approval'))).toBe(false);
     const state = await page.evaluate(() => chatFixture.session.getState());
-    expect(state.activeThread.attempts[0].authorization).toMatchObject({ kind: 'once', source: 'send' });
+    expect(state.activeThread.attempts[0].authorization).toMatchObject({ kind: 'once', source: 'approval',
+      recipients: ['peer:' + 'a'.repeat(24), 'peer:' + 'b'.repeat(24)] });
     expect(state.activeThread.grants).toEqual([]);
-    await expect(page.locator('[data-chat-approval]')).toHaveCount(0);
+    await expect(review).toBeHidden();
     const user = await page.locator('.chat-message-row.is-user').boundingBox();
     const assistant = await page.locator('.chat-message-row.is-assistant').boundingBox();
     expect(user.height).toBeLessThanOrEqual(100); expect(user.width).toBeLessThan(assistant.width);
     await page.screenshot({ path: info.outputPath('conversation.png'), fullPage: true });
     await page.evaluate(() => { chatFixture.hold = true; });
     await page.locator('[data-composer-input]').fill('Continue'); await page.locator('[data-composer-input]').press('Enter');
+    await review.getByRole('button', { name: 'Approve', exact: true }).click();
     await expect(page.getByRole('button', { name: 'Stop', exact: true })).toBeVisible();
     await checkComposer(page, '[data-composer-stop]');
     await page.getByRole('button', { name: 'Stop', exact: true }).click();

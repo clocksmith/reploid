@@ -17,7 +17,7 @@ describe('Conversation Send authorization', () => {
     updatePermissionSummary(root, { input, technical: { input }, getSources: comparisonSources });
     expect(root.querySelector('[data-permission-content] details').open).toBe(true);
   });
-  it('Send authorizes one request and rendering never approves a pending request', async () => {
+  it('Send never authorizes disclosure and rendering never approves a pending request', async () => {
     const root = document.createElement('div'); root.innerHTML = renderConversationWorkspace();
     const model = { id: 'model', name: 'Model', availability: 'ready' };
     const thread = { id: 'thread', model, messages: [], attempts: [], grants: [] };
@@ -27,12 +27,17 @@ describe('Conversation Send authorization', () => {
     const dispose = bindConversationWorkspace(root, { getState: () => state,
       subscribe(fn) { listeners.add(fn); fn(state); return () => listeners.delete(fn); }, approve, send });
     expect(send).not.toHaveBeenCalled(); expect(approve).not.toHaveBeenCalled();
-    expect(root.querySelector('[data-chat-approval]')).toBeNull();
+    expect(root.querySelector('[data-chat-approval]').hidden).toBe(true);
     root.querySelector('[data-composer-input]').value = 'Hello';
     root.querySelector('[data-composer-form]').dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
-    await vi.waitFor(() => expect(send).toHaveBeenCalledWith('thread', 'Hello', [], { allowPeerExecution: true }));
+    await vi.waitFor(() => expect(send).toHaveBeenCalledWith('thread', 'Hello', []));
+    // Only recipients verified by the workspace are reviewable; an unverified preview shows no Approve.
     thread.attempts.push({ id: 'other-attempt', status: 'approval', approval: { id: 'other-preview' } });
     listeners.forEach(fn => fn(state));
+    expect(root.querySelector('[data-chat-approval]').hidden).toBe(true);
+    thread.attempts.at(-1).approval.recipients = ['peer:' + 'b'.repeat(24)];
+    listeners.forEach(fn => fn(state));
+    expect(root.querySelector('[data-chat-approval]').hidden).toBe(false);
     expect(approve).not.toHaveBeenCalled();
     expect(root.querySelector('[data-composer-area]').hidden).toBe(false);
     dispose();

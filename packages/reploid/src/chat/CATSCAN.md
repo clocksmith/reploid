@@ -22,9 +22,9 @@ Compose custody/whole-request jobs; file possession grants no execution.
 - Stream updates bind thread/attempt. Retries create new attempts, never append to old generations.
 - Restore history and mark unfinished attempts interrupted; never silently resend.
 - Permissions precede placement. Model and adapter identity remain exact.
-- A synchronous host authorization port may bind Send/Retry to its current
-  verified disclosure. Persist authorization evidence, never its live capability
-  or future authority. Other hosts retain explicit review.
+- A synchronous host port may bind Send/Retry to its verified disclosure; otherwise
+  approval records the displayed recipients, which must equal verified ones.
+  Persist evidence, never live capability or future authority.
 - Prepared peer execution requires no requester weights; contribution preparation is separate.
 - Reusable disclosure grants bind verified recipient, mesh, thread, model,
   adapters and scope. Persist before use; revocation cancels affected attempts and

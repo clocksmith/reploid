@@ -21,7 +21,7 @@ test('three Chrome tabs supply files, execute Doppler and receive independent ad
     await a.locator('[data-active-model-select]').selectOption(selection);
     await a.locator('[data-composer-input]').fill(message);
     await a.locator('[data-composer-send]').click();
-    await expect(a.locator('[data-chat-approval]')).toHaveCount(0);
+    await a.locator('[data-chat-approval] [data-approval-approve]').click();
   };
   try {
     await Promise.all([a.goto('/'), b.goto('/'), c.goto('/')]);
