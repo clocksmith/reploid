@@ -12,6 +12,13 @@ export interface OrderedPartitionCapability {
 }
 export interface PartitionRouteSelectionLimits { maxStages: number; maxPeers: number; maxOffersPerPeer: number; maxSelectionSteps: number }
 export { validateOrderedPartitionCapability, isOrderedPartitionEntryModel } from './partition-contract.js';
+export type PartitionRouteStageCandidate = import('./partition-contract.js').PartitionRouteStage;
+/** Eligible offers per stage index, sorted by participant; shared by matching and opt-in ranking. */
+export function eligiblePartitionStages(options: { runtime: OrderedPartitionRuntime; plan: OrderedPartitionPlan;
+  model: { id: string; identity: string }; capabilities: OrderedPartitionCapability[];
+  limits: PartitionRouteSelectionLimits; now: number }): Promise<{ plan: OrderedPartitionPlan; model: { id: string; identity: string };
+    planId: string; activation: PartitionActivationContract; candidates: PartitionRouteStageCandidate[][];
+    eligibility: { participantId: string; index: number | null; eligible: boolean; reason: string }[] }>;
 /** Availability hints for a new attempt only; grants and reservations remain authoritative. */
 export function selectPartitionRoute(options: { runtime: OrderedPartitionRuntime; plan: OrderedPartitionPlan;
   model: { id: string; identity: string }; capabilities: OrderedPartitionCapability[];

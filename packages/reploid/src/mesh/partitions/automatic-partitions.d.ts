@@ -85,11 +85,15 @@ export interface OrderedOrchestration {
   /** The operator chose `auto`: this contributor's own policy picks its stage (stage must be null).
    * It re-evaluates only while idle and at least `dwellMs` after becoming ready. */
   autoStage?: { transportId: string; dwellMs: number };
+  /** A coordinator ranks complete routes for new attempts by measured prefill and decode; a measured
+   * route must be cheaper by `margin` while the current one is admissible and idle. */
+  routeRanking?: { margin: number; smoothing: number; maxObservations: number;
+    workload: { promptTokens: number; expectedTokens: number } };
 }
 export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionState,
   'placementDecision' | 'reservations' | 'attempts' | 'descriptor'> {
   placementDecision: { route: import('./partition-contract.js').PartitionRoute | null; reason: string;
-    selectionSteps?: number; eligibility?: readonly unknown[] } | null;
+    selectionSteps?: number; eligibility?: readonly unknown[]; measured?: boolean; cost?: number | null; ranking?: 'work-limit' } | null;
   reservations: import('./resident-partition.js').OrderedResidentState['reservations'] | null;
   descriptor: import('./resident-partition.js').OrderedResidentState['descriptor'];
   attempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
@@ -97,6 +101,8 @@ export interface OrderedAutomaticPartitionState extends Omit<AutomaticPartitionS
   unknownAttempts: import('./partition-route-execution.js').OrderedRouteReceipt[];
   /** Present only with `orchestration.autoStage`: the latest own-stage decision. */
   assignment?: (import('./partition-stage-assignment.js').StageAssignmentDecision & { decidedAt: number }) | null;
+  /** Present only with `orchestration.routeRanking`. */
+  routeObservations?: import('./partition-route-ranking.js').RouteObservation[];
 }
 export interface OrderedAutomaticPartitions extends Omit<AutomaticPartitions, 'getState'> {
   getState(): OrderedAutomaticPartitionState;

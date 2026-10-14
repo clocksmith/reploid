@@ -76,6 +76,19 @@ describe('measured route ranking', () => {
     expect(preferRoute({ current, ranked, active: false, margin: 0.2 })).toBe(current);
   });
 
+  it('breaks ties stage by stage in code-unit order, independent of locale and id prefixes', () => {
+    const ranked = rankPartitionRoutes({ planId: plan, workload, limits, observations: createRouteObservations({ maxEntries: 4, smoothing: 1 }),
+      candidates: [[candidate('mac', 0)], [candidate('node-1b', 1), candidate('node-1', 1)], [candidate('node-2', 2)]] });
+    expect(ranked.map(route => route.stages[1].participantId)).toEqual(['node-1', 'node-1b']);
+  });
+
+  it('sends new attempts to the best admissible route when the current one is full, even while it is active', () => {
+    const route = (ids, cost) => ({ ...stagesOf(ids), measured: cost !== null, cost });
+    const current = stagesOf(['mac', 'amd', 'intel']), spill = route(['mac', 'intel', 'amd'], null);
+    expect(preferRoute({ current, ranked: [spill], active: true, margin: 0.05 })).toBe(spill);
+    expect(preferRoute({ current, ranked: [spill, route(['mac', 'amd', 'intel'], null)], active: false, margin: 0.05 })).toBe(current);
+  });
+
   it('bounds observations and enumeration work explicitly', () => {
     const observations = createRouteObservations({ maxEntries: 2, smoothing: 1 });
     observations.record({ planId: plan, route: stagesOf(['mac', 'amd', 'intel']), phases: phases(['mac', 'amd', 'intel'], measuredA), at: 1 });
