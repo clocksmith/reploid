@@ -669,7 +669,7 @@ const renderCapabilityProfileState = (root, profile) => {
   setText('[data-pool-capability-kernel]', profile.measured ? formatMetric(profile.gigaOpsPerSecond, ' GOPS', 1) : 'Not measured');
   setText('[data-pool-capability-stability]', profile.measured ? `${Math.round(profile.stability * 100)}%` : '--');
   const meter = root.querySelector('[data-pool-capability-meter]');
-  if (meter) meter.style.width = `${profile.score}%`;
+  meter?.style.setProperty('--pool-param-capability-score', `${profile.score}%`);
   const models = root.querySelector('[data-pool-capability-models]');
   if (models) {
     models.replaceChildren();

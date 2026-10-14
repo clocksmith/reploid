@@ -30,7 +30,7 @@ describe('Reploid appearance selector', () => {
     const button = root.querySelector('[data-pool-theme-choice=light]');
     button.click();
     expect(root.querySelector('.pool-home').dataset.poolTheme).toBe('light');
-    expect(document.documentElement.style.colorScheme).toBe('light');
+    expect(document.documentElement.dataset.reploidTheme).toBe('light');
     expect(writes).toEqual([[THEME_STORAGE_KEY, 'light']]);
     expect(button.getAttribute('aria-pressed')).toBe('true');
 

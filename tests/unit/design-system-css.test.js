@@ -103,8 +103,8 @@ describe('RD stylesheet ownership', () => {
     expect(poolday).toContain('.pool-nav-bottom');
     expect(poolday).not.toContain('.pool-nav-view-context');
     expect(poolday).toContain('.pool-room-context-heading');
-    expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-mark-seven-top\s*\{[\s\S]*?font-size: var\(--pool-px-26\);[\s\S]*?translate\(8px, 8px\)/);
-    expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-mark-seven-bottom\s*\{[\s\S]*?font-size: var\(--pool-px-16\);[\s\S]*?translate\(1px, 0\)/);
+    expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-mark-seven-top\s*\{[\s\S]*?font-size: var\(--pool-px-26\);[\s\S]*?translate\(var\(--pool-px-8\), var\(--pool-px-8\)\)/);
+    expect(poolday).toMatch(/\.pool-nav-rail\.is-open \.pool-nav-mark-seven-bottom\s*\{[\s\S]*?font-size: var\(--pool-px-16\);[\s\S]*?translate\(var\(--pool-px-1\), 0\)/);
     expect(poolday).toMatch(/@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\.pool-nav-toggle/);
     expect(poolday).toContain('var(--pool-surface-shape) padding-box');
     expect(poolday).toContain('.pool-contribution-metric');

@@ -2,6 +2,22 @@
    .pool-home, so Poolday owns its resets, inherited type and native-control defaults here.
    :where(.pool-home) keeps each rule at the specificity of the element default it replaces,
    so every later component rule still wins. Controls carry no outline; depth is shadow only. */
+
+/* The Poolday page root owns the rem base, page material and color scheme, so the Poolday
+   entry loads no stylesheet outside these layers. */
+:root.pool-page {
+  font-size: var(--pool-text-root);
+  background: var(--pool-surface-page);
+  color: var(--pool-surface-ink);
+  color-scheme: dark;
+  font-family: var(--pool-type-ui-family);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+:root.pool-page[data-reploid-theme='light'] { color-scheme: light; }
+:root.pool-page body { margin: 0; }
+:root.pool-page #app { display: block; }
+:where(.pool-home).pool-boot-failure { justify-content: center; align-items: center; text-align: center; }
 :where(.pool-home) {
   box-sizing: border-box;
   margin: 0;
@@ -142,7 +158,7 @@
   transition: background var(--pool-transition-fast), box-shadow var(--pool-transition-fast), transform var(--pool-transition-fast);
 }
 :where(.pool-home) .btn:hover:not(:disabled) { background: var(--pool-surface-line); }
-:where(.pool-home) .btn:active:not(:disabled) { transform: translateY(1px); box-shadow: var(--pool-surface-shadow-inset); }
+:where(.pool-home) .btn:active:not(:disabled) { transform: translateY(var(--pool-px-1)); box-shadow: var(--pool-surface-shadow-inset); }
 :where(.pool-home) .btn-primary { background: var(--pool-surface-ink); color: var(--pool-surface-page); }
 :where(.pool-home) .btn-primary:hover:not(:disabled) { background: var(--pool-surface-ink); }
 :where(.pool-home) .btn-ghost { opacity: var(--pool-opacity-soft); }
@@ -167,7 +183,7 @@
   display: grid;
   place-items: center;
   width: var(--pool-metric-op-cell);
-  background: color-mix(in srgb, currentColor 12%, transparent);
+  background: var(--pool-tint-current-12);
   font-weight: var(--pool-type-weight-bold);
   letter-spacing: 0;
 }
@@ -179,12 +195,12 @@
   bottom: 0;
   height: var(--pool-border-thin);
   background: currentColor;
-  opacity: 0.72;
+  opacity: var(--pool-opacity-72);
   transform: scaleX(var(--pool-param-op-progress));
   transform-origin: left center;
   transition: transform var(--pool-transition-normal);
 }
-:where(.pool-home) .btn-op:hover { --pool-param-op-progress: 1; transform: translateY(-1px); }
+:where(.pool-home) .btn-op:hover { --pool-param-op-progress: 1; transform: translateY(var(--pool-px-n1)); }
 :where(.pool-home) .btn-op:active { transform: translateY(0); }
 
 /* Panels and status strips */
@@ -196,7 +212,7 @@
 }
 :where(.pool-home) .boot-status-strip {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(var(--pool-px-132), 1fr));
   gap: var(--pool-space-xs);
   padding: var(--pool-space-xs) var(--pool-space-md) var(--pool-space-sm);
 }

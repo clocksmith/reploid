@@ -1,0 +1,130 @@
+/* Poolday design system page (/design/poolday). Layout for the page's own chrome, composed from
+   Poolday primitives like any component. Specimen frames render product components unchanged;
+   the only rule that reaches a specimen root lets fitted frames size to their content. */
+
+.pool-home.pds-page > * { width: 100%; max-width: var(--pool-metric-nav-width); margin-inline: auto; }
+.pool-home .pds-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: var(--pool-space-md); }
+.pool-home .pds-title { display: grid; gap: var(--pool-space-xs); }
+.pool-home .pds-title .type-h1 { margin: 0; }
+.pool-home .pds-muted { color: var(--pool-surface-muted); font-size: var(--pool-text-sm); }
+.pool-home .pds-strip { display: flex; flex-wrap: wrap; align-items: center; gap: var(--pool-space-sm); }
+.pool-home .pds-link-button { display: inline-flex; align-items: center; border-bottom: 0; }
+
+.pool-home .pds-layers {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) auto minmax(0, 1fr);
+  gap: var(--pool-space-sm);
+  margin-block: var(--pool-space-lg) var(--pool-space-sm);
+}
+.pool-home .pds-layer { display: grid; align-content: start; gap: var(--pool-space-xs); padding: var(--pool-space-md); text-align: start; cursor: pointer; }
+.pool-home .pds-layer[aria-pressed='true'] { box-shadow: var(--pool-surface-shadow-inset); background: var(--pool-surface-inset); }
+.pool-home .pds-count { font-size: var(--pool-text-2xl); font-weight: var(--pool-type-weight-medium); }
+.pool-home .pds-arrow { align-self: center; color: var(--pool-surface-muted); }
+.pool-home .pds-note { margin-bottom: var(--pool-space-sm); }
+
+.pool-home .pds-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: var(--pool-z-dropdown);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--pool-space-sm);
+  padding-block: var(--pool-space-sm);
+  background: var(--pool-surface-page);
+}
+.pool-home .pds-search { flex: 1 1 var(--pool-px-r15); width: auto; min-height: var(--pool-px-44); padding-inline: var(--pool-space-md); }
+
+.pool-home .pds-changes {
+  position: fixed;
+  inset-inline-end: var(--pool-space-md);
+  bottom: var(--pool-space-md);
+  z-index: var(--pool-z-toast);
+  display: grid;
+  gap: var(--pool-space-sm);
+  width: min(var(--pool-px-r34), calc(100vw - var(--pool-space-xl)));
+  max-height: 70vh;
+  padding: var(--pool-space-md);
+  overflow: auto;
+}
+.pool-home .pds-changes pre { max-height: 45vh; overflow: auto; white-space: pre-wrap; font-size: var(--pool-text-xs); }
+
+.pool-home .pds-group { margin-block: var(--pool-space-md); }
+.pool-home .pds-group-title, .pool-home .pds-group-heading { display: flex; align-items: baseline; gap: var(--pool-space-sm); padding-block: var(--pool-space-sm); cursor: pointer; }
+.pool-home .pds-rows { display: grid; gap: var(--pool-space-xxs); }
+.pool-home .pds-row {
+  display: grid;
+  grid-template-columns: var(--pool-px-56) minmax(0, 1fr) minmax(0, var(--pool-px-r22)) var(--pool-px-r5-6);
+  align-items: center;
+  gap: var(--pool-space-md);
+  padding: var(--pool-space-xs) var(--pool-space-sm);
+  border-radius: var(--pool-radius-control);
+}
+.pool-home .pds-row:hover { background: var(--pool-surface-inset); }
+.pool-home .pds-row.is-edited { background: var(--pool-surface-inset); box-shadow: var(--pool-surface-shadow-inset); }
+.pool-home .pds-cell { display: grid; gap: var(--pool-space-xxs); min-width: 0; }
+.pool-home .pds-name { padding: 0; font-family: var(--pool-type-mono-family); font-size: var(--pool-text-sm); overflow-wrap: anywhere; }
+.pool-home :is(.pds-def, .pds-resolved) { font-family: var(--pool-type-mono-family); font-size: var(--pool-text-xs); overflow-wrap: anywhere; }
+.pool-home .pds-edit { display: flex; align-items: center; gap: var(--pool-space-xs); min-width: 0; }
+.pool-home .pds-value { min-width: 0; min-height: var(--pool-px-36); padding: var(--pool-space-xs) var(--pool-space-sm); font-family: var(--pool-type-mono-family); font-size: var(--pool-text-xs); }
+.pool-home .pds-picker { flex: none; width: var(--pool-px-36); height: var(--pool-px-36); padding: var(--pool-space-xxs); cursor: pointer; }
+.pool-home .pds-picker::-webkit-color-swatch-wrapper { padding: 0; }
+.pool-home .pds-picker::-webkit-color-swatch { border: 0; border-radius: var(--pool-radius-control); }
+.pool-home .pds-picker::-moz-color-swatch { border: 0; border-radius: var(--pool-radius-control); }
+.pool-home .pds-link { padding: 0; color: var(--pool-surface-ink); font-size: var(--pool-text-xs); text-decoration: underline; cursor: pointer; }
+.pool-home .pds-usage { justify-self: end; }
+.pool-home .pds-chip { padding: 0 var(--pool-space-xxs); border-radius: var(--pool-space-xs); background: var(--pool-surface-inset); color: var(--pool-surface-ink); cursor: pointer; }
+.pool-home .pds-chips { display: flex; flex-wrap: wrap; gap: var(--pool-space-xs); padding-block: var(--pool-space-sm); font-family: var(--pool-type-mono-family); font-size: var(--pool-text-xs); }
+.pool-home .pds-rule-list { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--pool-space-xs) var(--pool-space-sm); font-size: var(--pool-text-xs); }
+.pool-home .pds-rule-list code { padding: 0; }
+
+.pool-home .pds-preview {
+  display: grid;
+  place-items: center;
+  width: var(--pool-px-56);
+  height: var(--pool-px-36);
+  overflow: hidden;
+  border-radius: var(--pool-radius-control);
+  color: var(--pool-surface-muted);
+  font-size: var(--pool-text-xs);
+}
+.pool-home .pds-preview:is([data-kind='color'], [data-kind='image'], [data-kind='shadow']) > span { display: none; }
+.pool-home .pds-preview[data-kind='color'] { background: var(--pds-preview); box-shadow: var(--pool-surface-shadow-inset); }
+.pool-home .pds-preview[data-kind='image'] { background-color: var(--pool-surface-inset); background-image: var(--pds-preview); }
+.pool-home .pds-preview[data-kind='shadow'] { background: var(--pool-surface-raised); box-shadow: var(--pds-preview); }
+.pool-home .pds-preview[data-kind='length'] { place-items: center start; }
+.pool-home .pds-preview[data-kind='length'] > span { width: min(var(--pds-preview), 100%); height: var(--pool-px-6); background: var(--pool-surface-ink); font-size: 0; }
+.pool-home .pds-preview[data-kind='family'] > span { color: var(--pool-surface-ink); font-family: var(--pds-preview); font-size: var(--pool-text-lg); }
+.pool-home .pds-preview[data-kind='weight'] > span { color: var(--pool-surface-ink); font-weight: var(--pds-preview); font-size: var(--pool-text-lg); }
+
+.pool-home .pds-specimens { display: grid; gap: var(--pool-space-lg); }
+.pool-home .pds-specimen { display: grid; gap: var(--pool-space-sm); }
+.pool-home .pds-specimen-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: var(--pool-space-sm); }
+.pool-home .pds-specimen-title { font-weight: var(--pool-type-weight-medium); }
+.pool-home .pds-frame {
+  display: block;
+  width: 100%;
+  height: var(--pds-frame-height, var(--pool-px-180));
+  border: 0;
+  border-radius: var(--pool-radius-panel);
+  background: var(--pool-surface-page);
+  box-shadow: var(--pool-surface-shadow-inset);
+}
+.pool-home .pds-frame:not([data-page]) { max-height: 85vh; }
+.pool-home .pds-frame[data-page] { height: var(--pool-px-760); }
+.pool-home [data-width='narrow'] .pds-frame { width: var(--pool-px-r24); }
+.pool-home .pds-made > summary { color: var(--pool-surface-muted); font-size: var(--pool-text-sm); cursor: pointer; }
+
+/* Inside a specimen frame. Fitted frames size to their content instead of the viewport. */
+:root.pds-frame-fit .pool-home { min-height: 0; padding-bottom: var(--pool-space-page-gap); }
+.pool-home .pds-pad { padding: var(--pool-space-md); }
+.pool-home :is(.pds-fields, .pds-pair) { display: grid; grid-template-columns: repeat(auto-fit, minmax(var(--pool-px-r15), 1fr)); align-items: center; gap: var(--pool-space-md); }
+.pool-home .pds-check { display: inline-flex; align-items: center; gap: var(--pool-space-sm); }
+.pool-home .pds-type { display: grid; gap: var(--pool-space-sm); }
+
+@media (max-width: 760px) {
+  .pool-home .pds-layers { grid-template-columns: minmax(0, 1fr); }
+  .pool-home .pds-arrow { display: none; }
+  .pool-home .pds-row { grid-template-columns: var(--pool-px-56) minmax(0, 1fr); }
+  .pool-home :is(.pds-edit, .pds-usage) { grid-column: 2; justify-self: stretch; }
+}

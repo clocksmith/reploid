@@ -8,7 +8,7 @@ test.beforeEach(async ({ page }) => {
     const pathname = new URL(route.request().url()).pathname;
     if (pathname === '/') {
       const layers = ['tokens.css', 'primitives.css', 'components/base.css', 'components.css', 'components/materials.css', 'components/conversation.css', 'components/interaction.css', 'components/optical.css'];
-      return route.fulfill({ contentType: 'text/html', body: '<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/styles/rd.css">'
+      return route.fulfill({ contentType: 'text/html', body: '<!doctype html><html class="pool-page"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
         + layers.map(file => `<link rel="stylesheet" href="/styles/poolday/${file}">`).join('') + '<main class="pool-home" data-pool-route-id="home"></main>' });
     }
     const filename = path.resolve('self', '.' + pathname);

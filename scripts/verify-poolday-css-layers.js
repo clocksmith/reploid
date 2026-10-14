@@ -3,20 +3,22 @@
  * Verifies the Poolday design-system layering contract:
  *   tokens -> primitives -> components
  *
- * - styles/poolday/tokens.css      raw values only; references only other tokens.
- * - styles/poolday/primitives.css  semantic vars consuming only token-category
- *                                  vars; alpha composition via
- *                                  rgb(var(--pool-color-*-rgb) / N%) is legal;
- *                                  @keyframes bodies are exempt.
- * - styles/poolday/components*.css pool-* rules consuming only primitive vars;
- *                                  no color literals (hex, functional, named or
- *                                  URL-encoded), no token-category vars, no rd vars.
- * - Every other stylesheet the Poolday entry loads excludes .pool-home from each
- *   selector, so nothing outside these layers styles Poolday markup.
+ * - styles/poolday/tokens.css      raw values; references only other tokens.
+ * - styles/poolday/primitives.css  compositions of token vars only: no numeric
+ *                                  literal other than 0, no color literal.
+ * - styles/poolday/components*.css rules consuming only primitive vars, component
+ *                                  parameters (--pool-param-*) and the runtime
+ *                                  JS-contract vars. Colors, lengths, angles, times,
+ *                                  weights, line heights, opacities, stacking,
+ *                                  scales and easings come from primitives. The only
+ *                                  literals left are structural: 0, 1, grid/flex
+ *                                  counts and fr, calc multipliers, and percentages
+ *                                  or viewport units in geometry properties.
+ * - pool-entry.html loads only the Poolday layers. index.html can host Poolday
+ *   routes, so every stylesheet it links excludes .pool-home from each selector.
+ * - Product UI scripts write only custom properties to inline styles.
  *
- * Exemptions (documented in components.css header): media-query conditions,
- * @keyframes internals, transform/clip-path/grid-track numerics, percentages,
- * 0/auto/1fr, and the JS-contract vars set at runtime by pool-home scripts.
+ * Media-query conditions are exempt: custom properties cannot appear there.
  *
  * Usage: node scripts/verify-poolday-css-layers.js [--warn]
  *   --warn  report violations but exit 0 (used during migration)
@@ -30,9 +32,10 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const STYLES = path.join(ROOT, 'self', 'styles');
 const WARN_ONLY = process.argv.includes('--warn');
 
-const TOKEN_CATEGORY = /^--pool-(color|gradient|dim|size|motion-duration|motion-easing|font|layer|alpha)(-|$)/;
-const PRIMITIVE_CATEGORY = /^--pool-(surface|frame|border|space|px|radius|z|transition|motion|text|type|opacity|metric|hue|tint)(-|$)/;
-const JS_CONTRACT_VARS = new Set(['--tooltip-x', '--tooltip-y', '--pool-label-x', '--pool-label-y']);
+const TOKEN_CATEGORY = /^--pool-(color|gradient|dim|size|motion-duration|motion-easing|font|layer|alpha|ratio)(-|$)/;
+const PRIMITIVE_CATEGORY = /^--pool-(surface|frame|border|space|px|radius|z|transition|motion|text|type|opacity|metric|hue|tint|angle|scale)(-|$)/;
+const JS_CONTRACT_VARS = new Set(['--tooltip-x', '--tooltip-y', '--pool-label-x', '--pool-label-y',
+  '--pool-param-share', '--pool-param-composer-height', '--pool-param-capability-score']);
 /* Component parameter vars: set by component rules (incl. media overrides),
    consumed by descendants. Values obey component-layer rules. */
 const PARAMETER_VAR = /^--pool-param-[\w-]+$/;
@@ -61,12 +64,50 @@ const namedColors = (value, context) => {
     .filter((word) => NAMED_COLORS.has(word) || (SYSTEM_COLORS.has(word) && !forced));
 };
 const POOL_EXCLUSION = ':where(:not(.pool-home, .pool-home *))';
-const LENGTH_LITERAL = /(?<![\w.-])(?!0(?![.\d]))[\d.]+(?:px|rem|em|ms|s)\b/;
-const LENGTH_EXEMPT_PROPERTIES = new Set([
-  'transform', 'translate', 'rotate', 'scale', 'clip-path',
-  'grid-template-columns', 'grid-template-rows', 'grid-auto-rows',
-  'background-position', 'background-size', 'stroke-dasharray', 'stroke-width'
-]);
+
+/* Literal policy for component values. Everything a designer tunes is a primitive;
+   what remains is structure. */
+const TYPE_PROPERTIES = new Set(['font-size', 'font-weight', 'line-height', 'letter-spacing', 'font', 'word-spacing']);
+const STRUCTURAL_PROPERTIES = new Set(['grid-column', 'grid-row', 'grid-area', 'grid-column-start', 'grid-column-end',
+  'grid-row-start', 'grid-row-end', 'order', 'flex', 'flex-grow', 'flex-shrink', 'aspect-ratio', 'grid-template-columns',
+  'grid-template-rows', 'grid-auto-columns', 'grid-auto-rows', 'animation-iteration-count', '-webkit-line-clamp',
+  'line-clamp', 'column-count', 'columns']);
+const GEOMETRY_PROPERTIES = new Set(['width', 'height', 'min-width', 'min-height', 'max-width', 'max-height', 'inline-size',
+  'block-size', 'min-inline-size', 'max-inline-size', 'min-block-size', 'max-block-size', 'top', 'right', 'bottom', 'left',
+  'inset', 'inset-inline', 'inset-block', 'inset-inline-start', 'inset-inline-end', 'inset-block-start', 'inset-block-end',
+  'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left', 'margin-inline', 'margin-block',
+  'margin-inline-start', 'margin-inline-end', 'margin-block-start', 'margin-block-end', 'padding', 'padding-top',
+  'padding-right', 'padding-bottom', 'padding-left', 'padding-inline', 'padding-block', 'padding-inline-start',
+  'padding-inline-end', 'padding-block-start', 'padding-block-end', 'gap', 'row-gap', 'column-gap', 'translate',
+  'transform', 'transform-origin', 'flex', 'flex-basis', 'background-size', 'background-position', 'background-position-x',
+  'background-position-y', 'mask-size', 'mask-position', '-webkit-mask-size', '-webkit-mask-position', 'clip-path',
+  'object-position', 'grid-template-columns', 'grid-template-rows', 'grid-auto-columns', 'grid-auto-rows']);
+const VIEWPORT_UNITS = new Set(['vw', 'vh', 'dvh', 'svh', 'lvh', 'dvw', 'svw', 'lvw', 'vmin', 'vmax']);
+const NUMERIC_LITERAL = /(?<![\w.#-])(-?(?:\d*\.\d+|\d+))(%|[a-zA-Z]+)?(?![\w.])/g;
+const opaqueValue = (value) => {
+  let bare = value, previous;
+  do { previous = bare; bare = bare.replace(/var\(\s*--[\w-]+\s*(?:,[^()]*)?\)/g, ' '); } while (bare !== previous);
+  return bare.replace(/url\([^)]*\)/g, ' ').replace(/(["'])(?:\\.|(?!\1).)*\1/g, ' ');
+};
+const allowedLiteral = (property, number, unit, multiplier) => {
+  if (number === 0) return true;
+  if (unit === '') {
+    if (multiplier || STRUCTURAL_PROPERTIES.has(property)) return true;
+    return number === 1 && !TYPE_PROPERTIES.has(property) && property !== 'z-index';
+  }
+  if (unit === 'fr') return /^grid-(template|auto)-/.test(property);
+  if (unit === '%' || VIEWPORT_UNITS.has(unit)) return GEOMETRY_PROPERTIES.has(property) || PARAMETER_VAR.test(property);
+  return false;
+};
+const literalViolations = (property, value) => {
+  const bare = opaqueValue(value);
+  return [...bare.matchAll(NUMERIC_LITERAL)].filter((match) => {
+    const before = bare.slice(0, match.index).trimEnd().slice(-1);
+    const after = bare.slice(match.index + match[0].length).trimStart()[0];
+    const multiplier = before === '*' || before === '/' || after === '*';
+    return !allowedLiteral(property, Number(match[1]), (match[2] || '').toLowerCase(), multiplier);
+  }).map((match) => match[0]);
+};
 
 const isTokenName = (name) => TOKEN_CATEGORY.test(name);
 const isPrimitiveName = (name) => !isTokenName(name) && PRIMITIVE_CATEGORY.test(name);
@@ -143,6 +184,38 @@ const checkIsolated = (file) => {
   }
 };
 
+/* Tokens and primitives attach to every .pool-home and to the Poolday page root. */
+const ROOT_BLOCK = ':root.pool-page, .pool-home';
+
+/* Product UI scripts, and the shared components they import, may write only custom
+   properties inline; component rules decide how those values render. */
+const checkInlineStyles = () => {
+  const uiDir = path.join(ROOT, 'self/ui/pool-home');
+  const files = readdirSync(uiDir).filter((file) => file.endsWith('.js')).map((file) => path.join(uiDir, file));
+  const shared = new Set();
+  for (const file of files) {
+    for (const match of readFileSync(file, 'utf8').matchAll(/from ['"](\.\.\/components\/[\w-]+\.js)['"]/g)) shared.add(path.resolve(uiDir, match[1]));
+  }
+  for (const file of [...files, ...shared]) {
+    const relative = path.relative(path.join(ROOT, 'self'), file);
+    readFileSync(file, 'utf8').split('\n').forEach((text, index) => {
+      for (const match of text.matchAll(/\bstyle=\\?["']([^"']*)["']/g)) {
+        const declarations = match[1].split(';').map((part) => part.trim()).filter(Boolean);
+        if (declarations.some((declaration) => !declaration.startsWith('--'))) report(relative, index + 1, `inline style sets a property directly: ${match[0]}`);
+      }
+      for (const match of text.matchAll(/\.style\.(?!setProperty\b|removeProperty\b|getPropertyValue\b)([a-zA-Z]+)\s*=(?!=)/g)) {
+        report(relative, index + 1, `script writes style.${match[1]}; set a --pool-param-* the component consumes`);
+      }
+      for (const match of text.matchAll(/\.style\.setProperty\(\s*['"`](?!--)([^'"`]+)/g)) {
+        report(relative, index + 1, `script sets style property ${match[1]}; set a --pool-param-* the component consumes`);
+      }
+      if (/\.style\.cssText\s*=|\.style\[[^\]]+\]\s*=(?!=)|setAttribute\(\s*['"]style['"]/.test(text)) {
+        report(relative, index + 1, 'script writes inline style text');
+      }
+    });
+  }
+};
+
 const violations = [];
 const report = (layer, line, message) => violations.push(`${layer}:${line} ${message}`);
 
@@ -166,16 +239,19 @@ const main = () => {
   for (const [name, actual] of [['pool-entry.html', linked], ['index.html', fallbackFiles]]) {
     if (JSON.stringify(actual) !== JSON.stringify(files)) report(name, 1, 'stylesheet load order differs from layers.json');
   }
-  const outside = [...entry.matchAll(/href=["']\/(styles\/[^"'?]+\.css)(?:\?[^"']*)?["']/g)].map(match => match[1])
+  const stylesheets = (html) => [...html.matchAll(/href=["']\/(styles\/[^"'?]+\.css)(?:\?[^"']*)?["']/g)].map(match => match[1])
     .filter(file => !file.startsWith('styles/poolday/'));
-  for (const file of outside) checkIsolated(file);
+  for (const file of stylesheets(entry)) report('pool-entry.html', 1, `the Poolday entry loads a stylesheet outside the layers: ${file}`);
+  if (!/<html[^>]*\bclass=["'][^"']*\bpool-page\b/.test(entry)) report('pool-entry.html', 1, 'the page root must carry class="pool-page"');
+  for (const file of stylesheets(fallback)) checkIsolated(file);
+  checkInlineStyles();
   const tokens = readLayer(manifest.tokens);
   const primitives = readLayer(manifest.primitives);
   const componentLayers = manifest.components.map(readLayer);
 
   walkDeclarations(tokens.clean, ({ property, value, line, context }) => {
-    if (context[0] !== '.pool-home') {
-      report(tokens.file, line, `declaration outside .pool-home token block (${context.join(' > ')})`);
+    if (context[0].replace(/\s+/g, ' ') !== ROOT_BLOCK) {
+      report(tokens.file, line, `declaration outside the ${ROOT_BLOCK} token block (${context.join(' > ')})`);
     }
     if (!property.startsWith('--')) {
       report(tokens.file, line, `non-custom-property rule in token layer: ${property}`);
@@ -196,9 +272,7 @@ const main = () => {
   walkDeclarations(primitives.clean, ({ property, value, line, context }) => {
     if (inKeyframes(context)) return;
     if (!property.startsWith('--')) {
-      if (context[0] !== '.pool-home') {
-        report(primitives.file, line, `style rule in primitive layer: ${context.join(' > ')} { ${property} }`);
-      }
+      report(primitives.file, line, `style rule in primitive layer: ${context.join(' > ')} { ${property} }`);
       return;
     }
     if (!isPrimitiveName(property)) {
@@ -206,6 +280,9 @@ const main = () => {
     }
     if (COLOR_LITERAL.test(value) || namedColors(value, context).length) {
       report(primitives.file, line, `color literal in primitive ${property}: ${value}`);
+    }
+    if ([...opaqueValue(value).matchAll(NUMERIC_LITERAL)].some((match) => Number(match[1]) !== 0)) {
+      report(primitives.file, line, `primitive ${property} holds a literal; move the raw value to a token: ${value}`);
     }
     for (const ref of varRefs(value)) {
       if (ref.startsWith('--pool-') && !isTokenName(ref)) {
@@ -217,7 +294,6 @@ const main = () => {
   });
 
   for (const components of componentLayers) walkDeclarations(components.clean, ({ property, value, line, context }) => {
-    if (inKeyframes(context)) return;
     if (property.startsWith('--') && !JS_CONTRACT_VARS.has(property) && !PARAMETER_VAR.test(property)) {
       report(components.file, line, `custom property defined in component layer: ${property}`);
     }
@@ -234,11 +310,10 @@ const main = () => {
         report(components.file, line, `component consumes non-pool var ${ref} directly (${property})`);
       }
     }
-    if (!LENGTH_EXEMPT_PROPERTIES.has(property) && !property.startsWith('--')) {
-      const withoutVars = value.replace(/var\([^)]*\)/g, '');
-      const hit = withoutVars.match(LENGTH_LITERAL);
-      if (hit) {
-        report(components.file, line, `raw length literal '${hit[0]}' in component rule (${property}: ${value})`);
+    if (!property.startsWith('--') || PARAMETER_VAR.test(property)) {
+      const literals = literalViolations(property, value);
+      if (literals.length) {
+        report(components.file, line, `literal ${literals.join(', ')} in component rule; use a primitive (${property}: ${value})`);
       }
     }
   });
