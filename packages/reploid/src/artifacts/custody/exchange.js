@@ -21,8 +21,11 @@ export function createCustodyExchange({ transport, identity, policy, ports }) {
   };
   let offered = [], supply = false, supplyEpoch = 0, reserved = 0, preparing = 0, acquiring = 0, closed = false;
   const key = artifact => JSON.stringify([artifact.path, artifact.hash, artifact.hashAlgorithm, artifact.sizeBytes]);
-  const valid = artifact => artifact && typeof artifact === 'object'
-    && typeof artifact.path === 'string' && /^[\w.-]+$/.test(artifact.path) && artifact.path.length <= 256
+  // Relative paths of plain segments: signed catalogs name program files under artifacts/... (full-model
+  // seeding offers them); never absolute, empty, '.' or '..' segments. Storage is keyed by hash, not path.
+  const safePath = path => typeof path === 'string' && path.length > 0 && path.length <= 256
+    && path.split('/').every(segment => /^[\w.-]+$/.test(segment) && segment !== '.' && segment !== '..');
+  const valid = artifact => artifact && typeof artifact === 'object' && safePath(artifact.path)
     && typeof artifact.role === 'string' && artifact.role.length <= 64
     && typeof artifact.hash === 'string' && /^[a-f0-9]{64}$/.test(artifact.hash)
     && ['sha256', 'blake3'].includes(artifact.hashAlgorithm)

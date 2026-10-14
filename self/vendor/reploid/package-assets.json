@@ -241,8 +241,8 @@
     },
     {
       "path": "artifacts/custody/exchange.js",
-      "bytes": 20609,
-      "sha256": "77f7d95d03e840c75176b0fa00f30cf09dc0b68493db8b043cfd22490b4b2127"
+      "bytes": 20943,
+      "sha256": "297885ccd665364ff0b528d230fee5666796d18c3ca10ec2132f4b7848dfcce8"
     },
     {
       "path": "artifacts/custody/piece-acquisition.d.ts",
