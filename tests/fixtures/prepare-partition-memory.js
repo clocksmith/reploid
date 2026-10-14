@@ -1,3 +1,4 @@
+/* global abortOnSubmit, chunks, gpuValidationErrors, memorySnapshot, observePrefill, partitionDeviceEvents, partitionGpuSubmissions, resident, settleMemory */
 /** Shared physical fixture preparation; runs in browser or owned Node inspector. */
 export async function preparePartitionMemory({ model, index, modelSource, pairedBinding, config, policy, profileImmediate = false, orderedPlan = null, participantId = null }) {
       if (typeof profileImmediate !== 'boolean') throw Error('Explicit profiler selection required');

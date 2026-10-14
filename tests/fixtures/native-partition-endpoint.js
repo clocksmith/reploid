@@ -1,3 +1,4 @@
+/* global __nativePartitionFixture */
 /** Owned Node inspector adapter for the existing physical resident fixture. */
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';

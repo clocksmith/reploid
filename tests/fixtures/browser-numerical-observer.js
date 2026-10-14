@@ -1,3 +1,4 @@
+/* global numericalObservation */
 import { readFile } from 'node:fs/promises';
 
 /** Read-only GPU copies at existing probe calls. No diagnostic flags, input

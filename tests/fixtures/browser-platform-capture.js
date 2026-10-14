@@ -1,3 +1,4 @@
+/* global numericalObservation */
 /** Browser-only numerical diagnosis with installed package and exact model bytes.
  * Direct local file serving is diagnostic evidence, not peer-acquisition proof. */
 import assert from 'node:assert/strict';

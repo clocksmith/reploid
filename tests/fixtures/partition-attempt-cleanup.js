@@ -1,3 +1,4 @@
+/* global chunks, memorySnapshot, resident, settleMemory */
 /** Observe every attempt cleanup owner without replacing its primary failure. */
 export async function observePartitionAttemptCleanup(pages, identity) {
   const result = { beforeClose: [], after: [], chunks: [], cleanupErrors: [] };
