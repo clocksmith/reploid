@@ -214,7 +214,7 @@ The audit treated content—not byte size—as authority. A concise file remaine
 - **Implemented** means the declared canonical implementation boundary has verified tracked artifacts and no known missing artifact required by that blueprint metadata.
 - **In-Progress** means at least one implementation or evidence artifact exists, but one or more declared artifacts or verification obligations remain planned.
 - **Proposed** means no implementation artifact for the declared boundary exists. A related module elsewhere does not satisfy the claim.
-- `Verified Artifacts` are checked against the repository by `scripts/verify-blueprint-registry.js`.
+- `Verified Artifacts` are checked against the repository by `scripts/build-blueprint-registry.js` (`npm run verify:registry`).
 - `Planned Artifacts` are intentionally permitted to be absent and may not be described as implemented.
 
 ## Historical-ID rule

@@ -56,11 +56,18 @@ export async function buildBlueprintRegistry({ selfDir = SELF_DIR, inventory } =
       if (owners.has(owned)) throw new Error('Duplicate owner for ' + owned + ': ' + owners.get(owned) + ' and ' + id);
       owners.set(owned, id);
     }
+    const verified = paths(field(content, 'Verified Artifacts', file), file);
+    for (const artifact of verified) {
+      const target = path.join(path.dirname(selfDir), artifact.replace(/^\//, ''));
+      if (!await fs.stat(target).then(() => true, () => false)) {
+        throw new Error(file + ': verified artifact does not exist: ' + artifact);
+      }
+    }
     declarations.push({
       id, file, files,
       title: content.match(/^# Blueprint 0x[0-9A-Fa-f]{6}: (.+)$/m)?.[1] || file,
       status,
-      verified: paths(field(content, 'Verified Artifacts', file), file).length,
+      verified: verified.length,
       planned: paths(field(content, 'Planned Artifacts', file), file).length
     });
   }
