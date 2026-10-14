@@ -1,16 +1,73 @@
 # Signed completion candidate: staged and packaged
 
 Component: browser/native application delivery (preparation). Intent preserved.
-Acceptance evidence: `final-4/preflight.json`, `final-4/metadata-staging.json`,
-`final-4/delivery-verification.json`, `final-4/swarm-label.json`,
-`final-4/room-token-file.json`, `final-4/changed-files.json`, `final-4/worker.json`,
-`final-4/binding.json`.
+Acceptance evidence: `final-5/preflight.json`, `final-5/metadata-staging.json`,
+`final-5/delivery-verification.json`, `final-5/swarm-label.json`,
+`final-5/room-token-file.json`, `final-5/changed-files.json`, `final-5/worker.json`,
+`final-5/binding.json`.
 Boundary effects: new isolated exports, catalogs and packages under `/var/tmp/`
-only. Both checkouts, the public Doppler 0.6.27 pin, public catalogs, deployment
-files, identities, release checkpoints and contribution ledgers are unchanged.
-Nothing was started, opened on a GPU, installed on another machine, committed or pushed.
+only. The public Doppler 0.6.27 pin, public catalogs, deployment files,
+identities, release checkpoints and contribution ledgers are unchanged. No
+native participant or browser was started and no GPU was opened. The local
+`--help` checks are the only processes run from installed packages.
 
-## Current: `final-4/` (Reploid `2d434709`) supersedes `final-3/`
+## Current: `final-5/` (Reploid `95641fe7`) supersedes `final-4/`
+
+Reploid `95641fe7` reports a lost ordered contributor as `CONNECTION_LOST` and
+lets capacity return. It changes three files in
+`packages/reploid/src/mesh/partitions/`: `partition-route-execution.js`,
+`partition-ordered-peer.js` and `automatic-ordered-partitions.js`. It also
+changes their declarations, the vendored copies and `package-assets.json`. The
+`final-4/` pipeline was repeated into fresh directories with the same scripts,
+Capsule `-c` (release seq 2 `923ac7e6…`, expiry `2026-10-15T02:14:39.006Z`) and
+minimum sequence 2. `final-4/` and its export
+(`/var/tmp/reploid-signed-completion-app-4-20261013`, marked `SUPERSEDED.json`)
+are kept unchanged.
+
+| Item | `final-5/` value |
+| --- | --- |
+| Export | `/var/tmp/reploid-signed-completion-app-5-20261013/app`, source `95641fe7e5ad50e7ce8d8c427256a966344cd6a3`, tar `87ae38aa6de82bc6f2969af1c68c12afdb281ab5b05525f1ea40eff590f9f76a` |
+| Prepared catalog | `b0277a5f75e8780c6e233ab618a09bbfc4c572ae098f1ce0ceda178719820bbd`, byte-identical to `final-4/` |
+| Staged catalog | `59811b4af5f7b44387344fe38fdea155de4f27a487332a846c27fee9257481d5`, byte-identical to `final-4/`; 42 metadata files; staging receipt identical |
+| Browser payload | 2,045 files, bundle `sha256:3c1fab715e5074b0d573bb726f91b790229672ae9d27bef19c9c80935750fbc2` (changed) |
+| Native tarball | `/var/tmp/reploid-signed-completion-app-5-20261013/app/output/reploid-native-A2iDcg/reploid-native-0.1.0.tgz`, `d99a07e335617cdf4fb91cb401a9bf8a21823ebceb18c79b4c41bd049f46bc6e` |
+| Native descriptor | `1fecc004ac21fef84a779045d84c859f2a6f6f3742afdfad585d3361eaf0490a`, 151 files (changed from `8595ba31…`) |
+
+`final-5/changed-files.json` checks each of the 12 changed application files:
+
+- **Served copies.** The three changed partition modules under `vendor/reploid/mesh/partitions/`
+  equal the commit's files.
+- **Packaged copies.** The same three modules under
+  `packages/reploid/src/mesh/partitions/` are in the native package and equal
+  the commit's files. That is why the descriptor changed.
+- **Not served or packaged.** Declarations and `CATSCAN.md`.
+- **`package-assets.json`.** It lists the commit's hashes for all five changed
+  vendored files and differs from the commit only in the three Doppler contract
+  entries.
+
+Every step passed:
+
+- **Export.** 16 changed and 1,985 added files; 15 of the changed files and the
+  vendored runtime are byte-identical to `final-4/`.
+- **Preflight.** Runtime 1,984/1,984; plan admission for stages 0-2; zero address
+  matches; 8 of 8 release-history cases.
+- **Delivery verification.** All 151 native members; 1,984 installed runtime
+  files; 2,045 payload files and 1,206 served runtime files; only metadata URLs
+  changed by staging; 64 mappings; plan admission from the installed package;
+  zero address matches.
+- **Swarm label check.** Served and packaged `swarm.js` `ae1d9239…` equal the
+  commit and admit `reploid-partitions-ordered`.
+- **`--room-token-file` check.** The packaged participant `a48bd76c…` equals the
+  commit and contains the flag; the local `--help` exits 0, lists it and changes no file.
+- **Verification Worker.** It passed all seven scripts this pass ran, with no new scripts.
+
+**Host installs are pending.** The descriptor changed, so `amd-host` and
+`intel-host` need this tarball at `/var/tmp/reploid-signed-completion-5-20261013/reploid`.
+That step was not done because no SSH destination for either host was available.
+This Mac has no SSH alias for them, and destinations are not kept in files. The
+`final-3/` installs are untouched.
+
+## `final-4/` (Reploid `2d434709`, superseded by `final-5/`)
 
 Reploid `2d434709` makes the chat workspace and product session verify ordered
 disclosure against the authenticated requester identity. It changes
@@ -259,15 +316,12 @@ own authority and application produce.
   added the earlier passes:
   - `1c4be0ca` added `final/` and `install/`, which installed the `final/` tarball `a7462eb8…`;
   - `bdcc4bd4` added `final-2/` and `install-2/`, which installed the `final-2/` tarball;
-  - `81261b37` added `final-3/` and `install-3/`, which installed the `final-3/` tarball `fcacf463…`.
+  - `81261b37` added `final-3/` and `install-3/`, which installed the `final-3/` tarball `fcacf463…`;
+  - `99a5f825` added `final-4/` (its native members equal `fcacf463…`; no reinstall).
 
-  The `final-4/` native package has the same members as `fcacf463…`; only the
-  tarball bytes differ, through archive timestamps. Whether the hosts need the
-  new tarball depends on whether the release binds the tarball hash or the
-  descriptor. Hosts serving the browser need the new payload `2890c961…`.
-  `final-4/` and this README's latest edits are uncommitted. The checkout's
-  local `info/exclude` (line 22) lists this folder, so `git status` without
-  `--ignored` hides the untracked `final-4/`.
+  `final-5/` changes the native descriptor, so the hosts need its tarball
+  `d99a07e3…`; `install-5/` does not exist yet. The checkout's local
+  `info/exclude` (line 22) lists this folder; new files need `git add -f`.
 
 ## Not established
 

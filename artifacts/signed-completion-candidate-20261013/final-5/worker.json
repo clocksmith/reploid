@@ -1,0 +1,252 @@
+{
+  "scope": "/testing/ Node-only installed contract tooling; no production browser capability change",
+  "files": {
+    "final/prepare-catalog.js": "c71a134728d943d79e5060fe18b52be8f5ebee9e16cf7eeb0fea919d90ae3e85",
+    "final/preflight.js": "f464b87f6f234f7a3c08273ea62e2f0b73c4ed4b95309f292bf63abbed3a55bb",
+    "final/verify-delivery.js": "87f76146cfd8766d2e08f4a8faebbf10a0f4795b5cc570d937aa2247817334db",
+    "final/scope-export.js": "593797355ead46da2704beecb1a18cbf5b75f78bfc7c20cf1372f786f9554626",
+    "final-2/check-swarm-label.js": "8f63b811a27a8e08ce11e31842d57ea9d6bde3b2b6fa3dffd300ef073604ddd1",
+    "final-3/check-room-token-file.js": "07a62291580bed7ab6b815087eb6d0db5d90704b7f953996b2c109ef4351b5c4",
+    "final-4/check-disclosure-files.js": "44b1cd58bd2cb6e4bf186b26332c7b209c3d21104d9c9af3496dcd4a96d54069"
+  },
+  "result": {
+    "passed": true,
+    "errors": [],
+    "warnings": [
+      "Warning in /testing/final/prepare-catalog.js: Path traversal pattern detected (../) - potential security risk",
+      "Warning in /testing/final/prepare-catalog.js:39: Dynamic property write detected: [capsuleRoot, runtimeRoot, reportList, referencePath, baseUrl, outputPath, splitList, minimumList] - verify input sanitization",
+      "Warning in /testing/final/prepare-catalog.js:96: Suspicious variable name: executablePack - may indicate code execution",
+      "Warning in /testing/final/preflight.js:40: Dynamic property write detected: [applicationRoot, capsuleRoot, catalogPath, catalogSha256, earlierDigest, forkList, extraction, output] - verify input sanitization",
+      "Warning in /testing/final/preflight.js:44: Suspicious variable name: exec - may indicate code execution",
+      "Warning in /testing/final/verify-delivery.js:30: Dynamic property write detected: [applicationRoot, preparedPath, preparedSha256, archive, installRoot, output] - verify input sanitization",
+      "Warning in /testing/final/verify-delivery.js:76: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/final/verify-delivery.js:34: Suspicious variable name: exec - may indicate code execution",
+      "Warning in /testing/final/scope-export.js:11: Dynamic property write detected: [applicationRoot, receipt] - verify input sanitization",
+      "Warning in /testing/final-2/check-swarm-label.js:12: Dynamic property write detected: [applicationRoot, installedRoot, previousApplicationRoot, checkout, commit, output] - verify input sanitization",
+      "Warning in /testing/final-2/check-swarm-label.js:31: Dynamic property write detected: [label] - verify input sanitization",
+      "Warning in /testing/final-2/check-swarm-label.js:36: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/final-2/check-swarm-label.js:15: Suspicious variable name: exec - may indicate code execution",
+      "Warning in /testing/final-3/check-room-token-file.js:13: Dynamic property write detected: [installedRoot, packageDirectory, checkout, commit, output] - verify input sanitization",
+      "Warning in /testing/final-3/check-room-token-file.js:30: Dynamic property write detected: [label] - verify input sanitization",
+      "Warning in /testing/final-3/check-room-token-file.js:16: Suspicious variable name: exec - may indicate code execution",
+      "Warning in /testing/final-4/check-disclosure-files.js:19: Dynamic property write detected: [applicationRoot, installedRoot, previousApplicationRoot, checkout, base, commit, output] - verify input sanitization",
+      "Warning in /testing/final-4/check-disclosure-files.js:37: Dynamic property write detected: [name] - verify input sanitization",
+      "Warning in /testing/final-4/check-disclosure-files.js:46: Dynamic property write detected: [commitEntries, servedEntries] - verify input sanitization",
+      "Warning in /testing/final-4/check-disclosure-files.js:21: Suspicious variable name: exec - may indicate code execution"
+    ],
+    "events": [
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960045997,
+        "path": "/testing/final/prepare-catalog.js",
+        "patternId": "path_traversal",
+        "category": "filesystem",
+        "message": "Path traversal pattern detected (../) - potential security risk",
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960045997,
+        "path": "/testing/final/prepare-catalog.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [capsuleRoot, runtimeRoot, reportList, referencePath, baseUrl, outputPath, splitList, minimumList] - verify input sanitization",
+        "line": 39,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960045997,
+        "path": "/testing/final/prepare-catalog.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: executablePack - may indicate code execution",
+        "line": 96,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046006,
+        "path": "/testing/final/preflight.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [applicationRoot, capsuleRoot, catalogPath, catalogSha256, earlierDigest, forkList, extraction, output] - verify input sanitization",
+        "line": 40,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046006,
+        "path": "/testing/final/preflight.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 44,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046010,
+        "path": "/testing/final/verify-delivery.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [applicationRoot, preparedPath, preparedSha256, archive, installRoot, output] - verify input sanitization",
+        "line": 30,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046010,
+        "path": "/testing/final/verify-delivery.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 76,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046010,
+        "path": "/testing/final/verify-delivery.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 34,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046010,
+        "path": "/testing/final/scope-export.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [applicationRoot, receipt] - verify input sanitization",
+        "line": 11,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046011,
+        "path": "/testing/final-2/check-swarm-label.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [applicationRoot, installedRoot, previousApplicationRoot, checkout, commit, output] - verify input sanitization",
+        "line": 12,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046011,
+        "path": "/testing/final-2/check-swarm-label.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [label] - verify input sanitization",
+        "line": 31,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046011,
+        "path": "/testing/final-2/check-swarm-label.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 36,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046011,
+        "path": "/testing/final-2/check-swarm-label.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 15,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046012,
+        "path": "/testing/final-3/check-room-token-file.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [installedRoot, packageDirectory, checkout, commit, output] - verify input sanitization",
+        "line": 13,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046012,
+        "path": "/testing/final-3/check-room-token-file.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [label] - verify input sanitization",
+        "line": 30,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046012,
+        "path": "/testing/final-3/check-room-token-file.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 16,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046014,
+        "path": "/testing/final-4/check-disclosure-files.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [applicationRoot, installedRoot, previousApplicationRoot, checkout, base, commit, output] - verify input sanitization",
+        "line": 19,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046014,
+        "path": "/testing/final-4/check-disclosure-files.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [name] - verify input sanitization",
+        "line": 37,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046014,
+        "path": "/testing/final-4/check-disclosure-files.js",
+        "patternId": "dynamic_property_write",
+        "category": "structural",
+        "message": "Dynamic property write detected: [commitEntries, servedEntries] - verify input sanitization",
+        "line": 46,
+        "severity": "warning"
+      },
+      {
+        "type": "verification:pattern_detected",
+        "timestamp": 1791960046014,
+        "path": "/testing/final-4/check-disclosure-files.js",
+        "patternId": "suspicious_variable_name",
+        "category": "structural",
+        "message": "Suspicious variable name: exec - may indicate code execution",
+        "line": 21,
+        "severity": "warning"
+      }
+    ],
+    "details": {
+      "patternViolations": [
+        {
+          "path": "/testing/final/prepare-catalog.js",
+          "patternId": "path_traversal",
+          "category": "filesystem",
+          "message": "Path traversal pattern detected (../) - potential security risk",
+          "severity": "warning"
+        }
+      ],
+      "complexityWarnings": [],
+      "filesAnalyzed": 7
+    }
+  }
+}
