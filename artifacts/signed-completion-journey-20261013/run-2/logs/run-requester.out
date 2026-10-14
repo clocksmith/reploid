@@ -1,0 +1,2 @@
+{"ok":false,"failures":52,"weights":0,"failure":"locator.selectOption: Timeout 30000ms exceeded."}
+exit=1

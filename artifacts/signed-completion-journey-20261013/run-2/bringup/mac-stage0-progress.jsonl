@@ -1,0 +1,4 @@
+{"at":"2026-10-14T03:24:48.644Z","phase":"loading","error":null,"progress":null,"unsettledOwners":0,"placement":null}
+{"at":"2026-10-14T03:24:50.656Z","phase":"loading","error":null,"progress":{"stage":"acquiring","path":"tokenizer.json","message":"Receiving from peers: tokenizer.json"},"unsettledOwners":0,"placement":null}
+{"at":"2026-10-14T03:24:56.695Z","phase":"loading","error":null,"progress":{"stage":"acquiring","path":"shard_00000.bin","message":"Receiving required model pieces"},"unsettledOwners":0,"placement":null}
+{"at":"2026-10-14T03:34:43.952Z","phase":"ready","error":null,"progress":null,"unsettledOwners":0,"placement":["peer:15923429008fd27579410a26","peer:9af15d884eba51b0c0540e2a","peer:09610aefbd15a133d7af2b57"]}

@@ -1,0 +1,67 @@
+{
+ "schema": "reploid.run-1-host-snapshot/v1",
+ "machine": "intel-host",
+ "at": "2026-10-14T03:56:13.852891+00:00",
+ "loadavg": [
+  "2.57",
+  "2.90",
+  "2.88"
+ ],
+ "memory": {
+  "MemTotal": 33294401536,
+  "MemAvailable": 29073694720,
+  "SwapTotal": 2147479552,
+  "SwapFree": 2113536
+ },
+ "gpuSamples": [
+  {
+   "amdBusyPercent": [],
+   "intelActMhz": [
+    "0"
+   ]
+  },
+  {
+   "amdBusyPercent": [],
+   "intelActMhz": [
+    "0"
+   ]
+  },
+  {
+   "amdBusyPercent": [],
+   "intelActMhz": [
+    "0"
+   ]
+  }
+ ],
+ "publicContributors": [
+  {
+   "pid": 297260,
+   "ppid": 1,
+   "args": "node server/native-participant.js --contribute --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /home/clocksmith/.local/share/reploid/public-native/weights --cache-directory /home/clocksmith/.local/share/reploid/public-native/cache --identity-file /home/clocksmith/.local/share/reploid/public-native/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin https://replo."
+  },
+  {
+   "pid": 299769,
+   "ppid": 1,
+   "args": "node scripts/run-mesh-contributor.js --url https://replo.id/ --profile /home/clocksmith/.local/share/reploid/public-compute --model qwen-3-5-0-8b-q4k-ehaf16 --contribute compute --browser chromium"
+  }
+ ],
+ "ownedProcesses": [],
+ "ownedScopes": [],
+ "allUserScopes": [
+  "app-org.chromium.Chromium-299780.scope",
+  "init.scope",
+  "tmux-spawn-6ed56a4a-357c-4e96-828f-766288b56b76.scope",
+  "tmux-spawn-a80ef5df-35a3-4203-a5b8-45e77eaa6fc6.scope"
+ ],
+ "ports": {
+  "29670": {
+   "listening": false,
+   "addresses": []
+  },
+  "29674": {
+   "listening": false,
+   "addresses": []
+  }
+ },
+ "scope": "Read-only snapshot; hostnames not recorded"
+}

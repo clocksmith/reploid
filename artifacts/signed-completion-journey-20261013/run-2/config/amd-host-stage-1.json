@@ -1,0 +1,13 @@
+{
+ "stage": {
+  "modelId": "qwen-3-5-0-8b-q4k-ehaf16",
+  "index": 1,
+  "residentId": "scj-run2-stage-1-resident",
+  "executionId": "scj-run2-stage-1-ordinary"
+ },
+ "maxStages": 7,
+ "maxStageOffersPerPeer": 4,
+ "maxRouteBytes": 8192,
+ "maxSelectionSteps": 2000,
+ "maxRoutes": 4
+}

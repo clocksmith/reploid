@@ -1,0 +1,71 @@
+{
+  "schema": "reploid.signed-completion-journey-run-2-bringup/v1",
+  "outcome": "passed: all three contributors opened the signed Capsule, verified release history and reached ready; the coordinator formed the frozen ordered route mac-host -> amd-host -> intel-host",
+  "machines": "mac-host, amd-host, intel-host are aliases; no hostnames are recorded",
+  "candidate": {
+    "application": "Reploid d7931c57 export, /var/tmp/reploid-signed-completion-app-2-20261013/app",
+    "browserBundle": "sha256:9f380ebf3daaad82f7476f2cd8c6ee30cacd3e0f055e28896211a14fd8bb0f1d (served descriptor, observed)",
+    "servedSwarmJs": "sha256:ae1d9239... (observed over HTTP), admits reploid-partitions-ordered",
+    "nativePackage": "sha256:845b84bb... installed at /var/tmp/reploid-signed-completion-2-20261013/reploid; installed swarm.js ae1d9239... (observed on both hosts)",
+    "modelIdentity": "sha256:6b2cb026e6cd17469ad18fd5253e5e413313fc42756955544181190796c9e934",
+    "planId": "sha256:7a4ce534baee0945e47adf13bb3bad017038eebb83b509e9d68b1fe01c76a1bf"
+  },
+  "stageAssignment": "Same rule as run 1 (run-1/bringup/signed-opening.json stageAssignment): exact keys {modelId,index,residentId,executionId}; residentId/executionId are operator-assigned opaque labels (1-256 chars), here scj-run2-stage-<i>-resident / scj-run2-stage-<i>-ordinary. Files: ../config/*-stage-*.json, validated with the export's snapshotWorkOrderedParticipation.",
+  "roomTokenHandling": {
+    "finding": "The installed native CLI accepts the room capability only as --room-token on argv (server/native-participant.js:480 parseArgs option list, :489 help text, :529 values['room-token']); there is no file or environment option. The token is therefore visible in each native node process's argv while it runs.",
+    "mitigation": "tools/native-exec.sh reads the token from a private 0600 file inside the scope, so the systemd-run command line recorded in the user journal no longer carries it (0 journal hits observed on both hosts, unlike run 1). Browsers received the token only through CDP navigation, never on a command line."
+  },
+  "processesStarted": {
+    "mac-host": [
+      { "alias": "app-server", "pid": 51170, "bind": "127.0.0.1:29670", "command": "node tools/app-server.mjs <export app-2> <capsule -c> 29670 logs/app-server-requests.jsonl" },
+      { "alias": "tunnel-amd", "pid": 51193, "forwards": "remote 127.0.0.1:29670 -> mac 127.0.0.1:29670" },
+      { "alias": "tunnel-intel", "pid": 51194, "forwards": "remote 127.0.0.1:29670 -> mac 127.0.0.1:29670; mac 127.0.0.1:29674 -> remote 127.0.0.1:29674" },
+      { "alias": "stage0-browser", "pid": 51229, "command": "Google Chrome 155 --headless=new --remote-debugging-port=29671 --remote-debugging-address=127.0.0.1 --user-data-dir=<new run-2 profile> (WebGPU on; no room token on argv)" },
+      { "alias": "requester-browser", "launchedBy": "run-requester.mjs / run-contributor-loss.mjs (headless chrome, --disable-gpu, CDP 29672)" },
+      { "alias": "supplier-browser", "pid": 52113, "command": "Google Chrome 155 --headless=new --remote-debugging-port=29673 --remote-debugging-address=127.0.0.1 --disable-gpu --user-data-dir=<new run-2 profile>" }
+    ],
+    "amd-host": [
+      { "alias": "amd-native-1", "scope": "scj-run2-amd-native-1.scope", "pid": 3548059, "share": true, "window": "03:23:01Z-03:35:38Z", "limits": "MemoryHigh=10737418240 MemoryMax=12884901888 MemorySwapMax=0 RuntimeMaxSec=1800 (observed)" },
+      { "alias": "amd-native-2", "scope": "scj-run2-amd-native-2.scope", "pid": 3688824, "share": false, "window": "03:35:47Z-03:55:20Z", "limits": "same" }
+    ],
+    "intel-host": [
+      { "alias": "intel-native-1", "scope": "scj-run2-intel-native-1.scope", "pid": 1243597, "share": true, "window": "03:23:06Z-03:35:40Z", "limits": "same" },
+      { "alias": "intel-native-2", "scope": "scj-run2-intel-native-2.scope", "pid": 1247030, "share": false, "window": "03:35:52Z-03:55:22Z", "limits": "same" },
+      { "alias": "intel-acquirer-browser", "scope": "scj-run2-intel-acquirer.scope", "command": "google-chrome 136 --headless=new --remote-debugging-port=29674 --remote-debugging-address=127.0.0.1 --disable-gpu --user-data-dir=<new run-2 profile>", "limits": "same" }
+    ],
+    "nativeArgs": "server/native-participant.js --contribute [--share-files] --model qwen-3-5-0-8b-q4k-ehaf16 --model-directory /var/tmp/doppler-cold-compile-model-20261013 --cache-directory <state>/cache --identity-file <state>/identity.json --rtc-module @roamhq/wrtc --ws-module ws --gpu-module webgpu --origin http://127.0.0.1:29670 --signaling-url ws://127.0.0.1:29670/swarm --ordered-config <run-2 stage json> --room [PRIVATE ROOM] --room-token [REDACTED]",
+    "state": { "amd-host": "/var/tmp/reploid-signed-native-metadata-20261012 (reused)", "intel-host": "/var/tmp/reploid-signed-completion-journey-run1-20261013/intel-state (reused; created in run 1)" }
+  },
+  "contributors": {
+    "mac-host": {
+      "participantId": "peer:15923429008fd27579410a26",
+      "firstSignedBrowserState": "fresh run-2 profile; no prior checkpoint",
+      "gpu": "WebGPU adapter vendor apple, architecture metal-3",
+      "stageKey": "reploid.ordered-stage.v1 written through getCurrentReploidStorage() under instance scj-run2-stage0; getOrderedParticipation returned stage index 0 after reload (observed)",
+      "signedCapsuleOpened": true, "openingMode": "signed-capsule",
+      "releaseHistoryVerified": "lifecycle.event sequence 2 (previous d47ddb8d...), checkpoint sequence 2 sha256:923ac7e6..., authorization managed, verified 2026-10-14T03:24:49.210Z",
+      "descriptor": "doppler.resident-partition/v2 ready, index 0, layers [0,7], residentWeightBytes 603512832; device memory live 605663504, peak 622440768 of 1420000000, rejected 0",
+      "selectiveAcquisition": "signed-piece-index; 786430240 bytes from peers in 305 transfers, 0 failures, 529.6 s peer transfer time",
+      "reachedReady": "2026-10-14T03:34:43Z", "unsettledOwners": 0
+    },
+    "amd-host": {
+      "participantId": "peer:9af15d884eba51b0c0540e2a",
+      "signedCapsuleOpened": true, "openingMode": "signed-capsule", "descriptor": "index 1, layers [8,15], residentWeightBytes 94953472",
+      "releaseHistory": "checkpoint already at sequence 2 923ac7e6... before launch; unchanged after (accepted)",
+      "reachedReady": true, "readyLogLine": "native-1 line 57; native-2 line 57",
+      "supply": "served stage 0's pieces: ledger 662384632 -> 1458219861 of 4294967296 bytes (795835229 bytes this run)"
+    },
+    "intel-host": {
+      "participantId": "peer:09610aefbd15a133d7af2b57",
+      "signedCapsuleOpened": true, "openingMode": "signed-capsule", "descriptor": "index 2, layers [16,23], residentWeightBytes 238020608",
+      "releaseHistory": "checkpoint at sequence 2 923ac7e6... before and after (accepted)",
+      "reachedReady": true, "readyLogLine": "native-1 line 88; native-2 line 88",
+      "supply": "ledger unchanged at 0 of 4294967296 bytes"
+    }
+  },
+  "route": {
+    "formedAt": "2026-10-14T03:34:43Z",
+    "placement": ["peer:15923429008fd27579410a26", "peer:9af15d884eba51b0c0540e2a", "peer:09610aefbd15a133d7af2b57"],
+    "operatorRefresh": "Both natives were stopped with SIGTERM at 03:35:38Z/03:35:40Z (settled to idle, 0 unsettled) and relaunched without file sharing into fresh 30-minute scopes at 03:35:47Z/03:35:52Z, because the first scopes would have expired at ~03:53Z. The coordinator re-formed the same three-participant route with new transports by 03:36:12Z (coordinator-after-native-refresh.json). This is an operator restart before the harnesses, not the loss test."
+  }
+}
