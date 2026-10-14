@@ -46,8 +46,22 @@ provider, Vulkan driver and adapter. Optional dependency installation failure
 does not qualify compute; selecting an unavailable provider fails explicitly.
 
 Public discovery uses the application's existing bootstrap configuration.
-Private deployments can supply `--signaling-url`, `--room`, `--room-token`
-and `--origin` explicitly. Protect the identity file and its parent directory;
+Private deployments can supply `--signaling-url`, `--room`, `--room-token-file`
+and `--origin` explicitly. `--room-token-file` takes an absolute path to a
+regular file owned by the participant's user with mode `0600`; the token is read
+once at startup and one trailing newline is removed. Any other path, owner or
+mode stops startup before the identity, modules or network are touched.
+
+```sh
+umask 077                              # new files are owner-only (0600)
+cat > /srv/reploid/state/room-token    # paste the token, then Ctrl-D
+npm start -- --contribute ... --room reploid-swarm-<name> \
+  --room-token-file /srv/reploid/state/room-token
+```
+
+`--room-token <token>` still works for compatibility, but the token is then
+visible in process arguments and in any service journal that records them; the
+CLI prints a warning on stderr. The two options cannot be combined. Protect the identity file and its parent directory;
 they contain the contributor's signing key. SIGINT or SIGTERM settles work,
 closes authenticated channels and releases owned resources before natural exit.
 

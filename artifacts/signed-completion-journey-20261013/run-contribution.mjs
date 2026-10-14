@@ -4,10 +4,10 @@
 // and their checks then fail closed. Steps that need a fresh acquisition ledger use a fresh
 // browser context, because a ledger's cap is immutable once created (work-model-files.js:355).
 import { orderedSelectionId } from './config.mjs';
-import { compilePatterns, observeChat, observeCustody, observeNetwork, observeOffer } from './observe.mjs';
-import { assessContribution } from './contribution-checks.mjs';
-import { TERMINAL, startRun, openBrowser, appUrl, trackRequests, transferBytes, transferKey, waitFor, openApp, chooseOrderedModel,
-  send, followAttempt, waitForAttempt, attemptIds, startFileContribution, stopFileContribution, readLedger, now } from './harness.mjs';
+import { compilePatterns, observeChat, observeConnectionOwner, observeCustody, observeNetwork, observeOffer } from './observe.mjs';
+import { assessContribution, SINGLE_OWNER_REFUSAL, MIN_INTERRUPTED_PIECE_BYTES } from './contribution-checks.mjs';
+import { TERMINAL, startRun, openBrowser, appUrl, trackRequests, transferBytes, transferKey, waitFor, withDeadline, openApp, chooseOrderedModel,
+  send, followAttempt, waitForAttempt, attemptIds, startFileContribution, stopFileContribution, readLedger, classifyInterruption, sleep, now } from './harness.mjs';
 
 const { config, room, fixture, report, save } = await startRun('storage-contribution', './contribution.json');
 const { freeze, timeouts, storage } = config, poll = config.observation.pollMs, selectionId = orderedSelectionId(freeze);
@@ -55,12 +55,14 @@ async function startChat(page) {
 }
 const chatStatus = async (page, attemptId) => (await observeChat(page)).threads.flatMap(thread => thread.attempts).find(item => item.id === attemptId)?.status ?? null;
 
-let supplierPage, acquirerPage, supplier;
+// The sharer profile has one open tab at a time; supplierName follows it from (a) through (e) and (c).
+let supplierPage, acquirerPage, supplier, supplierName = 'supplier-main';
+const openPages = owner => owner.context.pages().filter(page => !page.isClosed()).length;
 try {
   // (a) Share a small verified subset while this participant's own conversation streams.
   await step('sharedWhileChatting', async () => {
     supplier = await freshContext(supplierBrowser, 'supplier');
-    supplierPage = await openTab(supplier, 'supplier-main', supplierOrigin);
+    supplierPage = await openTab(supplier, supplierName, supplierOrigin);
     const chat = await startChat(supplierPage), samples = [];
     const startedAt = await startFileContribution(supplierPage, { modelId: freeze.modelId, mode: 'bounded-acquisition', allowanceMiB: storage.sharingAllowanceMiB });
     let files;
@@ -90,29 +92,53 @@ try {
       weightRequests: rowsOf('acquirer-main', since).filter(row => row.weight) } };
   });
 
-  // (e) Cached-only mode in another tab of the sharer's origin: zero acquisition.
+  // (e) Cached-only mode in the sharer's own profile, one tab at a time (README, "Contract decision"):
+  // close the sharer tab, confirm the next tab of the profile connects normally (the single-owner lock
+  // was released), then use only that tab. Every model-file request of its lifetime counts.
   await step('cachedOnly', async () => {
-    if (!supplier) throw Error('Prerequisite sharer origin unavailable');
-    const page = await openTab(supplier, 'supplier-cached', supplierOrigin);
-    const custodyBefore = await custodyReady(page), budgetBefore = await readLedger(page), since = now();
-    await startFileContribution(page, { modelId: freeze.modelId, mode: 'cached-only' });
-    const files = await shareOutcome(page);
-    report.cachedOnly = { mode: 'cached-only', files, requests: rowsOf('supplier-cached', since), receiptsBefore: custodyBefore.receipts.length,
-      receiptsAfter: (await observeCustody(page)).receipts.length, budgetBefore, budgetAfter: await readLedger(page) };
-    await stopFileContribution(page); await shareSettled(page); await page.close();
+    if (!report.share?.files?.sharing) throw Error('Prerequisite sharing step did not share');
+    const sharer = { name: supplierName, peerId: (await observeNetwork(supplierPage)).consumerPeerId,
+      offered: (await observeOffer(supplierPage)).offered, budget: await readLedger(supplierPage) };
+    await supplierPage.close(); sharer.closedAt = now();
+    const tab = { name: 'supplier-cached', openedAt: now(), lockSamples: [] };
+    report.cachedOnly = { mode: 'cached-only', sharer, tab, budgetBefore: sharer.budget };
+    const page = await openTab(supplier, tab.name, supplierOrigin);
+    supplierPage = page; supplierName = tab.name;
+    tab.profilePages = openPages(supplier);
+    const lock = await waitFor(async () => {
+      const row = await observeConnectionOwner(page).catch(() => null);
+      if (row) tab.lockSamples.push({ at: now(), ...row });
+      return row && (row.error === SINGLE_OWNER_REFUSAL || (row.consumerPeerId && row.custodyOwner)) ? row : null;
+    }, { timeout: timeouts.readyMs, poll, label: 'Next sharer-profile tab connection' });
+    if (lock.error === SINGLE_OWNER_REFUSAL) throw Error('Next tab of the sharer profile was refused: the single-owner lock was not released');
+    const custodyBefore = await custodyReady(page);
+    const startedAt = await startFileContribution(page, { modelId: freeze.modelId, mode: 'cached-only' });
+    const files = await shareOutcome(page), outcomeAt = now(), samples = [], quietStart = Date.now();
+    do {
+      const state = await filesOf(page);
+      samples.push({ at: now(), pending: state?.pending ?? null, preparing: !!state?.preparing, sharing: !!state?.sharing });
+      await sleep(250);
+    } while (Date.now() - quietStart < fixture.cachedOnlyObservationMs);
+    const observationMs = Date.now() - quietStart;
+    Object.assign(report.cachedOnly, { files, offered: (await observeOffer(page)).offered, samples, observationMs,
+      receiptsBefore: custodyBefore.receipts.length, receiptsAfter: (await observeCustody(page)).receipts.length, budgetAfter: await readLedger(page),
+      window: { openedAt: tab.openedAt, startedAt, outcomeAt, endedAt: now() }, requests: rowsOf(tab.name) });
+    // Cached-only sharing stays on: this tab is the sharer profile's only tab for (c).
   });
 
-  // (c) Reload the sharer; rebuild inventory from cache and read the persisted ledger.
+  // (c) Reload the sharer profile's only tab; rebuild inventory from cache and read the persisted ledger.
   await step('reloadPreserved', async () => {
     if (!report.share?.files?.sharing) throw Error('Prerequisite sharing step did not share');
+    if (!supplierPage || supplierPage.isClosed()) throw Error('Prerequisite sharer profile tab unavailable');
     const before = { offered: (await observeOffer(supplierPage)).offered, budget: await readLedger(supplierPage) };
+    const profilePages = openPages(supplier);
     await supplierPage.reload({ waitUntil: 'domcontentloaded' });
     await custodyReady(supplierPage);
     const since = now();
     await startFileContribution(supplierPage, { modelId: freeze.modelId, mode: 'cached-only' });
     await shareOutcome(supplierPage);
-    report.reload = { before, after: { mode: 'cached-only', offered: (await observeOffer(supplierPage)).offered,
-      budget: await readLedger(supplierPage), requests: rowsOf('supplier-main', since) } };
+    report.reload = { tab: supplierName, profilePages, before, after: { mode: 'cached-only', offered: (await observeOffer(supplierPage)).offered,
+      budget: await readLedger(supplierPage), requests: rowsOf(supplierName, since) } };
   });
 
   // Later steps acquire into fresh ledgers; withdraw this run's offers so their transfers are observable.
@@ -143,52 +169,66 @@ try {
       requestsAfterSettled: rowsOf('stop-main', settledAt).length, chat: { attemptId: chat.attempt.id, final: thread, samples } };
   });
 
-  // (d) Two tabs of one fresh origin compete for one allowance.
+  // (d) Two tabs of ONE fresh profile compete for its one allowance. Contract: one connected tab per
+  // profile (README, "Contract decision"), so the second tab must be refused by the single-owner lock
+  // (self/host/work-peer-offers.js:20-21) and can never acquire; the owner's acquisition is charged once.
   await step('competingTabs', async () => {
-    const owner = await freshContext(supplierBrowser, 'contention');
-    const names = ['contention-0', 'contention-1'], pages = [];
-    for (const name of names) { pages.push(await openTab(owner, name, supplierOrigin)); await custodyReady(pages.at(-1)); }
-    const ledgerBefore = await readLedger(pages[0]);
-    await Promise.all(pages.map(page => startFileContribution(page, { modelId: freeze.modelId, mode: 'bounded-acquisition', allowanceMiB: storage.contentionAllowanceMiB })));
-    const outcomes = await Promise.all(pages.map(shareOutcome));
-    const tabs = [];
-    for (const [index, page] of pages.entries()) {
-      const custody = await observeCustody(page);
-      tabs.push({ instanceId: (await observeChat(page)).instanceId, budget: outcomes[index].acquisitionBudget, outcome: { sharing: outcomes[index].sharing, error: outcomes[index].error },
-        transfers: [...rowsOf(names[index]).map(row => ({ key: transferKey(row), bytes: transferBytes(row) })), ...peerTransfers(custody)] });
-    }
-    report.contention = { allowanceBytes: mib(storage.contentionAllowanceMiB), ledgerBefore, ledgerAfter: await readLedger(pages[0]), tabs };
+    const owner = await freshContext(supplierBrowser, 'contention'), profile = 'contention', allowanceMiB = storage.contentionAllowanceMiB;
+    const first = await openTab(owner, 'contention-0', supplierOrigin);
+    await custodyReady(first);
+    const second = await openTab(owner, 'contention-1', supplierOrigin), samples = [], ledgerSamples = [];
+    const sample = async phase => { const row = { at: now(), phase, ...await observeConnectionOwner(second) }; samples.push(row); return row; };
+    // Wait for the refusal, or record the connection that must fail the check.
+    await waitFor(async () => { const row = await sample('opened').catch(() => null); return row && (row.error === SINGLE_OWNER_REFUSAL || row.consumerPeerId || row.custodyOwner); },
+      { timeout: timeouts.readyMs, poll, label: 'Second tab refusal or connection' });
+    const ledgerBefore = await readLedger(first);
+    // Both tabs press the real file control at once; the refused tab's attempt reconnects and is refused again.
+    const [ownerStart, secondStart] = await Promise.allSettled([first, second].map(page =>
+      startFileContribution(page, { modelId: freeze.modelId, mode: 'bounded-acquisition', allowanceMiB })));
+    if (ownerStart.status === 'rejected') throw ownerStart.reason;
+    await sample('after-start'); ledgerSamples.push(await readLedger(first));
+    const outcome = await shareOutcome(first);
+    await sample('after-acquisition'); ledgerSamples.push(await readLedger(first));
+    const custody = await observeCustody(first);
+    const http = name => rowsOf(name).map(row => ({ key: transferKey(row), bytes: transferBytes(row), finished: row.finished && !row.failed }));
+    report.contention = { allowanceBytes: mib(allowanceMiB), ledgerBefore, ledgerSamples, ledgerAfter: await readLedger(first),
+      owner: { name: 'contention-0', profile, consumerPeerId: (await observeNetwork(first)).consumerPeerId, budget: outcome.acquisitionBudget,
+        outcome: { sharing: outcome.sharing, error: outcome.error }, transfers: [...http('contention-0'), ...peerTransfers(custody)] },
+      second: { name: 'contention-1', profile, samples, refusal: samples.find(row => row.error)?.error ?? null,
+        fileAttempt: secondStart.status === 'fulfilled' ? { clickedAt: secondStart.value, harnessError: null }
+          : { clickedAt: null, harnessError: String(secondStart.reason?.message || secondStart.reason) },
+        ledgerAfter: await readLedger(second), transfers: http('contention-1') } };
   });
 
-  // (d) Interrupt an acquisition by reloading mid-transfer, then resume it.
+  // (d) Interrupt an acquisition by reloading while a piece of at least 1 MiB transfers, then resume it.
   await step('interruptedResume', async () => {
     const owner = await freshContext(supplierBrowser, 'interrupt'), page = await openTab(owner, 'interrupt-main', supplierOrigin);
     await custodyReady(page);
     const ledgerBefore = await readLedger(page);
+    // The first indexed pieces (64 and 512 bytes) finish over loopback before any poll. Each piece is
+    // reserved right before its own request and pieces are acquired one at a time (work-model-files.js:155-158,
+    // 403-431). The reload is issued from the request event of the first piece of at least 1 MiB, with no
+    // observation round trip in between, while that piece is still transferring.
+    const large = owner.tracker.next(row => row.page === 'interrupt-main' && row.weight && row.declaredBytes >= MIN_INTERRUPTED_PIECE_BYTES);
     await startFileContribution(page, { modelId: freeze.modelId, mode: 'bounded-acquisition', allowanceMiB: storage.interruptionAllowanceMiB });
-    // Pieces are acquired one at a time and persisted before the next starts (work-model-files.js:399-431),
-    // so a second weight request in flight proves the earlier ones were verified and retained.
-    const inflight = await waitFor(() => {
-      const weights = rowsOf('interrupt-main').filter(row => row.weight);
-      return weights.some(row => row.finished && !row.failed) ? weights.find(row => !row.finished && !row.failed) : null;
-    }, { timeout: timeouts.transferMs, poll, label: 'Second piece in flight' });
-    const completedBefore = rowsOf('interrupt-main').filter(row => row.finished && !row.failed && row.finishedAt <= inflight.at)
-      .map(row => ({ key: transferKey(row), bytes: transferBytes(row) }));
-    const custodyBefore = await observeCustody(page), interruptedAt = now();
+    const target = await withDeadline(large, timeouts.transferMs, 'Piece of at least 1 MiB in flight');
+    const reloadAt = now();
     await page.reload({ waitUntil: 'domcontentloaded' });
-    const interrupted = rowsOf('interrupt-main').filter(row => row.at <= interruptedAt && !(row.finished && !row.failed && row.finishedAt <= interruptedAt))
-      .map(row => ({ key: transferKey(row), bytes: row.declaredBytes }));
+    // Navigation aborts the request (requestfailed); a requestfinished means the reload lost the race.
+    await waitFor(() => target.finished || target.failed, { timeout: timeouts.settlementMs, poll, label: 'Interrupted piece settlement' }).catch(() => null);
     await custodyReady(page);
-    const since = now();
+    const resumedSince = now();
     await startFileContribution(page, { modelId: freeze.modelId, mode: 'bounded-acquisition', allowanceMiB: storage.interruptionAllowanceMiB });
     const files = await shareOutcome(page);
-    report.interruption = { ledgerBefore, completedBefore: [...completedBefore, ...peerTransfers(custodyBefore).filter(row => row.finished)], interrupted,
-      resumed: [...rowsOf('interrupt-main', since).map(row => ({ key: transferKey(row), bytes: transferBytes(row), finished: row.finished && !row.failed })),
-        ...peerTransfers(await observeCustody(page))],
+    const shape = classifyInterruption(rowsOf('interrupt-main'), { target, reloadAt, resumedSince });
+    // Pre-reload custody is not read: that round trip would delay the reload. Offers are withdrawn, so
+    // peer transfers are not expected; any receipt after the resume is counted once with the resume.
+    report.interruption = { minimumInFlightBytes: MIN_INTERRUPTED_PIECE_BYTES, ledgerBefore, ...shape,
+      resumed: [...shape.resumed, ...peerTransfers(await observeCustody(page))],
       ledgerFinal: await readLedger(page), final: { sharing: files.sharing, error: files.error, offered: (await observeOffer(page)).offered } };
   });
 } finally {
-  report.assessment = assessContribution(report, freeze);
+  report.assessment = assessContribution(report, freeze, fixture);
   report.ok = Object.keys(report.stepErrors).length === 0 && report.assessment.automatedPass;
   report.status = report.ok ? 'automated contribution checks passed' : 'automated contribution acceptance failed';
   report.finishedAt = now(); await save();

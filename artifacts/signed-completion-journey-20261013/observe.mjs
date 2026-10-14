@@ -59,7 +59,9 @@ async function withHost(page, project) {
   } finally { await c.detach(); }
 }
 
-/** Conversation owner state and drafts (self/host/chat-session.js:139,180). */
+/** Conversation owner state and drafts (self/host/chat-session.js:139,180). Requester independence is
+ * the per-profile peer identity: the product route never sets REPLOID_INSTANCE_ID (only
+ * self/kernel/boot.js:160 does), so a per-tab instance id is not observed. */
 export function observeChat(page) {
   return withHost(page, ({ session, read }) => read(session, `function() {
     const state = this.getState();
@@ -69,7 +71,7 @@ export function observeChat(page) {
       storageMode: Object.hasOwn(state, 'ephemeralExecutions') ? 'transactional' : 'legacy',
       threads: state.threads, selectedId: state.selectedId, runningIds: state.runningIds, storageError: state.storageError,
       drafts: Object.fromEntries([null, ...state.threads.map(thread => thread.id)].map(id => [id ?? 'new', this.getDraft(id)])),
-      requesterPeerId: state.network?.consumer?.peerId ?? null, instanceId: globalThis.REPLOID_INSTANCE_ID ?? null
+      requesterPeerId: state.network?.consumer?.peerId ?? null
     };
   }`));
 }
@@ -94,6 +96,18 @@ export function observeCustody(page) {
     if (!files || files.subtype === 'null') throw Error('Custody observation unavailable');
     return read(files, 'function(){return {state:this.getState(),receipts:this.getReceipts()};}');
   });
+}
+
+/** Whether this tab owns its profile's peer connection. A refused tab has no consumer identity,
+ * shows the single-owner lock error (self/host/work-peer-offers.js:20-21) and has no custody owner,
+ * because work-swarm.js:165 stops before createModelFiles. Absence is reported, never thrown. */
+export async function observeConnectionOwner(page) {
+  const network = await observeNetwork(page);
+  let custodyOwner = true;
+  try { await observeCustody(page); }
+  catch (error) { if (/^(Swarm|Custody) observation unavailable$/.test(error.message)) custodyOwner = false; else throw error; }
+  return { consumerPeerId: network.consumerPeerId, error: network.error || null, custodyOwner,
+    filesSharing: !!network.files?.sharing, filesPreparing: !!network.files?.preparing };
 }
 
 /** Offered verified inventory and the custody identity peers acquire from

@@ -73,7 +73,22 @@ rejects('approved recipients that differ from the frozen route', 'recipientAppro
 });
 rejects('an attempt not approved by Send', 'recipientApproval', report => { report.turns[0].attempts[0].authorization.source = 'thread-grant'; });
 rejects('tabs that never executed simultaneously', 'concurrency', report => { report.concurrency.pairedSamples = [{ statuses: ['executing', 'queued'] }]; });
-rejects('tabs sharing one application instance', 'concurrency', report => { report.concurrency.tabs[1].instanceId = 'instance-a'; });
+// Independence was asserted through REPLOID_INSTANCE_ID, which the product route never sets (only
+// self/kernel/boot.js:160 does), so it could not pass for real independent requesters. One connected
+// tab per profile is the contract; independence is now separate profiles and peer identities.
+rejects('concurrent requests from one browser profile', 'concurrency', report => {
+  Object.assign(report.concurrency.tabs[1], { profile: report.concurrency.tabs[0].profile, profileDirectory: report.concurrency.tabs[0].profileDirectory });
+}, /separate browser profiles/);
+rejects('concurrent requesters sharing one peer identity', 'concurrency', report => {
+  report.concurrency.tabs[1].requesterPeerId = report.concurrency.tabs[0].requesterPeerId;
+}, /independent peer identities/);
+rejects('a concurrent requester without a peer identity', 'concurrency', report => { report.concurrency.tabs[0].requesterPeerId = null; },
+  /independent peer identities/);
+rejects('concurrent attempts sent by one requester', 'concurrency', report => {
+  report.concurrency.tabs[1].final.attempts.at(-1).execution.identity.requesterId = PEERS.tabA;
+}, /distinct requesters/);
+rejects('a concurrent requester without a profile directory', 'concurrency', report => { delete report.concurrency.tabs[0].profileDirectory; },
+  /separate browser profiles/);
 rejects('more tabs than the served admission limit', 'concurrency', report => { report.concurrency.servedLimit = 1; });
 rejects('a stop that lost its partial answer', 'isolatedCancellation', report => { report.concurrency.tabs[0].final.messages.at(-1).content = ''; });
 rejects('a stopped attempt the coordinator did not settle', 'isolatedCancellation', report => {

@@ -1,6 +1,8 @@
 // Shared runner plumbing. Every selector below is the application's own markup in self/ui;
-// the cited line renders it or binds its action. Nothing here is imported by the unit tests.
+// the cited line renders it or binds its action. Unit tests (harness.test.mjs) import only the
+// pure helpers and drive the UI helpers through a fake page; they never launch a browser.
 import fs from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { chromium } from 'playwright';
@@ -11,7 +13,8 @@ export const SELECTORS = Object.freeze({
   composerInput: '[data-composer-input]',            // conversation-workspace.js:50
   send: '[data-composer-send]',                      // conversation-workspace.js:53, submit at :305-333
   stop: '[data-composer-stop]',                      // conversation-workspace.js:54, session.cancel(selectedId) at :337
-  modelSelect: '[data-active-model-select]',         // conversation-workspace.js:27, change at :270
+  openModel: '[data-open-model]',                    // "Choose model", conversation-workspace.js:21; opens the thread rail at :104
+  modelSelect: '[data-active-model-select]',         // in the thread rail, conversation-workspace.js:17-27; change at :270
   modelReady: '[data-model-control][data-activity="ready"]', // conversation-workspace.js:217
   threadRail: '[data-toggle-thread-rail]',           // shell-view.js:41
   threadItem: id => `[data-thread-item-id="${id}"]`, // conversation-list.js:12, select at conversation-workspace.js:304
@@ -62,6 +65,30 @@ export async function openBrowser(spec) {
   return { browser, close: () => browser.close() };
 }
 
+/** One independent requester: its own browser process and new user data directory, so its own
+ * storage, Web Lock manager and stored peer identity. The product route connects one tab per
+ * profile (self/host/work-swarm.js:165, work-peer-offers.js:16-21), so independent requesters are
+ * separate profiles, never tabs of one profile. close() removes the directory. */
+export async function openRequesterProfile(spec, label, { debuggingPort = null } = {}) {
+  if (spec?.connect?.kind !== 'launch') throw Error('Independent requester profiles require browsers.requester.connect.kind "launch"');
+  const userDataDir = await fs.mkdtemp(path.join(os.tmpdir(), 'reploid-journey-profile-'));
+  try {
+    const context = await chromium.launchPersistentContext(userDataDir, { channel: spec.connect.channel, headless: spec.connect.headless,
+      viewport: { width: 1440, height: 1000 }, args: ['--disable-gpu', ...(debuggingPort ? [`--remote-debugging-port=${debuggingPort}`] : [])] });
+    let closing = null;
+    const close = () => closing ||= context.close().catch(() => {}).finally(() => fs.rm(userDataDir, { recursive: true, force: true }));
+    return { label, profileDirectory: path.basename(userDataDir), context, close };
+  } catch (error) { await fs.rm(userDataDir, { recursive: true, force: true }); throw error; }
+}
+
+/** Resolves with the promise's value or rejects at the deadline; the timer never outlives it. */
+export async function withDeadline(promise, timeout, label) {
+  let timer;
+  try {
+    return await Promise.race([promise, new Promise((_, reject) => { timer = setTimeout(() => reject(Error(`${label} deadline`)), timeout); })]);
+  } finally { clearTimeout(timer); }
+}
+
 export function findPage(browser, origin) {
   const page = browser.contexts().flatMap(context => context.pages()).find(item => item.url().startsWith(origin));
   if (!page) throw Error('Configured coordinator page is not open at its origin');
@@ -82,9 +109,11 @@ export async function servedDescriptor(context, origin, descriptorPath) {
   return (await response.json()).bundleHash;
 }
 
-/** Records every model-file request in a context; weights separately, as the precedent did. */
+/** Records every model-file request in a context; weights separately, as the precedent did.
+ * next(test) resolves with the first later row matching test, synchronously from the request
+ * event, so a caller can act while that transfer is still in flight. */
 export function trackRequests(context, patterns, sink, label) {
-  const rows = new Map(), pages = new WeakMap();
+  const rows = new Map(), pages = new WeakMap(), watchers = new Set();
   const pageOf = request => { try { return pages.get(request.frame().page()) ?? null; } catch { return null; } };
   context.on('request', request => {
     const kind = classifyRequest(request.url(), patterns);
@@ -93,6 +122,7 @@ export function trackRequests(context, patterns, sink, label) {
     const row = { label, page: pageOf(request), at: now(), url: request.url().split('?')[0], weight: kind.weight, range,
       declaredBytes: rangeBytes(range), responseBytes: null, finished: false, failed: false, finishedAt: null };
     rows.set(request, row); sink.push(row);
+    for (const watcher of [...watchers]) if (watcher.test(row)) { watchers.delete(watcher); watcher.resolve(row); }
   });
   context.on('requestfinished', async request => {
     const row = rows.get(request); if (!row) return;
@@ -103,10 +133,31 @@ export function trackRequests(context, patterns, sink, label) {
     const row = rows.get(request); if (!row) return;
     row.failed = true; row.finishedAt = now(); row.failure = request.failure()?.errorText ?? null;
   });
-  return { name: (page, value) => pages.set(page, value) };
+  return { name: (page, value) => pages.set(page, value), next: test => new Promise(resolve => watchers.add({ test, resolve })) };
 }
 export const transferBytes = row => Math.max(row.declaredBytes ?? 0, row.responseBytes ?? 0);
 export const transferKey = row => `${row.url}#${row.range ?? 'whole'}`;
+
+/** Partitions one page's model-file rows around a reload issued while `target` (a piece of at least
+ * MIN_INTERRUPTED_PIECE_BYTES) was transferring. Pieces are reserved and acquired one at a time
+ * (self/host/work-model-files.js:155-158,403-431), so rows finished before the target started were
+ * verified and persisted. Every row lands in exactly one list, so the ledger can be compared with
+ * the sum of all observed transfers. The target's outcome is `aborted` (failed by the navigation),
+ * `unsettled` (no terminal event) or `completed` (the reload lost the race). */
+export function classifyInterruption(rows, { target, reloadAt, resumedSince }) {
+  const ok = row => row.finished && !row.failed, item = row => ({ key: transferKey(row), bytes: transferBytes(row) });
+  const before = rows.filter(row => row.at <= reloadAt);
+  return {
+    reloadAt,
+    inFlightAtReload: target ? { key: transferKey(target), bytes: target.declaredBytes, weight: target.weight, startedAt: target.at,
+      outcome: ok(target) ? 'completed' : target.failed ? 'aborted' : 'unsettled', failure: target.failure ?? null, finishedAt: target.finishedAt } : null,
+    completedBefore: before.filter(row => ok(row) && target && row.finishedAt <= target.at).map(item),
+    completedDuringInterruption: before.filter(row => ok(row) && !(target && row.finishedAt <= target.at)).map(item),
+    interrupted: before.filter(row => !ok(row)).map(row => ({ key: transferKey(row), bytes: row.declaredBytes })),
+    unattributed: rows.filter(row => row.at > reloadAt && row.at < resumedSince).map(item),
+    resumed: rows.filter(row => row.at >= resumedSince).map(row => ({ ...item(row), finished: ok(row) }))
+  };
+}
 
 export async function waitFor(probe, { timeout, poll, label }) {
   const end = Date.now() + timeout;
@@ -123,13 +174,23 @@ export async function openApp(page, url, timeout) {
   await page.locator(SELECTORS.composerInput).waitFor({ timeout });
 }
 
-/** The requester chooses the frozen ordered selection; it never assigns a stage. */
+/** The requester chooses the frozen ordered selection; it never assigns a stage. The model select
+ * lives in the thread rail, which starts closed (conversation-workspace.js:103), so the rail is
+ * opened through the application's own "Choose model" control (:104) first. */
 export async function chooseOrderedModel(page, selectionId, timeout) {
-  const option = page.locator(`${SELECTORS.modelSelect} option[value="${selectionId}"]`);
-  await option.waitFor({ state: 'attached', timeout });
-  await page.locator(SELECTORS.modelSelect).selectOption(selectionId);
+  const control = page.locator(SELECTORS.openModel), select = page.locator(SELECTORS.modelSelect);
+  const controls = await control.count();
+  if (controls !== 1) {
+    throw Error(`Choose model control ${SELECTORS.openModel} ${controls ? `is ambiguous (${controls} found)` : 'is absent'}; `
+      + 'the model select in the closed thread rail cannot be reached through the application');
+  }
+  await control.click({ timeout });
+  try { await select.waitFor({ state: 'visible', timeout }); }
+  catch (cause) { throw Error(`Model select ${SELECTORS.modelSelect} stayed hidden after Choose model opened the thread rail: ${cause.message}`); }
+  await page.locator(`${SELECTORS.modelSelect} option[value="${selectionId}"]`).waitFor({ state: 'attached', timeout });
+  await select.selectOption(selectionId);
   await page.locator(SELECTORS.modelReady).waitFor({ state: 'attached', timeout });
-  return page.locator(SELECTORS.modelSelect).inputValue();
+  return select.inputValue();
 }
 
 export async function send(page, text, timeout) {

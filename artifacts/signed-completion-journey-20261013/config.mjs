@@ -136,6 +136,9 @@ export function validateConfig(raw) {
   if (exact(errors, 'config.browsers', browsers, ['requester', 'coordinator', 'storageSupplier', 'storageAcquirer'])) {
     for (const [name, value] of Object.entries(browsers)) browser(errors, `config.browsers.${name}`, value);
     if (browsers.coordinator?.connect?.kind !== 'cdp') fail(errors, 'config.browsers.coordinator.connect.kind', 'must be cdp: the running stage-0 contributor is observed, never launched');
+    // One connected tab per browser profile (README, "Contract decision"): independent requesters are
+    // separate profiles with new user data directories, which only a launched browser can create.
+    if (browsers.requester?.connect?.kind !== 'launch') fail(errors, 'config.browsers.requester.connect.kind', 'must be launch: independent requesters need separate user data directories created by the harness');
     if (Array.isArray(freeze?.route) && browsers.coordinator?.machine !== freeze.route[0]?.machine) fail(errors, 'config.browsers.coordinator.machine', 'must equal the stage 0 machine');
     if (browsers.storageAcquirer?.machine === browsers.storageSupplier?.machine) fail(errors, 'config.browsers.storageAcquirer.machine', 'must be another computer than storageSupplier');
     const endpoints = Object.values(browsers).map(item => item?.connect?.kind === 'cdp' ? item.connect.endpoint : `launch:${item?.connect?.remoteDebuggingPort}`);

@@ -165,12 +165,18 @@ function reloadFailures(report, fixture) {
   return failures;
 }
 
+/** Independent requesters are separate browser profiles, each with its own peer identity: the product
+ * route connects one tab per profile (README, "Contract decision"), and never sets a per-tab instance. */
 function concurrencyFailures(report, configTabs) {
   const { failures, require } = checker(), c = report.concurrency, tabs = c?.tabs || [];
-  require(tabs.length === configTabs && tabs.length >= 2, `Expected ${configTabs} concurrent independent tabs`);
+  const distinct = values => values.every(value => typeof value === 'string' && value.length > 0) && new Set(values).size === values.length;
+  require(tabs.length === configTabs && tabs.length >= 2, `Expected ${configTabs} concurrent independent requesters`);
   require(Number.isSafeInteger(c?.servedLimit) && tabs.length <= c.servedLimit, 'Concurrent requests exceed the served route admission limit');
-  require(tabs.every(tab => tab.instanceId) && new Set(tabs.map(tab => tab.instanceId)).size === tabs.length, 'Tabs are not independent application instances');
-  require(tabs.every(tab => tab.requesterPeerId) && new Set(tabs.map(tab => tab.requesterPeerId)).size === tabs.length, 'Tabs do not use independent requester identities');
+  require(distinct(tabs.map(tab => tab.profile)) && distinct(tabs.map(tab => tab.profileDirectory)),
+    'Concurrent requests do not come from separate browser profiles');
+  require(distinct(tabs.map(tab => tab.requesterPeerId)), 'Concurrent requesters do not use independent peer identities');
+  require(distinct(tabs.map(tab => tab.final?.attempts?.find(attempt => attempt.id === tab.attemptId)?.execution?.identity?.requesterId)),
+    'Concurrent attempts were not sent by distinct requesters');
   require(c?.pairedSamples?.some(sample => sample.statuses.length === tabs.length && sample.statuses.every(status => status === 'executing')),
     'Concurrent requests were never executing simultaneously');
   require(tabs.filter(tab => tab.role === 'cancel').length === 1 && tabs.filter(tab => tab.role === 'survivor').length === tabs.length - 1,
