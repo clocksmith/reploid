@@ -7,5 +7,11 @@
     "maxRouteBytes": 8192,
     "maxSelectionSteps": 2000,
     "maxRoutes": 4
+  },
+  "requesterHistory": {
+    "database": "reploid-requester-history",
+    "maxWorkspaceBytes": 16777216,
+    "maxThreads": 64,
+    "openTimeoutMs": 10000
   }
 }

@@ -31,6 +31,12 @@
       "contract": "Pinned Doppler artifact storage context receives verified file callbacks. The path is fixed relative to the configured runtime; no peer-controlled specifier or substitute inference implementation."
     },
     {
+      "source": "self/host/product-session.js",
+      "expression": "DOPPLER_PARTITIONS_MODULE_URL",
+      "owner": "self/host/CATSCAN.md",
+      "contract": "Pinned public Doppler partition API supplies only metadataDigest for requester-owned ordered history records. The host loads it when the installed catalog declares an ordered plan; peers cannot select runtime code or module URLs."
+    },
+    {
       "source": "self/boot-helpers/modules.js",
       "expression": "resolveModulePath(entryFile)",
       "owner": "self/host/CATSCAN.md",

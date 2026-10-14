@@ -125,6 +125,9 @@ export function createChatWorkspace({ meshId, participantId, store, execute, req
     assert(runs.size < limits.maxConcurrentAttempts, 'Concurrent conversation limit reached');
     assert(thread.messages.length < limits.maxMessagesPerThread, 'Conversation history limit reached');
     const controller = new AbortController();
+    // publicationMode 'canonical' is the persisted marker for requester-published output, from either
+    // canonical two-stage or ordinary ordered records; it does not mean canonical decoding. Saved
+    // histories already hold this value, so it is kept rather than renamed.
     const attempt = { id: id(), threadId: thread.id, userMessageId, responseId: id(), retryOf,
       status: 'queued', createdAt: now(), finishedAt: null, error: null, approval: null,
       execution: null, authorization: null, ...(transactional ? { publicationMode: 'canonical' } : {}), request: copy(request),

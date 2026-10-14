@@ -30,7 +30,7 @@ Outputs:
 - The shared policy may select a separate authenticated RTC credential URL; it cannot reroute other Poolday APIs or authorize a silent provider fallback.
 - Doppler defaults are pinned origin-relative assets; Node synchronization never serializes file URLs.
 - Poolday, Zero, and X profiles cannot silently inherit one another's authority.
-- Ordered route limits are versioned here and apply only to catalogs declaring an ordered plan. Stage assignment is per-instance operator storage, never a default, link or discovery result.
+- Ordered route limits and requester-history bounds are versioned here and apply only to catalogs declaring an ordered plan. Stage assignment is per-instance operator storage, never a default, link or discovery result.
 
 ## Acceptance
 - Surface intent and boot-seed contracts remain valid.
