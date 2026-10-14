@@ -9,7 +9,9 @@ import { bootstrapIntroductions } from './introduction-bootstrap.js';
 import { createPeerIntroductions, INTRODUCTION_CONTACT, INTRODUCTION_SIGNAL } from './introductions.js';
 
 const AUXILIARY_CHANNELS = Object.freeze(['reploid-custody', 'reploid-partitions',
-  'reploid-partitions-input', 'reploid-partitions-control', 'reploid-jobs']);
+  'reploid-partitions-input', 'reploid-partitions-control', 'reploid-jobs', 'reploid-partitions-ordered']);
+/** Labels this transport admits; consumers that open auxiliary channels must use one of these. */
+export const SWARM_AUXILIARY_CHANNELS = AUXILIARY_CHANNELS;
 
 const PROTOCOL_VERSION = 1;
 

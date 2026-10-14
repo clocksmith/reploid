@@ -2,7 +2,8 @@ import type { IntroductionBootstrapOptions } from './introduction-bootstrap.js';
 import type { IntroductionOptions, PeerIntroductions } from './introductions.js';
 import type { ResolvedConfig } from '../config/index.js';
 export type SwarmDataChannelLabel = 'reploid-custody' | 'reploid-partitions'
-  | 'reploid-partitions-input' | 'reploid-partitions-control' | 'reploid-jobs';
+  | 'reploid-partitions-input' | 'reploid-partitions-control' | 'reploid-jobs' | 'reploid-partitions-ordered';
+export declare const SWARM_AUXILIARY_CHANNELS: readonly SwarmDataChannelLabel[];
 export interface SwarmTransport {
   getIntroductions(): PeerIntroductions | null;
   init(): Promise<boolean>; disconnect(): void; sendToPeer(peerId: string, type: string, payload: unknown): boolean;

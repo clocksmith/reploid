@@ -1,0 +1,42 @@
+{
+  "schema": "reploid.signed-completion-journey-run-1-settlement/v1",
+  "settledAt": "2026-10-14T03:13:00Z",
+  "natives": {
+    "amd-host": {
+      "scope": "scj-run1-amd-native-1.scope",
+      "stop": "systemctl --user kill --signal=SIGTERM at 2026-10-14T03:11:42.460Z (graceful; the application's createNativeShutdown path)",
+      "observed": "partition phase failed -> stopping -> idle; unsettledOwners 1 -> 0; '[Pipeline] Unloaded'; '[GPU] Device lost: device was destroyed'; scope inactive within 2 s; journal: 2min 40.218s CPU over 2min 8.408s, 1.4G memory peak; no error or AggregateError printed after shutdown",
+      "notObserved": "the node exit code (scope processes are not reaped by the launching shell); a clean exit is inferred from the absent shutdown error",
+      "ownedProcessesAfter": 0, "ownedScopesAfter": 0, "port29670Listening": false
+    },
+    "intel-host": {
+      "scope": "scj-run1-intel-native-1.scope",
+      "stop": "systemctl --user kill --signal=SIGTERM at 2026-10-14T03:11:44.126Z",
+      "observed": "failed -> stopping -> idle; unsettledOwners 1 -> 0; Pipeline unloaded; device destroyed; scope inactive within 2 s; journal: 2min 27.111s CPU, 2.7G memory peak, 0B memory swap peak",
+      "notObserved": "the node exit code",
+      "ownedProcessesAfter": 0, "ownedScopesAfter": 0, "ports29670and29674Listening": false
+    }
+  },
+  "mac-host": {
+    "appServer": "pid 49569 SIGTERM; request log records 'stopping' at 2026-10-14T03:12:11.523Z; the only model-file request was this run's own 100-byte range probe",
+    "tunnels": "pids 49633 and 49634 SIGTERM; absent afterwards",
+    "browsers": "none started",
+    "ports29670to29674Listening": false,
+    "nonOwnedProcessesUnchanged": true,
+    "privateRoomFile": "removed with its empty /var/tmp directory; remote copies removed"
+  },
+  "publicContributors": {
+    "amd-host": { "unchanged": true, "pids": [4103868, 4121371] },
+    "intel-host": { "unchanged": true, "pids": [297260, 299769] },
+    "evidence": "preflight/*.json versus settlement/*.json: identical pid and argument lists"
+  },
+  "persistentStateChanges": {
+    "amd-host": "release checkpoint advanced from sequence 1 d47ddb8d... to sequence 2 923ac7e6... (signed opening, not a reset); supply ledger unchanged at 662384632 of 4294967296 bytes; cache 569 -> 602 entries (file-sharing inventory of the new model); identity unchanged (sha256 871ad22c...)",
+    "intel-host": "new signed state retained at /var/tmp/reploid-signed-completion-journey-run1-20261013/intel-state: identity peer:09610aefbd15a133d7af2b57, checkpoint at sequence 2 923ac7e6..., ledger 0 of 4294967296 bytes, 579 cache entries",
+    "remoteRunFiles": "stage config and native log under /var/tmp/reploid-signed-completion-journey-run1-20261013 on each native host"
+  },
+  "reviewerNotes": [
+    "Each native host's systemd user journal recorded the full scope command line, including the private room token. The room is dead (signaling server stopped), but the token string remains in those journals; the precedent launch had the same exposure.",
+    "maxAcquisitionChunkBytes and the 4 GiB ledgers were not changed; no release sequence was reset."
+  ]
+}

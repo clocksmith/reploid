@@ -1,0 +1,6 @@
+{"at":"2026-10-14T03:07:58.465Z","kind":"listening","address":{"address":"127.0.0.1","family":"IPv4","port":29670},"pid":49569}
+{"at":"2026-10-14T03:08:00.445Z","kind":"model-file","method":"GET","path":"/shard_00000.bin","range":"bytes=0-99","status":206,"origin":null}
+{"at":"2026-10-14T03:09:34.447Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T03:09:39.016Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T03:11:43.499Z","kind":"upgrade","path":"/swarm","origin":"http://127.0.0.1:29670"}
+{"at":"2026-10-14T03:12:11.523Z","kind":"stopping","pid":49569}

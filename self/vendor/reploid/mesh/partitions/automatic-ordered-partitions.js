@@ -1,6 +1,7 @@
 import { generationRequest, requireGenerationCapability } from './partition-generation-request.js';
 import { createPartitionDiscovery } from './partition-discovery.js';
 import { selectPartitionRoute, selectPartitionExecution } from './partition-placement.js';
+import { ORDERED_PARTITION_CHANNEL } from './partition-route-network.js';
 import { createPartitionPeer } from './partition-peer.js';
 import { createPartitionEntry } from './partition-entry.js';
 import { summarizePartitionExecution } from './partition-summary.js';
@@ -106,7 +107,7 @@ export function createAutomaticOrderedPartitions({ identity, meshId, models, pol
       program = candidate;
       preparationOwners.clear(); // Validated handoff transfers loading ownership to the resident.
       if (closed || offer !== selected || stopping) return;
-      execution = createNetwork({ label: 'reploid-partitions-ordered', maxPeers: config.maxPeers, timeoutMs: config.connectTimeoutMs,
+      execution = createNetwork({ label: ORDERED_PARTITION_CHANNEL, maxPeers: config.maxPeers, timeoutMs: config.connectTimeoutMs,
         ordered: { maxRouteBytes: options.maxRouteBytes, async validateRoute(route, context) {
           if (!offer || stopping || closed || !program) return false;
           try {

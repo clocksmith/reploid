@@ -1,0 +1,1 @@
+{"at":"2026-10-14T03:08:05Z","process":"app-server","pid":49569,"command":"node tools/app-server.mjs <export app> <capsule -c> 29670 logs/app-server-requests.jsonl","bind":"127.0.0.1:29670","machine":"mac-host"}
