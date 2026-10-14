@@ -2,10 +2,20 @@
 
 ## Product specification
 
-**Reploid Product Economics Contract v1.0.** Adopted product requirements, merged
-into the seven-section definition below. MUST denotes a requirement, not a claim
-of implementation. Installed behavior and physical qualification remain separately
-recorded. Unresolved policies and their interim behavior are explicit.
+**Reploid Product Economics Contract v1.0**, identity
+`reploid.product-economics/1.0.0`. Normative product requirements merged into the
+seven-section definition below. MUST denotes a requirement, not implementation or
+economic proof. Credit quotes, rewards, redemption and solvency remain
+unimplemented/unproven unless separately evidenced in the canonical register.
+Resource allowances and signed execution do not establish a credit economy.
+
+Version this contract independently of applications, models and Doppler packages.
+Every quote and receipt MUST bind its exact version and immutable document revision.
+Material changes to accepted rights/obligations require a major version and newly
+accepted terms; additive requirements use a minor version, clarifications a patch.
+Preserve prior versions and receipts; never apply new policy retroactively.
+Explicitly labeled proposed defaults remain recommendations, not adopted policy.
+The existing requirements below own execution; this is not another work queue.
 
 **Earn on your computer. Use AI anywhere.**
 
@@ -22,11 +32,18 @@ Reploid owns discovery, acquisition, placement, permissions, reservations,
 accounting and conversations. Doppler owns computation, sampling and inference
 state. Compute reservations and resource settlement are not financial accounting.
 
-Every inference quote and receipt MUST identify the model, checkpoint, deployed
-representation, runtime, operation, context allowance, output limits and
-quality-policy version; permitted recipient policy and disclosure scope; queue
-class, deadline, execution limits and accounting version. Receipts additionally
-record actual execution recipients and the accepted quote/attempt identity.
+Every offered service, accepted quote and receipt MUST bind an immutable service
+record: exact model, checkpoint/weights, deployed representation, tokenizer and
+applicable adapter identities; separately qualified runtime; operation and
+input/output contract; input/history/context and output limits with units and
+exceedance behavior; quality-policy version; permitted recipient policy and actual
+recipient binding within disclosure scope; queue eligibility, fairness and bounded
+waiting; absolute expiry and deadline for satisfactory durable output; resource,
+concurrency, duration, retry/output limits and stop/unknown-cleanup behavior; and
+accounting units, precision/rounding, metering, reservation, reward and settlement
+versions. No silent truncation or substituted service. Bind accepted quote/attempt
+identity and actual recipients durably before dispatch. Changed service needs a
+new eligible record and authorization when outside existing grants.
 
 Acceptance: [REP-7](docs/roadmap/requirements.md#rep-7),
 [REP-10](docs/roadmap/requirements.md#rep-10),
@@ -40,8 +57,10 @@ credit allocation. It MUST have fair queues, usage limits, abuse controls and
 visible availability. Registration MUST NOT automatically issue transferable credits.
 
 An operator-funded guaranteed basic-service minimum remains an open decision.
-Until funding and supply are committed, disclose queuing or explicit retry without
-a guaranteed completion time. A positive credit balance likewise does not guarantee
+**Proposed default:** until funding and supply are committed, disclose queuing or
+explicit retry without a guaranteed minimum or completion time; queue access does
+not promise an eventual answer. A funded floor requires declared allocation,
+funding source, admission limits, reliability coverage and shortfall behavior. A positive credit balance likewise does not guarantee
 immediate capacity. Requesting, earning and purchasing remain independently available.
 
 Acceptance: [REP-9](docs/roadmap/requirements.md#rep-9).
@@ -60,6 +79,10 @@ maximum before execution. Every billable event MUST have exactly one economic
 effect across delivery retries, reloads and crashes; release unused reservations.
 A separately authorized replacement attempt may incur its own charge, but MUST NOT
 silently exceed authorized spending or duplicate an earlier event's charge.
+Credits reserve funds, not capacity or permission. Capacity admission stays with
+the execution owners; expired or unadmitted requests MUST follow declared release
+rules rather than hold funds indefinitely. Unknown physical cleanup remains owned
+against resource budgets, but MUST NOT extend monetary holds or charges implicitly.
 
 Before enabling charges, define full/reduced settlement, cancellation, timeout,
 partial delivery, provider failure, failed-quality outcomes, refunds, compensation
@@ -74,9 +97,12 @@ credible supply, demand, settlement evidence, fraud controls and applicable lega
 review; it is not required for the first product.
 
 Track outstanding balances, expected redemption demand, admitted supply,
-reliability reserves, Community Access funding and operator subsidy. Reward
-issuance MUST account for future service demand and available capacity. Issuing
-credits does not create capacity.
+reliability/replacement reserves, Community Access funding and operator subsidy.
+State valuation assumptions, observation windows and uncertainty; stress synchronized
+redemptions, departures, quality failures, refunds and demand spikes before service
+commitments. Reward issuance MUST account for future service demand and available
+capacity. Issuing credits or observing low redemption does not establish solvency;
+nominal balances are not guaranteed dollar-redemption liabilities.
 
 Acceptance: [REP-10](docs/roadmap/requirements.md#rep-10),
 [REP-11](docs/roadmap/requirements.md#rep-11), [REP-14](docs/roadmap/requirements.md#rep-14).
@@ -94,6 +120,10 @@ Questions, summaries and retrieval-backed answers MUST have distinct frozen
 quality policies. Assess factual correctness and completeness, summary fidelity
 to supplied material, and search claims supported by valid citations. Independent
 whole-answer review MUST include false additions and identify its review method.
+The reviewer must be independent of task/check authoring and candidate tuning;
+self-review does not satisfy this gate. Assessment authority must also be
+independent of provider reward interests, with declared uncertainty handling and
+no retrospective rewriting of evaluation criteria.
 In economic experiments, only answers that pass the applicable quality policy
 and arrive within their declared deadline count as successful. Failed attempts,
 retries and duplicate work stay in total costs. Numerical parity alone does not
@@ -107,17 +137,24 @@ Acceptance: [REP-8](docs/roadmap/requirements.md#rep-8),
 Reward demanded, validated computation, useful verified delivery, or explicitly
 contracted storage or prepared availability. Each reward category needs its own
 qualification. A contribution offer MUST state requested work, reward basis,
-validation conditions, resource bounds, duration and failure compensation.
+validation conditions, resource bounds, duration, maximum reward or calculation,
+payment timing and failure compensation.
 Contracted readiness requires evidence that promised capacity was maintained;
 contracted storage requires evidence of agreed custody and service obligations.
-Mere online presence earns nothing. Small useful contributions remain welcome;
-unnecessary machines should sleep.
+Verified storage/delivery and contracted readiness can earn without inference
+completing during the interval. Bind demanded model/pieces, capacity, interval,
+limits, formula and validation before admission; retain failed challenges, missed
+intervals and duplicate claims. Value storage, transfer, readiness and computation
+separately so incompatible claims cannot reward the same contribution twice.
+Storage is not execution readiness. Mere online presence earns nothing. Small
+useful contributions remain welcome; unnecessary machines should sleep.
 
 Native contribution targets macOS, Windows and Linux; releases MUST list only
 qualified combinations. Enforce schedules, memory, bandwidth, supported power and
-temperature controls, and foreground responsiveness. Reduce admission when the
+temperature controls, and foreground responsiveness, including host/GPU memory,
+retained storage and energy limits where enforceable. Reduce admission when the
 owner needs the machine and settle active work safely. Disclose unsupported
-controls. Require equipment and network authorization, including workplace use.
+controls and reject work that requires a limit the host cannot enforce. Require equipment and network authorization, including workplace use.
 
 Reuse prepared weights, batch compatible requests and minimize unnecessary
 transfers. Support both whole-model execution on a participant and qualified
@@ -128,17 +165,23 @@ none retaining the complete weight set, and a requester without weights. Verify
 per-executor inventories and selective acquisition. Separately authorized storage
 suppliers may retain a complete model; preserve full-model seeding under REP-5.
 
-Remote executors are disclosure recipients; P2P does not provide automatic
-confidentiality. Recipient authorization MUST be explicit and revocable through
+Remote executors receive disclosed text, tokens and intermediate representations;
+tokens, transport encryption and signatures do not establish confidential execution.
+Describe prior turns and attached/retrieved context before relying on a grant.
+Model approval alone does not establish trust in arbitrary computers. Recipient authorization MUST be explicit and revocable through
 the explained, one-time permission. Renew approval only outside the granted
 recipient policy/disclosure scope or when other authorized terms are exceeded,
-not whenever an eligible computer changes between requests. Record actual
+not whenever an eligible computer changes between requests. The existing one-time
+network permission can satisfy recipient-policy authorization when its recorded
+scope explicitly covers the selected recipients, model and disclosure. Record actual
 recipients and never silently switch an active attempt's route. Revocation stops
 new disclosures; it cannot erase information already delivered.
 
 Arbitrary-peer eligibility versus approved operators for sensitive work remains
-an open policy decision. Until resolved, reject execution without an explicitly
-authorized recipient policy; this does not silently select either policy.
+an open policy decision. **Proposed default:** fail closed when recipient eligibility
+or disclosure scope is unspecified; participation, payment and signatures confer
+no trusted status. Existing grants remain mandatory regardless. Any approved-operator
+class needs defined admission criteria, identity and scope; it does not prove secrecy.
 Stopping contribution MUST preserve history and MUST NOT directly cancel
 unrelated requests. Loss of indispensable capacity may require waiting or explicit
 retry. Saved history MUST NOT be represented as recovered inference state.
@@ -160,11 +203,20 @@ failures, cooling, hardware allocation/depreciation and operating costs. Show
 requester charges, contributor costs/rewards and operator accounts separately.
 Consolidated costs MUST NOT double-count payments between those parties.
 
-Measure whole-system gross energy and incremental energy against a stated
-no-Reploid baseline. Record tariffs, subsidies, delays, quality decisions and
-failed work. API prices do not establish provider energy consumption. Subsidies
+Measure whole-system gross energy and incremental energy against an observed or
+explicitly modeled no-Reploid baseline under comparable foreground/background load.
+Record meter boundary/location, instrument, sampling interval, duration and uncertainty;
+include wake, idle and preparation effects. Component estimates are not wall power.
+Record tariffs, currency, location/time applicability, incremental-kWh cost calculation,
+subsidies, delays, quality decisions and failed work; unknown measurements stay unknown. API prices do not establish provider energy consumption. Subsidies
 can improve user prices but do not establish underlying economic efficiency.
 Report quality, reliability, latency and successful completion alongside costs.
+Include every attempt's costs in the numerator and only independently accepted,
+on-time answers in the denominator; zero satisfactory answers permits no favorable
+unit-cost claim. Compare feasible local, equivalent centralized, hosted/rented and
+hybrid-memory alternatives with matched model/hardware where possible and label
+task-equivalent comparisons separately. Report both dollars and joules, tradeoffs
+and uncertainty even when only one improves.
 
 Acceptance: [REP-14](docs/roadmap/requirements.md#rep-14),
 [DR-6](docs/roadmap/requirements.md#dr-6).
@@ -186,7 +238,11 @@ Canonical receipt: "A device contributed under declared limits for one night,
 consumed X incremental kWh costing $Y, completed Z accepted work or reserved
 readiness, earned C credits, and redeemed them for N satisfactory, on-time answers."
 Bind the receipt to measurement, work/availability, ledger, redemption and quality
-evidence; quantify each accepted work category in declared units.
+evidence; quantify each accepted work category in declared units and define the
+redemption window and accepted task decisions. Show outstanding credits, failed
+redemptions and unknown values. Unredeemed rewards do not complete the proof.
+The economic loop and partitioned-model demonstration are distinct required results;
+a complete-model remote redemption cannot substitute for partitioned inference.
 
 After reliability, pursue independent adoption and possible OpenRouter distribution.
 Neither marketplace launch nor external platform listing is required for this loop.
@@ -198,14 +254,20 @@ Acceptance: [REP-13](docs/roadmap/requirements.md#rep-13),
 
 | Decision | State and owner |
 | --- | --- |
-| Community Access guarantee | Open, user: whether to commit operator-funded basic capacity. Interim behavior is disclosed queue/retry without a guaranteed completion time. REP-9 owns the gate. |
+| Community Access guarantee | Open, user: whether to commit operator-funded basic capacity. Proposed default: disclosed queue/retry without a guaranteed minimum or completion time. REP-9 owns the gate; the proposal makes no funding commitment. |
 | Reward eligibility | Adopted: demanded computation, useful verified delivery, explicitly contracted storage and prepared readiness. REP-11 qualifies each category; no reward for unrequested presence. |
 | Account transfers | Adopted: design transferability now; transfers and marketplace are off initially. REP-10 qualifies later activation; direct transfers need not wait for marketplace launch. |
-| Recipient eligibility | Open, user: arbitrary participating computers versus approved operators for sensitive work. DR-3 rejects execution without an explicitly authorized policy; existing revocable permission is preserved. |
+| Recipient eligibility | Open, user: arbitrary participating computers versus approved operators for sensitive work. Proposed default: reject unspecified eligibility/disclosure, without inferring trust from payment or participation. Existing explicit, revocable grants remain mandatory; DR-3 owns enforcement. |
 | First distributed proof | Partitioned execution with no execution participant retaining the complete weights and no requester weights. DR-5/DR-6 require exact-run inventory and execution evidence. Separate REP-5 storage seeds may hold the complete model. |
 
-Existing receipts retain their exact model/runtime/package/placement scope. This
-specification starts no replacement numerical campaign and declares no new acceptance.
+Existing receipts retain their exact model/runtime/package/placement scope. The
+[run-7 native launcher](artifacts/signed-completion-journey-20261013/run-7/tools/native-launch.sh)
+uses pre-existing model directories on both native hosts; it does not establish
+partition-only native custody. The installed route proves partitioned computation,
+not the stronger no-complete-weight-set demonstration. That requires selective
+native acquisition and exact-run inventories; completed execution evidence stays
+accepted at its original scope. This specification starts no replacement numerical
+campaign and declares no new acceptance.
 
 ## Delivery priorities
 
@@ -224,7 +286,7 @@ Finish the faster correct installed-chat candidate below. In parallel, define an
 | Milestone | Launch 1: Qwen 3.5 0.8B Q4K (`qwen-3-5-0-8b-q4k-ehaf16`) through configured prepared capacity, selected automatically for the requester; complete conversations and bounded independent requests. |
 | Blocker | Numerical qualification of candidate `2df37d88…` is closed: the [second rerun](artifacts/completion-qualification-2-20261013/README.md) passes all 55 prefixes within `0.001`, with cleanup and reports accepted, and the [16-token chunk requalification](artifacts/completion-qualification-3-20261014/README.md) passes all 55 prefixes in both placements. The [installed three-stage journey](artifacts/signed-completion-journey-20261013/README.md) now passes on both placements with test signing: placement A on [`final-5`](artifacts/signed-completion-candidate-20261013/README.md) (requester 13/13, contributor loss 7/7, Launch 2 contribution 7/7; runs 5 and 6) and placement B (output head on AMD) in run 7 on `final-7` (Reploid `c44ec852`: requester 13/13 with the one-time remote-contributor permission and installed transactional history, contributor loss 7/7), `final-8` (`76296a53`: contribution 7/7) and `final-9` (`1473eda7`, Capsule release sequence 5: requester 13/13 with installed transactional history, contributor loss 7/7, contribution 7/7 and explicit full-model seeding 7/7, where another computer acquired the whole model from a browser seed through signed custody). Run 7 fixed three application defects: a route that never re-formed after a stage's coordinator channel was lost (`c44ec852`), custody rejecting the signed catalog's relative program paths (`76296a53`) and one stalled supplier ending a whole-model acquisition (`1473eda7`). No i915 event occurred. In contribution attempt j, Intel native 16 exited on SIGSEGV mid-answer; the [crash investigation](artifacts/native-crash-20261014/README.md) reproduces a node crash on that host in Mesa's shader-cache NIR reload during pipeline creation and keeps the exit open as a reliability item. Still open: two wrong example outputs, attributed by the [answer cause](artifacts/answer-cause-20261014/README.md) comparison to the deployed Q4_K weights (turn 1) and to the source model (turn 2), retained as failed answers pending the quality decision and independent answer review; speed, a product limitation (about 2.5 s per generated token on placement B and 3.3 s on placement A, Intel-bound); a context bound (Intel prefill measured at about 1.0 to 1.1 s per prompt token, so prompts much past 270 tokens exceed the 300 s stage bound used in the journeys, and the 1,588-token workload is unrun); recurring 10 to 30 s `mac-host` network stalls in the test environment; and production signing, which blocks public promotion only. Historical archive `9264d265…` remains failed. |
 | Accountable owner | Reploid release integration owns Launch 1 delivery; Doppler owns runtime repair and numerical qualification. GPU ownership comes from fresh recorded process checks and the scoped campaign reservation. |
-| Next action | The 0.8B configuration remains the engineering vehicle; useful-answer acceptance decides release suitability. On the [useful-answer set](artifacts/useful-answer-set-20261014/README.md), mechanical checks pass 32/38 for Q4_K and 35/38 for bf16, but whole-answer assessment, which covers every factual claim, instruction and example and never counts unverified claims as correct, finds both weight variants whole-answer correct on only 17 of 40 items. This remains an unresolved product-quality gap. Higher precision fixes three scored failures, not the model's underlying mistakes. The [standalone-to-partition isolation](artifacts/speed-isolation-20261014/README.md) on `amd-host` (the 68 tokens/s receipt's GPU; same weights, prompts and Node/Dawn stack) finds the loss in the paired execution profile: ordinary execution decodes in 28.4 ms per token (22.4 ms batched) and processes a 56-token prompt in 0.29 s; the paired whole model takes 600 ms and 17.3 s; three local stages add 4%; placement B takes about 2.5 s, mostly the Intel stage (1.66 s for layers that take 182 ms on AMD). The paired step is GPU-bound (454 of 577 ms); attention, RMSNorm and the recurrent gated delta are 70-330x their ordinary kernels, beyond the paired matmul's arithmetic cost ([paired matmul cost](https://github.com/clocksmith/doppler/blob/52b4e31d/artifacts/paired-matmul-prefill-cost-20261014/README.md)). The correctness standard, not an arithmetic implementation, is the requirement: the [plain profile check](artifacts/plain-profile-reference-20261014/README.md) against the same F64 reference fails the unchanged 0.001 tolerance on the 184-token request (28 of 55 steps within; maximum 3.50e-3; all 55 tokens equal), and a two-F32 recurrent state alone reaches 37 of 55. The [divergence localization](artifacts/plain-profile-reference-20261014/README.md#first-divergence-and-controlled-substitutions-2026-10-14-later) finds the cause: the F16 K/V cache store of the full-attention layers. Plain F32 rounding (first difference at the layer-0 norm, about 5e-7) moves 0.35% of the layer-3 K/V values to a different F16 step than the reference, and attention amplifies it; substituting only the reference K/V makes plain pass at plain speed (2.26e-5, a diagnostic). Every tested correction confined to the plain path failed; cheaper ways to produce sufficiently accurate K/V are not ruled out. The cheapest passing configuration tested, paired layers 0-15 with plain layers 16-23 and head, passes at 6.6e-4 and 356 ms per token; it needs mixed-precision execution support and physical qualification and is kept as an alternative. Next: optimize the paired kernels (attention, recurrent gated delta, linear-attention prepare, RMSNorm, then matmul) under the unchanged reference and tolerance, with the existing kernels as controls, completion waits kept, kernel-level tests that exercise reordered reductions, and bit-identical stored F16 K/V recorded as a separate regression requirement. Report full-model prompt and decode times, preparation cost and memory peaks, then installed conversation latency for one frozen candidate. Avoiding Intel requires prepared replacement capacity for its layers within measured budgets; ranking cannot substitute for it. Retained lead if the kernel work is insufficient: K-only reference substitution passes (9.89e-4), so accurate K production alone is a specific optimization lead; it is not yet an implementable fix. Placement avoids the Intel stage when faster authorized capacity can serve a request and keeps slower devices when their memory supplies otherwise unavailable capacity. Stages advertise readiness only after their required pipelines are prepared (Doppler `9830aaec` for the paired path). Set the published context bound from the fix that follows; then run the 1,588-token workload and allocation reuse. The test release is renewed to sequence 6 (Doppler `9f9cd355`, expires 2026-10-15T19:34Z); the next installed run needs a delivery that carries it, or production signing. Production signing gates public promotion only; Flash-Next preparation continues independently. |
+| Next action | The 0.8B configuration remains the engineering vehicle; useful-answer acceptance decides release suitability. On the [useful-answer set](artifacts/useful-answer-set-20261014/README.md), mechanical checks pass 32/38 for Q4_K and 35/38 for bf16, but whole-answer assessment, which covers every factual claim, instruction and example and never counts unverified claims as correct, finds both weight variants whole-answer correct on only 17 of 40 items. This remains an unresolved product-quality gap. The assessment was made by the same model reviewer that authored the set, without a second review, so it does not satisfy independent whole-answer acceptance. Higher precision fixes three scored failures, not the model's underlying mistakes. The [standalone-to-partition isolation](artifacts/speed-isolation-20261014/README.md) on `amd-host` (the 68 tokens/s receipt's GPU; same weights, prompts and Node/Dawn stack) finds the loss in the paired execution profile: ordinary execution decodes in 28.4 ms per token (22.4 ms batched) and processes a 56-token prompt in 0.29 s; the paired whole model takes 600 ms and 17.3 s; three local stages add 4%; placement B takes about 2.5 s, mostly the Intel stage (1.66 s for layers that take 182 ms on AMD). The paired step is GPU-bound (454 of 577 ms); attention, RMSNorm and the recurrent gated delta are 70-330x their ordinary kernels, beyond the paired matmul's arithmetic cost ([paired matmul cost](https://github.com/clocksmith/doppler/blob/52b4e31d/artifacts/paired-matmul-prefill-cost-20261014/README.md)). The correctness standard, not an arithmetic implementation, is the requirement: the [plain profile check](artifacts/plain-profile-reference-20261014/README.md) against the same F64 reference fails the unchanged 0.001 tolerance on the 184-token request (28 of 55 steps within; maximum 3.50e-3; all 55 tokens equal), and a two-F32 recurrent state alone reaches 37 of 55. The [divergence localization](artifacts/plain-profile-reference-20261014/README.md#first-divergence-and-controlled-substitutions-2026-10-14-later) finds the cause: the F16 K/V cache store of the full-attention layers. Plain F32 rounding (first difference at the layer-0 norm, about 5e-7) moves 0.35% of the layer-3 K/V values to a different F16 step than the reference, and attention amplifies it; substituting only the reference K/V makes plain pass at plain speed (2.26e-5, a diagnostic). Every tested correction confined to the plain path failed; cheaper ways to produce sufficiently accurate K/V are not ruled out. The cheapest passing configuration tested, paired layers 0-15 with plain layers 16-23 and head, passes at 6.6e-4 and 356 ms per token; it needs mixed-precision execution support and physical qualification and is kept as an alternative. Next: optimize the paired kernels (attention, recurrent gated delta, linear-attention prepare, RMSNorm, then matmul) under the unchanged reference and tolerance, with the existing kernels as controls, completion waits kept, kernel-level tests that exercise reordered reductions, and bit-identical stored F16 K/V recorded as a separate regression requirement. Report full-model prompt and decode times, preparation cost and memory peaks, then installed conversation latency for one frozen candidate. Avoiding Intel requires prepared replacement capacity for its layers within measured budgets; ranking cannot substitute for it. Retained lead if the kernel work is insufficient: K-only reference substitution passes (9.89e-4), so accurate K production alone is a specific optimization lead; it is not yet an implementable fix. Placement avoids the Intel stage when faster authorized capacity can serve a request and keeps slower devices when their memory supplies otherwise unavailable capacity. Stages advertise readiness only after their required pipelines are prepared (Doppler `9830aaec` for the paired path). Set the published context bound from the fix that follows; then run the 1,588-token workload and allocation reuse. The test release is renewed to sequence 6 (Doppler `9f9cd355`, expires 2026-10-15T19:34Z); the next installed run needs a delivery that carries it, or production signing. Production signing gates public promotion only; Flash-Next preparation continues independently. |
 | Completion condition | Unchanged approved independent reference, all 55 required prefixes and `0.001` tolerance (met); installed signed conversation and lifecycle acceptance (automated checks met on `final-5`); independent answer review; production-signed promotion. Preserve approved precision, weights, F16 caches and the `1,420,000,000` allocated-byte per-executor ceiling. |
 | Historical migration snapshot | Reploid [`229a6e601adbd970de38c3315d069de4ba707cce`](https://github.com/clocksmith/reploid/tree/229a6e601adbd970de38c3315d069de4ba707cce), migration base as read 2026-10-13; newer [storage evidence](artifacts/storage-contribution-20261013/README.md) through `92642382` is preserved. This migration adds no hardware evidence. |
 | Accepted package | Doppler `0.6.27`; [unchanged pin](https://github.com/clocksmith/reploid/blob/229a6e601adbd970de38c3315d069de4ba707cce/self/config/doppler-package.json). The accepted public runtime remains available while the replacement qualifies. |
