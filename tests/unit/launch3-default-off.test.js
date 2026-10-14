@@ -5,6 +5,7 @@ import { snapshotWorkOrderedParticipation, bindWorkOrderedParticipation } from '
 import { getOrderedParticipation } from '../../self/host/product-context.js';
 import orderedPolicy from '../../self/config/ordered-participation.json' with { type: 'json' };
 import { fixture as stagesFixture } from '../fixtures/ordered-partition-ports.js';
+import { coordinatorFixture } from '../fixtures/automatic-ordered-coordinator.js';
 
 // Launch 1 candidate behavior with no `ordered.orchestration` member. Every Launch 3 mechanism
 // must leave these observations unchanged until a host explicitly enables it.
@@ -65,6 +66,19 @@ describe('Launch 3 mechanisms are off by default (Launch 1 candidate behavior)',
     expect(c.resident.close).not.toHaveBeenCalled(); expect(c.resident.drain).not.toHaveBeenCalled();
     expect(Object.keys(c.discovery.options.describe())).toEqual(['schema', 'participantId', 'phase', 'models', 'capacity']);
     expect(c.mesh.getState()).not.toHaveProperty('assignment');
+  });
+
+  it('a coordinator keeps its healthy first-valid route: no ranking, no spill, no observations', async () => {
+    const c = await coordinatorFixture({ discoveryOwners, cleanups });
+    await c.mesh.contribute('model', true);
+    expect(c.stageOne()).toBe('node-1');
+    await c.generate('first');
+    c.capacity.set('node-1', 0); // a stage hint alone does not move new attempts off a healthy route
+    expect((await c.generate('second')).content).toBe('012');
+    expect(c.stageOne()).toBe('node-1');
+    expect(c.replica.executeStage).not.toHaveBeenCalled();
+    expect(c.mesh.getState().placementDecision.reason).toBe('retain-prepared-route');
+    expect(c.mesh.getState()).not.toHaveProperty('routeObservations');
   });
 
   it('host configuration without orchestration binds exactly the Launch 1 ordered options', () => {

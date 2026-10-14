@@ -63,8 +63,16 @@ export function createWorkPartitionPlan(runtime, manifest, selected, index = 0) 
 }
 
 /** Launch 3 policy members; each stays off unless the operator configures it. */
+const positiveInteger = value => Number.isSafeInteger(value) && value > 0;
+const exactKeys = (value, keys) => !!value && typeof value === 'object' && !Array.isArray(value)
+  && Object.keys(value).length === keys.length && keys.every(key => Object.hasOwn(value, key));
 const ORCHESTRATION_POLICIES = Object.freeze({
-  autoStage: value => Number.isSafeInteger(value?.dwellMs) && value.dwellMs >= 0 && Object.keys(value).length === 1
+  autoStage: value => exactKeys(value, ['dwellMs']) && Number.isSafeInteger(value.dwellMs) && value.dwellMs >= 0,
+  routeRanking: value => exactKeys(value, ['margin', 'smoothing', 'maxObservations', 'workload'])
+    && typeof value.margin === 'number' && value.margin >= 0 && value.margin < 1
+    && typeof value.smoothing === 'number' && value.smoothing > 0 && value.smoothing <= 1 && positiveInteger(value.maxObservations)
+    && exactKeys(value.workload, ['promptTokens', 'expectedTokens']) && positiveInteger(value.workload.promptTokens)
+    && positiveInteger(value.workload.expectedTokens)
 });
 const isAutoStage = stage => stage?.assignment === 'auto';
 

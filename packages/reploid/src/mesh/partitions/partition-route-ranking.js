@@ -87,21 +87,29 @@ export function rankPartitionRoutes({ planId, candidates, observations, workload
     }
   };
   walk(0, 0, [], 0);
+  // Ties compare participant ids stage by stage in code-unit order, like first-valid matching;
+  // locale collation would ignore separators and differ between hosts.
+  const byIds = (a, b) => { for (let i = 0; i < a.stages.length; i++) {
+    const x = a.stages[i].participantId, y = b.stages[i].participantId;
+    if (x !== y) return x < y ? -1 : 1;
+  } return 0; };
   const order = (a, b) => (a.measured === b.measured ? 0 : a.measured ? -1 : 1)
-    || (a.measured ? a.cost - b.cost : 0)
-    || a.stages.map(stage => stage.participantId).join('\u0000').localeCompare(b.stages.map(stage => stage.participantId).join('\u0000'));
+    || (a.measured ? a.cost - b.cost : 0) || byIds(a, b);
   return Object.freeze(routes.sort(order).slice(0, limits.maxRoutes).map(Object.freeze));
 }
 
 /** New attempts move to a better-ranked route only when it is cheaper by the margin; attempts already
- * running are never moved, and the current route is kept while any attempt on it is active. */
+ * running are never moved, and the current route is kept while any attempt on it is active. A current
+ * route that is no longer admissible (a full, closed or memory-short stage) takes no new attempts, so
+ * they go to the best admissible route; its active attempts stay where they are. */
 export function preferRoute({ current, ranked, active, margin }) {
   assert(finite(margin) && margin < 1 && Array.isArray(ranked), 'Explicit route preference margin required');
   const best = ranked[0] ?? null;
   if (!current || !best) return best ?? current ?? null;
   const same = route => route.stages.map(stage => stage.participantId).join() === current.stages.map(stage => stage.participantId).join();
-  if (active || same(best)) return current;
   const mine = ranked.find(same);
-  if (!best.measured || !mine?.measured) return mine ? current : best;
+  if (!mine) return best;
+  if (active || same(best)) return current;
+  if (!best.measured || !mine.measured) return current;
   return best.cost <= mine.cost * (1 - margin) ? best : current;
 }

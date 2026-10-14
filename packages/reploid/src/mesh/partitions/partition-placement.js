@@ -50,8 +50,9 @@ export function selectPartitionExecution({ model, capabilities, ordered = false 
   return { transportId: selected?.transportId ?? null, eligibility };
 }
 
-/** Deterministic bipartite matching for new attempts only. No cost optimum or physical-device independence is inferred. */
-export async function selectPartitionRoute({ runtime, plan, model, capabilities, limits, now }) {
+/** Eligible stage offers per index for one model plan, sorted by participant identity.
+ * Shared by first-valid matching and opt-in measured ranking; grants nothing. */
+export async function eligiblePartitionStages({ runtime, plan, model, capabilities, limits, now }) {
   assert(limits && ['maxStages', 'maxPeers', 'maxOffersPerPeer', 'maxSelectionSteps']
     .every(key => Number.isSafeInteger(limits[key]) && limits[key] > 0), 'Explicit route selection limits required');
   assert(Number.isSafeInteger(now) && now >= 0 && Array.isArray(capabilities)
@@ -91,6 +92,13 @@ export async function selectPartitionRoute({ runtime, plan, model, capabilities,
   const compare = (a, b) => a < b ? -1 : a > b ? 1 : 0;
   candidates.forEach(rows => rows.sort((a, b) => compare(a.participantId, b.participantId)
     || compare(a.residentId, b.residentId) || compare(a.executionId, b.executionId)));
+  return { plan: planSnapshot, model: modelSnapshot, planId, activation, candidates, eligibility };
+}
+
+/** Deterministic bipartite matching for new attempts only. No cost optimum or physical-device independence is inferred. */
+export async function selectPartitionRoute(selection) {
+  const { plan: planSnapshot, model: modelSnapshot, planId, activation, candidates, eligibility } = await eligiblePartitionStages(selection);
+  const policy = { ...selection.limits };
   let selectionSteps = 0;
   const finish = (route, reason) => Object.freeze({ route, reason, selectionSteps,
     eligibility: Object.freeze(eligibility.map(Object.freeze)) });
@@ -119,7 +127,7 @@ export async function selectPartitionRoute({ runtime, plan, model, capabilities,
       found = predecessor.get(found.index);
     }
   }
-  const route = await validatePartitionRoute(runtime, planSnapshot, { schema: PARTITION_ROUTE_SCHEMA,
+  const route = await validatePartitionRoute(selection.runtime, planSnapshot, { schema: PARTITION_ROUTE_SCHEMA,
     modelId: modelSnapshot.id, modelIdentity: modelSnapshot.identity, planId, stages, activation });
   return finish(route, 'reservation-required');
 }

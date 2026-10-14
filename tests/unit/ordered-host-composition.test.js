@@ -73,6 +73,11 @@ it('browser binds an operator auto choice to the authenticated transport only wi
   expect(ports.options.ordered).toEqual({ stage: null, maxRouteBytes: orderedPolicy.limits.maxRouteBytes,
     maxSelectionSteps: orderedPolicy.limits.maxSelectionSteps, maxRoutes: orderedPolicy.limits.maxRoutes,
     orchestration: { autoStage: { dwellMs: 60000, transportId: 'actual-rtc' } } });
+  // Coordinator ranking passes through unchanged next to an explicitly assigned stage.
+  const ranking = { margin: 0.1, smoothing: 0.5, maxObservations: 64, workload: { promptTokens: 24, expectedTokens: 64 } };
+  await browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ routeRanking: ranking }))).connect();
+  expect(ports.options.ordered.orchestration).toEqual({ routeRanking: ranking });
+  expect(() => browserSwarm(storage(JSON.stringify(stage()), JSON.stringify({ routeRanking: { ...ranking, margin: 1 } })))).toThrow('orchestration');
   // The library's chosen stage still passes the host's explicit stage validation before loading.
   await expect(Promise.resolve().then(() => ports.options.loadProgram({ ...model, id: 'different' }, 1, {}))).rejects.toThrow('assigned');
   for (const [stageValue, policyValue] of [[auto, null], [JSON.stringify(stage()), policy],
